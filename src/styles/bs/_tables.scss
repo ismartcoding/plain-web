@@ -1,0 +1,52 @@
+.table {
+  color: var(--text-color);
+  border-color: var(--border-color);
+  border-collapse: collapse;
+  border-radius: var(--border-radius-sm);
+  border-style: hidden;
+  /* hide standard table (collapsed) border */
+  box-shadow: 0 0 0 1px currentColor;
+  width: 100%;
+  margin-bottom: 1rem;
+  vertical-align: top;
+
+  th, td.nowrap {
+    word-break: keep-all;
+    white-space: nowrap;
+  }
+  
+  > :not(caption) > * > * {
+    padding: 0.5rem 0.5rem;
+    border-bottom-width: 1px;
+    word-break: break-all;
+  }
+
+  > tbody {
+    vertical-align: inherit;
+  }
+
+  > thead {
+    vertical-align: bottom;
+  }
+
+  // Highlight border color between thead, tbody and tfoot.
+  > :not(:last-child) > :last-child > * {
+    border-bottom-color: var(--border-color);
+  }
+
+  tr.checked {
+    background-color: var(--selected-bg-color);
+  }
+}
+
+
+.caption-top {
+  caption-side: top;
+}
+
+.table-sm {
+  > :not(caption) > * > * {
+    padding: 0.25rem 0.25rem;
+  }
+}
+
