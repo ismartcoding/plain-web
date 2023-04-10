@@ -1,0 +1,68 @@
+<template>
+  <v-modal :title="title">
+    <template #body>
+      <input
+        ref="input"
+        type="text"
+        :placeholder="placeholder"
+        class="form-control"
+        v-model="inputValue"
+        @keyup.enter="doAction"
+      />
+      <div class="invalid-feedback" v-show="valueError">
+        {{ valueError ? $t(valueError) : '' }}
+      </div>
+    </template>
+    <template #action>
+      <button type="button" :disabled="loading" class="btn" @click="doAction">
+        {{ $t('save') }}
+      </button>
+    </template>
+  </v-modal>
+</template>
+<script setup lang="ts">
+import { useField, useForm } from 'vee-validate'
+import { nextTick, ref, type PropType } from 'vue'
+import { string } from 'yup'
+import type { OperationVariables } from '@apollo/client/core'
+import { popModal } from './modal'
+
+const { handleSubmit } = useForm()
+
+const input = ref<HTMLInputElement>()
+
+const props = defineProps({
+  getVariables: {
+    type: Function as PropType<(value: string) => OperationVariables>,
+    required: true,
+  },
+  title: { type: String, required: true },
+  placeholder: { type: String },
+  value: { type: String },
+  mutation: { type: Function, required: true },
+  done: {
+    type: Function as PropType<(value: string) => void>,
+  },
+})
+
+const { mutate, loading, onDone } = props.mutation()
+const { value: inputValue, resetField, errorMessage: valueError } = useField('inputValue', string().required())
+inputValue.value = props.value ?? ''
+if (!inputValue.value) {
+  resetField()
+}
+
+;(async () => {
+  await nextTick()
+  input.value?.focus()
+})()
+
+const doAction = handleSubmit(() => {
+  mutate(props.getVariables(inputValue.value ?? ''))
+})
+
+onDone(() => {
+  props.done?.call(this, inputValue.value!)
+  popModal()
+})
+</script>
