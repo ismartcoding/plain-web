@@ -1,6 +1,6 @@
 # Plain Web
 
-This is web ui source code of [Plain App](https://github.com/ismartcoding/plain-app).
+This is web ui source code of [PlainApp](https://github.com/ismartcoding/plain-app).
 
 ## Run
 

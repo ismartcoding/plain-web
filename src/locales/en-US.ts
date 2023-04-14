@@ -1,5 +1,5 @@
 export default {
-  app_name: 'Plain',
+  app_name: 'PlainApp',
   cancel: 'Cancel',
   ok: 'OK',
   connection_timeout: 'Connection is timeout',
