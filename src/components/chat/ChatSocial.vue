@@ -1,12 +1,12 @@
 <template>
   <div class="chat-section">
-    <a class="list-item" @click="openTab('/messages')" style="display: none">
+    <a class="list-item" @click="openTab('/messages')">
       <span class="key">{{ $t('page_title.messages') }}</span>
     </a>
     <a class="list-item" @click="openTab('/contacts')">
       <span class="key">{{ $t('page_title.contacts') }}</span>
     </a>
-    <a class="list-item" @click="openTab('/calls')" style="display: none">
+    <a class="list-item" @click="openTab('/calls')">
       <span class="key">{{ $t('page_title.calls') }}</span>
     </a>
   </div>

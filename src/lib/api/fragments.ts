@@ -32,6 +32,7 @@ export const appFragment = gql`
     }
     audioCurrent
     audioMode
+    allowSensitivePermissions
   }
   ${playlistAudioFragment}
 `

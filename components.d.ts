@@ -20,7 +20,6 @@ declare module '@vue/runtime-core' {
     ChatFiles: typeof import('./src/components/chat/ChatFiles.vue')['default']
     ChatImages: typeof import('./src/components/chat/ChatImages.vue')['default']
     ChatNetwork: typeof import('./src/components/chat/ChatNetwork.vue')['default']
-    ChatRead: typeof import('./src/components/chat/ChatRead.vue')['default']
     ChatSocial: typeof import('./src/components/chat/ChatSocial.vue')['default']
     ChatStorage: typeof import('./src/components/chat/ChatStorage.vue')['default']
     ChatWork: typeof import('./src/components/chat/ChatWork.vue')['default']
