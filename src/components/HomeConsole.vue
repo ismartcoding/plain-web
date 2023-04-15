@@ -55,7 +55,6 @@ import ChatEducation from './chat/ChatEducation.vue'
 import ChatNetwork from './chat/ChatNetwork.vue'
 import ChatImages from './chat/ChatImages.vue'
 import ChatStorage from './chat/ChatStorage.vue'
-import ChatRead from './chat/ChatRead.vue'
 import ChatWork from './chat/ChatWork.vue'
 import ChatSocial from './chat/ChatSocial.vue'
 import { storeToRefs } from 'pinia'
@@ -119,7 +118,6 @@ function getComponent(type: string) {
     network: ChatNetwork,
     images: ChatImages,
     storage: ChatStorage,
-    read: ChatRead,
     work: ChatWork,
     social: ChatSocial,
     files: ChatFiles,
