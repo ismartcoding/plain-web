@@ -30,6 +30,13 @@ export default defineConfig({
         sanitizeFileName(fileName) {
           return sanitizeFileName(fileName)
         },
+        assetFileNames(assetInfo) {
+          let extType = assetInfo.name?.split('.')?.at(1) ?? ''
+          if (/woff2|woff|ttf/i.test(extType)) {
+            return 'assets/[name][extname]'
+          }
+          return 'assets/[name]-[hash][extname]'
+        }
       },
     },
   },
