@@ -2,11 +2,7 @@
 
 This is web ui source code of [PlainApp](https://github.com/ismartcoding/plain-app).
 
-## Introduction
-
-In a world where many apps are cluttered with ads and invasive tracking, PlainApp offers a refreshing alternative. PlainApp is designed to help you manage your private data with ease, without sacrificing your privacy or wasting your time.
-
-With PlainApp, your phone becomes more than just a plaything. It becomes a powerful tool for managing your digital life.
+PlainApp is an open-source application that allows you to manage your phone through a web browser. Access files, videos, music, contacts, sms, calls, and more from your desktop using a secure, easy to use web interface!
 
 ## Features
 
@@ -16,14 +12,15 @@ With PlainApp, your phone becomes more than just a plaything. It becomes a power
 - No Firebase Cloud Messaging/Analytics: We don't track your activity or use your data for advertising purposes. We only collect crash logs through Firebase Crashlytics.
 - User-friendly: PlainApp has a modern, customizable interface with multi-language support, light/dark theme options, and e-ink screen compatibility.
 - Desktop management: You can manage your phone from your desktop by visiting a self-hosted webpage wirelessly.
-- SMS, contacts, and calls management: You can manage these features on the self-hosted webpage as well.
+- Contacts management: You can manage these features on the self-hosted webpage as well.
 - File management: Manage files, images, videos, and audios on the self-hosted webpage.
 - Note-taking: Use PlainApp to manage your notes with a built-in Markdown editor.
 - RSS reader: Read articles in a clean UI.
 - TV casting: Cast your videos, images, and audios to your TV.
 - Video and audio playback: Play videos and audios in the app and on the webpage.
 - Backup and export: Backup and export your app data for safekeeping.
-- ChatGPT conversation UI.
+- ChatGPT conversation UI (web only)
+- SMS, Calls: Read your SMS and calls on webpage.(Apk only)
 - And more features are planned for the future.
 
 PlainApp's minimalist design is intentional, so you can focus on what matters most: your valuable data.
