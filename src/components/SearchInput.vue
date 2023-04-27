@@ -91,7 +91,7 @@ function onFocus() {
 
 .search-panel {
   width: 400px;
-  padding: 16px 8px;
+  padding: 16px;
 }
 
 /* Fix the X appearing in search field on Chrome and IE */

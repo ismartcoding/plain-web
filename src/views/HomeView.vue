@@ -28,10 +28,11 @@
 }}</span>
               </h5>
               <p class="card-text stats-items">
-                <a href="#" @click.prevent="openTab('/files')">{{ $t('files') }} </a>
                 <a href="#" @click.prevent="openTab('/images')"> {{ $t('images') }}</a>
                 <a href="#" @click.prevent="openTab('/audios')"> {{ $t('audios') }}</a>
                 <a href="#" @click.prevent="openTab('/videos')">{{ $t('videos') }}</a>
+                <a href="#" @click.prevent="openTab('/files')">{{ $t('files') }} </a>
+                <a href="#" @click.prevent="openTab('/apps')">{{ $t('apps') }}</a>
               </p>
             </div>
           </div>

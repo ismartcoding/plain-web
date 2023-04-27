@@ -312,3 +312,15 @@ export const updateAIChatConfigGQL = gql`
     }
   }
 `
+
+export const uninstallAppsGQL = gql`
+  mutation uninstallApps($ids: [ID!]!) {
+    uninstallApps(ids: $ids)
+  }
+`
+
+export const uninstallAppGQL = gql`
+  mutation uninstallApps($id: ID!) {
+    uninstallApps(ids: [$id])
+  }
+`

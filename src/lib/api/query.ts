@@ -16,6 +16,7 @@ import {
   feedFragment,
   feedEntryFragment,
   aiChatFragment,
+  applicationFragment,
 } from './fragments'
 
 export class InitQueryParams<TResult> {
@@ -334,4 +335,14 @@ export const aiChatConfigGQL = gql`
       chatGPTApiKey
     }
   }
+`
+
+export const appsGQL = gql`
+  query apps($offset: Int!, $limit: Int!, $query: String!) {
+    apps(offset: $offset, limit: $limit, query: $query) {
+      ...ApplicationFragment
+    }
+    appCount(query: $query)
+  }
+  ${applicationFragment}
 `

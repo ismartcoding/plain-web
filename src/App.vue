@@ -35,7 +35,7 @@ async function connect() {
 
   ws.onmessage = async (event: MessageEvent) => {
     const r = JSON.parse(aesDecrypt(key, sjcl.codec.base64.toBits(event.data)))
-    console.log(r)
+    // console.log(r)
     if (r.type === 'FEEDS_FETCHED') {
       emitter.emit('feeds_fetched', JSON.parse(r.data))
     } else if (r.type === 'AI_CHAT_REPLIED') {
