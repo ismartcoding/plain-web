@@ -3,6 +3,9 @@ function getLocale() {
 }
 
 export function formatDateTime(str: string, options?: {}) {
+  if (str === '1970-01-01T00:00:00Z') {
+    return ''
+  }
   return new Intl.DateTimeFormat(getLocale(), {
     hour12: false,
     dateStyle: 'short',
@@ -12,6 +15,9 @@ export function formatDateTime(str: string, options?: {}) {
 }
 
 export function formatDateTimeFull(str: string) {
+  if (str === '1970-01-01T00:00:00Z') {
+    return ''
+  }
   return formatDateTime(str, { dateStyle: 'long', timeStyle: 'long' })
 }
 

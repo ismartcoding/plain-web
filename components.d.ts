@@ -46,6 +46,7 @@ declare module '@vue/runtime-core' {
     'IMaterialSymbols:chevronRightRounded': typeof import('~icons/material-symbols/chevron-right-rounded')['default']
     'IMaterialSymbols:closeRounded': typeof import('~icons/material-symbols/close-rounded')['default']
     'IMaterialSymbols:deleteOutlineRounded': typeof import('~icons/material-symbols/delete-outline-rounded')['default']
+    'IMaterialSymbols:downloadRounded': typeof import('~icons/material-symbols/download-rounded')['default']
     'IMaterialSymbols:expandMoreRounded': typeof import('~icons/material-symbols/expand-more-rounded')['default']
     'IMaterialSymbols:folderOutlineRounded': typeof import('~icons/material-symbols/folder-outline-rounded')['default']
     'IMaterialSymbols:formatListNumberedRounded': typeof import('~icons/material-symbols/format-list-numbered-rounded')['default']

@@ -203,10 +203,14 @@ export const useFiles = (app: Ref<any>, initDir: string) => {
 
 export const useDownload = (app: Ref<any>) => {
   return {
-   async download(path: string) {
-    const { fileIdToken } = app.value
+    async download(path: string, fileName?: string) {
+      const { fileIdToken } = app.value
       const url = await getFileUrlByPath(fileIdToken, path)
-      download(url + '&dl=1', getFileName(path))
+      if (fileName) {
+        download(url + `&dl=1&name=${fileName}`, fileName)
+      } else {
+        download(url + '&dl=1', getFileName(path))
+      }
     },
   }
 }

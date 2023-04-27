@@ -58,6 +58,23 @@ const router = createRouter({
           ],
         },
         {
+          path: 'apps',
+          component: () => import('../views/AppsRootView.vue'),
+          meta: { group: 'apps' },
+          children: [
+            {
+              path: '',
+              component: () => import('../views/AppsView.vue'),
+              meta: { group: 'apps' },
+            },
+            {
+              path: ':type',
+              component: () => import('../views/AppsView.vue'),
+              meta: { group: 'apps' },
+            },
+          ],
+        },
+        {
           path: 'contacts',
           component: () => import('../views/ContactsRootView.vue'),
           meta: { group: 'contacts' },
