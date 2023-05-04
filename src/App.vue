@@ -8,8 +8,9 @@ import { useI18n } from 'vue-i18n'
 import emitter from './plugins/eventbus'
 import toast from '@/components/toaster'
 import { getWebSocketBaseUrl } from './lib/api/api'
-import { aesDecrypt, aesEncrypt } from './lib/api/crypto'
+import { aesDecrypt, aesEncrypt, bitArrayToUint8Array } from './lib/api/crypto'
 import sjcl from 'sjcl'
+import { arrayBuffertoBits } from './lib/api/sjcl-arraybuffer'
 const { t } = useI18n()
 document.title = t('app_name')
 
@@ -27,19 +28,26 @@ async function connect() {
 
   ws = new WebSocket(`${getWebSocketBaseUrl()}?cid=${clientId}`)
   ws.onopen = async () => {
-    console.log('WebSocket is connected to app')
+    console.log('WebSocket is connecting to app')
     retryTime = 1000
     const enc = aesEncrypt(key, new Date().getTime().toString())
-    ws.send(sjcl.codec.base64.fromBits(enc))
+    ws.send(bitArrayToUint8Array(enc))
   }
 
   ws.onmessage = async (event: MessageEvent) => {
-    const r = JSON.parse(aesDecrypt(key, sjcl.codec.base64.toBits(event.data)))
-    // console.log(r)
+    let r: any
+    try {
+      r = JSON.parse(await event.data.text())
+    } catch (ex) {
+      r = JSON.parse(aesDecrypt(key, arrayBuffertoBits(await event.data.arrayBuffer())))
+    }
+    console.log(r)
     if (r.type === 'FEEDS_FETCHED') {
       emitter.emit('feeds_fetched', JSON.parse(r.data))
     } else if (r.type === 'AI_CHAT_REPLIED') {
       emitter.emit('ai_chat_replied', JSON.parse(r.data))
+    } else if (r.type === 'SCREEN_MIRRORING') {
+      emitter.emit('screen_mirrorring', r.data)
     }
   }
 

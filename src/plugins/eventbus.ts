@@ -10,6 +10,7 @@ type Events = {
   toast: string
   feeds_fetched: any
   ai_chat_replied: any
+  screen_mirrorring: string
 }
 
 const emitter: Emitter<Events> = mitt<Events>()

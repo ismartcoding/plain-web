@@ -177,6 +177,11 @@ const router = createRouter({
           meta: { group: 'qrcode_generator' },
         },
         {
+          path: 'screen-mirror',
+          component: () => import('../views/ScreenMirrorView.vue'),
+          meta: { group: 'screen_mirror' },
+        },
+        {
           path: 'network',
           component: () => import('../views/NetworkView.vue'),
           meta: { group: 'network' },

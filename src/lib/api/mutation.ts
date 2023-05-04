@@ -324,3 +324,15 @@ export const uninstallAppGQL = gql`
     uninstallApps(ids: [$id])
   }
 `
+
+export const startScreenMirrorGQL = gql`
+  mutation startScreenMirror {
+    startScreenMirror
+  }
+`
+
+export const stopScreenMirrorGQL = gql`
+  mutation stopScreenMirror {
+    stopScreenMirror
+  }
+`

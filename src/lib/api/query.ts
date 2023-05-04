@@ -346,3 +346,10 @@ export const appsGQL = gql`
   }
   ${applicationFragment}
 `
+
+
+export const screenMirrorImageGQL = gql`
+  query screenMirrorImage {
+    screenMirrorImage
+  }
+`

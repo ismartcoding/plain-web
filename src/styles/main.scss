@@ -581,7 +581,7 @@ div.actions {
 
 .page-container {
   height: calc(100vh - 44px);
-  overflow: scroll;
+  overflow: auto;
 
   .main {
     margin-left: 16px;

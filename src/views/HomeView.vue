@@ -44,6 +44,7 @@
               <p class="card-text stats-items">
                 <a href="#" @click.prevent="openTab('/json-viewer')">{{ $t('json_viewer') }}</a>
                 <a href="#" @click.prevent="openTab('/qrcode-generator')">{{ $t('qrcode_generator') }}</a>
+                <a href="#" @click.prevent="openTab('/screen-mirror')">{{ $t('screen_mirror') }}</a>
               </p>
             </div>
           </div>
