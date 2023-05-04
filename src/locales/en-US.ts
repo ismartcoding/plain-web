@@ -87,6 +87,7 @@ export default {
     qrcode_generator: 'QrCode generator',
     trash: 'Trash',
     aichats: 'ChatGPT',
+    screen_mirror: 'Screen mirror',
   },
   wireguard: {},
   wifi: {
@@ -357,4 +358,9 @@ export default {
   version: 'Version',
   size: 'Size',
   installed_at: 'Installed at',
+  screen_mirror: 'Screen mirror',
+  try_again: 'Try again',
+  stop_mirror: 'Stop mirror',
+  screen_mirror_request_permission_failed: 'You haven\'t grant PlainApp the permission to take screenshots.',
+  screen_mirror_request_permission: 'Please tap "Start now" on the phone.<br>If the permission window is not displayed, please relaunch PlainApp.<br>Try again in {seconds} seconds',
 }

@@ -37,10 +37,10 @@ import { useField, useForm } from 'vee-validate'
 import { string } from 'yup'
 import { useI18n } from 'vue-i18n'
 import router from '@/plugins/router'
-import { sha512, hashToKey, aesEncrypt, aesDecrypt } from '@/lib/api/crypto'
+import { sha512, hashToKey, aesEncrypt, aesDecrypt, bitArrayToUint8Array } from '@/lib/api/crypto'
 import { getApiBaseUrl, getApiHeaders, getWebSocketBaseUrl } from '@/lib/api/api'
 import { getAccurateAgent } from '@/lib/agent/agent'
-import sjcl from 'sjcl'
+import { arrayBuffertoBits } from '@/lib/api/sjcl-arraybuffer'
 const { handleSubmit, isSubmitting } = useForm()
 const showError = ref(false)
 const showConfirm = ref(false)
@@ -82,10 +82,10 @@ const onSubmit = handleSubmit(async () => {
         isMobile: ua.isMobile,
       })
     )
-    ws.send(sjcl.codec.base64.fromBits(enc))
+    ws.send(bitArrayToUint8Array(enc))
   }
   ws.onmessage = async (event: MessageEvent) => {
-    const d = aesDecrypt(key, sjcl.codec.base64.toBits(event.data))
+    const d = aesDecrypt(key, arrayBuffertoBits(await event.data.arrayBuffer()))
     const r = JSON.parse(d)
     if (r.status === 'PENDING') {
       showConfirm.value = true
