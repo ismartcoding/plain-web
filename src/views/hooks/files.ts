@@ -5,7 +5,7 @@ import { FilePanel, isAudio, isImage, isVideo, type IFile } from '@/lib/file'
 import { filesGQL, initQuery, storageStatsGQL } from '@/lib/api/query'
 import { useI18n } from 'vue-i18n'
 import toast from '@/components/toaster'
-import { download, getFileId, getFileName, getFileUrlByPath } from '@/lib/api/file'
+import { download, getFileId, getFileName, getFileUrl, getFileUrlByPath } from '@/lib/api/file'
 import type { ISource } from '@/components/lightbox/types'
 import { storeToRefs } from 'pinia'
 import { useTempStore } from '@/stores/temp'
@@ -14,6 +14,7 @@ import { replacePathNoReload } from '@/plugins/router'
 import { buildQuery, type IFilterField } from '@/lib/search'
 import type { MainState } from '@/stores/main'
 import { findIndex } from 'lodash-es'
+import { getApiBaseUrl } from '@/lib/api/api'
 
 export const useCreateDir = (app: Ref<any>, panels: Ref<FilePanel[]>) => {
   const createPath = ref('')
@@ -203,13 +204,31 @@ export const useFiles = (app: Ref<any>, initDir: string) => {
 
 export const useDownload = (app: Ref<any>) => {
   return {
-    async download(path: string, fileName?: string) {
+    async downloadFile(path: string, fileName?: string) {
       const { fileIdToken } = app.value
       const url = await getFileUrlByPath(fileIdToken, path)
       if (fileName) {
         download(url + `&dl=1&name=${fileName}`, fileName)
       } else {
         download(url + '&dl=1', getFileName(path))
+      }
+    },
+    async downloadDir(path: string, fileName?: string) {
+      const { fileIdToken } = app.value
+      const id = await getFileId(fileIdToken, path)
+      const url = `${getApiBaseUrl()}/zip/dir?id=${encodeURIComponent(id)}`
+      if (fileName) {
+        download(url + `&name=${fileName}`, fileName)
+      } else {
+        download(url, getFileName(path))
+      }
+    },
+    downloadFiles(key: string, fileName?: string) {
+      const url = `${getApiBaseUrl()}/zip/files?id=${encodeURIComponent(key)}`
+      if (fileName) {
+        download(url + `&name=${fileName}`, fileName)
+      } else {
+        download(url, '')
       }
     },
   }

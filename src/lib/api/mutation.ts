@@ -336,3 +336,12 @@ export const stopScreenMirrorGQL = gql`
     stopScreenMirror
   }
 `
+
+export const setTempValueGQL = gql`
+  mutation setTempValue($key: String!, $value: String!) {
+    setTempValue(key: $key, value: $value) {
+      key
+      value
+    }
+  }
+`

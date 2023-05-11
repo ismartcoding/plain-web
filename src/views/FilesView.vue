@@ -4,6 +4,11 @@
       <div class="v-toolbar">
         <breadcrumb :current="getPageTitle" />
         <div class="right-actions">
+          <dropdown v-if="selectMode" :title="$t('actions')" :items="actionItems" />
+          <div class="form-check mt-2 me-4">
+            <input class="form-check-input" v-model="selectMode" id="select-mode" type="checkbox" />
+            <label class="form-check-label" for="select-mode">{{ $t('select_mode') }}</label>
+          </div>
           <div class="form-check mt-2">
             <input class="form-check-input" v-model="fileShowHidden" id="show-hidden" type="checkbox" />
             <label class="form-check-label" for="show-hidden">{{ $t('show_hidden') }}</label>
@@ -18,6 +23,7 @@
                 active: (currentDir + '/').startsWith(f.path + '/') || selectedItem?.path === f.path,
               }" @click="clickItem(panel, f)" @dblclick="dbclickItem(panel, f)"
                 @contextmenu="itemCtxMenu($event, panel, f)">
+                <input class="form-check-input" v-if="selectMode" v-model="f.checked" type="checkbox" />
                 <i-material-symbols:folder-outline-rounded class="bi" v-if="f.isDir" />
                 <img v-if="isImage(f.name) || isVideo(f.name)" :src="getFileUrl(f.fileId) + '&w=50&h=50'" width="50"
                   height="50" />
@@ -27,7 +33,6 @@
                     {{ formatDateTime(f.updatedAt) }}<template v-if="!f.isDir">, {{ formatFileSize(f.size) }}</template>
                   </div>
                 </div>
-
               </div>
             </template>
             <div class="empty" @contextmenu="emptyCtxMenu($event, panel.dir)">
@@ -79,8 +84,10 @@ import { openModal } from '@/components/modal'
 import DeleteFileConfirm from '@/components/DeleteFileConfirm.vue'
 import EditValueModal from '@/components/EditValueModal.vue'
 import { useRoute } from 'vue-router'
-import { decodeBase64 } from '@/lib/strutil'
+import { decodeBase64, shortUUID } from '@/lib/strutil'
 import { parseQuery } from '@/lib/search'
+import type { IDropdownItem } from '@/lib/interfaces'
+import { initMutation, setTempValueGQL } from '@/lib/api/mutation'
 
 const { t } = useI18n()
 const sources = ref([])
@@ -91,6 +98,7 @@ const q = ref(decodeBase64(query.q?.toString() ?? ''))
 const fields = parseQuery(q.value as string)
 const initPath = ref(fields.find((it) => it.name === 'path')?.value ?? '')
 const initDir = ref(fields.find((it) => it.name === 'dir')?.value ?? '')
+const selectMode = ref(false)
 const mainStore = useMainStore()
 const { app } = storeToRefs(useTempStore())
 const { loading, panels, currentDir, refetch: refetchFiles } = useFiles(app, initDir.value)
@@ -100,12 +108,46 @@ const { createPath, createVariables, createMutation } = useCreateDir(app, panels
 const { renameValue, renamePath, renameDone, renameMutation, renameVariables } = useRename(panels)
 const { totalBytes, freeBytes, refetch: refetchStats } = useStats()
 const { onDeleted } = useDelete(panels, currentDir, refetchStats)
-const { download } = useDownload(app)
+const { downloadFile, downloadDir, downloadFiles } = useDownload(app)
 const { view } = useView(sources, ivView)
 const { selectedItem, select } = useSingleSelect(currentDir, q, mainStore)
 const { canPaste, copy, cut, paste } = useCopyPaste(refetchFiles, refetchStats)
 const { input: fileInput, upload, uploadChanged } = useUpload()
+import toast from '@/components/toaster'
 
+function deleteItems() {
+
+}
+
+const { mutate: setTempValue, onDone: setTempValueDone } = initMutation({
+  document: setTempValueGQL,
+  appApi: true,
+})
+
+setTempValueDone((r: any) => {
+  downloadFiles(r.data.setTempValue.key)
+})
+
+const actionItems: IDropdownItem[] = [
+  {
+    text: t('download'), click: () => {
+      const paths: string[] = []
+      panels.value.forEach((p: FilePanel) => {
+        p.items.forEach((f: IFile) => {
+          if (f.checked) {
+            paths.push(f.path)
+          }
+        })
+      })
+      if (paths.length === 0) {
+        toast(t('select_first'), 'error')
+        return
+      }
+      setTempValue({ key: shortUUID(), value: JSON.stringify(paths) })
+    }
+  },
+  { text: t('delete'), click: deleteItems },
+]
 const { fileShowHidden } = storeToRefs(mainStore)
 
 if (initPath.value) {
@@ -132,6 +174,10 @@ function getPageTitle() {
 }
 
 function clickItem(panel: FilePanel, item: IFile) {
+  if (selectMode.value) {
+    item.checked = !item.checked
+    return
+  }
   select(panel, item)
 }
 
@@ -144,7 +190,7 @@ function dbclickItem(panel: FilePanel, item: IFile) {
     if (canView(item)) {
       view(panel, item)
     } else {
-      download(item.path)
+      downloadFile(item.path)
     }
   }
 }
@@ -197,10 +243,12 @@ function itemCtxMenu(e: MouseEvent, panel: FilePanel, f: IFile) {
           upload(f.path)
         },
       },
-      // {
-      //   label: t('download'),
-      //   onClick: () => {},
-      // },
+      {
+        label: t('download'),
+        onClick: () => {
+          downloadDir(f.path)
+        },
+      },
     ]
   } else {
     items = []
@@ -215,7 +263,7 @@ function itemCtxMenu(e: MouseEvent, panel: FilePanel, f: IFile) {
     items.push({
       label: t('download'),
       onClick: () => {
-        download(f.path)
+        downloadFile(f.path)
       },
     })
   }
@@ -328,8 +376,12 @@ onMounted(() => {
       cursor: pointer;
     }
 
-    .title {
-      margin-left: 8px;
+    svg, img {
+      margin-right: 8px;
+    }
+
+    .form-check-input {
+      margin-right: 8px;
     }
 
     &.active {

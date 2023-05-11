@@ -38,7 +38,7 @@
         @click.stop="item.checked = !item.checked">
         <!-- <td><input class="form-check-input" type="checkbox" v-model="item.checked" /></td> -->
         <td>
-          <strong>{{ item.name }}  <i-material-symbols:download-rounded class="bi bi-btn" @click.stop="download(item.path, `${item.name.replace(' ', '')}-${item.id}.apk`)" /></strong><br />
+          <strong>{{ item.name }}  <i-material-symbols:download-rounded class="bi bi-btn" @click.stop="downloadFile(item.path, `${item.name.replace(' ', '')}-${item.id}.apk`)" /></strong><br />
           <field-id :id="item.id" :raw="item" />
         </td>
         <td>{{ item.version }}</td>
@@ -98,7 +98,7 @@ const filter: IFilter = reactive({
   tags: [],
 })
 
-const { download } = useDownload(app)
+const { downloadFile } = useDownload(app)
 const route = useRoute()
 const query = route.query
 const page = ref(parseInt(query.page?.toString() ?? '1'))
