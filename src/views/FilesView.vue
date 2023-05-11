@@ -146,7 +146,27 @@ const actionItems: IDropdownItem[] = [
       setTempValue({ key: shortUUID(), value: JSON.stringify(paths) })
     }
   },
-  { text: t('delete'), click: deleteItems },
+  {
+    text: t('delete'), click: () => {
+      const files: IFile[] = []
+      panels.value.forEach((p: FilePanel) => {
+        p.items.forEach((f: IFile) => {
+          if (f.checked) {
+            files.push(f)
+          }
+        })
+      })
+      if (files.length === 0) {
+        toast(t('select_first'), 'error')
+        return
+      }
+
+      openModal(DeleteFileConfirm, {
+        files: files,
+        onDone: onDeleted,
+      })
+    }
+  },
 ]
 const { fileShowHidden } = storeToRefs(mainStore)
 
@@ -317,7 +337,7 @@ function itemCtxMenu(e: MouseEvent, panel: FilePanel, f: IFile) {
       label: t('delete'),
       onClick: () => {
         openModal(DeleteFileConfirm, {
-          file: f,
+          files: [f],
           onDone: onDeleted,
         })
       },
@@ -376,7 +396,8 @@ onMounted(() => {
       cursor: pointer;
     }
 
-    svg, img {
+    svg,
+    img {
       margin-right: 8px;
     }
 
