@@ -72,15 +72,20 @@ export const useRename = (panels: Ref<FilePanel[]>) => {
 
 export const useDelete = (panels: Ref<FilePanel[]>, currentDir: Ref<string>, refetchStats: () => void) => {
   return {
-    onDeleted(f: IFile) {
+    onDeleted(files: IFile[]) {
       for (const panel of panels.value) {
-        panel.deleteItem(f.path)
+        files.forEach(f => {
+          panel.deleteItem(f.path)
+        })
       }
+      
+      files.forEach(f => {
+        if (currentDir.value.startsWith(f.path)) {
+          const index = f.path.lastIndexOf('/')
+          currentDir.value = f.path.substring(0, index) // jump the path to parent
+        }
+      })
 
-      if (currentDir.value.startsWith(f.path)) {
-        const index = f.path.lastIndexOf('/')
-        currentDir.value = f.path.substring(0, index) // jump the path to parent
-      }
       refetchStats()
     },
   }
