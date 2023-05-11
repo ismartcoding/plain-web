@@ -3,11 +3,12 @@ const videoExtensions = ['.mp4', '.mkv', '.webm', '.avi', '.3gp', '.mov', '.m4v'
 const audioExtensions = ['.mp3', '.wav', '.wma', '.ogg', '.m4a', '.opus', '.flac', '.aac']
 const rawExtensions = ['.dng', '.orf', '.nef', '.arw', '.rw2', '.cr2', '.cr3']
 
-export interface IFile {
+export interface IFile extends ISelectable {
   fileId: string
   path: string
   name: string
   isDir: boolean
+  checked: boolean
   updatedAt: string
   size: number
 }

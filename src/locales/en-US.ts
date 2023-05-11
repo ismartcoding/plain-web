@@ -285,6 +285,7 @@ export default {
   duplicate: 'Duplicate',
   properties: 'Properties',
   show_hidden: 'Show hidden',
+  select_mode: 'Select mode',
   modified_at: 'Modified at',
   file_size: 'File size',
   path: 'Path',

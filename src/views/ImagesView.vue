@@ -104,7 +104,7 @@ import { buildFilterQuery, buildQuery, type IFilterField } from '@/lib/search'
 import { useAddToTags, useRemoveFromTags, useTags } from './hooks/tags'
 import { getFileName } from '@/lib/file'
 import { useSelectable } from './hooks/list'
-import { useDeleteItems } from './hooks/media'
+import { useDeleteItems, useDownloadItems } from './hooks/media'
 import emitter from '@/plugins/eventbus'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
@@ -139,6 +139,7 @@ const { visible, index, view, hide } = useMediaViewer()
 const { addToTags } = useAddToTags(tagType, items, tags)
 const { removeFromTags } = useRemoveFromTags(tagType, items, tags)
 const { deleteItems } = useDeleteItems(tagType, items)
+const { downloadItems } = useDownloadItems(items)
 
 const sources = computed(() => {
   return items.value.map((it: IImageItem) => ({
@@ -152,6 +153,7 @@ const sources = computed(() => {
 const actionItems: IDropdownItem[] = [
   { text: t('add_to_tags'), click: addToTags },
   { text: t('remove_from_tags'), click: removeFromTags },
+  { text: t('download'), click: downloadItems },
   { text: t('delete'), click: deleteItems },
 ]
 
@@ -244,5 +246,4 @@ onMounted(() => {
   font-size: 12px;
   padding: 1px 4px;
 }
-
 </style>

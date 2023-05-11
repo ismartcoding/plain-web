@@ -283,6 +283,7 @@ export default {
   duplicate: '创建副本',
   properties: '属性',
   show_hidden: '显示隐藏项',
+  select_mode: '选择模式',
   modified_at: '修改时间',
   file_size: '文件大小',
   path: '路径',

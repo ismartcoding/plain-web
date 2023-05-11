@@ -97,7 +97,7 @@ import { useAddToPlaylist, usePlay } from './hooks/audios'
 import { useSelectable } from './hooks/list'
 import emitter from '@/plugins/eventbus'
 import { useAddToTags, useRemoveFromTags, useTags } from './hooks/tags'
-import { useDeleteItems } from './hooks/media'
+import { useDeleteItems, useDownloadItems } from './hooks/media'
 import { pushModal } from '@/components/modal'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 
@@ -135,6 +135,7 @@ const { addToPlaylist } = useAddToPlaylist(items)
 const { addToTags } = useAddToTags(tagType, items, tags)
 const { removeFromTags } = useRemoveFromTags(tagType, items, tags)
 const { deleteItems } = useDeleteItems(tagType, items)
+const { downloadItems } = useDownloadItems(items)
 const router = useRouter()
 
 const { play, playing, loading: playLoading } = usePlay()
@@ -142,6 +143,7 @@ const actionItems: IDropdownItem[] = [
   { text: t('add_to_playlist'), click: addToPlaylist },
   { text: t('add_to_tags'), click: addToTags },
   { text: t('remove_from_tags'), click: removeFromTags },
+  { text: t('download'), click: downloadItems },
   { text: t('delete'), click: deleteItems },
 ]
 
