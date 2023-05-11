@@ -261,6 +261,7 @@ button:disabled {
     word-break: break-word;
     border: 1px solid currentColor;
     max-width: 50%;
+    color: var(--text-color);
   }
 }
 
