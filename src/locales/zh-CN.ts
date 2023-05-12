@@ -273,6 +273,7 @@ export default {
   current_path: '当前路径',
   create_folder: '创建目录',
   upload_files: '上传文件',
+  upload_folder: '上传目录',
   preview: '预览',
   view: '查看',
   upload: '上传',

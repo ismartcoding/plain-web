@@ -367,7 +367,40 @@ export const useCopyPaste = (refetchFiles: (path: string) => void, refetchStats:
   }
 }
 
-export const useUpload = () => {
+export const useFileUpload = () => {
+  const { uploads } = storeToRefs(useTempStore())
+
+  const _dir = ref('')
+  const input = ref<HTMLInputElement>()
+  return {
+    input,
+    upload(dir: string) {
+      _dir.value = dir
+      input.value!.value = ''
+      input.value!.click()
+    },
+    uploadChanged(e: Event) {
+      const files = (e.target as HTMLInputElement).files
+      if (!files) {
+        return
+      }
+      const items = []
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
+        items.push({
+          dir: _dir.value,
+          file,
+          status: 'created',
+          uploadedSize: 0,
+          error: '',
+        })
+      }
+      uploads.value = [...uploads.value, ...items]
+    },
+  }
+}
+
+export const useDirUpload = () => {
   const { uploads } = storeToRefs(useTempStore())
 
   const _dir = ref('')
