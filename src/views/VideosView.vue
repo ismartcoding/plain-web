@@ -109,12 +109,13 @@ import { buildFilterQuery, buildQuery, type IFilterField } from '@/lib/search'
 import { useAddToTags, useRemoveFromTags, useTags } from './hooks/tags'
 import { getFileName } from '@/lib/file'
 import { useSelectable } from './hooks/list'
-import { useDeleteItems, useDownloadItems } from './hooks/media'
+import { useDeleteItems } from './hooks/media'
 import emitter from '@/plugins/eventbus'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { pushModal } from '@/components/modal'
 import ConfirmModal from '@/components/ConfirmModal.vue'
+import { useDownloadItems } from './hooks/files'
 
 const router = useRouter()
 const mainStore = useMainStore()
@@ -144,7 +145,7 @@ const { visible, index, view, hide } = useMediaViewer()
 const { addToTags } = useAddToTags(tagType, items, tags)
 const { removeFromTags } = useRemoveFromTags(tagType, items, tags)
 const { deleteItems } = useDeleteItems(tagType, items)
-const { downloadItems } = useDownloadItems(items)
+const { downloadItems } = useDownloadItems(items, 'videos.zip')
 
 const sources = computed(() => {
   return items.value.map((it: IVideoItem) => ({

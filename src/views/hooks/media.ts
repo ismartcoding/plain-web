@@ -33,32 +33,5 @@ export const useDeleteItems = (tagType: string, items: Ref<ISelectable[]>) => {
   }
 }
 
-export const useDownloadItems = (items: Ref<ISelectable[]>) => {
-  const { t } = useI18n()
 
-  const { mutate: setTempValue, onDone: setTempValueDone } = initMutation({
-    document: setTempValueGQL,
-    appApi: true,
-  })
-
-  setTempValueDone((r: any) => {
-    const url = `${getApiBaseUrl()}/zip/files?id=${encodeURIComponent(r.data.setTempValue.key)}`
-    download(url, '')
-    items.value.forEach((it: ISelectable) => {
-      it.checked = false
-    })
-  })
-
-  return {
-    downloadItems: () => {
-      const selectedItems = items.value.filter((it: ISelectable) => it.checked)
-      if (selectedItems.length === 0) {
-        toast(t('select_first'), 'error')
-        return
-      }
-
-      setTempValue({ key: shortUUID(), value: JSON.stringify(selectedItems.map((it: any) => it.path)) })
-    },
-  }
-}
 

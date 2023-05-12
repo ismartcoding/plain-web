@@ -104,7 +104,8 @@ import { buildFilterQuery, buildQuery, type IFilterField } from '@/lib/search'
 import { useAddToTags, useRemoveFromTags, useTags } from './hooks/tags'
 import { getFileName } from '@/lib/file'
 import { useSelectable } from './hooks/list'
-import { useDeleteItems, useDownloadItems } from './hooks/media'
+import { useDeleteItems } from './hooks/media'
+import { useDownloadItems } from './hooks/files'
 import emitter from '@/plugins/eventbus'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
@@ -139,7 +140,7 @@ const { visible, index, view, hide } = useMediaViewer()
 const { addToTags } = useAddToTags(tagType, items, tags)
 const { removeFromTags } = useRemoveFromTags(tagType, items, tags)
 const { deleteItems } = useDeleteItems(tagType, items)
-const { downloadItems } = useDownloadItems(items)
+const { downloadItems } = useDownloadItems(items, 'images.zip')
 
 const sources = computed(() => {
   return items.value.map((it: IImageItem) => ({
