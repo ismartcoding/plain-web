@@ -5,7 +5,7 @@ import { FilePanel, isAudio, isImage, isVideo, type IFile } from '@/lib/file'
 import { filesGQL, initQuery, storageStatsGQL } from '@/lib/api/query'
 import { useI18n } from 'vue-i18n'
 import toast from '@/components/toaster'
-import { download, getFileId, getFileName, getFileUrl, getFileUrlByPath } from '@/lib/api/file'
+import { download, getFileId, getFileName, getFileUrlByPath } from '@/lib/api/file'
 import type { ISource } from '@/components/lightbox/types'
 import { storeToRefs } from 'pinia'
 import { useTempStore } from '@/stores/temp'
@@ -458,7 +458,15 @@ export const useDownloadItems = (items: Ref<ISelectable[]>, fileName: string) =>
         return
       }
 
-      setTempValue({ key: shortUUID(), value: JSON.stringify(selectedItems.map((it: any) => it.path)) })
+      const files: any[] = []
+      selectedItems.forEach((it: any) => {
+        if (fileName === 'apps.zip') {
+          files.push({ path: it.path, name: `${it.name.replace(' ', '')}-${it.id}.apk` })
+        } else {
+          files.push({ path: it.path })
+        }
+      })
+      setTempValue({ key: shortUUID(), value: JSON.stringify(files) })
     },
   }
 }
