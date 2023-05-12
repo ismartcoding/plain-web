@@ -50,6 +50,7 @@
       <div class="file-item-info" v-if="selectedItem">{{ $t('path') }}: {{ selectedItem.path }}</div>
       <lightbox :visible="ivVisible" :index="ivIndex" :sources="sources" @hide="ivHide" />
       <input ref="fileInput" style="display: none" type="file" multiple @change="uploadChanged" />
+      <input ref="dirFileInput" style="display: none" type="file" multiple webkitdirectory mozdirectory directory @change="dirUploadChanged" />
     </div>
   </div>
 </template>
@@ -75,7 +76,7 @@ import {
   useStats,
   useDownload,
   useView,
-  useUpload,
+  useFileUpload,
   useSingleSelect,
   useCopyPaste,
 } from './hooks/files'
@@ -112,12 +113,9 @@ const { downloadFile, downloadDir, downloadFiles } = useDownload(app)
 const { view } = useView(sources, ivView)
 const { selectedItem, select } = useSingleSelect(currentDir, q, mainStore)
 const { canPaste, copy, cut, paste } = useCopyPaste(refetchFiles, refetchStats)
-const { input: fileInput, upload, uploadChanged } = useUpload()
+const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload()
+const { input: dirFileInput, upload: uploadDir, uploadChanged: dirUploadChanged } = useFileUpload()
 import toast from '@/components/toaster'
-
-function deleteItems() {
-
-}
 
 const { mutate: setTempValue, onDone: setTempValueDone } = initMutation({
   document: setTempValueGQL,
@@ -233,7 +231,13 @@ function emptyCtxMenu(e: MouseEvent, dir: string) {
     {
       label: t('upload_files'),
       onClick: () => {
-        upload(dir)
+        uploadFiles(dir)
+      },
+    },
+    {
+      label: t('upload_folder'),
+      onClick: () => {
+        uploadDir(dir)
       },
     },
   ]
@@ -260,7 +264,13 @@ function itemCtxMenu(e: MouseEvent, panel: FilePanel, f: IFile) {
       {
         label: t('upload_files'),
         onClick: () => {
-          upload(f.path)
+          uploadFiles(f.path)
+        },
+      },
+      {
+        label: t('upload_folder'),
+        onClick: () => {
+          uploadDir(f.path)
         },
       },
       {

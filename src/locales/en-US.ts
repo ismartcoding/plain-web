@@ -275,6 +275,7 @@ export default {
   current_path: 'Current path',
   create_folder: 'Create folder',
   upload_files: 'Upload files',
+  upload_folder: 'Upload folder',
   preview: 'Preview',
   view: 'View',
   upload: 'Upload',
