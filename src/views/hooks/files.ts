@@ -1,6 +1,6 @@
 import { ref, type Ref } from 'vue'
 import type { ApolloCache, ApolloError } from '@apollo/client/core'
-import { copyFileGQL, createDirGQL, initMutation, moveFileGQL, renameFileGQL } from '@/lib/api/mutation'
+import { copyFileGQL, createDirGQL, initMutation, moveFileGQL, renameFileGQL, setTempValueGQL } from '@/lib/api/mutation'
 import { FilePanel, isAudio, isImage, isVideo, type IFile } from '@/lib/file'
 import { filesGQL, initQuery, storageStatsGQL } from '@/lib/api/query'
 import { useI18n } from 'vue-i18n'
@@ -9,12 +9,13 @@ import { download, getFileId, getFileName, getFileUrl, getFileUrlByPath } from '
 import type { ISource } from '@/components/lightbox/types'
 import { storeToRefs } from 'pinia'
 import { useTempStore } from '@/stores/temp'
-import { encodeBase64 } from '@/lib/strutil'
+import { encodeBase64, shortUUID } from '@/lib/strutil'
 import { replacePathNoReload } from '@/plugins/router'
 import { buildQuery, type IFilterField } from '@/lib/search'
 import type { MainState } from '@/stores/main'
 import { findIndex } from 'lodash-es'
 import { getApiBaseUrl } from '@/lib/api/api'
+import type { ISelectable } from '@/lib/interfaces'
 
 export const useCreateDir = (app: Ref<any>, panels: Ref<FilePanel[]>) => {
   const createPath = ref('')
@@ -429,6 +430,35 @@ export const useDirUpload = () => {
         })
       }
       uploads.value = [...uploads.value, ...items]
+    },
+  }
+}
+
+export const useDownloadItems = (items: Ref<ISelectable[]>, fileName: string) => {
+  const { t } = useI18n()
+
+  const { mutate: setTempValue, onDone: setTempValueDone } = initMutation({
+    document: setTempValueGQL,
+    appApi: true,
+  })
+
+  setTempValueDone((r: any) => {
+    const url = `${getApiBaseUrl()}/zip/files?id=${encodeURIComponent(r.data.setTempValue.key)}&name=${fileName}`
+    download(url, fileName)
+    items.value.forEach((it: ISelectable) => {
+      it.checked = false
+    })
+  })
+
+  return {
+    downloadItems: () => {
+      const selectedItems = items.value.filter((it: ISelectable) => it.checked)
+      if (selectedItems.length === 0) {
+        toast(t('select_first'), 'error')
+        return
+      }
+
+      setTempValue({ key: shortUUID(), value: JSON.stringify(selectedItems.map((it: any) => it.path)) })
     },
   }
 }

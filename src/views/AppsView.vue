@@ -2,6 +2,7 @@
   <div class="v-toolbar">
     <breadcrumb :current="() => `${$t('page_title.apps')} (${total})`" />
     <div class="right-actions">
+      <button type="button" class="btn btn-action" @click.stop="downloadItems">{{ $t('download') }}</button>
       <!-- <dropdown :title="$t('actions')" :items="actionItems" /> -->
       <search-input v-model="q" :search="doSearch">
         <template #filters>
@@ -23,7 +24,7 @@
   <table class="table">
     <thead>
       <tr>
-        <!-- <th><input class="form-check-input" type="checkbox" @change="toggleSelect" v-model="selectAll" /></th> -->
+        <th><input class="form-check-input" type="checkbox" @change="toggleSelect" v-model="selectAll" /></th>
         <th>{{ $t('name') }}</th>
         <th>{{ $t('version') }}</th>
         <th>{{ $t('size') }}</th>
@@ -36,9 +37,10 @@
     <tbody>
       <tr v-for="item in items" :key="item.id" :class="{ checked: item.checked }"
         @click.stop="item.checked = !item.checked">
-        <!-- <td><input class="form-check-input" type="checkbox" v-model="item.checked" /></td> -->
+        <td><input class="form-check-input" type="checkbox" v-model="item.checked" /></td>
         <td>
-          <strong>{{ item.name }}  <i-material-symbols:download-rounded class="bi bi-btn" @click.stop="downloadFile(item.path, `${item.name.replace(' ', '')}-${item.id}.apk`)" /></strong><br />
+          <strong>{{ item.name }} <i-material-symbols:download-rounded class="bi bi-btn"
+              @click.stop="downloadFile(item.path, `${item.name.replace(' ', '')}-${item.id}.apk`)" /></strong><br />
           <field-id :id="item.id" :raw="item" />
         </td>
         <td>{{ item.version }}</td>
@@ -57,7 +59,7 @@
     </tbody>
     <tfoot v-if="!items.length">
       <tr>
-        <td colspan="6">
+        <td colspan="7">
           <div class="no-data-placeholder">
             {{ $t(noDataKey(loading)) }}
           </div>
@@ -71,7 +73,7 @@
 <script setup lang="ts">
 import { reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
-import { formatDateTime, formatDateTimeFull, formatFileSize} from '@/lib/format'
+import { formatDateTime, formatDateTimeFull, formatFileSize } from '@/lib/format'
 import { appsGQL, initQuery } from '@/lib/api/query'
 import { useRoute } from 'vue-router'
 import { replacePath } from '@/plugins/router'
@@ -87,7 +89,7 @@ import { useDelete, useSelectable } from './hooks/list'
 import { uninstallAppGQL, uninstallAppsGQL } from '@/lib/api/mutation'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
-import { useDownload } from './hooks/files'
+import { useDownload, useDownloadItems } from './hooks/files'
 
 const mainStore = useMainStore()
 const items = ref<any[]>([])
@@ -98,6 +100,7 @@ const filter: IFilter = reactive({
   tags: [],
 })
 
+const { downloadItems } = useDownloadItems(items, 'apps.zip')
 const { downloadFile } = useDownload(app)
 const route = useRoute()
 const query = route.query
