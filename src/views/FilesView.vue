@@ -129,19 +129,19 @@ setTempValueDone((r: any) => {
 const actionItems: IDropdownItem[] = [
   {
     text: t('download'), click: () => {
-      const paths: string[] = []
+      const files: any[] = []
       panels.value.forEach((p: FilePanel) => {
         p.items.forEach((f: IFile) => {
           if (f.checked) {
-            paths.push(f.path)
+            files.push({ path: f.path })
           }
         })
       })
-      if (paths.length === 0) {
+      if (files.length === 0) {
         toast(t('select_first'), 'error')
         return
       }
-      setTempValue({ key: shortUUID(), value: JSON.stringify(paths) })
+      setTempValue({ key: shortUUID(), value: JSON.stringify(files) })
     }
   },
   {

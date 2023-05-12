@@ -144,3 +144,16 @@ export interface IAIChat {
 }
 
 export interface IAIChatItem extends IAIChat, ISelectable {}
+
+export interface IApp {
+  id: string
+  name: string
+  type: string
+  version: string
+  path: string
+  size: number
+  installedAt: string
+  updatedAt: string
+}
+
+export interface IAppItem extends IApp, ISelectable {}

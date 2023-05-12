@@ -83,7 +83,7 @@ import { noDataKey } from '@/lib/list'
 import { openModal } from '@/components/modal'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import { buildQuery, parseQuery, type IFilterField } from '@/lib/search'
-import type { IFilter, IDropdownItem } from '@/lib/interfaces'
+import type { IFilter, IDropdownItem, IAppItem, IApp } from '@/lib/interfaces'
 import { decodeBase64, encodeBase64 } from '@/lib/strutil'
 import { useDelete, useSelectable } from './hooks/list'
 import { uninstallAppGQL, uninstallAppsGQL } from '@/lib/api/mutation'
@@ -92,7 +92,7 @@ import { storeToRefs } from 'pinia'
 import { useDownload, useDownloadItems } from './hooks/files'
 
 const mainStore = useMainStore()
-const items = ref<any[]>([])
+const items = ref<IAppItem[]>([])
 const { t } = useI18n()
 const { app } = storeToRefs(useTempStore())
 const filter: IFilter = reactive({
@@ -137,7 +137,7 @@ const { loading, refetch } = initQuery({
       toast(t(error), 'error')
     } else {
       if (data) {
-        items.value = data.apps.map((it: any) => ({ ...it, checked: false }))
+        items.value = data.apps.map((it: IApp) => ({ ...it, checked: false }))
         total.value = data.appCount
       }
     }
