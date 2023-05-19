@@ -50,7 +50,8 @@
       <div class="file-item-info" v-if="selectedItem">{{ $t('path') }}: {{ selectedItem.path }}</div>
       <lightbox :visible="ivVisible" :index="ivIndex" :sources="sources" @hide="ivHide" />
       <input ref="fileInput" style="display: none" type="file" multiple @change="uploadChanged" />
-      <input ref="dirFileInput" style="display: none" type="file" multiple webkitdirectory mozdirectory directory @change="dirUploadChanged" />
+      <input ref="dirFileInput" style="display: none" type="file" multiple webkitdirectory mozdirectory directory
+        @change="dirUploadChanged" />
     </div>
   </div>
 </template>
@@ -98,7 +99,18 @@ const query = route.query
 const q = ref(decodeBase64(query.q?.toString() ?? ''))
 const fields = parseQuery(q.value as string)
 const initPath = ref(fields.find((it) => it.name === 'path')?.value ?? '')
-const initDir = ref(fields.find((it) => it.name === 'dir')?.value ?? '')
+
+let dirTmp = fields.find((it) => it.name === 'dir')?.value ?? ''
+if (!dirTmp) {
+  const isDir = fields.find((it) => it.name === 'isDir')?.value === '1'
+  if (isDir) {
+    dirTmp = initPath.value
+  } else {
+    dirTmp = initPath.value.substring(0, initPath.value.lastIndexOf('/'))
+  }
+}
+const initDir = ref(dirTmp)
+
 const selectMode = ref(false)
 const mainStore = useMainStore()
 const { app } = storeToRefs(useTempStore())
