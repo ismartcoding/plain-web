@@ -132,21 +132,21 @@
         <div class="offset-3 col-md-3">
           <popper>
             <button type="button" class="btn">{{ $t('add_field') }}</button>
-            <template #content>
+            <template #content="slotProps">
               <ul class="menu-items">
-                <li class="dropdown-item" @click="() => addField(editItem.phoneNumbers)">
+                <li class="dropdown-item" @click="() => addField(slotProps, editItem.phoneNumbers)">
                   {{ $t('phone_number') }}
                 </li>
-                <li class="dropdown-item" @click="() => addField(editItem.emails)">
+                <li class="dropdown-item" @click="() => addField(slotProps, editItem.emails)">
                   {{ $t('email') }}
                 </li>
-                <li class="dropdown-item" @click="() => addField(editItem.addresses)">
+                <li class="dropdown-item" @click="() => addField(slotProps, editItem.addresses)">
                   {{ $t('address') }}
                 </li>
-                <li class="dropdown-item" @click="() => addField(editItem.websites)">
+                <li class="dropdown-item" @click="() => addField(slotProps, editItem.websites)">
                   {{ $t('website') }}
                 </li>
-                <li class="dropdown-item" @click="() => addField(editItem.ims)">
+                <li class="dropdown-item" @click="() => addField(slotProps, editItem.ims)">
                   {{ $t('im') }}
                 </li>
               </ul>
@@ -331,8 +331,9 @@ const getTypeLabel = (item: any, type: number, key: string) => {
   return t(`contact.${key}.${type}`)
 }
 
-const addField = (items: any[]) => {
+const addField = (slotProps: any, items: any[]) => {
   items.push({ type: 1, value: '', label: '' })
+  slotProps.close()
 }
 
 const deleteField = (items: any[], index: number) => {
