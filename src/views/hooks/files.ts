@@ -79,7 +79,7 @@ export const useDelete = (panels: Ref<FilePanel[]>, currentDir: Ref<string>, ref
           panel.deleteItem(f.path)
         })
       }
-      
+
       files.forEach(f => {
         if (currentDir.value.startsWith(f.path)) {
           const index = f.path.lastIndexOf('/')
@@ -116,6 +116,7 @@ export const useFiles = (app: Ref<any>, initDir: string) => {
   const panels = ref<FilePanel[]>([])
   const { t } = useI18n()
   let initDirIndex = 0
+  let inited = false
 
   const { loading } = initQuery({
     handle: async (data: any, error: string) => {
@@ -127,28 +128,30 @@ export const useFiles = (app: Ref<any>, initDir: string) => {
           rootDir.value = dir
         }
         const { fileIdToken } = app.value
-        const list: IFile[] = []
+        const files: IFile[] = []
         for (const item of items) {
           const tmp = { ...item, name: getFileName(item.path) }
           if (isVideo(tmp.name) || isImage(tmp.name)) {
             tmp.fileId = await getFileId(fileIdToken, item.path)
           }
-          list.push(tmp)
+          files.push(tmp)
         }
 
         const panelCount = dir.replace(rootDir.value, '').split('/').length
         while (panels.value.length >= panelCount) {
           panels.value.pop()
         }
-        panels.value.push(new FilePanel(dir, list))
-        if (initDir) {
+        panels.value.push(new FilePanel(dir, files))
+        if (initDir && !inited) {
           const dirs = initDir.replace(rootDir.value + '/', '').split('/')
-          if (list.length === 0) {
-            initDirIndex = dirs.length - 1 // the folder may be deleted, just ignore the next request.
+          if (files.length === 0) {
+            inited = true
           } else {
             if (initDirIndex < dirs.length) {
               currentDir.value = rootDir.value + '/' + dirs.slice(0, initDirIndex + 1).join('/')
               initDirIndex++
+            } else {
+              inited = true
             }
           }
         }
@@ -276,12 +279,13 @@ export const useSingleSelect = (currentDir: Ref<string>, q: Ref<string>, mainSto
         value: item.path,
       })
       fileds.push({
-        name: 'dir',
+        name: 'isDir',
         op: '',
-        value: currentDir.value,
+        value: currentDir.value === item.path ? '1' : '0',
       })
       q.value = buildQuery(fileds)
       selectedItem.value = item
+      console.log(`useSingleSelect${currentDir.value}`)
       replacePathNoReload(mainStore, `/files?q=${encodeBase64(q.value)}`)
     },
   }
