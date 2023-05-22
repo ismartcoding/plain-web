@@ -2,7 +2,7 @@ import { ref, type Ref } from 'vue'
 import type { ApolloCache, ApolloError } from '@apollo/client/core'
 import { copyFileGQL, createDirGQL, initMutation, moveFileGQL, renameFileGQL, setTempValueGQL } from '@/lib/api/mutation'
 import { FilePanel, isAudio, isImage, isVideo, type IFile } from '@/lib/file'
-import { filesGQL, initQuery, storageStatsGQL } from '@/lib/api/query'
+import { filesGQL, initQuery, recentFilesGQL, storageStatsGQL } from '@/lib/api/query'
 import { useI18n } from 'vue-i18n'
 import toast from '@/components/toaster'
 import { download, getFileId, getFileName, getFileUrlByPath } from '@/lib/api/file'
@@ -109,10 +109,9 @@ export const useStats = () => {
   return { totalBytes, freeBytes, refetch }
 }
 
-export const useFiles = (app: Ref<any>, initDir: string) => {
-  const rootDir = ref('')
+export const useFiles = (app: Ref<any>, rootDir: string, initDir: string) => {
   const _refetchDir = ref('')
-  const currentDir = ref('')
+  const currentDir = ref(rootDir)
   const panels = ref<FilePanel[]>([])
   const { t } = useI18n()
   let initDirIndex = 0
@@ -124,9 +123,6 @@ export const useFiles = (app: Ref<any>, initDir: string) => {
         toast(t(error), 'error')
       } else {
         const { dir, items } = data.files
-        if (currentDir.value === '') {
-          rootDir.value = dir
-        }
         const { fileIdToken } = app.value
         const files: IFile[] = []
         for (const item of items) {
@@ -137,18 +133,18 @@ export const useFiles = (app: Ref<any>, initDir: string) => {
           files.push(tmp)
         }
 
-        const panelCount = dir.replace(rootDir.value, '').split('/').length
+        const panelCount = dir.replace(rootDir, '').split('/').length
         while (panels.value.length >= panelCount) {
           panels.value.pop()
         }
         panels.value.push(new FilePanel(dir, files))
         if (initDir && !inited) {
-          const dirs = initDir.replace(rootDir.value + '/', '').split('/')
+          const dirs = initDir.replace(rootDir + '/', '').split('/')
           if (files.length === 0) {
             inited = true
           } else {
             if (initDirIndex < dirs.length) {
-              currentDir.value = rootDir.value + '/' + dirs.slice(0, initDirIndex + 1).join('/')
+              currentDir.value = rootDir + '/' + dirs.slice(0, initDirIndex + 1).join('/')
               initDirIndex++
             } else {
               inited = true
@@ -206,8 +202,40 @@ export const useFiles = (app: Ref<any>, initDir: string) => {
       _refetchDir.value = dir
       refetch()
     },
-    rootDir,
     currentDir,
+  }
+}
+
+export const useRecentFiles = (app: Ref<any>) => {
+  const { t } = useI18n()
+  const files = ref<IFile[]>([])
+
+  const { loading } = initQuery({
+    handle: async (data: any, error: string) => {
+      if (error) {
+        toast(t(error), 'error')
+      } else {
+        const items = data.recentFiles
+        const { fileIdToken } = app.value
+        for (const item of items) {
+          const tmp = { ...item, name: getFileName(item.path) }
+          if (isVideo(tmp.name) || isImage(tmp.name)) {
+            tmp.fileId = await getFileId(fileIdToken, item.path)
+          }
+          files.value.push(tmp)
+        }
+      }
+    },
+    document: recentFilesGQL,
+    options: {
+      fetchPolicy: 'no-cache',
+    },
+    appApi: true,
+  })
+
+  return {
+    files,
+    loading,
   }
 }
 
@@ -245,8 +273,8 @@ export const useDownload = (app: Ref<any>) => {
 
 export const useView = (sources: Ref<ISource[]>, ivView: (i: number) => void) => {
   return {
-    view(panel: FilePanel, f: IFile) {
-      sources.value = panel.items
+    view(items: IFile[], f: IFile) {
+      sources.value = items
         .filter((it) => isImage(it.name) || isVideo(it.name) || isAudio(it.name))
         .map((it) => ({
           path: it.path,
@@ -259,7 +287,7 @@ export const useView = (sources: Ref<ISource[]>, ivView: (i: number) => void) =>
   }
 }
 
-export const useSingleSelect = (currentDir: Ref<string>, q: Ref<string>, mainStore: MainState) => {
+export const useSingleSelect = (currentDir: Ref<string>, filesType: string, q: Ref<string>, mainStore: MainState) => {
   const selectedItem = ref<IFile | null>(null)
 
   return {
@@ -285,8 +313,8 @@ export const useSingleSelect = (currentDir: Ref<string>, q: Ref<string>, mainSto
       })
       q.value = buildQuery(fileds)
       selectedItem.value = item
-      console.log(`useSingleSelect${currentDir.value}`)
-      replacePathNoReload(mainStore, `/files?q=${encodeBase64(q.value)}`)
+
+      replacePathNoReload(mainStore, filesType === 'sdcard' ? `/files/sdcard?q=${encodeBase64(q.value)}` : `/files?q=${encodeBase64(q.value)}`)
     },
   }
 }

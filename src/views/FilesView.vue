@@ -1,59 +1,55 @@
 <template>
-  <div class="page-container container">
-    <div class="main">
-      <div class="v-toolbar">
-        <breadcrumb :current="getPageTitle" />
-        <div class="right-actions">
-          <dropdown v-if="selectMode" :title="$t('actions')" :items="actionItems" />
-          <div class="form-check mt-2 me-4">
-            <input class="form-check-input" v-model="selectMode" id="select-mode" type="checkbox" />
-            <label class="form-check-label" for="select-mode">{{ $t('select_mode') }}</label>
-          </div>
-          <div class="form-check mt-2">
-            <input class="form-check-input" v-model="fileShowHidden" id="show-hidden" type="checkbox" />
-            <label class="form-check-label" for="show-hidden">{{ $t('show_hidden') }}</label>
-          </div>
-        </div>
+  <div class="v-toolbar">
+    <breadcrumb :current="getPageTitle" />
+    <div class="right-actions">
+      <dropdown v-if="selectMode" :title="$t('actions')" :items="actionItems" />
+      <div class="form-check mt-2 me-4">
+        <input class="form-check-input" v-model="selectMode" id="select-mode" type="checkbox" />
+        <label class="form-check-label" for="select-mode">{{ $t('select_mode') }}</label>
       </div>
-      <splitpanes class="panel-container">
-        <pane v-for="panel in panels" :key="panel.dir">
-          <div class="file-items">
-            <template v-for="f of panel.items" :key="f.path">
-              <div class="file-item" v-if="!f.name.startsWith('.') || fileShowHidden" :class="{
-                active: (currentDir + '/').startsWith(f.path + '/') || selectedItem?.path === f.path,
-              }" @click="clickItem(panel, f)" @dblclick="dbclickItem(panel, f)"
-                @contextmenu="itemCtxMenu($event, panel, f)">
-                <input class="form-check-input" v-if="selectMode" v-model="f.checked" type="checkbox" />
-                <i-material-symbols:folder-outline-rounded class="bi" v-if="f.isDir" />
-                <img v-if="isImage(f.name) || isVideo(f.name)" :src="getFileUrl(f.fileId) + '&w=50&h=50'" width="50"
-                  height="50" />
-                <div class="title">
-                  {{ f.name }}
-                  <div style="font-size: 0.75rem">
-                    {{ formatDateTime(f.updatedAt) }}<template v-if="!f.isDir">, {{ formatFileSize(f.size) }}</template>
-                  </div>
-                </div>
-              </div>
-            </template>
-            <div class="empty" @contextmenu="emptyCtxMenu($event, panel.dir)">
-              <div class="no-files"
-                v-if="panel.items.filter((it) => !it.name.startsWith('.') || fileShowHidden).length === 0">
-                {{ $t('no_files') }}
+      <div class="form-check mt-2">
+        <input class="form-check-input" v-model="fileShowHidden" id="show-hidden" type="checkbox" />
+        <label class="form-check-label" for="show-hidden">{{ $t('show_hidden') }}</label>
+      </div>
+    </div>
+  </div>
+  <splitpanes class="panel-container">
+    <pane v-for="panel in panels" :key="panel.dir">
+      <div class="file-items">
+        <template v-for="f of panel.items" :key="f.path">
+          <div class="file-item" v-if="!f.name.startsWith('.') || fileShowHidden" :class="{
+            active: (currentDir + '/').startsWith(f.path + '/') || selectedItem?.path === f.path,
+          }" @click="clickItem(panel, f)" @dblclick="dbclickItem(panel, f)"
+            @contextmenu="itemCtxMenu($event, panel, f)">
+            <input class="form-check-input" v-if="selectMode" v-model="f.checked" type="checkbox" />
+            <i-material-symbols:folder-outline-rounded class="bi" v-if="f.isDir" />
+            <img v-if="isImage(f.name) || isVideo(f.name)" :src="getFileUrl(f.fileId) + '&w=50&h=50'" width="50"
+              height="50" />
+            <div class="title">
+              {{ f.name }}
+              <div style="font-size: 0.75rem">
+                {{ formatDateTime(f.updatedAt) }}<template v-if="!f.isDir">, {{ formatFileSize(f.size) }}</template>
               </div>
             </div>
           </div>
-        </pane>
-        <pane class="no-data-placeholder" v-if="panels.length === 0">
-          {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
-        </pane>
-      </splitpanes>
-      <div class="file-item-info" v-if="selectedItem">{{ $t('path') }}: {{ selectedItem.path }}</div>
-      <lightbox :visible="ivVisible" :index="ivIndex" :sources="sources" @hide="ivHide" />
-      <input ref="fileInput" style="display: none" type="file" multiple @change="uploadChanged" />
-      <input ref="dirFileInput" style="display: none" type="file" multiple webkitdirectory mozdirectory directory
-        @change="dirUploadChanged" />
-    </div>
-  </div>
+        </template>
+        <div class="empty" @contextmenu="emptyCtxMenu($event, panel.dir)">
+          <div class="no-files"
+            v-if="panel.items.filter((it) => !it.name.startsWith('.') || fileShowHidden).length === 0">
+            {{ $t('no_files') }}
+          </div>
+        </div>
+      </div>
+    </pane>
+    <pane class="no-data-placeholder" v-if="panels.length === 0">
+      {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
+    </pane>
+  </splitpanes>
+  <div class="file-item-info" v-if="selectedItem">{{ $t('path') }}: {{ selectedItem.path }}</div>
+  <lightbox :visible="ivVisible" :index="ivIndex" :sources="sources" @hide="ivHide" />
+  <input ref="fileInput" style="display: none" type="file" multiple @change="uploadChanged" />
+  <input ref="dirFileInput" style="display: none" type="file" multiple webkitdirectory mozdirectory directory
+    @change="dirUploadChanged" />
 </template>
 
 <script setup lang="ts">
@@ -90,12 +86,14 @@ import { decodeBase64, shortUUID } from '@/lib/strutil'
 import { parseQuery } from '@/lib/search'
 import type { IDropdownItem } from '@/lib/interfaces'
 import { initMutation, setTempValueGQL } from '@/lib/api/mutation'
+import toast from '@/components/toaster'
 
 const { t } = useI18n()
 const sources = ref([])
 
 const route = useRoute()
 const query = route.query
+const filesType = route.params['type'] as string
 const q = ref(decodeBase64(query.q?.toString() ?? ''))
 const fields = parseQuery(q.value as string)
 const initPath = ref(fields.find((it) => it.name === 'path')?.value ?? '')
@@ -114,7 +112,8 @@ const initDir = ref(dirTmp)
 const selectMode = ref(false)
 const mainStore = useMainStore()
 const { app } = storeToRefs(useTempStore())
-const { loading, panels, currentDir, refetch: refetchFiles } = useFiles(app, initDir.value)
+const rootDir = filesType === 'sdcard' ? app.value.sdcardPath : app.value.internalStoragePath
+const { loading, panels, currentDir, refetch: refetchFiles } = useFiles(app, rootDir, initDir.value)
 
 const { visible: ivVisible, index: ivIndex, view: ivView, hide: ivHide } = useMediaViewer()
 const { createPath, createVariables, createMutation } = useCreateDir(app, panels)
@@ -123,11 +122,11 @@ const { totalBytes, freeBytes, refetch: refetchStats } = useStats()
 const { onDeleted } = useDelete(panels, currentDir, refetchStats)
 const { downloadFile, downloadDir, downloadFiles } = useDownload(app)
 const { view } = useView(sources, ivView)
-const { selectedItem, select } = useSingleSelect(currentDir, q, mainStore)
+const { selectedItem, select } = useSingleSelect(currentDir, filesType, q, mainStore)
 const { canPaste, copy, cut, paste } = useCopyPaste(refetchFiles, refetchStats)
 const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload()
 const { input: dirFileInput, upload: uploadDir, uploadChanged: dirUploadChanged } = useFileUpload()
-import toast from '@/components/toaster'
+
 
 const { mutate: setTempValue, onDone: setTempValueDone } = initMutation({
   document: setTempValueGQL,
@@ -218,7 +217,7 @@ function canView(item: IFile) {
 function dbclickItem(panel: FilePanel, item: IFile) {
   if (!item.isDir) {
     if (canView(item)) {
-      view(panel, item)
+      view(panel.items, item)
     } else {
       downloadFile(item.path)
     }
@@ -298,7 +297,7 @@ function itemCtxMenu(e: MouseEvent, panel: FilePanel, f: IFile) {
       items.push({
         label: t('open'),
         onClick: () => {
-          view(panel, f)
+          view(panel.items, f)
         },
       })
     }
