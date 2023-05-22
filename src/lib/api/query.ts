@@ -187,6 +187,15 @@ export const filesGQL = gql`
   ${fileFragment}
 `
 
+export const recentFilesGQL = gql`
+  query recentFiles {
+    recentFiles {
+      ...FileFragment
+    }
+  }
+  ${fileFragment}
+`
+
 export const storageStatsGQL = gql`
   query {
     storageStats {

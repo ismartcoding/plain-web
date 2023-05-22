@@ -163,8 +163,25 @@ const router = createRouter({
         },
         {
           path: 'files',
-          component: () => import('../views/FilesView.vue'),
+          component: () => import('../views/FilesRootView.vue'),
           meta: { group: 'files' },
+          children: [
+            {
+              path: '',
+              component: () => import('../views/FilesVIew.vue'),
+              meta: { group: 'files' },
+            },
+            {
+              path: 'recent',
+              component: () => import('../views/FilesRecentVIew.vue'),
+              meta: { group: 'files' },
+            },
+            {
+              path: ':type',
+              component: () => import('../views/FilesVIew.vue'),
+              meta: { group: 'files' },
+            },
+          ],
         },
         {
           path: 'json-viewer',
