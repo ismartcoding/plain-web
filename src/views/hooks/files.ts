@@ -93,20 +93,20 @@ export const useDelete = (panels: Ref<FilePanel[]>, currentDir: Ref<string>, ref
 }
 
 export const useStats = () => {
-  const totalBytes = ref(0)
-  const freeBytes = ref(0)
+  const internal = ref(null)
+  const sdcard = ref(null)
   const { refetch } = initQuery({
     handle: (data: any, error: string) => {
       if (!error) {
-        totalBytes.value = data.storageStats.totalBytes
-        freeBytes.value = data.storageStats.freeBytes
+        internal.value = data.storageStats.internal
+        sdcard.value = data.storageStats.sdcard
       }
     },
     document: storageStatsGQL,
     appApi: true,
   })
 
-  return { totalBytes, freeBytes, refetch }
+  return { internal, sdcard, refetch }
 }
 
 export const useFiles = (app: Ref<any>, rootDir: string, initDir: string) => {

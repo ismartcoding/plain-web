@@ -94,8 +94,13 @@ initQuery({
         messageCount.value = data.messageCount
         contactCount.value = data.contactCount
         callCount.value = data.callCount
-        totalBytes.value = data.storageStats.totalBytes
-        freeBytes.value = data.storageStats.freeBytes
+        totalBytes.value = data.storageStats.internal.totalBytes
+        freeBytes.value = data.storageStats.internal.freeBytes
+        const sdcard = data.storageStats.sdcard
+        if (sdcard) {
+          totalBytes.value += sdcard.totalBytes
+          freeBytes.value += sdcard.freeBytes
+        }
       }
     }
   },
