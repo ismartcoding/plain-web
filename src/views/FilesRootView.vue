@@ -14,6 +14,9 @@
             <li v-if="app.sdcardPath" @click.prevent="openByType('sdcard')" :class="{ active: type === 'sdcard' }">
               {{ $t('sdcard') }}
             </li>
+            <li @click.prevent="openByType('app')" :class="{ active: type === 'app' }">
+              {{ $t('app_name') }}
+            </li>
           </ul>
         </div>
       </pane>

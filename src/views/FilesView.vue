@@ -112,7 +112,12 @@ const initDir = ref(dirTmp)
 const selectMode = ref(false)
 const mainStore = useMainStore()
 const { app } = storeToRefs(useTempStore())
-const rootDir = filesType === 'sdcard' ? app.value.sdcardPath : app.value.internalStoragePath
+let rootDir = app.value.internalStoragePath
+if (filesType === 'sdcard') {
+  rootDir = app.value.sdcardPath
+} else if (filesType === 'app') {
+  rootDir = app.value.externalFilesDir
+}
 const { loading, panels, currentDir, refetch: refetchFiles } = useFiles(app, rootDir, initDir.value)
 
 const { visible: ivVisible, index: ivIndex, view: ivView, hide: ivHide } = useMediaViewer()
@@ -197,10 +202,12 @@ if (initPath.value) {
 
 function getPageTitle() {
   if (filesType === 'sdcard') {
-    return `${t('page_title.files')} (${t('storage_free_total', {
+    return `${t('sdcard')} (${t('storage_free_total', {
       free: formatFileSize(sdcard.value?.freeBytes),
       total: formatFileSize(sdcard.value?.totalBytes),
     })})`
+  } else if (filesType === 'app') {
+    return t('app_name')
   }
 
   return `${t('page_title.files')} (${t('storage_free_total', {
