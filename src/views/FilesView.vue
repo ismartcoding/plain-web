@@ -118,7 +118,7 @@ const { loading, panels, currentDir, refetch: refetchFiles } = useFiles(app, roo
 const { visible: ivVisible, index: ivIndex, view: ivView, hide: ivHide } = useMediaViewer()
 const { createPath, createVariables, createMutation } = useCreateDir(app, panels)
 const { renameValue, renamePath, renameDone, renameMutation, renameVariables } = useRename(panels)
-const { totalBytes, freeBytes, refetch: refetchStats } = useStats()
+const { internal, sdcard, refetch: refetchStats } = useStats()
 const { onDeleted } = useDelete(panels, currentDir, refetchStats)
 const { downloadFile, downloadDir, downloadFiles } = useDownload(app)
 const { view } = useView(sources, ivView)
@@ -196,9 +196,16 @@ if (initPath.value) {
 }
 
 function getPageTitle() {
+  if (filesType === 'sdcard') {
+    return `${t('page_title.files')} (${t('storage_free_total', {
+      free: formatFileSize(sdcard.value?.freeBytes),
+      total: formatFileSize(sdcard.value?.totalBytes),
+    })})`
+  }
+
   return `${t('page_title.files')} (${t('storage_free_total', {
-    free: formatFileSize(freeBytes.value),
-    total: formatFileSize(totalBytes.value),
+    free: formatFileSize(internal.value?.freeBytes),
+    total: formatFileSize(internal.value?.totalBytes),
   })})`
 }
 

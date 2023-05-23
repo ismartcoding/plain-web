@@ -120,8 +120,14 @@ export const homeStatsGQL = gql`
     contactCount(query: "")
     callCount(query: "")
     storageStats {
-      totalBytes
-      freeBytes
+      internal {
+        totalBytes
+        freeBytes
+      }
+      sdcard {
+        totalBytes
+        freeBytes
+      }
     }
   }
 `
@@ -199,8 +205,14 @@ export const recentFilesGQL = gql`
 export const storageStatsGQL = gql`
   query {
     storageStats {
-      totalBytes
-      freeBytes
+      internal {
+        totalBytes
+        freeBytes
+      }
+      sdcard {
+        totalBytes
+        freeBytes
+      }
     }
   }
 `
