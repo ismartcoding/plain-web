@@ -7,9 +7,12 @@
           <button v-if="url" type="button" class="btn btn-action" :disabled="stopServiceLoading" @click="stopService">
             {{ $t('stop_mirror') }}
           </button>
+          <button v-if="url" type="button" class="btn btn-action" @click="requestFullscreen">
+            {{ $t('fullscreen') }}
+          </button>
         </div>
       </div>
-      <div class="panel-container">
+      <div ref="container" class="panel-container">
         <div v-if="fetchImageLoading || startServiceLoading" class="loading">
           <div class="loader"></div>
         </div>
@@ -44,6 +47,7 @@ const { t } = useI18n()
 const url = ref('')
 const seconds = ref(0)
 const failed = ref(false)
+const container = ref<HTMLElement>()
 onMounted(() => {
   emitter.on('screen_mirrorring', async (data: string) => {
     url.value = data
@@ -79,6 +83,9 @@ const { loading: fetchImageLoading, refetch } = initQuery({
   appApi: true,
 })
 
+const requestFullscreen = () => {
+  container.value?.requestFullscreen({ navigationUI: "show" })
+}
 const start = () => {
   failed.value = false
   startService()

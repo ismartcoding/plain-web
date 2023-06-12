@@ -365,6 +365,7 @@ export default {
   screen_mirror: '屏幕镜像',
   try_again: '重试',
   stop_mirror: '停止镜像',
+  fullscreen: '全屏显示',
   screen_mirror_request_permission_failed: '您还没有授权简朴截屏的权限。',
   screen_mirror_request_permission: '请在手机上点击“现在开始”按钮。<br>如果权限窗口未显示，请重新启动简朴。<br>请在{seconds}秒后再试。',
 }
