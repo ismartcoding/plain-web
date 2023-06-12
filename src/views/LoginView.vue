@@ -50,17 +50,21 @@ const showWarning = window.location.protocol === 'http:' ? false : !window.navig
 const { t } = useI18n()
 const { value: password, errorMessage: passwordError } = useField('password', string().required().min(6))
 
-function initRequest() {
-  fetch(`${getApiBaseUrl()}/init`, {
+async function initRequest() {
+  const r = await fetch(`${getApiBaseUrl()}/init`, {
     method: 'POST',
     headers: getApiHeaders(),
   })
+  const pwd = await r.text()
+  if (pwd) {
+    password.value = pwd
+    onSubmit()
+  }
 }
 
 initRequest()
 
 const onSubmit = handleSubmit(async () => {
-  initRequest()
   const clientId = localStorage.getItem('client_id')
   ws = new WebSocket(`${getWebSocketBaseUrl()}?cid=${clientId}&auth=1`)
   const pass = password.value ?? ''
