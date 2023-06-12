@@ -55,6 +55,7 @@ function onFocus() {
 .search-input {
   position: relative;
   width: 400px;
+  margin-left: 16px;
 
   input[type='search'] {
     border: 1px solid currentColor;
