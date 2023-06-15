@@ -314,8 +314,8 @@ export const aiChatFragment = gql`
   ${tagFragment}
 `
 
-export const applicationFragment = gql`
-  fragment ApplicationFragment on Application {
+export const packageFragment = gql`
+  fragment PackageFragment on Package {
     id
     name
     type

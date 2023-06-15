@@ -16,7 +16,7 @@ import {
   feedFragment,
   feedEntryFragment,
   aiChatFragment,
-  applicationFragment,
+  packageFragment,
 } from './fragments'
 
 export class InitQueryParams<TResult> {
@@ -358,14 +358,23 @@ export const aiChatConfigGQL = gql`
   }
 `
 
-export const appsGQL = gql`
-  query apps($offset: Int!, $limit: Int!, $query: String!) {
-    apps(offset: $offset, limit: $limit, query: $query) {
-      ...ApplicationFragment
+export const packagesGQL = gql`
+  query packages($offset: Int!, $limit: Int!, $query: String!) {
+    packages(offset: $offset, limit: $limit, query: $query) {
+      ...PackageFragment
     }
-    appCount(query: $query)
+    packageCount(query: $query)
   }
-  ${applicationFragment}
+  ${packageFragment}
+`
+
+export const packageStatusesGQL = gql`
+  query packageStatuses($ids: [ID!]!) {
+    packageStatuses(ids: $ids) {
+      id
+      exist
+    }
+  }
 `
 
 

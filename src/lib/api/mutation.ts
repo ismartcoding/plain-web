@@ -313,15 +313,15 @@ export const updateAIChatConfigGQL = gql`
   }
 `
 
-export const uninstallAppsGQL = gql`
-  mutation uninstallApps($ids: [ID!]!) {
-    uninstallApps(ids: $ids)
+export const uninstallPackagesGQL = gql`
+  mutation uninstallPackages($ids: [ID!]!) {
+    uninstallPackages(ids: $ids)
   }
 `
 
-export const uninstallAppGQL = gql`
-  mutation uninstallApps($id: ID!) {
-    uninstallApps(ids: [$id])
+export const uninstallPackageGQL = gql`
+  mutation uninstallPackages($id: ID!) {
+    uninstallPackages(ids: [$id])
   }
 `
 
