@@ -27,7 +27,9 @@ const { mutate, loading, onDone } = initMutation({
   document: props.gql,
   options: {
     update: (cache: ApolloCache<any>) => {
-      cache.evict({ id: cache.identify({ __typename: props.typeName, id: props.id }) })
+      if (props.typeName !== 'Application') {
+        cache.evict({ id: cache.identify({ __typename: props.typeName, id: props.id }) })
+      }
     },
   },
   appApi: props.appApi,

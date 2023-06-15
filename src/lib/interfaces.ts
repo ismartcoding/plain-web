@@ -156,4 +156,6 @@ export interface IApp {
   updatedAt: string
 }
 
-export interface IAppItem extends IApp, ISelectable {}
+export interface IAppItem extends IApp, ISelectable {
+  isUninstalling: boolean
+}

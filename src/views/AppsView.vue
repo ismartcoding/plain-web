@@ -31,7 +31,7 @@
         <th>{{ $t('type') }}</th>
         <th>{{ $t('installed_at') }}</th>
         <th>{{ $t('updated_at') }}</th>
-        <!-- <th class="actions one">{{ $t('actions') }}</th> -->
+        <th class="actions">{{ $t('actions') }}</th>
       </tr>
     </thead>
     <tbody>
@@ -52,14 +52,15 @@
         <td class="nowrap" :title="formatDateTimeFull(item.updatedAt)">
           {{ formatDateTime(item.updatedAt) }}
         </td>
-        <!-- <td class="actions one">
-          <a href="#" class="v-link" @click.stop="deleteItem(item)">{{ $t('delete') }}</a>
-        </td> -->
+        <td class="actions one">
+          <span v-if="item.isUninstalling">{{ $t('uninstalling') }}</span>
+          <a v-else href="#" class="v-link" @click.stop="uninstall(item)">{{ $t('uninstall') }}</a>
+        </td>
       </tr>
     </tbody>
     <tfoot v-if="!items.length">
       <tr>
-        <td colspan="7">
+        <td colspan="8">
           <div class="no-data-placeholder">
             {{ $t(noDataKey(loading)) }}
           </div>
@@ -74,22 +75,21 @@
 import { reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatDateTime, formatDateTimeFull, formatFileSize } from '@/lib/format'
-import { appsGQL, initQuery } from '@/lib/api/query'
+import { packagesGQL, initQuery, initLazyQuery, packageStatusesGQL } from '@/lib/api/query'
 import { useRoute } from 'vue-router'
 import { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useI18n } from 'vue-i18n'
 import { noDataKey } from '@/lib/list'
-import { openModal } from '@/components/modal'
-import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import { buildQuery, parseQuery, type IFilterField } from '@/lib/search'
 import type { IFilter, IDropdownItem, IAppItem, IApp } from '@/lib/interfaces'
 import { decodeBase64, encodeBase64 } from '@/lib/strutil'
 import { useDelete, useSelectable } from './hooks/list'
-import { uninstallAppGQL, uninstallAppsGQL } from '@/lib/api/mutation'
+import { initMutation, uninstallPackageGQL, uninstallPackagesGQL } from '@/lib/api/mutation'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { useDownload, useDownloadItems } from './hooks/files'
+import { deleteById } from '@/lib/array'
 
 const mainStore = useMainStore()
 const items = ref<IAppItem[]>([])
@@ -120,7 +120,7 @@ if (currentType) {
 
 const finalQ = ref(buildQuery(fields))
 const { deleteItems } = useDelete(
-  uninstallAppsGQL,
+  uninstallPackagesGQL,
   () => {
     refetch()
   },
@@ -137,12 +137,12 @@ const { loading, refetch } = initQuery({
       toast(t(error), 'error')
     } else {
       if (data) {
-        items.value = data.apps.map((it: IApp) => ({ ...it, checked: false }))
-        total.value = data.appCount
+        items.value = data.packages.map((it: IApp) => ({ ...it, checked: false }))
+        total.value = data.packageCount
       }
     }
   },
-  document: appsGQL,
+  document: packagesGQL,
   variables: () => ({
     offset: (page.value - 1) * limit,
     limit,
@@ -181,13 +181,50 @@ function doSearch() {
   }
 }
 
-function deleteItem(item: any) {
-  openModal(DeleteConfirm, {
-    id: item.id,
-    name: item.id,
-    gql: uninstallAppGQL,
-    appApi: true,
-    typeName: 'Application',
+const { mutate: uninstallMutate, onDone: uninstallDone } = initMutation({
+  document: uninstallPackageGQL,
+  appApi: true,
+})
+
+
+function uninstall(item: any) {
+  uninstallDone(() => {
+    item.isUninstalling = true
   })
+  uninstallMutate({ id: item.id })
 }
+
+const { loading: fetchPackageStatusLoading, load: fetchPackageStatus, refetch: refetchPackageStatus } = initLazyQuery({
+  handle: (data: any, _error: string) => {
+    if (data) {
+      for (const item of data.packageStatuses) {
+        if (!item.exist) {
+          deleteById(items.value as any, item.id)
+        }
+      }
+    }
+  },
+  document: packageStatusesGQL,
+  variables: () => ({
+    ids: items.value.filter(it => it.isUninstalling).map(it => it.id)
+  }),
+  appApi: true,
+})
+
+let firstLoad = true
+setInterval(() => {
+  if (items.value.some(it => it.isUninstalling) && !fetchPackageStatusLoading.value) {
+    if (firstLoad) {
+      fetchPackageStatus()
+      firstLoad = false
+    } else {
+      refetchPackageStatus()
+    }
+  }
+}, 1000)
 </script>
+<style lang="scss" scoped>
+.actions {
+  width: 120px;
+}
+</style>
