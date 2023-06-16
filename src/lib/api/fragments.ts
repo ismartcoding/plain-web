@@ -35,6 +35,7 @@ export const appFragment = gql`
     allowSensitivePermissions
     sdcardPath
     internalStoragePath
+    downloadsDir
   }
   ${playlistAudioFragment}
 `
