@@ -35,9 +35,7 @@ const type = route.params['type']
 function openByType(type: string) {
   replacePath(mainStore, `/apps/${type}`)
 }
-const types = [
-  'user', 'system'
-]
+const types = ['user', 'system']
 function all() {
   replacePath(mainStore, '/apps')
 }

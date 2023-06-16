@@ -2,7 +2,17 @@
   <div class="v-toolbar">
     <breadcrumb :current="() => `${$t('page_title.calls')} (${total})`" />
     <div class="right-actions">
-      <dropdown :title="$t('actions')" :items="actionItems" />
+      <template v-if="checked">
+        <button type="button" class="btn btn-action" @click.stop="deleteItems" :title="$t('delete')">
+          <i-material-symbols:delete-outline-rounded class="bi" />
+        </button>
+        <button type="button" class="btn btn-action" @click.stop="addToTags" :title="$t('add_to_tags')">
+          <i-material-symbols:label-outline-rounded class="bi" />
+        </button>
+        <button type="button" class="btn btn-action" @click.stop="removeFromTags" :title="$t('remove_from_tags')">
+          <i-material-symbols:label-off-outline-rounded class="bi" />
+        </button>
+      </template>
       <search-input v-model="q" :search="doSearch">
         <template #filters>
           <div class="row mb-3">
@@ -42,17 +52,21 @@
       </tr>
     </thead>
     <tbody>
-      <tr v-for="item in items" :key="item.id" :class="{ checked: item.checked }"
-        @click.stop="item.checked = !item.checked">
+      <tr
+        v-for="item in items"
+        :key="item.id"
+        :class="{ checked: item.checked }"
+        @click.stop="item.checked = !item.checked"
+      >
         <td><input class="form-check-input" type="checkbox" v-model="item.checked" /></td>
         <td><field-id :id="item.id" :raw="item" /></td>
         <td>
           {{ item.name }}
         </td>
         <td>
-          {{ item.number }}   
+          {{ item.number }}
           <i class="spinner spinner-sm" v-if="callLoading && callId === item.id"></i>
-           <i-material-symbols:call-outline-rounded class="bi bi-btn" v-else @click.stop="call(item)" />
+          <i-material-symbols:call-outline-rounded class="bi bi-btn" v-else @click.stop="call(item)" />
         </td>
         <td>
           {{ getGeoText(item.geo) }}
@@ -86,7 +100,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatDateTime, formatDateTimeFull, formatSeconds } from '@/lib/format'
 import { callsGQL, initLazyQuery } from '@/lib/api/query'
@@ -101,7 +115,7 @@ import { storeToRefs } from 'pinia'
 import { openModal } from '@/components/modal'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import { buildQuery, type IFilterField } from '@/lib/search'
-import type { IFilter, IDropdownItem } from '@/lib/interfaces'
+import type { IFilter } from '@/lib/interfaces'
 import { decodeBase64, encodeBase64 } from '@/lib/strutil'
 import { kebabCase } from 'lodash'
 import { useDelete, useSelectable } from './hooks/list'
@@ -148,11 +162,9 @@ const { deleteItems } = useDelete(
   },
   items
 )
-const actionItems: IDropdownItem[] = [
-  { text: t('add_to_tags'), click: addToTags },
-  { text: t('remove_from_tags'), click: removeFromTags },
-  { text: t('delete'), click: deleteItems },
-]
+const checked = computed<boolean>(() => {
+  return items.value.some((it) => it.checked)
+})
 
 const { selectAll, toggleSelect } = useSelectable(items)
 const { loading, load, refetch } = initLazyQuery({

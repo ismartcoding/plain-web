@@ -1,34 +1,60 @@
 <template>
-  <div v-if="items"
-    :class="'context-menu ' + (options.customClass ? options.customClass : '') + (menuReady ? ' ready' : '')" :style="{
+  <div
+    v-if="items"
+    :class="'context-menu ' + (options.customClass ? options.customClass : '') + (menuReady ? ' ready' : '')"
+    :style="{
       maxWidth: parentItem && parentItem.maxWidth ? `${parentItem.maxWidth}px` : `600px`,
       minWidth: parentItem && parentItem.minWidth ? `${parentItem.minWidth}px` : `100px`,
       zIndex: zIndex,
       left: `${position.x}px`,
       top: `${position.y}px`,
-    }" @mouseenter="onMenuMouseEnter" @mouseleave="onMenuMouseLeave($event)">
+    }"
+    @mouseenter="onMenuMouseEnter"
+    @mouseleave="onMenuMouseLeave($event)"
+  >
     <div v-show="menuOverflow" class="context-menu-updown up" @click="onScroll(false)">
       <span class="right-arrow" />
     </div>
     <div v-show="menuOverflow" class="context-menu-updown down" @click="onScroll(true)">
       <span class="right-arrow" />
     </div>
-    <div class="context-menu-items" ref="menu" :style="{
-      maxHeight: maxHeight > 0 ? `${maxHeight}px` : '',
-    }">
-      <div v-for="(item, i) in items" :key="i" class="context-menu-item" :class="{ disabled: item.disabled }"
-        @mouseenter="showChildItem($event, item)" @mouseleave="hideChildItem()" @focus="showChildItem($event, item)"
-        @blur="hideChildItem()" @click="onMouseClick(item)">
+    <div
+      class="context-menu-items"
+      ref="menu"
+      :style="{
+        maxHeight: maxHeight > 0 ? `${maxHeight}px` : '',
+      }"
+    >
+      <div
+        v-for="(item, i) in items"
+        :key="i"
+        class="context-menu-item"
+        :class="{ disabled: item.disabled }"
+        @mouseenter="showChildItem($event, item)"
+        @mouseleave="hideChildItem()"
+        @focus="showChildItem($event, item)"
+        @blur="hideChildItem()"
+        @click="onMouseClick(item)"
+      >
         <span class="text">
           <span>{{ item.label }}</span>
           <span v-if="item.children && item.children.length > 0" class="right-arrow" />
         </span>
       </div>
     </div>
-    <ContextSubMenu ref="childMenu" v-if="activeItem && activeItem.children" :zIndex="zIndex + 1"
-      :items="activeItem.children" :parentItem="activeItem" :options="options" :globalData="childGlobalData"
-      :position="childPosition" @close="onChildrenClose" @keepOpen="onChildrenKeepOpen"
-      @preUpdatePos="onChildrenUpdatePos"></ContextSubMenu>
+    <ContextSubMenu
+      ref="childMenu"
+      v-if="activeItem && activeItem.children"
+      :zIndex="zIndex + 1"
+      :items="activeItem.children"
+      :parentItem="activeItem"
+      :options="options"
+      :globalData="childGlobalData"
+      :position="childPosition"
+      @close="onChildrenClose"
+      @keepOpen="onChildrenKeepOpen"
+      @preUpdatePos="onChildrenUpdatePos"
+    ></ContextSubMenu>
   </div>
 </template>
 
@@ -61,8 +87,7 @@ const props = defineProps({
     type: Object as PropType<ContextMenuPositionData>,
     default: null,
   },
-}
-)
+})
 
 const emit = defineEmits(['close', 'keepOpen', 'preUpdatePos'])
 const { globalData, position, options, parentItem } = toRefs(props)

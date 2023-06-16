@@ -2,10 +2,20 @@
   <div class="v-toolbar">
     <breadcrumb :current="() => `${$t('page_title.feeds')} (${total})`" />
     <div class="right-actions">
+      <template v-if="checked">
+        <button type="button" class="btn btn-action" @click.stop="deleteItems" :title="$t('delete')">
+          <i-material-symbols:delete-outline-rounded class="bi" />
+        </button>
+        <button type="button" class="btn btn-action" @click.stop="addToTags" :title="$t('add_to_tags')">
+          <i-material-symbols:label-outline-rounded class="bi" />
+        </button>
+        <button type="button" class="btn btn-action" @click.stop="removeFromTags" :title="$t('remove_from_tags')">
+          <i-material-symbols:label-off-outline-rounded class="bi" />
+        </button>
+      </template>
       <button class="btn btn-action" :disabled="syncing" type="button" @click.prevent="syncFeeds">
         {{ syncing ? $t('syncing') : $t('sync_feeds') }}
       </button>
-      <dropdown :title="$t('actions')" :items="actionItems" />
       <search-input v-model="q" :search="doSearch">
         <template #filters>
           <div class="row mb-3">
@@ -80,7 +90,7 @@
 
 <script setup lang="ts">
 import { getFileUrl } from '@/lib/api/file'
-import { nextTick, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatDateTime, formatDateTimeFull } from '@/lib/format'
 import { initQuery, feedsTagsGQL, initLazyQuery, feedEntriesGQL } from '@/lib/api/query'
@@ -88,7 +98,7 @@ import { useRoute } from 'vue-router'
 import router, { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useI18n } from 'vue-i18n'
-import type { ITag, IDropdownItem, IFeedEntryItem, IFeedEntry, IFeed, IFeedEntryFilter } from '@/lib/interfaces'
+import type { ITag, IFeedEntryItem, IFeedEntry, IFeed, IFeedEntryFilter } from '@/lib/interfaces'
 import { buildFilterQuery, buildQuery, parseQuery } from '@/lib/search'
 import { kebabCase } from 'lodash-es'
 import { decodeBase64, encodeBase64 } from '@/lib/strutil'
@@ -128,11 +138,9 @@ const { deleteItems } = useDelete(
 )
 const syncing = ref(false)
 
-const actionItems: IDropdownItem[] = [
-  { text: t('add_to_tags'), click: addToTags },
-  { text: t('remove_from_tags'), click: removeFromTags },
-  { text: t('delete'), click: deleteItems },
-]
+const checked = computed<boolean>(() => {
+  return items.value.some((it) => it.checked)
+})
 
 const { selectAll, toggleSelect } = useSelectable(items)
 const { loading, load, refetch } = initLazyQuery({

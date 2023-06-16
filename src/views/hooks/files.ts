@@ -1,6 +1,13 @@
 import { ref, type Ref } from 'vue'
 import type { ApolloCache, ApolloError } from '@apollo/client/core'
-import { copyFileGQL, createDirGQL, initMutation, moveFileGQL, renameFileGQL, setTempValueGQL } from '@/lib/api/mutation'
+import {
+  copyFileGQL,
+  createDirGQL,
+  initMutation,
+  moveFileGQL,
+  renameFileGQL,
+  setTempValueGQL,
+} from '@/lib/api/mutation'
 import { FilePanel, isAudio, isImage, isVideo, type IFile } from '@/lib/file'
 import { filesGQL, initQuery, recentFilesGQL, storageStatsGQL } from '@/lib/api/query'
 import { useI18n } from 'vue-i18n'
@@ -75,12 +82,12 @@ export const useDelete = (panels: Ref<FilePanel[]>, currentDir: Ref<string>, ref
   return {
     onDeleted(files: IFile[]) {
       for (const panel of panels.value) {
-        files.forEach(f => {
+        files.forEach((f) => {
           panel.deleteItem(f.path)
         })
       }
 
-      files.forEach(f => {
+      files.forEach((f) => {
         if (currentDir.value.startsWith(f.path)) {
           const index = f.path.lastIndexOf('/')
           currentDir.value = f.path.substring(0, index) // jump the path to parent
@@ -314,7 +321,10 @@ export const useSingleSelect = (currentDir: Ref<string>, filesType: string, q: R
       q.value = buildQuery(fileds)
       selectedItem.value = item
 
-      replacePathNoReload(mainStore, filesType === 'sdcard' ? `/files/sdcard?q=${encodeBase64(q.value)}` : `/files?q=${encodeBase64(q.value)}`)
+      replacePathNoReload(
+        mainStore,
+        filesType === 'sdcard' ? `/files/sdcard?q=${encodeBase64(q.value)}` : `/files?q=${encodeBase64(q.value)}`
+      )
     },
   }
 }

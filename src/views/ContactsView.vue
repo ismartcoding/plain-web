@@ -3,10 +3,20 @@
     <breadcrumb :current="() => `${$t('page_title.contacts')} (${total})`" />
 
     <div class="right-actions">
+      <template v-if="checked">
+        <button type="button" class="btn btn-action" @click.stop="deleteItems" :title="$t('delete')">
+          <i-material-symbols:delete-outline-rounded class="bi" />
+        </button>
+        <button type="button" class="btn btn-action" @click.stop="addToTags" :title="$t('add_to_tags')">
+          <i-material-symbols:label-outline-rounded class="bi" />
+        </button>
+        <button type="button" class="btn btn-action" @click.stop="removeFromTags" :title="$t('remove_from_tags')">
+          <i-material-symbols:label-off-outline-rounded class="bi" />
+        </button>
+      </template>
       <button type="button" class="btn btn-action" @click="create">
         {{ $t('create') }}
       </button>
-      <dropdown :title="$t('actions')" :items="actionItems" />
       <search-input v-model="q" :search="doSearch">
         <template #filters>
           <div class="row mb-3">
@@ -46,8 +56,12 @@
       </tr>
     </thead>
     <tbody>
-      <tr v-for="item in items" :key="item.id" :class="{ checked: item.checked }"
-        @click.stop="item.checked = !item.checked">
+      <tr
+        v-for="item in items"
+        :key="item.id"
+        :class="{ checked: item.checked }"
+        @click.stop="item.checked = !item.checked"
+      >
         <td><input class="form-check-input" type="checkbox" v-model="item.checked" /></td>
         <td><field-id :id="item.id" :raw="item" /></td>
         <td><img v-if="item.thumbnailId" :src="getFileUrl(item.thumbnailId)" /></td>
@@ -57,10 +71,14 @@
         <td class="nowrap">
           <ul class="list-unstyled">
             <li v-for="(it, index) in item.phoneNumbers" :key="index">
-              {{ it.type > 0 ? $t(`contact.phone_number_type.${it.type}`) : it.label }} {{ it.normalizedNumber || it.value }}
+              {{ it.type > 0 ? $t(`contact.phone_number_type.${it.type}`) : it.label }}
+              {{ it.normalizedNumber || it.value }}
               <i class="spinner spinner-sm" v-if="callLoading && callId === item.id && callIndex === index"></i>
-              <i-material-symbols:call-outline-rounded class="bi bi-btn" v-else
-                @click.stop="call(item.id, it.normalizedNumber || it.value, index)" />
+              <i-material-symbols:call-outline-rounded
+                class="bi bi-btn"
+                v-else
+                @click.stop="call(item.id, it.normalizedNumber || it.value, index)"
+              />
             </li>
           </ul>
         </td>
@@ -110,7 +128,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatDateTime, formatDateTimeFull } from '@/lib/format'
 import { initQuery, contactsGQL, contactSourcesGQL, initLazyQuery } from '@/lib/api/query'
@@ -127,7 +145,7 @@ import { storeToRefs } from 'pinia'
 import { openModal } from '@/components/modal'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import EditContactModal from '@/components/EditContactModal.vue'
-import type { IDropdownItem, IFilter } from '@/lib/interfaces'
+import type { IFilter } from '@/lib/interfaces'
 import { useAddToTags, useRemoveFromTags, useTags } from './hooks/tags'
 import { useDelete, useSelectable } from './hooks/list'
 import { buildFilterQuery, buildQuery, type IFilterField } from '@/lib/search'
@@ -143,7 +161,9 @@ const filter: IFilter = reactive({
   tags: [],
 })
 const tagType = 'CONTACT'
-
+const checked = computed<boolean>(() => {
+  return items.value.some((it) => it.checked)
+})
 const route = useRoute()
 const query = route.query
 const page = ref(parseInt(query.page?.toString() ?? '1'))
@@ -166,11 +186,6 @@ const { deleteItems } = useDelete(
   },
   items
 )
-const actionItems: IDropdownItem[] = [
-  { text: t('add_to_tags'), click: addToTags },
-  { text: t('remove_from_tags'), click: removeFromTags },
-  { text: t('delete'), click: deleteItems },
-]
 const { selectAll, toggleSelect } = useSelectable(items)
 const { loading, load, refetch } = initLazyQuery({
   handle: (data: any, error: string) => {
@@ -278,7 +293,6 @@ function create() {
     done: refetch,
   })
 }
-
 
 const callId = ref('')
 const callIndex = ref(0)

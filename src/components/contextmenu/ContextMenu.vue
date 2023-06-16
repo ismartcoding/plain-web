@@ -1,18 +1,22 @@
 <template>
-  <ContextSubMenu v-if="show" :items="options.items" :parentItem="{
-    maxWidth: options.maxWidth || MenuConstOptions.defaultMaxWidth,
-    minWidth: options.minWidth || MenuConstOptions.defaultMinWidth,
-  }" :options="options" :z-index="options.zIndex || MenuConstOptions.defaultStartZindex" :globalData="globalData"
-    :position="currentShowPos" :on-close="onChildrenClose" :on-pre-update-pos="onChildrenUpdatePos" />
+  <ContextSubMenu
+    v-if="show"
+    :items="options.items"
+    :parentItem="{
+      maxWidth: options.maxWidth || MenuConstOptions.defaultMaxWidth,
+      minWidth: options.minWidth || MenuConstOptions.defaultMinWidth,
+    }"
+    :options="options"
+    :z-index="options.zIndex || MenuConstOptions.defaultStartZindex"
+    :globalData="globalData"
+    :position="currentShowPos"
+    :on-close="onChildrenClose"
+    :on-pre-update-pos="onChildrenUpdatePos"
+  />
 </template>
 <script lang="ts" setup>
 import { onBeforeUnmount, onMounted, ref, watch, type PropType } from 'vue'
-import {
-  type ContextMenuPositionData,
-  MenuConstOptions,
-  type MenuOptions,
-} from './ContextMenuDefine'
-
+import { type ContextMenuPositionData, MenuConstOptions, type MenuOptions } from './ContextMenuDefine'
 
 const emit = defineEmits(['update:show', 'close'])
 const props = defineProps({
@@ -66,7 +70,10 @@ onBeforeUnmount(() => {
   document.removeEventListener('click', close)
 })
 
-watch(() => props.show, (v: boolean) => {
-  if (v) updateCurrentShowPos()
-})
+watch(
+  () => props.show,
+  (v: boolean) => {
+    if (v) updateCurrentShowPos()
+  }
+)
 </script>

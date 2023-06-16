@@ -130,7 +130,6 @@ export interface IFeed {
   url: string
 }
 
-
 export interface IAIChat {
   id: string
   parentId: string

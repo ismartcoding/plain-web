@@ -18,8 +18,7 @@
         </div>
         <div v-if="seconds > 0" class="request-permission">
           <img src="@/assets/screen-mirror-permission.png" />
-          <div class="text" v-html="$t('screen_mirror_request_permission', { seconds: seconds })">
-          </div>
+          <div class="text" v-html="$t('screen_mirror_request_permission', { seconds: seconds })"></div>
         </div>
         <div v-if="failed && !url" class="request-permission-failed">
           <MobileWarning />
@@ -33,14 +32,14 @@
 </template>
 
 <script setup lang="ts">
-import emitter from '@/plugins/eventbus';
+import emitter from '@/plugins/eventbus'
 import toast from '@/components/toaster'
 import { onMounted, ref } from 'vue'
 import MobileWarning from '@/assets/mobile-warning.svg'
-import { initQuery, screenMirrorImageGQL } from '@/lib/api/query';
-import { useI18n } from 'vue-i18n';
-import { initMutation, startScreenMirrorGQL, stopScreenMirrorGQL } from '@/lib/api/mutation';
-import type { ApolloError } from '@apollo/client/errors';
+import { initQuery, screenMirrorImageGQL } from '@/lib/api/query'
+import { useI18n } from 'vue-i18n'
+import { initMutation, startScreenMirrorGQL, stopScreenMirrorGQL } from '@/lib/api/mutation'
+import type { ApolloError } from '@apollo/client/errors'
 
 let countIntervalId: number
 const { t } = useI18n()
@@ -84,7 +83,7 @@ const { loading: fetchImageLoading, refetch } = initQuery({
 })
 
 const requestFullscreen = () => {
-  container.value?.requestFullscreen({ navigationUI: "show" })
+  container.value?.requestFullscreen({ navigationUI: 'show' })
 }
 const start = () => {
   failed.value = false

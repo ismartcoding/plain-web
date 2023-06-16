@@ -2,8 +2,18 @@
   <div class="v-toolbar">
     <breadcrumb :current="() => `${$t('page_title.notes')} (${total})`" />
     <div class="right-actions">
+      <template v-if="checked">
+        <button type="button" class="btn btn-action" @click.stop="addToTags" :title="$t('add_to_tags')">
+          <i-material-symbols:label-outline-rounded class="bi" />
+        </button>
+        <button type="button" class="btn btn-action" @click.stop="removeFromTags" :title="$t('remove_from_tags')">
+          <i-material-symbols:label-off-outline-rounded class="bi" />
+        </button>
+        <button type="button" class="btn btn-action" @click.stop="moveToTrash">
+          {{ $t('move_to_trash') }}
+        </button>
+      </template>
       <button class="btn btn-action" type="button" @click.prevent="create">{{ $t('create') }}</button>
-      <dropdown :title="$t('actions')" :items="actionItems" />
       <search-input v-model="q" :search="doSearch">
         <template #filters>
           <div class="row mb-3">
@@ -39,8 +49,12 @@
       </tr>
     </thead>
     <tbody>
-      <tr v-for="item in items" :key="item.id" :class="{ checked: item.checked }"
-        @click.stop="item.checked = !item.checked">
+      <tr
+        v-for="item in items"
+        :key="item.id"
+        :class="{ checked: item.checked }"
+        @click.stop="item.checked = !item.checked"
+      >
         <td><input class="form-check-input" type="checkbox" v-model="item.checked" /></td>
         <td><field-id :id="item.id" :raw="item" /></td>
         <td>
@@ -71,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatDateTime } from '@/lib/format'
 import { notesGQL, initLazyQuery } from '@/lib/api/query'
@@ -118,11 +132,9 @@ const { tags } = useTags(tagType, q, filter, async (fields: IFilterField[]) => {
 const { addToTags } = useAddToTags(tagType, items, tags)
 const { removeFromTags } = useRemoveFromTags(tagType, items, tags)
 
-const actionItems: IDropdownItem[] = [
-  { text: t('add_to_tags'), click: addToTags },
-  { text: t('remove_from_tags'), click: removeFromTags },
-  { text: t('move_to_trash'), click: moveToTrash },
-]
+const checked = computed<boolean>(() => {
+  return items.value.some((it) => it.checked)
+})
 
 const { selectAll, toggleSelect } = useSelectable(items)
 const { loading, load, refetch } = initLazyQuery({

@@ -2,12 +2,25 @@
   <div class="v-toolbar">
     <breadcrumb :current="() => `${$t('page_title.videos')} (${total})`" />
     <div class="right-actions">
+      <template v-if="checked && viewType === 'list'">
+        <button type="button" class="btn btn-action" @click.stop="deleteItems" :title="$t('delete')">
+          <i-material-symbols:delete-outline-rounded class="bi" />
+        </button>
+        <button type="button" class="btn btn-action" @click.stop="downloadItems" :title="$t('download')">
+          <i-material-symbols:download-rounded class="bi" />
+        </button>
+        <button type="button" class="btn btn-action" @click.stop="addToTags" :title="$t('add_to_tags')">
+          <i-material-symbols:label-outline-rounded class="bi" />
+        </button>
+        <button type="button" class="btn btn-action" @click.stop="removeFromTags" :title="$t('remove_from_tags')">
+          <i-material-symbols:label-off-outline-rounded class="bi" />
+        </button>
+      </template>
       <button type="button" class="btn btn-action" @click.prevent="changeViewType">
         <i-material-symbols:grid-view-outline-rounded v-if="viewType === 'list'" class="bi" />
         <i-material-symbols:table-rows-rounded v-if="viewType === 'grid'" class="bi" />
       </button>
       <button type="button" class="btn btn-action" @click.prevent="upload">{{ $t('upload') }}</button>
-      <dropdown :title="$t('actions')" :items="actionItems" v-if="viewType === 'list'" />
       <search-input v-model="q" :search="doSearch">
         <template #filters>
           <div class="row mb-3">
@@ -53,13 +66,22 @@
       </tr>
     </thead>
     <tbody>
-      <tr v-for="(item, i) in items" :key="item.id" :class="{ checked: item.checked }"
-        @click.stop="item.checked = !item.checked">
+      <tr
+        v-for="(item, i) in items"
+        :key="item.id"
+        :class="{ checked: item.checked }"
+        @click.stop="item.checked = !item.checked"
+      >
         <td><input class="form-check-input" type="checkbox" v-model="item.checked" /></td>
         <td><field-id :id="item.id" :raw="item" /></td>
         <td>
-          <img class="img-video" :src="getFileUrl(item.fileId) + '&w=200&h=200'" width="50" height="50"
-            @click.stop="view(i)" />
+          <img
+            class="img-video"
+            :src="getFileUrl(item.fileId) + '&w=200&h=200'"
+            width="50"
+            height="50"
+            @click.stop="view(i)"
+          />
         </td>
         <td>
           {{ item.title }}
@@ -102,7 +124,7 @@ import { useI18n } from 'vue-i18n'
 import { getFileId, getFileUrl } from '@/lib/api/file'
 import { useMediaViewer } from '@/components/lightbox/use'
 import { formatFileSize } from '@/lib/format'
-import type { IDropdownItem, IFilter, IVideoItem } from '@/lib/interfaces'
+import type { IFilter, IVideoItem } from '@/lib/interfaces'
 import { decodeBase64, encodeBase64 } from '@/lib/strutil'
 import { noDataKey } from '@/lib/list'
 import { buildFilterQuery, buildQuery, type IFilterField } from '@/lib/search'
@@ -126,7 +148,9 @@ const filter: IFilter = reactive({
   text: '',
   tags: [],
 })
-
+const checked = computed<boolean>(() => {
+  return items.value.some((it) => it.checked)
+})
 const tagType = 'VIDEO'
 const route = useRoute()
 const query = route.query
@@ -155,13 +179,6 @@ const sources = computed(() => {
     size: it.size,
   }))
 })
-
-const actionItems: IDropdownItem[] = [
-  { text: t('add_to_tags'), click: addToTags },
-  { text: t('remove_from_tags'), click: removeFromTags },
-  { text: t('download'), click: downloadItems },
-  { text: t('delete'), click: deleteItems },
-]
 
 const { selectAll, toggleSelect } = useSelectable(items)
 const { loading, load, refetch } = initLazyQuery({

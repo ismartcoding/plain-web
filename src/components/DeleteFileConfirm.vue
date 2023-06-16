@@ -1,6 +1,8 @@
 <template>
-  <v-modal class="delete-modal"
-    :title="$t('confirm_to_delete_name', { name: truncate(files.map(it => it.name).join(', '), { length: 200 }) })">
+  <v-modal
+    class="delete-modal"
+    :title="$t('confirm_to_delete_name', { name: truncate(files.map((it) => it.name).join(', '), { length: 200 }) })"
+  >
     <template #action>
       <button type="button" :disabled="loading" class="btn" @click="doDelete">{{ $t('delete') }}</button>
     </template>
@@ -35,7 +37,7 @@ const { mutate, loading, onDone } = initMutation({
 })
 
 function doDelete() {
-  mutate({ paths: props.files.map(it => it.path) })
+  mutate({ paths: props.files.map((it) => it.path) })
 }
 
 onDone(() => {
