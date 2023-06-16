@@ -3,6 +3,7 @@
     <breadcrumb :current="() => `${$t('page_title.apps')} (${total})`" />
     <div class="right-actions">
       <button type="button" class="btn btn-action" @click.stop="downloadItems">{{ $t('download') }}</button>
+      <button type="button" class="btn btn-action" @click.stop="install" style="display: none;">{{ $t('install') }}</button>
       <!-- <dropdown :title="$t('actions')" :items="actionItems" /> -->
       <search-input v-model="q" :search="doSearch">
         <template #filters>
@@ -69,10 +70,11 @@
     </tfoot>
   </table>
   <v-pagination v-if="total > limit" v-model="page" :total="total" :limit="limit" />
+  <input ref="fileInput" style="display: none" type="file" accept=".apk" multiple @change="uploadChanged" />
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, watch } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatDateTime, formatDateTimeFull, formatFileSize } from '@/lib/format'
 import { packagesGQL, initQuery, initLazyQuery, packageStatusesGQL } from '@/lib/api/query'
@@ -86,10 +88,13 @@ import type { IFilter, IDropdownItem, IAppItem, IApp } from '@/lib/interfaces'
 import { decodeBase64, encodeBase64 } from '@/lib/strutil'
 import { useDelete, useSelectable } from './hooks/list'
 import { initMutation, uninstallPackageGQL, uninstallPackagesGQL } from '@/lib/api/mutation'
-import { useTempStore } from '@/stores/temp'
+import { useTempStore, type IUploadItem } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
-import { useDownload, useDownloadItems } from './hooks/files'
+import { useDownload, useDownloadItems, useFileUpload } from './hooks/files'
 import { deleteById } from '@/lib/array'
+import emitter from '@/plugins/eventbus'
+
+const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload()
 
 const mainStore = useMainStore()
 const items = ref<IAppItem[]>([])
@@ -129,6 +134,10 @@ const { deleteItems } = useDelete(
 const actionItems: IDropdownItem[] = [
   { text: t('delete'), click: deleteItems },
 ]
+
+const install = () => {
+  uploadFiles(app.value.downloadsDir)
+}
 
 const { selectAll, toggleSelect } = useSelectable(items)
 const { loading, refetch } = initQuery({
@@ -211,17 +220,25 @@ const { loading: fetchPackageStatusLoading, load: fetchPackageStatus, refetch: r
   appApi: true,
 })
 
-let firstLoad = true
-setInterval(() => {
-  if (items.value.some(it => it.isUninstalling) && !fetchPackageStatusLoading.value) {
-    if (firstLoad) {
-      fetchPackageStatus()
-      firstLoad = false
-    } else {
-      refetchPackageStatus()
+onMounted(() => {
+  emitter.on('upload_task_done', (r: IUploadItem) => {
+    if (r.status === 'done') {
+      // TODO: install app
     }
-  }
-}, 1000)
+  })
+
+  let firstLoad = true
+  setInterval(() => {
+    if (items.value.some(it => it.isUninstalling) && !fetchPackageStatusLoading.value) {
+      if (firstLoad) {
+        fetchPackageStatus()
+        firstLoad = false
+      } else {
+        refetchPackageStatus()
+      }
+    }
+  }, 1000)
+})
 </script>
 <style lang="scss" scoped>
 .actions {

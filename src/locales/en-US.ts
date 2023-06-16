@@ -371,6 +371,7 @@ export default {
   deleting: 'Deleting…',
   uninstalling: 'Uninstalling…',
   uninstall: 'Uninstall',
+  install: 'Install',
   screen_mirror_request_permission_failed: 'You haven\'t grant PlainApp the permission to take screenshots.',
   screen_mirror_request_permission: 'Please tap "Start now" on the phone.<br>If the permission window is not displayed, please relaunch PlainApp.<br>Try again in {seconds} seconds',
 }
