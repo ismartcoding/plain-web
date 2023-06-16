@@ -2,7 +2,9 @@
   <div class="v-toolbar">
     <breadcrumb :current="$t('recent_files')" />
     <div class="right-actions">
-      <button type="button" class="btn btn-action" v-if="selectMode" @click.stop="downloadItems">{{ $t('download') }}</button>
+      <button type="button" class="btn btn-action" v-if="selectMode" @click.stop="downloadItems">
+        {{ $t('download') }}
+      </button>
       <div class="form-check mt-2 me-4">
         <input class="form-check-input" v-model="selectMode" id="select-mode" type="checkbox" />
         <label class="form-check-label" for="select-mode">{{ $t('select_mode') }}</label>
@@ -12,12 +14,22 @@
   <div class="panel-container">
     <div class="file-items" v-if="app.permissions.includes('WRITE_EXTERNAL_STORAGE')">
       <template v-for="f of files" :key="f.path">
-        <div class="file-item" :class="{
-          active: selectedItem?.path === f.path,
-        }" @click="clickItem(f)" @dblclick="dbclickItem(f)" @contextmenu="itemCtxMenu($event, f)">
+        <div
+          class="file-item"
+          :class="{
+            active: selectedItem?.path === f.path,
+          }"
+          @click="clickItem(f)"
+          @dblclick="dbclickItem(f)"
+          @contextmenu="itemCtxMenu($event, f)"
+        >
           <input class="form-check-input" v-if="selectMode" v-model="f.checked" type="checkbox" />
-          <img v-if="isImage(f.name) || isVideo(f.name)" :src="getFileUrl(f.fileId) + '&w=50&h=50'" width="50"
-            height="50" />
+          <img
+            v-if="isImage(f.name) || isVideo(f.name)"
+            :src="getFileUrl(f.fileId) + '&w=50&h=50'"
+            width="50"
+            height="50"
+          />
           <div class="title">
             {{ f.name }}
             <div style="font-size: 0.75rem">
@@ -45,11 +57,7 @@ import { type IFile, isImage, isVideo, isAudio } from '@/lib/file'
 import { getFileUrl } from '@/lib/api/file'
 import { useMediaViewer } from '@/components/lightbox/use'
 import { noDataKey } from '@/lib/list'
-import {
-  useDownload,
-  useView,
-  useRecentFiles,
-} from './hooks/files'
+import { useDownload, useView, useRecentFiles } from './hooks/files'
 import { useTempStore } from '@/stores/temp'
 import { shortUUID } from '@/lib/strutil'
 import { initMutation, setTempValueGQL } from '@/lib/api/mutation'
@@ -66,7 +74,6 @@ const { visible: ivVisible, index: ivIndex, view: ivView, hide: ivHide } = useMe
 const { downloadFile, downloadDir, downloadFiles } = useDownload(app)
 const { view } = useView(sources, ivView)
 const selectedItem = ref<IFile | null>(null)
-
 
 const { mutate: setTempValue, onDone: setTempValueDone } = initMutation({
   document: setTempValueGQL,
@@ -90,7 +97,6 @@ const downloadItems = () => {
   }
   setTempValue({ key: shortUUID(), value: JSON.stringify(items) })
 }
-
 
 function clickItem(item: IFile) {
   if (selectMode.value) {
@@ -199,6 +205,5 @@ function itemCtxMenu(e: MouseEvent, f: IFile) {
       border-color: var(--border-color);
     }
   }
-
 }
 </style>

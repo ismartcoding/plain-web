@@ -53,7 +53,6 @@ export const useRemoveFromTags = (tagType: string, items: Ref<ISelectable[]>, ta
   }
 }
 
-
 export const useTags = (tagType: string, q: Ref<string>, filter: IFilter, onLoad: (fields: IFilterField[]) => void) => {
   const tags = ref<ITag[]>([])
   const { t } = useI18n()
@@ -101,6 +100,6 @@ export const useTags = (tagType: string, q: Ref<string>, filter: IFilter, onLoad
     appApi: true,
   })
   return {
-    tags
+    tags,
   }
 }

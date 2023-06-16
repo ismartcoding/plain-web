@@ -8,12 +8,15 @@
             <div class="card-body">
               <h5 class="card-title">{{ $t('social') }}</h5>
               <p class="card-text stats-items">
-                <a href="#" @click.prevent="openTab('/messages')" v-if="app.allowSensitivePermissions">{{ $t('messages') }}<template
-                    v-if="messageCount >= 0">({{ messageCount }})</template></a>
-                <a href="#" @click.prevent="openTab('/contacts')">{{ $t('contacts') }}<template
-                    v-if="contactCount >= 0">({{ contactCount }})</template></a>
-                <a href="#" @click.prevent="openTab('/calls')" v-if="app.allowSensitivePermissions">{{ $t('calls') }}<template v-if="callCount >= 0">({{
-                  callCount }})</template></a>
+                <a href="#" @click.prevent="openTab('/messages')" v-if="app.allowSensitivePermissions"
+                  >{{ $t('messages') }}<template v-if="messageCount >= 0">({{ messageCount }})</template></a
+                >
+                <a href="#" @click.prevent="openTab('/contacts')"
+                  >{{ $t('contacts') }}<template v-if="contactCount >= 0">({{ contactCount }})</template></a
+                >
+                <a href="#" @click.prevent="openTab('/calls')" v-if="app.allowSensitivePermissions"
+                  >{{ $t('calls') }}<template v-if="callCount >= 0">({{ callCount }})</template></a
+                >
               </p>
             </div>
           </div>
@@ -24,8 +27,8 @@
               <h5 class="card-title">
                 {{ $t('storage')
                 }}<span style="font-size: 0.875rem; font-weight: normal; margin-left: 8px" v-if="totalBytes >= 0">{{
-  $t('storage_free_total', { free: formatFileSize(freeBytes), total: formatFileSize(totalBytes) })
-}}</span>
+                  $t('storage_free_total', { free: formatFileSize(freeBytes), total: formatFileSize(totalBytes) })
+                }}</span>
               </h5>
               <p class="card-text stats-items">
                 <a href="#" @click.prevent="openTab('/images')"> {{ $t('images') }}</a>
@@ -116,7 +119,7 @@ function openTab(fullPath: string) {
 
 <style lang="scss" scoped>
 .stats-items {
-  a+a {
+  a + a {
     margin-left: 24px;
   }
 }

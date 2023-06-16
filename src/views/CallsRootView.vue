@@ -38,9 +38,7 @@ const selectedTagName = type ? '' : parseTagName(route.query)
 function openByType(type: string) {
   replacePath(mainStore, `/calls/${type}`)
 }
-const types = [
-  'incoming', 'outgoing', 'missed'
-]
+const types = ['incoming', 'outgoing', 'missed']
 function all() {
   replacePath(mainStore, '/calls')
 }

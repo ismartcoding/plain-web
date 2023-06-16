@@ -4,8 +4,14 @@
       <div class="row">
         <label class="col-md-2 col-form-label">{{ $t('api_key') }}</label>
         <div class="col-md-10">
-          <input ref="input" type="text" :placeholder="$t('api_key')" class="form-control" v-model="inputValue"
-            @keyup.enter="doAction" />
+          <input
+            ref="input"
+            type="text"
+            :placeholder="$t('api_key')"
+            class="form-control"
+            v-model="inputValue"
+            @keyup.enter="doAction"
+          />
           <div class="invalid-feedback" v-show="valueError">
             {{ valueError ? $t(valueError) : '' }}
           </div>
@@ -38,12 +44,10 @@ const props = defineProps({
   value: { type: String },
 })
 
-
 const { mutate, loading, onDone } = initMutation({
   document: updateAIChatConfigGQL,
   options: {
-    update: () => {
-    },
+    update: () => {},
   },
   appApi: true,
 })
@@ -67,11 +71,10 @@ initQuery({
   variables: null,
   appApi: true,
 })
-
-  ; (async () => {
-    await nextTick()
-    input.value?.focus()
-  })()
+;(async () => {
+  await nextTick()
+  input.value?.focus()
+})()
 
 const doAction = handleSubmit(() => {
   mutate({ chatGPTApiKey: inputValue.value ?? '' })

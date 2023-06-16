@@ -2,8 +2,10 @@
   <div class="v-toolbar">
     <breadcrumb :current="() => `${$t('page_title.trash')} (${total})`" />
     <div class="right-actions">
-      <button class="btn btn-restore" type="button" @click.prevent="untrash">{{ $t('restore') }}</button>
-      <button class="btn btn-delete" type="button" @click.prevent="deleteItems">{{ $t('delete') }}</button>
+      <template v-if="checked">
+        <button class="btn btn-restore" type="button" @click.prevent="untrash">{{ $t('restore') }}</button>
+        <button class="btn btn-delete" type="button" @click.prevent="deleteItems">{{ $t('delete') }}</button>
+      </template>
       <search-input v-model="q" :search="doSearch">
         <template #filters>
           <div class="row mb-3">
@@ -39,8 +41,12 @@
       </tr>
     </thead>
     <tbody>
-      <tr v-for="item in items" :key="item.id" :class="{ checked: item.checked }"
-        @click.stop="item.checked = !item.checked">
+      <tr
+        v-for="item in items"
+        :key="item.id"
+        :class="{ checked: item.checked }"
+        @click.stop="item.checked = !item.checked"
+      >
         <td><input class="form-check-input" type="checkbox" v-model="item.checked" /></td>
         <td><field-id :id="item.id" :raw="item" /></td>
         <td>
@@ -79,7 +85,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { nextTick, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatDateTime } from '@/lib/format'
 import { notesGQL, initLazyQuery } from '@/lib/api/query'
@@ -105,6 +111,9 @@ const filter: IFilter = reactive({
   tags: [],
 })
 
+const checked = computed<boolean>(() => {
+  return items.value.some((it) => it.checked)
+})
 const tagType = 'NOTE'
 const route = useRoute()
 const query = route.query
@@ -197,9 +206,12 @@ onTrash(() => {
 })
 </script>
 <style lang="scss" scoped>
-.btn-delete,
 .btn-restore {
   margin-left: 0;
   margin-right: 16px;
+}
+
+.btn-delete {
+  margin-left: 0;
 }
 </style>

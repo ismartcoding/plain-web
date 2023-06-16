@@ -2,8 +2,15 @@
   <div class="v-toolbar">
     <breadcrumb :current="getPageTitle" />
     <div class="right-actions">
-      <dropdown v-if="selectMode" :title="$t('actions')" :items="actionItems" />
-      <div class="form-check mt-2 me-4">
+      <template v-if="selectMode && checked">
+        <button type="button" class="btn btn-action" @click.stop="deleteItems" :title="$t('delete')">
+          <i-material-symbols:delete-outline-rounded class="bi" />
+        </button>
+        <button type="button" class="btn btn-action" @click.stop="downloadItems" :title="$t('download')">
+          <i-material-symbols:download-rounded class="bi" />
+        </button>
+      </template>
+      <div class="form-check mt-2 me-3 ms-3">
         <input class="form-check-input" v-model="selectMode" id="select-mode" type="checkbox" />
         <label class="form-check-label" for="select-mode">{{ $t('select_mode') }}</label>
       </div>
@@ -17,14 +24,24 @@
     <pane v-for="panel in panels" :key="panel.dir">
       <div class="file-items">
         <template v-for="f of panel.items" :key="f.path">
-          <div class="file-item" v-if="!f.name.startsWith('.') || fileShowHidden" :class="{
-            active: (currentDir + '/').startsWith(f.path + '/') || selectedItem?.path === f.path,
-          }" @click="clickItem(panel, f)" @dblclick="dbclickItem(panel, f)"
-            @contextmenu="itemCtxMenu($event, panel, f)">
+          <div
+            class="file-item"
+            v-if="!f.name.startsWith('.') || fileShowHidden"
+            :class="{
+              active: (currentDir + '/').startsWith(f.path + '/') || selectedItem?.path === f.path,
+            }"
+            @click="clickItem(panel, f)"
+            @dblclick="dbclickItem(panel, f)"
+            @contextmenu="itemCtxMenu($event, panel, f)"
+          >
             <input class="form-check-input" v-if="selectMode" v-model="f.checked" type="checkbox" />
             <i-material-symbols:folder-outline-rounded class="bi" v-if="f.isDir" />
-            <img v-if="isImage(f.name) || isVideo(f.name)" :src="getFileUrl(f.fileId) + '&w=50&h=50'" width="50"
-              height="50" />
+            <img
+              v-if="isImage(f.name) || isVideo(f.name)"
+              :src="getFileUrl(f.fileId) + '&w=50&h=50'"
+              width="50"
+              height="50"
+            />
             <div class="title">
               {{ f.name }}
               <div style="font-size: 0.75rem">
@@ -34,8 +51,10 @@
           </div>
         </template>
         <div class="empty" @contextmenu="emptyCtxMenu($event, panel.dir)">
-          <div class="no-files"
-            v-if="panel.items.filter((it) => !it.name.startsWith('.') || fileShowHidden).length === 0">
+          <div
+            class="no-files"
+            v-if="panel.items.filter((it) => !it.name.startsWith('.') || fileShowHidden).length === 0"
+          >
             {{ $t('no_files') }}
           </div>
         </div>
@@ -48,13 +67,21 @@
   <div class="file-item-info" v-if="selectedItem">{{ $t('path') }}: {{ selectedItem.path }}</div>
   <lightbox :visible="ivVisible" :index="ivIndex" :sources="sources" @hide="ivHide" />
   <input ref="fileInput" style="display: none" type="file" multiple @change="uploadChanged" />
-  <input ref="dirFileInput" style="display: none" type="file" multiple webkitdirectory mozdirectory directory
-    @change="dirUploadChanged" />
+  <input
+    ref="dirFileInput"
+    style="display: none"
+    type="file"
+    multiple
+    webkitdirectory
+    mozdirectory
+    directory
+    @change="dirUploadChanged"
+  />
 </template>
 
 <script setup lang="ts">
 import { contextmenu } from '@/components/contextmenu'
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { formatDateTime, formatFileSize } from '@/lib/format'
 import { useI18n } from 'vue-i18n'
 import { Splitpanes, Pane } from 'splitpanes'
@@ -84,9 +111,7 @@ import EditValueModal from '@/components/EditValueModal.vue'
 import { useRoute } from 'vue-router'
 import { decodeBase64, shortUUID } from '@/lib/strutil'
 import { parseQuery } from '@/lib/search'
-import type { IDropdownItem } from '@/lib/interfaces'
 import { initMutation, setTempValueGQL } from '@/lib/api/mutation'
-import toast from '@/components/toaster'
 
 const { t } = useI18n()
 const sources = ref([])
@@ -132,7 +157,6 @@ const { canPaste, copy, cut, paste } = useCopyPaste(refetchFiles, refetchStats)
 const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload()
 const { input: dirFileInput, upload: uploadDir, uploadChanged: dirUploadChanged } = useFileUpload()
 
-
 const { mutate: setTempValue, onDone: setTempValueDone } = initMutation({
   document: setTempValueGQL,
   appApi: true,
@@ -142,46 +166,32 @@ setTempValueDone((r: any) => {
   downloadFiles(r.data.setTempValue.key)
 })
 
-const actionItems: IDropdownItem[] = [
-  {
-    text: t('download'), click: () => {
-      const files: any[] = []
-      panels.value.forEach((p: FilePanel) => {
-        p.items.forEach((f: IFile) => {
-          if (f.checked) {
-            files.push({ path: f.path })
-          }
-        })
-      })
-      if (files.length === 0) {
-        toast(t('select_first'), 'error')
-        return
+const getSelectedFiles = () => {
+  const files: IFile[] = []
+  panels.value.forEach((p: FilePanel) => {
+    p.items.forEach((f: IFile) => {
+      if (f.checked) {
+        files.push(f)
       }
-      setTempValue({ key: shortUUID(), value: JSON.stringify(files) })
-    }
-  },
-  {
-    text: t('delete'), click: () => {
-      const files: IFile[] = []
-      panels.value.forEach((p: FilePanel) => {
-        p.items.forEach((f: IFile) => {
-          if (f.checked) {
-            files.push(f)
-          }
-        })
-      })
-      if (files.length === 0) {
-        toast(t('select_first'), 'error')
-        return
-      }
+    })
+  })
+  return files
+}
 
-      openModal(DeleteFileConfirm, {
-        files: files,
-        onDone: onDeleted,
-      })
-    }
-  },
-]
+const downloadItems = () => {
+  setTempValue({ key: shortUUID(), value: JSON.stringify(getSelectedFiles().map((it) => ({ path: it.path }))) })
+}
+
+const checked = computed<boolean>(() => {
+  return getSelectedFiles().length > 0
+})
+
+const deleteItems = () => {
+  openModal(DeleteFileConfirm, {
+    files: getSelectedFiles(),
+    onDone: onDeleted,
+  })
+}
 const { fileShowHidden } = storeToRefs(mainStore)
 
 if (initPath.value) {

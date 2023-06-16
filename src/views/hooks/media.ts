@@ -29,6 +29,3 @@ export const useDeleteItems = (tagType: string, items: Ref<ISelectable[]>) => {
     },
   }
 }
-
-
-

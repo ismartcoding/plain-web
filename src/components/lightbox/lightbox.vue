@@ -8,16 +8,32 @@
               <div class="loader"></div>
             </div>
             <div v-else-if="status.loadError" class="v-on-error">{{ $t('load_failed', { name: current?.name }) }}</div>
-            <div v-if="current && isVideo(current.name)" v-show="!status.loading && !status.loadError"
-              class="v-video-wrapper" @click.self="closeDialog">
-              <video ref="video" controls autoplay="true" :src="current.src" @error="onError" @canplay="onLoad"
-                @playing="onPlaying" @pause="onPause" />
+            <div
+              v-if="current && isVideo(current.name)"
+              v-show="!status.loading && !status.loadError"
+              class="v-video-wrapper"
+              @click.self="closeDialog"
+            >
+              <video
+                ref="video"
+                controls
+                autoplay="true"
+                :src="current.src"
+                @error="onError"
+                @canplay="onLoad"
+                @playing="onPlaying"
+                @pause="onPause"
+              />
               <div v-if="current.name" class="source-name">
                 {{ current.name }}
               </div>
             </div>
-            <div v-else-if="current && isAudio(current.name)" v-show="!status.loading && !status.loadError"
-              class="v-audio-wrapper" @click.self="closeDialog">
+            <div
+              v-else-if="current && isAudio(current.name)"
+              v-show="!status.loading && !status.loadError"
+              class="v-audio-wrapper"
+              @click.self="closeDialog"
+            >
               <div style="padding: 50px">
                 <audio controls autoplay="true" :src="current.src" @error="onError" @canplay="onLoad" />
                 <div v-if="current.name" class="source-name">
@@ -25,15 +41,32 @@
                 </div>
               </div>
             </div>
-            <div v-else-if="current && isImage(current.name)" v-show="!status.loading && !status.loadError" class="v-img-wrapper" :style="imgWrapperStyle">
-              <img ref="imgRef" draggable="false" class="v-img"
-                :src="current?.src + (current?.viewOriginImage ? '' : '&w=1024&h=1024')" @mousedown="onMouseDown"
-                @mouseup="onMouseUp" @mousemove="onMouseMove" @touchstart="onTouchStart" @touchmove="onTouchMove"
-                @touchend="onTouchEnd" @load="onLoad" @error="onError" @dblclick="onDblclick" @dragstart="
+            <div
+              v-else-if="current && isImage(current.name)"
+              v-show="!status.loading && !status.loadError"
+              class="v-img-wrapper"
+              :style="imgWrapperStyle"
+            >
+              <img
+                ref="imgRef"
+                draggable="false"
+                class="v-img"
+                :src="current?.src + (current?.viewOriginImage ? '' : '&w=1024&h=1024')"
+                @mousedown="onMouseDown"
+                @mouseup="onMouseUp"
+                @mousemove="onMouseMove"
+                @touchstart="onTouchStart"
+                @touchmove="onTouchMove"
+                @touchend="onTouchEnd"
+                @load="onLoad"
+                @error="onError"
+                @dblclick="onDblclick"
+                @dragstart="
                   (e) => {
                     e.preventDefault()
                   }
-                " />
+                "
+              />
             </div>
           </div>
         </transition>
@@ -48,8 +81,7 @@
             {{ current.name }}
           </div>
           <div class="toolbar" v-if="current && (!current.name || isImage(current.name))">
-            <div class="btn btn-sm" v-if="!current.viewOriginImage"
-              @click="current.viewOriginImage = true; status.loading = true;">
+            <div class="btn btn-sm" v-if="!current.viewOriginImage" @click="viewOrigin">
               {{ $t('view_origin_image') }}
             </div>
 
@@ -122,6 +154,13 @@ const emit = defineEmits([
   'on-index-change',
 ])
 
+const viewOrigin = () => {
+  const c = current.value
+  if (c) {
+    c.viewOriginImage = true
+  }
+  status.loading = true
+}
 const { app } = storeToRefs(useTempStore())
 const video = ref<HTMLVideoElement>()
 const { imgRef, imgState, setImgSize } = useImage()
@@ -480,7 +519,6 @@ onBeforeUnmount(() => {
 }
 
 .buttons {
-
   .btn-prev,
   .btn-next {
     user-select: none;

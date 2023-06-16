@@ -298,7 +298,6 @@ export const feedEntryFragment = gql`
   ${tagFragment}
 `
 
-
 export const aiChatFragment = gql`
   fragment AIChatFragment on AIChat {
     id
@@ -320,10 +319,10 @@ export const packageFragment = gql`
     id
     name
     type
-    version,
-    path,
-    size,
-    installedAt,
+    version
+    path
+    size
+    installedAt
     updatedAt
   }
 `

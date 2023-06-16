@@ -9,9 +9,7 @@
               <popper v-if="index > 0">
                 <div class="chat-title">
                   <span class="name">{{ $t(item.isMe ? 'me' : 'ai') }}</span>
-                  <span class="time" :title="formatDateTimeFull(item.createdAt)">{{
-                    formatTime(item.createdAt)
-                  }}</span>
+                  <span class="time" :title="formatDateTimeFull(item.createdAt)">{{ formatTime(item.createdAt) }}</span>
                 </div>
                 <template #content>
                   <ul class="menu-items">
@@ -23,9 +21,7 @@
               </popper>
               <div v-else class="chat-title">
                 <span class="name">{{ $t(item.isMe ? 'me' : 'ai') }}</span>
-                <span class="time" :title="formatDateTimeFull(item.createdAt)">{{
-                  formatTime(item.createdAt)
-                }}</span>
+                <span class="time" :title="formatDateTimeFull(item.createdAt)">{{ formatTime(item.createdAt) }}</span>
               </div>
               <div class="chat-content md-container" v-html="item.md"></div>
             </div>
@@ -38,8 +34,14 @@
           </div>
         </pane>
         <pane class="chat-input" size="10" min-size="5">
-          <textarea v-model="content" class="form-control" autocomplete="off" :placeholder="$t('chat_input_hint')"
-            @keydown.enter.exact.prevent="send" @keydown.enter.shift.exact.prevent="content += '\n'"></textarea>
+          <textarea
+            v-model="content"
+            class="form-control"
+            autocomplete="off"
+            :placeholder="$t('chat_input_hint')"
+            @keydown.enter.exact.prevent="send"
+            @keydown.enter.shift.exact.prevent="content += '\n'"
+          ></textarea>
           <i class="bi bi-btn" @click.stop="send">
             <i-material-symbols:send-outline-rounded />
           </i>
@@ -86,7 +88,6 @@ const { render } = useMarkdown(app)
 function isCreate() {
   return id.value === 'create'
 }
-
 
 function dateVisible(item: IAIChat, index: number): boolean {
   let visible = false
@@ -146,7 +147,7 @@ function send() {
 sendDone(async (r: any) => {
   const items = r.data.createAIChat
   if (items) {
-    for (let item of items) {
+    for (const item of items) {
       chats.value?.push({ ...item, md: await render(item.content) })
     }
     const create = isCreate()
@@ -176,7 +177,7 @@ const { mutate: deleteItem, loading: deleteLoading } = initMutation({
   options: {
     update: (cache: ApolloCache<any>) => {
       cache.evict({ id: cache.identify({ __typename: 'AIChat', id: deleteId.value }) })
-      const index = chats.value?.findIndex(it => it.id === deleteId.value)
+      const index = chats.value?.findIndex((it) => it.id === deleteId.value)
       if (index !== null) {
         chats.value?.splice(index, 1)
       }
@@ -205,7 +206,6 @@ onMounted(() => {
     }
   })
 })
-
 </script>
 <style lang="scss" scoped>
 .chat-input {

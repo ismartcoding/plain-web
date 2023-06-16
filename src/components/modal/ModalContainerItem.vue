@@ -1,8 +1,18 @@
 <template>
-  <div class="modal" ref="containerRef" @mousedown="isDragging = false" @mousemove="isDragging = true"
-    @mouseup="handelClick">
-    <component :is="modal?.component" v-bind="modal?.props.value" :modalId="`_modal_${id}`" ref="modalRef"
-      v-on="modal?.events" />
+  <div
+    class="modal"
+    ref="containerRef"
+    @mousedown="isDragging = false"
+    @mousemove="isDragging = true"
+    @mouseup="handelClick"
+  >
+    <component
+      :is="modal?.component"
+      v-bind="modal?.props.value"
+      :modalId="`_modal_${id}`"
+      ref="modalRef"
+      v-on="modal?.events"
+    />
   </div>
 </template>
 <script setup lang="ts">
@@ -24,12 +34,12 @@ function getModalById(id: number | undefined): Modal | undefined {
   return modalQueue.value.find((elem) => elem.id === id)
 }
 
-let isDragging = false
+const isDragging = false
 function handelClick(e: Event) {
   if (!isDragging) {
     if (e.target !== containerRef.value) return
     if (modal?.backgroundClose) {
-      return closeById(modal.id, { background: true }).catch(() => { })
+      return closeById(modal.id, { background: true }).catch(() => {})
     }
   }
 }

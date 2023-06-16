@@ -2,7 +2,14 @@
   <div class="v-toolbar">
     <breadcrumb :current="() => `${$t('page_title.messages')} (${total})`" />
     <div class="right-actions">
-      <dropdown :title="$t('actions')" :items="actionItems" />
+      <template v-if="checked">
+        <button type="button" class="btn btn-action" @click.stop="addToTags" :title="$t('add_to_tags')">
+          <i-material-symbols:label-outline-rounded class="bi" />
+        </button>
+        <button type="button" class="btn btn-action" @click.stop="removeFromTags" :title="$t('remove_from_tags')">
+          <i-material-symbols:label-off-outline-rounded class="bi" />
+        </button>
+      </template>
       <search-input v-model="q" :search="doSearch">
         <template #filters>
           <div class="row mb-3">
@@ -39,8 +46,12 @@
       </tr>
     </thead>
     <tbody>
-      <tr v-for="item in items" :key="item.id" :class="{ checked: item.checked }"
-        @click.stop="item.checked = !item.checked">
+      <tr
+        v-for="item in items"
+        :key="item.id"
+        :class="{ checked: item.checked }"
+        @click.stop="item.checked = !item.checked"
+      >
         <td><input class="form-check-input" type="checkbox" v-model="item.checked" /></td>
         <td>
           <field-id :id="item.id" :raw="item" />
@@ -70,7 +81,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatDateTime, formatDateTimeFull } from '@/lib/format'
 import { initLazyQuery, messagesGQL } from '@/lib/api/query'
@@ -81,7 +92,7 @@ import { useTempStore } from '@/stores/temp'
 import { useI18n } from 'vue-i18n'
 import { noDataKey } from '@/lib/list'
 import { storeToRefs } from 'pinia'
-import type { IDropdownItem, IFilter, IMessage, IMessageItem } from '@/lib/interfaces'
+import type { IFilter, IMessage, IMessageItem } from '@/lib/interfaces'
 import { useAddToTags, useRemoveFromTags, useTags } from './hooks/tags'
 import { decodeBase64, encodeBase64 } from '@/lib/strutil'
 import { useSelectable } from './hooks/list'
@@ -121,10 +132,9 @@ const { tags } = useTags(tagType, q, filter, async (fields: IFilterField[]) => {
 const { addToTags } = useAddToTags(tagType, items, tags)
 const { removeFromTags } = useRemoveFromTags(tagType, items, tags)
 
-const actionItems: IDropdownItem[] = [
-  { text: t('add_to_tags'), click: addToTags },
-  { text: t('remove_from_tags'), click: removeFromTags },
-]
+const checked = computed<boolean>(() => {
+  return items.value.some((it) => it.checked)
+})
 
 const { selectAll, toggleSelect } = useSelectable(items)
 const { loading, load, refetch } = initLazyQuery({
@@ -162,7 +172,6 @@ watch(page, (value: number) => {
     replacePath(mainStore, `/messages?page=${value}&q=${encodeBase64(q.value)}`)
   }
 })
-
 
 function applyAndDoSearch() {
   q.value = buildFilterQuery(filter)

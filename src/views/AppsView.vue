@@ -2,9 +2,14 @@
   <div class="v-toolbar">
     <breadcrumb :current="() => `${$t('page_title.apps')} (${total})`" />
     <div class="right-actions">
-      <button type="button" class="btn btn-action" @click.stop="downloadItems">{{ $t('download') }}</button>
-      <button type="button" class="btn btn-action" @click.stop="install" style="display: none;">{{ $t('install') }}</button>
-      <!-- <dropdown :title="$t('actions')" :items="actionItems" /> -->
+      <template v-if="checked">
+        <button type="button" class="btn btn-action" @click.stop="downloadItems" :title="$t('download')">
+          <i-material-symbols:download-rounded class="bi" />
+        </button>
+      </template>
+      <button type="button" class="btn btn-action" @click.stop="install" style="display: none">
+        {{ $t('install') }}
+      </button>
       <search-input v-model="q" :search="doSearch">
         <template #filters>
           <div class="row mb-3">
@@ -36,12 +41,20 @@
       </tr>
     </thead>
     <tbody>
-      <tr v-for="item in items" :key="item.id" :class="{ checked: item.checked }"
-        @click.stop="item.checked = !item.checked">
+      <tr
+        v-for="item in items"
+        :key="item.id"
+        :class="{ checked: item.checked }"
+        @click.stop="item.checked = !item.checked"
+      >
         <td><input class="form-check-input" type="checkbox" v-model="item.checked" /></td>
         <td>
-          <strong>{{ item.name }} <i-material-symbols:download-rounded class="bi bi-btn"
-              @click.stop="downloadFile(item.path, `${item.name.replace(' ', '')}-${item.id}.apk`)" /></strong><br />
+          <strong
+            >{{ item.name }}
+            <i-material-symbols:download-rounded
+              class="bi bi-btn"
+              @click.stop="downloadFile(item.path, `${item.name.replace(' ', '')}-${item.id}.apk`)" /></strong
+          ><br />
           <field-id :id="item.id" :raw="item" />
         </td>
         <td>{{ item.version }}</td>
@@ -74,7 +87,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatDateTime, formatDateTimeFull, formatFileSize } from '@/lib/format'
 import { packagesGQL, initQuery, initLazyQuery, packageStatusesGQL } from '@/lib/api/query'
@@ -84,10 +97,10 @@ import { useMainStore } from '@/stores/main'
 import { useI18n } from 'vue-i18n'
 import { noDataKey } from '@/lib/list'
 import { buildQuery, parseQuery, type IFilterField } from '@/lib/search'
-import type { IFilter, IDropdownItem, IAppItem, IApp } from '@/lib/interfaces'
+import type { IFilter, IAppItem, IApp } from '@/lib/interfaces'
 import { decodeBase64, encodeBase64 } from '@/lib/strutil'
-import { useDelete, useSelectable } from './hooks/list'
-import { initMutation, uninstallPackageGQL, uninstallPackagesGQL } from '@/lib/api/mutation'
+import { useSelectable } from './hooks/list'
+import { initMutation, uninstallPackageGQL } from '@/lib/api/mutation'
 import { useTempStore, type IUploadItem } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { useDownload, useDownloadItems, useFileUpload } from './hooks/files'
@@ -104,7 +117,9 @@ const filter: IFilter = reactive({
   text: '',
   tags: [],
 })
-
+const checked = computed<boolean>(() => {
+  return items.value.some((it) => it.checked)
+})
 const { downloadItems } = useDownloadItems(items, 'apps.zip')
 const { downloadFile } = useDownload(app)
 const route = useRoute()
@@ -124,23 +139,13 @@ if (currentType) {
 }
 
 const finalQ = ref(buildQuery(fields))
-const { deleteItems } = useDelete(
-  uninstallPackagesGQL,
-  () => {
-    refetch()
-  },
-  items
-)
-const actionItems: IDropdownItem[] = [
-  { text: t('delete'), click: deleteItems },
-]
 
 const install = () => {
   uploadFiles(app.value.downloadsDir)
 }
 
 const { selectAll, toggleSelect } = useSelectable(items)
-const { loading, refetch } = initQuery({
+const { loading } = initQuery({
   handle: (data: any, error: string) => {
     if (error) {
       toast(t(error), 'error')
@@ -195,7 +200,6 @@ const { mutate: uninstallMutate, onDone: uninstallDone } = initMutation({
   appApi: true,
 })
 
-
 function uninstall(item: any) {
   uninstallDone(() => {
     item.isUninstalling = true
@@ -203,7 +207,11 @@ function uninstall(item: any) {
   uninstallMutate({ id: item.id })
 }
 
-const { loading: fetchPackageStatusLoading, load: fetchPackageStatus, refetch: refetchPackageStatus } = initLazyQuery({
+const {
+  loading: fetchPackageStatusLoading,
+  load: fetchPackageStatus,
+  refetch: refetchPackageStatus,
+} = initLazyQuery({
   handle: (data: any, _error: string) => {
     if (data) {
       for (const item of data.packageStatuses) {
@@ -215,7 +223,7 @@ const { loading: fetchPackageStatusLoading, load: fetchPackageStatus, refetch: r
   },
   document: packageStatusesGQL,
   variables: () => ({
-    ids: items.value.filter(it => it.isUninstalling).map(it => it.id)
+    ids: items.value.filter((it) => it.isUninstalling).map((it) => it.id),
   }),
   appApi: true,
 })
@@ -229,7 +237,7 @@ onMounted(() => {
 
   let firstLoad = true
   setInterval(() => {
-    if (items.value.some(it => it.isUninstalling) && !fetchPackageStatusLoading.value) {
+    if (items.value.some((it) => it.isUninstalling) && !fetchPackageStatusLoading.value) {
       if (firstLoad) {
         fetchPackageStatus()
         firstLoad = false

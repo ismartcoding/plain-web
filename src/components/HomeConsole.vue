@@ -1,10 +1,14 @@
 <template>
   <div id="console">
     <div class="toolbar">
-      <span class="title">{{ app?.deviceName ?? $t('console')
-      }}{{ app?.battery ? ' (' + $t('battery_left', { percentage: app?.battery }) + ')' : '' }}</span>
-      <i-material-symbols:indeterminate-check-box-outline-rounded class="bi bi-btn"
-        @click="() => (store.consoleOpen = false)" />
+      <span class="title"
+        >{{ app?.deviceName ?? $t('console')
+        }}{{ app?.battery ? ' (' + $t('battery_left', { percentage: app?.battery }) + ')' : '' }}</span
+      >
+      <i-material-symbols:indeterminate-check-box-outline-rounded
+        class="bi bi-btn"
+        @click="() => (store.consoleOpen = false)"
+      />
     </div>
     <div class="chat-items-container" ref="scrollContainer">
       <div>
@@ -36,9 +40,14 @@
       </div>
     </div>
     <div class="chat-input">
-      <textarea v-model="chatText" autocomplete="off" class="form-control" :placeholder="$t('chat_input_hint')"
+      <textarea
+        v-model="chatText"
+        autocomplete="off"
+        class="form-control"
+        :placeholder="$t('chat_input_hint')"
         @keydown.enter.exact.prevent="send"
-        @keydown.enter.shift.exact.prevent="chatText += '\n'"></textarea>
+        @keydown.enter.shift.exact.prevent="chatText += '\n'"
+      ></textarea>
       <i class="bi bi-btn" @click="send" :disable="createLoading">
         <i-material-symbols:send-outline-rounded />
       </i>
@@ -225,11 +234,10 @@ function deleteMessage(id: string) {
   display: flex;
   flex: 1 1 auto;
 
-  &>div {
+  & > div {
     width: 100%;
   }
 }
-
 
 .chat-content {
   margin-top: 8px;

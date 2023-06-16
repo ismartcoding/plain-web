@@ -12,7 +12,12 @@
         <button type="button" class="btn btn-action" @click.stop="addItemsToPlaylist" :title="$t('add_to_playlist')">
           <i-material-symbols:playlist-add class="bi" />
         </button>
-        <button-more :items="actionItems"/>
+        <button type="button" class="btn btn-action" @click.stop="addToTags" :title="$t('add_to_tags')">
+          <i-material-symbols:label-outline-rounded class="bi" />
+        </button>
+        <button type="button" class="btn btn-action" @click.stop="removeFromTags" :title="$t('remove_from_tags')">
+          <i-material-symbols:label-off-outline-rounded class="bi" />
+        </button>
       </template>
       <button type="button" class="btn btn-action" @click.stop="upload">{{ $t('upload') }}</button>
       <search-input v-model="q" :search="doSearch">
@@ -51,16 +56,22 @@
       </tr>
     </thead>
     <tbody>
-      <tr v-for="item in items" :key="item.id" :class="{ checked: item.checked }"
-        @click.stop="item.checked = !item.checked">
+      <tr
+        v-for="item in items"
+        :key="item.id"
+        :class="{ checked: item.checked }"
+        @click.stop="item.checked = !item.checked"
+      >
         <td><input class="form-check-input" type="checkbox" v-model="item.checked" /></td>
         <td><field-id :id="item.id" :raw="item" /></td>
         <td>
           {{ item.title }}
           <span class="audio-btns">
             <i-material-symbols:delete-outline-rounded class="bi bi-btn" @click.stop="deleteItem(item)" />
-            <i-material-symbols:download-rounded class="bi bi-btn"
-              @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))" />
+            <i-material-symbols:download-rounded
+              class="bi bi-btn"
+              @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))"
+            />
             <i-material-symbols:playlist-add class="bi bi-btn" @click.stop="addToPlaylist(item)" />
             <i class="spinner spinner-sm" v-if="playLoading && item.path === playing"></i>
             <i-material-symbols:play-circle-outline-rounded class="bi bi-btn" v-else @click.stop="play(item)" />
@@ -104,7 +115,7 @@ import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
 import { useI18n } from 'vue-i18n'
 import { formatFileSize } from '@/lib/format'
-import type { IAudio, IPlaylistAudio, IDropdownItem, IAudioItem, IFilter } from '@/lib/interfaces'
+import type { IAudio, IPlaylistAudio, IAudioItem, IFilter } from '@/lib/interfaces'
 import { storeToRefs } from 'pinia'
 import { buildFilterQuery, buildQuery, type IFilterField } from '@/lib/search'
 import { decodeBase64, encodeBase64 } from '@/lib/strutil'
@@ -139,7 +150,7 @@ const current = computed<IPlaylistAudio | undefined>(() => {
 })
 
 const checked = computed<boolean>(() => {
-  return items.value.some(it => it.checked)
+  return items.value.some((it) => it.checked)
 })
 
 const tagType = 'AUDIO'
@@ -165,10 +176,6 @@ const { downloadFile } = useDownload(app)
 const router = useRouter()
 
 const { play, playing, loading: playLoading } = usePlay()
-const actionItems: IDropdownItem[] = [
-  { text: t('add_to_tags'), click: addToTags },
-  { text: t('remove_from_tags'), click: removeFromTags }
-]
 
 const { selectAll, toggleSelect } = useSelectable(items)
 const { loading, load, refetch } = initLazyQuery({

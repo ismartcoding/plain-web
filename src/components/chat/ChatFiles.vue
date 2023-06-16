@@ -30,6 +30,4 @@ const items = computed(() => {
   })
   return items
 })
-
-
 </script>

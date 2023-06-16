@@ -148,7 +148,6 @@ export const parseFeedName = (query: LocationQuery) => {
   return parseQueryName(query, 'feed')
 }
 
-
 export const buildFilterQuery = (filter: IFilter): string => {
   const fields: IFilterField[] = []
   for (const tag of filter.tags) {
