@@ -21,6 +21,9 @@ const props = defineProps({
   done: {
     type: Function as PropType<() => void>,
   },
+  variables: {
+    type: Function as PropType<() => any>,
+  },
 })
 
 const { mutate, loading, onDone } = initMutation({
@@ -36,7 +39,7 @@ const { mutate, loading, onDone } = initMutation({
 })
 
 function doDelete() {
-  mutate({ id: props.id })
+  mutate(props.variables ? props.variables() : { id: props.id })
 }
 
 onDone(() => {

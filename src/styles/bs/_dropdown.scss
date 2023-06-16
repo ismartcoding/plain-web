@@ -31,10 +31,10 @@
   background-clip: padding-box;
   border: 1px solid currentColor;
   border-radius: var(--border-radius-sm);
-  right: 0;
-  left: auto;
+  right: auto;
+  left: 0;
   top: 100%;
-  margin-top: 0.125rem;
+  margin-top: 0.5rem;
 }
 
 .dropdown-item {
