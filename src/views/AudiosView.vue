@@ -2,8 +2,19 @@
   <div class="v-toolbar">
     <breadcrumb :current="() => `${$t('page_title.audios')} (${total})`" />
     <div class="right-actions">
+      <template v-if="checked">
+        <button type="button" class="btn btn-action" @click.stop="deleteItems" :title="$t('delete')">
+          <i-material-symbols:delete-outline-rounded class="bi" />
+        </button>
+        <button type="button" class="btn btn-action" @click.stop="downloadItems" :title="$t('download')">
+          <i-material-symbols:download-rounded class="bi" />
+        </button>
+        <button type="button" class="btn btn-action" @click.stop="addItemsToPlaylist" :title="$t('add_to_playlist')">
+          <i-material-symbols:playlist-add class="bi" />
+        </button>
+        <button-more :items="actionItems"/>
+      </template>
       <button type="button" class="btn btn-action" @click.stop="upload">{{ $t('upload') }}</button>
-      <dropdown :title="$t('actions')" :items="actionItems" />
       <search-input v-model="q" :search="doSearch">
         <template #filters>
           <div class="row mb-3">
@@ -46,9 +57,14 @@
         <td><field-id :id="item.id" :raw="item" /></td>
         <td>
           {{ item.title }}
-          <i class="spinner spinner-sm" v-if="playLoading && item.path === playing"></i>
-          <i-material-symbols:play-arrow-outline-rounded class="bi bi-btn" v-else-if="item.path !== current?.path"
-            @click.stop="play(item)" />
+          <span class="audio-btns">
+            <i-material-symbols:delete-outline-rounded class="bi bi-btn" @click.stop="deleteItem(item)" />
+            <i-material-symbols:download-rounded class="bi bi-btn"
+              @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))" />
+            <i-material-symbols:playlist-add class="bi bi-btn" @click.stop="addToPlaylist(item)" />
+            <i class="spinner spinner-sm" v-if="playLoading && item.path === playing"></i>
+            <i-material-symbols:play-circle-outline-rounded class="bi bi-btn" v-else @click.stop="play(item)" />
+          </span>
         </td>
         <td>
           {{ item.artist }}
@@ -98,9 +114,12 @@ import { useSelectable } from './hooks/list'
 import emitter from '@/plugins/eventbus'
 import { useAddToTags, useRemoveFromTags, useTags } from './hooks/tags'
 import { useDeleteItems } from './hooks/media'
-import { useDownloadItems } from './hooks/files'
-import { pushModal } from '@/components/modal'
+import { useDownload, useDownloadItems } from './hooks/files'
+import { openModal, pushModal } from '@/components/modal'
 import ConfirmModal from '@/components/ConfirmModal.vue'
+import { getFileName } from '@/lib/api/file'
+import { deleteMediaItemGQL } from '@/lib/api/mutation'
+import DeleteConfirm from '@/components/DeleteConfirm.vue'
 
 const mainStore = useMainStore()
 const items = ref<IAudioItem[]>([])
@@ -119,6 +138,10 @@ const current = computed<IPlaylistAudio | undefined>(() => {
   return audios.value.find((it) => it.path == c)
 })
 
+const checked = computed<boolean>(() => {
+  return items.value.some(it => it.checked)
+})
+
 const tagType = 'AUDIO'
 const route = useRoute()
 const query = route.query
@@ -132,20 +155,19 @@ const { tags } = useTags(tagType, q, filter, async (fields: IFilterField[]) => {
   await nextTick() // hack: to fix the lazy query load twice
   load()
 })
-const { addToPlaylist } = useAddToPlaylist(items)
+const { addItemsToPlaylist, addToPlaylist } = useAddToPlaylist(items)
 const { addToTags } = useAddToTags(tagType, items, tags)
 const { removeFromTags } = useRemoveFromTags(tagType, items, tags)
 const { deleteItems } = useDeleteItems(tagType, items)
 const { downloadItems } = useDownloadItems(items, 'audios.zip')
+const { downloadFile } = useDownload(app)
+
 const router = useRouter()
 
 const { play, playing, loading: playLoading } = usePlay()
 const actionItems: IDropdownItem[] = [
-  { text: t('add_to_playlist'), click: addToPlaylist },
   { text: t('add_to_tags'), click: addToTags },
-  { text: t('remove_from_tags'), click: removeFromTags },
-  { text: t('download'), click: downloadItems },
-  { text: t('delete'), click: deleteItems },
+  { text: t('remove_from_tags'), click: removeFromTags }
 ]
 
 const { selectAll, toggleSelect } = useSelectable(items)
@@ -196,4 +218,32 @@ onMounted(() => {
     }
   })
 })
+
+function deleteItem(item: any) {
+  openModal(DeleteConfirm, {
+    id: item.id,
+    name: item.title,
+    gql: deleteMediaItemGQL,
+    variables: () => ({ tagType: tagType, id: item.id }),
+    appApi: true,
+    typeName: 'Audio',
+    done: () => {
+      emitter.emit('refetch_app')
+      emitter.emit('refetch_by_tag_type', tagType)
+    },
+  })
+}
 </script>
+<style lang="scss" scoped>
+.audio-btns {
+  visibility: hidden;
+  padding-left: 8px;
+  .spinner {
+    margin-left: 10px;
+  }
+}
+
+tr:hover .audio-btns {
+  visibility: visible;
+}
+</style>

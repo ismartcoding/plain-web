@@ -20,7 +20,7 @@ export const useAddToPlaylist = (items: Ref<IAudioItem[]>) => {
 
   return {
     loading,
-    addToPlaylist: () => {
+    addItemsToPlaylist: () => {
       const selectedItems = items.value.filter((it: ISelectable) => it.checked)
       if (selectedItems.length === 0) {
         toast(t('select_first'), 'error')
@@ -28,6 +28,9 @@ export const useAddToPlaylist = (items: Ref<IAudioItem[]>) => {
       }
 
       mutate({ paths: selectedItems.map((it) => it.path) })
+    },
+    addToPlaylist: (item: IAudio) => {
+      mutate({ paths: [item.path] })
     },
   }
 }

@@ -4,11 +4,8 @@ import { useI18n } from 'vue-i18n'
 import toast from '@/components/toaster'
 import type { ISelectable } from '@/lib/interfaces'
 import type { Ref } from 'vue'
-import { deleteMediaItemsGQL, initMutation, setTempValueGQL } from '@/lib/api/mutation'
+import { deleteMediaItemsGQL } from '@/lib/api/mutation'
 import emitter from '@/plugins/eventbus'
-import { shortUUID } from '@/lib/strutil'
-import { getApiBaseUrl } from '@/lib/api/api'
-import { download } from '@/lib/api/file'
 
 export const useDeleteItems = (tagType: string, items: Ref<ISelectable[]>) => {
   const { t } = useI18n()
