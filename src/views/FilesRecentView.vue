@@ -2,10 +2,12 @@
   <div class="v-toolbar">
     <breadcrumb :current="$t('recent_files')" />
     <div class="right-actions">
-      <button type="button" class="btn btn-action" v-if="selectMode" @click.stop="downloadItems">
-        {{ $t('download') }}
-      </button>
-      <div class="form-check mt-2 me-4">
+      <template v-if="selectMode && checked">
+        <button type="button" class="btn btn-action" @click.stop="downloadItems" :title="$t('download')">
+          <i-material-symbols:download-rounded class="bi" />
+        </button>
+      </template>
+      <div class="form-check mt-2 me-3 ms-3">
         <input class="form-check-input" v-model="selectMode" id="select-mode" type="checkbox" />
         <label class="form-check-label" for="select-mode">{{ $t('select_mode') }}</label>
       </div>
@@ -49,7 +51,7 @@
 
 <script setup lang="ts">
 import { contextmenu } from '@/components/contextmenu'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { formatDateTime, formatFileSize } from '@/lib/format'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
@@ -84,19 +86,23 @@ setTempValueDone((r: any) => {
   downloadFiles(r.data.setTempValue.key)
 })
 
-const downloadItems = () => {
+const getSelectedFiles = () => {
   const items: any[] = []
   files.value.forEach((f: IFile) => {
     if (f.checked) {
       items.push({ path: f.path })
     }
   })
-  if (items.length === 0) {
-    toast(t('select_first'), 'error')
-    return
-  }
-  setTempValue({ key: shortUUID(), value: JSON.stringify(items) })
+  return items
 }
+
+const downloadItems = () => {
+  setTempValue({ key: shortUUID(), value: JSON.stringify(getSelectedFiles()) })
+}
+
+const checked = computed<boolean>(() => {
+  return getSelectedFiles().length > 0
+})
 
 function clickItem(item: IFile) {
   if (selectMode.value) {
