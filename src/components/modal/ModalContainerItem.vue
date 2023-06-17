@@ -34,7 +34,7 @@ function getModalById(id: number | undefined): Modal | undefined {
   return modalQueue.value.find((elem) => elem.id === id)
 }
 
-const isDragging = false
+let isDragging = false
 function handelClick(e: Event) {
   if (!isDragging) {
     if (e.target !== containerRef.value) return
