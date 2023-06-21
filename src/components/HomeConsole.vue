@@ -2,7 +2,7 @@
   <div id="console">
     <div class="toolbar">
       <span class="title"
-        >{{ app?.deviceName ?? $t('console')
+        >{{ app?.deviceName ?? $t('my_phone')
         }}{{ app?.battery ? ' (' + $t('battery_left', { percentage: app?.battery }) + ')' : '' }}</span
       >
       <i-material-symbols:indeterminate-check-box-outline-rounded
@@ -58,14 +58,7 @@
 <script setup lang="ts">
 import { useMainStore } from '@/stores/main'
 import { formatTime, formatDateTimeFull, formatDate } from '@/lib/format'
-import ChatApp from './chat/ChatApp.vue'
-import ChatExchange from './chat/ChatExchange.vue'
-import ChatEducation from './chat/ChatEducation.vue'
-import ChatNetwork from './chat/ChatNetwork.vue'
 import ChatImages from './chat/ChatImages.vue'
-import ChatStorage from './chat/ChatStorage.vue'
-import ChatWork from './chat/ChatWork.vue'
-import ChatSocial from './chat/ChatSocial.vue'
 import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
 import { createChatItemGQL, deleteChatItemGQL, initMutation, updateCache } from '@/lib/api/mutation'
@@ -121,14 +114,7 @@ initQuery({
 
 function getComponent(type: string) {
   return {
-    app: ChatApp,
-    exchange: ChatExchange,
-    education: ChatEducation,
-    network: ChatNetwork,
     images: ChatImages,
-    storage: ChatStorage,
-    work: ChatWork,
-    social: ChatSocial,
     files: ChatFiles,
   }[type]
 }

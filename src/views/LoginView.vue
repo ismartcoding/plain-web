@@ -12,7 +12,7 @@
       </div>
       <input type="password" class="form-control" v-model="password" :placeholder="t('password')" />
       <div class="invalid-feedback" v-show="passwordError">
-        {{ passwordError ? $t(passwordError, { min: 6 }) : '' }}
+        {{ passwordError ? $t(passwordError) : '' }}
       </div>
       <div class="d-grid mt-4">
         <button class="btn" type="submit" :disabled="isSubmitting">
@@ -48,7 +48,7 @@ const error = ref('')
 let ws: WebSocket
 const showWarning = window.location.protocol === 'http:' ? false : !window.navigator.userAgentData
 const { t } = useI18n()
-const { value: password, errorMessage: passwordError } = useField('password', string().required().min(6))
+const { value: password, errorMessage: passwordError } = useField('password', string().required())
 
 async function initRequest() {
   const r = await fetch(`${getApiBaseUrl()}/init`, {

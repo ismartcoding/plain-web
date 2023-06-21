@@ -37,7 +37,7 @@
       <home-console v-show="store.consoleOpen" />
     </div>
     <button type="button" class="btn btn-console" @click="() => (store.consoleOpen = true)" v-show="!store.consoleOpen">
-      {{ $t('console') }}
+      {{ $t('my_phone') }}
     </button>
   </template>
 </template>
