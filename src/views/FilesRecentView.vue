@@ -63,7 +63,6 @@ import { useDownload, useView, useRecentFiles } from './hooks/files'
 import { useTempStore } from '@/stores/temp'
 import { shortUUID } from '@/lib/strutil'
 import { initMutation, setTempValueGQL } from '@/lib/api/mutation'
-import toast from '@/components/toaster'
 
 const { t } = useI18n()
 const sources = ref([])

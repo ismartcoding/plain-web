@@ -23,8 +23,6 @@ export const appFragment = gql`
     externalFilesDir
     deviceName
     battery
-    locale
-    theme
     version
     permissions
     audios {

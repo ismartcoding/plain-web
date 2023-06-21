@@ -23,7 +23,7 @@ export default {
   address: 'Address',
   yes: 'Yes',
   no: 'No',
-  console: 'Console',
+  my_phone: 'My phone',
   me: 'Me',
   password: 'Password',
   chat_input_hint: 'What is in your mind?',

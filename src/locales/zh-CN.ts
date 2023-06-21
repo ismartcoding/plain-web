@@ -23,7 +23,7 @@ export default {
   address: '地址',
   yes: '是',
   no: '否',
-  console: '控制台',
+  my_phone: '我的手机',
   me: '我',
   password: '密码',
   chat_input_hint: '您想说什么？',
