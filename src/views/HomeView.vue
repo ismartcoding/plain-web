@@ -35,7 +35,7 @@
                 <a href="#" @click.prevent="openTab('/audios')"> {{ $t('audios') }}</a>
                 <a href="#" @click.prevent="openTab('/videos')">{{ $t('videos') }}</a>
                 <a href="#" @click.prevent="openTab('/files')">{{ $t('files') }} </a>
-                <a href="#" @click.prevent="openTab('/apps')">{{ $t('apps') }}</a>
+                <a href="#" @click.prevent="openTab('/apps')" v-if="app.allowSensitivePermissions">{{ $t('apps') }}</a>
               </p>
             </div>
           </div>
