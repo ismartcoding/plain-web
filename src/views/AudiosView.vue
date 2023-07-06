@@ -49,6 +49,7 @@
         <th><input class="form-check-input" type="checkbox" @change="toggleSelect" v-model="selectAll" /></th>
         <th>ID</th>
         <th>{{ $t('name') }}</th>
+        <th></th>
         <th>{{ $t('artist') }}</th>
         <th>{{ $t('tags') }}</th>
         <th>{{ $t('duration') }}</th>
@@ -66,6 +67,9 @@
         <td><field-id :id="item.id" :raw="item" /></td>
         <td>
           {{ item.title }}
+
+        </td>
+        <td class="nowrap">
           <span class="audio-btns">
             <i-material-symbols:delete-outline-rounded class="bi bi-btn" @click.stop="deleteItem(item)" />
             <i-material-symbols:download-rounded
@@ -93,7 +97,7 @@
     </tbody>
     <tfoot v-if="!items.length">
       <tr>
-        <td colspan="7">
+        <td colspan="8">
           <div class="no-data-placeholder">
             {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
           </div>
@@ -243,14 +247,9 @@ function deleteItem(item: any) {
 </script>
 <style lang="scss" scoped>
 .audio-btns {
-  visibility: hidden;
   padding-left: 8px;
   .spinner {
     margin-left: 10px;
   }
-}
-
-tr:hover .audio-btns {
-  visibility: visible;
 }
 </style>
