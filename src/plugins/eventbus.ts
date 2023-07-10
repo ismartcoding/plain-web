@@ -11,6 +11,9 @@ type Events = {
   feeds_fetched: any
   ai_chat_replied: any
   screen_mirrorring: string
+  message_created: any
+  message_updated: any
+  message_deleted: any
 }
 
 const emitter: Emitter<Events> = mitt<Events>()

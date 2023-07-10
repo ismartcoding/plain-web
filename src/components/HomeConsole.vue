@@ -64,12 +64,16 @@ import { useI18n } from 'vue-i18n'
 import { createChatItemGQL, deleteChatItemGQL, initMutation, updateCache } from '@/lib/api/mutation'
 import { chatItemsGQL, initQuery } from '@/lib/api/query'
 import toast from './toaster'
-import { nextTick, ref } from 'vue'
+import { nextTick, onMounted, ref } from 'vue'
 import type { ApolloCache } from '@apollo/client/core'
 import { useTempStore } from '@/stores/temp'
 import type { IChatItem } from '@/lib/interfaces'
 import ChatFiles from './chat/ChatFiles.vue'
+import { useApolloClient } from '@vue/apollo-composable'
+import emitter from '@/plugins/eventbus'
+import { chatItemFragment } from '@/lib/api/fragments'
 
+const { resolveClient } = useApolloClient()
 const scrollContainer = ref<HTMLDivElement>()
 const chatItems = ref<IChatItem[]>([])
 
@@ -169,6 +173,51 @@ function deleteMessage(id: string) {
   deleteId.value = id
   deleteItem({ id })
 }
+
+onMounted(() => {
+  emitter.on('message_created', async (data: any[]) => {
+    const client = resolveClient('a')
+    const items = []
+    for (const item of data) {
+      let data = null
+      if (item.data) {
+        data = item.data
+        data.__typename =  item.data.type.split('.').pop()
+      }
+      items.push({ ...item, data: data, __typename: 'ChatItem' })
+    }
+    updateCache(client.cache, items, chatItemsGQL)
+  })
+  
+  emitter.on('message_deleted', async (data: string[]) => {
+    const client = resolveClient('a')
+    const cache = client.cache
+    for (const id of data) {
+      cache.evict({ id: cache.identify({ __typename: 'ChatItem', id: id }) })
+    }
+  })
+
+  emitter.on('message_updated', async (data: any[]) => {
+    const client = resolveClient('a')
+    const cache = client.cache
+    for (const item of data) {
+      const id = item.id
+      const cacheId = cache.identify({ __typename: 'ChatItem', id: id })
+      const fragment = chatItemFragment
+      const data = cache.readFragment({ id: cacheId, fragment })
+      if (data) {
+        cache.writeFragment({
+          id: cacheId,
+          fragment,
+          data: {
+            ...data,
+            ...item,
+          },
+        })
+      }
+    }
+  })
+})
 </script>
 
 <style lang="scss" scoped>
