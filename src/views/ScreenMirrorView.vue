@@ -127,9 +127,11 @@ stopServiceDone(() => {
 </script>
 <style lang="scss" scoped>
 img {
-  height: 100%;
   margin: 0 auto;
   display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .panel-container {
