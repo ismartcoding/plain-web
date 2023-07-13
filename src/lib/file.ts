@@ -14,19 +14,23 @@ export interface IFile extends ISelectable {
 }
 
 export function isImage(name: string) {
-  return photoExtensions.some((it) => name.endsWith(it))
+  const v = name.toLowerCase()
+  return photoExtensions.some((it) => v.endsWith(it))
 }
 
 export function isVideo(name: string) {
-  return videoExtensions.some((it) => name.endsWith(it))
+  const v = name.toLowerCase()
+  return videoExtensions.some((it) => v.endsWith(it))
 }
 
 export function isAudio(name: string) {
-  return audioExtensions.some((it) => name.endsWith(it))
+  const v = name.toLowerCase()
+  return audioExtensions.some((it) => v.endsWith(it))
 }
 
 export function isRaw(name: string) {
-  return rawExtensions.some((it) => name.endsWith(it))
+  const v = name.toLowerCase()
+  return rawExtensions.some((it) => v.endsWith(it))
 }
 
 export function canView(name: string) {

@@ -254,7 +254,7 @@ export default {
   prefix: '名称前缀',
   suffix: '名称后缀',
   browser_warning: '推荐使用最新版的Chrome浏览器',
-  no_permission: '没有权限，请到手机应用 > "电脑浏览器访问手机"里面打开权限并刷新页面重试。',
+  no_permission: '没有权限，请到手机应用 > "电脑浏览器访问"里面打开权限并刷新页面重试。',
   no_data: '没有数据。',
   loading: '加载中...',
   duration: '时长',
