@@ -256,7 +256,7 @@ export default {
   suffix: 'Suffix',
   browser_warning: 'Suggest to use the lastest version of Chrome web browser',
   no_permission:
-    'No permission. Please go to APP > "Open in PC web browser" to enable the permissions and refresh the page.',
+    'No permission. Please go to APP > "Web on PC" to enable the permissions and refresh the page.',
   no_data: 'No data.',
   loading: 'Loading...',
   duration: 'Duration',
