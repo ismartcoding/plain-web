@@ -10,7 +10,7 @@
       <div class="alert alert-danger" role="alert" v-show="showError">
         {{ error ? $t(error) : '' }}
       </div>
-      <input type="password" class="form-control" v-model="password" :placeholder="t('password')" />
+      <input v-if="showPasswordInput" type="password" class="form-control" v-model="password" :placeholder="t('password')" />
       <div class="invalid-feedback" v-show="passwordError">
         {{ passwordError ? $t(passwordError) : '' }}
       </div>
@@ -49,6 +49,7 @@ let ws: WebSocket
 const showWarning = window.location.protocol === 'http:' ? false : !window.navigator.userAgentData
 const { t } = useI18n()
 const { value: password, errorMessage: passwordError } = useField('password', string().required())
+const showPasswordInput = ref(false)
 
 async function initRequest() {
   const r = await fetch(`${getApiBaseUrl()}/init`, {
@@ -58,7 +59,9 @@ async function initRequest() {
   const pwd = await r.text()
   if (pwd) {
     password.value = pwd
-    onSubmit()
+    showPasswordInput.value = false
+  } else {
+    showPasswordInput.value = true
   }
 }
 
