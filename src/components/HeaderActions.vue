@@ -42,6 +42,10 @@
     <ul class="dropdown-menu" v-show="langMenuVisible">
       <li class="dropdown-item" @click="changeLang('en-US')">English</li>
       <li class="dropdown-item" @click="changeLang('zh-CN')">简体中文</li>
+      <li class="dropdown-item" @click="changeLang('es')">español</li>
+      <li class="dropdown-item" @click="changeLang('ja')">日本語</li>
+      <li class="dropdown-item" @click="changeLang('nl')">Nederlands</li>
+      <li class="dropdown-item" @click="changeLang('it')">italiano</li>
     </ul>
   </div>
 
