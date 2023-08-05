@@ -302,6 +302,7 @@ export default {
   },
   load_failed: '加载{name}失败',
   network_error: '网络异常，无法连接API',
+  web_access_disabled: '网页访问功能已经关闭',
   play: '播放',
   add_to_playlist: '加入播放列表',
   added_to_playlist: '已加入播放列表！',

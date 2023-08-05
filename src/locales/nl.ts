@@ -303,6 +303,7 @@ export default {
   },
   load_failed: 'Laden van {name} mislukt',
   network_error: 'Netwerkfout, kan geen verbinding maken met de API',
+  web_access_disabled: 'Toegang tot internet is momenteel uitgeschakeld',
   play: 'Afspelen',
   add_to_playlist: 'Toevoegen aan afspeellijst',
   added_to_playlist: 'Toegevoegd aan afspeellijst!',

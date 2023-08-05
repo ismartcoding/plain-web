@@ -304,6 +304,7 @@ export default {
   },
   load_failed: 'Error al cargar {name}',
   network_error: 'Error de red, no se puede conectar al API',
+  web_access_disabled: 'El acceso a la web está deshabilitado en este momento',
   play: 'Reproducir',
   add_to_playlist: 'Añadir a lista de reproducción',
   added_to_playlist: 'Añadido a la lista de reproducción',

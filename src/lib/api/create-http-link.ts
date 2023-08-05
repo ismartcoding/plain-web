@@ -96,7 +96,9 @@ export const createHttpLink = (linkOptions: HttpOptions = {}) => {
           new Promise((_, reject) => setTimeout(() => reject(new Error('connection_timeout')), 8000)),
         ])
           .then(async (response: any) => {
-            if (response.status === 401) {
+            if (response.status === 403) {
+
+            } else  if (response.status === 401) {
               localStorage.removeItem('auth_token')
               window.location.reload()
             } else {

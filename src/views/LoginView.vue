@@ -10,11 +10,12 @@
       <div class="alert alert-danger" role="alert" v-show="showError">
         {{ error ? $t(error) : '' }}
       </div>
-      <input v-if="showPasswordInput" type="password" class="form-control" v-model="password" :placeholder="t('password')" />
+      <input v-if="showPasswordInput" type="password" class="form-control" v-model="password"
+        :placeholder="t('password')" />
       <div class="invalid-feedback" v-show="passwordError">
         {{ passwordError ? $t(passwordError) : '' }}
       </div>
-      <div class="d-grid mt-4">
+      <div class="d-grid mt-4" v-if="!webAccessDisabled">
         <button class="btn" type="submit" :disabled="isSubmitting">
           {{ $t(isSubmitting ? 'logging_in' : 'log_in') }}
         </button>
@@ -43,6 +44,7 @@ import { getAccurateAgent } from '@/lib/agent/agent'
 import { arrayBuffertoBits } from '@/lib/api/sjcl-arraybuffer'
 const { handleSubmit, isSubmitting } = useForm()
 const showError = ref(false)
+const webAccessDisabled = ref(true)
 const showConfirm = ref(false)
 const error = ref('')
 let ws: WebSocket
@@ -56,6 +58,13 @@ async function initRequest() {
     method: 'POST',
     headers: getApiHeaders(),
   })
+  if (r.status === 403) {
+    showError.value = true
+    webAccessDisabled.value = true
+    error.value = 'web_access_disabled'
+    return
+  }
+  webAccessDisabled.value = false
   const pwd = await r.text()
   if (pwd) {
     password.value = pwd
