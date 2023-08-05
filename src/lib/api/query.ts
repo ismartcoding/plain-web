@@ -41,7 +41,11 @@ export function initQuery<TResult = any>(params: InitQueryParams<TResult>) {
     let error = ''
     if (r.error) {
       if (r.error?.networkError) {
-        error = 'network_error'
+        if (r.error?.networkError?.response?.status === 403) {    
+          error = 'web_access_disabled'
+        } else {
+          error = 'network_error'
+        }
       } else {
         error = r.error?.message
       }

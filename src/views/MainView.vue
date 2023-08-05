@@ -162,6 +162,7 @@ router.afterEach((to, from, failure) => {
 .alert-danger {
   width: 360px;
   margin: 100px auto;
+  text-align: center;
 }
 
 .btn-console {
