@@ -46,6 +46,7 @@
       <li class="dropdown-item" @click="changeLang('ja')">日本語</li>
       <li class="dropdown-item" @click="changeLang('nl')">Nederlands</li>
       <li class="dropdown-item" @click="changeLang('it')">italiano</li>
+      <li class="dropdown-item" @click="changeLang('hi')">हिन्दी</li>
     </ul>
   </div>
 
