@@ -132,8 +132,7 @@ export default {
   remote_port: 'remote port {port}',
   all_local_networks: 'All local networks',
   examples_ip: 'Examples\n10.10.10.2\n10.10.10.2:80\n10.10.10.2:80,443–453\n[2606:4700:4700::1111]:443–453',
-  examples_net:
-    'Examples\n10.10.10.0/24\n10.10.10.0/24:80\n10.10.10.0/24:80,443–453\n[2606:4700:4700::1111/127]:443–453',
+  examples_net: 'Examples\n10.10.10.0/24\n10.10.10.0/24:80\n10.10.10.0/24:80,443–453\n[2606:4700:4700::1111/127]:443–453',
   examples_dns: 'Examples\nexample.com\nexample.com:80\nexample.com:80,443–453',
   examples_remote_port: 'Examples\n1419\n1001–1024',
   route_description: 'Route traffic to {target} via {if_name}',
@@ -255,8 +254,7 @@ export default {
   prefix: 'Prefix',
   suffix: 'Suffix',
   browser_warning: 'Suggest to use the lastest version of Chrome web browser',
-  no_permission:
-    'No permission. Please go to APP > "Web on PC" to enable the permissions and refresh the page.',
+  no_permission: 'No permission. Please go to APP > "Web on PC" to enable the permissions and refresh the page.',
   no_data: 'No data.',
   loading: 'Loading...',
   duration: 'Duration',
@@ -374,6 +372,5 @@ export default {
   uninstall: 'Uninstall',
   install: 'Install',
   screen_mirror_request_permission_failed: "You haven't grant PlainApp the permission to take screenshots.",
-  screen_mirror_request_permission:
-    'Please tap "Start now" on the phone.<br>If the permission window is not displayed, please relaunch PlainApp.<br>Try again in {seconds} seconds',
+  screen_mirror_request_permission: 'Please tap "Start now" on the phone.<br>If the permission window is not displayed, please relaunch PlainApp.<br>Try again in {seconds} seconds',
 }
