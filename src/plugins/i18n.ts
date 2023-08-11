@@ -6,6 +6,11 @@ import ja from '@/locales/ja'
 import nl from '@/locales/nl'
 import it from '@/locales/it'
 import hi from '@/locales/hi'
+import fr from '@/locales/fr'
+import ru from '@/locales/ru'
+import bn from '@/locales/bn'
+import de from '@/locales/de'
+import pt from '@/locales/pt'
 import { setLocale } from 'yup'
 
 setLocale({
@@ -29,5 +34,10 @@ export default createI18n({
     'nl': nl,
     'it': it,
     'hi': hi,
+    'fr': fr,
+    'ru': ru,
+    'bn': bn,
+    'de': de,
+    'pt': pt,
   },
 })
