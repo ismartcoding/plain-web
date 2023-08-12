@@ -132,7 +132,8 @@ export default {
   remote_port: 'Remote-Port {port}',
   all_local_networks: 'Alle lokalen Netzwerke',
   examples_ip: 'Beispiele\n10.10.10.2\n10.10.10.2:80\n10.10.10.2:80,443–453\n[2606:4700:4700::1111]:443–453',
-  examples_net: 'Beispiele\n10.10.10.0/24\n10.10.10.0/24:80\n10.10.10.0/24:80,443–453\n[2606:4700:4700::1111/127]:443–453',
+  examples_net:
+    'Beispiele\n10.10.10.0/24\n10.10.10.0/24:80\n10.10.10.0/24:80,443–453\n[2606:4700:4700::1111/127]:443–453',
   examples_dns: 'Beispiele\nexample.com\nexample.com:80\nexample.com:80,443–453',
   examples_remote_port: 'Beispiele\n1419\n1001–1024',
   route_description: 'Verkehr zu {target} über {if_name} routen',
@@ -253,7 +254,8 @@ export default {
   prefix: 'Präfix',
   suffix: 'Suffix',
   browser_warning: 'Empfohlen wird die Verwendung der neuesten Version des Chrome Webbrowsers',
-  no_permission: 'Keine Berechtigung. Bitte gehen Sie zu APP > "Web auf PC", um die Berechtigungen zu aktivieren, und aktualisieren Sie die Seite.',
+  no_permission:
+    'Keine Berechtigung. Bitte gehen Sie zu APP > "Web auf PC", um die Berechtigungen zu aktivieren, und aktualisieren Sie die Seite.',
   no_data: 'Keine Daten.',
   loading: 'Laden...',
   duration: 'Dauer',
@@ -370,6 +372,9 @@ export default {
   uninstalling: 'Deinstallieren...',
   uninstall: 'Deinstallieren',
   install: 'Installieren',
-  screen_mirror_request_permission_failed: 'Sie haben PlainApp nicht die Erlaubnis zum Aufnehmen von Bildschirmfotos erteilt.',
-  screen_mirror_request_permission: 'Bitte tippen Sie auf "Jetzt starten" auf dem Telefon.<br>Wenn das Berechtigungsfenster nicht angezeigt wird, starten Sie PlainApp neu.<br>Versuchen Sie es in {seconds} Sekunden erneut'
+  sending: 'Senden…',
+  screen_mirror_request_permission_failed:
+    'Sie haben PlainApp nicht die Erlaubnis zum Aufnehmen von Bildschirmfotos erteilt.',
+  screen_mirror_request_permission:
+    'Bitte tippen Sie auf "Jetzt starten" auf dem Telefon.<br>Wenn das Berechtigungsfenster nicht angezeigt wird, starten Sie PlainApp neu.<br>Versuchen Sie es in {seconds} Sekunden erneut',
 }

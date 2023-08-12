@@ -67,7 +67,6 @@
         <td><field-id :id="item.id" :raw="item" /></td>
         <td>
           {{ item.title }}
-
         </td>
         <td class="nowrap">
           <span class="audio-btns">

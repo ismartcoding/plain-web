@@ -97,8 +97,7 @@ export const createHttpLink = (linkOptions: HttpOptions = {}) => {
         ])
           .then(async (response: any) => {
             if (response.status === 403) {
-
-            } else  if (response.status === 401) {
+            } else if (response.status === 401) {
               localStorage.removeItem('auth_token')
               window.location.reload()
             } else {

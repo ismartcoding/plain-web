@@ -132,8 +132,7 @@ export default {
   remote_port: 'porta remota {port}',
   all_local_networks: 'Tutte le reti locali',
   examples_ip: 'Esempi\n10.10.10.2\n10.10.10.2:80\n10.10.10.2:80,443–453\n[2606:4700:4700::1111]:443–453',
-  examples_net:
-    'Esempi\n10.10.10.0/24\n10.10.10.0/24:80\n10.10.10.0/24:80,443–453\n[2606:4700:4700::1111/127]:443–453',
+  examples_net: 'Esempi\n10.10.10.0/24\n10.10.10.0/24:80\n10.10.10.0/24:80,443–453\n[2606:4700:4700::1111/127]:443–453',
   examples_dns: 'Esempi\nexample.com\nexample.com:80\nexample.com:80,443–453',
   examples_remote_port: 'Esempi\n1419\n1001–1024',
   route_description: 'Instrada il traffico verso {target} tramite {if_name}',
@@ -254,7 +253,7 @@ export default {
   middle_name: 'Secondo nome',
   prefix: 'Prefisso',
   suffix: 'Suffisso',
-  browser_warning: 'Si consiglia di utilizzare l\'ultima versione del browser web Chrome',
+  browser_warning: "Si consiglia di utilizzare l'ultima versione del browser web Chrome",
   no_permission: 'Nessun permesso. Vai su APP > "Web su PC" per abilitare i permessi e aggiorna la pagina.',
   no_data: 'Nessun dato.',
   loading: 'Caricamento...',
@@ -290,7 +289,7 @@ export default {
   file_size: 'Dimensione del file',
   path: 'Percorso',
   open: 'Apri',
-  box_is_null: 'Seleziona una casella nell\'applicazione e riprova',
+  box_is_null: "Seleziona una casella nell'applicazione e riprova",
   battery_left: 'Batteria {percentage}%',
   invalid_file_signature: 'Firma del file non valida',
   no_task: 'Nessun compito',
@@ -302,8 +301,8 @@ export default {
     error: 'Caricamento non riuscito',
   },
   load_failed: 'Caricamento di {name} non riuscito',
-  network_error: 'Errore di rete, impossibile connettersi all\'API',
-  web_access_disabled: 'L\'accesso a Internet è attualmente disabilitato',
+  network_error: "Errore di rete, impossibile connettersi all'API",
+  web_access_disabled: "L'accesso a Internet è attualmente disabilitato",
   play: 'Riproduci',
   add_to_playlist: 'Aggiungi alla playlist',
   added_to_playlist: 'Aggiunto alla playlist!',
@@ -372,7 +371,8 @@ export default {
   uninstalling: 'Disinstallazione in corso...',
   uninstall: 'Disinstalla',
   install: 'Installa',
+  sending: 'Invio…',
   screen_mirror_request_permission_failed: 'Non hai concesso il permesso a PlainApp di effettuare screenshot.',
   screen_mirror_request_permission:
     'Tocca "Avvia ora" sul telefono.<br>Se la finestra dei permessi non viene visualizzata, riavvia PlainApp.<br>Riprova tra {seconds} secondi.',
-};
+}

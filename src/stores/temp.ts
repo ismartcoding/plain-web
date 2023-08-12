@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 
 export interface IUploadItem {
   dir: string
+  fileName: string
   file: File
   uploadedSize: number
   status: string

@@ -132,7 +132,8 @@ export default {
   remote_port: 'porta remota {port}',
   all_local_networks: 'Todas as redes locais',
   examples_ip: 'Exemplos\n10.10.10.2\n10.10.10.2:80\n10.10.10.2:80,443–453\n[2606:4700:4700::1111]:443–453',
-  examples_net: 'Exemplos\n10.10.10.0/24\n10.10.10.0/24:80\n10.10.10.0/24:80,443–453\n[2606:4700:4700::1111/127]:443–453',
+  examples_net:
+    'Exemplos\n10.10.10.0/24\n10.10.10.0/24:80\n10.10.10.0/24:80,443–453\n[2606:4700:4700::1111/127]:443–453',
   examples_dns: 'Exemplos\nexample.com\nexample.com:80\nexample.com:80,443–453',
   examples_remote_port: 'Exemplos\n1419\n1001–1024',
   route_description: 'Rota de tráfego para {target} via {if_name}',
@@ -253,7 +254,8 @@ export default {
   prefix: 'Prefixo',
   suffix: 'Sufixo',
   browser_warning: 'Sugere-se o uso da versão mais recente do navegador Chrome',
-  no_permission: 'Sem permissão. Por favor, vá para APP > "Web no PC" para habilitar as permissões e atualize a página.',
+  no_permission:
+    'Sem permissão. Por favor, vá para APP > "Web no PC" para habilitar as permissões e atualize a página.',
   no_data: 'Sem dados.',
   loading: 'Carregando...',
   duration: 'Duração',
@@ -370,6 +372,8 @@ export default {
   uninstalling: 'Desinstalando...',
   uninstall: 'Desinstalar',
   install: 'Instalar',
+  sending: 'Enviando…',
   screen_mirror_request_permission_failed: 'Você não concedeu permissão ao PlainApp para capturar capturas de tela.',
-  screen_mirror_request_permission: 'Por favor, toque em "Iniciar agora" no telefone.<br>Se a janela de permissão não for exibida, reinicie o PlainApp.<br>Tente novamente em {seconds} segundos'
+  screen_mirror_request_permission:
+    'Por favor, toque em "Iniciar agora" no telefone.<br>Se a janela de permissão não for exibida, reinicie o PlainApp.<br>Tente novamente em {seconds} segundos',
 }

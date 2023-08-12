@@ -20,6 +20,7 @@
               <span class="time" :title="formatDateTimeFull(chatItem.createdAt)">{{
                 formatTime(chatItem.createdAt)
               }}</span>
+              <span class="sending" v-if="chatItem.id.startsWith('new_')">{{ $t('sending') }}</span>
               <i-material-symbols:expand-more-rounded class="bi bi-more" />
             </div>
             <template #content>
@@ -40,6 +41,10 @@
       </div>
     </div>
     <div class="chat-input">
+      <div class="btns">
+        <i-material-symbols:image-outline-rounded class="bi bi-btn btn-images" @click="sendImages" />
+        <i-material-symbols:folder-outline-rounded class="bi bi-btn btn-files" @click="sendFiles" />
+      </div>
       <textarea
         v-model="chatText"
         autocomplete="off"
@@ -47,11 +52,23 @@
         :placeholder="$t('chat_input_hint')"
         @keydown.enter.exact.prevent="send"
         @keydown.enter.shift.exact.prevent="chatText += '\n'"
+        @keydown.enter.ctrl.exact.prevent="chatText += '\n'"
+        @keydown.enter.alt.exact.prevent="chatText += '\n'"
+        @keydown.enter.meta.exact.prevent="chatText += '\n'"
       ></textarea>
-      <i class="bi bi-btn" @click="send" :disable="createLoading">
+      <i class="bi bi-btn btn-send" @click="send" :disable="createLoading">
         <i-material-symbols:send-outline-rounded />
       </i>
     </div>
+    <input ref="fileInput" style="display: none" type="file" multiple @change="uploadFilesChanged" />
+    <input
+      ref="imageInput"
+      style="display: none"
+      type="file"
+      accept="image/*, video/*"
+      multiple
+      @change="uploadImagesChanged"
+    />
   </div>
 </template>
 
@@ -72,12 +89,20 @@ import ChatFiles from './chat/ChatFiles.vue'
 import { useApolloClient } from '@vue/apollo-composable'
 import emitter from '@/plugins/eventbus'
 import { chatItemFragment } from '@/lib/api/fragments'
+import { useChatFilesUpload } from '@/views/hooks/files'
+import { shortUUID } from '@/lib/strutil'
+import { getVideoData } from '@/lib/file'
+import { useTasks } from '@/views/hooks/chat'
 
+const { input: fileInput, upload: uploadFiles, getUploads: getFileUploads } = useChatFilesUpload()
+const { input: imageInput, upload: uploadImages, getUploads: getImageUploads } = useChatFilesUpload()
 const { resolveClient } = useApolloClient()
 const scrollContainer = ref<HTMLDivElement>()
 const chatItems = ref<IChatItem[]>([])
+const { enqueue: enqueueTask } = useTasks()
 
 const { app } = storeToRefs(useTempStore())
+const { externalFilesDir } = app.value
 
 const deleteId = ref('')
 const { t } = useI18n()
@@ -140,11 +165,89 @@ const {
   appApi: true,
 })
 
+async function uploadFilesChanged(e: Event) {
+  const uploads = getFileUploads(e)
+  const items = []
+  const valueItems: any[] = []
+  for (const upload of uploads) {
+    if (upload.file.type.startsWith('video')) {
+      const v = await getVideoData(upload.file)
+      valueItems.push({ uri: upload.fileName, size: upload.file.size, duration: v.duration, thumbnail: v.thumbnail })
+    } else {
+      valueItems.push({ uri: upload.fileName, size: upload.file.size, duration: 0 })
+    }
+  }
+  const _content = {
+    type: 'files',
+    value: {
+      items: valueItems,
+    },
+  }
+  const item: IChatItem = {
+    id: 'new_' + shortUUID(),
+    isMe: true,
+    createdAt: new Date().toISOString(),
+    content: JSON.stringify(_content),
+    _content,
+    __typename: 'ChatItem',
+    data: {
+      __typename: 'MessageFiles',
+      ids: uploads.map((it) => URL.createObjectURL(it.file)),
+    },
+  }
+  items.push(item)
+  enqueueTask(item, uploads)
+  const client = resolveClient('a')
+  updateCache(client.cache, items, chatItemsGQL)
+  setTimeout(() => {
+    scrollBottom()
+  }, 100)
+}
+
+async function uploadImagesChanged(e: Event) {
+  const uploads = getImageUploads(e)
+  const items = []
+  const valueItems: any[] = []
+  for (const upload of uploads) {
+    if (upload.file.type.startsWith('video')) {
+      const v = await getVideoData(upload.file)
+      valueItems.push({ uri: upload.fileName, size: upload.file.size, duration: v.duration, thumbnail: v.thumbnail })
+    } else {
+      valueItems.push({ uri: upload.fileName, size: upload.file.size, duration: 0 })
+    }
+  }
+  const _content = {
+    type: 'images',
+    value: {
+      items: valueItems,
+    },
+  }
+  const item: IChatItem = {
+    id: 'new_' + shortUUID(),
+    isMe: true,
+    createdAt: new Date().toISOString(),
+    content: JSON.stringify(_content),
+    _content,
+    __typename: 'ChatItem',
+    data: {
+      __typename: 'MessageImages',
+      ids: uploads.map((it) => URL.createObjectURL(it.file)),
+    },
+  }
+  items.push(item)
+  enqueueTask(item, uploads)
+  const client = resolveClient('a')
+  updateCache(client.cache, items, chatItemsGQL)
+  setTimeout(() => {
+    scrollBottom()
+  }, 100)
+}
+
 function send() {
   if (!chatText.value) {
     return
   }
-  create({ message: chatText.value })
+  create({ content: JSON.stringify({ type: 'text', value: { text: chatText.value } }) })
 }
 
 function scrollBottom() {
@@ -174,6 +277,14 @@ function deleteMessage(id: string) {
   deleteItem({ id })
 }
 
+function sendImages() {
+  uploadImages(externalFilesDir)
+}
+
+function sendFiles() {
+  uploadFiles(externalFilesDir)
+}
+
 onMounted(() => {
   emitter.on('message_created', async (data: any[]) => {
     const client = resolveClient('a')
@@ -182,13 +293,16 @@ onMounted(() => {
       let data = null
       if (item.data) {
         data = item.data
-        data.__typename =  item.data.type.split('.').pop()
+        data.__typename = item.data.type.split('.').pop()
       }
       items.push({ ...item, data: data, __typename: 'ChatItem' })
     }
     updateCache(client.cache, items, chatItemsGQL)
+    setTimeout(() => {
+      scrollBottom()
+    }, 100)
   })
-  
+
   emitter.on('message_deleted', async (data: string[]) => {
     const client = resolveClient('a')
     const cache = client.cache
@@ -251,16 +365,26 @@ onMounted(() => {
   display: flex;
   flex: 0 0 auto;
 
+  .btns {
+    width: 40px;
+  }
+
   .form-control {
     border: none;
   }
 
-  .bi {
+  .btn-send {
     margin: 12px;
+  }
+
+  .btn-files,
+  .btn-images {
+    margin: 12px 0 12px 12px;
   }
 
   textarea {
     resize: none;
+    margin-top: 4px;
   }
 }
 

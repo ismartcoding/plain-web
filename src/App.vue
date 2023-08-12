@@ -49,11 +49,11 @@ async function connect() {
     } else if (r.type === 'SCREEN_MIRRORING') {
       emitter.emit('screen_mirrorring', r.data)
     } else if (r.type === 'MESSAGE_CREATED') {
-      emitter.emit('message_created',  JSON.parse(r.data))
+      emitter.emit('message_created', JSON.parse(r.data))
     } else if (r.type === 'MESSAGE_DELETED') {
-      emitter.emit('message_deleted',  JSON.parse(r.data))
+      emitter.emit('message_deleted', JSON.parse(r.data))
     } else if (r.type === 'MESSAGE_UPDATED') {
-      emitter.emit('message_updated',  JSON.parse(r.data))
+      emitter.emit('message_updated', JSON.parse(r.data))
     }
   }
 

@@ -1,4 +1,4 @@
-import type { ISelectable } from "./interfaces"
+import type { ISelectable } from './interfaces'
 
 const photoExtensions = ['.jpg', '.png', '.jpeg', '.bmp', '.webp', '.heic', '.heif', '.apng', '.avif', '.gif']
 const videoExtensions = ['.mp4', '.mkv', '.webm', '.avi', '.3gp', '.mov', '.m4v', '.3gpp']
@@ -77,6 +77,44 @@ export class FilePanel {
       }
     }
   }
+}
+
+export async function getVideoData(videoFile: File): Promise<{ src: string; duration: number; thumbnail: string }> {
+  return new Promise((resolve) => {
+    const video = document.createElement('video')
+    const canvas = document.createElement('canvas')
+
+    const src = URL.createObjectURL(videoFile)
+    video.src = src
+    video.play()
+
+    video.onloadeddata = async () => {
+      const squareSize = Math.min(video.videoWidth, video.videoHeight)
+      const cropX = (video.videoWidth - squareSize) / 2
+      const cropY = (video.videoHeight - squareSize) / 2
+
+      canvas.width = 200 // Set the desired width
+      canvas.height = 200 // Set the desired height
+      const canvasContext = canvas.getContext('2d')
+      canvasContext.drawImage(video, cropX, cropY, squareSize, squareSize, 0, 0, canvas.width, canvas.height)
+
+      const thumbnail = canvas.toDataURL()
+
+      // Pause the video and clean up
+      video.pause()
+      video.currentTime = 0
+
+      URL.revokeObjectURL(src)
+      video.remove()
+      canvas.remove()
+
+      resolve({
+        src,
+        duration: Math.round(video.duration),
+        thumbnail,
+      })
+    }
+  })
 }
 
 export const getFileName = (path: string) => path.split(/[\\\/]/).pop()

@@ -132,7 +132,8 @@ export default {
   remote_port: 'remote port {port}',
   all_local_networks: 'All local networks',
   examples_ip: 'Examples\n10.10.10.2\n10.10.10.2:80\n10.10.10.2:80,443–453\n[2606:4700:4700::1111]:443–453',
-  examples_net: 'Examples\n10.10.10.0/24\n10.10.10.0/24:80\n10.10.10.0/24:80,443–453\n[2606:4700:4700::1111/127]:443–453',
+  examples_net:
+    'Examples\n10.10.10.0/24\n10.10.10.0/24:80\n10.10.10.0/24:80,443–453\n[2606:4700:4700::1111/127]:443–453',
   examples_dns: 'Examples\nexample.com\nexample.com:80\nexample.com:80,443–453',
   examples_remote_port: 'Examples\n1419\n1001–1024',
   route_description: 'Route traffic to {target} via {if_name}',
@@ -371,6 +372,8 @@ export default {
   uninstalling: 'Uninstalling…',
   uninstall: 'Uninstall',
   install: 'Install',
+  sending: 'Sending…',
   screen_mirror_request_permission_failed: "You haven't grant PlainApp the permission to take screenshots.",
-  screen_mirror_request_permission: 'Please tap "Start now" on the phone.<br>If the permission window is not displayed, please relaunch PlainApp.<br>Try again in {seconds} seconds',
+  screen_mirror_request_permission:
+    'Please tap "Start now" on the phone.<br>If the permission window is not displayed, please relaunch PlainApp.<br>Try again in {seconds} seconds',
 }

@@ -15,7 +15,7 @@ import toast from '@/components/toaster'
 import { download, getFileId, getFileName, getFileUrlByPath } from '@/lib/api/file'
 import type { ISource } from '@/components/lightbox/types'
 import { storeToRefs } from 'pinia'
-import { useTempStore } from '@/stores/temp'
+import { useTempStore, type IUploadItem } from '@/stores/temp'
 import { encodeBase64, shortUUID } from '@/lib/strutil'
 import { replacePathNoReload } from '@/plugins/router'
 import { buildQuery, type IFilterField } from '@/lib/search'
@@ -287,6 +287,8 @@ export const useView = (sources: Ref<ISource[]>, ivView: (i: number) => void) =>
           path: it.path,
           src: '',
           name: getFileName(it.path),
+          size: it.size,
+          duration: 0,
         }))
       const index = findIndex(sources.value, (it: ISource) => it.path === f.path)
       ivView(index)
@@ -432,6 +434,7 @@ export const useFileUpload = () => {
         const file = files[i]
         items.push({
           dir: _dir.value,
+          fileName: '',
           file,
           status: 'created',
           uploadedSize: 0,
@@ -443,9 +446,19 @@ export const useFileUpload = () => {
   }
 }
 
-export const useDirUpload = () => {
-  const { uploads } = storeToRefs(useTempStore())
+export function getFileDir(fileName: string) {
+  let dir = 'Documents'
+  if (isImage(fileName)) {
+    dir = 'Pictures'
+  } else if (isVideo(fileName)) {
+    dir = 'Movies'
+  } else if (isAudio(fileName)) {
+    dir = 'Music'
+  }
+  return dir
+}
 
+export const useChatFilesUpload = () => {
   const _dir = ref('')
   const input = ref<HTMLInputElement>()
   return {
@@ -455,23 +468,24 @@ export const useDirUpload = () => {
       input.value!.value = ''
       input.value!.click()
     },
-    uploadChanged(e: Event) {
+    getUploads(e: Event): IUploadItem[] {
       const files = (e.target as HTMLInputElement).files
       if (!files) {
-        return
+        return []
       }
       const items = []
       for (let i = 0; i < files.length; i++) {
         const file = files[i]
         items.push({
-          dir: _dir.value,
+          dir: _dir.value + '/' + getFileDir(file.name),
+          fileName: file.name,
           file,
           status: 'created',
           uploadedSize: 0,
           error: '',
         })
       }
-      uploads.value = [...uploads.value, ...items]
+      return items
     },
   }
 }

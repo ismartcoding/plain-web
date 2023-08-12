@@ -132,8 +132,7 @@ export default {
   remote_port: 'リモートポート {port}',
   all_local_networks: 'すべてのローカルネットワーク',
   examples_ip: '例\n10.10.10.2\n10.10.10.2:80\n10.10.10.2:80,443–453\n[2606:4700:4700::1111]:443–453',
-  examples_net:
-    '例\n10.10.10.0/24\n10.10.10.0/24:80\n10.10.10.0/24:80,443–453\n[2606:4700:4700::1111/127]:443–453',
+  examples_net: '例\n10.10.10.0/24\n10.10.10.0/24:80\n10.10.10.0/24:80,443–453\n[2606:4700:4700::1111/127]:443–453',
   examples_dns: '例\nexample.com\nexample.com:80\nexample.com:80,443–453',
   examples_remote_port: '例\n1419\n1001–1024',
   route_description: '{if_name} を介して {target} へのトラフィックをルーティング',
@@ -255,8 +254,7 @@ export default {
   prefix: '接頭辞',
   suffix: '接尾辞',
   browser_warning: '最新版のChromeウェブブラウザを使用することをお勧めします。',
-  no_permission:
-    '権限がありません。アプリケーションの[PC上のWeb]で権限を有効にしてページをリフレッシュしてください。',
+  no_permission: '権限がありません。アプリケーションの[PC上のWeb]で権限を有効にしてページをリフレッシュしてください。',
   no_data: 'データがありません。',
   loading: '読み込み中...',
   duration: '時間',
@@ -373,7 +371,8 @@ export default {
   uninstalling: 'アンインストール中...',
   uninstall: 'アンインストール',
   install: 'インストール',
+  sending: '送信中…',
   screen_mirror_request_permission_failed: 'PlainAppにスクリーンショットの許可がありません。',
   screen_mirror_request_permission:
     '電話で[開始]をタップしてください。<br>許可ウィンドウが表示されない場合は、PlainAppを再起動してください。<br>{seconds}秒後に再試行します',
-};
+}
