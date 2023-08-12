@@ -255,8 +255,7 @@ export default {
   prefix: 'Prefijo',
   suffix: 'Sufijo',
   browser_warning: 'Se sugiere usar la última versión del navegador web Chrome',
-  no_permission:
-    'Sin permiso. Por favor, ve a APP > "Web en PC" para habilitar los permisos y actualiza la página.',
+  no_permission: 'Sin permiso. Por favor, ve a APP > "Web en PC" para habilitar los permisos y actualiza la página.',
   no_data: 'No hay datos.',
   loading: 'Cargando...',
   duration: 'Duración',
@@ -373,6 +372,7 @@ export default {
   uninstalling: 'Desinstalando...',
   uninstall: 'Desinstalar',
   install: 'Instalar',
+  sending: 'Enviando…',
   screen_mirror_request_permission_failed: 'No has concedido permiso a PlainApp para tomar capturas de pantalla.',
   screen_mirror_request_permission:
     'Por favor, toca "Comenzar ahora" en el teléfono.<br>Si la ventana de permisos no se muestra, vuelve a abrir PlainApp.<br>Inténtalo de nuevo en {seconds} segundos.',

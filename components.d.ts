@@ -47,6 +47,7 @@ declare module '@vue/runtime-core' {
     'IMaterialSymbols:folderOutlineRounded': typeof import('~icons/material-symbols/folder-outline-rounded')['default']
     'IMaterialSymbols:formatListNumberedRounded': typeof import('~icons/material-symbols/format-list-numbered-rounded')['default']
     'IMaterialSymbols:gridViewOutlineRounded': typeof import('~icons/material-symbols/grid-view-outline-rounded')['default']
+    'IMaterialSymbols:imageOutlineRounded': typeof import('~icons/material-symbols/image-outline-rounded')['default']
     'IMaterialSymbols:indeterminateCheckBoxOutlineRounded': typeof import('~icons/material-symbols/indeterminate-check-box-outline-rounded')['default']
     'IMaterialSymbols:keyboardDoubleArrowDownRounded': typeof import('~icons/material-symbols/keyboard-double-arrow-down-rounded')['default']
     'IMaterialSymbols:keyboardDoubleArrowUpRounded': typeof import('~icons/material-symbols/keyboard-double-arrow-up-rounded')['default']

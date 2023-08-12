@@ -54,8 +54,8 @@ export function updateCache(cache: ApolloCache<any>, data: any, query: DocumentN
 }
 
 export const createChatItemGQL = gql`
-  mutation createChatItem($message: String!) {
-    createChatItem(message: $message) {
+  mutation createChatItem($content: String!) {
+    createChatItem(content: $content) {
       ...ChatItemFragment
     }
   }

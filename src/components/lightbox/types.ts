@@ -27,10 +27,11 @@ export interface IStatus {
 export interface ISource {
   src: string
   viewOriginImage?: boolean
-  path: string
+  path: string // file path
   name: string
-  size?: number
-  duration?: number
+  size: number
+  duration: number
+  thumbnail?: string // video thumbnail
 }
 
 export type MouseEventHandler = (e: MouseEvent) => void

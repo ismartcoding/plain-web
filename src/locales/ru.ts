@@ -132,7 +132,8 @@ export default {
   remote_port: 'удаленный порт {port}',
   all_local_networks: 'Все локальные сети',
   examples_ip: 'Примеры\n10.10.10.2\n10.10.10.2:80\n10.10.10.2:80,443–453\n[2606:4700:4700::1111]:443–453',
-  examples_net: 'Примеры\n10.10.10.0/24\n10.10.10.0/24:80\n10.10.10.0/24:80,443–453\n[2606:4700:4700::1111/127]:443–453',
+  examples_net:
+    'Примеры\n10.10.10.0/24\n10.10.10.0/24:80\n10.10.10.0/24:80,443–453\n[2606:4700:4700::1111/127]:443–453',
   examples_dns: 'Примеры\nexample.com\nexample.com:80\nexample.com:80,443–453',
   examples_remote_port: 'Примеры\n1419\n1001–1024',
   route_description: 'Маршрутизация трафика к {target} через {if_name}',
@@ -372,7 +373,8 @@ export default {
   uninstalling: 'Удаление...',
   uninstall: 'Удалить',
   install: 'Установить',
-  screen_mirror_request_permission_failed: "Вы не предоставили приложению PlainApp разрешение на снятие скриншотов.",
+  sending: 'Отправка…',
+  screen_mirror_request_permission_failed: 'Вы не предоставили приложению PlainApp разрешение на снятие скриншотов.',
   screen_mirror_request_permission:
     'Пожалуйста, нажмите кнопку "Начать сейчас" на телефоне.<br>Если окно запроса разрешения не отображается, перезапустите приложение PlainApp.<br>Попробуйте снова через {seconds} секунд',
 }

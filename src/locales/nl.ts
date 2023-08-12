@@ -78,7 +78,7 @@ export default {
     apps: 'Apps',
     files: 'Bestanden',
     audios: 'Audio',
-    videos: 'Video\'s',
+    videos: "Video's",
     images: 'Afbeeldingen',
     books: 'Boeken',
     feeds: 'Feeds',
@@ -147,7 +147,7 @@ export default {
   storage: 'Opslag',
   files: 'Bestanden',
   music: 'Muziek',
-  videos: 'Video\'s',
+  videos: "Video's",
   images: 'Afbeeldingen',
   audios: 'Audio',
   content: 'Inhoud',
@@ -255,7 +255,8 @@ export default {
   prefix: 'Voorvoegsel',
   suffix: 'Achtervoegsel',
   browser_warning: 'Wij raden aan de nieuwste versie van de Chrome webbrowser te gebruiken.',
-  no_permission: 'Geen toestemming. Ga naar APP > "Web op PC" om de toestemmingen in te schakelen en vernieuw de pagina.',
+  no_permission:
+    'Geen toestemming. Ga naar APP > "Web op PC" om de toestemmingen in te schakelen en vernieuw de pagina.',
   no_data: 'Geen gegevens.',
   loading: 'Laden...',
   duration: 'Duur',
@@ -372,7 +373,8 @@ export default {
   uninstalling: 'Verwijderen...',
   uninstall: 'Verwijderen',
   install: 'Installeren',
+  sending: 'Verzenden…',
   screen_mirror_request_permission_failed: 'Je hebt PlainApp geen toestemming gegeven om schermafbeeldingen te maken.',
   screen_mirror_request_permission:
     'Tik op "Nu starten" op je telefoon.<br>Als het toestemmingsvenster niet wordt weergegeven, start je PlainApp opnieuw.<br>Probeer het over {seconds} seconden opnieuw',
-};
+}

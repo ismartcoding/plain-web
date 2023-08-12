@@ -105,6 +105,7 @@ export interface IChatItem {
   createdAt: string
   content: string
   _content: any
+  __typename: string
   data: any
 }
 

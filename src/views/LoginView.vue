@@ -10,8 +10,13 @@
       <div class="alert alert-danger" role="alert" v-show="showError">
         {{ error ? $t(error) : '' }}
       </div>
-      <input v-if="showPasswordInput" type="password" class="form-control" v-model="password"
-        :placeholder="t('password')" />
+      <input
+        v-if="showPasswordInput"
+        type="password"
+        class="form-control"
+        v-model="password"
+        :placeholder="t('password')"
+      />
       <div class="invalid-feedback" v-show="passwordError">
         {{ passwordError ? $t(passwordError) : '' }}
       </div>

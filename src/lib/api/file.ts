@@ -4,9 +4,13 @@ import { getApiBaseUrl } from './api'
 import { aesEncrypt, bitArrayToBase64, bitArrayToUint8Array } from './crypto'
 import * as sjcl from 'sjcl'
 
-export function getFileUrl(id: string) {
+export function notId(id: string) {
   const l = id.toLowerCase()
-  if (l.startsWith('https://') || l.startsWith('http://')) {
+  return l.startsWith('https://') || l.startsWith('http://') || l.startsWith('blob:')
+}
+
+export function getFileUrl(id: string) {
+  if (notId(id)) {
     return id
   }
   return `${getApiBaseUrl()}/fs?id=${encodeURIComponent(id)}`
@@ -70,11 +74,11 @@ export async function getFileId(token: string, path: string) {
   return bitArrayToBase64(enc)
 }
 
-export async function upload(upload: IUploadItem) {
+export async function upload(upload: IUploadItem, replace: boolean) {
   const data = new FormData()
   const token = localStorage.getItem('auth_token') ?? ''
   const key = sjcl.codec.base64.toBits(token)
-  const v = bitArrayToUint8Array(aesEncrypt(key, JSON.stringify({ dir: upload.dir })))
+  const v = bitArrayToUint8Array(aesEncrypt(key, JSON.stringify({ dir: upload.dir, replace })))
   data.append('info', new Blob([v]))
   data.append('file', upload.file)
 
@@ -110,6 +114,7 @@ export async function upload(upload: IUploadItem) {
       if (xhr.readyState === 4) {
         if (xhr.status === 201) {
           upload.status = 'done'
+          upload.fileName = xhr.responseText
         } else {
           upload.status = 'error'
           upload.error = xhr.responseText

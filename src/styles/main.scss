@@ -674,13 +674,17 @@ div.actions {
     font-size: 0.75rem;
   }
 
-  .time {
+  .time, .sending {
     color: var(--text-secondary-color);
     font-size: 0.75rem;
   }
 
   &:hover {
     cursor: pointer;
+  }
+
+  .sending {
+    margin-left: 4px;
   }
 }
 

@@ -371,6 +371,7 @@ export default {
   uninstalling: 'আনইনস্টল করা হচ্ছে...',
   uninstall: 'আনইনস্টল করুন',
   install: 'ইনস্টল করুন',
+  sending: 'প্রেরণ…',
   screen_mirror_request_permission_failed: 'আপনি PlainApp এ স্ক্রীনশট নেওয়ার অনুমতি দেননি।',
   screen_mirror_request_permission:
     'দয়া করে ফোনে এ "এখন শুরু করুন" ট্যাপ করুন।<br>যদি অনুমতি উইন্ডো প্রদর্শিত না হয়, তাহলে দয়া করে PlainApp পুনরায় আরম্ভ করুন।<br>{সেকেন্ড} সেকেন্ডে আবার চেষ্টা করুন',
