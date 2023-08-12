@@ -1,31 +1,22 @@
 <template>
   <div v-click-away="() => (audioMenuVisible = false)" v-if="props.loggedIn" class="h-action">
-    <a @click.prevent="() => (audioMenuVisible = !audioMenuVisible)" href="#" :title="t('header_actions.audios')"
-      ><i-material-symbols:queue-music-rounded class="bi" />
+    <a @click.prevent="() => (audioMenuVisible = !audioMenuVisible)" href="#"
+      :title="t('header_actions.audios')"><i-material-symbols:queue-music-rounded class="bi" />
     </a>
     <div class="dropdown-menu header-actions-panel" v-show="audioMenuVisible">
       <audio-player ref="audioPlayer" />
     </div>
   </div>
   <div v-click-away="() => (taskMenuVisible = false)" v-if="props.loggedIn && visibleTasks.length" class="h-action">
-    <a
-      @click.prevent="() => (taskMenuVisible = !taskMenuVisible)"
-      href="#"
-      :class="{ 'has-badge': hasTaskBadge }"
-      :title="t('header_actions.tasks')"
-      ><i-material-symbols:format-list-numbered-rounded class="bi" />
+    <a @click.prevent="() => (taskMenuVisible = !taskMenuVisible)" href="#" :class="{ 'has-badge': hasTaskBadge }"
+      :title="t('header_actions.tasks')"><i-material-symbols:format-list-numbered-rounded class="bi" />
     </a>
-    <div
-      class="dropdown-menu header-actions-panel"
-      :class="{ 'no-data': !visibleTasks.length }"
-      v-show="taskMenuVisible"
-    >
+    <div class="dropdown-menu header-actions-panel" :class="{ 'no-data': !visibleTasks.length }" v-show="taskMenuVisible">
       <div class="list-items">
         <div class="row1" v-for="item in visibleTasks">
-          <span class="key"
-            >[{{ $t(`upload_status.${item.status}`) }}] {{ item.file.name }} ({{ formatFileSize(item.uploadedSize) }} /
-            {{ formatFileSize(item.file.size) }})</span
-          >
+          <span class="key">[{{ $t(`upload_status.${item.status}`) }}] {{ item.file.name }} ({{
+            formatFileSize(item.uploadedSize) }} /
+            {{ formatFileSize(item.file.size) }})</span>
           <span class="value">
             <i-material-symbols:close-rounded class="bi" @click.prevent="deleteTask(item)" />
           </span>
@@ -36,9 +27,8 @@
     </div>
   </div>
   <div v-click-away="() => (langMenuVisible = false)" class="h-action">
-    <a @click.prevent="() => (langMenuVisible = !langMenuVisible)" href="#" :title="t('header_actions.language')"
-      ><i-material-symbols:translate-rounded class="bi"
-    /></a>
+    <a @click.prevent="() => (langMenuVisible = !langMenuVisible)" href="#"
+      :title="t('header_actions.language')"><i-material-symbols:translate-rounded class="bi" /></a>
     <ul class="dropdown-menu" v-show="langMenuVisible">
       <li class="dropdown-item" @click="changeLang('en-US')">English</li>
       <li class="dropdown-item" @click="changeLang('zh-CN')">简体中文</li>
@@ -72,6 +62,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { formatFileSize } from '@/lib/format'
 import emitter from '@/plugins/eventbus'
+import { chunk } from 'lodash-es'
 
 const props = defineProps({
   loggedIn: { type: Boolean },
@@ -122,12 +113,14 @@ watch(
   () => tempState.uploads,
   async (uploads) => {
     taskMenuVisible.value = true
-    for (const it of uploads) {
-      if (it.status === 'created') {
-        it.status = 'pending'
-        await upload(it)
-        emitter.emit('upload_task_done', it)
-      }
+    const chunked = chunk(uploads.filter((it) => it.status === 'created'), 10)
+    for (const it of chunked) {
+      // batch execute 10 uploads
+      await Promise.all(it.map(async (item) => {
+        item.status = 'pending'
+        await upload(item)
+        emitter.emit('upload_task_done', item)
+      }))
     }
   }
 )
