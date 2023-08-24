@@ -374,6 +374,7 @@ export default {
   uninstall: 'Désinstaller',
   install: 'Installer',
   sending: 'Envoi…',
+  usb_storage: 'Stockage USB',
   screen_mirror_request_permission_failed:
     "Vous n'avez pas accordé la permission à PlainApp pour prendre des captures d'écran.",
   screen_mirror_request_permission:

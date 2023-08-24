@@ -132,6 +132,10 @@ export const homeStatsGQL = gql`
         totalBytes
         freeBytes
       }
+      usb {
+        totalBytes
+        freeBytes
+      }
     }
   }
 `
@@ -214,6 +218,10 @@ export const storageStatsGQL = gql`
         freeBytes
       }
       sdcard {
+        totalBytes
+        freeBytes
+      }
+      usb {
         totalBytes
         freeBytes
       }

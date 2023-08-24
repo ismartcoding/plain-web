@@ -159,3 +159,8 @@ export interface IApp {
 export interface IAppItem extends IApp, ISelectable {
   isUninstalling: boolean
 }
+
+export interface IStorageStatsItem {
+  totalBytes: number
+  freeBytes: number
+}

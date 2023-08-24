@@ -374,6 +374,7 @@ export default {
   uninstall: 'Удалить',
   install: 'Установить',
   sending: 'Отправка…',
+  usb_storage: 'USB-накопитель',
   screen_mirror_request_permission_failed: 'Вы не предоставили приложению PlainApp разрешение на снятие скриншотов.',
   screen_mirror_request_permission:
     'Пожалуйста, нажмите кнопку "Начать сейчас" на телефоне.<br>Если окно запроса разрешения не отображается, перезапустите приложение PlainApp.<br>Попробуйте снова через {seconds} секунд',

@@ -372,6 +372,7 @@ export default {
   uninstall: 'アンインストール',
   install: 'インストール',
   sending: '送信中…',
+  usb_storage: 'USBストレージ',
   screen_mirror_request_permission_failed: 'PlainAppにスクリーンショットの許可がありません。',
   screen_mirror_request_permission:
     '電話で[開始]をタップしてください。<br>許可ウィンドウが表示されない場合は、PlainAppを再起動してください。<br>{seconds}秒後に再試行します',
