@@ -374,6 +374,7 @@ export default {
   uninstall: 'Verwijderen',
   install: 'Installeren',
   sending: 'Verzenden…',
+  usb_storage: 'USB-opslag',
   screen_mirror_request_permission_failed: 'Je hebt PlainApp geen toestemming gegeven om schermafbeeldingen te maken.',
   screen_mirror_request_permission:
     'Tik op "Nu starten" op je telefoon.<br>Als het toestemmingsvenster niet wordt weergegeven, start je PlainApp opnieuw.<br>Probeer het over {seconds} seconden opnieuw',

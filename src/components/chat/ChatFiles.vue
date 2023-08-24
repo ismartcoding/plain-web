@@ -1,10 +1,18 @@
 <template>
   <div class="chat-section">
-    <a v-for="(item, i) in items" :key="i" class="file-item" target="_blank" :href="item.src" @click.prevent="clickItem(item)">
+    <a
+      v-for="(item, i) in items"
+      :key="i"
+      class="file-item"
+      target="_blank"
+      :href="item.src"
+      @click.prevent="clickItem(item)"
+    >
       <span class="left">
         <span>{{ item.name }}</span>
-        <span class="info">{{ formatFileSize(item.size) }}{{ isVideo(item.name) ? ' / ' + formatSeconds(item.duration) :
-          '' }}</span>
+        <span class="info"
+          >{{ formatFileSize(item.size) }}{{ isVideo(item.name) ? ' / ' + formatSeconds(item.duration) : '' }}</span
+        >
       </span>
       <img v-if="isImage(item.name) || isVideo(item.name)" :src="getPreview(item)" />
     </a>
@@ -26,7 +34,6 @@ const sources = ref<ISource[]>([])
 const props = defineProps({
   data: { type: Object },
 })
-
 
 function getPreview(source: ISource) {
   if (source.thumbnail) {
@@ -60,8 +67,8 @@ const items = computed<ISource[]>(() => {
 
 function clickItem(item: ISource) {
   if (canView(item)) {
-    sources.value = items.value.filter(it => canView(it))
-    const idx = sources.value.findIndex(it => it.src === item.src)
+    sources.value = items.value.filter((it) => canView(it))
+    const idx = sources.value.findIndex((it) => it.src === item.src)
     ivView(idx)
   } else {
     window.open(item.src, '_blank')

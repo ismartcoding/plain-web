@@ -136,19 +136,24 @@ const initDir = ref(dirTmp)
 
 const selectMode = ref(false)
 const mainStore = useMainStore()
+
 const { app } = storeToRefs(useTempStore())
 let rootDir = app.value.internalStoragePath
-if (filesType === 'sdcard') {
-  rootDir = app.value.sdcardPath
-} else if (filesType === 'app') {
-  rootDir = app.value.externalFilesDir
+if (filesType) {
+  if (filesType === 'sdcard') {
+    rootDir = app.value.sdcardPath
+  } else if (filesType.startsWith('usb')) {
+    rootDir = app.value.usbDiskPaths[parseInt(filesType.substring(3)) - 1]
+  } else if (filesType === 'app') {
+    rootDir = app.value.externalFilesDir
+  }
 }
 const { loading, panels, currentDir, refetch: refetchFiles } = useFiles(app, rootDir, initDir.value)
 
 const { visible: ivVisible, index: ivIndex, view: ivView, hide: ivHide } = useMediaViewer()
 const { createPath, createVariables, createMutation } = useCreateDir(app, panels)
 const { renameValue, renamePath, renameDone, renameMutation, renameVariables } = useRename(panels)
-const { internal, sdcard, refetch: refetchStats } = useStats()
+const { internal, sdcard, usb, refetch: refetchStats } = useStats()
 const { onDeleted } = useDelete(panels, currentDir, refetchStats)
 const { downloadFile, downloadDir, downloadFiles } = useDownload(app)
 const { view } = useView(sources, ivView)
@@ -211,18 +216,27 @@ if (initPath.value) {
 }
 
 function getPageTitle() {
-  if (filesType === 'sdcard') {
-    return `${t('sdcard')} (${t('storage_free_total', {
-      free: formatFileSize(sdcard.value?.freeBytes),
-      total: formatFileSize(sdcard.value?.totalBytes),
-    })})`
-  } else if (filesType === 'app') {
-    return t('app_name')
+  if (filesType) {
+    if (filesType === 'sdcard') {
+      return `${t('sdcard')} (${t('storage_free_total', {
+        free: formatFileSize(sdcard.value?.freeBytes ?? 0),
+        total: formatFileSize(sdcard.value?.totalBytes ?? 0),
+      })})`
+    } else if (filesType === 'app') {
+      return t('app_name')
+    } else if (filesType.startsWith('usb')) {
+      const num = parseInt(filesType.substring(3))
+      const u = usb.value[num - 1]
+      return `${t('usb_storage')} ${num} (${t('storage_free_total', {
+        free: formatFileSize(u?.freeBytes ?? 0),
+        total: formatFileSize(u?.totalBytes ?? 0),
+      })})`
+    }
   }
 
   return `${t('page_title.files')} (${t('storage_free_total', {
-    free: formatFileSize(internal.value?.freeBytes),
-    total: formatFileSize(internal.value?.totalBytes),
+    free: formatFileSize(internal.value?.freeBytes ?? 0),
+    total: formatFileSize(internal.value?.totalBytes ?? 0),
   })})`
 }
 

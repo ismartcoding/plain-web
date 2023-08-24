@@ -22,7 +22,7 @@ import { buildQuery, type IFilterField } from '@/lib/search'
 import type { MainState } from '@/stores/main'
 import { findIndex } from 'lodash-es'
 import { getApiBaseUrl } from '@/lib/api/api'
-import type { ISelectable } from '@/lib/interfaces'
+import type { ISelectable, IStorageStatsItem } from '@/lib/interfaces'
 
 export const useCreateDir = (app: Ref<any>, panels: Ref<FilePanel[]>) => {
   const createPath = ref('')
@@ -100,20 +100,22 @@ export const useDelete = (panels: Ref<FilePanel[]>, currentDir: Ref<string>, ref
 }
 
 export const useStats = () => {
-  const internal = ref(null)
-  const sdcard = ref(null)
+  const internal = ref<IStorageStatsItem | null>(null)
+  const sdcard = ref<IStorageStatsItem | null>(null)
+  const usb = ref<IStorageStatsItem[]>([])
   const { refetch } = initQuery({
     handle: (data: any, error: string) => {
       if (!error) {
         internal.value = data.storageStats.internal
         sdcard.value = data.storageStats.sdcard
+        usb.value = data.storageStats.usb
       }
     },
     document: storageStatsGQL,
     appApi: true,
   })
 
-  return { internal, sdcard, refetch }
+  return { internal, sdcard, usb, refetch }
 }
 
 export const useFiles = (app: Ref<any>, rootDir: string, initDir: string) => {
@@ -325,7 +327,7 @@ export const useSingleSelect = (currentDir: Ref<string>, filesType: string, q: R
 
       replacePathNoReload(
         mainStore,
-        filesType === 'sdcard' ? `/files/sdcard?q=${encodeBase64(q.value)}` : `/files?q=${encodeBase64(q.value)}`
+        filesType ? `/files/${filesType}?q=${encodeBase64(q.value)}` : `/files?q=${encodeBase64(q.value)}`
       )
     },
   }

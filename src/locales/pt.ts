@@ -373,6 +373,7 @@ export default {
   uninstall: 'Desinstalar',
   install: 'Instalar',
   sending: 'Enviando…',
+  usb_storage: 'Armazenamento USB',
   screen_mirror_request_permission_failed: 'Você não concedeu permissão ao PlainApp para capturar capturas de tela.',
   screen_mirror_request_permission:
     'Por favor, toque em "Iniciar agora" no telefone.<br>Se a janela de permissão não for exibida, reinicie o PlainApp.<br>Tente novamente em {seconds} segundos',

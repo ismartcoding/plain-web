@@ -79,6 +79,8 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
+import { sumBy } from 'lodash-es'
+import type { IStorageStatsItem } from '@/lib/interfaces'
 const { t } = useI18n()
 
 const { app } = storeToRefs(useTempStore())
@@ -103,6 +105,11 @@ initQuery({
         if (sdcard) {
           totalBytes.value += sdcard.totalBytes
           freeBytes.value += sdcard.freeBytes
+        }
+        const usb = data.storageStats.usb
+        if (usb.length) {
+          totalBytes.value += sumBy(usb, (it: IStorageStatsItem) => it.totalBytes)
+          freeBytes.value += sumBy(usb, (it: IStorageStatsItem) => it.freeBytes)
         }
       }
     }
