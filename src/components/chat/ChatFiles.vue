@@ -55,7 +55,7 @@ const items = computed<ISource[]>(() => {
     items.push({
       path: '',
       src: getFileUrl(id),
-      viewOriginImage: notId(id),
+      viewOriginImage: notId(id) || file.uri.endsWith('.gif'),
       name: getFileName(file.uri),
       duration: file.duration,
       size: file.size,
