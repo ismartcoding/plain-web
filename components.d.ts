@@ -14,6 +14,7 @@ declare module '@vue/runtime-core' {
     Arrow: typeof import('./src/components/popper/Arrow.vue')['default']
     AudioPlayer: typeof import('./src/components/AudioPlayer.vue')['default']
     Breadcrumb: typeof import('./src/components/Breadcrumb.vue')['default']
+    BucketFilter: typeof import('./src/components/BucketFilter.vue')['default']
     ButtonMore: typeof import('./src/components/ButtonMore.vue')['default']
     ChatExchange: typeof import('./src/components/chat/ChatExchange.vue')['default']
     ChatFiles: typeof import('./src/components/chat/ChatFiles.vue')['default']

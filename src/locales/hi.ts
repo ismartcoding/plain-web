@@ -373,6 +373,7 @@ export default {
   install: 'इंस्टॉल',
   sending: 'भेज रहा हूँ…',
   usb_storage: 'यूएसबी स्टोरेज',
+  folders: 'फोल्डर्स',
   screen_mirror_request_permission_failed: 'आपने प्लेनएप को स्क्रीनशॉट लेने की परमिशन नहीं दी है.',
   screen_mirror_request_permission:
     'कृपया फ़ोन पर "स्टार्ट नाउ" पर टैप करें.<br>यदि परमिशन विंडो डिस्प्लै नहीं होती है, तो प्लेनएप को फिर से लॉन्च करें.<br>फिर से कोशिश करें {seconds} सेकण्ड्स',

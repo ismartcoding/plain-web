@@ -374,6 +374,7 @@ export default {
   install: 'Install',
   sending: 'Sending…',
   usb_storage: 'USB storage',
+  folders: 'Folders',
   screen_mirror_request_permission_failed: "You haven't grant PlainApp the permission to take screenshots.",
   screen_mirror_request_permission:
     'Please tap "Start now" on the phone.<br>If the permission window is not displayed, please relaunch PlainApp.<br>Try again in {seconds} seconds',

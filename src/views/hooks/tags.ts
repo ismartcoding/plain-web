@@ -78,6 +78,8 @@ export const useTags = (tagType: string, q: Ref<string>, filter: IFilter, onLoad
               } else {
                 tagIds.push('invalid')
               }
+            } else if (it.name === 'bucket_id') {
+              filter.bucketId = it.value
             }
           })
           const newFields = [...fields].filter((it) => it.name !== 'tag')

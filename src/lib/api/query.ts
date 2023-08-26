@@ -247,6 +247,17 @@ export const tagsGQL = gql`
   ${tagFragment}
 `
 
+export const mediaBucketsGQL = gql`
+  query mediaBuckets($type: BucketType!) {
+    mediaBuckets(type: $type) {
+      id
+      name
+      itemCount
+      topItems
+    }
+  }
+`
+
 export const notesGQL = gql`
   query notes($offset: Int!, $limit: Int!, $query: String!) {
     notes(offset: $offset, limit: $limit, query: $query) {
