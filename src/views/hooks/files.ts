@@ -461,25 +461,19 @@ export function getFileDir(fileName: string) {
 }
 
 export const useChatFilesUpload = () => {
-  const _dir = ref('')
   const input = ref<HTMLInputElement>()
   return {
     input,
-    upload(dir: string) {
-      _dir.value = dir
+    upload() {
       input.value!.value = ''
       input.value!.click()
     },
-    getUploads(e: Event): IUploadItem[] {
-      const files = (e.target as HTMLInputElement).files
-      if (!files) {
-        return []
-      }
+    getUploads(baseDir: string, files: File[]): IUploadItem[] {
       const items = []
       for (let i = 0; i < files.length; i++) {
         const file = files[i]
         items.push({
-          dir: _dir.value + '/' + getFileDir(file.name),
+          dir: baseDir + '/' + getFileDir(file.name),
           fileName: file.name,
           file,
           status: 'created',

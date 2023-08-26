@@ -14,7 +14,8 @@
     },
     "lib": [
       "ESNext",
-      "dom"
+      "dom",
+      "dom.iterable",
     ],
   },
   "references": [

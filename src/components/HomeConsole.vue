@@ -1,14 +1,10 @@
 <template>
   <div id="console">
     <div class="toolbar">
-      <span class="title"
-        >{{ app?.deviceName ?? $t('my_phone')
-        }}{{ app?.battery ? ' (' + $t('battery_left', { percentage: app?.battery }) + ')' : '' }}</span
-      >
-      <i-material-symbols:indeterminate-check-box-outline-rounded
-        class="bi bi-btn"
-        @click="() => (store.consoleOpen = false)"
-      />
+      <span class="title">{{ app?.deviceName ?? $t('my_phone')
+      }}{{ app?.battery ? ' (' + $t('battery_left', { percentage: app?.battery }) + ')' : '' }}</span>
+      <i-material-symbols:indeterminate-check-box-outline-rounded class="bi bi-btn"
+        @click="() => (store.consoleOpen = false)" />
     </div>
     <div class="chat-items-container" ref="scrollContainer">
       <div>
@@ -45,30 +41,18 @@
         <i-material-symbols:image-outline-rounded class="bi bi-btn btn-images" @click="sendImages" />
         <i-material-symbols:folder-outline-rounded class="bi bi-btn btn-files" @click="sendFiles" />
       </div>
-      <textarea
-        v-model="chatText"
-        autocomplete="off"
-        class="form-control"
-        :placeholder="$t('chat_input_hint')"
-        @keydown.enter.exact.prevent="send"
-        @keydown.enter.shift.exact.prevent="chatText += '\n'"
-        @keydown.enter.ctrl.exact.prevent="chatText += '\n'"
+      <textarea ref="chatInput" v-model="chatText" autocomplete="off" class="form-control"
+        :placeholder="$t('chat_input_hint')" @keydown.enter.exact.prevent="send"
+        @keydown.enter.shift.exact.prevent="chatText += '\n'" @keydown.enter.ctrl.exact.prevent="chatText += '\n'"
         @keydown.enter.alt.exact.prevent="chatText += '\n'"
-        @keydown.enter.meta.exact.prevent="chatText += '\n'"
-      ></textarea>
+        @keydown.enter.meta.exact.prevent="chatText += '\n'"></textarea>
       <i class="bi bi-btn btn-send" @click="send" :disable="createLoading">
         <i-material-symbols:send-outline-rounded />
       </i>
     </div>
     <input ref="fileInput" style="display: none" type="file" multiple @change="uploadFilesChanged" />
-    <input
-      ref="imageInput"
-      style="display: none"
-      type="file"
-      accept="image/*, video/*"
-      multiple
-      @change="uploadImagesChanged"
-    />
+    <input ref="imageInput" style="display: none" type="file" accept="image/*, video/*" multiple
+      @change="uploadImagesChanged" />
   </div>
 </template>
 
@@ -103,6 +87,8 @@ const { enqueue: enqueueTask } = useTasks()
 
 const { app } = storeToRefs(useTempStore())
 const { externalFilesDir } = app.value
+
+const chatInput = ref<HTMLTextAreaElement>()
 
 const deleteId = ref('')
 const { t } = useI18n()
@@ -165,8 +151,20 @@ const {
   appApi: true,
 })
 
-async function uploadFilesChanged(e: Event) {
-  const uploads = getFileUploads(e)
+function uploadFilesChanged(e: Event) {
+  const files = (e.target as HTMLInputElement).files as FileList
+  let items: File[] = []
+  for (const item of files) {
+    items.push(item)
+  }
+  doUploadFiles(items)
+}
+
+async function doUploadFiles(files: File[]) {
+  if (!files.length) {
+    return
+  }
+  const uploads = getFileUploads(externalFilesDir, files)
   const items = []
   const valueItems: any[] = []
   for (const upload of uploads) {
@@ -204,8 +202,20 @@ async function uploadFilesChanged(e: Event) {
   }, 100)
 }
 
-async function uploadImagesChanged(e: Event) {
-  const uploads = getImageUploads(e)
+function uploadImagesChanged(e: Event) {
+  const files = (e.target as HTMLInputElement).files as FileList
+  let items: File[] = []
+  for (const item of files) {
+    items.push(item)
+  }
+  doUploadImages(items)
+}
+
+async function doUploadImages(files: File[]) {
+  if (!files.length) {
+    return
+  }
+  const uploads = getImageUploads(externalFilesDir, files)
   const items = []
   const valueItems: any[] = []
   for (const upload of uploads) {
@@ -278,11 +288,11 @@ function deleteMessage(id: string) {
 }
 
 function sendImages() {
-  uploadImages(externalFilesDir)
+  uploadImages()
 }
 
 function sendFiles() {
-  uploadFiles(externalFilesDir)
+  uploadFiles()
 }
 
 onMounted(() => {
@@ -331,7 +341,49 @@ onMounted(() => {
       }
     }
   })
+
+  chatInput.value?.addEventListener('paste', (e: ClipboardEvent) => {
+    const items = e.clipboardData?.items as DataTransferItemList
+    if (items) {
+      const images: File[] = []
+      const files: File[] = []
+      for (const item of items) {
+        if (item.kind !== 'file') {
+          continue
+        }
+        const file = item.getAsFile()!
+        if (file.type.startsWith('image') || file.type.startsWith('video')) {
+          images.push(file)
+        } else {
+          files.push(file)
+        }
+      }
+      if (images.length) {
+        e.preventDefault()
+        doUploadImages(images)
+      }
+      if (files.length) {
+        e.preventDefault()
+        doUploadFiles(files)
+      }
+    }
+  })
+
+  chatInput.value?.addEventListener('drop', (e: DragEvent) => {
+    e.preventDefault()
+    const fileList = e.dataTransfer?.files as FileList
+    if (fileList) {
+      const files: File[] = []
+      for (const item of fileList) {
+        files.push(item)
+      }
+      if (files.length) {
+        doUploadFiles(files)
+      }
+    }
+  })
 })
+
 </script>
 
 <style lang="scss" scoped>
@@ -393,7 +445,7 @@ onMounted(() => {
   display: flex;
   flex: 1 1 auto;
 
-  & > div {
+  &>div {
     width: 100%;
   }
 }
