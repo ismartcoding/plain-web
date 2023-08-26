@@ -131,9 +131,13 @@ export const buildQuery = (fileds: IFilterField[]) => {
   return items.join(' ')
 }
 
-const parseQueryName = (query: LocationQuery, name: string) => {
+export const parseLocationQuery = (query: LocationQuery) => {
   const q = ref(decodeBase64(query.q?.toString() ?? ''))
-  const fields = parseQuery(q.value as string)
+  return parseQuery(q.value as string)
+}
+
+const parseQueryName = (query: LocationQuery, name: string) => {
+  const fields = parseLocationQuery(query)
   if (fields.length === 1) {
     return fields.find((it) => it.name === name)?.value ?? ''
   }
@@ -150,6 +154,14 @@ export const parseFeedName = (query: LocationQuery) => {
 
 export const buildFilterQuery = (filter: IFilter): string => {
   const fields: IFilterField[] = []
+  if (filter.bucketId){
+    fields.push({
+      name: 'bucket_id',
+      op: '',
+      value: filter.bucketId,
+    })
+  }
+    
   for (const tag of filter.tags) {
     fields.push({
       name: 'tag',

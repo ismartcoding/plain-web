@@ -3,6 +3,12 @@ export interface ITag {
   name: string
 }
 
+export interface IBucket {
+  id: string
+  name: string
+  itemCount: number
+}
+
 export interface IMessage {
   id: string
   body: string
@@ -78,6 +84,7 @@ export interface IPlaylistAudio {
 export interface IFilter {
   tags: ITag[]
   text: string
+  bucketId?: string
 }
 
 export interface IFeedEntryFilter extends IFilter {

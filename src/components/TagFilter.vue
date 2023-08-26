@@ -7,6 +7,7 @@
     <li
       v-for="item in tags"
       @click.prevent="view(item)"
+      :key="item.id"
       @contextmenu="itemCtxMenu($event, item)"
       :class="{ active: selected && kebabCase(item.name) === selected }"
     >
