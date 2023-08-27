@@ -6,7 +6,7 @@ import IconsResolver from 'unplugin-icons/resolver'
 import Components from 'unplugin-vue-components/vite'
 import svgLoader from 'vite-svg-loader'
 
-const INVALID_CHAR_REGEX = /[_\\x00-\\x1F\x7F<>*#"{}|^[\]`;?:&=+$,]/g
+const INVALID_CHAR_REGEX = /[_\x00-\x1F\x7F<>*#"{}|^[\]`;?:&=+$,]/g
 const DRIVE_LETTER_REGEX = /^[a-z]:/i
 function sanitizeFileName(name: string): string {
   const match = DRIVE_LETTER_REGEX.exec(name)
