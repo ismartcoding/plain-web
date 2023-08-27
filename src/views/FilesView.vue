@@ -255,7 +255,11 @@ function canView(item: IFile) {
 function dbclickItem(panel: FilePanel, item: IFile) {
   if (!item.isDir) {
     if (canView(item)) {
-      view(panel.items, item)
+      if (fileShowHidden) {
+        view(panel.items, item)
+      } else {
+        view(panel.items.filter((it: IFile) => !it.name.startsWith('.')), item)
+      }
     } else {
       downloadFile(item.path)
     }
