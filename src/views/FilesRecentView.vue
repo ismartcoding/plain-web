@@ -46,7 +46,6 @@
     </div>
   </div>
   <div class="file-item-info" v-if="selectedItem">{{ $t('path') }}: {{ selectedItem.path }}</div>
-  <lightbox :visible="ivVisible" :index="ivIndex" :sources="sources" @hide="ivHide" />
 </template>
 
 <script setup lang="ts">
@@ -57,23 +56,29 @@ import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { type IFile, isImage, isVideo, isAudio } from '@/lib/file'
 import { getFileUrl } from '@/lib/api/file'
-import { useMediaViewer } from '@/components/lightbox/use'
 import { noDataKey } from '@/lib/list'
 import { useDownload, useView, useRecentFiles } from './hooks/files'
 import { useTempStore } from '@/stores/temp'
 import { shortUUID } from '@/lib/strutil'
 import { initMutation, setTempValueGQL } from '@/lib/api/mutation'
+import type { ISource } from '@/components/lightbox/types'
 
 const { t } = useI18n()
 const sources = ref([])
 
 const selectMode = ref(false)
-const { app } = storeToRefs(useTempStore())
+const tempStore = useTempStore()
+const { app } = storeToRefs(tempStore)
 const { loading, files } = useRecentFiles(app)
 
-const { visible: ivVisible, index: ivIndex, view: ivView, hide: ivHide } = useMediaViewer()
 const { downloadFile, downloadDir, downloadFiles } = useDownload(app)
-const { view } = useView(sources, ivView)
+const { view } = useView(sources, (s: ISource[], index: number) => {
+  tempStore.lightbox = {
+      sources: s,
+      index: index,
+      visible: true
+    }
+})
 const selectedItem = ref<IFile | null>(null)
 
 const { mutate: setTempValue, onDone: setTempValueDone } = initMutation({

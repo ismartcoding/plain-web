@@ -39,6 +39,7 @@
     <button type="button" class="btn btn-console" @click="() => (store.consoleOpen = true)" v-show="!store.consoleOpen">
       {{ $t('my_phone') }}
     </button>
+    <lightbox />
   </template>
 </template>
 
@@ -54,7 +55,8 @@ import emitter from '@/plugins/eventbus'
 
 const store = useMainStore()
 const router = useRouter()
-const { app } = storeToRefs(useTempStore())
+const tempStore = useTempStore()
+const { app } = storeToRefs(tempStore)
 
 const loading = ref(true)
 const errorMessage = ref('')
@@ -75,6 +77,7 @@ const { refetch: refetchApp } = initQuery({
   document: appGQL,
   appApi: true,
 })
+
 
 const currentPath = ref(router.currentRoute.value.fullPath)
 watch(
