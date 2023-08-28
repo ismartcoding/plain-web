@@ -86,7 +86,7 @@
         <td>
           <span v-for="tag in item.tags" class="badge">{{ tag.name }}</span>
         </td>
-        <td>
+        <td class="nowrap">
           {{ formatSeconds(item.duration) }}
         </td>
         <td>
