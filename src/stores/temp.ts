@@ -1,3 +1,4 @@
+import type { IFile } from '@/lib/file'
 import { defineStore } from 'pinia'
 
 export interface IUploadItem {
@@ -14,6 +15,7 @@ export interface IUploadItem {
 export type TempState = {
   app: any // store the appFragment result
   uploads: IUploadItem[]
+  selectedFiles: IFile[]
   dark: boolean
 }
 
@@ -23,6 +25,7 @@ export const useTempStore = defineStore({
     ({
       app: null,
       uploads: [],
+      selectedFiles: [],
       dark: localStorage.getItem('dark') === 'true' || window.matchMedia('(prefers-color-scheme: dark)').matches,
     } as TempState),
 })

@@ -41,7 +41,7 @@
         <i-material-symbols:image-outline-rounded class="bi bi-btn btn-images" @click="sendImages" />
         <i-material-symbols:folder-outline-rounded class="bi bi-btn btn-files" @click="sendFiles" />
       </div>
-      <textarea ref="chatInput" v-model="chatText" autocomplete="off" class="form-control"
+      <textarea v-model="chatText" autocomplete="off" @paste="pasteFiles" @drop.prevent="dropFiles" class="form-control"
         :placeholder="$t('chat_input_hint')" @keydown.enter.exact.prevent="send"
         @keydown.enter.shift.exact.prevent="chatText += '\n'" @keydown.enter.ctrl.exact.prevent="chatText += '\n'"
         @keydown.enter.alt.exact.prevent="chatText += '\n'"
@@ -78,17 +78,16 @@ import { shortUUID } from '@/lib/strutil'
 import { getVideoData } from '@/lib/file'
 import { useTasks } from '@/views/hooks/chat'
 
-const { input: fileInput, upload: uploadFiles, getUploads: getFileUploads } = useChatFilesUpload()
-const { input: imageInput, upload: uploadImages, getUploads: getImageUploads } = useChatFilesUpload()
+const { getUploads } = useChatFilesUpload()
 const { resolveClient } = useApolloClient()
 const scrollContainer = ref<HTMLDivElement>()
+const fileInput = ref<HTMLInputElement>()
+const imageInput = ref<HTMLInputElement>()
 const chatItems = ref<IChatItem[]>([])
 const { enqueue: enqueueTask } = useTasks()
 
 const { app } = storeToRefs(useTempStore())
 const { externalFilesDir } = app.value
-
-const chatInput = ref<HTMLTextAreaElement>()
 
 const deleteId = ref('')
 const { t } = useI18n()
@@ -164,7 +163,7 @@ async function doUploadFiles(files: File[]) {
   if (!files.length) {
     return
   }
-  const uploads = getFileUploads(externalFilesDir, files)
+  const uploads = getUploads(externalFilesDir, files)
   const items = []
   const valueItems: any[] = []
   for (const upload of uploads) {
@@ -215,7 +214,7 @@ async function doUploadImages(files: File[]) {
   if (!files.length) {
     return
   }
-  const uploads = getImageUploads(externalFilesDir, files)
+  const uploads = getUploads(externalFilesDir, files)
   const items = []
   const valueItems: any[] = []
   for (const upload of uploads) {
@@ -288,11 +287,53 @@ function deleteMessage(id: string) {
 }
 
 function sendImages() {
-  uploadImages()
+  imageInput.value!.value = ''
+  imageInput.value!.click()
 }
 
 function sendFiles() {
-  uploadFiles()
+  fileInput.value!.value = ''
+  fileInput.value!.click()
+}
+
+function dropFiles(e: DragEvent) {
+  const fileList = e.dataTransfer?.files as FileList
+  if (fileList) {
+    const files: File[] = []
+    for (const item of fileList) {
+      files.push(item)
+    }
+    if (files.length) {
+      doUploadFiles(files)
+    }
+  }
+}
+
+function pasteFiles(e: ClipboardEvent) {
+  const items = e.clipboardData?.items as DataTransferItemList
+  if (items) {
+    const images: File[] = []
+    const files: File[] = []
+    for (const item of items) {
+      if (item.kind !== 'file') {
+        continue
+      }
+      const file = item.getAsFile()!
+      if (file.type.startsWith('image') || file.type.startsWith('video')) {
+        images.push(file)
+      } else {
+        files.push(file)
+      }
+    }
+    if (images.length) {
+      e.preventDefault()
+      doUploadImages(images)
+    }
+    if (files.length) {
+      e.preventDefault()
+      doUploadFiles(files)
+    }
+  }
 }
 
 onMounted(() => {
@@ -338,47 +379,6 @@ onMounted(() => {
             ...item,
           },
         })
-      }
-    }
-  })
-
-  chatInput.value?.addEventListener('paste', (e: ClipboardEvent) => {
-    const items = e.clipboardData?.items as DataTransferItemList
-    if (items) {
-      const images: File[] = []
-      const files: File[] = []
-      for (const item of items) {
-        if (item.kind !== 'file') {
-          continue
-        }
-        const file = item.getAsFile()!
-        if (file.type.startsWith('image') || file.type.startsWith('video')) {
-          images.push(file)
-        } else {
-          files.push(file)
-        }
-      }
-      if (images.length) {
-        e.preventDefault()
-        doUploadImages(images)
-      }
-      if (files.length) {
-        e.preventDefault()
-        doUploadFiles(files)
-      }
-    }
-  })
-
-  chatInput.value?.addEventListener('drop', (e: DragEvent) => {
-    e.preventDefault()
-    const fileList = e.dataTransfer?.files as FileList
-    if (fileList) {
-      const files: File[] = []
-      for (const item of fileList) {
-        files.push(item)
-      }
-      if (files.length) {
-        doUploadFiles(files)
       }
     }
   })

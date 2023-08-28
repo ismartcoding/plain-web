@@ -20,7 +20,7 @@ import { encodeBase64, shortUUID } from '@/lib/strutil'
 import { replacePathNoReload } from '@/plugins/router'
 import { buildQuery, type IFilterField } from '@/lib/search'
 import type { MainState } from '@/stores/main'
-import { findIndex } from 'lodash-es'
+import { findIndex, remove } from 'lodash-es'
 import { getApiBaseUrl } from '@/lib/api/api'
 import type { ISelectable, IStorageStatsItem } from '@/lib/interfaces'
 
@@ -333,9 +333,7 @@ export const useSingleSelect = (currentDir: Ref<string>, filesType: string, q: R
   }
 }
 
-export const useCopyPaste = (refetchFiles: (path: string) => void, refetchStats: () => void) => {
-  const selectItem = ref<IFile | null>(null)
-  const srcPanel = ref<FilePanel | null>(null)
+export const useCopyPaste = (selectedFiles: Ref<IFile[]>, refetchFiles: (path: string) => void, refetchStats: () => void) => {
   const isCut = ref(false)
   const dstDir = ref<string>()
 
@@ -370,10 +368,11 @@ export const useCopyPaste = (refetchFiles: (path: string) => void, refetchStats:
 
   const onDone = () => {
     if (isCut.value) {
-      const index = srcPanel.value!.items.findIndex((it) => it.path === selectItem.value!.path)
-      srcPanel.value?.items.splice(index, 1)
+      for (const file of selectedFiles.value) {
+        remove(file.panel!.items, (it: IFile) => it.path === file.path)
+      }
     }
-    selectItem.value = null
+
     // have to delay 1s to make sure the api return latest data.
     setTimeout(() => {
       refetchFiles(dstDir.value!)
@@ -387,28 +386,29 @@ export const useCopyPaste = (refetchFiles: (path: string) => void, refetchStats:
   return {
     loading: copyLoading || cutLoading,
     canPaste() {
-      return !!selectItem.value
+      return selectedFiles.value.length > 0
     },
-    copy(item: IFile) {
-      selectItem.value = item
+    copy(items: IFile[]) {
+      selectedFiles.value = items
       isCut.value = false
     },
-    cut(panel: FilePanel, item: IFile) {
-      selectItem.value = item
-      srcPanel.value = panel
+    cut(items: IFile[]) {
+      selectedFiles.value = items
       isCut.value = true
     },
     paste(dir: string) {
       dstDir.value = dir
-      const a = {
-        src: selectItem.value?.path,
-        dst: dir + '/' + selectItem.value?.name,
-        overwrite: false,
-      }
-      if (isCut.value) {
-        cutMutate(a)
-      } else {
-        copyMutate(a)
+      for (const file of selectedFiles.value) {
+        const a = {
+          src: file.path,
+          dst: dir + '/' + file.name,
+          overwrite: false,
+        }
+        if (isCut.value) {
+          cutMutate(a)
+        } else {
+          copyMutate(a)
+        }
       }
     },
   }
@@ -461,13 +461,7 @@ export function getFileDir(fileName: string) {
 }
 
 export const useChatFilesUpload = () => {
-  const input = ref<HTMLInputElement>()
   return {
-    input,
-    upload() {
-      input.value!.value = ''
-      input.value!.click()
-    },
     getUploads(baseDir: string, files: File[]): IUploadItem[] {
       const items = []
       for (let i = 0; i < files.length; i++) {
