@@ -62,12 +62,8 @@
       </tr>
     </thead>
     <tbody>
-      <tr
-        v-for="(item, i) in items"
-        :key="item.id"
-        :class="{ checked: item.checked }"
-        @click.stop="item.checked = !item.checked"
-      >
+      <tr v-for="(item, i) in items" :key="item.id" :class="{ checked: item.checked }"
+        @click.stop="item.checked = !item.checked">
         <td><input class="form-check-input" type="checkbox" v-model="item.checked" /></td>
         <td><field-id :id="item.id" :raw="item" /></td>
         <td>
@@ -98,7 +94,6 @@
     {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
   </div>
   <v-pagination v-if="total > limit" v-model="page" :total="total" :limit="limit" />
-  <lightbox :visible="visible" :index="index" :sources="sources" @hide="hide" />
 </template>
 
 <script setup lang="ts">
@@ -111,7 +106,6 @@ import { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useI18n } from 'vue-i18n'
 import { getFileId, getFileUrl } from '@/lib/api/file'
-import { useMediaViewer } from '@/components/lightbox/use'
 import { formatFileSize } from '@/lib/format'
 import type { IFilter, IImageItem } from '@/lib/interfaces'
 import { decodeBase64, encodeBase64 } from '@/lib/strutil'
@@ -127,12 +121,14 @@ import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { pushModal } from '@/components/modal'
 import ConfirmModal from '@/components/ConfirmModal.vue'
+import type { ISource } from '@/components/lightbox/types'
 
 const router = useRouter()
 const mainStore = useMainStore()
 const items = ref<IImageItem[]>([])
 const { t } = useI18n()
-const { app } = storeToRefs(useTempStore())
+const tempStore = useTempStore()
+const { app } = storeToRefs(tempStore)
 const filter: IFilter = reactive({
   text: '',
   tags: [],
@@ -152,20 +148,28 @@ const { tags } = useTags(tagType, q, filter, async (fields: IFilterField[]) => {
   load()
 })
 const viewType = ref(query.view?.toString() ?? 'grid')
-const { visible, index, view, hide } = useMediaViewer()
 const { addToTags } = useAddToTags(tagType, items, tags)
 const { removeFromTags } = useRemoveFromTags(tagType, items, tags)
 const { deleteItems } = useDeleteItems(tagType, items)
 const { downloadItems } = useDownloadItems(items, 'images.zip')
 
-const sources = computed(() => {
+const sources = computed<ISource[]>(() => {
   return items.value.map((it: IImageItem) => ({
     src: getFileUrl(it.fileId),
     name: getFileName(it.path),
     duration: 0,
     size: it.size,
-  }))
+    path: '',
+  })) as ISource[]
 })
+
+function view(index: number) {
+  tempStore.lightbox = {
+    sources: sources.value,
+    index: index,
+    visible: true
+  }
+}
 
 const checked = computed<boolean>(() => {
   return items.value.some((it) => it.checked)

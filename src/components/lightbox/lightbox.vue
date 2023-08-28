@@ -1,6 +1,6 @@
 <template>
   <Teleport to="body">
-    <transition v-if="visible">
+    <transition v-if="tempStore.lightbox.visible">
       <div @touchmove="preventDefault" class="v-modal" @click.self="closeDialog" @wheel="onWheel">
         <transition mode="out-in">
           <div>
@@ -71,10 +71,10 @@
           </div>
         </transition>
         <div class="buttons">
-          <div v-if="sources.length > 1 && (loop || imgIndex > 0)" class="btn-prev" @click="onPrev">
+          <div v-if="tempStore.lightbox.sources.length > 1 && (loop || imgIndex > 0)" class="btn-prev" @click="onPrev">
             <i-material-symbols:chevron-left-rounded class="bi" />
           </div>
-          <div v-if="sources.length > 1 && (loop || imgIndex < sources.length - 1)" class="btn-next" @click="onNext">
+          <div v-if="tempStore.lightbox.sources.length > 1 && (loop || imgIndex < tempStore.lightbox.sources.length - 1)" class="btn-next" @click="onNext">
             <i-material-symbols:chevron-right-rounded class="bi" />
           </div>
           <div v-if="current && current.name && isImage(current.name)" class="source-name">
@@ -122,18 +122,6 @@ import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 
 const props = defineProps({
-  sources: {
-    type: Array as PropType<ISource[]>,
-    default: () => [],
-  },
-  visible: {
-    type: Boolean,
-    default: false,
-  },
-  index: {
-    type: Number,
-    default: 0,
-  },
   swipeTolerance: {
     type: Number,
     default: 50,
@@ -145,7 +133,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits([
-  'hide',
   'on-error',
   'on-prev',
   'on-next',
@@ -161,7 +148,8 @@ const viewOrigin = () => {
   }
   status.loading = true
 }
-const { app } = storeToRefs(useTempStore())
+const tempStore = useTempStore()
+const { app } = storeToRefs(tempStore)
 const video = ref<HTMLVideoElement>()
 const { imgRef, imgState, setImgSize } = useImage()
 const imgIndex = ref(0)
@@ -205,7 +193,8 @@ const imgWrapperStyle = computed(() => {
 })
 
 const closeDialog = () => {
-  emit('hide')
+  tempStore.lightbox.visible = false
+  tempStore.lightbox.index = -1
   imgIndex.value = 0
 }
 
@@ -226,14 +215,14 @@ const changeIndex = async (newIndex: number, actions?: IndexChangeActions) => {
 
   reset()
 
-  const s = props.sources[newIndex]
+  const s = tempStore.lightbox.sources[newIndex]
   if (!s.src) {
     const { fileIdToken } = app.value
     s.src = await getFileUrlByPath(fileIdToken, s.path)
   }
 
   imgIndex.value = newIndex
-  current.value = props.sources[imgIndex.value]
+  current.value = tempStore.lightbox.sources[imgIndex.value]
 
   // No emit event when hidden or same index
   if (oldIndex === newIndex) return
@@ -252,9 +241,9 @@ const changeIndex = async (newIndex: number, actions?: IndexChangeActions) => {
 
 const onNext = () => {
   const oldIndex = imgIndex.value
-  const newIndex = props.loop ? (oldIndex + 1) % props.sources.length : oldIndex + 1
+  const newIndex = props.loop ? (oldIndex + 1) % tempStore.lightbox.sources.length : oldIndex + 1
 
-  if (!props.loop && newIndex > props.sources.length - 1) return
+  if (!props.loop && newIndex > tempStore.lightbox.sources.length - 1) return
 
   changeIndex(newIndex, ['on-next', 'on-next-click'])
 }
@@ -265,7 +254,7 @@ const onPrev = () => {
 
   if (oldIndex === 0) {
     if (!props.loop) return
-    newIndex = props.sources.length - 1
+    newIndex = tempStore.lightbox.sources.length - 1
   }
   changeIndex(newIndex, ['on-prev', 'on-prev-click'])
 }
@@ -394,9 +383,9 @@ const onWindowResize = () => {
 }
 
 watch(
-  () => props.index,
+  () => tempStore.lightbox.index,
   (newIndex) => {
-    if (newIndex < 0 || newIndex >= props.sources.length) {
+    if (newIndex < 0 || newIndex >= tempStore.lightbox.sources.length) {
       return
     }
     changeIndex(newIndex)

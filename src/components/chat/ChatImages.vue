@@ -5,7 +5,6 @@
       <span class="duration">{{ isVideo(item.name) ? formatSeconds(item.duration) : formatFileSize(item.size) }}</span>
     </div>
   </div>
-  <lightbox :visible="visible" :index="index" :sources="sources" @hide="hide" />
 </template>
 
 <script setup lang="ts">
@@ -13,14 +12,13 @@ import { getFileName, getFileUrl, notId } from '@/lib/api/file'
 import { isVideo } from '@/lib/file'
 import { computed } from 'vue'
 import type { ISource } from '../lightbox/types'
-import { useMediaViewer } from '../lightbox/use'
 import { formatSeconds, formatFileSize } from '@/lib/format'
+import { useTempStore } from '@/stores/temp'
 
+const tempStore = useTempStore()
 const props = defineProps({
   data: { type: Object },
 })
-
-const { visible, index, view, hide } = useMediaViewer()
 
 function getPreview(source: ISource) {
   if (source.thumbnail) {
@@ -32,6 +30,14 @@ function getPreview(source: ISource) {
   }
 
   return `${source.src}&w=200&h=200`
+}
+
+function view(index: number) {
+  tempStore.lightbox = {
+    sources: sources.value,
+    index: index,
+    visible: true
+  }
 }
 
 const sources = computed(() => {

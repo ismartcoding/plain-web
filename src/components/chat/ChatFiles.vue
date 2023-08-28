@@ -1,23 +1,15 @@
 <template>
   <div class="chat-section">
-    <a
-      v-for="(item, i) in items"
-      :key="i"
-      class="file-item"
-      target="_blank"
-      :href="item.src"
-      @click.prevent="clickItem(item)"
-    >
+    <a v-for="(item, i) in items" :key="i" class="file-item" target="_blank" :href="item.src"
+      @click.prevent="clickItem(item)">
       <span class="left">
         <span>{{ item.name }}</span>
-        <span class="info"
-          >{{ formatFileSize(item.size) }}{{ isVideo(item.name) ? ' / ' + formatSeconds(item.duration) : '' }}</span
-        >
+        <span class="info">{{ formatFileSize(item.size) }}{{ isVideo(item.name) ? ' / ' + formatSeconds(item.duration) :
+          '' }}</span>
       </span>
       <img v-if="isImage(item.name) || isVideo(item.name)" :src="getPreview(item)" />
     </a>
   </div>
-  <lightbox :visible="visible" :index="index" :sources="sources" @hide="hide" />
 </template>
 
 <script setup lang="ts">
@@ -25,10 +17,11 @@ import { computed, ref } from 'vue'
 import { getFileName, getFileUrl, notId } from '@/lib/api/file'
 import type { ISource } from '../lightbox/types'
 import { isVideo, isImage, isAudio } from '@/lib/file'
-import { useMediaViewer } from '../lightbox/use'
 import { formatSeconds, formatFileSize } from '@/lib/format'
+import { useTempStore } from '@/stores/temp'
 
-const { visible, index, view: ivView, hide } = useMediaViewer()
+const tempStore = useTempStore()
+
 const sources = ref<ISource[]>([])
 
 const props = defineProps({
@@ -69,7 +62,11 @@ function clickItem(item: ISource) {
   if (canView(item)) {
     sources.value = items.value.filter((it) => canView(it))
     const idx = sources.value.findIndex((it) => it.src === item.src)
-    ivView(idx)
+    tempStore.lightbox = {
+      sources: sources.value,
+      index: idx,
+      visible: true
+    }
   } else {
     window.open(item.src, '_blank')
   }
@@ -88,9 +85,11 @@ function canView(item: ISource) {
   display: flex;
   justify-content: space-between;
   text-decoration: none;
+
   &:first-child {
     padding-top: 8px;
   }
+
   .left {
     display: flex;
     flex-flow: column;

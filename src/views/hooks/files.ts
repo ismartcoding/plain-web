@@ -280,7 +280,7 @@ export const useDownload = (app: Ref<any>) => {
   }
 }
 
-export const useView = (sources: Ref<ISource[]>, ivView: (i: number) => void) => {
+export const useView = (sources: Ref<ISource[]>, ivView: (sources: ISource[], i: number) => void) => {
   return {
     view(items: IFile[], f: IFile) {
       sources.value = items
@@ -293,7 +293,7 @@ export const useView = (sources: Ref<ISource[]>, ivView: (i: number) => void) =>
           duration: 0,
         }))
       const index = findIndex(sources.value, (it: ISource) => it.path === f.path)
-      ivView(index)
+      ivView(sources.value, index)
     },
   }
 }

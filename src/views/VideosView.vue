@@ -108,7 +108,6 @@
     </tfoot>
   </table>
   <v-pagination v-if="total > limit" v-model="page" :total="total" :limit="limit" />
-  <lightbox :visible="visible" :index="index" :sources="sources" @hide="hide" />
 </template>
 
 <script setup lang="ts">
@@ -122,7 +121,6 @@ import { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useI18n } from 'vue-i18n'
 import { getFileId, getFileUrl } from '@/lib/api/file'
-import { useMediaViewer } from '@/components/lightbox/use'
 import { formatFileSize } from '@/lib/format'
 import type { IFilter, IVideoItem } from '@/lib/interfaces'
 import { decodeBase64, encodeBase64 } from '@/lib/strutil'
@@ -138,12 +136,14 @@ import { storeToRefs } from 'pinia'
 import { pushModal } from '@/components/modal'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 import { useDownloadItems } from './hooks/files'
+import type { ISource } from '@/components/lightbox/types'
 
 const router = useRouter()
 const mainStore = useMainStore()
 const items = ref<IVideoItem[]>([])
 const { t } = useI18n()
-const { app } = storeToRefs(useTempStore())
+const tempStore = useTempStore()
+const { app } = storeToRefs(tempStore)
 const filter: IFilter = reactive({
   text: '',
   tags: [],
@@ -165,19 +165,18 @@ const { tags } = useTags(tagType, q, filter, async (fields: IFilterField[]) => {
   load()
 })
 const viewType = ref(query.view?.toString() ?? 'grid')
-const { visible, index, view, hide } = useMediaViewer()
 const { addToTags } = useAddToTags(tagType, items, tags)
 const { removeFromTags } = useRemoveFromTags(tagType, items, tags)
 const { deleteItems } = useDeleteItems(tagType, items)
 const { downloadItems } = useDownloadItems(items, 'videos.zip')
 
-const sources = computed(() => {
+const sources = computed<ISource[]>(() => {
   return items.value.map((it: IVideoItem) => ({
     src: getFileUrl(it.fileId),
     name: getFileName(it.path),
     duration: it.duration,
     size: it.size,
-  }))
+  })) as ISource[]
 })
 
 const { selectAll, toggleSelect } = useSelectable(items)
@@ -208,6 +207,14 @@ const { loading, load, refetch } = initLazyQuery({
 
 function updateUrl() {
   replacePath(mainStore, `/videos?page=${page.value}&q=${encodeBase64(q.value)}&view=${viewType.value}`)
+}
+
+function view(index: number) {
+  tempStore.lightbox = {
+    sources: sources.value,
+    index: index,
+    visible: true
+  }
 }
 
 watch(page, () => {

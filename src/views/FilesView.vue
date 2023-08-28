@@ -71,7 +71,6 @@
     </pane>
   </splitpanes>
   <div class="file-item-info" v-if="selectedItem">{{ $t('path') }}: {{ selectedItem.path }}</div>
-  <lightbox :visible="ivVisible" :index="ivIndex" :sources="sources" @hide="ivHide" />
   <input ref="fileInput" style="display: none" type="file" multiple @change="uploadChanged" />
   <input
     ref="dirFileInput"
@@ -95,7 +94,6 @@ import { useMainStore } from '@/stores/main'
 import { storeToRefs } from 'pinia'
 import { type FilePanel, type IFile, isImage, isVideo, isAudio } from '@/lib/file'
 import { getFileUrl } from '@/lib/api/file'
-import { useMediaViewer } from '@/components/lightbox/use'
 import { noDataKey } from '@/lib/list'
 import emitter from '@/plugins/eventbus'
 import {
@@ -118,6 +116,7 @@ import { useRoute } from 'vue-router'
 import { decodeBase64, shortUUID } from '@/lib/strutil'
 import { parseQuery } from '@/lib/search'
 import { initMutation, setTempValueGQL } from '@/lib/api/mutation'
+import type { ISource } from '@/components/lightbox/types'
 
 const { t } = useI18n()
 const sources = ref([])
@@ -143,7 +142,8 @@ const initDir = ref(dirTmp)
 const selectMode = ref(false)
 const mainStore = useMainStore()
 
-const { app, selectedFiles } = storeToRefs(useTempStore())
+const tempStore = useTempStore()
+const { app, selectedFiles } = storeToRefs(tempStore)
 let rootDir = app.value.internalStoragePath
 if (filesType) {
   if (filesType === 'sdcard') {
@@ -156,13 +156,18 @@ if (filesType) {
 }
 const { loading, panels, currentDir, refetch: refetchFiles } = useFiles(app, rootDir, initDir.value)
 
-const { visible: ivVisible, index: ivIndex, view: ivView, hide: ivHide } = useMediaViewer()
 const { createPath, createVariables, createMutation } = useCreateDir(app, panels)
 const { renameValue, renamePath, renameDone, renameMutation, renameVariables } = useRename(panels)
 const { internal, sdcard, usb, refetch: refetchStats } = useStats()
 const { onDeleted } = useDelete(panels, currentDir, refetchStats)
 const { downloadFile, downloadDir, downloadFiles } = useDownload(app)
-const { view } = useView(sources, ivView)
+const { view } = useView(sources, (s: ISource[], index: number) => {
+  tempStore.lightbox = {
+      sources: s,
+      index: index,
+      visible: true
+    }
+})
 const { selectedItem, select } = useSingleSelect(currentDir, filesType, q, mainStore)
 const { canPaste, copy, cut, paste } = useCopyPaste(selectedFiles, refetchFiles, refetchStats)
 const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload()
