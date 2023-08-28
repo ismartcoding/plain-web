@@ -3,6 +3,12 @@
     <breadcrumb :current="getPageTitle" />
     <div class="right-actions">
       <template v-if="selectMode && checked">
+        <button type="button" class="btn btn-action" @click.stop="() => copy(getSelectedFiles())">
+          {{ $t('copy') }}
+        </button>
+        <button type="button" class="btn btn-action" @click.stop="() => cut(getSelectedFiles())">
+          {{ $t('cut') }}
+        </button>
         <button type="button" class="btn btn-action" @click.stop="deleteItems" :title="$t('delete')">
           <i-material-symbols:delete-outline-rounded class="bi" />
         </button>
@@ -137,7 +143,7 @@ const initDir = ref(dirTmp)
 const selectMode = ref(false)
 const mainStore = useMainStore()
 
-const { app } = storeToRefs(useTempStore())
+const { app, selectedFiles } = storeToRefs(useTempStore())
 let rootDir = app.value.internalStoragePath
 if (filesType) {
   if (filesType === 'sdcard') {
@@ -158,7 +164,7 @@ const { onDeleted } = useDelete(panels, currentDir, refetchStats)
 const { downloadFile, downloadDir, downloadFiles } = useDownload(app)
 const { view } = useView(sources, ivView)
 const { selectedItem, select } = useSingleSelect(currentDir, filesType, q, mainStore)
-const { canPaste, copy, cut, paste } = useCopyPaste(refetchFiles, refetchStats)
+const { canPaste, copy, cut, paste } = useCopyPaste(selectedFiles, refetchFiles, refetchStats)
 const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload()
 const { input: dirFileInput, upload: uploadDir, uploadChanged: dirUploadChanged } = useFileUpload()
 
@@ -176,6 +182,7 @@ const getSelectedFiles = () => {
   panels.value.forEach((p: FilePanel) => {
     p.items.forEach((f: IFile) => {
       if (f.checked) {
+        f.panel = p
         files.push(f)
       }
     })
@@ -353,20 +360,21 @@ function itemCtxMenu(e: MouseEvent, panel: FilePanel, f: IFile) {
   items.push({
     label: t('duplicate'),
     onClick: () => {
-      copy(f)
+      copy([f])
       paste(panel.dir)
     },
   })
   items.push({
     label: t('cut'),
     onClick: () => {
-      cut(panel, f)
+      f.panel = panel
+      cut([f])
     },
   })
   items.push({
     label: t('copy'),
     onClick: () => {
-      copy(f)
+      copy([f])
     },
   })
 

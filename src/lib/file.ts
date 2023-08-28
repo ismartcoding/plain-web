@@ -13,6 +13,7 @@ export interface IFile extends ISelectable {
   checked: boolean
   updatedAt: string
   size: number
+  panel?: FilePanel
 }
 
 export function isImage(name: string) {
