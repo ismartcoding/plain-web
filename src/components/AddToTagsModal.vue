@@ -1,37 +1,69 @@
 <template>
-  <v-modal :title="$t('add_to_tags')">
-    <template #body>
-      <multiselect v-model="selectedTags" label="name" track-by="id" :options="tags" />
+  <md-dialog>
+    <div slot="headline">
+      {{ $t('tags') }}
+    </div>
+    <div slot="content">
+      <md-outlined-segmented-button-set @segmented-button-set-selection="onColorModeSelection">
+        <md-outlined-segmented-button :label="$t('add_to_tags')" :selected="mode === 'add_to_tags'">
+          <i-material-symbols:label-outline-rounded slot="icon" />
+        </md-outlined-segmented-button>
+        <md-outlined-segmented-button :label="$t('remove_from_tags')" :selected="mode === 'remove_from_tags'">
+          <i-material-symbols:label-off-outline-rounded slot="icon" />
+        </md-outlined-segmented-button>
+      </md-outlined-segmented-button-set>
+      <md-chip-set type="filter">
+        <md-filter-chip
+          v-for="item in tags"
+          :key="item.id"
+          :label="item.name"
+          :selected="selectedTags.includes(item)"
+          @click="onTagSelect(item)"
+        />
+      </md-chip-set>
       <div class="invalid-feedback" v-show="errorMessage">
         {{ errorMessage ? $t(errorMessage) : '' }}
       </div>
-    </template>
-    <template #action>
-      <button type="button" :disabled="loading" class="btn" @click="doAction">
+    </div>
+    <div slot="actions">
+      <md-outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</md-outlined-button>
+      <md-filled-button value="save" :disabled="adding || removing" @click="doAction" autofocus>
         {{ $t('save') }}
-      </button>
-    </template>
-  </v-modal>
+      </md-filled-button>
+    </div>
+  </md-dialog>
 </template>
 <script setup lang="ts">
-import { addToTagsGQL, initMutation } from '@/lib/api/mutation'
-import type { ITag, ITagRelationStub } from '@/lib/interfaces'
+import { addToTagsGQL, initMutation, removeFromTagsGQL } from '@/lib/api/mutation'
+import type { ITag } from '@/lib/interfaces'
 import emitter from '@/plugins/eventbus'
 import { useField, useForm } from 'vee-validate'
-import { useI18n } from 'vue-i18n'
 import { array } from 'yup'
-import toast from '@/components/toaster'
-import type { PropType } from 'vue'
+import { ref, type PropType } from 'vue'
 import { popModal } from './modal'
+import { remove } from 'lodash-es'
+import type { MdOutlinedSegmentedButton } from '@material/web/labs/segmentedbutton/outlined-segmented-button'
 
 const { handleSubmit } = useForm()
-const { t } = useI18n()
+const mode = ref('add_to_tags')
 
 const props = defineProps({
-  tagType: { type: String, required: true },
+  type: { type: String, required: true },
   tags: { type: Array as PropType<Array<ITag>>, default: () => [] },
-  items: { type: Array as PropType<Array<ITagRelationStub>>, default: () => [] },
+  query: { type: String, required: true },
 })
+
+function onColorModeSelection(
+  e: CustomEvent<{
+    button: MdOutlinedSegmentedButton
+    selected: boolean
+    index: number
+  }>
+) {
+  const { button } = e.detail
+  const value = button.dataset.value as string
+  mode.value = value
+}
 
 const { value: selectedTags, errorMessage } = useField(
   'selectedTags',
@@ -45,25 +77,59 @@ const { value: selectedTags, errorMessage } = useField(
   }
 )
 
-const { mutate, loading, onDone } = initMutation({
+const {
+  mutate: removeFromTags,
+  loading: removing,
+  onDone: onRemoved,
+} = initMutation({
+  document: removeFromTagsGQL,
+  appApi: true,
+})
+
+const {
+  mutate: addToTags,
+  loading: adding,
+  onDone: onAdded,
+} = initMutation({
   document: addToTagsGQL,
   appApi: true,
 })
 
-onDone(() => {
-  if (props.tagType === 'AUDIO') {
-    emitter.emit('refetch_app')
-  }
-  emitter.emit('refetch_by_tag_type', props.tagType)
-  toast(t('saved'))
+const onDone = () => {
+  emitter.emit('items_tags_updated', { type: props.type })
+  emitter.emit('refetch_tags', props.type)
   popModal()
-})
+}
+
+onAdded(onDone)
+onRemoved(onDone)
+
+function onTagSelect(item: ITag) {
+  if (selectedTags.value.includes(item)) {
+    remove(selectedTags.value, (it: ITag) => it.id === item.id)
+  } else {
+    selectedTags.value.push(item)
+  }
+}
 
 const doAction = handleSubmit(() => {
-  mutate({
-    tagType: props.tagType,
-    tagIds: selectedTags.value.map((it: ITag) => it.id),
-    items: props.items,
-  })
+  if (mode.value === 'add_to_tags') {
+    addToTags({
+      type: props.type,
+      tagIds: selectedTags.value.map((it: ITag) => it.id),
+      query: props.query,
+    })
+  } else {
+    removeFromTags({
+      type: props.type,
+      tagIds: selectedTags.value.map((it: ITag) => it.id),
+      query: props.query,
+    })
+  }
 })
 </script>
+<style lang="scss" scoped>
+md-outlined-segmented-button-set {
+  margin-block-end: 16px;
+}
+</style>

@@ -16,11 +16,11 @@ export function getFileUrl(id: string) {
   return `${getApiBaseUrl()}/fs?id=${encodeURIComponent(id)}`
 }
 
-export async function getFileUrlByPath(token: string, path: string) {
-  if (!path) {
+export function getFileUrlByPath(key: sjcl.BitArray | null, path: string) {
+  if (!path || !key) {
     return ''
   }
-  return getFileUrl(await getFileId(token, path))
+  return getFileUrl(getFileId(key, path))
 }
 
 export function getUploadUrl() {
@@ -59,8 +59,29 @@ export async function getFileHash(f: File) {
   return arrayBufferToHex(await crypto.subtle.digest('SHA-256', await f.arrayBuffer()))
 }
 
-export async function getFileId(token: string, path: string) {
-  if (!path) {
+export function tokenToKey(token: string) {
+  return sjcl.codec.base64.toBits(token)
+}
+
+export function encryptUrlParams(key: sjcl.BitArray | null, params: string) {
+  if (!key) {
+    return ''
+  }
+
+  const enc = aesEncrypt(key, params)
+  return bitArrayToBase64(enc)
+}
+
+export function getFinalPath(externalFilesDir: string, path: string) {
+  if (path.startsWith('app://')) {
+    return externalFilesDir + '/' + path.replace('app://', '')
+  }
+
+  return path
+}
+
+export function getFileId(key: sjcl.BitArray | null, path: string) {
+  if (!path || !key) {
     return ''
   }
 
@@ -69,9 +90,15 @@ export async function getFileId(token: string, path: string) {
     return path
   }
 
-  const key = sjcl.codec.base64.toBits(token)
+  const fileIdMap = window.fileIdMap || new Map<string, string>()
+  if (fileIdMap.has(path)) {
+    return fileIdMap.get(path) ?? ''
+  }
+
   const enc = aesEncrypt(key, path)
-  return bitArrayToBase64(enc)
+  const id = bitArrayToBase64(enc)
+  fileIdMap.set(path, id)
+  return id
 }
 
 export async function upload(upload: IUploadItem, replace: boolean) {

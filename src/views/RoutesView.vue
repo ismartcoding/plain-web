@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container container">
+  <div class="page-container">
     <div class="main">
       <div class="v-toolbar">
         <breadcrumb :current="() => $t('page_title.routes')" />
@@ -7,54 +7,63 @@
           {{ $t('create') }}
         </button>
       </div>
-      <table class="table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>{{ $t('apply_to') }}</th>
-            <th>{{ $t('description') }}</th>
-            <th>{{ $t('notes') }}</th>
-            <th>{{ $t('enabled') }}</th>
-            <th>{{ $t('created_at') }}</th>
-            <th>{{ $t('updated_at') }}</th>
-            <th class="actions two">{{ $t('actions') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="item in items" :key="item.id">
-            <td>
-              <field-id :id="item.id" :raw="item.data" />
-            </td>
-            <td>{{ item.applyTo.getText($t, devices, networks) }}</td>
-            <td>
-              {{
-                $t('route_description', {
-                  if_name: networks.find((it: any) => it.ifName == item.data.if_name)?.name ?? item.data.if_name,
-                  target: item.target.getText($t, networks),
-                })
-              }}
-            </td>
-            <td>{{ item.notes }}</td>
-            <td>
-              <div class="form-check">
-                <input
-                  class="form-check-input"
-                  :disabled="enableLoading"
-                  @change="enable(item)"
-                  v-model="item.data.is_enabled"
-                  type="checkbox"
-                />
-              </div>
-            </td>
-            <td class="nowrap" :title="formatDateTimeFull(item.createdAt)">{{ formatDateTime(item.createdAt) }}</td>
-            <td class="nowrap" :title="formatDateTimeFull(item.updatedAt)">{{ formatDateTime(item.updatedAt) }}</td>
-            <td class="actions two">
-              <a href="#" class="v-link" @click.prevent="edit(item)">{{ $t('edit') }}</a>
-              <a href="#" class="v-link" @click.prevent="deleteItem(item)">{{ $t('delete') }}</a>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>{{ $t('apply_to') }}</th>
+              <th>{{ $t('description') }}</th>
+              <th>{{ $t('notes') }}</th>
+              <th>{{ $t('enabled') }}</th>
+              <th>{{ $t('created_at') }}</th>
+              <th>{{ $t('updated_at') }}</th>
+              <th class="actions two">{{ $t('actions') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in items" :key="item.id">
+              <td>
+                <field-id :id="item.id" :raw="item.data" />
+              </td>
+              <td>{{ item.applyTo.getText($t, devices, networks) }}</td>
+              <td>
+                {{
+                  $t('route_description', {
+                    if_name: networks.find((it: any) => it.ifName == item.data.if_name)?.name ?? item.data.if_name,
+                    target: item.target.getText($t, networks),
+                  })
+                }}
+              </td>
+              <td>{{ item.notes }}</td>
+              <td>
+                <div class="form-check">
+                  <md-checkbox
+                    touch-target="wrapper"
+                    :disabled="enableLoading"
+                    @change="enable(item)"
+                    :checked="item.data.is_enabled"
+                  />
+                </div>
+              </td>
+              <td class="nowrap">
+                <span v-tooltip="formatDateTimeFull(item.createdAt)">
+                  {{ formatDateTime(item.createdAt) }}
+                </span>
+              </td>
+              <td class="nowrap">
+                <span v-tooltip="formatDateTimeFull(item.updatedAt)">
+                  {{ formatDateTime(item.updatedAt) }}
+                </span>
+              </td>
+              <td class="actions two">
+                <a href="#" class="v-link" @click.prevent="edit(item)">{{ $t('edit') }}</a>
+                <a href="#" class="v-link" @click.prevent="deleteItem(item)">{{ $t('delete') }}</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </template>

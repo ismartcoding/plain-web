@@ -4,6 +4,14 @@ export const tagFragment = gql`
   fragment TagFragment on Tag {
     id
     name
+    count
+  }
+`
+
+export const tagSubFragment = gql`
+  fragment TagSubFragment on Tag {
+    id
+    name
   }
 `
 
@@ -19,7 +27,7 @@ export const playlistAudioFragment = gql`
 export const appFragment = gql`
   fragment AppFragment on App {
     usbConnected
-    fileIdToken
+    urlToken
     externalFilesDir
     deviceName
     battery
@@ -128,10 +136,10 @@ export const messageFragment = gql`
     date
     type
     tags {
-      ...TagFragment
+      ...TagSubFragment
     }
   }
-  ${tagFragment}
+  ${tagSubFragment}
 `
 export const contactFragment = gql`
   fragment ContactFragment on Contact {
@@ -168,10 +176,10 @@ export const contactFragment = gql`
       ...ContentItemFagment
     }
     tags {
-      ...TagFragment
+      ...TagSubFragment
     }
   }
-  ${tagFragment}
+  ${tagSubFragment}
   fragment ContentItemFagment on ContentItem {
     label
     value
@@ -194,10 +202,10 @@ export const callFragment = gql`
       province
     }
     tags {
-      ...TagFragment
+      ...TagSubFragment
     }
   }
-  ${tagFragment}
+  ${tagSubFragment}
 `
 
 export const fileFragment = gql`
@@ -215,11 +223,12 @@ export const imageFragment = gql`
     title
     path
     size
+    bucketId
     tags {
-      ...TagFragment
+      ...TagSubFragment
     }
   }
-  ${tagFragment}
+  ${tagSubFragment}
 `
 
 export const videoFragment = gql`
@@ -229,11 +238,12 @@ export const videoFragment = gql`
     path
     duration
     size
+    bucketId
     tags {
-      ...TagFragment
+      ...TagSubFragment
     }
   }
-  ${tagFragment}
+  ${tagSubFragment}
 `
 
 export const audioFragment = gql`
@@ -244,11 +254,12 @@ export const audioFragment = gql`
     path
     duration
     size
+    bucketId
     tags {
-      ...TagFragment
+      ...TagSubFragment
     }
   }
-  ${tagFragment}
+  ${tagSubFragment}
 `
 
 export const noteFragment = gql`
@@ -260,10 +271,10 @@ export const noteFragment = gql`
     createdAt
     updatedAt
     tags {
-      ...TagFragment
+      ...TagSubFragment
     }
   }
-  ${tagFragment}
+  ${tagSubFragment}
 `
 
 export const feedFragment = gql`
@@ -291,10 +302,10 @@ export const feedEntryFragment = gql`
     createdAt
     updatedAt
     tags {
-      ...TagFragment
+      ...TagSubFragment
     }
   }
-  ${tagFragment}
+  ${tagSubFragment}
 `
 
 export const aiChatFragment = gql`
@@ -307,10 +318,10 @@ export const aiChatFragment = gql`
     createdAt
     updatedAt
     tags {
-      ...TagFragment
+      ...TagSubFragment
     }
   }
-  ${tagFragment}
+  ${tagSubFragment}
 `
 
 export const packageFragment = gql`

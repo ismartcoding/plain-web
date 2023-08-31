@@ -1,12 +1,12 @@
 <template>
-  <div class="page-container container">
+  <div class="page-container">
     <div class="main">
       <div class="v-toolbar">
         <breadcrumb :current="() => $t('qrcode_generator')" />
       </div>
       <splitpanes class="panel-container">
         <pane>
-          <monaco-editor v-model="content" />
+          <md-outlined-text-field type="textarea" rows="3" v-model="content" />
         </pane>
         <pane class="qrcode-panel">
           <img v-if="url" :src="url" />
@@ -31,8 +31,10 @@ watch(content, (value: string) => {
     qrcode.setErrorCorrectionLevel(ErrorCorrectionLevel.H)
     qrcode.write(value)
     qrcode.make()
-    url.value = qrcode.toDataURL(8) //.replace('data:image/gif', 'data:image/png')
-  } catch (ex) {}
+    url.value = qrcode.toDataURL(8)
+  } catch (ex) {
+    console.error(ex)
+  }
 })
 </script>
 <style lang="scss" scoped>
@@ -43,5 +45,13 @@ img {
   aspect-ratio: 1 / 1;
   margin: 40px auto 0 auto;
   display: block;
+}
+
+md-outlined-text-field {
+  width: 100%;
+  height: 100%;
+}
+.page-container .splitpanes {
+  height: calc(100vh - 186px);
 }
 </style>

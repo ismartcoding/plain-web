@@ -11,6 +11,7 @@ import ru from '@/locales/ru'
 import bn from '@/locales/bn'
 import de from '@/locales/de'
 import pt from '@/locales/pt'
+import ta from '@/locales/ta'
 import { setLocale } from 'yup'
 
 setLocale({
@@ -39,5 +40,6 @@ export default createI18n({
     bn: bn,
     de: de,
     pt: pt,
+    ta: ta,
   },
 })

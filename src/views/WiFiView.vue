@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container container">
+  <div class="page-container">
     <div class="main">
       <breadcrumb :current="() => $t('page_title.wifi')" />
       <edit-toolbar
@@ -13,7 +13,7 @@
           <label for="is-enabled" class="col-sm-3 col-md-2 col-form-label">{{ t('enable') }}</label>
           <div class="col-sm-4">
             <div class="form-check">
-              <input class="form-check-input" v-model="isEnabled" type="checkbox" id="is-enabled" />
+              <md-checkbox touch-target="wrapper" :checked="isEnabled" id="is-enabled" />
             </div>
           </div>
         </div>
@@ -39,8 +39,8 @@
               />
               <a href="#" @click.prevent="toggleEye" class="input-group-text">
                 <span class="inner">
-                  <i-material-symbols:visibility-off-outline-rounded class="bi" v-show="showPassword" />
-                  <i-material-symbols:visibility-outline-rounded class="bi" v-show="!showPassword" />
+                  <i-material-symbols:visibility-off-outline-rounded v-show="showPassword" />
+                  <i-material-symbols:visibility-outline-rounded v-show="!showPassword" />
                 </span>
               </a>
             </div>
@@ -53,13 +53,7 @@
           <label for="hide-ssid" class="col-sm-3 col-md-2 col-form-label">{{ t('wifi.hide_ssid') }}</label>
           <div class="col-sm-4">
             <div class="form-check">
-              <input
-                class="form-check-input"
-                v-model="hideSSID"
-                @change="updateConfig"
-                type="checkbox"
-                id="hide-ssid"
-              />
+              <md-checkbox touch-target="wrapper" :checked="hideSSID" @change="updateConfig" id="hide-ssid" />
             </div>
           </div>
         </div>

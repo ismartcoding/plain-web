@@ -1,10 +1,8 @@
 <template>
   <div id="console">
-    <div class="toolbar">
-      <span class="title">{{ app?.deviceName ?? $t('my_phone')
-      }}{{ app?.battery ? ' (' + $t('battery_left', { percentage: app?.battery }) + ')' : '' }}</span>
-      <i-material-symbols:indeterminate-check-box-outline-rounded class="bi bi-btn"
-        @click="() => (store.consoleOpen = false)" />
+    <div class="top-title">
+      {{ app?.deviceName ?? $t('my_phone')
+      }}{{ app?.battery ? ' (' + $t('battery_left', { percentage: app?.battery }) + ')' : '' }}
     </div>
     <div class="chat-items-container" ref="scrollContainer">
       <div>
@@ -13,18 +11,20 @@
           <popper>
             <div class="chat-title">
               <span class="name">{{ $t(chatItem.isMe ? 'me' : 'app_name') }}</span>
-              <span class="time" :title="formatDateTimeFull(chatItem.createdAt)">{{
+              <span class="time" v-tooltip="formatDateTimeFull(chatItem.createdAt)">{{
                 formatTime(chatItem.createdAt)
               }}</span>
               <span class="sending" v-if="chatItem.id.startsWith('new_')">{{ $t('sending') }}</span>
               <i-material-symbols:expand-more-rounded class="bi bi-more" />
             </div>
             <template #content>
-              <ul class="menu-items">
-                <li class="dropdown-item" @click="deleteMessage(chatItem.id)" :disabled="deleteLoading">
-                  {{ $t('delete_message') }}
-                </li>
-              </ul>
+              <div class="menu-items">
+                <md-menu-item
+                  :headline="$t('delete_message')"
+                  @click="deleteMessage(chatItem.id)"
+                  :disabled="deleteLoading"
+                />
+              </div>
             </template>
           </popper>
           <div class="chat-content">
@@ -38,21 +38,46 @@
     </div>
     <div class="chat-input">
       <div class="btns">
-        <i-material-symbols:image-outline-rounded class="bi bi-btn btn-images" @click="sendImages" />
-        <i-material-symbols:folder-outline-rounded class="bi bi-btn btn-files" @click="sendFiles" />
+        <button class="icon-button" @click="sendImages">
+          <md-ripple />
+          <i-material-symbols:image-outline-rounded />
+        </button>
+        <button class="icon-button" @click="sendFiles">
+          <md-ripple />
+          <i-material-symbols:folder-outline-rounded />
+        </button>
       </div>
-      <textarea v-model="chatText" autocomplete="off" @paste="pasteFiles" @drop.prevent="dropFiles" class="form-control"
-        :placeholder="$t('chat_input_hint')" @keydown.enter.exact.prevent="send"
-        @keydown.enter.shift.exact.prevent="chatText += '\n'" @keydown.enter.ctrl.exact.prevent="chatText += '\n'"
+      <md-outlined-text-field
+        type="textarea"
+        rows="2"
+        v-model="chatText"
+        autocomplete="off"
+        @paste="pasteFiles"
+        @drop.prevent="dropFiles"
+        class="textarea"
+        :placeholder="$t('chat_input_hint')"
+        @keydown.enter.exact.prevent="send"
+        @keydown.enter.shift.exact.prevent="chatText += '\n'"
+        @keydown.enter.ctrl.exact.prevent="chatText += '\n'"
         @keydown.enter.alt.exact.prevent="chatText += '\n'"
-        @keydown.enter.meta.exact.prevent="chatText += '\n'"></textarea>
-      <i class="bi bi-btn btn-send" @click="send" :disable="createLoading">
-        <i-material-symbols:send-outline-rounded />
-      </i>
+        @keydown.enter.meta.exact.prevent="chatText += '\n'"
+      />
+      <div class="btns">
+        <button class="icon-button" @click="send" :disable="createLoading">
+          <md-ripple />
+          <i-material-symbols:send-outline-rounded />
+        </button>
+      </div>
     </div>
     <input ref="fileInput" style="display: none" type="file" multiple @change="uploadFilesChanged" />
-    <input ref="imageInput" style="display: none" type="file" accept="image/*, video/*" multiple
-      @change="uploadImagesChanged" />
+    <input
+      ref="imageInput"
+      style="display: none"
+      type="file"
+      accept="image/*, video/*"
+      multiple
+      @change="uploadImagesChanged"
+    />
   </div>
 </template>
 
@@ -152,7 +177,7 @@ const {
 
 function uploadFilesChanged(e: Event) {
   const files = (e.target as HTMLInputElement).files as FileList
-  let items: File[] = []
+  const items: File[] = []
   for (const item of files) {
     items.push(item)
   }
@@ -203,7 +228,7 @@ async function doUploadFiles(files: File[]) {
 
 function uploadImagesChanged(e: Event) {
   const files = (e.target as HTMLInputElement).files as FileList
-  let items: File[] = []
+  const items: File[] = []
   for (const item of files) {
     items.push(item)
   }
@@ -383,60 +408,37 @@ onMounted(() => {
     }
   })
 })
-
 </script>
 
 <style lang="scss" scoped>
 #console {
-  width: 280px;
-  border-left: 1px solid var(--border-color);
+  width: 300px;
   flex: 0 0 auto;
   display: flex;
-  background: var(--back-color);
   flex-flow: column;
   height: 100vh;
 }
 
-.toolbar {
-  height: 44px;
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 16px;
-  flex: 0 0 auto;
-
-  .title {
-    font-size: 0.875rem;
-    text-overflow: ellipsis;
-  }
+.top-title {
+  background-color: var(--md-sys-color-surface-container);
+  height: 64px;
 }
 
 .chat-input {
-  border-top: 1px solid var(--border-color);
+  background-color: var(--md-sys-color-surface);
   display: flex;
   flex: 0 0 auto;
 
   .btns {
-    width: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 
-  .form-control {
-    border: none;
-  }
-
-  .btn-send {
-    margin: 12px;
-  }
-
-  .btn-files,
-  .btn-images {
-    margin: 12px 0 12px 12px;
-  }
-
-  textarea {
-    resize: none;
-    margin-top: 4px;
+  .textarea {
+    margin: 8px 0;
+    display: flex;
+    flex: 1;
   }
 }
 
@@ -444,13 +446,22 @@ onMounted(() => {
   overflow-y: scroll;
   display: flex;
   flex: 1 1 auto;
+  background-color: var(--md-sys-color-surface);
+  border-top-left-radius: var(--plain-shape-l);
 
-  &>div {
+  & > div {
     width: 100%;
   }
 }
 
 .chat-content {
   margin-top: 8px;
+
+  pre {
+    margin: 0;
+    white-space: pre-wrap;
+    font-size: 1rem;
+    word-break: break-all;
+  }
 }
 </style>

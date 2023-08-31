@@ -154,14 +154,14 @@ export const parseFeedName = (query: LocationQuery) => {
 
 export const buildFilterQuery = (filter: IFilter): string => {
   const fields: IFilterField[] = []
-  if (filter.bucketId){
+  if (filter.bucketId) {
     fields.push({
       name: 'bucket_id',
       op: '',
       value: filter.bucketId,
     })
   }
-    
+
   for (const tag of filter.tags) {
     fields.push({
       name: 'tag',

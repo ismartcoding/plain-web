@@ -1,32 +1,45 @@
 <template>
   <div class="audio-player">
-    <audio ref="audio" class="audio" controls :src="src" @ended="onEnded" />
-    <div class="title" v-if="current">{{ current.title }}</div>
+    <div class="play-title" v-if="current">{{ current.title }}</div>
+    <audio ref="audioRef" class="audio" controls :src="src" @ended="onEnded" />
     <div class="buttons" v-if="audios.length">
-      <i-material-symbols:skip-previous-outline-rounded class="bi bi-btn" @click.stop="playPrev" />
-      <div class="mode" @click.stop="changeMode">
-        <i-material-symbols:shuffle-outline-rounded v-if="app?.audioMode === 'SHUFFLE'" class="bi bi-btn" />
-        <i-material-symbols:repeat-rounded v-else-if="app?.audioMode === 'REPEAT'" class="bi bi-btn" />
-        <i-material-symbols:repeat-one-rounded v-else class="bi bi-btn" />
-      </div>
-      <i-material-symbols:skip-next-outline-rounded class="bi bi-btn" @click.stop="playNext" />
-      <button class="btn btn-sm" @click.prevent="clear" :disabled="clearLoading">
-        <i class="spinner" v-if="clearLoading"></i>{{ $t('clear_list') }}
+      <button class="icon-button" @click.stop="playPrev">
+        <md-ripple />
+        <i-material-symbols:skip-previous-outline-rounded />
+      </button>
+      <button class="icon-button mode" @click.stop="changeMode">
+        <md-ripple />
+        <i-material-symbols:shuffle-outline-rounded v-if="app?.audioMode === 'SHUFFLE'" />
+        <i-material-symbols:repeat-rounded v-else-if="app?.audioMode === 'REPEAT'" />
+        <i-material-symbols:repeat-one-rounded v-else />
+      </button>
+      <button class="icon-button" @click.stop="playNext">
+        <md-ripple />
+        <i-material-symbols:skip-next-outline-rounded />
+      </button>
+      <md-circular-progress indeterminate v-if="clearLoading" class="spinner-sm" />
+      <button class="icon-button" v-else @click.prevent="clear" v-tooltip="$t('clear_list')">
+        <md-ripple />
+        <i-material-symbols:delete-forever-outline-rounded />
       </button>
     </div>
-    <div class="list-items">
-      <div class="row1" v-for="item in audios" :key="item.path">
-        <span class="key">{{ item.title }}</span>
-        <span class="value">
-          <i-material-symbols:play-arrow-outline-rounded
-            class="bi bi-btn"
-            v-if="item.path !== current?.path"
-            @click.stop="playItem(item)"
-          />
-          <i-material-symbols:close-rounded class="bi bi-btn" @click.stop="deleteItem(item)" />
-        </span>
+    <section class="list-items">
+      <div
+        v-for="item in audios"
+        class="item"
+        :key="item.path"
+        @click.stop="playItem(item)"
+        :class="{ selected: item.path === current?.path }"
+      >
+        <md-ripple />
+        <div class="title">{{ item.title }}</div>
+        <div class="subtitle">{{ item.artist }} {{ formatSeconds(item.duration) }}</div>
+        <button class="icon-button icon" @click.stop="deleteItem(item)">
+          <md-ripple />
+          <i-material-symbols:close-rounded />
+        </button>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 
@@ -36,6 +49,7 @@ import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import type { IPlaylistAudio } from '@/lib/interfaces'
 import { getFileUrlByPath } from '@/lib/api/file'
+import { formatSeconds } from '@/lib/format'
 import {
   initMutation,
   playAudioGQL,
@@ -46,7 +60,7 @@ import {
 import { sample, remove } from 'lodash-es'
 import emitter from '@/plugins/eventbus'
 
-const { app } = storeToRefs(useTempStore())
+const { app, urlTokenKey, audioPlaying } = storeToRefs(useTempStore())
 
 const audios = computed<IPlaylistAudio[]>(() => {
   return (app.value as any).audios ?? []
@@ -56,8 +70,8 @@ const current = ref<IPlaylistAudio | undefined>()
 const src = ref('')
 
 async function setCurrent() {
-  const { fileIdToken, audioCurrent: c } = app.value
-  src.value = await getFileUrlByPath(fileIdToken, c)
+  const { audioCurrent: c } = app.value
+  src.value = getFileUrlByPath(urlTokenKey.value, c)
   current.value = audios.value.find((it) => it.path == c)
 }
 
@@ -109,7 +123,7 @@ const {
   appApi: true,
 })
 
-const audio = ref<HTMLAudioElement>()
+const audioRef = ref<HTMLAudioElement>()
 
 async function onEnded() {
   if (audios.value.length === 0) {
@@ -120,7 +134,7 @@ async function onEnded() {
   if (mode === 'REPEAT') {
     _playNext()
   } else if (mode === 'REPEAT_ONE') {
-    audio.value?.play()
+    audioRef.value?.play()
   } else {
     playRandom()
   }
@@ -176,7 +190,7 @@ function playNext() {
 }
 
 function _play() {
-  audio.value?.play()
+  audioRef.value?.play()
 }
 
 function _playNext() {
@@ -231,37 +245,57 @@ function deleteItem(item: IPlaylistAudio) {
 }
 
 onMounted(() => {
-  emitter.on('play_audio', () => {
+  emitter.on('do_play_audio', () => {
     setTimeout(_play, 500)
+  })
+
+  emitter.on('pause_audio', () => {
+    audioRef.value?.pause()
+  })
+
+  audioRef.value?.addEventListener('pause', function () {
+    audioPlaying.value = false
+  })
+
+  audioRef.value?.addEventListener('play', function () {
+    audioPlaying.value = true
   })
 })
 </script>
 
 <style lang="scss" scoped>
 .audio-player {
-  .title {
-    text-align: center;
-    padding: 0px 8px;
-    white-space: pre-wrap;
-    font-size: 0.825rem;
-  }
+  background-color: var(--md-sys-color-surface);
+  overflow-x: hidden;
+  overflow-y: auto;
+  width: 300px;
+  height: 100%;
+}
 
-  .buttons {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    padding-bottom: 8px;
-  }
+.list-items .item {
+  cursor: pointer;
+}
 
-  .mode {
-    margin: 0px 32px;
-  }
+.play-title {
+  text-align: center;
+  padding: 16px;
+  white-space: pre-wrap;
+  font-size: 0.825rem;
+}
 
-  .audio {
-    display: block;
-    margin: 8px auto;
-    width: calc(100% - 16px);
-  }
+.buttons {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 8px;
+}
+
+.mode {
+  margin: 0px 32px;
+}
+
+.audio {
+  display: block;
+  width: 100%;
 }
 </style>

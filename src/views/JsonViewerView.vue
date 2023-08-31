@@ -1,12 +1,10 @@
 <template>
-  <div class="page-container container">
+  <div class="page-container">
     <div class="main">
       <div class="v-toolbar">
         <breadcrumb :current="() => $t('json_viewer')" />
-        <div class="right-actions">
-          <button class="btn" @click.prevent="toggle(true)">{{ $t('expand_all') }}</button>
-          <button class="btn" @click.prevent="toggle(false)">{{ $t('collapse_all') }}</button>
-        </div>
+        <md-outlined-button @click.prevent="toggle(true)">{{ $t('expand_all') }}</md-outlined-button>
+        <md-outlined-button @click.prevent="toggle(false)">{{ $t('collapse_all') }}</md-outlined-button>
       </div>
       <splitpanes class="panel-container">
         <pane>
@@ -48,3 +46,8 @@ function toggle(expand: boolean) {
   updateKey.value++ // force update
 }
 </script>
+<style lang="scss" scoped>
+.panel-container {
+  height: calc(100vh - 148px);
+}
+</style>

@@ -7,10 +7,9 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch } from 'vue'
-import { useTempStore } from '@/stores/temp'
+import { onActivated, onDeactivated, ref } from 'vue'
+import emitter from '@/plugins/eventbus'
 
-const tempStore = useTempStore()
 defineProps({
   value: {
     type: [Object, Array, String, Number, Boolean, Function],
@@ -24,12 +23,17 @@ defineProps({
 
 const themeClass = ref('light')
 
-watch(
-  () => tempStore.dark,
-  (current: boolean) => {
-    themeClass.value = current ? 'dark' : 'light'
-  }
-)
+const colorModeChangedHandler = () => {
+  themeClass.value = document.documentElement.classList[0] === 'dark' ? 'dark' : 'light'
+}
+
+onActivated(() => {
+  emitter.on('color_mode_changed', colorModeChangedHandler)
+})
+
+onDeactivated(() => {
+  emitter.off('color_mode_changed', colorModeChangedHandler)
+})
 </script>
 
 <style lang="scss">
@@ -70,7 +74,7 @@ watch(
     width: 0;
     height: 0;
     border-width: 5px 0 5px 9px;
-    border-color: transparent transparent transparent var(--border-color);
+    border-color: transparent transparent transparent var(--md-sys-color-outline);
     border-style: solid;
     margin-right: 4px;
     display: inline-block;

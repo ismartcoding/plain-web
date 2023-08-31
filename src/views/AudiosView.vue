@@ -1,114 +1,168 @@
 <template>
   <div class="v-toolbar">
     <breadcrumb :current="() => `${$t('page_title.audios')} (${total})`" />
-    <div class="right-actions">
-      <template v-if="checked">
-        <button type="button" class="btn btn-action" @click.stop="deleteItems" :title="$t('delete')">
-          <i-material-symbols:delete-outline-rounded class="bi" />
-        </button>
-        <button type="button" class="btn btn-action" @click.stop="downloadItems" :title="$t('download')">
-          <i-material-symbols:download-rounded class="bi" />
-        </button>
-        <button type="button" class="btn btn-action" @click.stop="addItemsToPlaylist" :title="$t('add_to_playlist')">
-          <i-material-symbols:playlist-add class="bi" />
-        </button>
-        <button type="button" class="btn btn-action" @click.stop="addToTags" :title="$t('add_to_tags')">
-          <i-material-symbols:label-outline-rounded class="bi" />
-        </button>
-        <button type="button" class="btn btn-action" @click.stop="removeFromTags" :title="$t('remove_from_tags')">
-          <i-material-symbols:label-off-outline-rounded class="bi" />
-        </button>
-      </template>
-      <button type="button" class="btn btn-action" @click.stop="upload">{{ $t('upload') }}</button>
-      <search-input v-model="q" :search="doSearch">
-        <template #filters>
-          <div class="row mb-3">
-            <label class="col-md-3 col-form-label">{{ $t('keywords') }}</label>
-            <div class="col-md-9">
-              <input type="text" v-model="filter.text" class="form-control" @keyup.enter="applyAndDoSearch" />
-            </div>
-          </div>
-          <div class="row mb-3">
-            <label class="col-md-3 col-form-label">{{ $t('tags') }}</label>
-            <div class="col-md-9">
-              <multiselect v-model="filter.tags" label="name" track-by="id" :options="tags" />
-            </div>
-          </div>
-          <div class="actions">
-            <button type="button" class="btn" @click.stop="applyAndDoSearch">
-              {{ $t('search') }}
-            </button>
-          </div>
-        </template>
-      </search-input>
-    </div>
-  </div>
-  <table class="table">
-    <thead>
-      <tr>
-        <th><input class="form-check-input" type="checkbox" @change="toggleSelect" v-model="selectAll" /></th>
-        <th>ID</th>
-        <th>{{ $t('name') }}</th>
-        <th></th>
-        <th>{{ $t('artist') }}</th>
-        <th>{{ $t('tags') }}</th>
-        <th>{{ $t('duration') }}</th>
-        <th>{{ $t('file_size') }}</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr
-        v-for="item in items"
-        :key="item.id"
-        :class="{ checked: item.checked }"
-        @click.stop="item.checked = !item.checked"
+    <template v-if="checked">
+      <button class="icon-button" @click.stop="deleteItems(dataType, items, realAllChecked, finalQ)" v-tooltip="$t('delete')">
+        <md-ripple />
+        <i-material-symbols:delete-forever-outline-rounded />
+      </button>
+      <button class="icon-button" @click.stop="downloadItems(realAllChecked, finalQ)" v-tooltip="$t('download')">
+        <md-ripple />
+        <i-material-symbols:download-rounded />
+      </button>
+      <button
+        class="icon-button"
+        @click.stop="(e: MouseEvent) => addItemsToPlaylist(e, realAllChecked, finalQ)"
+        v-tooltip="$t('add_to_playlist')"
       >
-        <td><input class="form-check-input" type="checkbox" v-model="item.checked" /></td>
-        <td><field-id :id="item.id" :raw="item" /></td>
-        <td>
-          {{ item.title }}
-        </td>
-        <td class="nowrap">
-          <span class="audio-btns">
-            <i-material-symbols:delete-outline-rounded class="bi bi-btn" @click.stop="deleteItem(item)" />
-            <i-material-symbols:download-rounded
-              class="bi bi-btn"
-              @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))"
+        <md-ripple />
+        <i-material-symbols:playlist-add />
+      </button>
+      <button class="icon-button" @click.stop="addToTags(realAllChecked, finalQ)" v-tooltip="$t('add_to_tags')">
+        <md-ripple />
+        <i-material-symbols:label-outline-rounded />
+      </button>
+    </template>
+    <button class="icon-button" @click.stop="upload" v-tooltip="$t('upload')">
+      <md-ripple />
+      <i-material-symbols:upload-rounded />
+    </button>
+    <search-input ref="searchInputRef" v-model="q" :search="doSearch">
+      <template #filters>
+        <div class="filters">
+          <md-outlined-text-field :label="$t('keywords')" v-model="filter.text" keyup.enter="applyAndDoSearch" />
+          <label class="form-label">{{ $t('tags') }}</label>
+          <md-chip-set type="filter">
+            <md-filter-chip
+              v-for="item in tags"
+              :key="item.id"
+              :label="item.name"
+              :selected="filter.tags.includes(item)"
+              @click="onTagSelect(item)"
             />
-            <i-material-symbols:playlist-add class="bi bi-btn" @click.stop="addToPlaylist(item)" />
-            <i class="spinner spinner-sm" v-if="playLoading && item.path === playing"></i>
-            <i-material-symbols:play-circle-outline-rounded class="bi bi-btn" v-else @click.stop="play(item)" />
-          </span>
-        </td>
-        <td>
-          {{ item.artist }}
-        </td>
-        <td>
-          <span v-for="tag in item.tags" class="badge">{{ tag.name }}</span>
-        </td>
-        <td class="nowrap">
-          {{ formatSeconds(item.duration) }}
-        </td>
-        <td>
-          {{ formatFileSize(item.size) }}
-        </td>
-      </tr>
-    </tbody>
-    <tfoot v-if="!items.length">
-      <tr>
-        <td colspan="8">
-          <div class="no-data-placeholder">
-            {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
+          </md-chip-set>
+          <div class="buttons">
+            <md-filled-button @click.stop="applyAndDoSearch">
+              {{ $t('search') }}
+            </md-filled-button>
           </div>
-        </td>
-      </tr>
-    </tfoot>
-  </table>
+        </div>
+      </template>
+    </search-input>
+  </div>
+  <all-checked-alert
+    :limit="limit"
+    :total="total"
+    :all-checked-alert-visible="allCheckedAlertVisible"
+    :real-all-checked="realAllChecked"
+    :select-real-all="selectRealAll"
+    :clear-selection="clearSelection"
+  />
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>
+            <md-checkbox
+              touch-target="wrapper"
+              @change="toggleAllChecked"
+              :checked="allChecked"
+              :indeterminate="!allChecked && checked"
+            />
+          </th>
+          <th>ID</th>
+          <th>{{ $t('name') }}</th>
+          <th></th>
+          <th>{{ $t('artist') }}</th>
+          <th>{{ $t('tags') }}</th>
+          <th>{{ $t('duration') }}</th>
+          <th>{{ $t('file_size') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="item in items"
+          :key="item.id"
+          :class="{ selected: item.checked }"
+          @click.stop="item.checked = !item.checked"
+        >
+          <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
+          <td><field-id :id="item.id" :raw="item" /></td>
+          <td>
+            {{ item.title }}
+          </td>
+          <td class="nowrap">
+            <div class="action-btns">
+              <button class="icon-button" @click.stop="deleteItem(dataType, item)" v-tooltip="$t('delete')">
+                <md-ripple />
+                <i-material-symbols:delete-forever-outline-rounded />
+              </button>
+              <button
+                class="icon-button"
+                @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))"
+                v-tooltip="$t('download')"
+              >
+                <md-ripple />
+                <i-material-symbols:download-rounded />
+              </button>
+              <button
+                class="icon-button"
+                @click.stop="(e: MouseEvent) => addToPlaylist(e, item)"
+                v-tooltip="$t('add_to_playlist')"
+              >
+                <md-ripple />
+                <i-material-symbols:playlist-add />
+              </button>
+              <button class="icon-button" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
+                <md-ripple />
+                <i-material-symbols:label-outline-rounded />
+              </button>
+              <md-circular-progress indeterminate class="spinner-sm" v-if="playLoading && item.path === playPath" />
+              <button
+                class="icon-button"
+                v-else-if="isAudioPlaying(item)"
+                @click.stop="pause()"
+                v-tooltip="$t('pause')"
+              >
+                <md-ripple />
+                <i-material-symbols:pause-circle-outline-rounded />
+              </button>
+              <button class="icon-button" v-else @click.stop="play(item)" v-tooltip="$t('play')">
+                <md-ripple />
+                <i-material-symbols:play-circle-outline-rounded />
+              </button>
+            </div>
+          </td>
+          <td>
+            {{ item.artist }}
+          </td>
+          <td>
+            <item-tags :tags="item.tags" :type="dataType" />
+          </td>
+          <td class="nowrap">
+            {{ formatSeconds(item.duration) }}
+          </td>
+          <td>
+            {{ formatFileSize(item.size) }}
+          </td>
+        </tr>
+      </tbody>
+      <tfoot v-if="!items.length">
+        <tr>
+          <td colspan="8">
+            <div class="no-data-placeholder">
+              {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
+            </div>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
   <v-pagination v-if="total > limit" v-model="page" :total="total" :limit="limit" />
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
+import { nextTick, onActivated, onDeactivated, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatSeconds } from '@/lib/format'
 import { audiosGQL, initLazyQuery } from '@/lib/api/query'
@@ -118,69 +172,79 @@ import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
 import { useI18n } from 'vue-i18n'
 import { formatFileSize } from '@/lib/format'
-import type { IAudio, IPlaylistAudio, IAudioItem, IFilter } from '@/lib/interfaces'
+import type {
+  IAudio,
+  IAudioItem,
+  IFilter,
+  IItemTagsUpdatedEvent,
+  IItemsTagsUpdatedEvent,
+  IMediaItemsDeletedEvent,
+  ITag,
+} from '@/lib/interfaces'
 import { storeToRefs } from 'pinia'
 import { buildFilterQuery, buildQuery, type IFilterField } from '@/lib/search'
 import { decodeBase64, encodeBase64 } from '@/lib/strutil'
 import { noDataKey } from '@/lib/list'
-import { useAddToPlaylist, usePlay } from './hooks/audios'
+import { useAddToPlaylist, useAudioPlayer } from './hooks/audios'
 import { useSelectable } from './hooks/list'
 import emitter from '@/plugins/eventbus'
-import { useAddToTags, useRemoveFromTags, useTags } from './hooks/tags'
+import { useAddToTags, useTags } from './hooks/tags'
 import { useDeleteItems } from './hooks/media'
 import { useDownload, useDownloadItems } from './hooks/files'
 import { openModal, pushModal } from '@/components/modal'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 import { getFileName } from '@/lib/api/file'
-import { deleteMediaItemGQL } from '@/lib/api/mutation'
-import DeleteConfirm from '@/components/DeleteConfirm.vue'
+import { remove } from 'lodash-es'
+import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
+import { DataType } from '@/lib/data'
 
 const mainStore = useMainStore()
 const items = ref<IAudioItem[]>([])
+const searchInputRef = ref()
 const { t } = useI18n()
-const { app } = storeToRefs(useTempStore())
+const { app, urlTokenKey, audioPlaying } = storeToRefs(useTempStore())
 const filter: IFilter = reactive({
   text: '',
   tags: [],
 })
-const audios = computed<IPlaylistAudio[]>(() => {
-  return (app.value as any).audios ?? []
-})
 
-const current = computed<IPlaylistAudio | undefined>(() => {
-  const c = (app.value as any).audioCurrent
-  return audios.value.find((it) => it.path == c)
-})
+const isAudioPlaying = (item: IAudioItem) => {
+  return audioPlaying.value && app.value?.audioCurrent === item.path
+}
 
-const checked = computed<boolean>(() => {
-  return items.value.some((it) => it.checked)
-})
-
-const tagType = 'AUDIO'
+const dataType = DataType.AUDIO
 const route = useRoute()
 const query = route.query
 const page = ref(parseInt(query.page?.toString() ?? '1'))
 const limit = 50
-const total = ref(0)
 const q = ref(decodeBase64(query.q?.toString() ?? ''))
 const finalQ = ref('')
-const { tags } = useTags(tagType, q, filter, async (fields: IFilterField[]) => {
+const { tags } = useTags(dataType, q, filter, async (fields: IFilterField[]) => {
   finalQ.value = buildQuery(fields)
   await nextTick() // hack: to fix the lazy query load twice
   load()
 })
-const { addItemsToPlaylist, addToPlaylist } = useAddToPlaylist(items)
-const { addToTags } = useAddToTags(tagType, items, tags)
-const { removeFromTags } = useRemoveFromTags(tagType, items, tags)
-const { deleteItems } = useDeleteItems(tagType, items)
-const { downloadItems } = useDownloadItems(items, 'audios.zip')
-const { downloadFile } = useDownload(app)
+const { addToTags } = useAddToTags(dataType, items, tags)
+const { deleteItems, deleteItem } = useDeleteItems()
+const {
+  allChecked,
+  realAllChecked,
+  selectRealAll,
+  allCheckedAlertVisible,
+  clearSelection,
+  toggleAllChecked,
+  toggleItemChecked,
+  total,
+  checked,
+} = useSelectable(items)
+const { downloadItems } = useDownloadItems(urlTokenKey, dataType, items, clearSelection, 'audios.zip')
+const { downloadFile } = useDownload(urlTokenKey)
+const { addItemsToPlaylist, addToPlaylist } = useAddToPlaylist(items, clearSelection)
 
 const router = useRouter()
 
-const { play, playing, loading: playLoading } = usePlay()
+const { play, playPath, loading: playLoading, pause } = useAudioPlayer()
 
-const { selectAll, toggleSelect } = useSelectable(items)
 const { loading, load, refetch } = initLazyQuery({
   handle: (data: any, error: string) => {
     if (error) {
@@ -212,43 +276,72 @@ function upload() {
   })
 }
 
+function onTagSelect(item: ITag) {
+  if (filter.tags.includes(item)) {
+    remove(filter.tags, (it: ITag) => it.id === item.id)
+  } else {
+    filter.tags.push(item)
+  }
+}
+
 function applyAndDoSearch() {
   q.value = buildFilterQuery(filter)
   doSearch()
+  searchInputRef.value.dismiss()
 }
 
 function doSearch() {
   replacePath(mainStore, `/audios?q=${encodeBase64(q.value)}`)
 }
 
-onMounted(() => {
-  emitter.on('refetch_by_tag_type', (type: string) => {
-    if (type === tagType) {
-      refetch()
-    }
-  })
+const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
+  if (event.type === dataType) {
+    clearSelection()
+    refetch()
+  }
+}
+
+const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
+  if (event.type === dataType) {
+    refetch()
+  }
+}
+
+const mediaItemsDeletedHandler = (event: IMediaItemsDeletedEvent) => {
+  if (event.type === dataType) {
+    clearSelection()
+    refetch()
+  }
+}
+
+const mediaItemDeletedHandler = () => {
+  total.value--
+}
+
+onActivated(() => {
+  emitter.on('item_tags_updated', itemTagsUpdatedHandler)
+  emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
+  emitter.on('media_item_deleted', mediaItemDeletedHandler)
+  emitter.on('media_items_deleted', mediaItemsDeletedHandler)
 })
 
-function deleteItem(item: any) {
-  openModal(DeleteConfirm, {
-    id: item.id,
-    name: item.title,
-    gql: deleteMediaItemGQL,
-    variables: () => ({ tagType: tagType, id: item.id }),
-    appApi: true,
-    typeName: 'Audio',
-    done: () => {
-      emitter.emit('refetch_app')
-      emitter.emit('refetch_by_tag_type', tagType)
+onDeactivated(() => {
+  emitter.off('item_tags_updated', itemTagsUpdatedHandler)
+  emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
+  emitter.off('media_item_deleted', mediaItemDeletedHandler)
+  emitter.off('media_items_deleted', mediaItemsDeletedHandler)
+})
+
+function addItemToTags(item: IAudioItem) {
+  openModal(UpdateTagRelationsModal, {
+    type: dataType,
+    tags: tags.value,
+    item: {
+      key: item.id,
+      title: item.title,
+      size: item.size,
     },
+    selected: tags.value.filter((it) => item.tags.some((t) => t.id === it.id)),
   })
 }
 </script>
-<style lang="scss" scoped>
-.audio-btns {
-  padding-left: 8px;
-  .spinner {
-    margin-left: 10px;
-  }
-}
-</style>

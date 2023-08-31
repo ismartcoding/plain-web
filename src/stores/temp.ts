@@ -1,6 +1,7 @@
 import type { ISource } from '@/components/lightbox/types'
 import type { IFile } from '@/lib/file'
 import { defineStore } from 'pinia'
+import type sjcl from 'sjcl'
 
 export interface IUploadItem {
   dir: string
@@ -13,7 +14,7 @@ export interface IUploadItem {
 }
 
 export interface ILightBox {
-  sources: ISource[],
+  sources: ISource[]
   visible: boolean
   index: number
 }
@@ -21,20 +22,22 @@ export interface ILightBox {
 // data will be lost when page refreshed, or the data use different way to store data
 export type TempState = {
   app: any // store the appFragment result
+  urlTokenKey: sjcl.BitArray | null
   uploads: IUploadItem[]
   selectedFiles: IFile[]
+  audioPlaying: boolean
   lightbox: ILightBox
-  dark: boolean
 }
 
 export const useTempStore = defineStore({
   id: 'temp',
   state: () =>
-  ({
-    app: null,
-    uploads: [],
-    selectedFiles: [],
-    lightbox: { sources: [], visible: false, index: -1 },
-    dark: localStorage.getItem('dark') === 'true' || window.matchMedia('(prefers-color-scheme: dark)').matches,
-  } as TempState),
+    ({
+      app: null,
+      urlTokenKey: null,
+      uploads: [],
+      selectedFiles: [],
+      audioPlaying: false,
+      lightbox: { sources: [], visible: false, index: -1 },
+    }) as TempState,
 })

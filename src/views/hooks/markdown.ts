@@ -12,6 +12,7 @@ import type { Ref } from 'vue'
 import { parseDocument } from 'htmlparser2'
 import { render } from 'dom-serializer'
 import { getFileUrlByPath } from '@/lib/api/file'
+import type sjcl from 'sjcl'
 
 async function replaceNodes(nodes: Array<any>, replace: (link: string) => void) {
   if (!nodes) return
@@ -29,7 +30,7 @@ async function replaceNodes(nodes: Array<any>, replace: (link: string) => void) 
   }
 }
 
-export const useMarkdown = (app: Ref<any>) => {
+export const useMarkdown = (app: Ref<any>, urlTokenKey: Ref<sjcl.BitArray | null>) => {
   const md = new MarkdownIt()
     .use(subscript)
     .use(superscript)
@@ -50,8 +51,8 @@ export const useMarkdown = (app: Ref<any>) => {
 
   const replace = (link: string) => {
     if (link.startsWith('app://')) {
-      const { externalFilesDir, fileIdToken } = app.value
-      return getFileUrlByPath(fileIdToken, externalFilesDir + '/' + link.replace('app://', ''))
+      const { externalFilesDir } = app.value
+      return getFileUrlByPath(urlTokenKey.value, externalFilesDir + '/' + link.replace('app://', ''))
     }
     return link
   }

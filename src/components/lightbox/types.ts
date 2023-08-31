@@ -22,6 +22,8 @@ export interface IStatus {
   loading: boolean
   dragging: boolean
   gesturing: boolean
+  swipeToLeft: boolean
+  swipeToRight: boolean
 }
 
 export interface ISource {
@@ -31,7 +33,9 @@ export interface ISource {
   name: string
   size: number
   duration: number
+  type?: string
   thumbnail?: string // video thumbnail
+  data?: any // video, audio, image item
 }
 
 export type MouseEventHandler = (e: MouseEvent) => void

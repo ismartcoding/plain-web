@@ -1,117 +1,191 @@
 <template>
   <Teleport to="body">
     <transition v-if="tempStore.lightbox.visible">
-      <div @touchmove="preventDefault" class="v-modal" @click.self="closeDialog" @wheel="onWheel">
+      <div @touchmove="preventDefault" class="v-modal" @wheel="onWheel">
         <transition mode="out-in">
-          <div>
-            <div v-if="status.loading" class="loading">
-              <div class="loader"></div>
-            </div>
-            <div v-else-if="status.loadError" class="v-on-error">{{ $t('load_failed', { name: current?.name }) }}</div>
-            <div
-              v-if="current && isVideo(current.name)"
-              v-show="!status.loading && !status.loadError"
-              class="v-video-wrapper"
-              @click.self="closeDialog"
-            >
-              <video
-                ref="video"
-                controls
-                autoplay="true"
-                :src="current.src"
-                @error="onError"
-                @canplay="onLoad"
-                @playing="onPlaying"
-                @pause="onPause"
-              />
-              <div v-if="current.name" class="source-name">
-                {{ current.name }}
+          <div class="layout">
+            <header class="toolbar" v-if="current">
+              <div v-if="current.name" class="source-name v-center">
+                <button class="icon-button" @click="closeDialog" v-tooltip="$t('close')">
+                  <md-ripple />
+                  <i-material-symbols:close-rounded />
+                </button>
+                <span>{{ current.name }}</span>
               </div>
-            </div>
-            <div
-              v-else-if="current && isAudio(current.name)"
-              v-show="!status.loading && !status.loadError"
-              class="v-audio-wrapper"
-              @click.self="closeDialog"
-            >
-              <div style="padding: 50px">
-                <audio controls autoplay="true" :src="current.src" @error="onError" @canplay="onLoad" />
-                <div v-if="current.name" class="source-name">
-                  {{ current.name }}
+
+              <template v-if="isImage(current.name)">
+                <md-outlined-button v-if="!current.viewOriginImage" @click="viewOrigin">
+                  {{ $t('view_origin_image') }}
+                </md-outlined-button>
+
+                <button class="icon-button" @click="zoomIn" v-tooltip="$t('zoom_in')">
+                  <md-ripple />
+                  <i-material-symbols:zoom-in-rounded />
+                </button>
+
+                <button class="icon-button" @click="zoomOut" v-tooltip="$t('zoom_out')">
+                  <md-ripple />
+                  <i-material-symbols:zoom-out-rounded />
+                </button>
+
+                <button class="icon-button" @click="resize" v-tooltip="$t('resize')">
+                  <md-ripple />
+                  <i-material-symbols:aspect-ratio-outline-rounded />
+                </button>
+
+                <button class="icon-button" @click="rotateLeft" v-tooltip="$t('rotate_left')">
+                  <md-ripple />
+                  <i-material-symbols:rotate-left-rounded />
+                </button>
+
+                <button class="icon-button" @click="rotateRight" v-tooltip="$t('rotate_right')">
+                  <md-ripple />
+                  <i-material-symbols:rotate-right-rounded />
+                </button>
+              </template>
+              <button class="icon-button" @click="lightboxInfoVisible = !lightboxInfoVisible" v-tooltip="$t('info')">
+                <md-ripple />
+                <i-material-symbols:info-outline-rounded />
+              </button>
+            </header>
+            <section class="content" @click.self="closeDialog">
+              <div
+                v-if="tempStore.lightbox.sources.length > 1 && (loop || imgIndex > 0)"
+                class="btn-prev"
+                @click="onPrev"
+              >
+                <i-material-symbols:chevron-left-rounded />
+              </div>
+              <div
+                v-if="
+                  tempStore.lightbox.sources.length > 1 && (loop || imgIndex < tempStore.lightbox.sources.length - 1)
+                "
+                class="btn-next"
+                @click="onNext"
+              >
+                <i-material-symbols:chevron-right-rounded />
+              </div>
+              <div v-if="status.loading" class="loading">
+                <md-circular-progress indeterminate />
+              </div>
+              <div v-else-if="status.loadError" class="v-on-error">
+                {{ $t('load_failed', { name: current?.name }) }}
+              </div>
+              <div
+                v-if="current && isVideo(current.name)"
+                v-show="!status.loading && !status.loadError"
+                class="v-video-wrapper"
+                @click.self="closeDialog"
+              >
+                <video
+                  ref="video"
+                  controls
+                  autoplay="true"
+                  :src="current.src"
+                  @error="onError"
+                  @canplay="onLoad"
+                  @playing="onPlaying"
+                  @pause="onPause"
+                />
+              </div>
+              <div
+                v-else-if="current && isAudio(current.name)"
+                v-show="!status.loading && !status.loadError"
+                class="v-audio-wrapper"
+                @click.self="closeDialog"
+              >
+                <div style="padding: 50px">
+                  <audio controls autoplay="true" :src="current.src" @error="onError" @canplay="onLoad" />
                 </div>
               </div>
-            </div>
-            <div
-              v-else-if="current && isImage(current.name)"
-              v-show="!status.loading && !status.loadError"
-              class="v-img-wrapper"
-              :style="imgWrapperStyle"
-            >
-              <img
-                ref="imgRef"
-                draggable="false"
-                class="v-img"
-                :src="current?.src + (current?.viewOriginImage ? '' : '&w=1024&h=1024')"
-                @mousedown="onMouseDown"
-                @mouseup="onMouseUp"
-                @mousemove="onMouseMove"
-                @touchstart="onTouchStart"
-                @touchmove="onTouchMove"
-                @touchend="onTouchEnd"
-                @load="onLoad"
-                @error="onError"
-                @dblclick="onDblclick"
-                @dragstart="
-                  (e) => {
-                    e.preventDefault()
-                  }
-                "
-              />
-            </div>
+              <div
+                v-else-if="current && isImage(current.name)"
+                v-show="!status.loading && !status.loadError"
+                class="v-img-wrapper"
+                :style="imgWrapperStyle"
+              >
+                <img
+                  ref="imgRef"
+                  draggable="false"
+                  class="v-img"
+                  :src="current?.src + (current?.viewOriginImage ? '' : '&w=1024&h=1024&cc=false')"
+                  @mousedown="onMouseDown"
+                  @mouseup="onMouseUp"
+                  @mousemove="onMouseMove"
+                  @touchstart="onTouchStart"
+                  @touchmove="onTouchMove"
+                  @touchend="onTouchEnd"
+                  @load="onLoad"
+                  @error="onError"
+                  @dblclick="onDblclick"
+                  @dragstart="
+                    (e) => {
+                      e.preventDefault()
+                    }
+                  "
+                />
+              </div>
+            </section>
+            <section class="info" v-if="lightboxInfoVisible">
+              <div class="top-title">
+                <field-id :id="$t('info')" :raw="fileInfo" />
+                <button class="icon-button" @click.stop="deleteFile" v-tooltip="$t('delete')" v-if="current?.data">
+                  <md-ripple />
+                  <i-material-symbols:delete-forever-outline-rounded />
+                </button>
+                <button
+                  class="icon-button"
+                  @click.stop="downloadFile(current?.path ?? '', getFileName(current?.path ?? '').replace(' ', '-'))"
+                  v-tooltip="$t('download')"
+                >
+                  <md-ripple />
+                  <i-material-symbols:download-rounded />
+                </button>
+              </div>
+              <section class="list-items">
+                <div class="item">
+                  <div class="title">{{ $t('file_size') }}</div>
+                  <div class="subtitle">
+                    {{ formatFileSize(current?.size ?? 0) }}
+                    <span v-if="fileInfo?.data?.width && fileInfo?.data?.height">{{ getResolution() }}</span>
+                  </div>
+                </div>
+                <div class="item" v-if="fileInfo?.updatedAt">
+                  <div class="title">{{ $t('updated_at') }}</div>
+                  <div class="subtitle">
+                    <span v-tooltip="formatDateTimeFull(fileInfo.updatedAt)">{{
+                      formatDateTime(fileInfo.updatedAt)
+                    }}</span>
+                  </div>
+                </div>
+                <div class="item" v-if="current && (isAudio(current?.name) || isVideo(current?.name))">
+                  <div class="title">{{ $t('duration') }}</div>
+                  <div class="subtitle">{{ formatSeconds(fileInfo?.data?.duration ?? current?.duration) }}</div>
+                </div>
+                <div class="item" v-if="current?.data">
+                  <div class="title">
+                    {{ $t('tags') }}
+                    <button class="icon-button" v-tooltip="$t('add_to_tags')" @click.prevent="addToTags">
+                      <md-ripple />
+                      <i-material-symbols:label-outline-rounded />
+                    </button>
+                  </div>
+                  <div class="subtitle"><item-tags :tags="fileInfo?.data?.tags" /></div>
+                </div>
+                <div class="item" v-if="current?.path">
+                  <div class="title">{{ $t('path') }}</div>
+                  <div class="subtitle">{{ getFinalPath(app.externalFilesDir, current?.path) }}</div>
+                </div>
+              </section>
+            </section>
           </div>
         </transition>
-        <div class="buttons">
-          <div v-if="tempStore.lightbox.sources.length > 1 && (loop || imgIndex > 0)" class="btn-prev" @click="onPrev">
-            <i-material-symbols:chevron-left-rounded class="bi" />
-          </div>
-          <div v-if="tempStore.lightbox.sources.length > 1 && (loop || imgIndex < tempStore.lightbox.sources.length - 1)" class="btn-next" @click="onNext">
-            <i-material-symbols:chevron-right-rounded class="bi" />
-          </div>
-          <div v-if="current && current.name && isImage(current.name)" class="source-name">
-            {{ current.name }}
-          </div>
-          <div class="toolbar" v-if="current && (!current.name || isImage(current.name))">
-            <div class="btn btn-sm" v-if="!current.viewOriginImage" @click="viewOrigin">
-              {{ $t('view_origin_image') }}
-            </div>
-
-            <div class="toolbar-btn" @click="zoomIn">
-              <i-material-symbols:zoom-in-rounded class="bi" />
-            </div>
-
-            <div class="toolbar-btn" @click="zoomOut">
-              <i-material-symbols:zoom-out-rounded class="bi" />
-            </div>
-
-            <div class="toolbar-btn" @click="resize">
-              <i-material-symbols:aspect-ratio-outline-rounded class="bi" />
-            </div>
-
-            <div class="toolbar-btn" @click="rotateLeft">
-              <i-material-symbols:rotate-left-rounded class="bi" />
-            </div>
-
-            <div class="toolbar-btn" @click="rotateRight">
-              <i-material-symbols:rotate-right-rounded class="bi" />
-            </div>
-          </div>
-        </div>
       </div>
     </transition>
   </Teleport>
 </template>
 <script setup lang="ts">
-import { type PropType, computed, ref, reactive, watch, onMounted, onBeforeUnmount } from 'vue'
+import { computed, ref, reactive, watch, onMounted, onBeforeUnmount } from 'vue'
 
 import { on, off, isArray, preventDefault } from './utils/index'
 import { useImage, useMouse, useTouch } from './utils/hooks'
@@ -120,26 +194,27 @@ import { isVideo, isImage, isAudio } from '@/lib/file'
 import { getFileUrlByPath } from '@/lib/api/file'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
+import { formatFileSize, formatSeconds } from '@/lib/format'
+import { useMainStore } from '@/stores/main'
+import { fileInfoGQL, initLazyQuery, tagsGQL } from '@/lib/api/query'
+import { formatDateTime, formatDateTimeFull } from '@/lib/format'
+import { openModal } from '@/components/modal'
+import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
+import type { IItemTagsUpdatedEvent, IMediaItemDeletedEvent, ITag } from '@/lib/interfaces'
+import emitter from '@/plugins/eventbus'
+import { useDownload } from '@/views/hooks/files'
+import { getFileName, getFinalPath } from '@/lib/api/file'
+import { useDeleteItems } from '@/views/hooks/media'
+import { remove } from 'lodash-es'
 
 const props = defineProps({
-  swipeTolerance: {
-    type: Number,
-    default: 50,
-  },
   loop: {
     type: Boolean,
     default: true,
   },
 })
 
-const emit = defineEmits([
-  'on-error',
-  'on-prev',
-  'on-next',
-  'on-prev-click',
-  'on-next-click',
-  'on-index-change',
-])
+const emit = defineEmits(['on-error', 'on-prev', 'on-next', 'on-prev-click', 'on-next-click', 'on-index-change'])
 
 const viewOrigin = () => {
   const c = current.value
@@ -149,10 +224,13 @@ const viewOrigin = () => {
   status.loading = true
 }
 const tempStore = useTempStore()
-const { app } = storeToRefs(tempStore)
+const { urlTokenKey, app } = storeToRefs(tempStore)
 const video = ref<HTMLVideoElement>()
 const { imgRef, imgState, setImgSize } = useImage()
 const imgIndex = ref(0)
+const { lightboxInfoVisible } = storeToRefs(useMainStore())
+const { downloadFile } = useDownload(urlTokenKey)
+const { deleteItem } = useDeleteItems()
 
 const imgWrapperState = reactive<IImgWrapperState>({
   scale: 1,
@@ -172,6 +250,8 @@ const status = reactive({
   loading: false,
   dragging: false,
   gesturing: false,
+  swipeToLeft: false,
+  swipeToRight: false,
   wheeling: false,
 })
 
@@ -181,6 +261,50 @@ const currCursor = () => {
   if (status.loadError) return 'default'
   return 'move'
 }
+
+const fileInfo = ref<any>(null)
+
+function deleteFile() {
+  if (current.value?.data) {
+    deleteItem(current.value?.type ?? '', current.value.data)
+  }
+}
+
+const {
+  loading: infoLoading,
+  load: loadInfo,
+  refetch: refetchInfo,
+} = initLazyQuery({
+  handle: (data: any, error: string) => {
+    if (error) {
+      //toast(t(error), 'error')
+    } else {
+      if (data) {
+        fileInfo.value = data.fileInfo
+      }
+    }
+  },
+  document: fileInfoGQL,
+  variables: () => ({
+    id: current.value?.data?.id ?? '',
+    path: current.value?.path ?? '',
+  }),
+  appApi: true,
+})
+
+const tagsMap = new Map<string, ITag[]>()
+const { loading: tagsLoading, load: loadTags } = initLazyQuery({
+  handle: (data: any, error: string) => {
+    if (data) {
+      tagsMap.set(current.value?.type ?? '', data.tags)
+    }
+  },
+  document: tagsGQL,
+  variables: () => ({
+    type: current.value?.type ?? '',
+  }),
+  appApi: true,
+})
 
 const imgWrapperStyle = computed(() => {
   return {
@@ -198,6 +322,17 @@ const closeDialog = () => {
   imgIndex.value = 0
 }
 
+function getResolution() {
+  const width = fileInfo.value?.data?.width ?? 0
+  const height = fileInfo.value?.data?.height ?? 0
+  let r = `  ${width} x ${height}`
+  if (isImage(current.value?.name ?? '')) {
+    r += `  ${Math.round((width * height) / 1000000)} MP`
+  }
+
+  return r
+}
+
 const reset = () => {
   imgWrapperState.scale = 1
   imgWrapperState.lastScale = 1
@@ -206,6 +341,7 @@ const reset = () => {
   imgWrapperState.left = 0
   status.loadError = false
   status.dragging = false
+  status.gesturing = false
   status.loading = true
 }
 
@@ -217,12 +353,18 @@ const changeIndex = async (newIndex: number, actions?: IndexChangeActions) => {
 
   const s = tempStore.lightbox.sources[newIndex]
   if (!s.src) {
-    const { fileIdToken } = app.value
-    s.src = await getFileUrlByPath(fileIdToken, s.path)
+    s.src = getFileUrlByPath(tempStore.urlTokenKey, s.path)
   }
 
   imgIndex.value = newIndex
   current.value = tempStore.lightbox.sources[imgIndex.value]
+  setTimeout(() => {
+    const type = current.value?.type ?? ''
+    if (type && !tagsMap.has(type)) {
+      loadTags()
+    }
+    loadInfo()
+  }, 0) // Fix the bug that graphql send the {id: '', path: ''} query at first time.
 
   // No emit event when hidden or same index
   if (oldIndex === newIndex) return
@@ -300,7 +442,7 @@ const resize = () => {
 }
 
 // check img moveable
-const canMove = (button = 0) => {
+const canMove = (button?: number) => {
   return button === 0
 }
 
@@ -396,38 +538,63 @@ watch(
   () => status.dragging,
   (newStatus, oldStatus) => {
     const dragged = !newStatus && oldStatus
-
     if (!canMove() && dragged) {
-      const xDiff = imgWrapperState.lastX - imgWrapperState.initX
-      const yDiff = imgWrapperState.lastY - imgWrapperState.initY
-
-      const tolerance = props.swipeTolerance
-      const movedHorizontally = Math.abs(xDiff) > Math.abs(yDiff)
-
-      if (movedHorizontally) {
-        if (xDiff < tolerance * -1) onNext()
-        else if (xDiff > tolerance) onPrev()
-      }
+      // if (status.swipeToLeft) {
+      //   onNext()
+      // } else if (status.swipeToRight) {
+      //   onPrev()
+      // }
     }
   }
 )
 
+function addToTags() {
+  const type = current.value?.type ?? ''
+  const tags = tagsMap.get(type) ?? []
+  openModal(UpdateTagRelationsModal, {
+    type,
+    tags: tags,
+    item: {
+      key: current.value?.data?.id,
+      title: '',
+      size: 0,
+    },
+    selected: tags.filter((it: ITag) => fileInfo.value?.data?.tags.some((t: ITag) => t.id === it.id)),
+  })
+}
+
+const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
+  if (event.item.key === current.value?.data?.id) {
+    refetchInfo()
+  }
+}
+
+const mediaItemDeletedHandler = (event: IMediaItemDeletedEvent) => {
+  if (event.item.id === current.value?.data?.id) {
+    remove(tempStore.lightbox.sources, (it) => it.data?.id === event.item.id)
+    if (tempStore.lightbox.sources.length) {
+      onNext()
+    } else {
+      closeDialog()
+    }
+  }
+}
+
 onMounted(() => {
   on(document, 'keydown', onKeyPress)
   on(window, 'resize', onWindowResize)
+  emitter.on('item_tags_updated', itemTagsUpdatedHandler)
+  emitter.on('media_item_deleted', mediaItemDeletedHandler)
 })
 
 onBeforeUnmount(() => {
   off(document, 'keydown', onKeyPress)
   off(window, 'resize', onWindowResize)
+  emitter.off('item_tags_updated', itemTagsUpdatedHandler)
+  emitter.off('media_item_deleted', mediaItemDeletedHandler)
 })
 </script>
 <style lang="scss" scoped>
-.source-name {
-  text-align: center;
-  margin-top: 8px;
-}
-
 .v-on-error {
   position: absolute;
   top: 50%;
@@ -435,22 +602,48 @@ onBeforeUnmount(() => {
 }
 
 .toolbar {
-  user-select: none;
-  position: absolute;
-  overflow: hidden;
-  bottom: 1rem;
-  left: 50%;
-  transform: translate(-50%);
   display: flex;
+  flex-direction: row;
+  padding-block: 8px;
   align-items: center;
+  background: var(--md-sys-color-surface);
+  z-index: 1;
+  position: static;
+  width: 100%;
+  box-sizing: border-box;
+  grid-area: toolbar;
 
-  .toolbar-btn {
-    user-select: none;
-    flex-shrink: 0;
-    cursor: pointer;
-    padding: 8px 16px;
-    font-size: 1.5rem;
-    outline: none;
+  .source-name {
+    flex: 1;
+
+    .icon-button {
+      margin-inline-start: 16px;
+    }
+  }
+
+  md-outlined-button,
+  .icon-button {
+    margin-inline-end: 16px;
+  }
+}
+
+.content {
+  grid-area: content;
+  position: relative;
+  height: calc(100vh - 56px);
+}
+
+.info {
+  grid-area: info;
+  width: 280px;
+  height: 100vh;
+  box-sizing: border-box;
+  background: var(--md-sys-color-surface-container);
+  overflow-y: auto;
+  z-index: 1;
+
+  .top-title {
+    height: 56px;
   }
 }
 
@@ -462,7 +655,16 @@ onBeforeUnmount(() => {
   right: 0;
   bottom: 0;
   margin: 0;
-  background: var(--back-color);
+  background: var(--md-sys-color-surface);
+}
+
+.layout {
+  display: grid;
+  grid-template-areas:
+    'toolbar info'
+    'content info';
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto 1fr;
 }
 
 .v-img-wrapper {
@@ -478,13 +680,13 @@ onBeforeUnmount(() => {
   img {
     user-select: none;
     user-select: none;
-    max-width: 80vw;
-    max-height: 80vh;
+    max-width: 90vw;
+    max-height: 90vh;
     display: block;
     position: relative;
 
     @media (max-width: 750px) {
-      max-width: 85vw;
+      max-width: 95vw;
       max-height: 95vh;
     }
   }
@@ -496,42 +698,41 @@ onBeforeUnmount(() => {
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
 
   audio {
     width: 400px;
   }
 
   video {
-    height: 90vh;
+    height: 95%;
+    max-width: 88%;
   }
 }
 
-.buttons {
-  .btn-prev,
-  .btn-next {
-    user-select: none;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    opacity: 0.6;
-    font-size: 4rem;
-    color: #fff;
-    transition: 0.15s linear;
-    outline: none;
+.btn-prev,
+.btn-next {
+  user-select: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  opacity: 0.6;
+  font-size: 4rem;
+  transition: 0.15s linear;
+  outline: none;
+  z-index: 9999;
 
-    &:hover {
-      opacity: 1;
-    }
+  &:hover {
+    opacity: 1;
   }
+}
 
-  .btn-next {
-    right: 12px;
-  }
+.btn-next {
+  right: 12px;
+}
 
-  .btn-prev {
-    left: 12px;
-  }
+.btn-prev {
+  left: 12px;
 }
 </style>

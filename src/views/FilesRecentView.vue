@@ -3,14 +3,16 @@
     <breadcrumb :current="$t('recent_files')" />
     <div class="right-actions">
       <template v-if="selectMode && checked">
-        <button type="button" class="btn btn-action" @click.stop="downloadItems" :title="$t('download')">
-          <i-material-symbols:download-rounded class="bi" />
+        <button class="icon-button" @click.stop="downloadItems" v-tooltip="$t('download')">
+          <md-ripple />
+          <i-material-symbols:download-rounded />
         </button>
       </template>
-      <div class="form-check mt-2 me-3 ms-3">
-        <input class="form-check-input" v-model="selectMode" id="select-mode" type="checkbox" />
-        <label class="form-check-label" for="select-mode">{{ $t('select_mode') }}</label>
-      </div>
+      <label class="form-check-label">
+        <md-checkbox touch-target="wrapper" @change="toggleSelectModeChecked" :checked="selectMode" />{{
+          $t('select_mode')
+        }}
+      </label>
     </div>
   </div>
   <div class="panel-container">
@@ -22,10 +24,10 @@
             active: selectedItem?.path === f.path,
           }"
           @click="clickItem(f)"
-          @dblclick="dbclickItem(f)"
+          @dblclick.prevent="dbclickItem(f)"
           @contextmenu="itemCtxMenu($event, f)"
         >
-          <input class="form-check-input" v-if="selectMode" v-model="f.checked" type="checkbox" />
+          <md-checkbox touch-target="wrapper" v-if="selectMode" :checked="f.checked" />
           <img
             v-if="isImage(f.name) || isVideo(f.name)"
             :src="getFileUrl(f.fileId) + '&w=50&h=50'"
@@ -62,22 +64,23 @@ import { useTempStore } from '@/stores/temp'
 import { shortUUID } from '@/lib/strutil'
 import { initMutation, setTempValueGQL } from '@/lib/api/mutation'
 import type { ISource } from '@/components/lightbox/types'
+import type { MdCheckbox } from '@material/web/checkbox/checkbox'
 
 const { t } = useI18n()
 const sources = ref([])
 
 const selectMode = ref(false)
 const tempStore = useTempStore()
-const { app } = storeToRefs(tempStore)
-const { loading, files } = useRecentFiles(app)
+const { app, urlTokenKey } = storeToRefs(tempStore)
+const { loading, files } = useRecentFiles(urlTokenKey)
 
-const { downloadFile, downloadDir, downloadFiles } = useDownload(app)
+const { downloadFile, downloadDir, downloadFiles } = useDownload(urlTokenKey)
 const { view } = useView(sources, (s: ISource[], index: number) => {
   tempStore.lightbox = {
-      sources: s,
-      index: index,
-      visible: true
-    }
+    sources: s,
+    index: index,
+    visible: true,
+  }
 })
 const selectedItem = ref<IFile | null>(null)
 
@@ -98,6 +101,10 @@ const getSelectedFiles = () => {
     }
   })
   return items
+}
+
+function toggleSelectModeChecked(e: Event) {
+  selectMode.value = (e.target as MdCheckbox).checked
 }
 
 const downloadItems = () => {
@@ -171,7 +178,7 @@ function itemCtxMenu(e: MouseEvent, f: IFile) {
 }
 
 .panel-container {
-  height: calc(100vh - 180px);
+  height: calc(100vh - 200px);
   display: flex;
 }
 
@@ -187,7 +194,6 @@ function itemCtxMenu(e: MouseEvent, f: IFile) {
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 6px 8px;
   flex: 1;
 
   .file-item {
@@ -196,6 +202,7 @@ function itemCtxMenu(e: MouseEvent, f: IFile) {
     border: 1px solid transparent;
     display: flex;
     align-items: center;
+    user-select: none;
 
     &:hover {
       cursor: pointer;
@@ -206,13 +213,9 @@ function itemCtxMenu(e: MouseEvent, f: IFile) {
       margin-right: 8px;
     }
 
-    .form-check-input {
-      margin-right: 8px;
-    }
-
     &.active {
-      border-radius: var(--border-radius-sm);
-      border-color: var(--border-color);
+      background-color: var(--md-sys-color-on-surface-selected);
+      border-radius: 8px;
     }
   }
 }

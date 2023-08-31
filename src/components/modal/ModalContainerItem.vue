@@ -1,11 +1,5 @@
 <template>
-  <div
-    class="modal"
-    ref="containerRef"
-    @mousedown="isDragging = false"
-    @mousemove="isDragging = true"
-    @mouseup="handelClick"
-  >
+  <div ref="containerRef">
     <component
       :is="modal?.component"
       v-bind="modal?.props.value"
@@ -19,11 +13,11 @@
 import { saveInstance } from './utils/instances'
 import { ref, watch } from 'vue'
 import { modalQueue } from './utils/state'
-import { closeById } from './methods'
 import type Modal from './utils/Modal'
+import type { MdDialog } from '@material/web/dialog/dialog.js'
 
 const modalRef = ref(null)
-const containerRef = ref(null)
+const containerRef = ref<HTMLDivElement>()
 
 const props = defineProps({
   id: Number,
@@ -34,20 +28,15 @@ function getModalById(id: number | undefined): Modal | undefined {
   return modalQueue.value.find((elem) => elem.id === id)
 }
 
-const isDragging = false
-function handelClick(e: Event) {
-  if (!isDragging) {
-    if (e.target !== containerRef.value) return
-    if (modal?.backgroundClose) {
-      return closeById(modal.id, { background: true }).catch(() => {})
-    }
-  }
-}
-
 watch(
   () => modalRef.value,
   (newValue) => {
     saveInstance(props.id!, newValue!)
+    setTimeout(() => {
+      if (containerRef.value) {
+        ;(containerRef.value.firstChild as MdDialog).show()
+      }
+    }, 0)
   }
 )
 </script>
