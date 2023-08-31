@@ -1,9 +1,15 @@
 <template>
-  <v-modal class="delete-modal" size="sm" :title="$t('confirm_to_delete_name', { name: name })">
-    <template #action>
-      <button type="button" :disabled="loading" class="btn" @click="doDelete">{{ $t('delete') }}</button>
-    </template>
-  </v-modal>
+  <md-dialog>
+    <form id="form" slot="content" method="dialog">
+      {{ $t('confirm_to_delete_name', { name: name }) }}
+    </form>
+    <div slot="actions">
+      <md-outlined-button form="form" value="cancel">{{ $t('cancel') }}</md-outlined-button>
+      <md-filled-button form="form" value="delete" :disabled="loading" @click="doDelete" autofocus>{{
+        $t('delete')
+      }}</md-filled-button>
+    </div>
+  </md-dialog>
 </template>
 <script setup lang="ts">
 import type { PropType } from 'vue'

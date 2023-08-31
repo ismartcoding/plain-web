@@ -1,0 +1,54 @@
+.chat-section {
+    border-radius: 8px;
+    border: 1px solid var(--md-sys-color-outline);
+    overflow: hidden;
+  }
+
+  .chat-item {
+    padding: 0 16px 16px;
+  
+    .date {
+      color: var(--md-sys-color-secondary);
+      font-size: 0.8rem;
+      text-align: center;
+    }
+  
+    &:first-child {
+      padding-top: 16px;
+    }
+  
+    .bi-more {
+      display: none;
+      vertical-align: middle;
+    }
+  
+    &:hover .bi-more {
+      display: inline-block;
+    }
+  }
+
+
+.chat-title {
+  display: inline-block;
+  height: 24px;
+
+  .name {
+    font-weight: 500;
+    margin-right: 4px;
+    font-size: 0.75rem;
+  }
+
+  .time,
+  .sending {
+    color: var(--md-sys-color-secondary);
+    font-size: 0.75rem;
+  }
+
+  &:hover {
+    cursor: pointer;
+  }
+
+  .sending {
+    margin-left: 4px;
+  }
+}

@@ -1,0 +1,28 @@
+.pagination {
+  display: flex;
+  list-style: none;
+  justify-content: center;
+  padding-bottom: 24px;
+  margin: 0;
+}
+
+.page-link {
+  position: relative;
+  display: block;
+  padding: 0.375rem 0.825rem;
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+.page-item {
+  &.active .page-link {
+    border: 1px solid currentColor;
+    border-radius: var(--border-radius-sm);
+  }
+
+  &.disabled .page-link {
+    pointer-events: none;
+  }
+}

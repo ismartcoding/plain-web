@@ -6,25 +6,26 @@ import {
   initMutation,
   moveFileGQL,
   renameFileGQL,
-  setTempValueGQL,
 } from '@/lib/api/mutation'
 import { FilePanel, isAudio, isImage, isVideo, type IFile } from '@/lib/file'
 import { filesGQL, initQuery, recentFilesGQL, storageStatsGQL } from '@/lib/api/query'
 import { useI18n } from 'vue-i18n'
 import toast from '@/components/toaster'
-import { download, getFileId, getFileName, getFileUrlByPath } from '@/lib/api/file'
+import { download, encryptUrlParams, getFileId, getFileName, getFileUrlByPath } from '@/lib/api/file'
 import type { ISource } from '@/components/lightbox/types'
 import { storeToRefs } from 'pinia'
 import { useTempStore, type IUploadItem } from '@/stores/temp'
-import { encodeBase64, shortUUID } from '@/lib/strutil'
+import { encodeBase64 } from '@/lib/strutil'
 import { replacePathNoReload } from '@/plugins/router'
 import { buildQuery, type IFilterField } from '@/lib/search'
 import type { MainState } from '@/stores/main'
 import { findIndex, remove } from 'lodash-es'
 import { getApiBaseUrl } from '@/lib/api/api'
 import type { ISelectable, IStorageStatsItem } from '@/lib/interfaces'
+import type sjcl from 'sjcl'
+import { DataType } from '@/lib/data'
 
-export const useCreateDir = (app: Ref<any>, panels: Ref<FilePanel[]>) => {
+export const useCreateDir = (urlTokenKey: Ref<sjcl.BitArray | null>, panels: Ref<FilePanel[]>) => {
   const createPath = ref('')
 
   return {
@@ -38,11 +39,10 @@ export const useCreateDir = (app: Ref<any>, panels: Ref<FilePanel[]>) => {
         options: {
           update: async (_: ApolloCache<any>, data: any) => {
             // TODO: check created failed or not?
-            const { fileIdToken } = app.value
             for (const panel of panels.value) {
               if (panel.dir === createPath.value) {
                 const d = data.data.createDir
-                panel.items.push({ ...d, name: getFileName(d.path), fileId: await getFileId(fileIdToken, d.path) })
+                panel.items.push({ ...d, name: getFileName(d.path), fileId: getFileId(urlTokenKey.value, d.path) })
               }
             }
           },
@@ -118,7 +118,7 @@ export const useStats = () => {
   return { internal, sdcard, usb, refetch }
 }
 
-export const useFiles = (app: Ref<any>, rootDir: string, initDir: string) => {
+export const useFiles = (urlTokenKey: Ref<sjcl.BitArray | null>, rootDir: string, initDir: string) => {
   const _refetchDir = ref('')
   const currentDir = ref(rootDir)
   const panels = ref<FilePanel[]>([])
@@ -132,12 +132,11 @@ export const useFiles = (app: Ref<any>, rootDir: string, initDir: string) => {
         toast(t(error), 'error')
       } else {
         const { dir, items } = data.files
-        const { fileIdToken } = app.value
         const files: IFile[] = []
         for (const item of items) {
           const tmp = { ...item, name: getFileName(item.path) }
           if (isVideo(tmp.name) || isImage(tmp.name)) {
-            tmp.fileId = await getFileId(fileIdToken, item.path)
+            tmp.fileId = getFileId(urlTokenKey.value, item.path)
           }
           files.push(tmp)
         }
@@ -179,10 +178,9 @@ export const useFiles = (app: Ref<any>, rootDir: string, initDir: string) => {
         toast(t(error), 'error')
       } else {
         const { dir, items } = data.files
-        const { fileIdToken } = app.value
         const list: IFile[] = []
         for (const item of items) {
-          list.push({ ...item, name: getFileName(item.path), fileId: await getFileId(fileIdToken, item.path) })
+          list.push({ ...item, name: getFileName(item.path), fileId: getFileId(urlTokenKey.value, item.path) })
         }
         panels.value.forEach((panel: FilePanel) => {
           if (panel.dir === dir) {
@@ -215,7 +213,7 @@ export const useFiles = (app: Ref<any>, rootDir: string, initDir: string) => {
   }
 }
 
-export const useRecentFiles = (app: Ref<any>) => {
+export const useRecentFiles = (urlTokenKey: Ref<sjcl.BitArray | null>) => {
   const { t } = useI18n()
   const files = ref<IFile[]>([])
 
@@ -225,11 +223,10 @@ export const useRecentFiles = (app: Ref<any>) => {
         toast(t(error), 'error')
       } else {
         const items = data.recentFiles
-        const { fileIdToken } = app.value
         for (const item of items) {
           const tmp = { ...item, name: getFileName(item.path) }
           if (isVideo(tmp.name) || isImage(tmp.name)) {
-            tmp.fileId = await getFileId(fileIdToken, item.path)
+            tmp.fileId = getFileId(urlTokenKey.value, item.path)
           }
           files.value.push(tmp)
         }
@@ -248,11 +245,10 @@ export const useRecentFiles = (app: Ref<any>) => {
   }
 }
 
-export const useDownload = (app: Ref<any>) => {
+export const useDownload = (urlTokenKey: Ref<sjcl.BitArray | null>) => {
   return {
     async downloadFile(path: string, fileName?: string) {
-      const { fileIdToken } = app.value
-      const url = await getFileUrlByPath(fileIdToken, path)
+      const url = getFileUrlByPath(urlTokenKey.value, path)
       if (fileName) {
         download(url + `&dl=1&name=${fileName}`, fileName)
       } else {
@@ -260,8 +256,7 @@ export const useDownload = (app: Ref<any>) => {
       }
     },
     async downloadDir(path: string, fileName?: string) {
-      const { fileIdToken } = app.value
-      const id = await getFileId(fileIdToken, path)
+      const id = getFileId(urlTokenKey.value, path)
       const url = `${getApiBaseUrl()}/zip/dir?id=${encodeURIComponent(id)}`
       if (fileName) {
         download(url + `&name=${fileName}`, fileName)
@@ -333,7 +328,11 @@ export const useSingleSelect = (currentDir: Ref<string>, filesType: string, q: R
   }
 }
 
-export const useCopyPaste = (selectedFiles: Ref<IFile[]>, refetchFiles: (path: string) => void, refetchStats: () => void) => {
+export const useCopyPaste = (
+  selectedFiles: Ref<IFile[]>,
+  refetchFiles: (path: string) => void,
+  refetchStats: () => void
+) => {
   const isCut = ref(false)
   const dstDir = ref<string>()
 
@@ -369,7 +368,7 @@ export const useCopyPaste = (selectedFiles: Ref<IFile[]>, refetchFiles: (path: s
   const onDone = () => {
     if (isCut.value) {
       for (const file of selectedFiles.value) {
-        remove(file.panel!.items, (it: IFile) => it.path === file.path)
+        remove(file.panel?.items ?? [], (it: IFile) => it.path === file.path)
       }
     }
 
@@ -480,39 +479,37 @@ export const useChatFilesUpload = () => {
   }
 }
 
-export const useDownloadItems = (items: Ref<ISelectable[]>, fileName: string) => {
+export const useDownloadItems = (
+  urlTokenKey: Ref<sjcl.BitArray | null>,
+  type: string,
+  items: Ref<ISelectable[]>,
+  clearSelection: () => void,
+  fileName: string
+) => {
   const { t } = useI18n()
 
-  const { mutate: setTempValue, onDone: setTempValueDone } = initMutation({
-    document: setTempValueGQL,
-    appApi: true,
-  })
-
-  setTempValueDone((r: any) => {
-    const url = `${getApiBaseUrl()}/zip/files?id=${encodeURIComponent(r.data.setTempValue.key)}&name=${fileName}`
-    download(url, fileName)
-    items.value.forEach((it: ISelectable) => {
-      it.checked = false
-    })
-  })
-
   return {
-    downloadItems: () => {
-      const selectedItems = items.value.filter((it: ISelectable) => it.checked)
-      if (selectedItems.length === 0) {
-        toast(t('select_first'), 'error')
-        return
+    downloadItems: (realAllChecked: boolean, query: string) => {
+      let q = query
+      if (!realAllChecked) {
+        const selectedItems = items.value.filter((it: ISelectable) => it.checked)
+        if (selectedItems.length === 0) {
+          toast(t('select_first'), 'error')
+          return
+        }
+        q = `ids:${selectedItems.map((it: any) => it.id).join(',')}`
       }
 
-      const files: any[] = []
-      selectedItems.forEach((it: any) => {
-        if (fileName === 'apps.zip') {
-          files.push({ path: it.path, name: `${it.name.replace(' ', '')}-${it.id}.apk` })
-        } else {
-          files.push({ path: it.path })
-        }
-      })
-      setTempValue({ key: shortUUID(), value: JSON.stringify(files) })
+      const id = encryptUrlParams(
+        urlTokenKey.value,
+        JSON.stringify({
+          query: q,
+          type: type,
+          name: fileName,
+        })
+      )
+      download(`${getApiBaseUrl()}/zip/files?id=${encodeURIComponent(id)}`, fileName)
+      clearSelection()
     },
   }
 }

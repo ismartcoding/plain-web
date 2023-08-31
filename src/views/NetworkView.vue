@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container container">
+  <div class="page-container">
     <div class="main">
       <breadcrumb :current="() => $t('page_title.network')" />
       <edit-toolbar

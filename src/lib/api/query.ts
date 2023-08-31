@@ -17,6 +17,7 @@ import {
   feedEntryFragment,
   aiChatFragment,
   packageFragment,
+  tagSubFragment,
 } from './fragments'
 
 export class InitQueryParams<TResult> {
@@ -96,6 +97,53 @@ export const chatItemsGQL = gql`
     }
   }
   ${chatItemFragment}
+`
+
+export const fileInfoGQL = gql`
+  query ($id: ID!, $path: String!) {
+    fileInfo(id: $id, path: $path) {
+      ... on FileInfo {
+        updatedAt
+        size
+      }
+      data {
+        ... on ImageFileInfo {
+          tags {
+            ...TagSubFragment
+          }
+          width
+          height
+          location {
+            latitude
+            longitude
+          }
+        }
+        ... on VideoFileInfo {
+          tags {
+            ...TagSubFragment
+          }
+          duration
+          width
+          height
+          location {
+            latitude
+            longitude
+          }
+        }
+        ... on AudioFileInfo {
+          tags {
+            ...TagSubFragment
+          }
+          duration
+          location {
+            latitude
+            longitude
+          }
+        }
+      }
+    }
+  }
+  ${tagSubFragment}
 `
 
 export const messagesGQL = gql`
@@ -239,7 +287,7 @@ export const appGQL = gql`
 `
 
 export const tagsGQL = gql`
-  query tags($type: TagType!) {
+  query tags($type: DataType!) {
     tags(type: $type) {
       ...TagFragment
     }
@@ -248,7 +296,7 @@ export const tagsGQL = gql`
 `
 
 export const mediaBucketsGQL = gql`
-  query mediaBuckets($type: BucketType!) {
+  query mediaBuckets($type: DataType!) {
     mediaBuckets(type: $type) {
       id
       name
@@ -267,12 +315,12 @@ export const notesGQL = gql`
       createdAt
       updatedAt
       tags {
-        ...TagFragment
+        ...TagSubFragment
       }
     }
     noteCount(query: $query)
   }
-  ${tagFragment}
+  ${tagSubFragment}
 `
 
 export const noteGQL = gql`
@@ -308,16 +356,16 @@ export const feedEntriesGQL = gql`
       createdAt
       updatedAt
       tags {
-        ...TagFragment
+        ...TagSubFragment
       }
     }
     feedEntryCount(query: $query)
   }
-  ${tagFragment}
+  ${tagSubFragment}
 `
 
 export const feedsTagsGQL = gql`
-  query feedsTags($type: TagType!) {
+  query feedsTags($type: DataType!) {
     tags(type: $type) {
       ...TagFragment
     }

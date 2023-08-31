@@ -1,12 +1,15 @@
 <template>
-  <v-modal
-    class="delete-modal"
-    :title="$t('confirm_to_delete_name', { name: truncate(files.map((it) => it.name).join(', '), { length: 200 }) })"
-  >
-    <template #action>
-      <button type="button" :disabled="loading" class="btn" @click="doDelete">{{ $t('delete') }}</button>
-    </template>
-  </v-modal>
+  <md-dialog>
+    <form id="form" slot="content" method="dialog">
+      {{ $t('confirm_to_delete_name', { name: truncate(files.map((it) => it.name).join(', '), { length: 200 }) }) }}
+    </form>
+    <div slot="actions">
+      <md-outlined-button form="form" value="cancel">{{ $t('cancel') }}</md-outlined-button>
+      <md-filled-button form="form" value="delete" :disabled="loading" @click="doDelete" autofocus>{{
+        $t('delete')
+      }}</md-filled-button>
+    </div>
+  </md-dialog>
 </template>
 <script setup lang="ts">
 import gql from 'graphql-tag'

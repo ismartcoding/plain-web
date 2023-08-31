@@ -4,56 +4,35 @@ import { useI18n } from 'vue-i18n'
 import toast from '@/components/toaster'
 import { openModal } from '@/components/modal'
 import AddToTagsModal from '@/components/AddToTagsModal.vue'
-import RemoveFromTagsModal from '@/components/RemoveFromTagsModal.vue'
 import { initQuery, tagsGQL } from '@/lib/api/query'
 import { parseQuery, type IFilterField } from '@/lib/search'
 import { kebabCase } from 'lodash-es'
 
-export const useAddToTags = (tagType: string, items: Ref<ISelectable[]>, tags: Ref<ITag[]>) => {
+export const useAddToTags = (type: string, items: Ref<ISelectable[]>, tags: Ref<ITag[]>) => {
   const { t } = useI18n()
 
   return {
-    addToTags: () => {
-      const selectedItems = items.value.filter((it: ISelectable) => it.checked)
-      if (selectedItems.length === 0) {
-        toast(t('select_first'), 'error')
-        return
+    addToTags: (realAllChecked: boolean, query: string) => {
+      let q = query
+      if (!realAllChecked) {
+        const selectedItems = items.value.filter((it: ISelectable) => it.checked)
+        if (selectedItems.length === 0) {
+          toast(t('select_first'), 'error')
+          return
+        }
+        q = `ids:${selectedItems.map((it: any) => it.id).join(',')}`
       }
 
       openModal(AddToTagsModal, {
-        tagType,
+        type,
         tags: tags.value,
-        items: selectedItems.map((it: any) => ({
-          key: it.id,
-          title: it.title,
-          size: it.size,
-        })),
+        query: q,
       })
     },
   }
 }
 
-export const useRemoveFromTags = (tagType: string, items: Ref<ISelectable[]>, tags: Ref<ITag[]>) => {
-  const { t } = useI18n()
-
-  return {
-    removeFromTags: () => {
-      const selectedItems = items.value.filter((it: ISelectable) => it.checked)
-      if (selectedItems.length === 0) {
-        toast(t('select_first'), 'error')
-        return
-      }
-
-      openModal(RemoveFromTagsModal, {
-        tagType,
-        tags: tags.value,
-        ids: selectedItems.map((it: any) => it.id),
-      })
-    },
-  }
-}
-
-export const useTags = (tagType: string, q: Ref<string>, filter: IFilter, onLoad: (fields: IFilterField[]) => void) => {
+export const useTags = (type: string, q: Ref<string>, filter: IFilter, onLoad: (fields: IFilterField[]) => void) => {
   const tags = ref<ITag[]>([])
   const { t } = useI18n()
 
@@ -97,7 +76,7 @@ export const useTags = (tagType: string, q: Ref<string>, filter: IFilter, onLoad
     },
     document: tagsGQL,
     variables: {
-      type: tagType,
+      type: type,
     },
     appApi: true,
   })

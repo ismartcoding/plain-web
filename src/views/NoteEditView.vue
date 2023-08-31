@@ -1,16 +1,30 @@
 <template>
-  <div class="page-container container-fluid">
+  <div class="page-container">
     <div class="main">
-      <breadcrumb :paths="paths">
-        <template #current>
-          {{ id === 'create' ? t('create') : t('edit') }}<span class="time">{{ getTime() }}</span>
-        </template>
-      </breadcrumb>
+      <div class="v-toolbar">
+        <breadcrumb :paths="paths">
+          <template #current>
+            {{ isCreate() ? t('create') : t('edit') }}
+            <field-id class="time" v-if="note?.updatedAt" :id="getTime()" :raw="note" />
+          </template>
+        </breadcrumb>
+        <span v-for="tag in note?.tags" :key="tag.id" class="badge">{{ tag.name }}</span>
+        <button
+          class="icon-button"
+          v-if="!isCreate()"
+          v-tooltip="$t('add_to_tags')"
+          @click.prevent="addToTags"
+          style="margin-inline-start: 8px"
+        >
+          <md-ripple />
+          <i-material-symbols:label-outline-rounded />
+        </button>
+      </div>
       <splitpanes class="panel-container">
         <pane>
           <monaco-editor language="html" v-model="content" />
         </pane>
-        <pane class="markdown-panel">
+        <pane>
           <div class="md-container" v-html="markdown"></div>
         </pane>
       </splitpanes>
@@ -21,11 +35,11 @@
 <script setup lang="ts">
 import { Splitpanes, Pane } from 'splitpanes'
 import { useRoute } from 'vue-router'
-import { computed, ref, watch } from 'vue'
+import { computed, onActivated, onDeactivated, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { useI18n } from 'vue-i18n'
-import { initQuery, noteGQL } from '@/lib/api/query'
-import type { INote } from '@/lib/interfaces'
+import { initQuery, noteGQL, tagsGQL } from '@/lib/api/query'
+import type { IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, INote, ITag } from '@/lib/interfaces'
 import { formatDateTime } from '@/lib/format'
 import { useMarkdown } from './hooks/markdown'
 import { initMutation, saveNoteGQL } from '@/lib/api/mutation'
@@ -34,6 +48,9 @@ import { replacePathNoReload } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
+import { openModal } from '@/components/modal'
+import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
+import emitter from '@/plugins/eventbus'
 
 const mainStore = useMainStore()
 
@@ -45,7 +62,7 @@ const note = ref<INote>()
 const content = ref('')
 const markdown = ref('')
 
-const { app } = storeToRefs(useTempStore())
+const { app, urlTokenKey } = storeToRefs(useTempStore())
 
 const paths = computed(() => {
   if (note.value?.deletedAt) {
@@ -55,7 +72,7 @@ const paths = computed(() => {
   return ['/notes']
 })
 
-const { render } = useMarkdown(app)
+const { render } = useMarkdown(app, urlTokenKey)
 let init = false
 function isCreate() {
   return id.value === 'create'
@@ -77,16 +94,36 @@ const watchContent = () => {
   })
 }
 
+const tags = ref<ITag[]>()
+const dataType = 'NOTE'
+initQuery({
+  handle: (data: any, error: string) => {
+    if (error) {
+      toast(t(error), 'error')
+    } else {
+      if (data) {
+        tags.value = data.tags
+      }
+    }
+  },
+  document: tagsGQL,
+  variables: {
+    type: dataType,
+  },
+  appApi: true,
+})
+
+let refecthEntry = () => {}
 if (!isCreate()) {
-  initQuery({
+  const { refetch } = initQuery({
     handle: async (data: any, error: string) => {
       if (error) {
         toast(t(error), 'error')
       } else {
+        note.value = data.note
         if (init) {
           return
         }
-        note.value = data.note
         content.value = data.note.content
         markdown.value = await render(content.value)
         init = true
@@ -99,6 +136,7 @@ if (!isCreate()) {
     }),
     appApi: true,
   })
+  refecthEntry = refetch
 } else {
   watchContent()
 }
@@ -111,9 +149,9 @@ const { mutate: save, onDone: saveDone } = initMutation({
 saveDone((r: any) => {
   note.value = r.data.saveNote
   const create = isCreate()
-  if (create) {
-    id.value = note.value?.id!
-    replacePathNoReload(mainStore, `/notes/${note.value?.id}`)
+  if (create && note.value?.id) {
+    id.value = note.value?.id
+    replacePathNoReload(mainStore, `/notes/${id.value}`)
   }
 })
 
@@ -124,8 +162,47 @@ function getTime() {
   }
   return ''
 }
+
+function addToTags() {
+  openModal(UpdateTagRelationsModal, {
+    type: dataType,
+    tags: tags.value,
+    item: {
+      key: note.value?.id,
+      title: '',
+      size: 0,
+    },
+    selected: tags.value?.filter((it: ITag) => note.value?.tags.some((t) => t.id === it.id)),
+  })
+}
+
+const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
+  if (event.type === dataType) {
+    refecthEntry()
+  }
+}
+
+const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
+  if (event.type === dataType) {
+    refecthEntry()
+  }
+}
+
+onActivated(() => {
+  emitter.on('item_tags_updated', itemTagsUpdatedHandler)
+  emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
+})
+
+onDeactivated(() => {
+  emitter.off('item_tags_updated', itemTagsUpdatedHandler)
+  emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
+})
 </script>
 <style lang="scss" scoped>
+.panel-container {
+  height: calc(100vh - 148px);
+}
+
 .time {
   margin-left: 8px;
   font-size: 0.875rem;
@@ -135,6 +212,8 @@ function getTime() {
 .md-container {
   padding: 16px;
   height: 100%;
-  overflow: auto;
+  box-sizing: border-box;
+  position: relative;
+  overflow-y: auto;
 }
 </style>

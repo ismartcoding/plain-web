@@ -1,0 +1,18 @@
+// https://opensource.apple.com/source/WebCore/WebCore-1889.59/css/mediaControls.css.auto.html
+audio::-webkit-media-controls-play-button,
+audio::-webkit-media-controls-panel {
+    background-color: var(--md-sys-color-surface);
+}
+
+:root.dark {
+    audio::-webkit-media-controls-play-button,
+    audio::-webkit-media-controls-panel {
+        background-color: #ccc;
+    }
+}
+
+
+audio::-webkit-media-controls-current-time-display,
+audio::-webkit-media-controls-time-remaining-display {
+    text-shadow: none;
+}

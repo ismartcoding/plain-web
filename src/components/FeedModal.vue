@@ -1,29 +1,31 @@
 <template>
-  <v-modal :title="$t('update_subscription')">
-    <template #body>
-      <div class="mb-4">
+  <md-dialog>
+    <div slot="headline">
+      {{ $t('update_subscription') }}
+    </div>
+    <div slot="content">
+      <div class="form-label">
         {{ data?.url }}
       </div>
-      <div>
-        <input
+      <div class="form-row">
+        <md-outlined-text-field
           ref="input"
-          type="text"
-          :placeholder="$t('name')"
           class="form-control"
+          :label="$t('name')"
+          :error="valueError"
+          :error-text="valueError ? $t(valueError) : ''"
           v-model="inputValue"
           @keyup.enter="doAction"
         />
-        <div class="invalid-feedback" v-show="valueError">
-          {{ valueError ? $t(valueError) : '' }}
-        </div>
       </div>
-    </template>
-    <template #action>
-      <button type="button" :disabled="loading" class="btn" @click="doAction">
+    </div>
+    <div slot="actions">
+      <md-outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</md-outlined-button>
+      <md-filled-button value="save" :disabled="loading" @click="doAction" autofocus>
         {{ $t('save') }}
-      </button>
-    </template>
-  </v-modal>
+      </md-filled-button>
+    </div>
+  </md-dialog>
 </template>
 <script setup lang="ts">
 import { initMutation, updateFeedGQL } from '@/lib/api/mutation'

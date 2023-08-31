@@ -1,38 +1,32 @@
 <template>
-  <div class="header">
+  <header class="header">
     <header-actions :logged-in="false" />
-  </div>
-  <div class="logo">
-    <div>{{ $t('app_name') }}</div>
-  </div>
+  </header>
+  <h1>{{ $t('app_name') }}</h1>
   <div class="login-block">
     <form @submit.prevent="onSubmit" v-show="!showConfirm">
       <div class="alert alert-danger" role="alert" v-show="showError">
         {{ error ? $t(error) : '' }}
       </div>
-      <input
+      <md-outlined-text-field
         v-if="showPasswordInput"
+        :label="t('password')"
+        v-model="password"
+        @keydown.enter="onSubmit"
         type="password"
         class="form-control"
-        v-model="password"
-        :placeholder="t('password')"
+        :error="passwordError"
+        :error-text="passwordError ? $t(passwordError) : ''"
       />
-      <div class="invalid-feedback" v-show="passwordError">
-        {{ passwordError ? $t(passwordError) : '' }}
-      </div>
-      <div class="d-grid mt-4" v-if="!webAccessDisabled">
-        <button class="btn" type="submit" :disabled="isSubmitting">
-          {{ $t(isSubmitting ? 'logging_in' : 'log_in') }}
-        </button>
-      </div>
+      <md-filled-button v-if="!webAccessDisabled" :disabled="isSubmitting">
+        {{ $t(isSubmitting ? 'logging_in' : 'log_in') }}
+      </md-filled-button>
     </form>
     <div v-show="showConfirm">
       {{ $t('login.to_continue') }}
-      <div class="d-grid mt-4">
-        <button @click="cancel" class="btn" type="button">
-          {{ $t('cancel') }}
-        </button>
-      </div>
+      <md-outlined-button @click="cancel">
+        {{ $t('cancel') }}
+      </md-outlined-button>
     </div>
   </div>
   <div class="tips" v-if="showWarning">{{ $t('browser_warning') }}</div>
@@ -149,18 +143,24 @@ function cancel() {
   padding-right: 16px;
 }
 
-.logo {
+md-filled-button,
+md-outlined-button {
+  display: block;
+  margin-top: 24px;
+}
+
+h1 {
   margin-top: 100px;
-  padding-bottom: 16px;
   text-align: center;
 }
 
 .login-block {
-  width: 360px;
+  width: 280px;
   margin: 0 auto;
-  border-radius: var(--border-radius);
-  border: 1px solid var(--border-color);
-  padding: 20px;
+  background-color: var(--md-sys-color-surface-variant);
+  border-radius: var(--plain-shape-xl);
+  padding-block: var(--plain-spacing-xl);
+  padding: 40px;
 }
 
 .tips {
@@ -168,5 +168,9 @@ function cancel() {
   padding: 16px;
   width: 320px;
   margin: 0 auto;
+}
+
+.alert-danger {
+  margin-block-end: 32px;
 }
 </style>

@@ -1,11 +1,18 @@
 <template>
   <div class="chat-section">
-    <a v-for="(item, i) in items" :key="i" class="file-item" target="_blank" :href="item.src"
-      @click.prevent="clickItem(item)">
+    <a
+      v-for="(item, i) in items"
+      :key="i"
+      class="file-item"
+      target="_blank"
+      :href="item.src"
+      @click.prevent="clickItem(item)"
+    >
       <span class="left">
         <span>{{ item.name }}</span>
-        <span class="info">{{ formatFileSize(item.size) }}{{ isVideo(item.name) ? ' / ' + formatSeconds(item.duration) :
-          '' }}</span>
+        <span class="info"
+          >{{ formatFileSize(item.size) }}{{ isVideo(item.name) ? ' / ' + formatSeconds(item.duration) : '' }}</span
+        >
       </span>
       <img v-if="isImage(item.name) || isVideo(item.name)" :src="getPreview(item)" />
     </a>
@@ -46,7 +53,7 @@ const items = computed<ISource[]>(() => {
   props.data?.data?.ids?.forEach((id: string, index: number) => {
     const file = files[index]
     items.push({
-      path: '',
+      path: file.uri,
       src: getFileUrl(id),
       viewOriginImage: notId(id) || file.uri.endsWith('.gif'),
       name: getFileName(file.uri),
@@ -65,7 +72,7 @@ function clickItem(item: ISource) {
     tempStore.lightbox = {
       sources: sources.value,
       index: idx,
-      visible: true
+      visible: true,
     }
   } else {
     window.open(item.src, '_blank')
@@ -79,7 +86,6 @@ function canView(item: ISource) {
 
 <style lang="scss" scoped>
 .file-item {
-  color: var(--text-color);
   padding: 0px 8px 8px 8px;
   flex-flow: row;
   display: flex;
@@ -97,7 +103,7 @@ function canView(item: ISource) {
 
     .info {
       margin-top: 4px;
-      color: var(--text-secondary-color);
+      color: var(--md-sys-color-secondary);
       font-size: 0.75rem;
     }
   }
