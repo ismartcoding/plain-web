@@ -19,17 +19,14 @@
             </div>
             <template #content>
               <div class="menu-items">
-                <md-menu-item
-                  :headline="$t('delete_message')"
-                  @click="deleteMessage(chatItem.id)"
-                  :disabled="deleteLoading"
-                />
+                <md-menu-item :headline="$t('delete_message')" @click="deleteMessage(chatItem.id)"
+                  :disabled="deleteLoading" />
               </div>
             </template>
           </popper>
           <div class="chat-content">
             <div v-if="chatItem._content.type === 'text'">
-              <pre>{{ chatItem._content.value.text }}</pre>
+              <pre v-html="addLinksToURLs(chatItem._content.value.text)"></pre>
             </div>
             <component v-else :is="getComponent(chatItem._content.type)" :data="chatItem"></component>
           </div>
@@ -47,21 +44,11 @@
           <i-material-symbols:folder-outline-rounded />
         </button>
       </div>
-      <md-outlined-text-field
-        type="textarea"
-        rows="2"
-        v-model="chatText"
-        autocomplete="off"
-        @paste="pasteFiles"
-        @drop.prevent="dropFiles"
-        class="textarea"
-        :placeholder="$t('chat_input_hint')"
-        @keydown.enter.exact.prevent="send"
-        @keydown.enter.shift.exact.prevent="chatText += '\n'"
-        @keydown.enter.ctrl.exact.prevent="chatText += '\n'"
-        @keydown.enter.alt.exact.prevent="chatText += '\n'"
-        @keydown.enter.meta.exact.prevent="chatText += '\n'"
-      />
+      <md-outlined-text-field type="textarea" rows="2" v-model="chatText" autocomplete="off" @paste="pasteFiles"
+        @drop.prevent="dropFiles" class="textarea" :placeholder="$t('chat_input_hint')"
+        @keydown.enter.exact.prevent="send" @keydown.enter.shift.exact.prevent="chatText += '\n'"
+        @keydown.enter.ctrl.exact.prevent="chatText += '\n'" @keydown.enter.alt.exact.prevent="chatText += '\n'"
+        @keydown.enter.meta.exact.prevent="chatText += '\n'" />
       <div class="btns">
         <button class="icon-button" @click="send" :disable="createLoading">
           <md-ripple />
@@ -70,14 +57,8 @@
       </div>
     </div>
     <input ref="fileInput" style="display: none" type="file" multiple @change="uploadFilesChanged" />
-    <input
-      ref="imageInput"
-      style="display: none"
-      type="file"
-      accept="image/*, video/*"
-      multiple
-      @change="uploadImagesChanged"
-    />
+    <input ref="imageInput" style="display: none" type="file" accept="image/*, video/*" multiple
+      @change="uploadImagesChanged" />
   </div>
 </template>
 
@@ -90,7 +71,7 @@ import { useI18n } from 'vue-i18n'
 import { createChatItemGQL, deleteChatItemGQL, initMutation, updateCache } from '@/lib/api/mutation'
 import { chatItemsGQL, initQuery } from '@/lib/api/query'
 import toast from './toaster'
-import { nextTick, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import type { ApolloCache } from '@apollo/client/core'
 import { useTempStore } from '@/stores/temp'
 import type { IChatItem } from '@/lib/interfaces'
@@ -102,6 +83,7 @@ import { useChatFilesUpload } from '@/views/hooks/files'
 import { shortUUID } from '@/lib/strutil'
 import { getVideoData } from '@/lib/file'
 import { useTasks } from '@/views/hooks/chat'
+import { addLinksToURLs } from '@/lib/strutil'
 
 const { getUploads } = useChatFilesUpload()
 const { resolveClient } = useApolloClient()
@@ -140,7 +122,6 @@ initQuery({
       if (data) {
         chatItems.value = data.chatItems
         if (!initialized) {
-          await nextTick()
           scrollBottom()
           initialized = true
         }
@@ -221,9 +202,7 @@ async function doUploadFiles(files: File[]) {
   enqueueTask(item, uploads)
   const client = resolveClient('a')
   updateCache(client.cache, items, chatItemsGQL)
-  setTimeout(() => {
-    scrollBottom()
-  }, 100)
+  scrollBottom()
 }
 
 function uploadImagesChanged(e: Event) {
@@ -272,9 +251,7 @@ async function doUploadImages(files: File[]) {
   enqueueTask(item, uploads)
   const client = resolveClient('a')
   updateCache(client.cache, items, chatItemsGQL)
-  setTimeout(() => {
-    scrollBottom()
-  }, 100)
+  scrollBottom()
 }
 
 function send() {
@@ -287,7 +264,9 @@ function send() {
 function scrollBottom() {
   const div = scrollContainer.value
   if (div) {
-    div.scrollTop = div.scrollHeight
+    setTimeout(() => {
+      div.scrollTop = div.scrollHeight
+    }, 100)
   }
 }
 
@@ -374,9 +353,7 @@ onMounted(() => {
       items.push({ ...item, data: data, __typename: 'ChatItem' })
     }
     updateCache(client.cache, items, chatItemsGQL)
-    setTimeout(() => {
-      scrollBottom()
-    }, 100)
+    scrollBottom()
   })
 
   emitter.on('message_deleted', async (data: string[]) => {
@@ -449,7 +426,7 @@ onMounted(() => {
   background-color: var(--md-sys-color-surface);
   border-top-left-radius: var(--plain-shape-l);
 
-  & > div {
+  &>div {
     width: 100%;
   }
 }
