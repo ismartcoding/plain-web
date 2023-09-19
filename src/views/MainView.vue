@@ -11,16 +11,12 @@
         <div class="default-content">
           <section class="start">
             <div class="tab-items">
-              <div class="tab-item" @click="selectTab('/')" key="/" :class="{ active: currentPath === '/' }">
+              <div class="tab-item" @click="selectTab('/')" key="/" :class="{ active: currentPath === '/' }"
+                @contextmenu="itemCtxMenu($event, '/')">
                 <span>{{ $t('page_title.home') }}</span>
               </div>
-              <div
-                v-for="item of store.pages"
-                :key="item"
-                @click="selectTab(item)"
-                class="tab-item"
-                :class="{ active: currentPath === item }"
-              >
+              <div v-for="item of store.pages" :key="item" @click="selectTab(item)" class="tab-item"
+                @contextmenu="itemCtxMenu($event, item)" :class="{ active: currentPath === item }">
                 <span>{{ $t(`page_title.${getRouteName(item)}`) }}</span>
                 <button class="icon-button tab-icon" @click.stop="closeTab(item)">
                   <md-ripple />
@@ -42,35 +38,18 @@
         </router-view>
       </div>
       <div class="quick">
-        <button
-          v-if="hasTasks"
-          class="icon-button q-action"
-          v-tooltip="$t('header_actions.tasks')"
-          @click="toggleQuick('task')"
-          toggle
-          :selected="store.quick === 'task'"
-        >
+        <button v-if="hasTasks" class="icon-button q-action" v-tooltip="$t('header_actions.tasks')"
+          @click="toggleQuick('task')" toggle :selected="store.quick === 'task'">
           <md-ripple />
           <i-material-symbols:format-list-numbered-rounded />
         </button>
-        <button
-          id="quick-audio"
-          class="icon-button q-action"
-          v-tooltip="$t('playlist')"
-          @click="toggleQuick('audio')"
-          toggle
-          :selected="store.quick === 'audio'"
-        >
+        <button id="quick-audio" class="icon-button q-action" v-tooltip="$t('playlist')" @click="toggleQuick('audio')"
+          toggle :selected="store.quick === 'audio'">
           <md-ripple />
           <i-material-symbols:queue-music-rounded />
         </button>
-        <button
-          class="icon-button q-action"
-          v-tooltip="$t('my_phone')"
-          @click="toggleQuick('chat')"
-          toggle
-          :selected="store.quick === 'chat'"
-        >
+        <button class="icon-button q-action" v-tooltip="$t('my_phone')" @click="toggleQuick('chat')" toggle
+          :selected="store.quick === 'chat'">
           <md-ripple />
           <i-material-symbols:chat-outline-rounded />
         </button>
@@ -90,17 +69,21 @@ import { h, onMounted, ref, watch, type Component, computed, onUnmounted } from 
 import { useMainStore } from '@/stores/main'
 import { useRouter, type RouteLocationNormalized } from 'vue-router'
 import { getRouteName } from '@/plugins/router'
-import { useTempStore, type IUploadItem } from '@/stores/temp'
+import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { appGQL, initQuery } from '@/lib/api/query'
 import emitter from '@/plugins/eventbus'
 import { tokenToKey } from '@/lib/api/file'
 import type { IMediaItemDeletedEvent, IMediaItemsDeletedEvent } from '@/lib/interfaces'
+import { contextmenu } from '@/components/contextmenu'
+import { useI18n } from 'vue-i18n'
+import { remove } from 'lodash-es'
 
 const store = useMainStore()
 const router = useRouter()
 const tempStore = useTempStore()
 const { app, urlTokenKey } = storeToRefs(tempStore)
+const { t } = useI18n()
 
 const loading = ref(true)
 const errorMessage = ref('')
@@ -144,6 +127,46 @@ const { refetch: refetchApp } = initQuery({
   document: appGQL,
   appApi: true,
 })
+
+
+function itemCtxMenu(e: MouseEvent, path: string) {
+  e.preventDefault()
+  const items = []
+  if (path !== '/') {
+    items.push({
+      label: t('close'),
+      onClick: () => {
+        closeTab(path)
+      },
+    })
+  }
+  items.push({
+    label: t('close_other_tabs'),
+    onClick: () => {
+      remove(store.pages, (it: string) => it !== path)
+      if (currentPath.value !== path && currentPath.value !== '/') {
+        selectTab(path)
+      }
+      includes.value = store.pages
+    },
+  })
+  items.push({
+    label: t('close_tabs_to_the_right'),
+    onClick: () => {
+      const index = store.pages.indexOf(path)
+      remove(store.pages, (it: string) => store.pages.indexOf(it) > index)
+      if (currentPath.value !== path && currentPath.value !== '/') {
+        selectTab(path)
+      }
+      includes.value = store.pages
+    },
+  })
+  contextmenu({
+    x: e.x,
+    y: e.y,
+    items,
+  })
+}
 
 const currentPath = ref(router.currentRoute.value.fullPath)
 

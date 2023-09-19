@@ -391,6 +391,8 @@ export default {
   rotate_left: 'இடது திருத்து',
   rotate_right: 'வலது திருத்து',
   close: 'மூடு',
+  close_other_tabs: 'பிற தாவல்களை மூடு',
+  close_tabs_to_the_right: 'வலது தாவல்களை மூடு',
   relaunch_app: 'பயன்பாட்டை மீண்டும் தொடங்கு',
   all_items_on_this_page_are_selected: 'இந்த பக்கத்தில் உள்ள அனைத்து {count} பொருட்களும் தேர்ந்தெடுக்கப்பட்டுள்ளன.',
   all_items_are_selected: 'அனைத்து {count} பொருட்களும் தேர்ந்தெடுக்கப்பட்டுள்ளன.',

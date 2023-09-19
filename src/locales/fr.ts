@@ -391,6 +391,8 @@ export default {
   rotate_left: 'Rotation à gauche',
   rotate_right: 'Rotation à droite',
   close: 'Fermer',
+  close_other_tabs: 'Fermer les autres onglets',
+  close_tabs_to_the_right: 'Fermer les onglets à droite',
   relaunch_app: "Relancer l'application",
   all_items_on_this_page_are_selected: 'Tous les {count} éléments de cette page sont sélectionnés.',
   all_items_are_selected: 'Tous les {count} éléments sont sélectionnés.',

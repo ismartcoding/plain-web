@@ -389,6 +389,8 @@ export default {
   rotate_left: '左に回転',
   rotate_right: '右に回転',
   close: '閉じる',
+  close_other_tabs: '他のタブを閉じる',
+  close_tabs_to_the_right: '右のタブを閉じる',
   relaunch_app: 'アプリを再起動',
   all_items_on_this_page_are_selected: 'このページのすべての{count}アイテムが選択されています。',
   all_items_are_selected: 'すべての{count}アイテムが選択されています。',

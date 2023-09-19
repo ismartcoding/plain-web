@@ -389,6 +389,8 @@ export default {
   rotate_left: 'বামে ঘুরান',
   rotate_right: 'ডানে ঘুরান',
   close: 'বন্ধ করুন',
+  close_other_tabs: 'অন্যান্য ট্যাব বন্ধ করুন',
+  close_tabs_to_the_right: 'ডানদিকের ট্যাবগুলি বন্ধ করুন',
   relaunch_app: 'আবার চালু করুন',
   all_items_on_this_page_are_selected: 'এই পৃষ্ঠায় সব {count} আইটেম নির্বাচিত হয়েছে।',
   all_items_are_selected: 'সমস্ত {count} আইটেম নির্বাচিত হয়েছে।',

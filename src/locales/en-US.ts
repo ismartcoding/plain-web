@@ -390,6 +390,8 @@ export default {
   rotate_left: 'Rotate left',
   rotate_right: 'Rotate right',
   close: 'Close',
+  close_other_tabs: 'Close other tabs',
+  close_tabs_to_the_right: 'Close tabs to the right',
   relaunch_app: 'Relaunch app',
   all_items_on_this_page_are_selected: 'All {count} items on this page are selected.',
   all_items_are_selected: 'All {count} items are selected.',

@@ -390,6 +390,8 @@ export default {
   rotate_left: 'Rotar a la izquierda',
   rotate_right: 'Rotar a la derecha',
   close: 'Cerrar',
+  close_other_tabs: 'Cerrar otras pestañas',
+  close_tabs_to_the_right: 'Cerrar pestañas a la derecha',
   relaunch_app: 'Reiniciar aplicación',
   all_items_on_this_page_are_selected: 'Todos los {count} elementos en esta página están seleccionados.',
   all_items_are_selected: 'Todos los {count} elementos están seleccionados.',
