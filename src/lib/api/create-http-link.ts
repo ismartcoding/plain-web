@@ -17,6 +17,7 @@ import { visit, type VariableDefinitionNode } from 'graphql'
 import sjcl from 'sjcl'
 import { getApiBaseUrl, getApiHeaders } from './api'
 import { aesEncrypt, aesDecrypt, arrayBufferToBitArray, bitArrayToUint8Array } from './crypto'
+import { tokenToKey } from './file'
 
 export const createHttpLink = (linkOptions: HttpOptions = {}) => {
   const {
@@ -89,7 +90,7 @@ export const createHttpLink = (linkOptions: HttpOptions = {}) => {
     return new Observable((observer) => {
       const doIt = async () => {
         const startTime = performance.now()
-        const key = sjcl.codec.base64.toBits(token)
+        const key = tokenToKey(token)
         ;(options as any).body = bitArrayToUint8Array(aesEncrypt(key, json))
         const encryptTime = performance.now()
         Promise.race([
