@@ -36,11 +36,14 @@ export const useMouse = (wrapperState: IImgWrapperState, status: IStatus, canMov
   let ticking = false
 
   const onMouseDown = (e: MouseEvent) => {
-    wrapperState.initX = wrapperState.lastX = e.clientX
-    wrapperState.initY = wrapperState.lastY = e.clientY
-    status.dragging = true
-    ticking = false
-    e.stopPropagation()
+    if (canMove(e.button)) {
+      wrapperState.initX = wrapperState.lastX = e.clientX
+      wrapperState.initY = wrapperState.lastY = e.clientY
+      status.dragging = true
+      status.dragging = true
+      ticking = false
+      e.stopPropagation()
+    }
   }
 
   const onMouseUp = (e: MouseEvent) => {
@@ -49,6 +52,8 @@ export const useMouse = (wrapperState: IImgWrapperState, status: IStatus, canMov
     }
 
     status.dragging = false
+    status.swipeToLeft = false
+    status.swipeToRight = false
     ticking = false
   }
 
@@ -91,9 +96,14 @@ export const useTouch = (
   // touch event handler
   let rafId: number
   let ticking = false
+  let startX = 0
+  let startY = 0
+  const swipeTolerance = 50
 
   const onTouchStart = (e: TouchEvent) => {
     const { touches } = e
+    startX = touches[0].clientX
+    startY = touches[0].clientY
     if (touches.length > 1) {
       status.gesturing = true
       wrapperState.touches = touches
@@ -109,6 +119,21 @@ export const useTouch = (
     if (ticking) return
     const { touches } = e
     const { lastX, lastY, left, top, scale } = wrapperState
+
+    const currentX = touches[0].clientX
+    const currentY = touches[0].clientY
+
+    const xDiff = currentX - startX
+    const yDiff = currentY - startY
+
+    const movedHorizontally = Math.abs(xDiff) > Math.abs(yDiff)
+    if (movedHorizontally) {
+      if (xDiff < swipeTolerance * -1) {
+        status.swipeToLeft = true
+      } else if (xDiff > swipeTolerance) {
+        status.swipeToRight = true
+      }
+    }
 
     if (!status.gesturing && status.dragging) {
       if (!touches[0]) return

@@ -1,7 +1,7 @@
 <template>
-  <div class="page-container container-fluid">
+  <div class="page-container">
     <splitpanes>
-      <pane size="20">
+      <pane size="20" min-size="10">
         <div class="sidebar">
           <h2 class="nav-title">{{ $t('page_title.contacts') }}</h2>
           <ul class="nav">
@@ -9,7 +9,7 @@
               {{ $t('all') }}
             </li>
           </ul>
-          <tag-filter tag-type="CONTACT" :selected="selectedTagName" />
+          <tag-filter type="CONTACT" :selected="selectedTagName" />
         </div>
       </pane>
       <pane>

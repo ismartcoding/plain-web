@@ -1,7 +1,10 @@
 <template>
   <h2 class="nav-title mt-4">
     {{ $t('tags') }}
-    <button class="btn btn-sm" type="button" @click.prevent="add">{{ $t('add') }}</button>
+    <button class="icon-button" @click.prevent="add" v-tooltip="$t('add_tag')">
+      <md-ripple />
+      <i-material-symbols:add-rounded />
+    </button>
   </h2>
   <ul class="nav">
     <li
@@ -11,17 +14,17 @@
       @contextmenu="itemCtxMenu($event, item)"
       :class="{ active: selected && kebabCase(item.name) === selected }"
     >
-      {{ item.name }}
+      {{ item.name }} ({{ item.count }})
     </li>
   </ul>
 </template>
 
 <script setup lang="ts">
 import { contextmenu } from '@/components/contextmenu'
-import { ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { initQuery, tagsGQL } from '@/lib/api/query'
 import { replacePath } from '@/plugins/router'
-import type { ITag } from '@/lib/interfaces'
+import type { IMediaItemDeletedEvent, IMediaItemsDeletedEvent, ITag } from '@/lib/interfaces'
 import { openModal } from '@/components/modal'
 import { useMainStore } from '@/stores/main'
 import { encodeBase64 } from '@/lib/strutil'
@@ -32,9 +35,11 @@ import { useI18n } from 'vue-i18n'
 import { initMutation, createTagGQL, deleteTagGQL, updateTagGQL } from '@/lib/api/mutation'
 import EditValueModal from '@/components/EditValueModal.vue'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
+import emitter from '@/plugins/eventbus'
+import { names } from '@/lib/tag'
 
 const props = defineProps({
-  tagType: { type: String, required: true },
+  type: { type: String, required: true },
   selected: { type: String, required: true },
 })
 const { t } = useI18n()
@@ -54,7 +59,7 @@ const { refetch } = initQuery({
   },
   document: tagsGQL,
   variables: {
-    type: props.tagType,
+    type: props.type,
   },
   appApi: true,
 })
@@ -75,7 +80,7 @@ function add() {
       })
     },
     getVariables: (value: string) => {
-      return { type: props.tagType, name: value }
+      return { type: props.type, name: value }
     },
   })
 }
@@ -88,18 +93,7 @@ function view(item: ITag) {
       value: kebabCase(item.name),
     },
   ])
-  const names: Record<string, string> = {
-    NOTE: 'notes',
-    AUDIO: 'audios',
-    IMAGE: 'images',
-    VIDEO: 'videos',
-    FEED_ENTRY: 'feeds',
-    SMS: 'messages',
-    CALL: 'calls',
-    CONTACT: 'contacts',
-    AI_CHAT: 'aichats',
-  }
-  replacePath(mainStore, `/${names[props.tagType]}?q=${encodeBase64(q)}`)
+  replacePath(mainStore, `/${names[props.type]}?q=${encodeBase64(q)}`)
 }
 
 function itemCtxMenu(e: MouseEvent, item: ITag) {
@@ -144,4 +138,34 @@ function itemCtxMenu(e: MouseEvent, item: ITag) {
     ],
   })
 }
+
+const refetchTagsHandler = (type: string) => {
+  if (type === props.type) {
+    refetch()
+  }
+}
+
+const mediaItemsDeletedHandler = (event: IMediaItemsDeletedEvent) => {
+  if (event.type === props.type) {
+    refetch()
+  }
+}
+
+const mediaItemDeletedHandler = (event: IMediaItemDeletedEvent) => {
+  if (event.item.tags.length && event.type === props.type) {
+    refetch()
+  }
+}
+
+onMounted(() => {
+  emitter.on('refetch_tags', refetchTagsHandler)
+  emitter.on('media_items_deleted', mediaItemsDeletedHandler)
+  emitter.on('media_item_deleted', mediaItemDeletedHandler)
+})
+
+onUnmounted(() => {
+  emitter.off('refetch_tags', refetchTagsHandler)
+  emitter.off('media_items_deleted', mediaItemsDeletedHandler)
+  emitter.off('media_item_deleted', mediaItemDeletedHandler)
+})
 </script>

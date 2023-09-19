@@ -117,8 +117,8 @@ export const deletePlaylistAudioGQL = gql`
 `
 
 export const addPlaylistAudiosGQL = gql`
-  mutation addPlaylistAudios($paths: [String!]!) {
-    addPlaylistAudios(paths: $paths)
+  mutation addPlaylistAudios($query: String!) {
+    addPlaylistAudios(query: $query)
   }
 `
 
@@ -129,37 +129,31 @@ export const clearAudioPlaylistGQL = gql`
 `
 
 export const deleteMediaItemsGQL = gql`
-  mutation deleteMediaItems($tagType: TagType!, $ids: [ID!]!) {
-    deleteMediaItems(tagType: $tagType, ids: $ids)
-  }
-`
-
-export const deleteMediaItemGQL = gql`
-  mutation deleteMediaItems($tagType: TagType!, $id: ID!) {
-    deleteMediaItems(tagType: $tagType, ids: [$id])
+  mutation deleteMediaItems($type: DataType!, $query: String!) {
+    deleteMediaItems(type: $type, query: $query)
   }
 `
 
 export const removeFromTagsGQL = gql`
-  mutation removeFromTags($tagIds: [ID!]!, $keys: [ID!]!) {
-    removeFromTags(tagIds: $tagIds, keys: $keys)
+  mutation removeFromTags($type: DataType!, $tagIds: [ID!]!, $query: String!) {
+    removeFromTags(type: $type, tagIds: $tagIds, query: $query)
   }
 `
 
 export const addToTagsGQL = gql`
-  mutation addToTags($tagType: TagType!, $tagIds: [ID!]!, $items: [TagRelationStub!]!) {
-    addToTags(tagType: $tagType, tagIds: $tagIds, items: $items)
+  mutation addToTags($type: DataType!, $tagIds: [ID!]!, $query: String!) {
+    addToTags(type: $type, tagIds: $tagIds, query: $query)
   }
 `
 
 export const updateTagRelationsGQL = gql`
-  mutation updateTagRelations($tagType: TagType!, $item: TagRelationStub!, $addTagIds: [ID!]!, $removeTagIds: [ID!]!) {
-    updateTagRelations(tagType: $tagType, item: $item, addTagIds: $addTagIds, removeTagIds: $removeTagIds)
+  mutation updateTagRelations($type: DataType!, $item: TagRelationStub!, $addTagIds: [ID!]!, $removeTagIds: [ID!]!) {
+    updateTagRelations(type: $type, item: $item, addTagIds: $addTagIds, removeTagIds: $removeTagIds)
   }
 `
 
 export const createTagGQL = gql`
-  mutation createTag($type: TagType!, $name: String!) {
+  mutation createTag($type: DataType!, $name: String!) {
     createTag(type: $type, name: $name) {
       ...TagFragment
     }
@@ -192,38 +186,38 @@ export const saveNoteGQL = gql`
 `
 
 export const deleteNotesGQL = gql`
-  mutation deleteNotes($ids: [ID!]!) {
-    deleteNotes(ids: $ids)
+  mutation deleteNotes($query: String!) {
+    deleteNotes(query: $query)
   }
 `
 
 export const trashNotesGQL = gql`
-  mutation trashNotes($ids: [ID!]!) {
-    trashNotes(ids: $ids)
+  mutation trashNotes($query: String!) {
+    trashNotes(query: $query)
   }
 `
 
 export const untrashNotesGQL = gql`
-  mutation untrashNotes($ids: [ID!]!) {
-    untrashNotes(ids: $ids)
+  mutation untrashNotes($query: String!) {
+    untrashNotes(query: $query)
   }
 `
 
 export const deleteFeedEntriesGQL = gql`
-  mutation deleteFeedEntries($ids: [ID!]!) {
-    deleteFeedEntries(ids: $ids)
+  mutation deleteFeedEntries($query: String!) {
+    deleteFeedEntries(query: $query)
   }
 `
 
 export const deleteCallsGQL = gql`
-  mutation deleteCalls($ids: [ID!]!) {
-    deleteCalls(ids: $ids)
+  mutation deleteCalls($query: String!) {
+    deleteCalls(query: $query)
   }
 `
 
 export const deleteContactsGQL = gql`
-  mutation deleteContacts($ids: [ID!]!) {
-    deleteContacts(ids: $ids)
+  mutation deleteContacts($query: String!) {
+    deleteContacts(query: $query)
   }
 `
 
@@ -245,6 +239,12 @@ export const importFeedsGQL = gql`
 export const exportFeedsGQL = gql`
   mutation exportFeeds {
     exportFeeds
+  }
+`
+
+export const relaunchAppGQL = gql`
+  mutation relaunchApp {
+    relaunchApp
   }
 `
 
@@ -298,16 +298,9 @@ export const createAIChatGQL = gql`
   }
 `
 
-export const deleteAIChatItemsGQL = gql`
-  mutation deleteAIChats($ids: [ID!]!) {
-    deleteAIChats(ids: $ids)
-  }
-`
-
 export const deleteAIChatsGQL = gql`
-  mutation deleteAIChats($ids: [ID!]!) {
-    deleteAIChats(ids: $ids)
-    deleteAIChatsByParentIds(ids: $ids)
+  mutation deleteAIChats($query: String!) {
+    deleteAIChats(query: $query)
   }
 `
 

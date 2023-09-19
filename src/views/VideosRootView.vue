@@ -1,16 +1,19 @@
 <template>
-  <div class="page-container container-fluid">
+  <div class="page-container">
     <splitpanes>
-      <pane size="20">
+      <pane size="20" min-size="10">
         <div class="sidebar">
           <h2 class="nav-title">{{ $t('page_title.videos') }}</h2>
           <ul class="nav">
-            <li @click.prevent="all" :class="{ active: route.path === '/videos' && !selectedTagName && !selectedBucketId }">
+            <li
+              @click.prevent="all"
+              :class="{ active: route.path === '/videos' && !selectedTagName && !selectedBucketId }"
+            >
               {{ $t('all') }}
             </li>
+            <bucket-filter type="VIDEO" :selected="selectedBucketId" />
           </ul>
-          <bucket-filter bucket-type="VIDEO" :selected="selectedBucketId" />
-          <tag-filter tag-type="VIDEO" :selected="selectedTagName" />
+          <tag-filter type="VIDEO" :selected="selectedTagName" />
         </div>
       </pane>
       <pane>

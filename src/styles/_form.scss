@@ -1,0 +1,58 @@
+.form-label {
+    display: block;
+    margin-block: 16px;
+    font-weight: bold;
+}
+
+.form-row {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    margin-block-end: 16px;
+
+    &>* {
+        flex: 1;
+    }
+
+    .flex-2 {
+        flex: 2;
+    }
+
+    .flex-3 {
+        flex: 3;
+    }
+}
+
+.form-control {
+    width: 100%;
+}
+
+.form-check-label {
+    display: inline-flex;
+    place-items: center;
+}
+
+.icon-button {
+    align-items: center;
+    background: none;
+    border: none;
+    box-sizing: border-box;
+    cursor: pointer;
+    display: inline-flex;
+    justify-content: center;
+    outline: none;
+    padding: 0px;
+    position: relative;
+    text-decoration: none;
+    user-select: none;
+    z-index: 0;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    color: currentColor;
+
+    svg {
+        height: 24px;
+        width: 24px;
+    }
+}

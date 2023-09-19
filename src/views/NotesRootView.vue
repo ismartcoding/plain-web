@@ -1,7 +1,7 @@
 <template>
-  <div class="page-container container-fluid">
+  <div class="page-container">
     <splitpanes>
-      <pane size="20">
+      <pane size="20" min-size="10">
         <div class="sidebar">
           <h2 class="nav-title">{{ $t('page_title.notes') }}</h2>
           <ul class="nav">
@@ -12,7 +12,7 @@
               {{ $t('trash') }}
             </li>
           </ul>
-          <tag-filter tag-type="NOTE" :selected="selectedTagName" />
+          <tag-filter type="NOTE" :selected="selectedTagName" />
         </div>
       </pane>
       <pane>

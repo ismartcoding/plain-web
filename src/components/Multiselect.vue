@@ -115,9 +115,8 @@ function toggle() {
   font-size: 0.875rem;
   position: relative;
   min-height: 38px;
-  border: 1px solid var(--border-color);
-  background-color: var(--back-color);
-  color: var(--text-color);
+  border: 1px solid var(--md-sys-color-outline);
+  background-color: var(--md-sys-color-surface);
   border-radius: var(--border-radius-sm);
 
   .tags {
@@ -155,7 +154,7 @@ function toggle() {
   border-radius: 5px;
   margin-right: 10px;
   line-height: 1;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--md-sys-color-outline);
   margin-bottom: 8px;
 
   & ~ .tag-input {
@@ -180,7 +179,6 @@ function toggle() {
 
   &::after {
     content: '×';
-    color: var(--text-color);
     font-size: 0.875rem;
   }
 }
@@ -205,11 +203,10 @@ function toggle() {
     position: relative;
     right: 0;
     top: 65%;
-    color: var(--text-color);
     margin-top: 4px;
     border-style: solid;
     border-width: 5px 5px 0 5px;
-    border-color: var(--border-color) transparent transparent transparent;
+    border-color: var(--md-sys-color-outline) transparent transparent transparent;
     content: '';
   }
 }
@@ -218,13 +215,13 @@ function toggle() {
   position: absolute;
   list-style: none;
   display: block;
-  background: var(--back-color);
+  background: var(--md-sys-color-surface);
   width: calc(100% + 2px);
   max-height: 300px;
   overflow: auto;
   padding: 0;
   margin: 0 0 0 -1px;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--md-sys-color-outline);
   border-top: none;
   border-bottom-left-radius: var(--border-radius-sm);
   border-bottom-right-radius: var(--border-radius-sm);

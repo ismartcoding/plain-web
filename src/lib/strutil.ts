@@ -108,3 +108,13 @@ function anyBase(srcAlphabet: string, dstAlphabet: string, number: string) {
 
   return result
 }
+
+const URL_REGEX = /(\b(((https?|ftp):\/\/)|www.)[A-Z0-9+&@#\/%?=~_|!:,.;-]*[-A-Z0-9+&@#\/%=~_|])/gim
+const EMAIL_REGEX = /(\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,6})/gim
+
+export function addLinksToURLs(text: string) {
+  let newText = text ? String(text).replace(/<[^>]+>/gm, '') : '' // Remove all the html tags
+  newText = newText.replace(URL_REGEX, '<a href="$1" target="_blank">$1</a>')
+  newText = newText.replace(EMAIL_REGEX, '<a href="mailto:$1">$1</a>')
+  return newText.replace(/\n\r?/g, '<br />')
+}

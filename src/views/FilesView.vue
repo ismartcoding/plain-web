@@ -3,26 +3,33 @@
     <breadcrumb :current="getPageTitle" />
     <div class="right-actions">
       <template v-if="selectMode && checked">
-        <button type="button" class="btn btn-action" @click.stop="() => copy(getSelectedFiles())">
-          {{ $t('copy') }}
+        <button class="icon-button" @click.stop="() => copy(getSelectedFiles())" v-tooltip="$t('copy')">
+          <md-ripple />
+          <i-material-symbols:content-copy-outline-rounded />
         </button>
-        <button type="button" class="btn btn-action" @click.stop="() => cut(getSelectedFiles())">
-          {{ $t('cut') }}
+        <button class="icon-button" @click.stop="() => cut(getSelectedFiles())" v-tooltip="$t('cut')">
+          <md-ripple />
+          <i-material-symbols:content-cut-rounded />
         </button>
-        <button type="button" class="btn btn-action" @click.stop="deleteItems" :title="$t('delete')">
-          <i-material-symbols:delete-outline-rounded class="bi" />
+        <button class="icon-button" @click.stop="deleteItems" v-tooltip="$t('delete')">
+          <md-ripple />
+          <i-material-symbols:delete-forever-outline-rounded />
         </button>
-        <button type="button" class="btn btn-action" @click.stop="downloadItems" :title="$t('download')">
-          <i-material-symbols:download-rounded class="bi" />
+        <button class="icon-button" @click.stop="downloadItems" v-tooltip="$t('download')">
+          <md-ripple />
+          <i-material-symbols:download-rounded />
         </button>
       </template>
       <div class="form-check mt-2 me-3 ms-3">
-        <input class="form-check-input" v-model="selectMode" id="select-mode" type="checkbox" />
-        <label class="form-check-label" for="select-mode">{{ $t('select_mode') }}</label>
+        <label class="form-check-label">
+          <md-checkbox touch-target="wrapper" @change="toggleSelectModeChecked" :checked="selectMode" />
+          {{ $t('select_mode') }}
+        </label>
       </div>
       <div class="form-check mt-2">
-        <input class="form-check-input" v-model="fileShowHidden" id="show-hidden" type="checkbox" />
-        <label class="form-check-label" for="show-hidden">{{ $t('show_hidden') }}</label>
+        <label class="form-check-label"
+          ><md-checkbox touch-target="wrapper" :checked="fileShowHidden" />{{ $t('show_hidden') }}</label
+        >
       </div>
     </div>
   </div>
@@ -37,11 +44,11 @@
               active: (currentDir + '/').startsWith(f.path + '/') || selectedItem?.path === f.path,
             }"
             @click="clickItem(panel, f)"
-            @dblclick="dbclickItem(panel, f)"
+            @dblclick.prevent="dbclickItem(panel, f)"
             @contextmenu="itemCtxMenu($event, panel, f)"
           >
-            <input class="form-check-input" v-if="selectMode" v-model="f.checked" type="checkbox" />
-            <i-material-symbols:folder-outline-rounded class="bi" v-if="f.isDir" />
+            <md-checkbox touch-target="wrapper" v-if="selectMode" :checked="f.checked" />
+            <i-material-symbols:folder-outline-rounded v-if="f.isDir" />
             <img
               v-if="isImage(f.name) || isVideo(f.name)"
               :src="getFileUrl(f.fileId) + '&w=50&h=50'"
@@ -86,7 +93,7 @@
 
 <script setup lang="ts">
 import { contextmenu } from '@/components/contextmenu'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onActivated, onDeactivated, ref, watch } from 'vue'
 import { formatDateTime, formatFileSize } from '@/lib/format'
 import { useI18n } from 'vue-i18n'
 import { Splitpanes, Pane } from 'splitpanes'
@@ -117,6 +124,7 @@ import { decodeBase64, shortUUID } from '@/lib/strutil'
 import { parseQuery } from '@/lib/search'
 import { initMutation, setTempValueGQL } from '@/lib/api/mutation'
 import type { ISource } from '@/components/lightbox/types'
+import type { MdCheckbox } from '@material/web/checkbox/checkbox'
 
 const { t } = useI18n()
 const sources = ref([])
@@ -143,7 +151,7 @@ const selectMode = ref(false)
 const mainStore = useMainStore()
 
 const tempStore = useTempStore()
-const { app, selectedFiles } = storeToRefs(tempStore)
+const { app, urlTokenKey, selectedFiles } = storeToRefs(tempStore)
 let rootDir = app.value.internalStoragePath
 if (filesType) {
   if (filesType === 'sdcard') {
@@ -154,19 +162,19 @@ if (filesType) {
     rootDir = app.value.externalFilesDir
   }
 }
-const { loading, panels, currentDir, refetch: refetchFiles } = useFiles(app, rootDir, initDir.value)
+const { loading, panels, currentDir, refetch: refetchFiles } = useFiles(urlTokenKey, rootDir, initDir.value)
 
-const { createPath, createVariables, createMutation } = useCreateDir(app, panels)
+const { createPath, createVariables, createMutation } = useCreateDir(urlTokenKey, panels)
 const { renameValue, renamePath, renameDone, renameMutation, renameVariables } = useRename(panels)
 const { internal, sdcard, usb, refetch: refetchStats } = useStats()
 const { onDeleted } = useDelete(panels, currentDir, refetchStats)
-const { downloadFile, downloadDir, downloadFiles } = useDownload(app)
+const { downloadFile, downloadDir, downloadFiles } = useDownload(urlTokenKey)
 const { view } = useView(sources, (s: ISource[], index: number) => {
   tempStore.lightbox = {
-      sources: s,
-      index: index,
-      visible: true
-    }
+    sources: s,
+    index: index,
+    visible: true,
+  }
 })
 const { selectedItem, select } = useSingleSelect(currentDir, filesType, q, mainStore)
 const { canPaste, copy, cut, paste } = useCopyPaste(selectedFiles, refetchFiles, refetchStats)
@@ -193,6 +201,10 @@ const getSelectedFiles = () => {
     })
   })
   return files
+}
+
+function toggleSelectModeChecked(e: Event) {
+  selectMode.value = (e.target as MdCheckbox).checked
 }
 
 const downloadItems = () => {
@@ -270,7 +282,10 @@ function dbclickItem(panel: FilePanel, item: IFile) {
       if (fileShowHidden) {
         view(panel.items, item)
       } else {
-        view(panel.items.filter((it: IFile) => !it.name.startsWith('.')), item)
+        view(
+          panel.items.filter((it: IFile) => !it.name.startsWith('.')),
+          item
+        )
       }
     } else {
       downloadFile(item.path)
@@ -427,16 +442,22 @@ function itemCtxMenu(e: MouseEvent, panel: FilePanel, f: IFile) {
   })
 }
 
-onMounted(() => {
-  emitter.on('upload_task_done', (r: IUploadItem) => {
-    if (r.status === 'done') {
-      // have to delay 1s to make sure the api return latest data.
-      setTimeout(() => {
-        refetchFiles(r.dir)
-        refetchStats()
-      }, 1000)
-    }
-  })
+const uploadTaskDoneHandler = (r: IUploadItem) => {
+  if (r.status === 'done') {
+    // have to delay 1s to make sure the api return latest data.
+    setTimeout(() => {
+      refetchFiles(r.dir)
+      refetchStats()
+    }, 1000)
+  }
+}
+
+onActivated(() => {
+  emitter.on('upload_task_done', uploadTaskDoneHandler)
+})
+
+onDeactivated(() => {
+  emitter.off('upload_task_done', uploadTaskDoneHandler)
 })
 </script>
 <style lang="scss" scoped>
@@ -445,7 +466,7 @@ onMounted(() => {
 }
 
 .panel-container {
-  height: calc(100vh - 180px);
+  height: calc(100vh - 200px);
 }
 
 .no-data-placeholder {
@@ -459,7 +480,6 @@ onMounted(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 6px 8px;
 
   .file-item {
     padding: 8px;
@@ -467,6 +487,7 @@ onMounted(() => {
     border: 1px solid transparent;
     display: flex;
     align-items: center;
+    user-select: none;
 
     &:hover {
       cursor: pointer;
@@ -477,13 +498,9 @@ onMounted(() => {
       margin-right: 8px;
     }
 
-    .form-check-input {
-      margin-right: 8px;
-    }
-
     &.active {
-      border-radius: var(--border-radius-sm);
-      border-color: var(--border-color);
+      background-color: var(--md-sys-color-on-surface-selected);
+      border-radius: 8px;
     }
   }
 

@@ -1,29 +1,24 @@
 <template>
-  <v-modal title="ChatGPT">
-    <template #body>
-      <div class="row">
-        <label class="col-md-2 col-form-label">{{ $t('api_key') }}</label>
-        <div class="col-md-10">
-          <input
-            ref="input"
-            type="text"
-            :placeholder="$t('api_key')"
-            class="form-control"
-            v-model="inputValue"
-            @keyup.enter="doAction"
-          />
-          <div class="invalid-feedback" v-show="valueError">
-            {{ valueError ? $t(valueError) : '' }}
-          </div>
-        </div>
-      </div>
-    </template>
-    <template #action>
-      <button type="button" :disabled="loading" class="btn" @click="doAction">
+  <md-dialog>
+    <div slot="headline">ChatGPT</div>
+    <div slot="content">
+      <md-outlined-text-field
+        ref="input"
+        :label="$t('api_key')"
+        class="form-control"
+        v-model="inputValue"
+        @keyup.enter="doAction"
+        :error="valueError"
+        :error-text="valueError ? $t(valueError) : ''"
+      />
+    </div>
+    <div slot="actions">
+      <md-outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</md-outlined-button>
+      <md-filled-button value="save" :disabled="loading" @click="doAction" autofocus>
         {{ $t('save') }}
-      </button>
-    </template>
-  </v-modal>
+      </md-filled-button>
+    </div>
+  </md-dialog>
 </template>
 <script setup lang="ts">
 import { useField, useForm } from 'vee-validate'
@@ -51,7 +46,7 @@ const { mutate, loading, onDone } = initMutation({
   },
   appApi: true,
 })
-const { value: inputValue, resetField, errorMessage: valueError } = useField('inputValue', string().required())
+const { value: inputValue, resetField, errorMessage: valueError } = useField('inputValue', string())
 inputValue.value = props.value ?? ''
 if (!inputValue.value) {
   resetField()

@@ -1,96 +1,126 @@
 <template>
   <div class="v-toolbar">
     <breadcrumb :current="() => `${$t('page_title.feeds')} (${total})`" />
-    <div class="right-actions">
-      <template v-if="checked">
-        <button type="button" class="btn btn-action" @click.stop="deleteItems" :title="$t('delete')">
-          <i-material-symbols:delete-outline-rounded class="bi" />
-        </button>
-        <button type="button" class="btn btn-action" @click.stop="addToTags" :title="$t('add_to_tags')">
-          <i-material-symbols:label-outline-rounded class="bi" />
-        </button>
-        <button type="button" class="btn btn-action" @click.stop="removeFromTags" :title="$t('remove_from_tags')">
-          <i-material-symbols:label-off-outline-rounded class="bi" />
-        </button>
-      </template>
-      <button class="btn btn-action" :disabled="syncing" type="button" @click.prevent="syncFeeds">
-        {{ syncing ? $t('syncing') : $t('sync_feeds') }}
+    <template v-if="checked">
+      <button class="icon-button" @click.stop="deleteItems(realAllChecked, finalQ)" v-tooltip="$t('delete')">
+        <md-ripple />
+        <i-material-symbols:delete-forever-outline-rounded />
       </button>
-      <search-input v-model="q" :search="doSearch">
-        <template #filters>
-          <div class="row mb-3">
-            <label class="col-md-3 col-form-label">{{ $t('keywords') }}</label>
-            <div class="col-md-9">
-              <input type="text" v-model="filter.text" class="form-control" @keyup.enter="applyAndDoSearch" />
-            </div>
-          </div>
-          <div class="row mb-3">
-            <label class="col-md-3 col-form-label">{{ $t('tags') }}</label>
-            <div class="col-md-9">
-              <multiselect v-model="filter.tags" label="name" track-by="id" :options="tags" />
-            </div>
-          </div>
-          <div class="actions">
-            <button type="button" class="btn" @click.stop="applyAndDoSearch">
+      <button class="icon-button" @click.stop="addToTags(realAllChecked, finalQ)" v-tooltip="$t('add_to_tags')">
+        <md-ripple />
+        <i-material-symbols:label-outline-rounded />
+      </button>
+    </template>
+    <md-outlined-button :disabled="syncing" @click.prevent="syncFeeds">
+      {{ syncing ? $t('syncing') : $t('sync_feeds') }}
+    </md-outlined-button>
+    <search-input ref="searchInputRef" v-model="q" :search="doSearch">
+      <template #filters>
+        <div class="filters">
+          <md-outlined-text-field :label="$t('keywords')" v-model="filter.text" keyup.enter="applyAndDoSearch" />
+          <label class="form-label">{{ $t('tags') }}</label>
+          <md-chip-set type="filter">
+            <md-filter-chip
+              v-for="item in tags"
+              :key="item.id"
+              :label="item.name"
+              :selected="filter.tags.includes(item)"
+              @click="onTagSelect(item)"
+            />
+          </md-chip-set>
+          <div class="buttons">
+            <md-filled-button @click.stop="applyAndDoSearch">
               {{ $t('search') }}
-            </button>
+            </md-filled-button>
           </div>
-        </template>
-      </search-input>
-    </div>
+        </div>
+      </template>
+    </search-input>
   </div>
-  <table class="table">
-    <thead>
-      <tr>
-        <th><input class="form-check-input" type="checkbox" @change="toggleSelect" v-model="selectAll" /></th>
-        <th>ID</th>
-        <th></th>
-        <th>{{ $t('title') }}</th>
-        <th>{{ $t('source') }}</th>
-        <th>{{ $t('tags') }}</th>
-        <th>{{ $t('published_at') }}</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr
-        v-for="item in items"
-        :key="item.id"
-        :class="{ checked: item.checked }"
-        @click.stop="item.checked = !item.checked"
-      >
-        <td><input class="form-check-input" type="checkbox" v-model="item.checked" /></td>
-        <td><field-id :id="item.id" :raw="item" /></td>
-        <td>
-          <img v-if="item.image" :src="getFileUrl(item.image) + '&w=200&h=200'" width="50" height="50" />
-        </td>
-        <td>
-          <a :href="viewUrl(item)" @click.prevent="view(item)">{{ item.title || $t('no_content') }}</a>
-        </td>
-        <td>{{ item.author }}</td>
-        <td>
-          <span v-for="tag in item.tags" class="badge">{{ tag.name }}</span>
-        </td>
-        <td class="nowrap" :title="formatDateTimeFull(item.publishedAt)">
-          {{ formatDateTime(item.publishedAt) }}
-        </td>
-      </tr>
-    </tbody>
-    <tfoot v-if="!items.length">
-      <tr>
-        <td colspan="7">
-          <div class="no-data-placeholder">
-            {{ $t(noDataKey(loading)) }}
-          </div>
-        </td>
-      </tr>
-    </tfoot>
-  </table>
+  <all-checked-alert
+    :limit="limit"
+    :total="total"
+    :all-checked-alert-visible="allCheckedAlertVisible"
+    :real-all-checked="realAllChecked"
+    :select-real-all="selectRealAll"
+    :clear-selection="clearSelection"
+  />
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>
+            <md-checkbox
+              touch-target="wrapper"
+              @change="toggleAllChecked"
+              :checked="allChecked"
+              :indeterminate="!allChecked && checked"
+            />
+          </th>
+          <th>ID</th>
+          <th></th>
+          <th>{{ $t('title') }}</th>
+          <th></th>
+          <th>{{ $t('source') }}</th>
+          <th>{{ $t('tags') }}</th>
+          <th>{{ $t('published_at') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="item in items"
+          :key="item.id"
+          :class="{ selected: item.checked }"
+          @click.stop="item.checked = !item.checked"
+        >
+          <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
+          <td><field-id :id="item.id" :raw="item" /></td>
+          <td>
+            <img v-if="item.image" :src="getFileUrl(item.image) + '&w=300&h=300'" width="50" height="50" />
+          </td>
+          <td>
+            <a :href="viewUrl(item)" @click.prevent="view(item)">{{ item.title || $t('no_content') }}</a>
+          </td>
+          <td class="nowrap">
+            <div class="action-btns">
+              <button class="icon-button" @click.stop="deleteItem(item)" v-tooltip="$t('delete')">
+                <md-ripple />
+                <i-material-symbols:delete-forever-outline-rounded />
+              </button>
+              <button class="icon-button" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
+                <md-ripple />
+                <i-material-symbols:label-outline-rounded />
+              </button>
+            </div>
+          </td>
+          <td class="nowrap">{{ item.author }}</td>
+          <td>
+            <item-tags :tags="item.tags" :type="dataType" />
+          </td>
+          <td class="nowrap">
+            <span v-tooltip="formatDateTimeFull(item.publishedAt)">
+              {{ formatDateTime(item.publishedAt) }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+      <tfoot v-if="!items.length">
+        <tr>
+          <td colspan="8">
+            <div class="no-data-placeholder">
+              {{ $t(noDataKey(loading)) }}
+            </div>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
   <v-pagination v-if="total > limit" v-model="page" :total="total" :limit="limit" />
 </template>
 
 <script setup lang="ts">
 import { getFileUrl } from '@/lib/api/file'
-import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
+import { nextTick, onActivated, onDeactivated, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatDateTime, formatDateTimeFull } from '@/lib/format'
 import { initQuery, feedsTagsGQL, initLazyQuery, feedEntriesGQL } from '@/lib/api/query'
@@ -98,18 +128,32 @@ import { useRoute } from 'vue-router'
 import router, { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useI18n } from 'vue-i18n'
-import type { ITag, IFeedEntryItem, IFeedEntry, IFeed, IFeedEntryFilter } from '@/lib/interfaces'
+import type {
+  ITag,
+  IFeedEntryItem,
+  IFeedEntry,
+  IFeed,
+  IFeedEntryFilter,
+  IItemsTagsUpdatedEvent,
+  IItemTagsUpdatedEvent,
+} from '@/lib/interfaces'
 import { buildFilterQuery, buildQuery, parseQuery } from '@/lib/search'
-import { kebabCase } from 'lodash-es'
+import { kebabCase, remove } from 'lodash-es'
 import { decodeBase64, encodeBase64 } from '@/lib/strutil'
 import { noDataKey } from '@/lib/list'
 import { useDelete, useSelectable } from './hooks/list'
 import emitter from '@/plugins/eventbus'
-import { useAddToTags, useRemoveFromTags } from './hooks/tags'
+import { useAddToTags } from './hooks/tags'
 import { deleteFeedEntriesGQL, initMutation, syncFeedsGQL } from '@/lib/api/mutation'
+import { openModal } from '@/components/modal'
+import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
+import DeleteConfirm from '@/components/DeleteConfirm.vue'
+import gql from 'graphql-tag'
+import { DataType } from '@/lib/data'
 
 const mainStore = useMainStore()
 const items = ref<IFeedEntryItem[]>([])
+const searchInputRef = ref()
 const { t } = useI18n()
 const filter: IFeedEntryFilter = reactive({
   text: '',
@@ -117,32 +161,39 @@ const filter: IFeedEntryFilter = reactive({
   tags: [],
 })
 
-const tagType = 'FEED_ENTRY'
+const dataType = DataType.FEED_ENTRY
 const route = useRoute()
 const query = route.query
 const page = ref(parseInt(query.page?.toString() ?? '1'))
 const limit = 50
-const total = ref(0)
 const tags = ref<ITag[]>([])
 const feeds = ref<IFeed[]>([])
 const q = ref(decodeBase64(query.q?.toString() ?? ''))
 const finalQ = ref('')
-const { addToTags } = useAddToTags(tagType, items, tags)
-const { removeFromTags } = useRemoveFromTags(tagType, items, tags)
+const { addToTags } = useAddToTags(dataType, items, tags)
 const { deleteItems } = useDelete(
   deleteFeedEntriesGQL,
   () => {
     refetch()
+    if (items.value.some((it) => it.tags.length)) {
+      emitter.emit('refetch_tags', dataType)
+    }
   },
   items
 )
 const syncing = ref(false)
 
-const checked = computed<boolean>(() => {
-  return items.value.some((it) => it.checked)
-})
-
-const { selectAll, toggleSelect } = useSelectable(items)
+const {
+  allChecked,
+  realAllChecked,
+  selectRealAll,
+  allCheckedAlertVisible,
+  clearSelection,
+  toggleAllChecked,
+  toggleItemChecked,
+  total,
+  checked,
+} = useSelectable(items)
 const { loading, load, refetch } = initLazyQuery({
   handle: (data: any, error: string) => {
     if (error) {
@@ -162,6 +213,29 @@ const { loading, load, refetch } = initLazyQuery({
   }),
   appApi: true,
 })
+
+function deleteItem(item: IFeedEntryItem) {
+  openModal(DeleteConfirm, {
+    id: item.id,
+    name: item.title,
+    gql: gql`
+      mutation deleteFeedEntry($query: String!) {
+        deleteFeedEntries(query: $query)
+      }
+    `,
+    variables: () => ({
+      query: `ids:${item.id}`,
+    }),
+    appApi: true,
+    typeName: 'FeedEntry',
+    done: () => {
+      total.value--
+      if (item.tags.length) {
+        emitter.emit('refetch_tags', dataType)
+      }
+    },
+  })
+}
 
 initQuery({
   handle: async (data: any, error: string) => {
@@ -221,35 +295,74 @@ initQuery({
   },
   document: feedsTagsGQL,
   variables: {
-    type: tagType,
+    type: dataType,
   },
   appApi: true,
 })
+
+function addItemToTags(item: IFeedEntryItem) {
+  openModal(UpdateTagRelationsModal, {
+    type: dataType,
+    tags: tags.value,
+    item: {
+      key: item.id,
+      title: '',
+      size: 0,
+    },
+    selected: tags.value.filter((it) => item.tags.some((t) => t.id === it.id)),
+  })
+}
 
 watch(page, (value: number) => {
   replacePath(mainStore, `/feeds?page=${value}&q=${encodeBase64(q.value)}`)
 })
 
+function onTagSelect(item: ITag) {
+  if (filter.tags.includes(item)) {
+    remove(filter.tags, (it: ITag) => it.id === item.id)
+  } else {
+    filter.tags.push(item)
+  }
+}
+
 function applyAndDoSearch() {
   q.value = buildFilterQuery(filter)
   doSearch()
+  searchInputRef.value.dismiss()
 }
 
 function doSearch() {
   replacePath(mainStore, `/feeds?q=${encodeBase64(q.value)}`)
 }
 
-onMounted(() => {
-  emitter.on('refetch_by_tag_type', (type: string) => {
-    if (type === tagType) {
-      refetch()
-    }
-  })
+const feedsFetchedHandler = (data: any) => {
+  syncing.value = false
+  toast(data.error || t('feeds_synced'))
+}
 
-  emitter.on('feeds_fetched', (data: any) => {
-    syncing.value = false
-    toast(data.error || t('feeds_synced'))
-  })
+const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
+  if (event.type === dataType) {
+    clearSelection()
+    refetch()
+  }
+}
+
+const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
+  if (event.type === dataType) {
+    refetch()
+  }
+}
+
+onActivated(() => {
+  emitter.on('item_tags_updated', itemTagsUpdatedHandler)
+  emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
+  emitter.on('feeds_fetched', feedsFetchedHandler)
+})
+
+onDeactivated(() => {
+  emitter.off('item_tags_updated', itemTagsUpdatedHandler)
+  emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
+  emitter.off('feeds_fetched', feedsFetchedHandler)
 })
 
 function view(item: IFeedEntry) {

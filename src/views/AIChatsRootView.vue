@@ -1,11 +1,12 @@
 <template>
-  <div class="page-container container-fluid">
+  <div class="page-container">
     <splitpanes>
-      <pane size="20">
+      <pane size="20" min-size="10">
         <div class="sidebar">
           <h2 class="nav-title">
             {{ $t('page_title.aichats') }}
-            <button class="btn btn-sm" type="button" @click.prevent="config">
+            <button class="icon-button" @click.prevent="config" v-tooltip="$t('config')">
+              <md-ripple />
               <i-material-symbols:settings-outline />
             </button>
           </h2>
@@ -14,7 +15,7 @@
               {{ $t('all') }}
             </li>
           </ul>
-          <tag-filter tag-type="AI_CHAT" :selected="selectedTagName" />
+          <tag-filter type="AI_CHAT" :selected="selectedTagName" />
         </div>
       </pane>
       <pane>

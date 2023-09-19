@@ -4,8 +4,9 @@ import { defineStore } from 'pinia'
 export type MainState = {
   fileShowHidden: boolean
   chatText: string
-  consoleOpen: boolean
+  quick: string
   pages: string[]
+  lightboxInfoVisible: boolean
 }
 
 export const useMainStore = defineStore({
@@ -14,12 +15,13 @@ export const useMainStore = defineStore({
     ({
       fileShowHidden: false,
       chatText: '',
-      consoleOpen: true,
+      quick: 'chat',
       noteExpand: true,
       pages: [],
       audios: [],
       audioPlaying: null,
-    } as MainState),
+      lightboxInfoVisible: false,
+    }) as MainState,
   actions: {
     replaceRoute(from: string, to: string) {
       const index = this.pages.indexOf(from)

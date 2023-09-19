@@ -11,7 +11,7 @@
     :globalData="globalData"
     :position="currentShowPos"
     :on-close="onChildrenClose"
-    :on-pre-update-pos="onChildrenUpdatePos"
+    @preUpdatePos="onChildrenUpdatePos"
   />
 </template>
 <script lang="ts" setup>

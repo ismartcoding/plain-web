@@ -26,7 +26,7 @@ function go(fullPath: string) {
   display: flex;
   flex-wrap: wrap;
   padding: 0;
-  margin-bottom: 1rem;
+  margin: 0;
   list-style: none;
   font-weight: 600;
   font-size: 1.25rem;

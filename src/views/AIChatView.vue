@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container container">
+  <div class="page-container">
     <div class="main">
       <splitpanes class="chat-container" horizontal>
         <pane size="80">
@@ -9,19 +9,26 @@
               <popper v-if="index > 0">
                 <div class="chat-title">
                   <span class="name">{{ $t(item.isMe ? 'me' : 'ai') }}</span>
-                  <span class="time" :title="formatDateTimeFull(item.createdAt)">{{ formatTime(item.createdAt) }}</span>
+                  <span class="time" v-tooltip="formatDateTimeFull(item.createdAt)">{{
+                    formatTime(item.createdAt)
+                  }}</span>
+                  <i-material-symbols:expand-more-rounded class="bi bi-more" />
                 </div>
                 <template #content>
-                  <ul class="menu-items">
-                    <li class="dropdown-item" @click="deleteMessage(item.id)" :disabled="deleteLoading">
-                      {{ $t('delete_message') }}
-                    </li>
-                  </ul>
+                  <div class="menu-items">
+                    <md-menu-item
+                      @click="deleteMessage(item.id)"
+                      :headline="$t('delete_message')"
+                      :disabled="deleteLoading"
+                    />
+                  </div>
                 </template>
               </popper>
               <div v-else class="chat-title">
                 <span class="name">{{ $t(item.isMe ? 'me' : 'ai') }}</span>
-                <span class="time" :title="formatDateTimeFull(item.createdAt)">{{ formatTime(item.createdAt) }}</span>
+                <span class="time" v-tooltip="formatDateTimeFull(item.createdAt)">{{
+                  formatTime(item.createdAt)
+                }}</span>
               </div>
               <div class="chat-content md-container" v-html="item.md"></div>
             </div>
@@ -33,18 +40,25 @@
             </div>
           </div>
         </pane>
-        <pane class="chat-input" size="10" min-size="5">
-          <textarea
+        <pane class="chat-input" size="12" style="min-height: 80px">
+          <md-outlined-text-field
+            class="textarea"
+            type="textarea"
             v-model="content"
-            class="form-control"
             autocomplete="off"
             :placeholder="$t('chat_input_hint')"
             @keydown.enter.exact.prevent="send"
             @keydown.enter.shift.exact.prevent="content += '\n'"
-          ></textarea>
-          <i class="bi bi-btn" @click.stop="send">
-            <i-material-symbols:send-outline-rounded />
-          </i>
+            @keydown.enter.ctrl.exact.prevent="content += '\n'"
+            @keydown.enter.alt.exact.prevent="content += '\n'"
+            @keydown.enter.meta.exact.prevent="content += '\n'"
+          />
+          <div class="btns">
+            <button class="icon-button" @click.stop="send">
+              <md-ripple />
+              <i-material-symbols:send-outline-rounded />
+            </button>
+          </div>
         </pane>
       </splitpanes>
     </div>
@@ -54,7 +68,7 @@
 <script setup lang="ts">
 import { Splitpanes, Pane } from 'splitpanes'
 import { useRoute } from 'vue-router'
-import { nextTick, onMounted, ref } from 'vue'
+import { nextTick, onActivated, onDeactivated, ref } from 'vue'
 import toast from '@/components/toaster'
 import { useI18n } from 'vue-i18n'
 import { aichatDetailGQL, initQuery } from '@/lib/api/query'
@@ -62,7 +76,7 @@ import type { IAIChat } from '@/lib/interfaces'
 import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
-import { createAIChatGQL, deleteAIChatItemsGQL, initMutation } from '@/lib/api/mutation'
+import { createAIChatGQL, deleteAIChatsGQL, initMutation } from '@/lib/api/mutation'
 import { replacePathNoReload } from '@/plugins/router'
 import { formatTime, formatDateTimeFull, formatDate } from '@/lib/format'
 import type { ApolloCache } from '@apollo/client/cache'
@@ -81,9 +95,9 @@ const replying = ref(false)
 const replyingContent = ref('')
 const replyingContentMD = ref('')
 
-const { app } = storeToRefs(useTempStore())
+const { app, urlTokenKey } = storeToRefs(useTempStore())
 const scrollContainer = ref<HTMLDivElement>()
-const { render } = useMarkdown(app)
+const { render } = useMarkdown(app, urlTokenKey)
 
 function isCreate() {
   return id.value === 'create'
@@ -173,7 +187,7 @@ function scrollBottom() {
 
 const deleteId = ref('')
 const { mutate: deleteItem, loading: deleteLoading } = initMutation({
-  document: deleteAIChatItemsGQL,
+  document: deleteAIChatsGQL,
   options: {
     update: (cache: ApolloCache<any>) => {
       cache.evict({ id: cache.identify({ __typename: 'AIChat', id: deleteId.value }) })
@@ -188,48 +202,52 @@ const { mutate: deleteItem, loading: deleteLoading } = initMutation({
 
 function deleteMessage(id: string) {
   deleteId.value = id
-  deleteItem({ ids: [id] })
+  deleteItem({ query: `ids:${id}` })
 }
 
-onMounted(() => {
-  emitter.on('ai_chat_replied', async (data: any) => {
-    if (data.parentId === id.value) {
-      replyingContent.value += data.content
-      replyingContentMD.value = await render(replyingContent.value + '<span class="blinking-cursor"></span>')
-      if (data.finishReason === 'stop') {
-        doSend({
-          id: id.value,
-          message: replyingContent.value,
-          isMe: false,
-        })
-      }
+const aiChatRepliedHandler = async (data: any) => {
+  if (data.parentId === id.value) {
+    replyingContent.value += data.content
+    replyingContentMD.value = await render(replyingContent.value + '<span class="blinking-cursor"></span>')
+    if (data.finishReason === 'stop') {
+      doSend({
+        id: id.value,
+        message: replyingContent.value,
+        isMe: false,
+      })
     }
-  })
+  }
+}
+
+onActivated(() => {
+  emitter.on('ai_chat_replied', aiChatRepliedHandler)
+})
+
+onDeactivated(() => {
+  emitter.off('ai_chat_replied', aiChatRepliedHandler)
 })
 </script>
 <style lang="scss" scoped>
 .chat-input {
+  background-color: var(--md-sys-color-surface);
   display: flex;
+  flex: 0 0 auto;
 
-  .form-control {
-    border: none;
+  .btns {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 
-  .bi {
-    margin: 12px;
-  }
-
-  textarea {
-    resize: none;
+  .textarea {
+    margin: 8px 0;
+    display: flex;
+    flex: 1;
   }
 }
 
 .chat-item {
-  padding: 0 16px 0 16px;
-
-  &:first-child {
-    padding-top: 16px;
-  }
+  padding: 0;
 
   &.replying {
     padding-bottom: 16px;
@@ -237,7 +255,7 @@ onMounted(() => {
 }
 
 .chat-items {
-  overflow-y: scroll;
+  overflow-y: auto;
   height: 100%;
 }
 
@@ -246,13 +264,7 @@ onMounted(() => {
 }
 
 .chat-container {
-  border-radius: var(--border-radius-sm);
-  border: 1px solid var(--border-color);
   height: calc(100vh - 100px);
-}
-
-.bi-btn {
-  font-size: 1.5rem;
 }
 
 .md-container {

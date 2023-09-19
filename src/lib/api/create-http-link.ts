@@ -17,6 +17,7 @@ import { visit, type VariableDefinitionNode } from 'graphql'
 import sjcl from 'sjcl'
 import { getApiBaseUrl, getApiHeaders } from './api'
 import { aesEncrypt, aesDecrypt, arrayBufferToBitArray, bitArrayToUint8Array } from './crypto'
+import { tokenToKey } from './file'
 
 export const createHttpLink = (linkOptions: HttpOptions = {}) => {
   const {
@@ -88,9 +89,10 @@ export const createHttpLink = (linkOptions: HttpOptions = {}) => {
 
     return new Observable((observer) => {
       const doIt = async () => {
-        const key = sjcl.codec.base64.toBits(token)
+        const startTime = performance.now()
+        const key = tokenToKey(token)
         ;(options as any).body = bitArrayToUint8Array(aesEncrypt(key, json))
-
+        const encryptTime = performance.now()
         Promise.race([
           fetch(chosenURI, options),
           new Promise((_, reject) => setTimeout(() => reject(new Error('connection_timeout')), 8000)),
@@ -102,8 +104,15 @@ export const createHttpLink = (linkOptions: HttpOptions = {}) => {
               window.location.reload()
             } else {
               const text = await response.arrayBuffer()
+              const apiEndTime = performance.now()
               const r = aesDecrypt(key, arrayBufferToBitArray(text))
+              const decryptEndTime = performance.now()
               console.info(`[response] ${r}`)
+              console.info(
+                `[time] encrypt: ${encryptTime - startTime}ms, api: ${apiEndTime - encryptTime}ms, decrypt: ${
+                  decryptEndTime - apiEndTime
+                }ms`
+              )
               response.text = async () => r
             }
 

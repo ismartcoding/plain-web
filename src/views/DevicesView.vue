@@ -1,41 +1,51 @@
 <template>
-  <div class="page-container container">
+  <div class="page-container">
     <div class="main">
       <breadcrumb :current="() => $t('page_title.devices')" />
-      <table class="table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>{{ $t('name') }}</th>
-            <th>{{ $t('ip_address') }}</th>
-            <th>{{ $t('mac_address') }}</th>
-            <th>{{ $t('manufacturer') }}</th>
-            <th>{{ $t('status') }}</th>
-            <th>{{ $t('created_at') }}</th>
-            <th>{{ $t('active_at') }}</th>
-            <th class="actions one">{{ $t('actions') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="item in items" :key="item.id">
-            <td>
-              <field-id :id="item.id" :raw="item" />
-            </td>
-            <td>
-              <a href="#" @click.prevent="rename(item)">{{ item.name ? item.name : $t('unknown') }}</a>
-            </td>
-            <td>{{ item.ip4 }}</td>
-            <td>{{ item.mac.toUpperCase() }}</td>
-            <td>{{ item.macVendor ? item.macVendor : $t('unknown') }}</td>
-            <td>{{ $t(item.isOnline ? 'online' : 'offline') }}</td>
-            <td class="nowrap" :title="formatDateTimeFull(item.createdAt)">{{ formatDateTime(item.createdAt) }}</td>
-            <td class="nowrap" :title="formatDateTimeFull(item.activeAt)">{{ formatDateTime(item.activeAt) }}</td>
-            <td class="actions one">
-              <a href="#" class="v-link" @click.prevent="deleteItem(item)">{{ $t('delete') }}</a>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>{{ $t('name') }}</th>
+              <th>{{ $t('ip_address') }}</th>
+              <th>{{ $t('mac_address') }}</th>
+              <th>{{ $t('manufacturer') }}</th>
+              <th>{{ $t('status') }}</th>
+              <th>{{ $t('created_at') }}</th>
+              <th>{{ $t('active_at') }}</th>
+              <th class="actions one">{{ $t('actions') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in items" :key="item.id">
+              <td>
+                <field-id :id="item.id" :raw="item" />
+              </td>
+              <td>
+                <a href="#" @click.prevent="rename(item)">{{ item.name ? item.name : $t('unknown') }}</a>
+              </td>
+              <td>{{ item.ip4 }}</td>
+              <td>{{ item.mac.toUpperCase() }}</td>
+              <td>{{ item.macVendor ? item.macVendor : $t('unknown') }}</td>
+              <td>{{ $t(item.isOnline ? 'online' : 'offline') }}</td>
+              <td class="nowrap">
+                <span v-tooltip="formatDateTimeFull(item.createdAt)">
+                  {{ formatDateTime(item.createdAt) }}
+                </span>
+              </td>
+              <td class="nowrap">
+                <span v-tooltip="formatDateTimeFull(item.activeAt)">
+                  {{ formatDateTime(item.activeAt) }}
+                </span>
+              </td>
+              <td class="actions one">
+                <a href="#" class="v-link" @click.prevent="deleteItem(item)">{{ $t('delete') }}</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </template>

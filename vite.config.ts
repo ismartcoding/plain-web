@@ -21,6 +21,7 @@ function sanitizeFileName(name: string): string {
 export default defineConfig({
   css: { preprocessorOptions: { scss: { charset: false } } },
   server: {
+    host: '0.0.0.0',
     port: 3000,
   },
   build: {
@@ -41,7 +42,13 @@ export default defineConfig({
     },
   },
   plugins: [
-    vue(),
+    vue({
+      template: {
+        compilerOptions: {
+          isCustomElement: (tag) => tag.startsWith('md-'),
+        },
+      },
+    }),
     svgLoader(),
     Components({
       resolvers: [IconsResolver()],
