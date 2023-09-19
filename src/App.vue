@@ -23,6 +23,7 @@ import {
   isModeDark,
 } from './lib/theme/theme'
 import { applyThemeString } from './lib/theme/apply-theme-string'
+import { tokenToKey } from './lib/api/file'
 const { t } = useI18n()
 document.title = t('app_name')
 
@@ -36,7 +37,7 @@ async function connect() {
     return
   }
 
-  const key = sjcl.codec.base64.toBits(token)
+  const key = tokenToKey(token)
 
   ws = new WebSocket(`${getWebSocketBaseUrl()}?cid=${clientId}`)
   ws.onopen = async () => {
