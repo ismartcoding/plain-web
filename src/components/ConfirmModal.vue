@@ -1,12 +1,13 @@
 <template>
-  <v-modal size="sm" :show-cancel="false" :title="$t('confirm')">
-    <template #body>
+  <md-dialog type="alert">
+    <div slot="headline">{{ $t('confirm') }}</div>
+    <form id="form" slot="content" method="dialog">
       {{ message }}
-    </template>
-    <template #action>
-      <button type="button" class="btn" @click="ok">{{ $t('ok') }}</button>
-    </template>
-  </v-modal>
+    </form>
+    <div slot="actions">
+      <md-text-button form="form" value="ok" @click="ok">{{ $t('ok') }}</md-text-button>
+    </div>
+  </md-dialog>
 </template>
 <script setup lang="ts">
 import { popModal } from './modal'

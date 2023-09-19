@@ -1,22 +1,25 @@
 <template>
-  <div class="page-container container-fluid">
+  <div class="page-container">
     <splitpanes>
-      <pane size="20">
-        <div class="sidebar">
+      <pane size="20" min-size="10">
+        <aside class="sidebar">
           <h2 class="nav-title">{{ $t('page_title.audios') }}</h2>
           <ul class="nav">
-            <li @click.prevent="all" :class="{ active: route.path === '/audios' && !selectedTagName && !selectedBucketId }">
+            <li
+              @click.prevent="all"
+              :class="{ active: route.path === '/audios' && !selectedTagName && !selectedBucketId }"
+            >
               {{ $t('all') }}
             </li>
+            <bucket-filter type="AUDIO" :selected="selectedBucketId" />
           </ul>
-          <bucket-filter bucket-type="AUDIO" :selected="selectedBucketId" />
-          <tag-filter tag-type="AUDIO" :selected="selectedTagName" />
-        </div>
+          <tag-filter type="AUDIO" :selected="selectedTagName" />
+        </aside>
       </pane>
       <pane>
-        <div class="main">
+        <main class="main">
           <router-view />
-        </div>
+        </main>
       </pane>
     </splitpanes>
   </div>

@@ -1,6 +1,7 @@
 export interface ITag {
   id: string
   name: string
+  count: number
 }
 
 export interface IBucket {
@@ -16,16 +17,6 @@ export interface IMessage {
   serviceCenter: string
   date: string
   type: number
-  tags: ITag[]
-}
-
-export interface IAudio {
-  id: string
-  title: string
-  artist: string
-  path: string
-  duration: number
-  size: number
   tags: ITag[]
 }
 
@@ -55,21 +46,24 @@ export interface IFeedEntry {
   updatedAt: string
 }
 
-export interface IImage {
+export interface IMedia {
   id: string
   title: string
   path: string
   size: number
+  bucketId: string
   tags: ITag[]
 }
 
-export interface IVideo {
-  id: string
-  title: string
-  path: string
+export interface IAudio extends IMedia {
+  artist: string
   duration: number
-  size: number
-  tags: ITag[]
+}
+
+export type IImage = IMedia
+
+export interface IVideo extends IMedia {
+  duration: number
 }
 
 export interface IPlaylistAudio {
@@ -116,13 +110,12 @@ export interface IChatItem {
   data: any
 }
 
-export interface IAudioItem extends IAudio, ISelectable {}
-
-export interface IImageItem extends IImage, ISelectable {
+export interface IMediaItem extends IMedia, ISelectable {}
+export interface IAudioItem extends IAudio, IMediaItem {}
+export interface IImageItem extends IImage, IMediaItem {
   fileId: string
 }
-
-export interface IVideoItem extends IVideo, ISelectable {
+export interface IVideoItem extends IVideo, IMediaItem {
   fileId: string
 }
 
@@ -170,4 +163,22 @@ export interface IAppItem extends IApp, ISelectable {
 export interface IStorageStatsItem {
   totalBytes: number
   freeBytes: number
+}
+
+export interface IMediaItemDeletedEvent {
+  item: IMediaItem
+  type: string
+}
+
+export interface IMediaItemsDeletedEvent {
+  type: string
+}
+
+export interface IItemTagsUpdatedEvent {
+  item: ITagRelationStub
+  type: string
+}
+
+export interface IItemsTagsUpdatedEvent {
+  type: string
 }

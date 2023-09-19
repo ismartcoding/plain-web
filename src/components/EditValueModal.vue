@@ -1,24 +1,25 @@
 <template>
-  <v-modal :title="title">
-    <template #body>
-      <input
-        ref="input"
-        type="text"
+  <md-dialog>
+    <div slot="headline">
+      {{ title }}
+    </div>
+    <div slot="content">
+      <md-outlined-text-field
+        ref="inputRef"
         :placeholder="placeholder"
-        class="form-control"
         v-model="inputValue"
         @keyup.enter="doAction"
+        :error="valueError"
+        :error-text="valueError ? $t(valueError) : ''"
       />
-      <div class="invalid-feedback" v-show="valueError">
-        {{ valueError ? $t(valueError) : '' }}
-      </div>
-    </template>
-    <template #action>
-      <button type="button" :disabled="loading" class="btn" @click="doAction">
+    </div>
+    <div slot="actions">
+      <md-outlined-button value="cancel" @click="cancel">{{ $t('cancel') }}</md-outlined-button>
+      <md-filled-button value="save" :disabled="loading" @click="doAction" autofocus>
         {{ $t('save') }}
-      </button>
-    </template>
-  </v-modal>
+      </md-filled-button>
+    </div>
+  </md-dialog>
 </template>
 <script setup lang="ts">
 import { useField, useForm } from 'vee-validate'
@@ -29,7 +30,7 @@ import { popModal } from './modal'
 
 const { handleSubmit } = useForm()
 
-const input = ref<HTMLInputElement>()
+const inputRef = ref<HTMLInputElement>()
 
 const props = defineProps({
   getVariables: {
@@ -52,9 +53,13 @@ if (!inputValue.value) {
   resetField()
 }
 
+function cancel() {
+  popModal()
+}
+
 ;(async () => {
   await nextTick()
-  input.value?.focus()
+  inputRef.value?.focus()
 })()
 
 const doAction = handleSubmit(() => {
@@ -66,3 +71,8 @@ onDone(() => {
   popModal()
 })
 </script>
+<style scoped lang="scss">
+md-outlined-text-field {
+  width: 100%;
+}
+</style>

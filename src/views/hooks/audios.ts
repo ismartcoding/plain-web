@@ -4,8 +4,9 @@ import { ref, type Ref } from 'vue'
 import toast from '@/components/toaster'
 import { useI18n } from 'vue-i18n'
 import type { IAudio, IAudioItem, ISelectable } from '@/lib/interfaces'
+import { transferEffect } from '@/lib/effect'
 
-export const useAddToPlaylist = (items: Ref<IAudioItem[]>) => {
+export const useAddToPlaylist = (items: Ref<IAudioItem[]>, clearSelection: () => void) => {
   const { mutate, loading, onDone } = initMutation({
     document: addPlaylistAudiosGQL,
     appApi: true,
@@ -15,28 +16,39 @@ export const useAddToPlaylist = (items: Ref<IAudioItem[]>) => {
 
   onDone(() => {
     emitter.emit('refetch_app')
-    toast(t('added_to_playlist'))
+    clearSelection()
   })
 
   return {
     loading,
-    addItemsToPlaylist: () => {
-      const selectedItems = items.value.filter((it: ISelectable) => it.checked)
-      if (selectedItems.length === 0) {
-        toast(t('select_first'), 'error')
-        return
+    addItemsToPlaylist: (e: MouseEvent, realAllChecked: boolean, query: string) => {
+      let q = query
+      if (!realAllChecked) {
+        const selectedItems = items.value.filter((it: ISelectable) => it.checked)
+        if (selectedItems.length === 0) {
+          toast(t('select_first'), 'error')
+          return
+        }
+        q = `ids:${selectedItems.map((it: any) => it.id).join(',')}`
       }
 
-      mutate({ paths: selectedItems.map((it) => it.path) })
+      const sourceElement = e.target
+      const targetElement = document.getElementById('quick-audio')
+      transferEffect(sourceElement, targetElement)
+
+      mutate({ query: q })
     },
-    addToPlaylist: (item: IAudio) => {
-      mutate({ paths: [item.path] })
+    addToPlaylist: (e: MouseEvent, item: IAudio) => {
+      const sourceElement = e.target
+      const targetElement = document.getElementById('quick-audio')
+      transferEffect(sourceElement, targetElement)
+      mutate({ query: `ids:${item.id}` })
     },
   }
 }
 
-export const usePlay = () => {
-  const playing = ref('')
+export const useAudioPlayer = () => {
+  const playPath = ref('')
 
   const { mutate, loading, onDone } = initMutation({
     document: playAudioGQL,
@@ -44,18 +56,20 @@ export const usePlay = () => {
   })
 
   onDone(() => {
-    emitter.emit('refetch_app')
     emitter.emit('play_audio')
   })
 
   return {
     loading,
-    playing,
+    playPath,
     play: (item: IAudio) => {
-      playing.value = item.path
+      playPath.value = item.path
       mutate({
         path: item.path,
       })
+    },
+    pause: () => {
+      emitter.emit('pause_audio')
     },
   }
 }

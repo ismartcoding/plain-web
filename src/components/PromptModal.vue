@@ -1,17 +1,25 @@
 <template>
-  <v-modal :title="title">
-    <template #body>
-      <input ref="inputRef" type="text" class="form-control" v-model="inputValue" @keyup.enter="doAction" />
-      <div class="invalid-feedback" v-show="valueError">
-        {{ valueError ? $t(valueError) : '' }}
-      </div>
-    </template>
-    <template #action>
-      <button type="button" class="btn" @click="doAction">
+  <md-dialog>
+    <div slot="headline">
+      {{ title }}
+    </div>
+    <div slot="content">
+      <md-outlined-text-field
+        ref="inputRef"
+        class="form-control"
+        :error="valueError"
+        :error-text="valueError ? $t(valueError) : ''"
+        v-model="inputValue"
+        @keyup.enter="doAction"
+      />
+    </div>
+    <div slot="actions">
+      <md-outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</md-outlined-button>
+      <md-filled-button value="ok" @click="doAction" autofocus>
         {{ $t('ok') }}
-      </button>
-    </template>
-  </v-modal>
+      </md-filled-button>
+    </div>
+  </md-dialog>
 </template>
 <script setup lang="ts">
 import { useField, useForm } from 'vee-validate'
@@ -48,3 +56,8 @@ if (!props.value) {
   inputRef.value?.focus()
 })()
 </script>
+<style lang="scss" scoped>
+md-dialog {
+  --md-sys-color-surface-container-high: var(--md-sys-color-surface-variant);
+}
+</style>

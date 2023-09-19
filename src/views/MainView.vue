@@ -1,50 +1,71 @@
 <template>
   <div v-if="loading" class="loading">
-    <div class="loader"></div>
+    <md-circular-progress indeterminate />
   </div>
   <div v-else-if="errorMessage" class="alert alert-danger">
     {{ $t(errorMessage) }}
   </div>
   <template v-else>
-    <div style="display: flex">
-      <div :style="{ width: store.consoleOpen ? 'calc(100vw - 280px)' : '100vw' }">
-        <div class="tab-items">
-          <div class="left-items">
-            <div class="tab-item" :class="{ active: currentPath === '/' }" @click="selectTab('/')">
-              <span>{{ $t('page_title.home') }}</span>
+    <div class="layout">
+      <header>
+        <div class="default-content">
+          <section class="start">
+            <div class="tab-items">
+              <div class="tab-item" @click="selectTab('/')" key="/" :class="{ active: currentPath === '/' }"
+                @contextmenu="itemCtxMenu($event, '/')">
+                <span>{{ $t('page_title.home') }}</span>
+              </div>
+              <div v-for="item of store.pages" :key="item" @click="selectTab(item)" class="tab-item"
+                @contextmenu="itemCtxMenu($event, item)" :class="{ active: currentPath === item }">
+                <span>{{ $t(`page_title.${getRouteName(item)}`) }}</span>
+                <button class="icon-button tab-icon" @click.stop="closeTab(item)">
+                  <md-ripple />
+                  <i-material-symbols:close-rounded />
+                </button>
+              </div>
             </div>
-            <div
-              v-for="item of store.pages"
-              class="tab-item"
-              :key="item"
-              :class="{ active: currentPath === item }"
-              @click="selectTab(item)"
-            >
-              <span>{{ $t(`page_title.${getRouteName(item)}`) }}</span>
-              <i-material-symbols:close-rounded class="bi remove" @click.stop="closeTab(item)" />
-            </div>
-          </div>
-          <div class="right-actions">
+          </section>
+          <section class="end">
             <header-actions :logged-in="true" />
-          </div>
+          </section>
         </div>
+      </header>
+      <div class="page-content">
         <router-view v-slot="{ Component, route }">
           <keep-alive :include="includes">
             <component :is="wrap(route.fullPath, Component)" :key="$route.fullPath" />
           </keep-alive>
         </router-view>
       </div>
-      <home-console v-show="store.consoleOpen" />
+      <div class="quick">
+        <button v-if="hasTasks" class="icon-button q-action" v-tooltip="$t('header_actions.tasks')"
+          @click="toggleQuick('task')" toggle :selected="store.quick === 'task'">
+          <md-ripple />
+          <i-material-symbols:format-list-numbered-rounded />
+        </button>
+        <button id="quick-audio" class="icon-button q-action" v-tooltip="$t('playlist')" @click="toggleQuick('audio')"
+          toggle :selected="store.quick === 'audio'">
+          <md-ripple />
+          <i-material-symbols:queue-music-rounded />
+        </button>
+        <button class="icon-button q-action" v-tooltip="$t('my_phone')" @click="toggleQuick('chat')" toggle
+          :selected="store.quick === 'chat'">
+          <md-ripple />
+          <i-material-symbols:chat-outline-rounded />
+        </button>
+      </div>
+      <div class="quick-content">
+        <home-console v-show="store.quick === 'chat'" />
+        <audio-player v-show="store.quick === 'audio'" />
+        <task-list v-show="store.quick === 'task'" />
+      </div>
+      <lightbox />
     </div>
-    <button type="button" class="btn btn-console" @click="() => (store.consoleOpen = true)" v-show="!store.consoleOpen">
-      {{ $t('my_phone') }}
-    </button>
-    <lightbox />
   </template>
 </template>
 
 <script setup lang="ts">
-import { h, onMounted, ref, watch, type Component } from 'vue'
+import { h, onMounted, ref, watch, type Component, computed, onUnmounted } from 'vue'
 import { useMainStore } from '@/stores/main'
 import { useRouter, type RouteLocationNormalized } from 'vue-router'
 import { getRouteName } from '@/plugins/router'
@@ -52,16 +73,35 @@ import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { appGQL, initQuery } from '@/lib/api/query'
 import emitter from '@/plugins/eventbus'
+import { tokenToKey } from '@/lib/api/file'
+import type { IMediaItemDeletedEvent, IMediaItemsDeletedEvent } from '@/lib/interfaces'
+import { contextmenu } from '@/components/contextmenu'
+import { useI18n } from 'vue-i18n'
+import { remove } from 'lodash-es'
 
 const store = useMainStore()
 const router = useRouter()
 const tempStore = useTempStore()
-const { app } = storeToRefs(tempStore)
+const { app, urlTokenKey } = storeToRefs(tempStore)
+const { t } = useI18n()
 
 const loading = ref(true)
 const errorMessage = ref('')
 const includes = ref<string[]>([])
 const wrapperMap = new Map()
+let playAudio = false
+
+const hasTasks = computed(() => {
+  return tempStore.uploads.length > 0
+})
+
+function toggleQuick(name: string) {
+  if (store.quick === name) {
+    store.quick = ''
+  } else {
+    store.quick = name
+  }
+}
 
 const { refetch: refetchApp } = initQuery({
   handle: (data: any, error: string) => {
@@ -70,7 +110,17 @@ const { refetch: refetchApp } = initQuery({
       errorMessage.value = error
     } else {
       if (data) {
+        const oldToken = app.value?.urlToken
+        const newToken = data.app.urlToken
+        urlTokenKey.value = tokenToKey(newToken)
+        if (oldToken !== newToken) {
+          window.fileIdMap = new Map<string, string>()
+        }
         app.value = data.app
+        if (playAudio) {
+          playAudio = false
+          emitter.emit('do_play_audio')
+        }
       }
     }
   },
@@ -79,7 +129,47 @@ const { refetch: refetchApp } = initQuery({
 })
 
 
+function itemCtxMenu(e: MouseEvent, path: string) {
+  e.preventDefault()
+  const items = []
+  if (path !== '/') {
+    items.push({
+      label: t('close'),
+      onClick: () => {
+        closeTab(path)
+      },
+    })
+  }
+  items.push({
+    label: t('close_other_tabs'),
+    onClick: () => {
+      remove(store.pages, (it: string) => it !== path)
+      if (currentPath.value !== path && currentPath.value !== '/') {
+        selectTab(path)
+      }
+      includes.value = store.pages
+    },
+  })
+  items.push({
+    label: t('close_tabs_to_the_right'),
+    onClick: () => {
+      const index = store.pages.indexOf(path)
+      remove(store.pages, (it: string) => store.pages.indexOf(it) > index)
+      if (currentPath.value !== path && currentPath.value !== '/') {
+        selectTab(path)
+      }
+      includes.value = store.pages
+    },
+  })
+  contextmenu({
+    x: e.x,
+    y: e.y,
+    items,
+  })
+}
+
 const currentPath = ref(router.currentRoute.value.fullPath)
+
 watch(
   () => router.currentRoute.value.fullPath,
   (v: string) => {
@@ -87,11 +177,40 @@ watch(
   }
 )
 
-onMounted(() => {
-  emitter.on('refetch_app', () => {
+const refetchAppHandler = () => {
+  refetchApp()
+}
+
+const playAudioHandler = () => {
+  playAudio = true
+  refetchApp()
+}
+
+const mediaItemsDeletedHandler = (event: IMediaItemsDeletedEvent) => {
+  if (event.type === 'AUDIO') {
     refetchApp()
-  })
+  }
+}
+
+const mediaItemDeletedHanlder = (event: IMediaItemDeletedEvent) => {
+  if (event.type === 'AUDIO') {
+    refetchApp()
+  }
+}
+
+onMounted(() => {
+  emitter.on('refetch_app', refetchAppHandler)
+  emitter.on('play_audio', playAudioHandler)
+  emitter.on('media_items_deleted', mediaItemsDeletedHandler)
+  emitter.on('media_item_deleted', mediaItemDeletedHanlder)
   includes.value = store.pages
+})
+
+onUnmounted(() => {
+  emitter.off('refetch_app', refetchAppHandler)
+  emitter.off('play_audio', playAudioHandler)
+  emitter.off('media_items_deleted', mediaItemsDeletedHandler)
+  emitter.off('media_item_deleted', mediaItemDeletedHanlder)
 })
 
 const wrap = (fullPath: string, component: Component) => {
@@ -162,61 +281,120 @@ router.afterEach((to, from, failure) => {
 </script>
 
 <style lang="scss" scoped>
-.alert-danger {
-  width: 360px;
-  margin: 100px auto;
-  text-align: center;
+.layout {
+  display: grid;
+  grid-template-areas:
+    'head head quick-content'
+    'page-content quick quick-content';
+  grid-template-columns: 1fr auto auto;
+  grid-template-rows: auto 1fr;
+  height: 100vh;
+  min-width: 1000px;
 }
 
-.btn-console {
-  position: fixed;
-  right: 32px;
-  bottom: 16px;
+.quick {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+  width: 56px;
+  grid-area: quick;
+
+  .q-action {
+    margin: 8px;
+  }
+}
+
+.quick-content {
+  grid-area: quick-content;
+  overflow: hidden;
+}
+
+header {
+  height: var(--plain-top-app-bar-height);
+  grid-area: head;
+  inset: 0 0 auto 0;
+  display: flex;
+  box-sizing: border-box;
+  color: var(--md-sys-color-on-surface);
 }
 
 .tab-items {
   display: flex;
-  box-sizing: border-box;
-  border-bottom: 1px solid currentColor;
-  position: sticky;
-  top: 0;
-  z-index: 1;
   white-space: nowrap;
-  background-color: var(--back-color);
-  .left-items {
-    overflow-x: auto;
+
+  .icon-button {
+    svg {
+      width: 12px;
+      height: 12px;
+    }
   }
 }
 
 .tab-item {
-  display: inline-block;
+  outline: none;
   cursor: pointer;
   box-sizing: border-box;
   user-select: none;
+  text-align: center;
+  border-bottom: 3px solid transparent;
+
+  &.active {
+    border-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-primary);
+  }
+
+  &:first-child span {
+    padding-inline-end: 16px;
+  }
+
+  span {
+    padding: 8px 8px 8px 16px;
+    display: inline-block;
+  }
+
+  .tab-icon {
+    margin-inline: 8px;
+  }
 }
 
-.tab-item.active {
-  border-bottom: 3px solid currentColor;
-  cursor: default;
-}
-
-.tab-item span {
-  padding: 8px 16px;
-  display: inline-block;
-}
-
-.tab-item .remove {
-  cursor: pointer;
-  margin-right: 8px;
-}
-
-.right-actions {
-  position: sticky;
-  margin-left: auto;
-  top: 0;
-  right: 0;
-  padding-left: 32px;
-  padding-right: 12px;
+.default-content {
+  width: 100%;
   display: flex;
+  align-items: center;
+
+  .start {
+    flex: 1;
+    box-sizing: border-box;
+    overflow: auto;
+    scroll-behavior: smooth;
+    /* Hide the scrollbars */
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+
+    /* Internet Explorer/Edge */
+    &::-webkit-scrollbar {
+      display: none;
+      /* Chrome/Safari/Opera */
+    }
+  }
+
+  .end {
+    margin-left: auto;
+    display: flex;
+  }
+}
+
+.page-content {
+  grid-area: page-content;
+  height: calc(100vh - 64px);
+  overflow: auto;
+}
+
+.alert-danger {
+  width: 360px;
+  margin: 100px auto;
+  text-align: center;
 }
 </style>

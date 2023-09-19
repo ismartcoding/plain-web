@@ -28,22 +28,3 @@ export default {
   components: { ContainerModalItem },
 }
 </script>
-
-<style lang="scss" scoped>
-.modal-list-enter-active,
-.modal-list-leave-active,
-.modal-list-enter-active .modal-item,
-.modal-list-leave-active .modal-item {
-  transition: all 0.2s ease;
-}
-
-.modal-list-enter-from,
-.modal-list-leave-to {
-  opacity: 0 !important;
-}
-
-.modal-list-enter-from .modal-item,
-.modal-list-leave-to .modal-item {
-  transform: translateY(-60px);
-}
-</style>

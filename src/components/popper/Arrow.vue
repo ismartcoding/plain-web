@@ -10,7 +10,7 @@
   width: calc(10px - 1px);
   height: calc(10px - 1px);
   box-sizing: border-box;
-  background: var(--back-color);
+  background: var(--md-sys-color-surface);
 }
 
 .popper-arrow {
@@ -25,24 +25,24 @@
 .popper[data-popper-placement^='top'] > .popper-arrow {
   bottom: -5px;
   &::before {
-    border-right: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
+    border-right: 1px solid var(--md-sys-color-outline);
+    border-bottom: 1px solid var(--md-sys-color-outline);
   }
 }
 
 .popper[data-popper-placement^='bottom'] > .popper-arrow {
   top: -5px;
   &::before {
-    border-left: 1px solid var(--border-color);
-    border-top: 1px solid var(--border-color);
+    border-left: 1px solid var(--md-sys-color-outline);
+    border-top: 1px solid var(--md-sys-color-outline);
   }
 }
 
 .popper[data-popper-placement^='left'] > .popper-arrow {
   right: -5px;
   &::before {
-    border-right: 1px solid var(--border-color);
-    border-top: 1px solid var(--border-color);
+    border-right: 1px solid var(--md-sys-color-outline);
+    border-top: 1px solid var(--md-sys-color-outline);
   }
 }
 

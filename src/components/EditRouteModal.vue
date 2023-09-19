@@ -1,6 +1,9 @@
 <template>
-  <v-modal :title="data ? $t('edit') : $t('create')">
-    <template #body>
+  <md-dialog>
+    <div slot="headline">
+      {{ data ? $t('edit') : $t('create') }}
+    </div>
+    <div slot="content">
       <div class="row mb-3">
         <label class="col-md-3 col-form-label">{{ $t('traffic_to') }}</label>
         <div class="col-md-9">
@@ -18,7 +21,7 @@
             />
             <popper class="input-group-text">
               <span class="inner">
-                <i-material-symbols:question-mark-rounded class="bi" />
+                <i-material-symbols:question-mark-rounded />
               </span>
               <template #content>
                 <pre class="help-block">{{ $t(`examples_${targetType}`) }}</pre>
@@ -74,13 +77,14 @@
           <textarea class="form-control" v-model="editItem.notes" rows="3"></textarea>
         </div>
       </div>
-    </template>
-    <template #action>
-      <button type="button" :disabled="createLoading || editLoading" class="btn" @click="doAction">
+    </div>
+    <div slot="actions">
+      <md-outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</md-outlined-button>
+      <md-filled-button value="save" :disabled="createLoading || editLoading" @click="doAction" autofocus>
         {{ $t('save') }}
-      </button>
-    </template>
-  </v-modal>
+      </md-filled-button>
+    </div>
+  </md-dialog>
 </template>
 <script setup lang="ts">
 import { initMutation, updateCache } from '@/lib/api/mutation'
@@ -88,7 +92,6 @@ import { TargetType, Target } from '@/lib/target'
 import { useField, useForm } from 'vee-validate'
 import { reactive, ref, watch, type PropType } from 'vue'
 import { useI18n } from 'vue-i18n'
-import toast from './toaster'
 import { ApolloCache, gql } from '@apollo/client/core'
 import { string } from 'yup'
 import { configFragment } from '@/lib/api/fragments'

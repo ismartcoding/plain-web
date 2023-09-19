@@ -1,6 +1,6 @@
 <template>
-  <div class="row row-cols-3 g-1">
-    <div class="col" v-for="(item, i) in sources" :key="i" @click="view(i)">
+  <div class="image-container">
+    <div class="item" v-for="(item, i) in sources" :key="i" @click="view(i)">
       <img class="image" :src="getPreview(item)" />
       <span class="duration">{{ isVideo(item.name) ? formatSeconds(item.duration) : formatFileSize(item.size) }}</span>
     </div>
@@ -29,14 +29,14 @@ function getPreview(source: ISource) {
     return source.src
   }
 
-  return `${source.src}&w=200&h=200`
+  return `${source.src}&w=300&h=300`
 }
 
 function view(index: number) {
   tempStore.lightbox = {
     sources: sources.value,
     index: index,
-    visible: true
+    visible: true,
   }
 }
 
@@ -47,7 +47,7 @@ const sources = computed(() => {
   data?.data?.ids?.forEach((id: string, index: number) => {
     const file = files[index]
     items.push({
-      path: '',
+      path: file.uri,
       src: getFileUrl(id),
       viewOriginImage: notId(id) || file.uri.endsWith('.gif'),
       name: getFileName(file.uri),
@@ -62,21 +62,10 @@ const sources = computed(() => {
 </script>
 
 <style lang="scss" scoped>
-.col {
-  aspect-ratio: 1 / 1;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  position: relative;
-}
-
-.duration {
-  background: rgba(0, 0, 0, 0.5);
-  color: #fff;
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
-  font-size: 12px;
-  padding: 1px 4px;
+.image-container {
+  .item {
+    width: calc(33.33% - 2px);
+    margin: 1px;
+  }
 }
 </style>

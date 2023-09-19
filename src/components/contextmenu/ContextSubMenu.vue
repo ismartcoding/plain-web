@@ -25,22 +25,18 @@
         maxHeight: maxHeight > 0 ? `${maxHeight}px` : '',
       }"
     >
-      <div
+      <md-menu-item
         v-for="(item, i) in items"
         :key="i"
-        class="context-menu-item"
-        :class="{ disabled: item.disabled }"
+        :disabled="item.disabled"
         @mouseenter="showChildItem($event, item)"
         @mouseleave="hideChildItem()"
         @focus="showChildItem($event, item)"
         @blur="hideChildItem()"
         @click="onMouseClick(item)"
+        :headline="item.label"
       >
-        <span class="text">
-          <span>{{ item.label }}</span>
-          <span v-if="item.children && item.children.length > 0" class="right-arrow" />
-        </span>
-      </div>
+      </md-menu-item>
     </div>
     <ContextSubMenu
       ref="childMenu"
@@ -233,9 +229,9 @@ onBeforeUnmount(() => {
   display: inline-block;
   overflow: visible;
   position: absolute;
-  border: 1px solid var(--border-color);
-  background-color: var(--back-color);
-  border-radius: var(--border-radius-sm);
+  box-shadow: var(--md-sys-color-shadow) 0px 1px 2px 0px;
+  background-color: var(--md-sys-color-surface-container);
+  border-radius: 4px;
   opacity: 0;
 }
 
@@ -245,12 +241,10 @@ onBeforeUnmount(() => {
 
 .context-menu-items {
   position: relative;
-  overflow: hidden;
-  overflow-y: scroll;
-}
-
-.context-menu-items::-webkit-scrollbar {
-  display: none;
+  overflow-y: auto;
+  border-radius: 4px;
+  max-height: 50vh;
+  min-width: 200px;
 }
 
 .context-menu-updown {
@@ -258,8 +252,9 @@ onBeforeUnmount(() => {
   left: 0;
   right: 0;
   height: 10px;
-  border-radius: var(--border-radius-sm);
-  background-color: var(--back-color);
+  box-shadow: var(--md-sys-color-shadow) 0px 1px 2px 0px;
+  background-color: var(--md-sys-color-surface-container);
+  border-radius: 4px;
   user-select: none;
   cursor: pointer;
 
@@ -288,68 +283,6 @@ onBeforeUnmount(() => {
 
 .context-menu-updown.down .right-arrow {
   transform: translateX(-50%) rotate(90deg);
-}
-
-.context-menu-item {
-  display: block;
-  position: relative;
-  padding: 0.25rem 1rem;
-  user-select: none;
-  border: 1px dashed transparent;
-  border-left: none;
-  border-right: none;
-
-  &:first-child {
-    border-top-left-radius: var(--border-radius-sm);
-    border-top-right-radius: var(--border-radius-sm);
-    border-top: none;
-  }
-
-  &:last-child {
-    border-bottom: none;
-    border-bottom-left-radius: var(--border-radius-sm);
-    border-bottom-right-radius: var(--border-radius-sm);
-  }
-
-  &:hover {
-    border-color: var(--border-color);
-  }
-
-  &.disabled {
-    cursor: not-allowed;
-  }
-
-  &.disabled:hover,
-  &.disabled:active {
-    background-color: transparent;
-  }
-
-  &.disabled .text {
-    color: #9f9f9f;
-  }
-
-  & .text {
-    white-space: nowrap;
-    overflow: hidden;
-    color: var(--text-color);
-    text-overflow: ellipsis;
-  }
-
-  & .text span {
-    font-size: 14px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    padding-right: 16px;
-  }
-
-  & .text .right-arrow {
-    position: absolute;
-    display: inline-block;
-    right: 2px;
-    top: 50%;
-    margin-top: -5px;
-  }
 }
 
 .right-arrow {

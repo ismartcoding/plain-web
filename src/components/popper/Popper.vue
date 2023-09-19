@@ -10,7 +10,7 @@
       <slot />
     </div>
     <transition name="fade">
-      <div v-show="shouldShowPopper" class="popper" ref="popperNode">
+      <div v-show="shouldShowPopper" class="popper" ref="popperNode" @click.stop="() => {}">
         <slot name="content" :close="close" :isOpen="modifiedIsOpen">
           {{ content }}
         </slot>
@@ -65,7 +65,7 @@ const props = defineProps({
   },
   arrow: {
     type: Boolean,
-    default: true,
+    default: false,
   },
   content: {
     type: String,
@@ -134,13 +134,14 @@ watchEffect(() => {
 .inline-block {
   display: inline-block;
 }
+
 .popper {
   transition: background 250ms ease-in-out;
-  background: var(--back-color);
-  color: var(--text-color);
-  border-radius: var(--border-radius-sm);
-  border: 1px solid var(--border-color);
+  box-shadow: var(--md-sys-color-shadow) 0px 1px 2px 0px;
+  background-color: var(--md-sys-color-surface-container);
+  border-radius: 4px;
   z-index: v-bind(zIndex);
+  overflow-y: auto;
 }
 
 .fade-enter-active,

@@ -1,6 +1,9 @@
 <template>
-  <v-modal :title="data ? $t('edit') : $t('create')">
-    <template #body>
+  <md-dialog>
+    <div slot="headline">
+      {{ data ? $t('edit') : $t('create') }}
+    </div>
+    <div slot="content">
       <div class="row">
         <label class="col-md-3 col-form-label">{{ $t('actions') }}</label>
         <div class="col-md-9 form-checks">
@@ -72,7 +75,7 @@
             />
             <popper class="input-group-text">
               <span class="inner">
-                <i-material-symbols:question-mark-rounded class="bi" />
+                <i-material-symbols:question-mark-rounded />
               </span>
               <template #content>
                 <pre class="help-block">{{ $t(`examples_${targetType}`) }}</pre>
@@ -114,13 +117,14 @@
           <textarea class="form-control" v-model="editItem.notes" rows="3"></textarea>
         </div>
       </div>
-    </template>
-    <template #action>
-      <button type="button" :disabled="createLoading || editLoading" class="btn" @click="doAction">
+    </div>
+    <div slot="actions">
+      <md-outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</md-outlined-button>
+      <md-filled-button value="save" :disabled="createLoading || editLoading" @click="doAction" autofocus>
         {{ $t('save') }}
-      </button>
-    </template>
-  </v-modal>
+      </md-filled-button>
+    </div>
+  </md-dialog>
 </template>
 <script setup lang="ts">
 import { initMutation, updateCache } from '@/lib/api/mutation'

@@ -117,5 +117,3 @@ export async function getVideoData(videoFile: File): Promise<{ src: string; dura
     }
   })
 }
-
-export const getFileName = (path: string) => path.split(/[\\\/]/).pop()

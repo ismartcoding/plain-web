@@ -3,12 +3,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, toRefs, watch, ref, onMounted, onBeforeUnmount, type PropType } from 'vue'
+import { computed, toRefs, watch, ref, onMounted, onBeforeUnmount, type PropType, onUnmounted } from 'vue'
 import '@/plugins/monacoworker'
 import * as monaco from 'monaco-editor'
-import { useTempStore } from '@/stores/temp'
-
-const tempStore = useTempStore()
+import emitter from '@/plugins/eventbus'
 
 const props = defineProps({
   diffEditor: { type: Boolean, default: false },
@@ -59,7 +57,7 @@ onMounted(() => {
     value: props.modelValue,
     language: props.language,
     automaticLayout: true,
-    theme: tempStore.dark ? 'vs-dark' : 'vs',
+    theme: document.documentElement.classList[0] === 'dark' ? 'vs-dark' : 'vs',
     ...props.options,
   })
   props.diffEditor && _setModel(props.modelValue, props.original)
@@ -118,12 +116,17 @@ watch(
   }
 )
 
-watch(
-  () => tempStore.dark,
-  (current: boolean) => {
-    monaco.editor.setTheme(current ? 'vs-dark' : 'vs')
-  }
-)
+const codeModeChangedHandler = () => {
+  monaco.editor.setTheme(document.documentElement.classList[0] === 'dark' ? 'vs-dark' : 'vs')
+}
+
+onMounted(() => {
+  emitter.on('color_mode_changed', codeModeChangedHandler)
+})
+
+onUnmounted(() => {
+  emitter.off('color_mode_changed', codeModeChangedHandler)
+})
 
 function _setModel(value: string, original: string) {
   const originalModel = monaco.editor.createModel(original, props.language)

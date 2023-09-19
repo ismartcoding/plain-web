@@ -1,29 +1,38 @@
 <template>
-  <div class="page-container container">
+  <div class="page-container">
     <div class="main">
       <div class="v-toolbar">
         <breadcrumb :current="() => $t('screen_mirror')" />
-        <div class="right-actions">
-          <button v-if="url" type="button" class="btn btn-action" :disabled="stopServiceLoading" @click="stopService">
-            {{ $t('stop_mirror') }}
+        <template v-if="url">
+          <button class="icon-button" :disabled="stopServiceLoading" @click="stopService" v-tooltip="$t('stop_mirror')">
+            <md-ripple />
+            <i-material-symbols:stop-circle-outline-rounded />
           </button>
-          <button v-if="url" type="button" class="btn btn-action" @click="requestFullscreen">
-            {{ $t('fullscreen') }}
+          <button class="icon-button" @click="() => refetch()" v-tooltip="$t('refresh')">
+            <md-ripple />
+            <i-material-symbols:refresh-rounded />
           </button>
-        </div>
+          <button class="icon-button" @click="requestFullscreen" v-tooltip="$t('fullscreen')">
+            <md-ripple />
+            <i-material-symbols:fullscreen-rounded />
+          </button>
+        </template>
+        <md-outlined-button v-else-if="!relaunchAppLoading" @click="relaunchApp">{{
+          $t('relaunch_app')
+        }}</md-outlined-button>
       </div>
-      <div ref="container" class="panel-container">
-        <div v-if="fetchImageLoading || startServiceLoading" class="loading">
-          <div class="loader"></div>
+      <div ref="containerRef" class="panel-container">
+        <div v-if="fetchImageLoading || startServiceLoading || relaunchAppLoading" class="loading">
+          <md-circular-progress indeterminate />
         </div>
-        <div v-if="seconds > 0" class="request-permission">
+        <div v-if="seconds > 0 && !relaunchAppLoading" class="request-permission">
           <img src="@/assets/screen-mirror-permission.png" />
-          <div class="text" v-html="$t('screen_mirror_request_permission', { seconds: seconds })"></div>
+          <pre class="text">{{ $t('screen_mirror_request_permission', { seconds: seconds }) }}</pre>
         </div>
-        <div v-if="failed && !url" class="request-permission-failed">
+        <div v-if="failed && !url && !relaunchAppLoading" class="request-permission-failed">
           <MobileWarning />
-          {{ $t('screen_mirror_request_permission_failed') }}
-          <button class="btn" @click="start">{{ $t('try_again') }}</button>
+          <p>{{ $t('screen_mirror_request_permission_failed') }}</p>
+          <md-filled-button @click="start">{{ $t('try_again') }}</md-filled-button>
         </div>
         <img v-if="url" :src="url" />
       </div>
@@ -34,11 +43,11 @@
 <script setup lang="ts">
 import emitter from '@/plugins/eventbus'
 import toast from '@/components/toaster'
-import { onMounted, ref } from 'vue'
+import { onActivated, onDeactivated, ref } from 'vue'
 import MobileWarning from '@/assets/mobile-warning.svg'
 import { initQuery, screenMirrorImageGQL } from '@/lib/api/query'
 import { useI18n } from 'vue-i18n'
-import { initMutation, startScreenMirrorGQL, stopScreenMirrorGQL } from '@/lib/api/mutation'
+import { initMutation, relaunchAppGQL, startScreenMirrorGQL, stopScreenMirrorGQL } from '@/lib/api/mutation'
 import type { ApolloError } from '@apollo/client/errors'
 
 let countIntervalId: number
@@ -46,14 +55,45 @@ const { t } = useI18n()
 const url = ref('')
 const seconds = ref(0)
 const failed = ref(false)
-const container = ref<HTMLElement>()
-onMounted(() => {
-  emitter.on('screen_mirrorring', async (data: string) => {
-    url.value = data
-    failed.value = false
-    seconds.value = 0
-    clearInterval(countIntervalId)
-  })
+const containerRef = ref<HTMLElement>()
+
+const screenMirroringHandler = async (data: string) => {
+  url.value = data
+  failed.value = false
+  seconds.value = 0
+  clearInterval(countIntervalId)
+}
+
+let relaunchAppLoading = false
+
+const { mutate: doRelaunchApp } = initMutation({
+  document: relaunchAppGQL,
+  appApi: true,
+})
+
+const relaunchApp = () => {
+  doRelaunchApp()
+  relaunchAppLoading = true
+}
+
+const appSocketConnectionChangedHanlder = (connected: boolean) => {
+  if (connected) {
+    if (relaunchAppLoading) {
+      relaunchAppLoading = false
+      clearInterval(countIntervalId)
+      start()
+    }
+  }
+}
+
+onActivated(() => {
+  emitter.on('screen_mirrorring', screenMirroringHandler)
+  emitter.on('app_socket_connection_changed', appSocketConnectionChangedHanlder)
+})
+
+onDeactivated(() => {
+  emitter.off('screen_mirrorring', screenMirroringHandler)
+  emitter.off('app_socket_connection_changed', appSocketConnectionChangedHanlder)
 })
 
 const {
@@ -83,7 +123,7 @@ const { loading: fetchImageLoading, refetch } = initQuery({
 })
 
 const requestFullscreen = () => {
-  container.value?.requestFullscreen({ navigationUI: 'show' })
+  containerRef.value?.requestFullscreen({ navigationUI: 'show' })
 }
 const start = () => {
   failed.value = false
@@ -131,28 +171,46 @@ img {
   display: block;
   width: 100%;
   height: 100%;
+  max-height: calc(100vh - 150px);
   object-fit: contain;
+}
+
+.main {
+  height: 100%;
 }
 
 .panel-container {
   position: relative;
+  height: 100%;
+  min-height: calc(100vh - 150px);
+}
+
+:fullscreen {
+  img {
+    max-height: 100%;
+  }
 }
 
 .request-permission {
+  padding-bottom: 40px;
+  text-align: center;
+
   img {
     width: 320px;
-    margin: 40px auto;
+    margin: 0 auto 40px auto;
   }
 
   .text {
     text-align: center;
     font-size: 1.2rem;
     line-height: 2;
+    margin-block-end: 16px;
   }
 }
 
 .request-permission-failed {
-  margin-top: 40px;
+  padding-top: 40px;
+  padding-bottom: 40px;
   text-align: center;
   font-size: 1.2rem;
   line-height: 2;
@@ -160,12 +218,8 @@ img {
   svg {
     width: 160px;
     display: block;
-    fill: var(--text-color);
+    fill: currentColor;
     margin: 0 auto 40px auto;
-  }
-
-  .btn {
-    margin: 40px auto;
   }
 }
 </style>

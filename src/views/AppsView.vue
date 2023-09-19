@@ -1,93 +1,122 @@
 <template>
   <div class="v-toolbar">
     <breadcrumb :current="() => `${$t('page_title.apps')} (${total})`" />
-    <div class="right-actions">
-      <template v-if="checked">
-        <button type="button" class="btn btn-action" @click.stop="downloadItems" :title="$t('download')">
-          <i-material-symbols:download-rounded class="bi" />
-        </button>
-      </template>
-      <button type="button" class="btn btn-action" @click.stop="install" style="display: none">
-        {{ $t('install') }}
+    <template v-if="checked">
+      <button class="icon-button" @click.stop="downloadItems(realAllChecked, finalQ)" v-tooltip="$t('download')">
+        <md-ripple />
+        <i-material-symbols:download-rounded />
       </button>
-      <search-input v-model="q" :search="doSearch">
-        <template #filters>
-          <div class="row mb-3">
-            <label class="col-md-3 col-form-label">{{ $t('keywords') }}</label>
-            <div class="col-md-9">
-              <input type="text" v-model="filter.text" class="form-control" @keyup.enter="applyAndDoSearch" />
-            </div>
+    </template>
+    <button class="icon-button" @click.stop="install" style="display: none">
+      <md-ripple />
+      {{ $t('install') }}
+    </button>
+    <search-input ref="searchInputRef" v-model="q" :search="doSearch">
+      <template #filters>
+        <div class="filters">
+          <div class="form-row">
+            <md-outlined-text-field :label="$t('keywords')" v-model="filter.text" keyup.enter="applyAndDoSearch" />
           </div>
-          <div class="actions">
-            <button type="button" class="btn" @click.stop="applyAndDoSearch">
+          <div class="buttons">
+            <md-filled-button @click.stop="applyAndDoSearch">
               {{ $t('search') }}
-            </button>
+            </md-filled-button>
           </div>
-        </template>
-      </search-input>
-    </div>
+        </div>
+      </template>
+    </search-input>
   </div>
-  <table class="table">
-    <thead>
-      <tr>
-        <th><input class="form-check-input" type="checkbox" @change="toggleSelect" v-model="selectAll" /></th>
-        <th>{{ $t('name') }}</th>
-        <th>{{ $t('version') }}</th>
-        <th>{{ $t('size') }}</th>
-        <th>{{ $t('type') }}</th>
-        <th>{{ $t('installed_at') }}</th>
-        <th>{{ $t('updated_at') }}</th>
-        <th class="actions">{{ $t('actions') }}</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr
-        v-for="item in items"
-        :key="item.id"
-        :class="{ checked: item.checked }"
-        @click.stop="item.checked = !item.checked"
-      >
-        <td><input class="form-check-input" type="checkbox" v-model="item.checked" /></td>
-        <td>
-          <strong
-            >{{ item.name }}
-            <i-material-symbols:download-rounded
-              class="bi bi-btn"
-              @click.stop="downloadFile(item.path, `${item.name.replace(' ', '')}-${item.id}.apk`)" /></strong
-          ><br />
-          <field-id :id="item.id" :raw="item" />
-        </td>
-        <td>{{ item.version }}</td>
-        <td>{{ formatFileSize(item.size) }}</td>
-        <td class="nowrap">{{ $t('app_type.' + item.type) }}</td>
-        <td class="nowrap" :title="formatDateTimeFull(item.installedAt)">
-          {{ formatDateTime(item.installedAt) }}
-        </td>
-        <td class="nowrap" :title="formatDateTimeFull(item.updatedAt)">
-          {{ formatDateTime(item.updatedAt) }}
-        </td>
-        <td class="actions one">
-          <span v-if="item.isUninstalling">{{ $t('uninstalling') }}</span>
-          <a v-else href="#" class="v-link" @click.stop="uninstall(item)">{{ $t('uninstall') }}</a>
-        </td>
-      </tr>
-    </tbody>
-    <tfoot v-if="!items.length">
-      <tr>
-        <td colspan="8">
-          <div class="no-data-placeholder">
-            {{ $t(noDataKey(loading)) }}
-          </div>
-        </td>
-      </tr>
-    </tfoot>
-  </table>
+  <all-checked-alert
+    :limit="limit"
+    :total="total"
+    :all-checked-alert-visible="allCheckedAlertVisible"
+    :real-all-checked="realAllChecked"
+    :select-real-all="selectRealAll"
+    :clear-selection="clearSelection"
+  />
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>
+            <md-checkbox
+              touch-target="wrapper"
+              @change="toggleAllChecked"
+              :checked="allChecked"
+              :indeterminate="!allChecked && checked"
+            />
+          </th>
+          <th>{{ $t('name') }}</th>
+          <th></th>
+          <th>{{ $t('size') }}</th>
+          <th>{{ $t('type') }}</th>
+          <th>{{ $t('installed_at') }}</th>
+          <th>{{ $t('updated_at') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="item in items"
+          :key="item.id"
+          :class="{ selected: item.checked }"
+          @click.stop="item.checked = !item.checked"
+        >
+          <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
+          <td>
+            <strong class="v-center">{{ item.name }} ({{ item.version }})</strong>
+            <field-id :id="item.id" :raw="item" />
+          </td>
+          <td class="nowrap">
+            <div class="action-btns">
+              <md-circular-progress
+                indeterminate
+                class="spinner-sm"
+                v-if="item.isUninstalling"
+                v-tooltip="$t('uninstalling')"
+              />
+              <button class="icon-button" v-else @click.stop="uninstall(item)" v-tooltip="$t('uninstall')">
+                <md-ripple />
+                <i-material-symbols:delete-forever-outline-rounded />
+              </button>
+              <button
+                class="icon-button"
+                @click.stop="downloadFile(item.path, `${item.name.replace(' ', '')}-${item.id}.apk`)"
+                v-tooltip="$t('download')"
+              >
+                <md-ripple />
+                <i-material-symbols:download-rounded />
+              </button>
+            </div>
+          </td>
+          <td class="nowrap">{{ formatFileSize(item.size) }}</td>
+          <td class="nowrap">{{ $t('app_type.' + item.type) }}</td>
+          <td class="nowrap">
+            <span v-tooltip="formatDateTimeFull(item.installedAt)">
+              {{ formatDateTime(item.installedAt) }}
+            </span>
+          </td>
+          <td class="nowrap">
+            <span v-tooltip="formatDateTimeFull(item.updatedAt)">{{ formatDateTime(item.updatedAt) }}</span>
+          </td>
+        </tr>
+      </tbody>
+      <tfoot v-if="!items.length">
+        <tr>
+          <td colspan="7">
+            <div class="no-data-placeholder">
+              {{ $t(noDataKey(loading)) }}
+            </div>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
   <v-pagination v-if="total > limit" v-model="page" :total="total" :limit="limit" />
   <input ref="fileInput" style="display: none" type="file" accept=".apk" multiple @change="uploadChanged" />
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { onActivated, onDeactivated, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatDateTime, formatDateTimeFull, formatFileSize } from '@/lib/format'
 import { packagesGQL, initQuery, initLazyQuery, packageStatusesGQL } from '@/lib/api/query'
@@ -106,27 +135,37 @@ import { storeToRefs } from 'pinia'
 import { useDownload, useDownloadItems, useFileUpload } from './hooks/files'
 import { deleteById } from '@/lib/array'
 import emitter from '@/plugins/eventbus'
+import { DataType } from '@/lib/data'
 
 const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload()
 
 const mainStore = useMainStore()
 const items = ref<IAppItem[]>([])
+const searchInputRef = ref()
 const { t } = useI18n()
-const { app } = storeToRefs(useTempStore())
+const { app, urlTokenKey } = storeToRefs(useTempStore())
 const filter: IFilter = reactive({
   text: '',
   tags: [],
 })
-const checked = computed<boolean>(() => {
-  return items.value.some((it) => it.checked)
-})
-const { downloadItems } = useDownloadItems(items, 'apps.zip')
-const { downloadFile } = useDownload(app)
+
+const {
+  allChecked,
+  realAllChecked,
+  selectRealAll,
+  allCheckedAlertVisible,
+  clearSelection,
+  toggleAllChecked,
+  toggleItemChecked,
+  total,
+  checked,
+} = useSelectable(items)
+const { downloadItems } = useDownloadItems(urlTokenKey, DataType.PACKAGE, items, clearSelection, 'apps.zip')
+const { downloadFile } = useDownload(urlTokenKey)
 const route = useRoute()
 const query = route.query
 const page = ref(parseInt(query.page?.toString() ?? '1'))
 const limit = 50
-const total = ref(0)
 const q = ref(decodeBase64(query.q?.toString() ?? ''))
 const fields = parseQuery(q.value as string)
 const currentType = route.params['type'] as string
@@ -144,7 +183,6 @@ const install = () => {
   uploadFiles(app.value.downloadsDir)
 }
 
-const { selectAll, toggleSelect } = useSelectable(items)
 const { loading } = initQuery({
   handle: (data: any, error: string) => {
     if (error) {
@@ -185,6 +223,7 @@ function applyAndDoSearch() {
 
   q.value = buildQuery(fileds)
   doSearch()
+  searchInputRef.value.dismiss()
 }
 
 function doSearch() {
@@ -228,12 +267,14 @@ const {
   appApi: true,
 })
 
-onMounted(() => {
-  emitter.on('upload_task_done', (r: IUploadItem) => {
-    if (r.status === 'done') {
-      // TODO: install app
-    }
-  })
+const uploadTaskDoneHandler = (r: IUploadItem) => {
+  if (r.status === 'done') {
+    // TODO: install app
+  }
+}
+
+onActivated(() => {
+  emitter.on('upload_task_done', uploadTaskDoneHandler)
 
   let firstLoad = true
   setInterval(() => {
@@ -247,9 +288,8 @@ onMounted(() => {
     }
   }, 1000)
 })
+
+onDeactivated(() => {
+  emitter.off('upload_task_done', uploadTaskDoneHandler)
+})
 </script>
-<style lang="scss" scoped>
-.actions {
-  width: 120px;
-}
-</style>

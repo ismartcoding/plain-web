@@ -9,8 +9,20 @@ import emitter from './plugins/eventbus'
 import toast from '@/components/toaster'
 import { getWebSocketBaseUrl } from './lib/api/api'
 import { aesDecrypt, aesEncrypt, bitArrayToUint8Array } from './lib/api/crypto'
-import sjcl from 'sjcl'
 import { arrayBuffertoBits } from './lib/api/sjcl-arraybuffer'
+import {
+  applyDarkClass,
+  changeColor,
+  changeColorAndMode,
+  changeColorMode,
+  getCurrentMode,
+  getCurrentSeedColor,
+  getCurrentThemeString,
+  getLastSavedAutoColorMode,
+  isModeDark,
+} from './lib/theme/theme'
+import { applyThemeString } from './lib/theme/apply-theme-string'
+import { tokenToKey } from './lib/api/file'
 const { t } = useI18n()
 document.title = t('app_name')
 
@@ -24,10 +36,11 @@ async function connect() {
     return
   }
 
-  const key = sjcl.codec.base64.toBits(token)
+  const key = tokenToKey(token)
 
   ws = new WebSocket(`${getWebSocketBaseUrl()}?cid=${clientId}`)
   ws.onopen = async () => {
+    emitter.emit('app_socket_connection_changed', true)
     console.log('WebSocket is connecting to app')
     retryTime = 1000
     const enc = aesEncrypt(key, new Date().getTime().toString())
@@ -58,21 +71,63 @@ async function connect() {
   }
 
   ws.onclose = (_event: CloseEvent) => {
-    setTimeout(() => {
-      connect()
-    }, Math.min(10000, retryTime))
+    setTimeout(
+      () => {
+        connect()
+      },
+      Math.min(10000, retryTime)
+    )
     retryTime += 1000
   }
 
   ws.onerror = (event: Event) => {
     console.error(event)
     ws.close()
+    emitter.emit('app_socket_connection_changed', false)
   }
 }
+
+function determinePageNavigationAutoMode() {
+  if (getCurrentMode() !== 'auto') {
+    return
+  }
+
+  const actualColorMode = isModeDark('auto', false) ? 'dark' : 'light'
+  const lastSavedAutoColorMode = getLastSavedAutoColorMode()
+
+  if (actualColorMode !== lastSavedAutoColorMode) {
+    // Recalculate auto mode with the same theme color.
+    changeColorMode('auto')
+  }
+}
+
+function initializeTheme() {
+  const lastThemeString = getCurrentThemeString()
+  if (lastThemeString) {
+    applyThemeString(document, lastThemeString)
+    applyDarkClass()
+  } else {
+    // Generates a primary color close to GM3 baseline primary color.
+    changeColorAndMode('#0000FF', 'auto')
+  }
+}
+
 onMounted(() => {
   emitter.on('toast', (r: string) => {
     toast(t(r))
   })
+
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (getCurrentMode() !== 'auto') {
+      return
+    }
+
+    changeColor(getCurrentSeedColor()!)
+  })
+
+  initializeTheme()
+
+  determinePageNavigationAutoMode()
 
   connect()
 })
