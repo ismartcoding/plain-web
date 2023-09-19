@@ -389,6 +389,8 @@ export default {
   rotate_left: 'रोटेट लेफ्ट',
   rotate_right: 'रोटेट राइट',
   close: 'क्लोज़',
+  close_other_tabs: 'क्लोज़ अदर टैब्स',
+  close_tabs_to_the_right: 'क्लोज़ टैब्स टू द राइट',
   relaunch_app: 'रीलांच ऐप',
   all_items_on_this_page_are_selected: 'इस पृष्ठ पर सभी {count} आइटम चयनित हैं।',
   all_items_are_selected: 'सभी {count} आइटम चयनित हैं।',

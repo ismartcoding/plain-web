@@ -389,6 +389,8 @@ export default {
   rotate_left: 'Ruota a sinistra',
   rotate_right: 'Ruota a destra',
   close: 'Chiudi',
+  close_other_tabs: 'Chiudi altre schede',
+  close_tabs_to_the_right: 'Chiudi schede a destra',
   relaunch_app: "Rilancia l'applicazione",
   all_items_on_this_page_are_selected: 'Tutti gli {count} elementi in questa pagina sono selezionati.',
   all_items_are_selected: 'Tutti gli {count} elementi sono selezionati.',

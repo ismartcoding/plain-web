@@ -390,6 +390,8 @@ export default {
   rotate_left: 'Nach links drehen',
   rotate_right: 'Nach rechts drehen',
   close: 'Schließen',
+  close_other_tabs: 'Andere Tabs schließen',
+  close_tabs_to_the_right: 'Tabs rechts schließen',
   relaunch_app: 'App neu starten',
   all_items_on_this_page_are_selected: 'Alle {count} Elemente auf dieser Seite sind ausgewählt.',
   all_items_are_selected: 'Alle {count} Elemente sind ausgewählt.',

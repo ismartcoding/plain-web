@@ -390,6 +390,8 @@ export default {
   rotate_left: 'Girar para esquerda',
   rotate_right: 'Girar para direita',
   close: 'Fechar',
+  close_other_tabs: 'Fechar outras abas',
+  close_tabs_to_the_right: 'Fechar abas à direita',
   relaunch_app: 'Reiniciar aplicativo',
   all_items_on_this_page_are_selected: 'Todos os {count} itens nesta página estão selecionados.',
   all_items_are_selected: 'Todos os {count} itens estão selecionados.',

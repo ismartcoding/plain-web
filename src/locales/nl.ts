@@ -391,6 +391,8 @@ export default {
   rotate_left: 'Linksom draaien',
   rotate_right: 'Rechtsom draaien',
   close: 'Sluiten',
+  close_other_tabs: 'Andere tabbladen sluiten',
+  close_tabs_to_the_right: 'Tabbladen aan de rechterkant sluiten',
   relaunch_app: 'App opnieuw starten',
   all_items_on_this_page_are_selected: 'Alle {count} items op deze pagina zijn geselecteerd.',
   all_items_are_selected: 'Alle {count} items zijn geselecteerd.',

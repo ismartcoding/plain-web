@@ -9,7 +9,6 @@ import emitter from './plugins/eventbus'
 import toast from '@/components/toaster'
 import { getWebSocketBaseUrl } from './lib/api/api'
 import { aesDecrypt, aesEncrypt, bitArrayToUint8Array } from './lib/api/crypto'
-import sjcl from 'sjcl'
 import { arrayBuffertoBits } from './lib/api/sjcl-arraybuffer'
 import {
   applyDarkClass,

@@ -391,6 +391,8 @@ export default {
   rotate_left: 'Повернуть влево',
   rotate_right: 'Повернуть вправо',
   close: 'Закрыть',
+  close_other_tabs: 'Закрыть другие вкладки',
+  close_tabs_to_the_right: 'Закрыть вкладки справа',
   relaunch_app: 'Перезапустить приложение',
   all_items_on_this_page_are_selected: 'Все {count} элементов на этой странице выбраны.',
   all_items_are_selected: 'Все {count} элементов выбраны.',

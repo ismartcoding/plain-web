@@ -12,7 +12,7 @@
       </button>
       <button
         class="icon-button"
-        @click.stop="(e: MouseEvent) => addItemsToPlaylist(e, realAllChecked, finalQ)"
+        @click.stop="addItemsToPlaylist($event, realAllChecked, finalQ)"
         v-tooltip="$t('add_to_playlist')"
       >
         <md-ripple />
@@ -107,7 +107,7 @@
               </button>
               <button
                 class="icon-button"
-                @click.stop="(e: MouseEvent) => addToPlaylist(e, item)"
+                @click.stop="addToPlaylist($event, item)"
                 v-tooltip="$t('add_to_playlist')"
               >
                 <md-ripple />

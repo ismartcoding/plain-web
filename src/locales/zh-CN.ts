@@ -389,6 +389,8 @@ export default {
   rotate_left: '左旋转',
   rotate_right: '右旋转',
   close: '关闭',
+  close_other_tabs: '关闭其他标签页',
+  close_tabs_to_the_right: '关闭右侧标签页',
   relaunch_app: '重启应用',
   all_items_on_this_page_are_selected: '已选择此页面上{count}项。',
   all_items_are_selected: '已选择全部{count}项。',
