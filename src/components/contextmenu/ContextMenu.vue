@@ -59,7 +59,15 @@ function onChildrenUpdatePos(newPos: ContextMenuPositionData) {
   currentShowPos.value.y = newPos.y
 }
 
+const onKeyPress = (e: Event) => {
+  const evt = e as KeyboardEvent
+  if (evt.key === 'Escape') {
+    close()
+  } 
+}
+
 onMounted(() => {
+  document.addEventListener('keydown', onKeyPress)
   updateCurrentShowPos()
   setTimeout(() => {
     document.addEventListener('click', close)
@@ -67,6 +75,7 @@ onMounted(() => {
   }, 100)
 })
 onBeforeUnmount(() => {
+  document.removeEventListener('keydown', onKeyPress)
   document.removeEventListener('click', close)
 })
 
