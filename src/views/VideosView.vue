@@ -1,7 +1,7 @@
 <template>
   <div class="v-toolbar">
     <breadcrumb :current="() => `${$t('page_title.videos')} (${total})`" />
-    <template v-if="checked && viewType === 'list'">
+    <template v-if="checked && mainStore.videoViewType === 'list'">
       <button class="icon-button" @click.stop="deleteItems(dataType, items, realAllChecked, finalQ)" v-tooltip="$t('delete')">
         <md-ripple />
         <i-material-symbols:delete-forever-outline-rounded />
@@ -18,11 +18,11 @@
     <button
       class="icon-button"
       @click.prevent="changeViewType"
-      v-tooltip="$t(viewType === 'list' ? 'view_as_grid' : 'view_as_list')"
+      v-tooltip="$t(mainStore.videoViewType === 'list' ? 'view_as_grid' : 'view_as_list')"
     >
       <md-ripple />
-      <i-material-symbols:grid-view-outline-rounded v-if="viewType === 'list'" />
-      <i-material-symbols:table-rows-rounded v-if="viewType === 'grid'" />
+      <i-material-symbols:grid-view-outline-rounded v-if="mainStore.videoViewType === 'list'" />
+      <i-material-symbols:table-rows-rounded v-if="mainStore.videoViewType === 'grid'" />
     </button>
     <button class="icon-button" @click.prevent="upload" v-tooltip="$t('upload')">
       <md-ripple />
@@ -51,13 +51,13 @@
       </template>
     </search-input>
   </div>
-  <div class="image-container" v-if="viewType === 'grid'" style="margin-bottom: 24px">
+  <div class="image-container" v-if="mainStore.videoViewType === 'grid'" style="margin-bottom: 24px">
     <div class="item" v-for="(item, i) in sources" @click="view(i)">
       <img class="image" :src="item.src + '&w=300&h=300'" />
       <span class="duration">{{ formatSeconds(item.duration) }}</span>
     </div>
   </div>
-  <div class="no-data-placeholder" v-if="viewType === 'grid' && sources.length === 0">
+  <div class="no-data-placeholder" v-if="mainStore.videoViewType === 'grid' && sources.length === 0">
     {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
   </div>
   <all-checked-alert
@@ -68,8 +68,8 @@
     :select-real-all="selectRealAll"
     :clear-selection="clearSelection"
   />
-  <div class="table-responsive">
-    <table class="table" v-if="viewType === 'list'">
+  <div class="table-responsive" v-if="mainStore.videoViewType === 'list'">
+    <table class="table" >
       <thead>
         <tr>
           <th>
@@ -219,7 +219,7 @@ const { tags } = useTags(dataType, q, filter, async (fields: IFilterField[]) => 
   await nextTick()
   load()
 })
-const viewType = ref(query.view?.toString() ?? 'grid')
+
 const { addToTags } = useAddToTags(dataType, items, tags)
 const { deleteItems, deleteItem } = useDeleteItems()
 const {
@@ -274,7 +274,7 @@ const { loading, load, refetch } = initLazyQuery({
 })
 
 function updateUrl() {
-  replacePath(mainStore, `/videos?page=${page.value}&q=${encodeBase64(q.value)}&view=${viewType.value}`)
+  replacePath(mainStore, `/videos?page=${page.value}&q=${encodeBase64(q.value)}`)
 }
 
 function view(index: number) {
@@ -286,10 +286,6 @@ function view(index: number) {
 }
 
 watch(page, () => {
-  updateUrl()
-})
-
-watch(viewType, () => {
   updateUrl()
 })
 
@@ -321,14 +317,14 @@ function applyAndDoSearch() {
 }
 
 function doSearch() {
-  replacePath(mainStore, `/videos?q=${encodeBase64(q.value)}&view=${viewType.value}`)
+  replacePath(mainStore, `/videos?q=${encodeBase64(q.value)}`)
 }
 
 function changeViewType() {
-  if (viewType.value === 'grid') {
-    viewType.value = 'list'
+  if (mainStore.videoViewType === 'grid') {
+    mainStore.videoViewType = 'list'
   } else {
-    viewType.value = 'grid'
+    mainStore.videoViewType = 'grid'
   }
 }
 

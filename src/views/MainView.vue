@@ -32,7 +32,7 @@
       </header>
       <div class="page-content">
         <router-view v-slot="{ Component, route }">
-          <keep-alive :include="includes">
+          <keep-alive :include="includes" :max="10">
             <component :is="wrap(route.fullPath, Component)" :key="$route.fullPath" />
           </keep-alive>
         </router-view>
