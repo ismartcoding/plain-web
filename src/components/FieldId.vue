@@ -1,6 +1,6 @@
 <template>
   <popper>
-    <span class="id">{{ id }}</span>
+    <span class="nowrap">{{ id }}</span>
     <template #content>
       <pre class="view-raw">{{ raw }}</pre>
     </template>
@@ -12,8 +12,3 @@ defineProps({
   raw: { type: [String, Object], default: '' },
 })
 </script>
-<style lang="scss" scoped>
-.id {
-  word-break: keep-all;
-}
-</style>

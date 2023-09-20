@@ -111,16 +111,8 @@
   <v-pagination v-if="total > limit" v-model="page" :total="total" :limit="limit" />
 </template>
 
-<script lang="ts">
-export default {
-  name: 'NotesTrash',
-  inheritAttrs: false,
-  customOptions: {},
-}
-</script>
-
 <script setup lang="ts">
-import { nextTick, onActivated, onDeactivated, reactive, ref, watch } from 'vue'
+import { nextTick, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatDateTime } from '@/lib/format'
 import { notesGQL, initLazyQuery } from '@/lib/api/query'

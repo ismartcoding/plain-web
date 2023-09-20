@@ -7,6 +7,8 @@ export type MainState = {
   quick: string
   pages: string[]
   lightboxInfoVisible: boolean
+  videoViewType: string
+  imageViewType: string
 }
 
 export const useMainStore = defineStore({
@@ -21,6 +23,8 @@ export const useMainStore = defineStore({
       audios: [],
       audioPlaying: null,
       lightboxInfoVisible: false,
+      videoViewType: 'grid',
+      imageViewType: 'grid',
     }) as MainState,
   actions: {
     replaceRoute(from: string, to: string) {

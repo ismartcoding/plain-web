@@ -25,14 +25,6 @@
   </div>
 </template>
 
-<script lang="ts">
-export default {
-  name: 'VideosRoot',
-  inheritAttrs: false,
-  customOptions: {},
-}
-</script>
-
 <script setup lang="ts">
 import { Splitpanes, Pane } from 'splitpanes'
 import { useRoute } from 'vue-router'
