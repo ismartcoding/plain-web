@@ -70,7 +70,7 @@
           v-for="item in items"
           :key="item.id"
           :class="{ selected: item.checked }"
-          @click.stop="item.checked = !item.checked"
+          @click.stop="toggleRow(item)"
         >
           <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
           <td><field-id :id="item.id" :raw="item" /></td>
@@ -207,6 +207,7 @@ const {
   clearSelection,
   toggleAllChecked,
   toggleItemChecked,
+  toggleRow,
   total,
   checked,
 } = useSelectable(items)
