@@ -52,7 +52,7 @@
     style="margin-inline-end: 8px"
     @click="logout"
     v-if="props.loggedIn"
-    v-tooltip="t('header_actions.logout')"
+    v-tooltip="$t('header_actions.logout')"
   >
     <md-ripple />
     <i-material-symbols:logout-rounded />

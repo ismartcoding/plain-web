@@ -1,5 +1,14 @@
 export default {
   app_name: 'EinfacheApp',
+  sort: 'Sortieren',
+  sort_by: {
+    date_asc: 'Älteste zuerst',
+    date_desc: 'Neueste zuerst',
+    size_asc: 'Kleinste zuerst',
+    size_desc: 'Größte zuerst',
+    name_asc: 'Name (A bis Z)',
+    name_desc: 'Name (Z bis A)',
+  },
   cancel: 'Abbrechen',
   ok: 'OK',
   connection_timeout: 'Verbindung ist abgelaufen',

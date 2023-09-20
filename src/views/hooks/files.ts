@@ -23,7 +23,6 @@ import { findIndex, remove } from 'lodash-es'
 import { getApiBaseUrl } from '@/lib/api/api'
 import type { ISelectable, IStorageStatsItem } from '@/lib/interfaces'
 import type sjcl from 'sjcl'
-import { DataType } from '@/lib/data'
 
 export const useCreateDir = (urlTokenKey: Ref<sjcl.BitArray | null>, panels: Ref<FilePanel[]>) => {
   const createPath = ref('')
@@ -118,9 +117,10 @@ export const useStats = () => {
   return { internal, sdcard, usb, refetch }
 }
 
-export const useFiles = (urlTokenKey: Ref<sjcl.BitArray | null>, rootDir: string, initDir: string) => {
-  const _refetchDir = ref('')
+export const useFiles = (urlTokenKey: Ref<sjcl.BitArray | null>, rootDir: string, initDir: string, sortBy: Ref<string>) => {
   const currentDir = ref(rootDir)
+  let _refetchDir = ref('')
+  
   const panels = ref<FilePanel[]>([])
   const { t } = useI18n()
   let initDirIndex = 0
@@ -162,10 +162,11 @@ export const useFiles = (urlTokenKey: Ref<sjcl.BitArray | null>, rootDir: string
       }
     },
     document: filesGQL,
-    variables: {
-      dir: currentDir,
+    variables: () => ({
+      dir: currentDir.value,
       showHidden: true,
-    },
+      sortBy: sortBy.value,
+    }),
     options: {
       fetchPolicy: 'no-cache',
     },
@@ -191,10 +192,11 @@ export const useFiles = (urlTokenKey: Ref<sjcl.BitArray | null>, rootDir: string
       _refetchDir.value = ''
     },
     document: filesGQL,
-    variables: {
-      dir: _refetchDir,
+    variables: () => ({
+      dir: _refetchDir.value,
       showHidden: true,
-    },
+      sortBy: sortBy.value,
+    }),
     options: () => ({
       fetchPolicy: 'no-cache',
       enabled: !!_refetchDir.value,

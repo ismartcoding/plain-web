@@ -9,6 +9,7 @@ export type MainState = {
   lightboxInfoVisible: boolean
   videoViewType: string
   imageViewType: string
+  fileSortBy: string
 }
 
 export const useMainStore = defineStore({
@@ -25,6 +26,7 @@ export const useMainStore = defineStore({
       lightboxInfoVisible: false,
       videoViewType: 'grid',
       imageViewType: 'grid',
+      fileSortBy: 'NAME_ASC',
     }) as MainState,
   actions: {
     replaceRoute(from: string, to: string) {

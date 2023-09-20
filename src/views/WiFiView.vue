@@ -8,7 +8,7 @@
         :loading="loading"
         :tabs="['t:basic', '/etc/hostapd/hostapd.conf']"
       />
-      <form class="mt-3" v-show="currentTab === 0">
+      <form v-show="currentTab === 0">
         <div class="row mb-3">
           <label for="is-enabled" class="col-sm-3 col-md-2 col-form-label">{{ t('enable') }}</label>
           <div class="col-sm-4">

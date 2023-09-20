@@ -20,41 +20,43 @@
           <i-material-symbols:download-rounded />
         </button>
       </template>
-      <div class="form-check mt-2 me-3 ms-3">
+      <div class="form-check">
         <label class="form-check-label">
           <md-checkbox touch-target="wrapper" @change="toggleSelectModeChecked" :checked="selectMode" />
           {{ $t('select_mode') }}
         </label>
       </div>
-      <div class="form-check mt-2">
-        <label class="form-check-label"
-          ><md-checkbox touch-target="wrapper" :checked="fileShowHidden" />{{ $t('show_hidden') }}</label
-        >
+      <div class="form-check">
+        <label class="form-check-label"><md-checkbox touch-target="wrapper" :checked="fileShowHidden" />{{
+          $t('show_hidden') }}</label>
       </div>
+
+      <popper>
+        <button class="icon-button btn-sort" v-tooltip="$t('sort')">
+          <md-ripple />
+          <i-material-symbols:sort-rounded />
+        </button>
+        <template #content="slotProps">
+          <div class="menu-items">
+            <md-menu-item v-for="item in sortItems" @click="sort(slotProps, item.value)" :headline="$t(item.label)"
+              :class="{ selected: item.value === fileSortBy }" />
+          </div>
+        </template>
+      </popper>
     </div>
   </div>
   <splitpanes class="panel-container">
     <pane v-for="panel in panels" :key="panel.dir">
       <div class="file-items">
         <template v-for="f of panel.items" :key="f.path">
-          <div
-            class="file-item"
-            v-if="!f.name.startsWith('.') || fileShowHidden"
-            :class="{
-              active: (currentDir + '/').startsWith(f.path + '/') || selectedItem?.path === f.path,
-            }"
-            @click="clickItem(panel, f)"
-            @dblclick.prevent="dbclickItem(panel, f)"
-            @contextmenu="itemCtxMenu($event, panel, f)"
-          >
+          <div class="file-item" v-if="!f.name.startsWith('.') || fileShowHidden" :class="{
+            active: (currentDir + '/').startsWith(f.path + '/') || selectedItem?.path === f.path,
+          }" @click="clickItem(panel, f)" @dblclick.prevent="dbclickItem(panel, f)"
+            @contextmenu="itemCtxMenu($event, panel, f)">
             <md-checkbox touch-target="wrapper" v-if="selectMode" :checked="f.checked" />
             <i-material-symbols:folder-outline-rounded v-if="f.isDir" />
-            <img
-              v-if="isImage(f.name) || isVideo(f.name)"
-              :src="getFileUrl(f.fileId) + '&w=50&h=50'"
-              width="50"
-              height="50"
-            />
+            <img v-if="isImage(f.name) || isVideo(f.name)" :src="getFileUrl(f.fileId) + '&w=50&h=50'" width="50"
+              height="50" />
             <div class="title">
               {{ f.name }}
               <div style="font-size: 0.75rem">
@@ -64,10 +66,8 @@
           </div>
         </template>
         <div class="empty" @contextmenu="emptyCtxMenu($event, panel.dir)">
-          <div
-            class="no-files"
-            v-if="panel.items.filter((it) => !it.name.startsWith('.') || fileShowHidden).length === 0"
-          >
+          <div class="no-files"
+            v-if="panel.items.filter((it) => !it.name.startsWith('.') || fileShowHidden).length === 0">
             {{ $t('no_files') }}
           </div>
         </div>
@@ -79,16 +79,8 @@
   </splitpanes>
   <div class="file-item-info" v-if="selectedItem">{{ $t('path') }}: {{ selectedItem.path }}</div>
   <input ref="fileInput" style="display: none" type="file" multiple @change="uploadChanged" />
-  <input
-    ref="dirFileInput"
-    style="display: none"
-    type="file"
-    multiple
-    webkitdirectory
-    mozdirectory
-    directory
-    @change="dirUploadChanged"
-  />
+  <input ref="dirFileInput" style="display: none" type="file" multiple webkitdirectory mozdirectory directory
+    @change="dirUploadChanged" />
 </template>
 
 <script setup lang="ts">
@@ -146,9 +138,18 @@ if (!dirTmp) {
   }
 }
 const initDir = ref(dirTmp)
+const sortItems = [
+  { label: 'sort_by.date_asc', value: 'DATE_ASC' },
+  { label: 'sort_by.date_desc', value: 'DATE_DESC' },
+  { label: 'sort_by.size_asc', value: 'SIZE_ASC' },
+  { label: 'sort_by.size_desc', value: 'SIZE_DESC' },
+  { label: 'sort_by.name_asc', value: 'NAME_ASC' },
+  { label: 'sort_by.name_desc', value: 'NAME_DESC' },
+]
 
 const selectMode = ref(false)
 const mainStore = useMainStore()
+const { fileShowHidden, fileSortBy } = storeToRefs(mainStore)
 
 const tempStore = useTempStore()
 const { app, urlTokenKey, selectedFiles } = storeToRefs(tempStore)
@@ -162,7 +163,7 @@ if (filesType) {
     rootDir = app.value.externalFilesDir
   }
 }
-const { loading, panels, currentDir, refetch: refetchFiles } = useFiles(urlTokenKey, rootDir, initDir.value)
+const { loading, panels, currentDir, refetch: refetchFiles } = useFiles(urlTokenKey, rootDir, initDir.value, fileSortBy)
 
 const { createPath, createVariables, createMutation } = useCreateDir(urlTokenKey, panels)
 const { renameValue, renamePath, renameDone, renameMutation, renameVariables } = useRename(panels)
@@ -221,7 +222,6 @@ const deleteItems = () => {
     onDone: onDeleted,
   })
 }
-const { fileShowHidden } = storeToRefs(mainStore)
 
 if (initPath.value) {
   watch(
@@ -274,6 +274,12 @@ function clickItem(panel: FilePanel, item: IFile) {
 
 function canView(item: IFile) {
   return isImage(item.name) || isVideo(item.name) || isAudio(item.name)
+}
+
+function sort(slotProps: any, sort: string) {
+  // only sort the last column
+  fileSortBy.value = sort
+  slotProps.close()
 }
 
 function dbclickItem(panel: FilePanel, item: IFile) {
@@ -463,6 +469,10 @@ onDeactivated(() => {
 <style lang="scss" scoped>
 .file-item-info {
   padding-top: 8px;
+}
+
+.btn-sort {
+  margin-inline-start: 16px;
 }
 
 .panel-container {

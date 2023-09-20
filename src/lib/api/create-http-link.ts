@@ -14,7 +14,6 @@ import {
 import { fromError } from '@apollo/client/link/utils'
 import { Observable } from '@apollo/client/utilities'
 import { visit, type VariableDefinitionNode } from 'graphql'
-import sjcl from 'sjcl'
 import { getApiBaseUrl, getApiHeaders } from './api'
 import { aesEncrypt, aesDecrypt, arrayBufferToBitArray, bitArrayToUint8Array } from './crypto'
 import { tokenToKey } from './file'
@@ -32,7 +31,7 @@ export const createHttpLink = (linkOptions: HttpOptions = {}) => {
     const chosenURI = selectURI(operation, uri)
 
     const context = operation.getContext()
-
+    
     //uses fallback, link, and then context to build options
     const { options, body } = selectHttpOptionsAndBodyInternal(
       operation,

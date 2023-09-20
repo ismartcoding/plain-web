@@ -1,5 +1,14 @@
 export default {
   app_name: 'PlainApp',
+  sort: '並べ替え',
+  sort_by: {
+    date_asc: '古い順',
+    date_desc: '新しい順',
+    size_asc: '小さい順',
+    size_desc: '大きい順',
+    name_asc: '名前（AからZへ）',
+    name_desc: '名前（ZからAへ）',
+  },
   cancel: 'キャンセル',
   ok: 'OK',
   connection_timeout: '接続がタイムアウトしました',

@@ -1,5 +1,14 @@
 export default {
   app_name: 'PlainApp',
+  sort: 'সাজান',
+  sort_by: {
+    date_asc: 'নিম্নতম তারিখ আগে',
+    date_desc: 'নতুনতম তারিখ আগে',
+    size_asc: 'সবচেয়ে ছোট',
+    size_desc: 'সবচেয়ে বড়',
+    name_asc: 'নাম (এ থেকে জেড)',
+    name_desc: 'নাম (জেড থেকে এ)',
+  },
   cancel: 'বাতিল করুন',
   ok: 'ঠিক আছে',
   connection_timeout: 'সংযোগ সময় আউট হয়েছে',

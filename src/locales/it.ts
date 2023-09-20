@@ -1,5 +1,14 @@
 export default {
   app_name: 'PlainApp',
+  sort: 'Ordina',
+  sort_by: {
+    date_asc: 'Data più antica prima',
+    date_desc: 'Data più recente prima',
+    size_asc: 'Più piccolo prima',
+    size_desc: 'Più grande prima',
+    name_asc: 'Nome (A a Z)',
+    name_desc: 'Nome (Z a A)',
+  },
   cancel: 'Annulla',
   ok: 'OK',
   connection_timeout: 'Connessione scaduta',

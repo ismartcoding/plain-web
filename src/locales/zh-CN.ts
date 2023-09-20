@@ -1,5 +1,14 @@
 export default {
   app_name: '简朴',
+  sort: '排序',
+  sort_by: {
+    date_asc: '最旧日期优先',
+    date_desc: '最新日期优先',
+    size_asc: '最小优先',
+    size_desc: '最大优先',
+    name_asc: '名称（从A到Z）',
+    name_desc: '名称（从Z到A）',
+  },
   cancel: '取消',
   ok: '好的',
   connection_timeout: '连接超时',
