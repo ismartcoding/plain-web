@@ -2,7 +2,8 @@
   <div class="v-toolbar">
     <breadcrumb :current="() => `${$t('page_title.videos')} (${total})`" />
     <template v-if="checked && mainStore.videoViewType === 'list'">
-      <button class="icon-button" @click.stop="deleteItems(dataType, items, realAllChecked, finalQ)" v-tooltip="$t('delete')">
+      <button class="icon-button" @click.stop="deleteItems(dataType, items, realAllChecked, finalQ)"
+        v-tooltip="$t('delete')">
         <md-ripple />
         <i-material-symbols:delete-forever-outline-rounded />
       </button>
@@ -15,11 +16,8 @@
         <i-material-symbols:label-outline-rounded />
       </button>
     </template>
-    <button
-      class="icon-button"
-      @click.prevent="changeViewType"
-      v-tooltip="$t(mainStore.videoViewType === 'list' ? 'view_as_grid' : 'view_as_list')"
-    >
+    <button class="icon-button" @click.prevent="changeViewType"
+      v-tooltip="$t(mainStore.videoViewType === 'list' ? 'view_as_grid' : 'view_as_list')">
       <md-ripple />
       <i-material-symbols:grid-view-outline-rounded v-if="mainStore.videoViewType === 'list'" />
       <i-material-symbols:table-rows-rounded v-if="mainStore.videoViewType === 'grid'" />
@@ -34,13 +32,8 @@
           <md-outlined-text-field :label="$t('keywords')" v-model="filter.text" keyup.enter="applyAndDoSearch" />
           <label class="form-label">{{ $t('tags') }}</label>
           <md-chip-set type="filter">
-            <md-filter-chip
-              v-for="item in tags"
-              :key="item.id"
-              :label="item.name"
-              :selected="filter.tags.includes(item)"
-              @click="onTagSelect(item)"
-            />
+            <md-filter-chip v-for="item in tags" :key="item.id" :label="item.name" :selected="filter.tags.includes(item)"
+              @click="onTagSelect(item)" />
           </md-chip-set>
           <div class="buttons">
             <md-filled-button @click.stop="applyAndDoSearch">
@@ -52,7 +45,7 @@
     </search-input>
   </div>
   <div class="image-container" v-if="mainStore.videoViewType === 'grid'" style="margin-bottom: 24px">
-    <div class="item" v-for="(item, i) in sources" @click="view(i)">
+    <div class="item" v-for="(item, i) in sources" @click="view(i)" @contextmenu="itemCtxMenu($event, item.data)">
       <img class="image" :src="item.src + '&w=300&h=300'" />
       <span class="duration">{{ formatSeconds(item.duration) }}</span>
     </div>
@@ -60,25 +53,15 @@
   <div class="no-data-placeholder" v-if="mainStore.videoViewType === 'grid' && sources.length === 0">
     {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
   </div>
-  <all-checked-alert
-    :limit="limit"
-    :total="total"
-    :all-checked-alert-visible="allCheckedAlertVisible"
-    :real-all-checked="realAllChecked"
-    :select-real-all="selectRealAll"
-    :clear-selection="clearSelection"
-  />
+  <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible"
+    :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
   <div class="table-responsive" v-if="mainStore.videoViewType === 'list'">
-    <table class="table" >
+    <table class="table">
       <thead>
         <tr>
           <th>
-            <md-checkbox
-              touch-target="wrapper"
-              @change="toggleAllChecked"
-              :checked="allChecked"
-              :indeterminate="!allChecked && checked"
-            />
+            <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked"
+              :indeterminate="!allChecked && checked" />
           </th>
           <th>ID</th>
           <th></th>
@@ -90,23 +73,12 @@
         </tr>
       </thead>
       <tbody>
-        <tr
-          v-for="(item, i) in items"
-          :key="item.id"
-          :class="{ selected: item.checked }"
-          @click.stop="toggleRow(item)"
-        >
+        <tr v-for="(item, i) in items" :key="item.id" :class="{ selected: item.checked }" @click.stop="toggleRow(item)">
           <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
           <td><field-id :id="item.id" :raw="item" /></td>
           <td>
-            <img
-              class="img-video"
-              :src="getFileUrl(item.fileId) + '&w=300&h=300'"
-              width="50"
-              height="50"
-              style="cursor: pointer"
-              @click.stop="view(i)"
-            />
+            <img class="img-video" :src="getFileUrl(item.fileId) + '&w=300&h=300'" width="50" height="50"
+              style="cursor: pointer" @click.stop="view(i)" />
           </td>
           <td>
             {{ item.title }}
@@ -117,11 +89,8 @@
                 <md-ripple />
                 <i-material-symbols:delete-forever-outline-rounded />
               </button>
-              <button
-                class="icon-button"
-                @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))"
-                v-tooltip="$t('download')"
-              >
+              <button class="icon-button" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))"
+                v-tooltip="$t('download')">
                 <md-ripple />
                 <i-material-symbols:download-rounded />
               </button>
@@ -194,6 +163,7 @@ import { remove } from 'lodash-es'
 import { openModal } from '@/components/modal'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { DataType } from '@/lib/data'
+import { contextmenu } from '@/components/contextmenu'
 
 const router = useRouter()
 const mainStore = useMainStore()
@@ -211,7 +181,7 @@ const dataType = DataType.VIDEO
 const route = useRoute()
 const query = route.query
 const page = ref(parseInt(query.page?.toString() ?? '1'))
-const limit = 50
+const limit = 48
 const q = ref(decodeBase64(query.q?.toString() ?? ''))
 const finalQ = ref('')
 const { tags } = useTags(dataType, q, filter, async (fields: IFilterField[]) => {
@@ -335,6 +305,35 @@ function upload() {
   })
 }
 
+
+function itemCtxMenu(e: MouseEvent, item: IVideoItem) {
+  e.preventDefault()
+  contextmenu({
+    x: e.x,
+    y: e.y,
+    items: [
+      {
+        label: t('add_to_tags'),
+        onClick: () => {
+          addItemToTags(item)
+        },
+      },
+      {
+        label: t('download'),
+        onClick: () => {
+          downloadFile(item.path, getFileName(item.path).replace(' ', '-'))
+        },
+      },
+      {
+        label: t('delete'),
+        onClick: () => {
+          deleteItem(dataType, item)
+        },
+      },
+    ],
+  })
+}
+
 const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
   if (event.type === dataType) {
     clearSelection()
@@ -377,7 +376,7 @@ onDeactivated(() => {
 <style lang="scss" scoped>
 .image-container {
   .item {
-    width: calc(20% - 4px);
+    width: calc(16.66% - 4px);
     margin: 2px;
   }
 }

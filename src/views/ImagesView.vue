@@ -45,7 +45,7 @@
     </search-input>
   </div>
   <div class="image-container" v-if="mainStore.imageViewType === 'grid'" style="margin-bottom: 24px">
-    <div class="item" v-for="(item, i) in sources" @click="view(i)">
+    <div class="item" v-for="(item, i) in sources" @click="view(i)" @contextmenu="itemCtxMenu($event, item.data)">
       <img class="image" :src="item.src + '&w=300&h=300'" />
       <span class="duration">{{ formatFileSize(item.size) }}</span>
     </div>
@@ -158,6 +158,7 @@ import { remove } from 'lodash-es'
 import { openModal } from '@/components/modal'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { DataType } from '@/lib/data'
+import { contextmenu } from '@/components/contextmenu'
 
 const router = useRouter()
 const mainStore = useMainStore()
@@ -175,7 +176,7 @@ const dataType = DataType.IMAGE
 const route = useRoute()
 const query = route.query
 const page = ref(parseInt(query.page?.toString() ?? '1'))
-const limit = 50
+const limit = 48
 const q = ref(decodeBase64(query.q?.toString() ?? ''))
 const finalQ = ref('')
 const { tags } = useTags(dataType, q, filter, async (fields: IFilterField[]) => {
@@ -298,6 +299,34 @@ function upload() {
   })
 }
 
+function itemCtxMenu(e: MouseEvent, item: IImageItem) {
+  e.preventDefault()
+  contextmenu({
+    x: e.x,
+    y: e.y,
+    items: [
+      {
+        label: t('add_to_tags'),
+        onClick: () => {
+          addItemToTags(item)
+        },
+      },
+      {
+        label: t('download'),
+        onClick: () => {
+          downloadFile(item.path, getFileName(item.path).replace(' ', '-'))
+        },
+      },
+      {
+        label: t('delete'),
+        onClick: () => {
+          deleteItem(dataType, item)
+        },
+      },
+    ],
+  })
+}
+
 const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
   if (event.type === dataType) {
     clearSelection()
@@ -340,7 +369,7 @@ onDeactivated(() => {
 <style lang="scss" scoped>
 .image-container {
   .item {
-    width: calc(20% - 4px);
+    width: calc(16.66% - 4px);
     margin: 2px;
   }
 }
