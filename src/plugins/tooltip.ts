@@ -7,15 +7,18 @@ const plugin: Plugin = {
 }
 
 const directive: Directive = {
+  updated: (el, binding) => {
+    // save the new value so we can use later
+    el.tooltipText = binding.value
+  },
   mounted: (el, binding) => {
-    const tooltipText = binding.value as string
     let showTimeout: number | undefined
     let tooltipElement: HTMLDivElement | null = null
 
     function createTooltip() {
       tooltipElement = document.createElement('div')
       tooltipElement.className = 'tooltip'
-      tooltipElement.textContent = tooltipText
+      tooltipElement.textContent = el.tooltipText || binding.value
       document.body.appendChild(tooltipElement)
 
       // Set initial styles for the tooltip

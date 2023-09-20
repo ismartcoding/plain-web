@@ -1,5 +1,14 @@
 export default {
   app_name: 'PlainApp',
+  sort: 'Sorteren',
+  sort_by: {
+    date_asc: 'Oudste datum eerst',
+    date_desc: 'Nieuwste datum eerst',
+    size_asc: 'Kleinste eerst',
+    size_desc: 'Grootste eerst',
+    name_asc: 'Naam (A tot Z)',
+    name_desc: 'Naam (Z tot A)',
+  },
   cancel: 'Annuleren',
   ok: 'OK',
   connection_timeout: 'Verbinding is verlopen',

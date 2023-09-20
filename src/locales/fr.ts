@@ -1,5 +1,14 @@
 export default {
   app_name: 'PlainApp',
+  sort: 'Trier',
+  sort_by: {
+    date_asc: 'Date la plus ancienne en premier',
+    date_desc: 'Date la plus récente en premier',
+    size_asc: 'Plus petit en premier',
+    size_desc: 'Plus grand en premier',
+    name_asc: 'Nom (A à Z)',
+    name_desc: 'Nom (Z à A)',
+  },
   cancel: 'Annuler',
   ok: 'OK',
   connection_timeout: 'La connexion a expiré',

@@ -1,5 +1,14 @@
 export default {
   app_name: 'प्लेन ऐप',
+  sort: 'सॉर्ट',
+  sort_by: {
+    date_asc: 'सबसे पुरानी तारीख पहले',
+    date_desc: 'सबसे नई तारीख पहले',
+    size_asc: 'सबसे छोटा पहले',
+    size_desc: 'सबसे बड़ा पहले',
+    name_asc: 'नाम (ए से जेड तक)',
+    name_desc: 'नाम (जेड से ए तक)',
+  },
   cancel: 'कैंसिल',
   ok: 'ओके',
   connection_timeout: 'कनेक्शन समय समाप्त हो गया है',

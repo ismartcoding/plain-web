@@ -1,5 +1,14 @@
 export default {
   app_name: 'PlainApp',
+  sort: 'Сортировка',
+  sort_by: {
+    date_asc: 'Старые даты вначале',
+    date_desc: 'Новые даты вначале',
+    size_asc: 'Сначала меньшие',
+    size_desc: 'Сначала большие',
+    name_asc: 'Имя (А до Я)',
+    name_desc: 'Имя (Я до А)',
+  },
   cancel: 'Отмена',
   ok: 'ОК',
   connection_timeout: 'Время соединения истекло',

@@ -1,5 +1,14 @@
 export default {
   app_name: 'அரசியலமைப்பு',
+  sort: 'வரிசைப்படுத்து',
+  sort_by: {
+    date_asc: 'பழைய தேதி முதல்',
+    date_desc: 'புதிய தேதி முதல்',
+    size_asc: 'சிறியது முதல்',
+    size_desc: 'பெரியது முதல்',
+    name_asc: 'பெயர் (ஏ முதல் ஜேட்)',
+    name_desc: 'பெயர் (ஜேட் முதல் ஏ)',
+  },
   cancel: 'ரத்து செய்',
   ok: 'சரி',
   connection_timeout: 'இணைப்பு நேரம் முடிந்தது',

@@ -1,5 +1,5 @@
 <template>
-  <h2 class="nav-title mt-4">
+  <h2 class="nav-title">
     {{ $t('tags') }}
     <button class="icon-button" @click.prevent="add" v-tooltip="$t('add_tag')">
       <md-ripple />
