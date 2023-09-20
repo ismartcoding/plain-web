@@ -38,6 +38,17 @@ export const useSelectable = (items: Ref<ISelectable[]>) => {
         allChecked.value = false
         realAllChecked.value = false
       }
+    },   
+    toggleRow: (item: ISelectable) => {
+      item.checked = !item.checked
+      if (item.checked) {
+        if (items.value.every((it) => it.checked)) {
+          allChecked.value = true
+        }
+      } else {
+        allChecked.value = false
+        realAllChecked.value = false
+      }
     },
     allCheckedAlertVisible: computed<boolean>(() => {
       return allChecked.value && !realAllChecked.value && items.value.length < total.value
