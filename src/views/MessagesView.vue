@@ -79,7 +79,7 @@
               </button>
             </div>
           </td>
-          <td>{{ item.address }}</td>
+          <td class="nowrap">{{ item.address }}</td>
           <td class="nowrap">{{ $t(`message_type.${item.type}`) }}</td>
           <td>
             <item-tags :tags="item.tags" :type="dataType" />

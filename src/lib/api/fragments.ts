@@ -332,6 +332,13 @@ export const packageFragment = gql`
     version
     path
     size
+    certs {
+      issuer
+      subject
+      serialNumber
+      validFrom
+      validTo
+    }
     installedAt
     updatedAt
   }
