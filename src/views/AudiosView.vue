@@ -73,7 +73,7 @@
           <th>ID</th>
           <th>{{ $t('name') }}</th>
           <th></th>
-          <th>{{ $t('artist') }}</th>
+          <th class="artist">{{ $t('artist') }}</th>
           <th>{{ $t('tags') }}</th>
           <th>{{ $t('duration') }}</th>
           <th>{{ $t('file_size') }}</th>
@@ -88,7 +88,7 @@
         >
           <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
           <td><field-id :id="item.id" :raw="item" /></td>
-          <td>
+          <td class="title">
             {{ item.title }}
           </td>
           <td class="nowrap">
@@ -142,7 +142,7 @@
           <td class="nowrap">
             {{ formatSeconds(item.duration) }}
           </td>
-          <td>
+          <td class="nowrap">
             {{ formatFileSize(item.size) }}
           </td>
         </tr>
@@ -346,3 +346,11 @@ function addItemToTags(item: IAudioItem) {
   })
 }
 </script>
+<style scoped lang="scss">
+.artist {
+  min-width: 80px;
+}
+.title {
+  min-width: 120px;
+}
+</style>

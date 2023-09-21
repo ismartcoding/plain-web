@@ -289,7 +289,7 @@ router.afterEach((to, from, failure) => {
   grid-template-columns: 1fr auto auto;
   grid-template-rows: auto 1fr;
   height: 100vh;
-  min-width: 1000px;
+  min-width: var(--screen-min-width);
 }
 
 .quick {

@@ -1,6 +1,8 @@
 <template>
   <router-view />
-  <modal-container />
+  <Teleport to="body">
+    <modal-container />
+  </Teleport>
 </template>
 <script setup lang="ts">
 import { onMounted } from 'vue'

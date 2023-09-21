@@ -9,7 +9,11 @@
 @import "form";
 @import "splitpanes";
 @import "chat";
+@import "mobile";
 
+#app:has(~ .lightbox) {
+  display: none;
+}
 
 .top-title {
   display: flex;

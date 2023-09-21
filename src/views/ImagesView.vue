@@ -99,7 +99,7 @@
           <td>
             <item-tags :tags="item.tags" :type="dataType" />
           </td>
-          <td>
+          <td class="nowrap">
             {{ formatFileSize(item.size) }}
           </td>
         </tr>

@@ -1,7 +1,7 @@
 <template>
   <Teleport to="body">
     <transition v-if="tempStore.lightbox.visible">
-      <div @touchmove="preventDefault" class="v-modal" @wheel="onWheel">
+      <div @touchmove="preventDefault" class="lightbox" @wheel="onWheel">
         <transition mode="out-in">
           <div class="layout">
             <header class="toolbar" v-if="current">
@@ -14,9 +14,10 @@
               </div>
 
               <template v-if="isImage(current.name)">
-                <md-outlined-button v-if="!current.viewOriginImage" @click="viewOrigin">
-                  {{ $t('view_origin_image') }}
-                </md-outlined-button>
+                <button class="icon-button" v-if="!current.viewOriginImage" @click="viewOrigin" v-tooltip="$t('view_origin_image')">
+                  <md-ripple />
+                  <i-material-symbols:image-outline-rounded />
+                </button>
 
                 <button class="icon-button" @click="zoomIn" v-tooltip="$t('zoom_in')">
                   <md-ripple />
@@ -647,16 +648,12 @@ onBeforeUnmount(() => {
   }
 }
 
-.v-modal {
+.lightbox {
   z-index: 9998;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  margin: 0;
+  min-width: var(--screen-min-width);
   background: var(--md-sys-color-surface);
 }
+
 
 .layout {
   display: grid;
