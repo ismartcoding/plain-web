@@ -48,6 +48,7 @@
     --plain-top-app-bar-height: calc(48px + 2 * var(--plain-spacing-s));
     --_scrollbar-width: 8px;
     --border-radius-sm: 4px;
+    --screen-min-width: 992px;
     /* firefox */
     scrollbar-color: var(--md-sys-color-primary) transparent;
     scrollbar-width: thin;
@@ -117,4 +118,9 @@ pre {
     font-size: 0.8rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     z-index: 9999;
+}
+
+.nowrap {
+    word-break: keep-all;
+    white-space: nowrap;
 }

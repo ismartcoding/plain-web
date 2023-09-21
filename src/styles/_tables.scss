@@ -38,16 +38,16 @@ th {
   box-shadow: 0 0 0 1px var(--md-sys-color-outline);
   width: 100%;
   vertical-align: top;
-  th,
-  td.nowrap {
-    word-break: keep-all;
-    white-space: nowrap;
-  }
 
   > :not(caption)>*>* {
     padding: 0.4rem;
     border-bottom-width: 1px;
     word-break: break-all;
+  }
+
+  th {
+    word-break: keep-all;
+    white-space: nowrap;
   }
 
   td {

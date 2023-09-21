@@ -1,12 +1,7 @@
 <template>
   <div ref="containerRef">
-    <component
-      :is="modal?.component"
-      v-bind="modal?.props.value"
-      :modalId="`_modal_${id}`"
-      ref="modalRef"
-      v-on="modal?.events"
-    />
+    <component :is="modal?.component" v-bind="modal?.props.value" :modalId="`_modal_${id}`" ref="modalRef"
+      v-on="modal?.events" />
   </div>
 </template>
 <script setup lang="ts">
@@ -34,7 +29,7 @@ watch(
     saveInstance(props.id!, newValue!)
     setTimeout(() => {
       if (containerRef.value) {
-        ;(containerRef.value.firstChild as MdDialog).show()
+        ; (containerRef.value.firstChild as MdDialog).show()
       }
     }, 0)
   }

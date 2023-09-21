@@ -77,7 +77,7 @@
           <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
           <td><field-id :id="item.id" :raw="item" /></td>
           <td><img v-if="item.thumbnailId" :src="getFileUrl(item.thumbnailId)" width="50" /></td>
-          <td>
+          <td class="nowrap">
             {{ fullName(item) }}
           </td>
           <td class="nowrap">
