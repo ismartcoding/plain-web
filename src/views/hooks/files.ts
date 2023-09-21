@@ -77,7 +77,7 @@ export const useRename = (panels: Ref<FilePanel[]>) => {
   }
 }
 
-export const useDelete = (panels: Ref<FilePanel[]>, currentDir: Ref<string>, refetchStats: () => void) => {
+export const useDeleteFiles = (panels: Ref<FilePanel[]>, currentDir: Ref<string>, refetchStats: () => void) => {
   return {
     onDeleted(files: IFile[]) {
       for (const panel of panels.value) {
@@ -288,6 +288,7 @@ export const useView = (sources: Ref<ISource[]>, ivView: (sources: ISource[], i:
           name: getFileName(it.path),
           size: it.size,
           duration: 0,
+          data: f,
         }))
       const index = findIndex(sources.value, (it: ISource) => it.path === f.path)
       ivView(sources.value, index)

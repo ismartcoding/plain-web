@@ -1,5 +1,5 @@
 <template>
-  <div ref="containerRef">
+  <div ref="containerRef" style="position: relative;z-index: 2;">
     <component :is="modal?.component" v-bind="modal?.props.value" :modalId="`_modal_${id}`" ref="modalRef"
       v-on="modal?.events" />
   </div>

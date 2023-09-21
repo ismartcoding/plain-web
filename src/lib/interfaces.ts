@@ -1,3 +1,5 @@
+import type { IFile } from "./file"
+
 export interface ITag {
   id: string
   name: string
@@ -172,6 +174,10 @@ export interface IMediaItemDeletedEvent {
 
 export interface IMediaItemsDeletedEvent {
   type: string
+}
+
+export interface IFileDeletedEvent {
+  item: IFile
 }
 
 export interface IItemTagsUpdatedEvent {

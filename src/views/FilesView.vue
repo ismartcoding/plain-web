@@ -98,7 +98,7 @@ import emitter from '@/plugins/eventbus'
 import {
   useFiles,
   useCreateDir,
-  useDelete,
+  useDeleteFiles,
   useRename,
   useStats,
   useDownload,
@@ -117,6 +117,7 @@ import { parseQuery } from '@/lib/search'
 import { initMutation, setTempValueGQL } from '@/lib/api/mutation'
 import type { ISource } from '@/components/lightbox/types'
 import type { MdCheckbox } from '@material/web/checkbox/checkbox'
+import type { IFileDeletedEvent } from '@/lib/interfaces'
 
 const { t } = useI18n()
 const sources = ref([])
@@ -168,7 +169,7 @@ const { loading, panels, currentDir, refetch: refetchFiles } = useFiles(urlToken
 const { createPath, createVariables, createMutation } = useCreateDir(urlTokenKey, panels)
 const { renameValue, renamePath, renameDone, renameMutation, renameVariables } = useRename(panels)
 const { internal, sdcard, usb, refetch: refetchStats } = useStats()
-const { onDeleted } = useDelete(panels, currentDir, refetchStats)
+const { onDeleted } = useDeleteFiles(panels, currentDir, refetchStats)
 const { downloadFile, downloadDir, downloadFiles } = useDownload(urlTokenKey)
 const { view } = useView(sources, (s: ISource[], index: number) => {
   tempStore.lightbox = {
@@ -458,12 +459,18 @@ const uploadTaskDoneHandler = (r: IUploadItem) => {
   }
 }
 
+const fileDeletedHanlder = (event: IFileDeletedEvent) => {
+  onDeleted([event.item])
+}
+
 onActivated(() => {
   emitter.on('upload_task_done', uploadTaskDoneHandler)
+  emitter.on('file_deleted', fileDeletedHanlder)
 })
 
 onDeactivated(() => {
   emitter.off('upload_task_done', uploadTaskDoneHandler)
+  emitter.off('file_deleted', fileDeletedHanlder)
 })
 </script>
 <style lang="scss" scoped>
