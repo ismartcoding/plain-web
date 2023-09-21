@@ -14,7 +14,8 @@
               </div>
 
               <template v-if="isImage(current.name)">
-                <button class="icon-button" v-if="!current.viewOriginImage" @click="viewOrigin" v-tooltip="$t('view_origin_image')">
+                <button class="icon-button" v-if="!current.viewOriginImage" @click="viewOrigin"
+                  v-tooltip="$t('view_origin_image')">
                   <md-ripple />
                   <i-material-symbols:image-outline-rounded />
                 </button>
@@ -50,20 +51,12 @@
               </button>
             </header>
             <section class="content" @click.self="closeDialog">
-              <div
-                v-if="tempStore.lightbox.sources.length > 1 && (loop || imgIndex > 0)"
-                class="btn-prev"
-                @click="onPrev"
-              >
+              <div v-if="tempStore.lightbox.sources.length > 1 && (loop || imgIndex > 0)" class="btn-prev"
+                @click="onPrev">
                 <i-material-symbols:chevron-left-rounded />
               </div>
-              <div
-                v-if="
-                  tempStore.lightbox.sources.length > 1 && (loop || imgIndex < tempStore.lightbox.sources.length - 1)
-                "
-                class="btn-next"
-                @click="onNext"
-              >
+              <div v-if="tempStore.lightbox.sources.length > 1 && (loop || imgIndex < tempStore.lightbox.sources.length - 1)
+                " class="btn-next" @click="onNext">
                 <i-material-symbols:chevron-right-rounded />
               </div>
               <div v-if="status.loading" class="loading">
@@ -72,59 +65,27 @@
               <div v-else-if="status.loadError" class="v-on-error">
                 {{ $t('load_failed', { name: current?.name }) }}
               </div>
-              <div
-                v-if="current && isVideo(current.name)"
-                v-show="!status.loading && !status.loadError"
-                class="v-video-wrapper"
-                @click.self="closeDialog"
-              >
-                <video
-                  ref="video"
-                  controls
-                  autoplay="true"
-                  :src="current.src"
-                  @error="onError"
-                  @canplay="onLoad"
-                  @playing="onPlaying"
-                  @pause="onPause"
-                />
+              <div v-if="current && isVideo(current.name)" v-show="!status.loading && !status.loadError"
+                class="v-video-wrapper" @click.self="closeDialog">
+                <video ref="video" controls autoplay="true" :src="current.src" @error="onError" @canplay="onLoad"
+                  @playing="onPlaying" @pause="onPause" />
               </div>
-              <div
-                v-else-if="current && isAudio(current.name)"
-                v-show="!status.loading && !status.loadError"
-                class="v-audio-wrapper"
-                @click.self="closeDialog"
-              >
+              <div v-else-if="current && isAudio(current.name)" v-show="!status.loading && !status.loadError"
+                class="v-audio-wrapper" @click.self="closeDialog">
                 <div style="padding: 50px">
                   <audio controls autoplay="true" :src="current.src" @error="onError" @canplay="onLoad" />
                 </div>
               </div>
-              <div
-                v-else-if="current && isImage(current.name)"
-                v-show="!status.loading && !status.loadError"
-                class="v-img-wrapper"
-                :style="imgWrapperStyle"
-              >
-                <img
-                  ref="imgRef"
-                  draggable="false"
-                  class="v-img"
+              <div v-else-if="current && isImage(current.name)" v-show="!status.loading && !status.loadError"
+                class="v-img-wrapper" :style="imgWrapperStyle">
+                <img ref="imgRef" draggable="false" class="v-img"
                   :src="current?.src + (current?.viewOriginImage ? '' : '&w=1024&h=1024&cc=false')"
-                  @mousedown="onMouseDown"
-                  @mouseup="onMouseUp"
-                  @mousemove="onMouseMove"
-                  @touchstart="onTouchStart"
-                  @touchmove="onTouchMove"
-                  @touchend="onTouchEnd"
-                  @load="onLoad"
-                  @error="onError"
-                  @dblclick="onDblclick"
-                  @dragstart="
-                    (e) => {
-                      e.preventDefault()
-                    }
-                  "
-                />
+                  @mousedown="onMouseDown" @mouseup="onMouseUp" @mousemove="onMouseMove" @touchstart="onTouchStart"
+                  @touchmove="onTouchMove" @touchend="onTouchEnd" @load="onLoad" @error="onError" @dblclick="onDblclick"
+                  @dragstart="(e) => {
+                    e.preventDefault()
+                  }
+                    " />
               </div>
             </section>
             <section class="info" v-if="lightboxInfoVisible">
@@ -134,11 +95,9 @@
                   <md-ripple />
                   <i-material-symbols:delete-forever-outline-rounded />
                 </button>
-                <button
-                  class="icon-button"
+                <button class="icon-button"
                   @click.stop="downloadFile(current?.path ?? '', getFileName(current?.path ?? '').replace(' ', '-'))"
-                  v-tooltip="$t('download')"
-                >
+                  v-tooltip="$t('download')">
                   <md-ripple />
                   <i-material-symbols:download-rounded />
                 </button>
@@ -163,7 +122,7 @@
                   <div class="title">{{ $t('duration') }}</div>
                   <div class="subtitle">{{ formatSeconds(fileInfo?.data?.duration ?? current?.duration) }}</div>
                 </div>
-                <div class="item" v-if="current?.data">
+                <div class="item" v-if="current?.type">
                   <div class="title">
                     {{ $t('tags') }}
                     <button class="icon-button" v-tooltip="$t('add_to_tags')" @click.prevent="addToTags">
@@ -201,12 +160,14 @@ import { fileInfoGQL, initLazyQuery, tagsGQL } from '@/lib/api/query'
 import { formatDateTime, formatDateTimeFull } from '@/lib/format'
 import { openModal } from '@/components/modal'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
-import type { IItemTagsUpdatedEvent, IMediaItemDeletedEvent, ITag } from '@/lib/interfaces'
+import type { IItemTagsUpdatedEvent, IMediaItemDeletedEvent, IFileDeletedEvent, ITag, } from '@/lib/interfaces'
 import emitter from '@/plugins/eventbus'
 import { useDownload } from '@/views/hooks/files'
 import { getFileName, getFinalPath } from '@/lib/api/file'
 import { useDeleteItems } from '@/views/hooks/media'
 import { remove } from 'lodash-es'
+import { DataType } from '@/lib/data'
+import DeleteFileConfirm from '@/components/DeleteFileConfirm.vue'
 
 const props = defineProps({
   loop: {
@@ -266,8 +227,18 @@ const currCursor = () => {
 const fileInfo = ref<any>(null)
 
 function deleteFile() {
-  if (current.value?.data) {
-    deleteItem(current.value?.type ?? '', current.value.data)
+  const mediaTypes = [DataType.VIDEO, DataType.AUDIO, DataType.IMAGE]
+  const type = current.value?.type
+  const item = current.value?.data
+  if (type && mediaTypes.includes(type)) {
+    deleteItem(type, item)
+  } else {
+    openModal(DeleteFileConfirm, {
+      files: [item],
+      onDone: () => { 
+        emitter.emit('file_deleted', { item })
+      },
+    })
   }
 }
 
@@ -491,6 +462,8 @@ const onPause = () => {
 const onKeyPress = (e: Event) => {
   const evt = e as KeyboardEvent
   if (evt.key === 'Escape') {
+    // if has md-dialog tag with attribute open should not close lightbox
+    if (document.querySelector('md-dialog[open]')) return
     closeDialog()
   } else if (evt.key === 'ArrowLeft') {
     onPrev()
@@ -552,13 +525,14 @@ watch(
 function addToTags() {
   const type = current.value?.type ?? ''
   const tags = tagsMap.get(type) ?? []
+  const item = current.value?.data ?? {}
   openModal(UpdateTagRelationsModal, {
     type,
     tags: tags,
     item: {
-      key: current.value?.data?.id,
-      title: '',
-      size: 0,
+      key: item.id,
+      title: item.title,
+      size: item.size,
     },
     selected: tags.filter((it: ITag) => fileInfo.value?.data?.tags.some((t: ITag) => t.id === it.id)),
   })
@@ -572,7 +546,18 @@ const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
 
 const mediaItemDeletedHandler = (event: IMediaItemDeletedEvent) => {
   if (event.item.id === current.value?.data?.id) {
-    remove(tempStore.lightbox.sources, (it) => it.data?.id === event.item.id)
+    remove(tempStore.lightbox.sources, (it: ISource) => it.data?.id === event.item.id)
+    if (tempStore.lightbox.sources.length) {
+      onNext()
+    } else {
+      closeDialog()
+    }
+  }
+}
+
+const fileDeletedHandler = (event: IFileDeletedEvent) => {
+  if (event.item.path === current.value?.data?.path) {
+    remove(tempStore.lightbox.sources, (it: ISource) => it.path === event.item.path)
     if (tempStore.lightbox.sources.length) {
       onNext()
     } else {
@@ -586,6 +571,7 @@ onMounted(() => {
   on(window, 'resize', onWindowResize)
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
   emitter.on('media_item_deleted', mediaItemDeletedHandler)
+  emitter.on('file_deleted', fileDeletedHandler)
 })
 
 onBeforeUnmount(() => {
@@ -593,6 +579,7 @@ onBeforeUnmount(() => {
   off(window, 'resize', onWindowResize)
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('media_item_deleted', mediaItemDeletedHandler)
+  emitter.off('file_deleted', fileDeletedHandler)
 })
 </script>
 <style lang="scss" scoped>
@@ -649,9 +636,9 @@ onBeforeUnmount(() => {
 }
 
 .lightbox {
-  z-index: 9998;
   min-width: var(--screen-min-width);
   background: var(--md-sys-color-surface);
+  overflow: hidden;
 }
 
 
@@ -718,8 +705,7 @@ onBeforeUnmount(() => {
   font-size: 4rem;
   transition: 0.15s linear;
   outline: none;
-  z-index: 9999;
-
+  z-index: 1;
   &:hover {
     opacity: 1;
   }

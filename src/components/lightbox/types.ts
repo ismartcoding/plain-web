@@ -1,3 +1,5 @@
+import type { DataType } from "@/lib/data"
+
 export interface IImgState {
   width: number
   height: number
@@ -33,7 +35,7 @@ export interface ISource {
   name: string
   size: number
   duration: number
-  type?: string
+  type?: DataType
   thumbnail?: string // video thumbnail
   data?: any // video, audio, image item
 }

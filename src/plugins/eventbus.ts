@@ -3,6 +3,7 @@ import type {
   IMediaItemsDeletedEvent,
   IItemTagsUpdatedEvent,
   IItemsTagsUpdatedEvent,
+  IFileDeletedEvent,
 } from '@/lib/interfaces'
 import type { IUploadItem } from '@/stores/temp'
 import mitt, { type Emitter } from 'mitt'
@@ -19,6 +20,7 @@ type Events = {
   refetch_tags: string
   media_item_deleted: IMediaItemDeletedEvent
   media_items_deleted: IMediaItemsDeletedEvent
+  file_deleted: IFileDeletedEvent
   toast: string
   feeds_fetched: any
   ai_chat_replied: any
