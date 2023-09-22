@@ -1,4 +1,4 @@
-import type { IFile } from "./file"
+import type { IFile } from './file'
 
 export interface ITag {
   id: string

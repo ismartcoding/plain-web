@@ -243,7 +243,7 @@ onBeforeUnmount(() => {
   position: relative;
   overflow-y: auto;
   border-radius: 4px;
-  max-height: 50vh;
+  max-height: 60vh;
   min-width: 200px;
 }
 

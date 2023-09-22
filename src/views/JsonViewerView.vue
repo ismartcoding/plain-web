@@ -8,7 +8,7 @@
       </div>
       <splitpanes class="panel-container">
         <pane>
-          <monaco-editor language="json" v-model="content" />
+          <monaco-editor language="json" v-model="json" />
         </pane>
         <pane>
           <json-viewer v-if="jsonData" :value="jsonData" :expand-depth="expandDepth" :key="updateKey" />
@@ -19,23 +19,28 @@
 </template>
 
 <script setup lang="ts">
+import { useMainStore } from '@/stores/main'
+import { storeToRefs } from 'pinia'
 import { Splitpanes, Pane } from 'splitpanes'
 import { ref, watch } from 'vue'
 
-const content = ref('')
+const { json } = storeToRefs(useMainStore())
+
 const jsonData = ref(null)
 const expandDepth = ref(1)
 const updateKey = ref(1)
 
-watch(content, (value: string) => {
+const updateTree = () => {
   try {
-    const r = JSON.parse(value)
+    const r = JSON.parse(json.value)
     jsonData.value = r
-    content.value = JSON.stringify(r, null, 4)
   } catch (ex) {
     console.error(ex)
   }
-})
+}
+watch(json, updateTree)
+
+updateTree()
 
 function toggle(expand: boolean) {
   if (expand) {

@@ -38,7 +38,7 @@ export const useSelectable = (items: Ref<ISelectable[]>) => {
         allChecked.value = false
         realAllChecked.value = false
       }
-    },   
+    },
     toggleRow: (item: ISelectable) => {
       item.checked = !item.checked
       if (item.checked) {

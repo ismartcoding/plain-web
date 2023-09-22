@@ -1,4 +1,4 @@
-import type { DataType } from "@/lib/data"
+import type { DataType } from '@/lib/data'
 
 export interface IImgState {
   width: number
