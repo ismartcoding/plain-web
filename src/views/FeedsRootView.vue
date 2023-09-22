@@ -38,7 +38,7 @@
             </li>
             <li
               v-for="item in feeds"
-              @click.prevent="view(item)"
+              @click.stop.prevent="view(item)"
               @contextmenu="itemCtxMenu($event, item)"
               :class="{
                 active:

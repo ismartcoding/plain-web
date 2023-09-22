@@ -76,7 +76,7 @@ watch(
   background-color: var(--md-sys-color-surface);
   overflow-x: hidden;
   overflow-y: auto;
-  width: 300px;
+  width: var(--quick-content-width);
   height: 100%;
 
   .no-data {

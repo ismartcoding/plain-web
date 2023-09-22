@@ -1,12 +1,6 @@
 import { ref, type Ref } from 'vue'
 import type { ApolloCache, ApolloError } from '@apollo/client/core'
-import {
-  copyFileGQL,
-  createDirGQL,
-  initMutation,
-  moveFileGQL,
-  renameFileGQL,
-} from '@/lib/api/mutation'
+import { copyFileGQL, createDirGQL, initMutation, moveFileGQL, renameFileGQL } from '@/lib/api/mutation'
 import { FilePanel, isAudio, isImage, isVideo, type IFile } from '@/lib/file'
 import { filesGQL, initQuery, recentFilesGQL, storageStatsGQL } from '@/lib/api/query'
 import { useI18n } from 'vue-i18n'
@@ -117,10 +111,15 @@ export const useStats = () => {
   return { internal, sdcard, usb, refetch }
 }
 
-export const useFiles = (urlTokenKey: Ref<sjcl.BitArray | null>, rootDir: string, initDir: string, sortBy: Ref<string>) => {
+export const useFiles = (
+  urlTokenKey: Ref<sjcl.BitArray | null>,
+  rootDir: string,
+  initDir: string,
+  sortBy: Ref<string>
+) => {
   const currentDir = ref(rootDir)
-  let _refetchDir = ref('')
-  
+  const _refetchDir = ref('')
+
   const panels = ref<FilePanel[]>([])
   const { t } = useI18n()
   let initDirIndex = 0

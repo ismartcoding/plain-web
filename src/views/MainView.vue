@@ -11,12 +11,23 @@
         <div class="default-content">
           <section class="start">
             <div class="tab-items">
-              <div class="tab-item" @click="selectTab('/')" key="/" :class="{ active: currentPath === '/' }"
-                @contextmenu="itemCtxMenu($event, '/')">
+              <div
+                class="tab-item"
+                @click="selectTab('/')"
+                key="/"
+                :class="{ active: currentPath === '/' }"
+                @contextmenu="itemCtxMenu($event, '/')"
+              >
                 <span>{{ $t('page_title.home') }}</span>
               </div>
-              <div v-for="item of store.pages" :key="item" @click="selectTab(item)" class="tab-item"
-                @contextmenu="itemCtxMenu($event, item)" :class="{ active: currentPath === item }">
+              <div
+                v-for="item of store.pages"
+                :key="item"
+                @click="selectTab(item)"
+                class="tab-item"
+                @contextmenu="itemCtxMenu($event, item)"
+                :class="{ active: currentPath === item }"
+              >
                 <span>{{ $t(`page_title.${getRouteName(item)}`) }}</span>
                 <button class="icon-button tab-icon" @click.stop="closeTab(item)">
                   <md-ripple />
@@ -32,24 +43,39 @@
       </header>
       <div class="page-content">
         <router-view v-slot="{ Component, route }">
-          <keep-alive :include="includes" :max="10">
-            <component :is="wrap(route.fullPath, Component)" :key="$route.fullPath" />
-          </keep-alive>
+          <component :is="wrap(route.fullPath, Component)" :key="$route.fullPath" />
         </router-view>
       </div>
       <div class="quick">
-        <button v-if="hasTasks" class="icon-button q-action" v-tooltip="$t('header_actions.tasks')"
-          @click="toggleQuick('task')" toggle :selected="store.quick === 'task'">
+        <button
+          v-if="hasTasks"
+          class="icon-button q-action"
+          v-tooltip="$t('header_actions.tasks')"
+          @click="toggleQuick('task')"
+          toggle
+          :selected="store.quick === 'task'"
+        >
           <md-ripple />
           <i-material-symbols:format-list-numbered-rounded />
         </button>
-        <button id="quick-audio" class="icon-button q-action" v-tooltip="$t('playlist')" @click="toggleQuick('audio')"
-          toggle :selected="store.quick === 'audio'">
+        <button
+          id="quick-audio"
+          class="icon-button q-action"
+          v-tooltip="$t('playlist')"
+          @click="toggleQuick('audio')"
+          toggle
+          :selected="store.quick === 'audio'"
+        >
           <md-ripple />
           <i-material-symbols:queue-music-rounded />
         </button>
-        <button class="icon-button q-action" v-tooltip="$t('my_phone')" @click="toggleQuick('chat')" toggle
-          :selected="store.quick === 'chat'">
+        <button
+          class="icon-button q-action"
+          v-tooltip="$t('my_phone')"
+          @click="toggleQuick('chat')"
+          toggle
+          :selected="store.quick === 'chat'"
+        >
           <md-ripple />
           <i-material-symbols:chat-outline-rounded />
         </button>
@@ -127,7 +153,6 @@ const { refetch: refetchApp } = initQuery({
   document: appGQL,
   appApi: true,
 })
-
 
 function itemCtxMenu(e: MouseEvent, path: string) {
   e.preventDefault()
@@ -219,15 +244,10 @@ const wrap = (fullPath: string, component: Component) => {
   if (wrapperMap.has(wrapperName)) {
     wrapper = wrapperMap.get(wrapperName)
   } else {
-    wrapper = {
-      name: wrapperName,
-      render() {
-        return h('div', component)
-      },
-    }
+    wrapper = component
     wrapperMap.set(wrapperName, wrapper)
   }
-  return h(wrapper)
+  return wrapper
 }
 
 function selectTab(fullPath: string) {
@@ -389,7 +409,6 @@ header {
 .page-content {
   grid-area: page-content;
   height: calc(100vh - 64px);
-  overflow: auto;
 }
 
 .alert-danger {

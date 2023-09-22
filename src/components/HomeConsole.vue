@@ -1,5 +1,5 @@
 <template>
-  <div id="console">
+  <div class="chat">
     <div class="top-title">
       {{ app?.deviceName ?? $t('my_phone')
       }}{{ app?.battery ? ' (' + $t('battery_left', { percentage: app?.battery }) + ')' : '' }}
@@ -19,8 +19,11 @@
             </div>
             <template #content>
               <div class="menu-items">
-                <md-menu-item :headline="$t('delete_message')" @click="deleteMessage(chatItem.id)"
-                  :disabled="deleteLoading" />
+                <md-menu-item
+                  :headline="$t('delete_message')"
+                  @click="deleteMessage(chatItem.id)"
+                  :disabled="deleteLoading"
+                />
               </div>
             </template>
           </popper>
@@ -34,6 +37,21 @@
       </div>
     </div>
     <div class="chat-input">
+      <md-outlined-text-field
+        type="textarea"
+        rows="2"
+        v-model="chatText"
+        autocomplete="off"
+        @paste="pasteFiles"
+        @drop.prevent="dropFiles"
+        class="textarea"
+        :placeholder="$t('chat_input_hint')"
+        @keydown.enter.exact.prevent="send"
+        @keydown.enter.shift.exact.prevent="chatText += '\n'"
+        @keydown.enter.ctrl.exact.prevent="chatText += '\n'"
+        @keydown.enter.alt.exact.prevent="chatText += '\n'"
+        @keydown.enter.meta.exact.prevent="chatText += '\n'"
+      />
       <div class="btns">
         <button class="icon-button" @click="sendImages">
           <md-ripple />
@@ -43,22 +61,23 @@
           <md-ripple />
           <i-material-symbols:folder-outline-rounded />
         </button>
-      </div>
-      <md-outlined-text-field type="textarea" rows="2" v-model="chatText" autocomplete="off" @paste="pasteFiles"
-        @drop.prevent="dropFiles" class="textarea" :placeholder="$t('chat_input_hint')"
-        @keydown.enter.exact.prevent="send" @keydown.enter.shift.exact.prevent="chatText += '\n'"
-        @keydown.enter.ctrl.exact.prevent="chatText += '\n'" @keydown.enter.alt.exact.prevent="chatText += '\n'"
-        @keydown.enter.meta.exact.prevent="chatText += '\n'" />
-      <div class="btns">
-        <button class="icon-button" @click="send" :disable="createLoading">
-          <md-ripple />
-          <i-material-symbols:send-outline-rounded />
-        </button>
+        <div class="btn-send-container">
+          <button class="icon-button btn-send" @click="send" :disable="createLoading">
+            <md-ripple />
+            <i-material-symbols:send-outline-rounded />
+          </button>
+        </div>
       </div>
     </div>
     <input ref="fileInput" style="display: none" type="file" multiple @change="uploadFilesChanged" />
-    <input ref="imageInput" style="display: none" type="file" accept="image/*, video/*" multiple
-      @change="uploadImagesChanged" />
+    <input
+      ref="imageInput"
+      style="display: none"
+      type="file"
+      accept="image/*, video/*"
+      multiple
+      @change="uploadImagesChanged"
+    />
   </div>
 </template>
 
@@ -388,8 +407,8 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-#console {
-  width: 300px;
+.chat {
+  width: var(--quick-content-width);
   flex: 0 0 auto;
   display: flex;
   flex-flow: column;
@@ -403,19 +422,26 @@ onMounted(() => {
 
 .chat-input {
   background-color: var(--md-sys-color-surface);
-  display: flex;
-  flex: 0 0 auto;
+  padding: 8px 16px;
 
   .btns {
     display: flex;
-    flex-direction: column;
-    justify-content: center;
+    flex-direction: row;
+
+    .icon-button + .icon-button {
+      margin-inline-start: 8px;
+    }
+
+    .btn-send-container {
+      flex: 1;
+      display: flex;
+      justify-content: end;
+    }
   }
 
   .textarea {
-    margin: 8px 0;
-    display: flex;
-    flex: 1;
+    display: block;
+    padding-block-end: 8px;
   }
 }
 
@@ -426,7 +452,7 @@ onMounted(() => {
   background-color: var(--md-sys-color-surface);
   border-top-left-radius: var(--plain-shape-l);
 
-  &>div {
+  & > div {
     width: 100%;
   }
 }

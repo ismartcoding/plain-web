@@ -68,12 +68,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr
-          v-for="item in items"
-          :key="item.id"
-          :class="{ selected: item.checked }"
-          @click.stop="toggleRow(item)"
-        >
+        <tr v-for="item in items" :key="item.id" :class="{ selected: item.checked }" @click.stop="toggleRow(item)">
           <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
           <td><field-id :id="item.id" :raw="item" /></td>
           <td><img v-if="item.thumbnailId" :src="getFileUrl(item.thumbnailId)" width="50" /></td>

@@ -2,8 +2,11 @@
   <div class="v-toolbar">
     <breadcrumb :current="() => `${$t('page_title.images')} (${total})`" />
     <template v-if="checked && mainStore.imageViewType === 'list'">
-      <button class="icon-button" @click.stop="deleteItems(dataType, items, realAllChecked, finalQ)"
-        v-tooltip="$t('delete')">
+      <button
+        class="icon-button"
+        @click.stop="deleteItems(dataType, items, realAllChecked, finalQ)"
+        v-tooltip="$t('delete')"
+      >
         <md-ripple />
         <i-material-symbols:delete-forever-outline-rounded />
       </button>
@@ -16,8 +19,11 @@
         <i-material-symbols:label-outline-rounded />
       </button>
     </template>
-    <button class="icon-button" @click.stop="changeViewType"
-      v-tooltip="$t(mainStore.imageViewType === 'list' ? 'view_as_grid' : 'view_as_list')">
+    <button
+      class="icon-button"
+      @click.stop="changeViewType"
+      v-tooltip="$t(mainStore.imageViewType === 'list' ? 'view_as_grid' : 'view_as_list')"
+    >
       <md-ripple />
       <i-material-symbols:grid-view-outline-rounded v-if="mainStore.imageViewType === 'list'" />
       <i-material-symbols:table-rows-rounded v-if="mainStore.imageViewType === 'grid'" />
@@ -32,8 +38,13 @@
           <md-outlined-text-field :label="$t('keywords')" v-model="filter.text" keyup.enter="applyAndDoSearch" />
           <label class="form-label">{{ $t('tags') }}</label>
           <md-chip-set type="filter">
-            <md-filter-chip v-for="item in tags" :key="item.id" :label="item.name" :selected="filter.tags.includes(item)"
-              @click="onTagSelect(item)" />
+            <md-filter-chip
+              v-for="item in tags"
+              :key="item.id"
+              :label="item.name"
+              :selected="filter.tags.includes(item)"
+              @click="onTagSelect(item)"
+            />
           </md-chip-set>
           <div class="buttons">
             <md-filled-button @click.stop="applyAndDoSearch">
@@ -50,15 +61,25 @@
       <span class="duration">{{ formatFileSize(item.size) }}</span>
     </div>
   </div>
-  <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible"
-    :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
+  <all-checked-alert
+    :limit="limit"
+    :total="total"
+    :all-checked-alert-visible="allCheckedAlertVisible"
+    :real-all-checked="realAllChecked"
+    :select-real-all="selectRealAll"
+    :clear-selection="clearSelection"
+  />
   <div class="table-responsive" v-if="mainStore.imageViewType === 'list'">
     <table class="table">
       <thead>
         <tr>
           <th>
-            <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked"
-              :indeterminate="!allChecked && checked" />
+            <md-checkbox
+              touch-target="wrapper"
+              @change="toggleAllChecked"
+              :checked="allChecked"
+              :indeterminate="!allChecked && checked"
+            />
           </th>
           <th>ID</th>
           <th></th>
@@ -73,8 +94,13 @@
           <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
           <td><field-id :id="item.id" :raw="item" /></td>
           <td>
-            <img :src="getFileUrl(item.fileId) + '&w=300&h=300'" width="50" height="50" @click.stop="view(i)"
-              style="cursor: pointer" />
+            <img
+              :src="getFileUrl(item.fileId) + '&w=300&h=300'"
+              width="50"
+              height="50"
+              @click.stop="view(i)"
+              style="cursor: pointer"
+            />
           </td>
           <td>
             {{ getFileName(item.path) }}
@@ -85,8 +111,11 @@
                 <md-ripple />
                 <i-material-symbols:delete-forever-outline-rounded />
               </button>
-              <button class="icon-button" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))"
-                v-tooltip="$t('download')">
+              <button
+                class="icon-button"
+                @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))"
+                v-tooltip="$t('download')"
+              >
                 <md-ripple />
                 <i-material-symbols:download-rounded />
               </button>

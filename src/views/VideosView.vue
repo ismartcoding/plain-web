@@ -2,8 +2,11 @@
   <div class="v-toolbar">
     <breadcrumb :current="() => `${$t('page_title.videos')} (${total})`" />
     <template v-if="checked && mainStore.videoViewType === 'list'">
-      <button class="icon-button" @click.stop="deleteItems(dataType, items, realAllChecked, finalQ)"
-        v-tooltip="$t('delete')">
+      <button
+        class="icon-button"
+        @click.stop="deleteItems(dataType, items, realAllChecked, finalQ)"
+        v-tooltip="$t('delete')"
+      >
         <md-ripple />
         <i-material-symbols:delete-forever-outline-rounded />
       </button>
@@ -16,8 +19,11 @@
         <i-material-symbols:label-outline-rounded />
       </button>
     </template>
-    <button class="icon-button" @click.prevent="changeViewType"
-      v-tooltip="$t(mainStore.videoViewType === 'list' ? 'view_as_grid' : 'view_as_list')">
+    <button
+      class="icon-button"
+      @click.prevent="changeViewType"
+      v-tooltip="$t(mainStore.videoViewType === 'list' ? 'view_as_grid' : 'view_as_list')"
+    >
       <md-ripple />
       <i-material-symbols:grid-view-outline-rounded v-if="mainStore.videoViewType === 'list'" />
       <i-material-symbols:table-rows-rounded v-if="mainStore.videoViewType === 'grid'" />
@@ -32,8 +38,13 @@
           <md-outlined-text-field :label="$t('keywords')" v-model="filter.text" keyup.enter="applyAndDoSearch" />
           <label class="form-label">{{ $t('tags') }}</label>
           <md-chip-set type="filter">
-            <md-filter-chip v-for="item in tags" :key="item.id" :label="item.name" :selected="filter.tags.includes(item)"
-              @click="onTagSelect(item)" />
+            <md-filter-chip
+              v-for="item in tags"
+              :key="item.id"
+              :label="item.name"
+              :selected="filter.tags.includes(item)"
+              @click="onTagSelect(item)"
+            />
           </md-chip-set>
           <div class="buttons">
             <md-filled-button @click.stop="applyAndDoSearch">
@@ -53,15 +64,25 @@
   <div class="no-data-placeholder" v-if="mainStore.videoViewType === 'grid' && sources.length === 0">
     {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
   </div>
-  <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible"
-    :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
+  <all-checked-alert
+    :limit="limit"
+    :total="total"
+    :all-checked-alert-visible="allCheckedAlertVisible"
+    :real-all-checked="realAllChecked"
+    :select-real-all="selectRealAll"
+    :clear-selection="clearSelection"
+  />
   <div class="table-responsive" v-if="mainStore.videoViewType === 'list'">
     <table class="table">
       <thead>
         <tr>
           <th>
-            <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked"
-              :indeterminate="!allChecked && checked" />
+            <md-checkbox
+              touch-target="wrapper"
+              @change="toggleAllChecked"
+              :checked="allChecked"
+              :indeterminate="!allChecked && checked"
+            />
           </th>
           <th>ID</th>
           <th></th>
@@ -77,8 +98,14 @@
           <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
           <td><field-id :id="item.id" :raw="item" /></td>
           <td>
-            <img class="img-video" :src="getFileUrl(item.fileId) + '&w=300&h=300'" width="50" height="50"
-              style="cursor: pointer" @click.stop="view(i)" />
+            <img
+              class="img-video"
+              :src="getFileUrl(item.fileId) + '&w=300&h=300'"
+              width="50"
+              height="50"
+              style="cursor: pointer"
+              @click.stop="view(i)"
+            />
           </td>
           <td>
             {{ item.title }}
@@ -89,8 +116,11 @@
                 <md-ripple />
                 <i-material-symbols:delete-forever-outline-rounded />
               </button>
-              <button class="icon-button" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))"
-                v-tooltip="$t('download')">
+              <button
+                class="icon-button"
+                @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))"
+                v-tooltip="$t('download')"
+              >
                 <md-ripple />
                 <i-material-symbols:download-rounded />
               </button>
@@ -304,7 +334,6 @@ function upload() {
     message: t('upload_videos'),
   })
 }
-
 
 function itemCtxMenu(e: MouseEvent, item: IVideoItem) {
   e.preventDefault()

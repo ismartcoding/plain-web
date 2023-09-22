@@ -41,14 +41,14 @@ export function initMutation(params: InitMutationParams, handleError = true) {
 export function updateCache(cache: ApolloCache<any>, data: any, query: DocumentNode, variables?: any) {
   const q: any = cache.readQuery({ query, variables })
   const key = Object.keys(q)[0]
-  const obj: Record<string, any> = {}
+  const obj = new Map<string, any>()
   if (key === 'files') {
-    obj[key] = {
+    obj.set(key, {
       ...q[key],
       items: q[key]['items'].concat(data),
-    }
+    })
   } else {
-    obj[key] = q[key].concat(data)
+    obj.set(key, q[key].concat(data))
   }
   cache.writeQuery({ query, variables, data: obj })
 }

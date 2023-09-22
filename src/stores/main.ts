@@ -10,6 +10,8 @@ export type MainState = {
   videoViewType: string
   imageViewType: string
   fileSortBy: string
+  json: string // data in jsonViewer
+  qrCode: string // data in qrCode Generator
 }
 
 export const useMainStore = defineStore({
@@ -27,6 +29,8 @@ export const useMainStore = defineStore({
       videoViewType: 'grid',
       imageViewType: 'grid',
       fileSortBy: 'NAME_ASC',
+      json: '',
+      qrCode: '',
     }) as MainState,
   actions: {
     replaceRoute(from: string, to: string) {

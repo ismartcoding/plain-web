@@ -55,12 +55,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr
-          v-for="item in items"
-          :key="item.id"
-          :class="{ selected: item.checked }"
-          @click.stop="toggleRow(item)"
-        >
+        <tr v-for="item in items" :key="item.id" :class="{ selected: item.checked }" @click.stop="toggleRow(item)">
           <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
           <td>
             <strong class="v-center">{{ item.name }} ({{ item.version }})</strong>

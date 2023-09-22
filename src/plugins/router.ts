@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import MainView from '../views/MainView.vue'
+import { nextTick } from 'vue'
 
 const router = createRouter({
   strict: true,
@@ -261,7 +262,12 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach(async (to) => {
+const scrollTops = new Map<string, number>()
+router.beforeEach(async (to, from) => {
+  const scrollTop = document.getElementsByClassName('main')[0]?.scrollTop
+  if (scrollTop !== undefined) {
+    scrollTops.set(from.fullPath, scrollTop)
+  }
   const canAccess = localStorage.getItem('auth_token')
   if (to.meta.requiresAuth && !canAccess) {
     return {
@@ -269,6 +275,18 @@ router.beforeEach(async (to) => {
       query: { redirect: to.fullPath },
     }
   }
+})
+
+router.afterEach((to, from) => {
+  setTimeout(() => {
+    const a = document.getElementsByClassName('main')[0]
+    if (a) {
+      const top = scrollTops.get(to.fullPath)
+      if (top) {
+        a.scrollTop = top
+      }
+    }
+  }, 0)
 })
 
 export default router

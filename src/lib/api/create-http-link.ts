@@ -31,7 +31,7 @@ export const createHttpLink = (linkOptions: HttpOptions = {}) => {
     const chosenURI = selectURI(operation, uri)
 
     const context = operation.getContext()
-    
+
     //uses fallback, link, and then context to build options
     const { options, body } = selectHttpOptionsAndBodyInternal(
       operation,

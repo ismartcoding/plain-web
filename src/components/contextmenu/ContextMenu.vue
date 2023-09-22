@@ -63,7 +63,7 @@ const onKeyPress = (e: Event) => {
   const evt = e as KeyboardEvent
   if (evt.key === 'Escape') {
     close()
-  } 
+  }
 }
 
 onMounted(() => {

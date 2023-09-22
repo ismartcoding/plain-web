@@ -2,7 +2,11 @@
   <div class="v-toolbar">
     <breadcrumb :current="() => `${$t('page_title.audios')} (${total})`" />
     <template v-if="checked">
-      <button class="icon-button" @click.stop="deleteItems(dataType, items, realAllChecked, finalQ)" v-tooltip="$t('delete')">
+      <button
+        class="icon-button"
+        @click.stop="deleteItems(dataType, items, realAllChecked, finalQ)"
+        v-tooltip="$t('delete')"
+      >
         <md-ripple />
         <i-material-symbols:delete-forever-outline-rounded />
       </button>
@@ -80,12 +84,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr
-          v-for="item in items"
-          :key="item.id"
-          :class="{ selected: item.checked }"
-          @click.stop="toggleRow(item)"
-        >
+        <tr v-for="item in items" :key="item.id" :class="{ selected: item.checked }" @click.stop="toggleRow(item)">
           <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
           <td><field-id :id="item.id" :raw="item" /></td>
           <td class="title">
@@ -105,11 +104,7 @@
                 <md-ripple />
                 <i-material-symbols:download-rounded />
               </button>
-              <button
-                class="icon-button"
-                @click.stop="addToPlaylist($event, item)"
-                v-tooltip="$t('add_to_playlist')"
-              >
+              <button class="icon-button" @click.stop="addToPlaylist($event, item)" v-tooltip="$t('add_to_playlist')">
                 <md-ripple />
                 <i-material-symbols:playlist-add />
               </button>
