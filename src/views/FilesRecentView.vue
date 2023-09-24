@@ -91,6 +91,9 @@ const { mutate: setTempValue, onDone: setTempValueDone } = initMutation({
 
 setTempValueDone((r: any) => {
   downloadFiles(r.data.setTempValue.key)
+  files.value.forEach((f: IFile) => {
+    f.checked = false
+  })
 })
 
 const getSelectedFiles = () => {

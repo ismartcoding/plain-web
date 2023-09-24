@@ -265,14 +265,18 @@ export const useDownload = (urlTokenKey: Ref<sjcl.BitArray | null>) => {
         download(url, getFileName(path))
       }
     },
-    downloadFiles(key: string, fileName?: string) {
-      const url = `${getApiBaseUrl()}/zip/files?id=${encodeURIComponent(key)}`
-      if (fileName) {
-        download(url + `&name=${fileName}`, fileName)
-      } else {
-        download(url, '')
-      }
-    },
+    downloadFiles(key: string) {
+      const id = encryptUrlParams(
+        urlTokenKey.value,
+        JSON.stringify({
+          id: key,
+          type: 'FILE',
+          name: '',
+        })
+      )
+
+      download(`${getApiBaseUrl()}/zip/files?id=${encodeURIComponent(id)}`, '')
+    }
   }
 }
 
