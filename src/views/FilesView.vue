@@ -28,7 +28,7 @@
       </div>
       <div class="form-check">
         <label class="form-check-label"
-          ><md-checkbox touch-target="wrapper" :checked="fileShowHidden" />{{ $t('show_hidden') }}</label
+          ><md-checkbox touch-target="wrapper" @change="toggleShowHiddenChecked"  :checked="fileShowHidden" />{{ $t('show_hidden') }}</label
         >
       </div>
 
@@ -232,6 +232,10 @@ const getSelectedFiles = () => {
 
 function toggleSelectModeChecked(e: Event) {
   selectMode.value = (e.target as MdCheckbox).checked
+}
+
+function toggleShowHiddenChecked(e: Event) {
+  fileShowHidden.value = (e.target as MdCheckbox).checked
 }
 
 const downloadItems = () => {
