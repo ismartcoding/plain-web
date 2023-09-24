@@ -27,9 +27,8 @@
         </label>
       </div>
       <div class="form-check">
-        <label class="form-check-label"
-          ><md-checkbox touch-target="wrapper" @change="toggleShowHiddenChecked"  :checked="fileShowHidden" />{{ $t('show_hidden') }}</label
-        >
+        <label class="form-check-label"><md-checkbox touch-target="wrapper" @change="toggleShowHiddenChecked"
+            :checked="fileShowHidden" />{{ $t('show_hidden') }}</label>
       </div>
 
       <popper>
@@ -39,12 +38,8 @@
         </button>
         <template #content="slotProps">
           <div class="menu-items">
-            <md-menu-item
-              v-for="item in sortItems"
-              @click="sort(slotProps, item.value)"
-              :headline="$t(item.label)"
-              :class="{ selected: item.value === fileSortBy }"
-            />
+            <md-menu-item v-for="item in sortItems" @click="sort(slotProps, item.value)" :headline="$t(item.label)"
+              :class="{ selected: item.value === fileSortBy }" />
           </div>
         </template>
       </popper>
@@ -54,24 +49,14 @@
     <pane v-for="panel in panels" :key="panel.dir">
       <div class="file-items">
         <template v-for="f of panel.items" :key="f.path">
-          <div
-            class="file-item"
-            v-if="!f.name.startsWith('.') || fileShowHidden"
-            :class="{
-              active: (currentDir + '/').startsWith(f.path + '/') || selectedItem?.path === f.path,
-            }"
-            @click="clickItem(panel, f)"
-            @dblclick.prevent="dbclickItem(panel, f)"
-            @contextmenu="itemCtxMenu($event, panel, f)"
-          >
+          <div class="file-item" v-if="!f.name.startsWith('.') || fileShowHidden" :class="{
+            active: (currentDir + '/').startsWith(f.path + '/') || selectedItem?.path === f.path,
+          }" @click="clickItem(panel, f)" @dblclick.prevent="dbclickItem(panel, f)"
+            @contextmenu="itemCtxMenu($event, panel, f)">
             <md-checkbox touch-target="wrapper" v-if="selectMode" :checked="f.checked" />
             <i-material-symbols:folder-outline-rounded v-if="f.isDir" />
-            <img
-              v-if="isImage(f.name) || isVideo(f.name)"
-              :src="getFileUrl(f.fileId) + '&w=50&h=50'"
-              width="50"
-              height="50"
-            />
+            <img v-if="isImage(f.name) || isVideo(f.name)" :src="getFileUrl(f.fileId) + '&w=50&h=50'" width="50"
+              height="50" />
             <div class="title">
               {{ f.name }}
               <div style="font-size: 0.75rem">
@@ -81,10 +66,8 @@
           </div>
         </template>
         <div class="empty" @contextmenu="emptyCtxMenu($event, panel.dir)">
-          <div
-            class="no-files"
-            v-if="panel.items.filter((it) => !it.name.startsWith('.') || fileShowHidden).length === 0"
-          >
+          <div class="no-files"
+            v-if="panel.items.filter((it) => !it.name.startsWith('.') || fileShowHidden).length === 0">
             {{ $t('no_files') }}
           </div>
         </div>
@@ -96,16 +79,8 @@
   </splitpanes>
   <div class="file-item-info" v-if="selectedItem">{{ $t('path') }}: {{ selectedItem.path }}</div>
   <input ref="fileInput" style="display: none" type="file" multiple @change="uploadChanged" />
-  <input
-    ref="dirFileInput"
-    style="display: none"
-    type="file"
-    multiple
-    webkitdirectory
-    mozdirectory
-    directory
-    @change="dirUploadChanged"
-  />
+  <input ref="dirFileInput" style="display: none" type="file" multiple webkitdirectory mozdirectory directory
+    @change="dirUploadChanged" />
 </template>
 
 <script setup lang="ts">
@@ -215,6 +190,11 @@ const { mutate: setTempValue, onDone: setTempValueDone } = initMutation({
 
 setTempValueDone((r: any) => {
   downloadFiles(r.data.setTempValue.key)
+  panels.value.forEach((p: FilePanel) => {
+    p.items.forEach((f: IFile) => {
+      f.checked = false
+    })
+  })
 })
 
 const getSelectedFiles = () => {
