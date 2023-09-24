@@ -126,7 +126,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onActivated, onDeactivated, reactive, ref, watch } from 'vue'
+import { nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatDateTime, formatDateTimeFull, formatSeconds } from '@/lib/format'
 import { callsGQL, initLazyQuery } from '@/lib/api/query'
@@ -306,12 +306,12 @@ const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
   }
 }
 
-onActivated(() => {
+onMounted(() => {
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
   emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
 })
 
-onDeactivated(() => {
+onUnmounted(() => {
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
 })

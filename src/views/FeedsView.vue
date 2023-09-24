@@ -115,7 +115,7 @@
 
 <script setup lang="ts">
 import { getFileUrl } from '@/lib/api/file'
-import { nextTick, onActivated, onDeactivated, reactive, ref, watch } from 'vue'
+import { nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatDateTime, formatDateTimeFull } from '@/lib/format'
 import { initQuery, feedsTagsGQL, initLazyQuery, feedEntriesGQL } from '@/lib/api/query'
@@ -349,13 +349,13 @@ const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
   }
 }
 
-onActivated(() => {
+onMounted(() => {
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
   emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
   emitter.on('feeds_fetched', feedsFetchedHandler)
 })
 
-onDeactivated(() => {
+onUnmounted(() => {
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
   emitter.off('feeds_fetched', feedsFetchedHandler)

@@ -111,7 +111,7 @@
 </template>
 
 <script setup lang="ts">
-import { onActivated, onDeactivated, reactive, ref, watch } from 'vue'
+import { onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatDateTime, formatDateTimeFull, formatFileSize } from '@/lib/format'
 import { packagesGQL, initQuery, initLazyQuery, packageStatusesGQL } from '@/lib/api/query'
@@ -269,7 +269,7 @@ const uploadTaskDoneHandler = (r: IUploadItem) => {
   }
 }
 
-onActivated(() => {
+onMounted(() => {
   emitter.on('upload_task_done', uploadTaskDoneHandler)
 
   let firstLoad = true
@@ -285,7 +285,7 @@ onActivated(() => {
   }, 1000)
 })
 
-onDeactivated(() => {
+onUnmounted(() => {
   emitter.off('upload_task_done', uploadTaskDoneHandler)
 })
 </script>

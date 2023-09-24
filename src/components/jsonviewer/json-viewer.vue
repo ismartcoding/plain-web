@@ -7,7 +7,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onActivated, onDeactivated, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import emitter from '@/plugins/eventbus'
 
 defineProps({
@@ -27,11 +27,11 @@ const colorModeChangedHandler = () => {
   themeClass.value = document.documentElement.classList[0] === 'dark' ? 'dark' : 'light'
 }
 
-onActivated(() => {
+onMounted(() => {
   emitter.on('color_mode_changed', colorModeChangedHandler)
 })
 
-onDeactivated(() => {
+onUnmounted(() => {
   emitter.off('color_mode_changed', colorModeChangedHandler)
 })
 </script>

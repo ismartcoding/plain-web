@@ -43,7 +43,7 @@
 <script setup lang="ts">
 import emitter from '@/plugins/eventbus'
 import toast from '@/components/toaster'
-import { onActivated, onDeactivated, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import MobileWarning from '@/assets/mobile-warning.svg'
 import { initQuery, screenMirrorImageGQL } from '@/lib/api/query'
 import { useI18n } from 'vue-i18n'
@@ -86,12 +86,12 @@ const appSocketConnectionChangedHanlder = (connected: boolean) => {
   }
 }
 
-onActivated(() => {
+onMounted(() => {
   emitter.on('screen_mirrorring', screenMirroringHandler)
   emitter.on('app_socket_connection_changed', appSocketConnectionChangedHanlder)
 })
 
-onDeactivated(() => {
+onUnmounted(() => {
   emitter.off('screen_mirrorring', screenMirroringHandler)
   emitter.off('app_socket_connection_changed', appSocketConnectionChangedHanlder)
 })
