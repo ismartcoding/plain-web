@@ -68,7 +68,7 @@
 <script setup lang="ts">
 import { Splitpanes, Pane } from 'splitpanes'
 import { useRoute } from 'vue-router'
-import { nextTick, onActivated, onDeactivated, ref } from 'vue'
+import { nextTick, onMounted, onUnmounted, ref } from 'vue'
 import toast from '@/components/toaster'
 import { useI18n } from 'vue-i18n'
 import { aichatDetailGQL, initQuery } from '@/lib/api/query'
@@ -219,11 +219,11 @@ const aiChatRepliedHandler = async (data: any) => {
   }
 }
 
-onActivated(() => {
+onMounted(() => {
   emitter.on('ai_chat_replied', aiChatRepliedHandler)
 })
 
-onDeactivated(() => {
+onUnmounted(() => {
   emitter.off('ai_chat_replied', aiChatRepliedHandler)
 })
 </script>

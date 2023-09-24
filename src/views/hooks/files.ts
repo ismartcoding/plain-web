@@ -276,7 +276,7 @@ export const useDownload = (urlTokenKey: Ref<sjcl.BitArray | null>) => {
       )
 
       download(`${getApiBaseUrl()}/zip/files?id=${encodeURIComponent(id)}`, '')
-    }
+    },
   }
 }
 

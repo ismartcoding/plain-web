@@ -157,7 +157,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onActivated, onDeactivated, reactive, ref, watch } from 'vue'
+import { nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatSeconds } from '@/lib/format'
 import { audiosGQL, initLazyQuery } from '@/lib/api/query'
@@ -314,14 +314,14 @@ const mediaItemDeletedHandler = () => {
   total.value--
 }
 
-onActivated(() => {
+onMounted(() => {
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
   emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
   emitter.on('media_item_deleted', mediaItemDeletedHandler)
   emitter.on('media_items_deleted', mediaItemsDeletedHandler)
 })
 
-onDeactivated(() => {
+onUnmounted(() => {
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
   emitter.off('media_item_deleted', mediaItemDeletedHandler)
