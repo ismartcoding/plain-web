@@ -1,6 +1,7 @@
-<script>
+<script lang="ts">
 import JsonBox from '../json-box.vue'
 import { h } from 'vue'
+
 export default {
   name: 'JsonArray',
   props: {
@@ -36,7 +37,7 @@ export default {
     this.setValue(this.jsonValue)
   },
   methods: {
-    setValue(vals, index = 0) {
+    setValue(vals: any[], index = 0) {
       if (index === 0) {
         this.value = []
       }
@@ -52,7 +53,7 @@ export default {
 
       try {
         this.$el.dispatchEvent(new Event('resized'))
-      } catch (e) {}
+      } catch (e) { }
     },
   },
   render() {
@@ -79,6 +80,20 @@ export default {
         innerText: '[',
       })
     )
+
+    const n = this.value.length
+    if (n > 0) {
+      elements.push(
+        h('span', {
+          class: {
+            'jv-ellipsis': true,
+          },
+          onClick: this.toggle,
+          innerText: n == 1 ? '1 item' : `${n} items`,
+        })
+      )
+    }
+
     if (this.expand) {
       this.value.forEach((value, key) => {
         elements.push(
@@ -93,22 +108,6 @@ export default {
           })
         )
       })
-    }
-
-    if (!this.expand && this.value.length) {
-      elements.push(
-        h('span', {
-          style: {
-            display: undefined,
-          },
-          class: {
-            'jv-ellipsis': true,
-          },
-          onClick: this.toggle,
-          title: `click to reveal ${this.value.length} hidden items`,
-          innerText: '...',
-        })
-      )
     }
 
     elements.push(
