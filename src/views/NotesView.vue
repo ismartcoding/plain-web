@@ -234,6 +234,7 @@ function moveToTrash() {
 }
 
 onTrash(() => {
+  clearSelection()
   refetch()
   if (items.value.some((it) => it.tags.length)) {
     emitter.emit('refetch_tags', dataType)
