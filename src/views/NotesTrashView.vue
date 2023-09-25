@@ -159,6 +159,7 @@ const { tags } = useTags(dataType, q, filter, async (fields: IFilterField[]) => 
 const { deleteItems } = useDelete(
   deleteNotesGQL,
   () => {
+    clearSelection()
     refetch()
   },
   items
@@ -218,7 +219,7 @@ function doSearch() {
   replacePath(mainStore, `/notes/trash?q=${encodeBase64(q.value)}`)
 }
 
-const { mutate: untrashNotes, onDone: onTrash } = initMutation({
+const { mutate: untrashNotes, onDone: onRestored } = initMutation({
   document: untrashNotesGQL,
   appApi: true,
 })
@@ -236,7 +237,8 @@ function view(item: INote) {
   router.push(`/notes/${item.id}`)
 }
 
-onTrash(() => {
+onRestored(() => {
+  clearSelection()
   refetch()
 })
 
@@ -253,6 +255,7 @@ function deleteItem(item: INoteItem) {
       query: `ids:${item.id}`,
     }),
     done: () => {
+      clearSelection()
       total.value--
     },
     appApi: true,

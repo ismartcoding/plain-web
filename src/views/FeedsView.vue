@@ -169,6 +169,7 @@ const { addToTags } = useAddToTags(dataType, items, tags)
 const { deleteItems } = useDelete(
   deleteFeedEntriesGQL,
   () => {
+    clearSelection()
     refetch()
     if (items.value.some((it) => it.tags.length)) {
       emitter.emit('refetch_tags', dataType)
@@ -225,6 +226,7 @@ function deleteItem(item: IFeedEntryItem) {
     appApi: true,
     typeName: 'FeedEntry',
     done: () => {
+      clearSelection()
       total.value--
       if (item.tags.length) {
         emitter.emit('refetch_tags', dataType)

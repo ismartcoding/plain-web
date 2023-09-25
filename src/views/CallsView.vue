@@ -17,13 +17,8 @@
           <md-outlined-text-field :label="$t('keywords')" v-model="filter.text" keyup.enter="applyAndDoSearch" />
           <label class="form-label">{{ $t('tags') }}</label>
           <md-chip-set type="filter">
-            <md-filter-chip
-              v-for="item in tags"
-              :key="item.id"
-              :label="item.name"
-              :selected="filter.tags.includes(item)"
-              @click="onTagSelect(item)"
-            />
+            <md-filter-chip v-for="item in tags" :key="item.id" :label="item.name" :selected="filter.tags.includes(item)"
+              @click="onTagSelect(item)" />
           </md-chip-set>
           <div class="buttons">
             <md-filled-button @click.stop="applyAndDoSearch">
@@ -34,25 +29,15 @@
       </template>
     </search-input>
   </div>
-  <all-checked-alert
-    :limit="limit"
-    :total="total"
-    :all-checked-alert-visible="allCheckedAlertVisible"
-    :real-all-checked="realAllChecked"
-    :select-real-all="selectRealAll"
-    :clear-selection="clearSelection"
-  />
+  <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible"
+    :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
   <div class="table-responsive">
     <table class="table">
       <thead>
         <tr>
           <th>
-            <md-checkbox
-              touch-target="wrapper"
-              @change="toggleAllChecked"
-              :checked="allChecked"
-              :indeterminate="!allChecked && checked"
-            />
+            <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked"
+              :indeterminate="!allChecked && checked" />
           </th>
           <th>ID</th>
           <th>{{ $t('name') }}</th>
@@ -186,10 +171,9 @@ const { addToTags } = useAddToTags(dataType, items, tags)
 const { deleteItems } = useDelete(
   deleteCallsGQL,
   () => {
+    clearSelection()
     refetch()
-    if (items.value.some((it) => it.tags.length)) {
-      emitter.emit('refetch_tags', dataType)
-    }
+    emitter.emit('refetch_tags', dataType)
   },
   items
 )
