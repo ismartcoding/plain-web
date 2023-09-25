@@ -44,13 +44,10 @@ onUnmounted(() => {
   white-space: nowrap;
 
   .jv-ellipsis {
-    display: inline-block;
-    line-height: 0.9;
-    font-size: 0.9em;
-    padding: 0px 4px 2px 4px;
+    font-size: 0.8em;
+    padding: 2px 4px;
     margin: 0 4px;
     border-radius: 3px;
-    vertical-align: 2px;
     cursor: pointer;
     user-select: none;
   }

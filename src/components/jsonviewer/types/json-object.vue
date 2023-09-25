@@ -59,7 +59,7 @@ export default {
     dispatchEvent() {
       try {
         this.$el.dispatchEvent(new Event('resized'))
-      } catch (e) {}
+      } catch (e) { }
     },
   },
   render() {
@@ -86,6 +86,19 @@ export default {
       })
     )
 
+    const n = Object.keys(this.value).length
+    if (n > 0) {
+      elements.push(
+        h('span', {
+          class: {
+            'jv-ellipsis': true,
+          },
+          onClick: this.toggle,
+          innerText: n === 1 ? '1 prop' : `${n} props`,
+        })
+      )
+    }
+
     if (this.expand) {
       for (const key in this.ordered) {
         if (this.ordered.hasOwnProperty(key)) {
@@ -105,22 +118,6 @@ export default {
           )
         }
       }
-    }
-
-    if (!this.expand && Object.keys(this.value).length) {
-      elements.push(
-        h('span', {
-          style: {
-            display: this.expand ? 'none' : undefined,
-          },
-          class: {
-            'jv-ellipsis': true,
-          },
-          onClick: this.toggle,
-          title: `click to reveal object content (keys: ${Object.keys(this.ordered).join(', ')})`,
-          innerText: '...',
-        })
-      )
     }
 
     elements.push(
