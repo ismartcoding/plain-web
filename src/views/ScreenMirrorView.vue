@@ -111,9 +111,8 @@ const { loading: fetchImageLoading, refetch } = initQuery({
     if (error) {
       toast(t(error), 'error')
     } else {
-      if (data.screenMirrorImage) {
-        url.value = data.screenMirrorImage
-      } else {
+      url.value = data.screenMirrorImage
+      if (!data.screenMirrorImage) {
         start()
       }
     }
