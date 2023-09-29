@@ -31,7 +31,9 @@ export const appFragment = gql`
     externalFilesDir
     deviceName
     battery
-    version
+    appVersion
+    osVersion
+    isPro
     permissions
     audios {
       ...PlaylistAudioFragment
