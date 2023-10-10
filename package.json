@@ -11,7 +11,7 @@
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "@apollo/client": "^3.8.3",
+    "@apollo/client": "^3.8.5",
     "@material/material-color-utilities": "^0.2.7",
     "@material/web": "^1.0.0-pre.17",
     "@nuintun/qrcode": "^3.3.0",

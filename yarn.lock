@@ -29,9 +29,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@apollo/client@npm:^3.8.3":
-  version: 3.8.3
-  resolution: "@apollo/client@npm:3.8.3"
+"@apollo/client@npm:^3.8.5":
+  version: 3.8.5
+  resolution: "@apollo/client@npm:3.8.5"
   dependencies:
     "@graphql-typed-document-node/core": ^3.1.1
     "@wry/context": ^0.7.3
@@ -61,7 +61,7 @@ __metadata:
       optional: true
     subscriptions-transport-ws:
       optional: true
-  checksum: cdecd5d613c0f941d00fc1904b9ecdeb502fc157c10400430231adb47d8f67727c78eed1b7489aed91cce6e20e32fc44e16b6c2d5424a42d7c100dcef65b942b
+  checksum: 242db8340d5f04ff8f2c9ad6a0dc6ab6d596fb5c763865b0d392f6e5771d55de28faa981dcadaea80ee8b21d4ff40bfa51152a10bcae4158ecf035e47b0d17c4
   languageName: node
   linkType: hard
 
@@ -3478,7 +3478,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "plain@workspace:."
   dependencies:
-    "@apollo/client": ^3.8.3
+    "@apollo/client": ^3.8.5
     "@iconify-json/material-symbols": ^1.1.31
     "@material/material-color-utilities": ^0.2.7
     "@material/web": ^1.0.0-pre.17
