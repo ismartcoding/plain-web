@@ -106,7 +106,6 @@ export async function upload(upload: IUploadItem, replace: boolean) {
   const key = sjcl.codec.base64.toBits(token)
 
   const chunkSize = 1000 * 1000 * 512 // 512MB chunks
-  let retry = 3
 
   async function sendChunk(offset: number, index: number, total: number) {
     const chunkEnd = Math.min(offset + chunkSize, upload.file.size)
@@ -150,25 +149,24 @@ export async function upload(upload: IUploadItem, replace: boolean) {
       )
 
       xhr.onreadystatechange = function () {
+        console.log(xhr)
         if (xhr.readyState === 4) {
           if (xhr.status === 201) {
-            upload.fileName = xhr.responseText
+            resolve({ fileName: xhr.responseText })
           } else {
-            if (retry-- > 0) {
-              sendChunk(offset, index, total)
-              return
-            }
-            upload.status = 'error'
-            upload.error = xhr.responseText
+            resolve({ error: xhr.responseText })
           }
-          resolve(xhr.responseText)
         }
       }
 
-      xhr.open('POST', getUploadUrl(), true)
-      xhr.setRequestHeader('c-id', localStorage.getItem('client_id') ?? '')
-      xhr.send(data)
-      upload.xhr = xhr
+      try {
+        xhr.open('POST', getUploadUrl(), true)
+        xhr.setRequestHeader('c-id', localStorage.getItem('client_id') ?? '')
+        xhr.send(data)
+        upload.xhr = xhr
+      } catch (ex: any) {
+        resolve({ error: ex.message })
+      }
     })
   }
 
@@ -180,8 +178,21 @@ export async function upload(upload: IUploadItem, replace: boolean) {
       offset += chunkSize
     }
 
+    let retry = 3
     for (let i = 0; i < offsets.length; i++) {
-      await sendChunk(offsets[i], i, offsets.length)
+      do {
+        const r: any = await sendChunk(offsets[i], i, offsets.length)
+        if (r.error) {
+          if (retry === 0) {
+            upload.status = 'error'
+            upload.error = r.error
+          }
+          retry--
+        } else {
+          upload.fileName = r.fileName
+          break
+        }
+      } while (retry >= 0)
     }
 
     upload.status = 'done'
