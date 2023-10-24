@@ -65,6 +65,7 @@ declare module 'vue' {
     'IMaterialSymbols:pauseCircleOutlineRounded': typeof import('~icons/material-symbols/pause-circle-outline-rounded')['default']
     'IMaterialSymbols:playCircleOutlineRounded': typeof import('~icons/material-symbols/play-circle-outline-rounded')['default']
     'IMaterialSymbols:playlistAdd': typeof import('~icons/material-symbols/playlist-add')['default']
+    'IMaterialSymbols:printOutlineRounded': typeof import('~icons/material-symbols/print-outline-rounded')['default']
     'IMaterialSymbols:questionMarkRounded': typeof import('~icons/material-symbols/question-mark-rounded')['default']
     'IMaterialSymbols:queueMusicRounded': typeof import('~icons/material-symbols/queue-music-rounded')['default']
     'IMaterialSymbols:refreshRounded': typeof import('~icons/material-symbols/refresh-rounded')['default']

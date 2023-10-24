@@ -31,6 +31,10 @@
           <i-material-symbols:open-in-new-rounded />
         </button>
       </a>
+      <button class="icon-button" v-tooltip="$t('print')" @click.prevent="print">
+          <md-ripple />
+          <i-material-symbols:print-outline-rounded />
+        </button>
     </div>
     <div class="md-container" v-html="markdown"></div>
   </div>
@@ -95,6 +99,10 @@ initQuery({
   },
   appApi: true,
 })
+
+const print = () => {
+  window.print()
+}
 
 function addToTags() {
   openModal(UpdateTagRelationsModal, {

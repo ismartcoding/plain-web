@@ -9,6 +9,7 @@ export default {
     name_asc: 'Имя (А до Я)',
     name_desc: 'Имя (Я до А)',
   },
+  print: 'Печать',
   cancel: 'Отмена',
   ok: 'ОК',
   connection_timeout: 'Время соединения истекло',

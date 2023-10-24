@@ -9,15 +9,15 @@
           </template>
         </breadcrumb>
         <span v-for="tag in note?.tags" :key="tag.id" class="badge">{{ tag.name }}</span>
-        <button
-          class="icon-button"
-          v-if="!isCreate()"
-          v-tooltip="$t('add_to_tags')"
-          @click.prevent="addToTags"
-          style="margin-inline-start: 8px"
-        >
+        <button class="icon-button" v-if="!isCreate()" v-tooltip="$t('add_to_tags')" @click.prevent="addToTags"
+          style="margin-inline-start: 8px">
           <md-ripple />
           <i-material-symbols:label-outline-rounded />
+        </button>
+
+        <button class="icon-button" v-if="!isCreate()" v-tooltip="$t('print')" @click.prevent="print">
+          <md-ripple />
+          <i-material-symbols:print-outline-rounded />
         </button>
       </div>
       <splitpanes class="panel-container">
@@ -94,6 +94,10 @@ const watchContent = () => {
   })
 }
 
+const print = () => {
+  window.print()
+}
+
 const tags = ref<ITag[]>()
 const dataType = 'NOTE'
 initQuery({
@@ -113,7 +117,7 @@ initQuery({
   appApi: true,
 })
 
-let refecthEntry = () => {}
+let refecthEntry = () => { }
 if (!isCreate()) {
   const { refetch } = initQuery({
     handle: async (data: any, error: string) => {

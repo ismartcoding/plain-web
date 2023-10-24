@@ -9,6 +9,7 @@ export default {
     name_asc: 'Name (A to Z)',
     name_desc: 'Name (Z to A)',
   },
+  print: 'Print',
   cancel: 'Cancel',
   ok: 'OK',
   connection_timeout: 'Connection is timeout',

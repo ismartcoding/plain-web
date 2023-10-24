@@ -9,6 +9,7 @@ export default {
     name_asc: '名前（AからZへ）',
     name_desc: '名前（ZからAへ）',
   },
+  print: '印刷',
   cancel: 'キャンセル',
   ok: 'OK',
   connection_timeout: '接続がタイムアウトしました',

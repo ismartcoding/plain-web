@@ -1,0 +1,27 @@
+@media print {
+    header,
+    .quick,
+    .quick-content,
+    .v-toolbar,
+    .subtitle,
+    .splitpanes__pane:first-child {
+        display: none !important;
+    }
+
+    .splitpanes__pane {
+        width: 100% !important;
+    }
+    .layout, .page-content, .panel-container, .page-container .main {
+        height: auto !important;
+    }
+
+    .page-container .main {
+        margin: 0 !important;
+        border-top-left-radius: 0 !important;
+        border-top-right-radius: 0 !important;
+        padding: 0 !important;
+    }
+    .md-container {
+        padding: 0 !important;
+    }
+}

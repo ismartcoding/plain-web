@@ -9,6 +9,7 @@ export default {
     name_asc: 'নাম (এ থেকে জেড)',
     name_desc: 'নাম (জেড থেকে এ)',
   },
+  print: 'প্রিন্ট',
   cancel: 'বাতিল করুন',
   ok: 'ঠিক আছে',
   connection_timeout: 'সংযোগ সময় আউট হয়েছে',
