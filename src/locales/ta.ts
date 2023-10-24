@@ -9,6 +9,7 @@ export default {
     name_asc: 'பெயர் (ஏ முதல் ஜேட்)',
     name_desc: 'பெயர் (ஜேட் முதல் ஏ)',
   },
+  print: 'அச்சிடு',
   cancel: 'ரத்து செய்',
   ok: 'சரி',
   connection_timeout: 'இணைப்பு நேரம் முடிந்தது',

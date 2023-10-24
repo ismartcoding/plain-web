@@ -9,6 +9,7 @@ export default {
     name_asc: 'Nome (A a Z)',
     name_desc: 'Nome (Z a A)',
   },
+  print: 'Stampa',
   cancel: 'Annulla',
   ok: 'OK',
   connection_timeout: 'Connessione scaduta',

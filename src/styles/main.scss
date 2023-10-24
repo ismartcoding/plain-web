@@ -10,6 +10,7 @@
 @import "splitpanes";
 @import "chat";
 @import "mobile";
+@import "print";
 
 #app:has(~ .lightbox) {
   display: none;

@@ -9,6 +9,7 @@ export default {
     name_asc: '名称（从A到Z）',
     name_desc: '名称（从Z到A）',
   },
+  print: '打印',
   cancel: '取消',
   ok: '好的',
   connection_timeout: '连接超时',
