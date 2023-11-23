@@ -37,6 +37,7 @@ export default {
   me: '私',
   password: 'パスワード',
   chat_input_hint: '何を考えていますか？',
+  release_to_send_file: 'リリースしてファイルを送信',
   confirm_to_delete_name: '"{name}"を削除しますか？',
   confirm_to_delete: '削除しますか？',
   valid: {

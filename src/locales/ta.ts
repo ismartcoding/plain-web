@@ -37,6 +37,7 @@ export default {
   me: 'எனக்கு',
   password: 'கடவுச்சொல்',
   chat_input_hint: 'உங்கள் உள்ளம் என்ன?',
+  release_to_send_file: 'கைவிட்டு கோப்பு அனுப்பு',
   confirm_to_delete_name: 'நீக்க உறுதிப்படுத்த "{name}"?',
   confirm_to_delete: 'நீக்க உறுதிப்படுத்த?',
   valid: {

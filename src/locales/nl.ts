@@ -37,6 +37,7 @@ export default {
   me: 'Ik',
   password: 'Wachtwoord',
   chat_input_hint: 'Wat denk je?',
+  release_to_send_file: 'Loslaten om bestand te verzenden',
   confirm_to_delete_name: 'Bevestigen om "{name}" te verwijderen?',
   confirm_to_delete: 'Bevestigen om te verwijderen?',
   valid: {

@@ -37,6 +37,7 @@ export default {
   me: 'में',
   password: 'पासवर्ड',
   chat_input_hint: 'आपके मन में क्या है?',
+  release_to_send_file: 'रिलीज टू सेंड फाइल',
   confirm_to_delete_name: 'कन्फर्म टू डिलीट "{name}"?',
   confirm_to_delete: 'कन्फर्म टू डिलीट?',
   valid: {

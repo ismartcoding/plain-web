@@ -37,6 +37,7 @@ export default {
   me: 'আমি',
   password: 'পাসওয়ার্ড',
   chat_input_hint: 'আপনার মনে কি আছে?',
+  release_to_send_file: 'ফাইল পাঠাতে মুক্তি দিন',
   confirm_to_delete_name: '"{name}" মুছতে নিশ্চিত?',
   confirm_to_delete: 'মুছতে নিশ্চিত?',
   valid: {
