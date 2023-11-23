@@ -37,21 +37,26 @@
       </div>
     </div>
     <div class="chat-input">
-      <md-outlined-text-field
-        type="textarea"
-        rows="2"
-        v-model="chatText"
-        autocomplete="off"
-        @paste="pasteFiles"
-        @drop.prevent="dropFiles"
-        class="textarea"
-        :placeholder="$t('chat_input_hint')"
-        @keydown.enter.exact.prevent="send"
-        @keydown.enter.shift.exact.prevent="chatText += '\n'"
-        @keydown.enter.ctrl.exact.prevent="chatText += '\n'"
-        @keydown.enter.alt.exact.prevent="chatText += '\n'"
-        @keydown.enter.meta.exact.prevent="chatText += '\n'"
-      />
+      <div style="position: relative">
+        <div id="drag-mask" v-show="displayDragMask">{{ $t('release_to_send_file') }}</div>
+        <md-outlined-text-field
+          type="textarea"
+          rows="2"
+          v-model="chatText"
+          autocomplete="off"
+          @paste="pasteFiles"
+          @drop.prevent="dropFiles"
+          @dragenter.prevent="fileDragEnter"
+          @dragleave.prevent="fileDragLeave"
+          class="textarea"
+          :placeholder="$t('chat_input_hint')"
+          @keydown.enter.exact.prevent="send"
+          @keydown.enter.shift.exact.prevent="chatText += '\n'"
+          @keydown.enter.ctrl.exact.prevent="chatText += '\n'"
+          @keydown.enter.alt.exact.prevent="chatText += '\n'"
+          @keydown.enter.meta.exact.prevent="chatText += '\n'"
+        />
+      </div>
       <div class="btns">
         <button class="icon-button" @click="sendImages">
           <md-ripple />
@@ -319,8 +324,19 @@ function sendFiles() {
   fileInput.value!.click()
 }
 
+const displayDragMask = ref(false)
+
+function fileDragEnter() {
+  displayDragMask.value = true
+}
+
+function fileDragLeave() {
+  displayDragMask.value = false
+}
+
 function dropFiles(e: DragEvent) {
   const fileList = e.dataTransfer?.files as FileList
+  displayDragMask.value = false
   if (fileList) {
     const files: File[] = []
     for (const item of fileList) {
@@ -443,6 +459,22 @@ onMounted(() => {
     display: block;
     padding-block-end: 8px;
   }
+}
+
+#drag-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-size: 1.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 5px;
+  border: 4px dashed var(--md-sys-color-primary);
 }
 
 .chat-items-container {
