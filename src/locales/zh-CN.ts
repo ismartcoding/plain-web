@@ -37,6 +37,7 @@ export default {
   me: '我',
   password: '密码',
   chat_input_hint: '您想说什么？',
+  release_to_send_file: '松手以发送文件',
   confirm_to_delete_name: '确认删除"{name}"?',
   confirm_to_delete: '确认删除?',
   valid: {
