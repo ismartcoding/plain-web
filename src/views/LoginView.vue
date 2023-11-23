@@ -107,7 +107,7 @@ const onSubmit = handleSubmit(async () => {
     } else {
       localStorage.setItem('auth_token', r.token)
       ws.close()
-      router.push({ path: router.currentRoute.value.query['redirect']?.toString() ?? '/', replace: true })
+      window.location.href = router.currentRoute.value.query['redirect']?.toString() ?? '/'
     }
   }
   ws.onclose = (event: CloseEvent) => {
