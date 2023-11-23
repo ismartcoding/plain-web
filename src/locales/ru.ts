@@ -37,6 +37,7 @@ export default {
   me: 'Я',
   password: 'Пароль',
   chat_input_hint: 'Что у вас на уме?',
+  release_to_send_file: 'Отпустите, чтобы отправить файл',
   confirm_to_delete_name: 'Подтвердите удаление "{name}"?',
   confirm_to_delete: 'Подтвердите удаление?',
   valid: {

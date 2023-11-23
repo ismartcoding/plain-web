@@ -19,11 +19,8 @@
             </div>
             <template #content>
               <div class="menu-items">
-                <md-menu-item
-                  :headline="$t('delete_message')"
-                  @click="deleteMessage(chatItem.id)"
-                  :disabled="deleteLoading"
-                />
+                <md-menu-item :headline="$t('delete_message')" @click="deleteMessage(chatItem.id)"
+                  :disabled="deleteLoading" />
               </div>
             </template>
           </popper>
@@ -37,25 +34,13 @@
       </div>
     </div>
     <div class="chat-input">
-      <div style="position: relative">
-        <div id="drag-mask" v-show="displayDragMask">{{ $t('release_to_send_file') }}</div>
-        <md-outlined-text-field
-          type="textarea"
-          rows="2"
-          v-model="chatText"
-          autocomplete="off"
-          @paste="pasteFiles"
-          @drop.prevent="dropFiles"
-          @dragenter.prevent="fileDragEnter"
-          @dragleave.prevent="fileDragLeave"
-          class="textarea"
-          :placeholder="$t('chat_input_hint')"
-          @keydown.enter.exact.prevent="send"
-          @keydown.enter.shift.exact.prevent="chatText += '\n'"
-          @keydown.enter.ctrl.exact.prevent="chatText += '\n'"
-          @keydown.enter.alt.exact.prevent="chatText += '\n'"
-          @keydown.enter.meta.exact.prevent="chatText += '\n'"
-        />
+      <div class="textarea-wrapper">
+        <div class="drag-mask" v-show="displayDragMask">{{ $t('release_to_send_file') }}</div>
+        <md-outlined-text-field type="textarea" rows="2" v-model="chatText" autocomplete="off" @paste="pasteFiles"
+          @drop.prevent="dropFiles" @dragenter.prevent="fileDragEnter" @dragleave.prevent="fileDragLeave" class="textarea"
+          :placeholder="$t('chat_input_hint')" @keydown.enter.exact.prevent="send"
+          @keydown.enter.shift.exact.prevent="chatText += '\n'" @keydown.enter.ctrl.exact.prevent="chatText += '\n'"
+          @keydown.enter.alt.exact.prevent="chatText += '\n'" @keydown.enter.meta.exact.prevent="chatText += '\n'" />
       </div>
       <div class="btns">
         <button class="icon-button" @click="sendImages">
@@ -75,14 +60,8 @@
       </div>
     </div>
     <input ref="fileInput" style="display: none" type="file" multiple @change="uploadFilesChanged" />
-    <input
-      ref="imageInput"
-      style="display: none"
-      type="file"
-      accept="image/*, video/*"
-      multiple
-      @change="uploadImagesChanged"
-    />
+    <input ref="imageInput" style="display: none" type="file" accept="image/*, video/*" multiple
+      @change="uploadImagesChanged" />
   </div>
 </template>
 
@@ -444,7 +423,7 @@ onMounted(() => {
     display: flex;
     flex-direction: row;
 
-    .icon-button + .icon-button {
+    .icon-button+.icon-button {
       margin-inline-start: 8px;
     }
 
@@ -455,26 +434,30 @@ onMounted(() => {
     }
   }
 
-  .textarea {
-    display: block;
+  .textarea-wrapper {
+    position: relative;
     padding-block-end: 8px;
+
+    .textarea {
+      display: block;
+    }
   }
 }
 
-#drag-mask {
+.drag-mask {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: 8px;
   background-color: rgba(0, 0, 0, 0.5);
   color: white;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: 5px;
-  border: 4px dashed var(--md-sys-color-primary);
+  border-radius: 4px;
+  border: 2px dashed var(--md-sys-color-primary);
 }
 
 .chat-items-container {
@@ -484,7 +467,7 @@ onMounted(() => {
   background-color: var(--md-sys-color-surface);
   border-top-left-radius: var(--plain-shape-l);
 
-  & > div {
+  &>div {
     width: 100%;
   }
 }

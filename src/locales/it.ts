@@ -37,6 +37,7 @@ export default {
   me: 'Me',
   password: 'Password',
   chat_input_hint: 'Cosa hai in mente?',
+  release_to_send_file: 'Rilascia per inviare file',
   confirm_to_delete_name: 'Conferma eliminazione di "{name}"?',
   confirm_to_delete: 'Conferma eliminazione?',
   valid: {
