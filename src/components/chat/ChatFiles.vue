@@ -23,7 +23,7 @@
 import { computed, ref } from 'vue'
 import { getFileName, getFileUrl, notId } from '@/lib/api/file'
 import type { ISource } from '../lightbox/types'
-import { isVideo, isImage, isAudio } from '@/lib/file'
+import { isVideo, isImage, canView } from '@/lib/file'
 import { formatSeconds, formatFileSize } from '@/lib/format'
 import { useTempStore } from '@/stores/temp'
 
@@ -66,8 +66,8 @@ const items = computed<ISource[]>(() => {
 })
 
 function clickItem(item: ISource) {
-  if (canView(item)) {
-    sources.value = items.value.filter((it) => canView(it))
+  if (canView(item.name)) {
+    sources.value = items.value.filter((it) => canView(it.name))
     const idx = sources.value.findIndex((it) => it.src === item.src)
     tempStore.lightbox = {
       sources: sources.value,
@@ -79,9 +79,6 @@ function clickItem(item: ISource) {
   }
 }
 
-function canView(item: ISource) {
-  return isImage(item.name) || isVideo(item.name) || isAudio(item.name)
-}
 </script>
 
 <style lang="scss" scoped>
