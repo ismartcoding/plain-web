@@ -1,6 +1,6 @@
 {
   "name": "plain",
-  "packageManager": "yarn@3.4.1",
+  "packageManager": "yarn@4.0.2",
   "version": "0.0.0",
   "scripts": {
     "serve": "vite preview",
