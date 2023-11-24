@@ -37,7 +37,11 @@ export function isRaw(name: string) {
 }
 
 export function canView(name: string) {
-  return isImage(name) || isVideo(name) || isAudio(name) || isRaw(name)
+  return isImage(name) || isVideo(name) || isAudio(name)
+}
+
+export function canOpenInBrowser(name: string) {
+  return ['.txt', '.pdf', '.md'].some((it) => name.endsWith(it))
 }
 
 export class FilePanel {

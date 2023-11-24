@@ -118,8 +118,8 @@ import { useI18n } from 'vue-i18n'
 import { Splitpanes, Pane } from 'splitpanes'
 import { useMainStore } from '@/stores/main'
 import { storeToRefs } from 'pinia'
-import { type FilePanel, type IFile, isImage, isVideo, isAudio } from '@/lib/file'
-import { getFileUrl } from '@/lib/api/file'
+import { type FilePanel, type IFile, isImage, isVideo, canOpenInBrowser, canView } from '@/lib/file'
+import { getFileUrl, getFileUrlByPath } from '@/lib/api/file'
 import { noDataKey } from '@/lib/list'
 import emitter from '@/plugins/eventbus'
 import {
@@ -309,10 +309,6 @@ function clickItem(panel: FilePanel, item: IFile) {
   select(panel, item)
 }
 
-function canView(item: IFile) {
-  return isImage(item.name) || isVideo(item.name) || isAudio(item.name)
-}
-
 function sort(slotProps: any, sort: string) {
   // only sort the last column
   fileSortBy.value = sort
@@ -321,7 +317,9 @@ function sort(slotProps: any, sort: string) {
 
 function dbclickItem(panel: FilePanel, item: IFile) {
   if (!item.isDir) {
-    if (canView(item)) {
+    if (canOpenInBrowser(item.name)) {
+      window.open(getFileUrlByPath(urlTokenKey.value, item.path), '_blank')
+    } else if (canView(item.name)) {
       if (fileShowHidden) {
         view(panel.items, item)
       } else {
@@ -405,11 +403,15 @@ function itemCtxMenu(e: MouseEvent, panel: FilePanel, f: IFile) {
     ]
   } else {
     items = []
-    if (canView(f)) {
+    if (canOpenInBrowser(f.name) || canView(f.name)) {
       items.push({
         label: t('open'),
         onClick: () => {
-          view(panel.items, f)
+          if (canView(f.name)) {
+            view(panel.items, f)
+          } else {
+            window.open(getFileUrlByPath(urlTokenKey.value, f.path), '_blank')
+          }
         },
       })
     }
