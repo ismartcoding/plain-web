@@ -546,6 +546,7 @@ onUnmounted(() => {
 
     &:hover {
       cursor: pointer;
+      background-color: var(--md-sys-color-on-surface-selected);
     }
 
     svg,
