@@ -50,6 +50,12 @@
           </div>
         </template>
       </popper>
+      <div>
+        <button class="icon-button btn-refresh" v-tooltip="$t('refresh')" @click="refreshCurrentDir">
+          <md-ripple />
+          <i-material-symbols:refresh-rounded />
+        </button>
+      </div>
     </div>
   </div>
   <splitpanes class="panel-container">
@@ -315,6 +321,10 @@ function sort(slotProps: any, sort: string) {
   slotProps.close()
 }
 
+function refreshCurrentDir() {
+  refetchFiles(currentDir.value)
+}
+
 function dbclickItem(panel: FilePanel, item: IFile) {
   if (!item.isDir) {
     if (canOpenInBrowser(item.name)) {
@@ -517,6 +527,10 @@ onUnmounted(() => {
 }
 
 .btn-sort {
+  margin-inline-start: 16px;
+}
+
+.btn-refresh {
   margin-inline-start: 16px;
 }
 
