@@ -57,7 +57,6 @@
               :indeterminate="!allChecked && checked"
             />
           </th>
-          <th>ID</th>
           <th></th>
           <th>{{ $t('title') }}</th>
           <th></th>
@@ -69,11 +68,10 @@
       <tbody>
         <tr v-for="item in items" :key="item.id" :class="{ selected: item.checked }" @click.stop="toggleRow(item)">
           <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
-          <td><field-id :id="item.id" :raw="item" /></td>
           <td>
             <img v-if="item.image" :src="getFileUrl(item.image) + '&w=300&h=300'" width="50" height="50" />
           </td>
-          <td>
+          <td style="min-width: 200px">
             <a :href="viewUrl(item)" @click.stop.prevent="view(item)">{{ item.title || $t('no_content') }}</a>
           </td>
           <td class="nowrap">
