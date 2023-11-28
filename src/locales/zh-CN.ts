@@ -355,6 +355,7 @@ export default {
   sync_content: '同步正文内容',
   feeds_synced: '订阅已同步',
   syncing: '同步中...',
+  meta_no_title: '[没有标题]',
   no_content: '[没有内容]',
   confirm: '确认',
   upload_audios: '您可以上传音频到Music目录或者其他目录下。',

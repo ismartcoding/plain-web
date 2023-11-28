@@ -5,6 +5,7 @@
         <breadcrumb :paths="paths">
           <template #current>
             {{ isCreate() ? t('create') : t('edit') }}
+            <span class="state-point" v-show="notsaved">*</span>
             <field-id class="time" v-if="note?.updatedAt" :id="getTime()" :raw="note" />
           </template>
         </breadcrumb>
@@ -61,6 +62,7 @@ const id = ref(route.params.id)
 const note = ref<INote>()
 const content = ref('')
 const markdown = ref('')
+const notsaved = ref(false)
 
 const { app, urlTokenKey } = storeToRefs(useTempStore())
 
@@ -79,6 +81,7 @@ function isCreate() {
 }
 
 const saveContent = debounce(() => {
+  notsaved.value = false
   save({
     id: isCreate() ? '' : id.value,
     input: {
@@ -87,8 +90,10 @@ const saveContent = debounce(() => {
     },
   })
 }, 500)
+
 const watchContent = () => {
   watch(content, async (value: string) => {
+    notsaved.value = true
     markdown.value = await render(value)
     saveContent()
   })
@@ -211,6 +216,10 @@ onUnmounted(() => {
   margin-left: 8px;
   font-size: 0.875rem;
   font-weight: normal;
+}
+
+.state-point {
+  color: red;
 }
 
 .md-container {

@@ -356,6 +356,7 @@ export default {
   sync_content: 'Sync content',
   feeds_synced: 'Feeds synced',
   syncing: 'Syncing...',
+  meta_no_title: '[No title]',
   no_content: '[No content]',
   confirm: 'Confirm',
   upload_audios: 'You can upload in Music folder or other folder.',
