@@ -55,7 +55,6 @@
               :indeterminate="!allChecked && checked"
             />
           </th>
-          <th>ID</th>
           <th>{{ $t('title') }}</th>
           <th></th>
           <th>{{ $t('tags') }}</th>
@@ -66,9 +65,10 @@
       <tbody>
         <tr v-for="item in items" :key="item.id" :class="{ selected: item.checked }" @click.stop="toggleRow(item)">
           <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
-          <td><field-id :id="item.id" :raw="item" /></td>
-          <td>
-            <a href="#" @click.stop.prevent="view(item)">{{ item.title || $t('no_content') }}</a>
+          <td style="min-width: 200px">
+            <a style="text-overflow: clip" href="#" @click.stop.prevent="view(item)">{{
+              item.title.split('\n')[0].trimStart() || $t('meta_no_title')
+            }}</a>
           </td>
           <td class="nowrap">
             <div class="action-btns">
