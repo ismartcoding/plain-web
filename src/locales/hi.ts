@@ -355,6 +355,7 @@ export default {
   sync_content: 'सिंक कंटेंट',
   feeds_synced: 'फीड्स सिंक्ड',
   syncing: 'सिंकिंग...',
+  meta_no_title: '[नो टाइटल]',
   no_content: '[नो कंटेंट]',
   confirm: 'कन्फर्म',
   upload_audios: 'आप म्यूजिक फ़ोल्डर या किसी अन्य फ़ोल्डर में अपलोड कर सकते हैं.',

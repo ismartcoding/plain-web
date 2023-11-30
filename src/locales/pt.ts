@@ -356,6 +356,7 @@ export default {
   sync_content: 'Sincronizar conteúdo',
   feeds_synced: 'Feeds sincronizados',
   syncing: 'Sincronizando...',
+  meta_no_title: '[Sem título]',
   no_content: '[Sem conteúdo]',
   confirm: 'Confirmar',
   upload_audios: 'Você pode carregar na pasta Músicas ou outra pasta.',

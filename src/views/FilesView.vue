@@ -33,7 +33,10 @@
           }}</label
         >
       </div>
-
+      <button class="icon-button btn-refresh" v-tooltip="$t('refresh')" @click="refreshCurrentDir">
+          <md-ripple />
+          <i-material-symbols:refresh-rounded />
+        </button>
       <popper>
         <button class="icon-button btn-sort" v-tooltip="$t('sort')">
           <md-ripple />
@@ -50,12 +53,6 @@
           </div>
         </template>
       </popper>
-      <div>
-        <button class="icon-button btn-refresh" v-tooltip="$t('refresh')" @click="refreshCurrentDir">
-          <md-ripple />
-          <i-material-symbols:refresh-rounded />
-        </button>
-      </div>
     </div>
   </div>
   <splitpanes class="panel-container">
@@ -526,11 +523,7 @@ onUnmounted(() => {
   padding-top: 8px;
 }
 
-.btn-sort {
-  margin-inline-start: 16px;
-}
-
-.btn-refresh {
+.btn-sort, .btn-refresh {
   margin-inline-start: 16px;
 }
 

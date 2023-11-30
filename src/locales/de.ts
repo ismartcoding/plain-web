@@ -356,6 +356,7 @@ export default {
   sync_content: 'Inhalt synchronisieren',
   feeds_synced: 'Feeds synchronisiert',
   syncing: 'Synchronisierung...',
+  meta_no_title: '[Kein Titel]',
   no_content: '[Kein Inhalt]',
   confirm: 'Bestätigen',
   upload_audios: 'Sie können im Ordner Musik oder einem anderen Ordner hochladen.',

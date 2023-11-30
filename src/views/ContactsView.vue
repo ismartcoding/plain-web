@@ -6,6 +6,10 @@
         <md-ripple />
         <i-material-symbols:delete-forever-outline-rounded />
       </button>
+      <button class="icon-button" v-tooltip="$t('download')" style="display: none;">
+        <md-ripple />
+        <i-material-symbols:download-rounded />
+      </button>
       <button class="icon-button" @click.stop="addToTags(realAllChecked, finalQ)" v-tooltip="$t('add_to_tags')">
         <md-ripple />
         <i-material-symbols:label-outline-rounded />

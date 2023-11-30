@@ -357,6 +357,7 @@ export default {
   sync_content: 'Inhoud synchroniseren',
   feeds_synced: 'Feeds gesynchroniseerd',
   syncing: 'Synchroniseren...',
+  meta_no_title: '[Geen titel]',
   no_content: '[Geen inhoud]',
   confirm: 'Bevestigen',
   upload_audios: 'Je kunt uploaden in de Muziekmap of een andere map.',
