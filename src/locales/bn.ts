@@ -1,5 +1,6 @@
 export default {
   app_name: 'PlainApp',
+  fetch_content_automatically: 'স্বয়ংক্রিয়ভাবে সামগ্রী পূর্ণ করুন',
   sort: 'সাজান',
   sort_by: {
     date_asc: 'নিম্নতম তারিখ আগে',

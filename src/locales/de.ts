@@ -1,5 +1,6 @@
 export default {
   app_name: 'EinfacheApp',
+  fetch_content_automatically: 'Inhalt automatisch abrufen',
   sort: 'Sortieren',
   sort_by: {
     date_asc: 'Älteste zuerst',

@@ -1,5 +1,6 @@
 export default {
   app_name: '简朴',
+  fetch_content_automatically: '自动拉取正文内容',
   sort: '排序',
   sort_by: {
     date_asc: '最旧日期优先',
