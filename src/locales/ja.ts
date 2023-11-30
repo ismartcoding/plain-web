@@ -355,6 +355,7 @@ export default {
   sync_content: 'コンテンツを同期',
   feeds_synced: 'フィードが同期されました',
   syncing: '同期中...',
+  meta_no_title: '[タイトルなし]',
   no_content: '[コンテンツなし]',
   confirm: '確認',
   upload_audios: '音楽フォルダーまたは他のフォルダーにアップロードできます。',

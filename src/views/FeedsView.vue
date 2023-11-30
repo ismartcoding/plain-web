@@ -99,7 +99,7 @@
       </tbody>
       <tfoot v-if="!items.length">
         <tr>
-          <td colspan="8">
+          <td colspan="7">
             <div class="no-data-placeholder">
               {{ $t(noDataKey(loading)) }}
             </div>

@@ -357,6 +357,7 @@ export default {
   sync_content: 'Synchroniser le contenu',
   feeds_synced: 'Flux synchronisés',
   syncing: 'Synchronisation en cours...',
+  meta_no_title: '[Pas de titre]',
   no_content: '[Pas de contenu]',
   confirm: 'Confirmer',
   upload_audios: 'Vous pouvez télécharger dans le dossier Musique ou dans un autre dossier.',

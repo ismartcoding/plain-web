@@ -355,6 +355,7 @@ export default {
   sync_content: 'সামগ্রী সিঙ্ক করুন',
   feeds_synced: 'ফিডগুলি সিঙ্ক হয়েছে',
   syncing: 'সিঙ্ক হচ্ছে...',
+  meta_no_title: '[কোন শিরোনাম নেই]',
   no_content: '[কোন সামগ্রী নেই]',
   confirm: 'নিশ্চিত করুন',
   upload_audios: 'আপনি সংগীত ফোল্ডার বা অন্য ফোল্ডারে আপলোড করতে পারেন।',
