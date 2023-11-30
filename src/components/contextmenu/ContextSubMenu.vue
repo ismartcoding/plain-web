@@ -34,8 +34,8 @@
         @focus="showChildItem($event, item)"
         @blur="hideChildItem()"
         @click="onMouseClick(item)"
-        :headline="item.label"
       >
+        <div slot="headline">{{ item.label }}</div>
       </md-menu-item>
     </div>
     <ContextSubMenu

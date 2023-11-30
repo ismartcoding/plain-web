@@ -441,13 +441,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@material/web@npm:^1.0.0-pre.17":
-  version: 1.0.0-pre.17
-  resolution: "@material/web@npm:1.0.0-pre.17"
+"@material/web@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@material/web@npm:1.0.1"
   dependencies:
     lit: "npm:^2.7.4 || ^3.0.0"
     tslib: "npm:^2.4.0"
-  checksum: 1cef6f32281c384d76afbae1e40369ec2bf6e9fbcab2caa546404affb68c9a6e0b00cf783edcb508ead6ec50534717281b8246abb7a5029ae95ecfd79fdd3a48
+  checksum: febc2ee82d5d85a3387ca89ef6179893e50d491655355a7377f6b79bd2d367a685c14fe7f805acb2a77dd2d0f313ab661c6fbcedd70d243fcfaef890152751cc
   languageName: node
   linkType: hard
 
@@ -3481,7 +3481,7 @@ __metadata:
     "@apollo/client": "npm:^3.8.5"
     "@iconify-json/material-symbols": "npm:^1.1.31"
     "@material/material-color-utilities": "npm:^0.2.7"
-    "@material/web": "npm:^1.0.0-pre.17"
+    "@material/web": "npm:^1.0.1"
     "@nuintun/qrcode": "npm:^3.3.0"
     "@popperjs/core": "npm:^2.11.6"
     "@rushstack/eslint-patch": "npm:^1.2.0"

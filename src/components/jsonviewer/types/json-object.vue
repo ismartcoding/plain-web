@@ -59,7 +59,7 @@ export default {
     dispatchEvent() {
       try {
         this.$el.dispatchEvent(new Event('resized'))
-      } catch (e) { }
+      } catch (e) {}
     },
   },
   render() {

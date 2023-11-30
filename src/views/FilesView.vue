@@ -34,9 +34,9 @@
         >
       </div>
       <button class="icon-button btn-refresh" v-tooltip="$t('refresh')" @click="refreshCurrentDir">
-          <md-ripple />
-          <i-material-symbols:refresh-rounded />
-        </button>
+        <md-ripple />
+        <i-material-symbols:refresh-rounded />
+      </button>
       <popper>
         <button class="icon-button btn-sort" v-tooltip="$t('sort')">
           <md-ripple />
@@ -47,9 +47,10 @@
             <md-menu-item
               v-for="item in sortItems"
               @click="sort(slotProps, item.value)"
-              :headline="$t(item.label)"
-              :class="{ selected: item.value === fileSortBy }"
-            />
+              :selected="item.value === fileSortBy"
+            >
+              <div slot="headline">{{ $t(item.label) }}</div>
+            </md-menu-item>
           </div>
         </template>
       </popper>
@@ -523,7 +524,8 @@ onUnmounted(() => {
   padding-top: 8px;
 }
 
-.btn-sort, .btn-refresh {
+.btn-sort,
+.btn-refresh {
   margin-inline-start: 16px;
 }
 

@@ -19,8 +19,9 @@
             </div>
             <template #content>
               <div class="menu-items">
-                <md-menu-item :headline="$t('delete_message')" @click="deleteMessage(chatItem.id)"
-                  :disabled="deleteLoading" />
+                <md-menu-item @click="deleteMessage(chatItem.id)" :disabled="deleteLoading">
+                  <div slot="headline">{{ $t('delete_message') }}</div>
+                </md-menu-item>
               </div>
             </template>
           </popper>
@@ -36,11 +37,23 @@
     <div class="chat-input">
       <div class="textarea-wrapper">
         <div class="drag-mask" v-show="displayDragMask">{{ $t('release_to_send_file') }}</div>
-        <md-outlined-text-field type="textarea" rows="2" v-model="chatText" autocomplete="off" @paste="pasteFiles"
-          @drop.prevent="dropFiles" @dragenter.prevent="fileDragEnter" @dragleave.prevent="fileDragLeave" class="textarea"
-          :placeholder="$t('chat_input_hint')" @keydown.enter.exact.prevent="send"
-          @keydown.enter.shift.exact.prevent="chatText += '\n'" @keydown.enter.ctrl.exact.prevent="chatText += '\n'"
-          @keydown.enter.alt.exact.prevent="chatText += '\n'" @keydown.enter.meta.exact.prevent="chatText += '\n'" />
+        <md-outlined-text-field
+          type="textarea"
+          rows="2"
+          v-model="chatText"
+          autocomplete="off"
+          @paste="pasteFiles"
+          @drop.prevent="dropFiles"
+          @dragenter.prevent="fileDragEnter"
+          @dragleave.prevent="fileDragLeave"
+          class="textarea"
+          :placeholder="$t('chat_input_hint')"
+          @keydown.enter.exact.prevent="send"
+          @keydown.enter.shift.exact.prevent="chatText += '\n'"
+          @keydown.enter.ctrl.exact.prevent="chatText += '\n'"
+          @keydown.enter.alt.exact.prevent="chatText += '\n'"
+          @keydown.enter.meta.exact.prevent="chatText += '\n'"
+        />
       </div>
       <div class="btns">
         <button class="icon-button" @click="sendImages">
@@ -60,8 +73,14 @@
       </div>
     </div>
     <input ref="fileInput" style="display: none" type="file" multiple @change="uploadFilesChanged" />
-    <input ref="imageInput" style="display: none" type="file" accept="image/*, video/*" multiple
-      @change="uploadImagesChanged" />
+    <input
+      ref="imageInput"
+      style="display: none"
+      type="file"
+      accept="image/*, video/*"
+      multiple
+      @change="uploadImagesChanged"
+    />
   </div>
 </template>
 
@@ -423,7 +442,7 @@ onMounted(() => {
     display: flex;
     flex-direction: row;
 
-    .icon-button+.icon-button {
+    .icon-button + .icon-button {
       margin-inline-start: 8px;
     }
 
@@ -467,7 +486,7 @@ onMounted(() => {
   background-color: var(--md-sys-color-surface);
   border-top-left-radius: var(--plain-shape-l);
 
-  &>div {
+  & > div {
     width: 100%;
   }
 }

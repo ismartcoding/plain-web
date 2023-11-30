@@ -32,13 +32,15 @@
         {{ $t('phone_number') }}
       </label>
       <div class="form-row" v-for="(item, index) in editItem.phoneNumbers" :key="index">
-        <md-outlined-select class="flex-2" menu-fixed="true" v-model.number="item.type" @change="onTypeChanged(item)">
-          <md-select-option
-            v-for="type of types.phoneNumberTypes"
-            :key="type"
-            :value="type"
-            :headline="getTypeLabel(item, type, 'phone_number_type')"
-          />
+        <md-outlined-select
+          class="flex-2"
+          menu-positioning="fixed"
+          v-model.number="item.type"
+          @change="onTypeChanged(item)"
+        >
+          <md-select-option v-for="type of types.phoneNumberTypes" :key="type" :value="type">
+            <div slot="headline">{{ getTypeLabel(item, type, 'phone_number_type') }}</div>
+          </md-select-option>
         </md-outlined-select>
         <md-outlined-text-field :placeholder="$t('telephone')" v-model="item.value" class="flex-3" />
         <div class="v-center">
@@ -56,13 +58,15 @@
         {{ $t('email') }}
       </label>
       <div class="form-row" v-for="(item, index) in editItem.emails" :key="index">
-        <md-outlined-select class="flex-2" menu-fixed="true" v-model.number="item.type" @change="onTypeChanged(item)">
-          <md-select-option
-            v-for="type of types.emailTypes"
-            :key="type"
-            :value="type"
-            :headline="getTypeLabel(item, type, 'email_type')"
-          />
+        <md-outlined-select
+          class="flex-2"
+          menu-positioning="fixed"
+          v-model.number="item.type"
+          @change="onTypeChanged(item)"
+        >
+          <md-select-option v-for="type of types.emailTypes" :key="type" :value="type">
+            <div slot="headline">{{ getTypeLabel(item, type, 'email_type') }}</div>
+          </md-select-option>
         </md-outlined-select>
         <md-outlined-text-field :label="$t('email')" v-model="item.value" class="flex-3" />
         <div class="v-center">
@@ -76,13 +80,15 @@
         {{ $t('address') }}
       </label>
       <div class="form-row" v-for="(item, index) in editItem.addresses" :key="index">
-        <md-outlined-select class="flex-2" menu-fixed="true" v-model.number="item.type" @change="onTypeChanged(item)">
-          <md-select-option
-            v-for="type of types.addressTypes"
-            :key="type"
-            :value="type"
-            :headline="getTypeLabel(item, type, 'address_type')"
-          />
+        <md-outlined-select
+          class="flex-2"
+          menu-positioning="fixed"
+          v-model.number="item.type"
+          @change="onTypeChanged(item)"
+        >
+          <md-select-option v-for="type of types.addressTypes" :key="type" :value="type">
+            <div slot="headline">{{ getTypeLabel(item, type, 'address_type') }}</div>
+          </md-select-option>
         </md-outlined-select>
         <md-outlined-text-field :label="$t('address')" v-model="item.value" class="flex-3" />
         <div class="v-center">
@@ -96,13 +102,15 @@
         {{ $t('website') }}
       </label>
       <div class="form-row" v-for="(item, index) in editItem.websites" :key="index">
-        <md-outlined-select class="flex-2" menu-fixed="true" v-model.number="item.type" @change="onTypeChanged(item)">
-          <md-select-option
-            v-for="type of types.websiteTypes"
-            :key="type"
-            :value="type"
-            :headline="getTypeLabel(item, type, 'website_type')"
-          />
+        <md-outlined-select
+          class="flex-2"
+          menu-positioning="fixed"
+          v-model.number="item.type"
+          @change="onTypeChanged(item)"
+        >
+          <md-select-option v-for="type of types.websiteTypes" :key="type" :value="type">
+            <div slot="headline">{{ getTypeLabel(item, type, 'website_type') }}</div>
+          </md-select-option>
         </md-outlined-select>
         <md-outlined-text-field :placeholder="$t('website')" v-model="item.value" class="flex-3" />
         <div class="v-center">
@@ -116,13 +124,15 @@
         {{ $t('im') }}
       </label>
       <div class="form-row" v-for="(item, index) in editItem.ims" :key="index">
-        <md-outlined-select class="flex-2" menu-fixed="true" v-model.number="item.type" @change="onTypeChanged(item)">
-          <md-select-option
-            v-for="type of types.imTypes"
-            :key="type"
-            :value="type"
-            :headline="getTypeLabel(item, type, 'im_type')"
-          />
+        <md-outlined-select
+          class="flex-2"
+          menu-positioning="fixed"
+          v-model.number="item.type"
+          @change="onTypeChanged(item)"
+        >
+          <md-select-option v-for="type of types.imTypes" :key="type" :value="type">
+            <div slot="headline">{{ getTypeLabel(item, type, 'im_type') }}</div>
+          </md-select-option>
         </md-outlined-select>
         <md-outlined-text-field :placeholder="$t('im')" v-model="item.value" class="flex-3" />
         <div class="v-center">
@@ -139,11 +149,21 @@
           </div>
           <template #content="slotProps">
             <div class="menu-items">
-              <md-menu-item :headline="$t('phone_number')" @click="() => addField(slotProps, editItem.phoneNumbers)" />
-              <md-menu-item :headline="$t('email')" @click="() => addField(slotProps, editItem.emails)" />
-              <md-menu-item :headline="$t('address')" @click="() => addField(slotProps, editItem.addresses)" />
-              <md-menu-item :headline="$t('website')" @click="() => addField(slotProps, editItem.websites)" />
-              <md-menu-item :headline="$t('im')" @click="() => addField(slotProps, editItem.ims)" />
+              <md-menu-item @click="() => addField(slotProps, editItem.phoneNumbers)">
+                <div slot="headline">{{ $t('phone_number') }}</div>
+              </md-menu-item>
+              <md-menu-item @click="() => addField(slotProps, editItem.emails)">
+                <div slot="headline">{{ $t('email') }}</div>
+              </md-menu-item>
+              <md-menu-item @click="() => addField(slotProps, editItem.addresses)">
+                <div slot="headline">{{ $t('address') }}</div>
+              </md-menu-item>
+              <md-menu-item @click="() => addField(slotProps, editItem.websites)">
+                <div slot="headline">{{ $t('website') }}</div>
+              </md-menu-item>
+              <md-menu-item @click="() => addField(slotProps, editItem.ims)">
+                <div slot="headline">{{ $t('im') }}</div>
+              </md-menu-item>
             </div>
           </template>
         </popper>

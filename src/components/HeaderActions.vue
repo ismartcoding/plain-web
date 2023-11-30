@@ -1,17 +1,5 @@
 <template>
   <div class="h-action" style="position: relative">
-    <md-menu
-      anchor="lang-ref"
-      menu-corner="START_END"
-      anchor-corner="END_END"
-      stay-open-on-focusout
-      quick
-      :open="langMenuVisible"
-      @closed="() => (langMenuVisible = false)"
-    >
-      <md-menu-item v-for="lang in langs" :headline="lang.name" @click="changeLang(lang.value)" />
-    </md-menu>
-
     <button
       class="icon-button"
       id="lang-ref"
@@ -21,21 +9,20 @@
       <md-ripple />
       <i-material-symbols:translate-rounded />
     </button>
+    <md-menu
+      anchor="lang-ref"
+      stay-open-on-focusout
+      quick
+      :open="langMenuVisible"
+      @closed="() => (langMenuVisible = false)"
+    >
+      <md-menu-item v-for="lang in langs" @click="changeLang(lang.value)">
+        <div slot="headline">{{ lang.name }}</div>
+      </md-menu-item>
+    </md-menu>
   </div>
 
   <div class="h-action" style="position: relative">
-    <md-menu
-      anchor="theme-ref"
-      menu-corner="START_END"
-      anchor-corner="END_END"
-      stay-open-on-focusout
-      quick
-      :open="themeMenuVisible"
-      @closed="() => (themeMenuVisible = false)"
-    >
-      <theme-changer />
-    </md-menu>
-
     <button
       class="icon-button"
       id="theme-ref"
@@ -45,6 +32,15 @@
       <md-ripple />
       <i-material-symbols:palette-outline />
     </button>
+    <md-menu
+      anchor="theme-ref"
+      stay-open-on-focusout
+      quick
+      :open="themeMenuVisible"
+      @closed="() => (themeMenuVisible = false)"
+    >
+      <theme-changer />
+    </md-menu>
   </div>
 
   <button

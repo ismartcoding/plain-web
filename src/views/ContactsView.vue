@@ -6,7 +6,7 @@
         <md-ripple />
         <i-material-symbols:delete-forever-outline-rounded />
       </button>
-      <button class="icon-button" v-tooltip="$t('download')" style="display: none;">
+      <button class="icon-button" v-tooltip="$t('download')" style="display: none">
         <md-ripple />
         <i-material-symbols:download-rounded />
       </button>
@@ -23,9 +23,14 @@
         <div class="filters">
           <md-outlined-text-field :label="$t('keywords')" v-model="filter.text" keyup.enter="applyAndDoSearch" />
           <label class="form-label">{{ $t('tags') }}</label>
-          <md-chip-set type="filter">
-            <md-filter-chip v-for="item in tags" :key="item.id" :label="item.name" :selected="filter.tags.includes(item)"
-              @click="onTagSelect(item)" />
+          <md-chip-set>
+            <md-filter-chip
+              v-for="item in tags"
+              :key="item.id"
+              :label="item.name"
+              :selected="filter.tags.includes(item)"
+              @click="onTagSelect(item)"
+            />
           </md-chip-set>
           <div class="buttons">
             <md-filled-button @click.stop="applyAndDoSearch">
@@ -36,15 +41,25 @@
       </template>
     </search-input>
   </div>
-  <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible"
-    :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
+  <all-checked-alert
+    :limit="limit"
+    :total="total"
+    :all-checked-alert-visible="allCheckedAlertVisible"
+    :real-all-checked="realAllChecked"
+    :select-real-all="selectRealAll"
+    :clear-selection="clearSelection"
+  />
   <div class="table-responsive">
     <table class="table">
       <thead>
         <tr>
           <th>
-            <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked"
-              :indeterminate="!allChecked && checked" />
+            <md-checkbox
+              touch-target="wrapper"
+              @change="toggleAllChecked"
+              :checked="allChecked"
+              :indeterminate="!allChecked && checked"
+            />
           </th>
           <th>ID</th>
           <th>{{ $t('avatar') }}</th>
@@ -69,10 +84,17 @@
               <li class="v-center" v-for="(it, index) in item.phoneNumbers" :key="index">
                 {{ it.type > 0 ? $t(`contact.phone_number_type.${it.type}`) : it.label }}
                 {{ it.normalizedNumber || it.value }}
-                <md-circular-progress indeterminate class="spinner-sm"
-                  v-if="callLoading && callId === item.id && callIndex === index" />
-                <button class="icon-button" v-else @click.stop="call(item.id, it.normalizedNumber || it.value, index)"
-                  v-tooltip="$t('make_a_phone_call')">
+                <md-circular-progress
+                  indeterminate
+                  class="spinner-sm"
+                  v-if="callLoading && callId === item.id && callIndex === index"
+                />
+                <button
+                  class="icon-button"
+                  v-else
+                  @click.stop="call(item.id, it.normalizedNumber || it.value, index)"
+                  v-tooltip="$t('make_a_phone_call')"
+                >
                   <md-ripple />
                   <i-material-symbols:call-outline-rounded />
                 </button>

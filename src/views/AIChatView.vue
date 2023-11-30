@@ -16,11 +16,9 @@
                 </div>
                 <template #content>
                   <div class="menu-items">
-                    <md-menu-item
-                      @click="deleteMessage(item.id)"
-                      :headline="$t('delete_message')"
-                      :disabled="deleteLoading"
-                    />
+                    <md-menu-item @click="deleteMessage(item.id)" :disabled="deleteLoading">
+                      <div slot="headline">{{ $t('delete_message') }}</div>
+                    </md-menu-item>
                   </div>
                 </template>
               </popper>

@@ -78,7 +78,6 @@ function clickItem(item: ISource) {
     window.open(item.src, '_blank')
   }
 }
-
 </script>
 
 <style lang="scss" scoped>

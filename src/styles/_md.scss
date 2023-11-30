@@ -29,7 +29,3 @@ md-chip-set {
 md-outlined-button+md-outlined-button {
     margin-inline-start: 8px;
 }
-
-md-menu-item.selected::part(ripple) {
-    background-color: var(--md-sys-color-surface-container-highest);
-  }
