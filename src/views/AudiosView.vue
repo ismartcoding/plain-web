@@ -36,7 +36,7 @@
         <div class="filters">
           <md-outlined-text-field :label="$t('keywords')" v-model="filter.text" keyup.enter="applyAndDoSearch" />
           <label class="form-label">{{ $t('tags') }}</label>
-          <md-chip-set type="filter">
+          <md-chip-set>
             <md-filter-chip
               v-for="item in tags"
               :key="item.id"

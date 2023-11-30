@@ -4,7 +4,7 @@
       {{ $t('add_to_tags') }}
     </div>
     <div slot="content">
-      <md-chip-set type="filter">
+      <md-chip-set>
         <md-filter-chip
           v-for="item in tags"
           :key="item.id"

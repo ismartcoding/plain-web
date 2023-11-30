@@ -13,7 +13,7 @@
   "dependencies": {
     "@apollo/client": "^3.8.5",
     "@material/material-color-utilities": "^0.2.7",
-    "@material/web": "^1.0.0-pre.17",
+    "@material/web": "^1.0.1",
     "@nuintun/qrcode": "^3.3.0",
     "@popperjs/core": "^2.11.6",
     "@types/htmlparser2": "^3.10.3",

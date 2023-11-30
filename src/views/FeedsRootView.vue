@@ -6,18 +6,6 @@
           <h2 class="nav-title">
             {{ $t('page_title.feeds') }}
             <div style="position: relative">
-              <md-menu
-                anchor="add-feed-ref"
-                menu-corner="START_START"
-                anchor-corner="END_END"
-                fixed="true"
-                stay-open-on-focusout
-                quick
-                :open="addMenuVisible"
-                @closed="() => (addMenuVisible = false)"
-              >
-                <md-menu-item v-for="item in actionItems" :headline="item.text" @click="item.click" />
-              </md-menu>
               <button
                 class="icon-button"
                 id="add-feed-ref"
@@ -27,6 +15,18 @@
                 <md-ripple />
                 <i-material-symbols:add-rounded />
               </button>
+              <md-menu
+                anchor="add-feed-ref"
+                positioning="fixed"
+                stay-open-on-focusout
+                quick
+                :open="addMenuVisible"
+                @closed="() => (addMenuVisible = false)"
+              >
+                <md-menu-item v-for="item in actionItems" @click="item.click">
+                  <div slot="headline">{{ item.text }}</div>
+                </md-menu-item>
+              </md-menu>
             </div>
           </h2>
           <ul class="nav">

@@ -12,7 +12,7 @@
           <i-material-symbols:label-off-outline-rounded slot="icon" />
         </md-outlined-segmented-button>
       </md-outlined-segmented-button-set>
-      <md-chip-set type="filter">
+      <md-chip-set>
         <md-filter-chip
           v-for="item in tags"
           :key="item.id"
