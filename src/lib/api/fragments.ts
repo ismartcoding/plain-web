@@ -284,6 +284,7 @@ export const feedFragment = gql`
     id
     name
     url
+    fetchContent
     createdAt
     updatedAt
   }

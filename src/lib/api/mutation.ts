@@ -222,8 +222,8 @@ export const deleteContactsGQL = gql`
 `
 
 export const createFeedGQL = gql`
-  mutation createFeed($url: String!) {
-    createFeed(url: $url) {
+  mutation createFeed($url: String!, $fetchContent: Boolean!) {
+    createFeed(url: $url, fetchContent: $fetchContent) {
       ...FeedFragment
     }
   }
@@ -255,8 +255,8 @@ export const deleteFeedGQL = gql`
 `
 
 export const updateFeedGQL = gql`
-  mutation updateFeed($id: ID!, $name: String!) {
-    updateFeed(id: $id, name: $name) {
+  mutation updateFeed($id: ID!, $name: String!, $fetchContent: Boolean!) {
+    updateFeed(id: $id, name: $name, fetchContent: $fetchContent) {
       ...FeedFragment
     }
   }

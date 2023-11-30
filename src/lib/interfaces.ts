@@ -131,6 +131,7 @@ export interface IFeed {
   id: string
   name: string
   url: string
+  fetchContent: boolean
 }
 
 export interface IAIChat {

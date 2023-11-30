@@ -7,6 +7,7 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    AddFeedModal: typeof import('./src/components/AddFeedModal.vue')['default']
     AddToTagsModal: typeof import('./src/components/AddToTagsModal.vue')['default']
     AIChatConfigModal: typeof import('./src/components/AIChatConfigModal.vue')['default']
     AllCheckedAlert: typeof import('./src/components/AllCheckedAlert.vue')['default']

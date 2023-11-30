@@ -1,5 +1,6 @@
 export default {
   app_name: 'PlainApp',
+  fetch_content_automatically: 'Fetch content automatically',
   sort: 'Sort',
   sort_by: {
     date_asc: 'Oldest date first',

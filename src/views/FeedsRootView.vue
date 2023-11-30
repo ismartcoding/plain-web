@@ -6,45 +6,28 @@
           <h2 class="nav-title">
             {{ $t('page_title.feeds') }}
             <div style="position: relative">
-              <button
-                class="icon-button"
-                id="add-feed-ref"
-                @click="() => (addMenuVisible = true)"
-                v-tooltip="t('add_subscription')"
-              >
+              <button class="icon-button" id="add-feed-ref" @click="() => (addMenuVisible = true)"
+                v-tooltip="t('add_subscription')">
                 <md-ripple />
                 <i-material-symbols:add-rounded />
               </button>
-              <md-menu
-                anchor="add-feed-ref"
-                positioning="fixed"
-                stay-open-on-focusout
-                quick
-                :open="addMenuVisible"
-                @closed="() => (addMenuVisible = false)"
-              >
+              <md-menu anchor="add-feed-ref" positioning="fixed" stay-open-on-focusout quick :open="addMenuVisible"
+                @closed="() => (addMenuVisible = false)">
                 <md-menu-item v-for="item in actionItems" @click="item.click">
-                  <div slot="headline">{{ item.text }}</div>
+                  <div slot="headline">{{ $t(item.text) }}</div>
                 </md-menu-item>
               </md-menu>
             </div>
           </h2>
           <ul class="nav">
-            <li
-              @click.prevent="all"
-              :class="{ active: route.path === '/feeds' && !selectedTagName && !selectedFeedName }"
-            >
+            <li @click.prevent="all"
+              :class="{ active: route.path === '/feeds' && !selectedTagName && !selectedFeedName }">
               {{ $t('all') }}
             </li>
-            <li
-              v-for="item in feeds"
-              @click.stop.prevent="view(item)"
-              @contextmenu="itemCtxMenu($event, item)"
-              :class="{
-                active:
-                  route.params.feedId === item.id || (selectedFeedName && kebabCase(item.name) === selectedFeedName),
-              }"
-            >
+            <li v-for="item in feeds" @click.stop.prevent="view(item)" @contextmenu="itemCtxMenu($event, item)" :class="{
+              active:
+                route.params.feedId === item.id || (selectedFeedName && kebabCase(item.name) === selectedFeedName),
+            }">
               {{ item.name }}
             </li>
           </ul>
@@ -69,8 +52,8 @@ import { useMainStore } from '@/stores/main'
 import { buildQuery, parseFeedName, parseTagName } from '@/lib/search'
 import type { IDropdownItem, IFeed } from '@/lib/interfaces'
 import { ref } from 'vue'
-import EditValueModal from '@/components/EditValueModal.vue'
-import { createFeedGQL, deleteFeedGQL, exportFeedsGQL, importFeedsGQL, initMutation } from '@/lib/api/mutation'
+import AddFeedModal from '@/components/AddFeedModal.vue'
+import { deleteFeedGQL, exportFeedsGQL, importFeedsGQL, initMutation } from '@/lib/api/mutation'
 import { downloadFromString } from '@/lib/api/file'
 import { useI18n } from 'vue-i18n'
 import toast from '@/components/toaster'
@@ -86,9 +69,9 @@ const { t } = useI18n()
 const mainStore = useMainStore()
 const feeds = ref<IFeed[]>([])
 const actionItems: IDropdownItem[] = [
-  { text: t('add_subscription'), click: add },
-  { text: t('import_opml_file'), click: importFile },
-  { text: t('export_opml_file'), click: exportFile },
+  { text: 'add_subscription', click: add },
+  { text: 'import_opml_file', click: importFile },
+  { text: 'export_opml_file', click: exportFile },
 ]
 const addMenuVisible = ref(false)
 const route = useRoute()
@@ -127,22 +110,9 @@ function uploadChanged(e: Event) {
 }
 
 function add() {
-  openModal(EditValueModal, {
-    title: t('add_subscription'),
-    placeholder: t('rss_url'),
-    mutation: () => {
-      return initMutation({
-        document: createFeedGQL,
-        options: {
-          update: () => {
-            refetch()
-          },
-        },
-        appApi: true,
-      })
-    },
-    getVariables: (value: string) => {
-      return { url: value }
+  openModal(AddFeedModal, {
+    done: () => {
+      refetch()
     },
   })
 }
