@@ -94,7 +94,7 @@ export const createHttpLink = (linkOptions: HttpOptions = {}) => {
         const encryptTime = performance.now()
         Promise.race([
           fetch(chosenURI, options),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('connection_timeout')), 8000)),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('connection_timeout')), 10000)),
         ])
           .then(async (response: any) => {
             if (response.status === 403) {

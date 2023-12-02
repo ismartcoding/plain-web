@@ -75,6 +75,7 @@ export default {
     tasks: 'Aufgaben',
     audios: 'Audio',
     logout: 'Abmelden',
+    notifications: 'Benachrichtigungen',
   },
   page_title: {
     home: 'Startseite',

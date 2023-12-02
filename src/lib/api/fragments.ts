@@ -346,3 +346,18 @@ export const packageFragment = gql`
     updatedAt
   }
 `
+
+export const notificationFragment = gql`
+  fragment NotificationFragment on Notification {
+    id
+    onlyOnce
+    isClearable
+    appId
+    appName
+    time
+    silent
+    title
+    body
+    actions
+  }
+`

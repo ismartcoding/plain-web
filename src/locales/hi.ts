@@ -1,5 +1,6 @@
 export default {
   app_name: 'प्लेन ऐप',
+  fetch_content_automatically: 'ऑटोमेटिकली कंटेंट लोड करें',
   sort: 'सॉर्ट',
   sort_by: {
     date_asc: 'सबसे पुरानी तारीख पहले',
@@ -74,6 +75,7 @@ export default {
     tasks: 'टास्क',
     audios: 'ऑडियो',
     logout: 'लॉगआउट',
+    notifications: 'नोटिफिकेशन्स',
   },
   page_title: {
     home: 'होम',

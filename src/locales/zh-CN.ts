@@ -75,6 +75,7 @@ export default {
     tasks: '任务列表',
     audios: '音频',
     logout: '退出登录',
+    notifications: '通知',
   },
   page_title: {
     home: '首页',

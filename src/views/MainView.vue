@@ -48,12 +48,22 @@
       </div>
       <div class="quick">
         <button
+          class="icon-button q-action"
+          v-tooltip="$t('header_actions.notifications')"
+          @click="toggleQuick('notification')"
+          toggle
+          :class="{ selected: store.quick === 'notification' }"
+        >
+          <md-ripple />
+          <i-material-symbols:notifications-outline-rounded />
+        </button>
+        <button
           v-if="hasTasks"
           class="icon-button q-action"
           v-tooltip="$t('header_actions.tasks')"
           @click="toggleQuick('task')"
           toggle
-          :selected="store.quick === 'task'"
+          :class="{ selected: store.quick === 'task' }"
         >
           <md-ripple />
           <i-material-symbols:format-list-numbered-rounded />
@@ -64,7 +74,7 @@
           v-tooltip="$t('playlist')"
           @click="toggleQuick('audio')"
           toggle
-          :selected="store.quick === 'audio'"
+          :class="{ selected: store.quick === 'audio' }"
         >
           <md-ripple />
           <i-material-symbols:queue-music-rounded />
@@ -74,7 +84,7 @@
           v-tooltip="$t('my_phone')"
           @click="toggleQuick('chat')"
           toggle
-          :selected="store.quick === 'chat'"
+          :class="{ selected: store.quick === 'chat' }"
         >
           <md-ripple />
           <i-material-symbols:chat-outline-rounded />
@@ -84,6 +94,7 @@
         <home-console v-show="store.quick === 'chat'" />
         <audio-player v-show="store.quick === 'audio'" />
         <task-list v-show="store.quick === 'task'" />
+        <notifications v-show="store.quick === 'notification'" />
       </div>
       <lightbox />
     </div>

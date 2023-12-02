@@ -1,5 +1,6 @@
 export default {
   app_name: 'அரசியலமைப்பு',
+  fetch_content_automatically: 'உருப்படியை தானாக பெறுங்கள்',
   sort: 'வரிசைப்படுத்து',
   sort_by: {
     date_asc: 'பழைய தேதி முதல்',
@@ -74,6 +75,7 @@ export default {
     tasks: 'பணிகள்',
     audios: 'ஆடியோ',
     logout: 'வெளியேறு',
+    notifications: 'அறிவிப்புகள்',
   },
   page_title: {
     home: 'முகப்பு',

@@ -38,17 +38,23 @@ export function initMutation(params: InitMutationParams, handleError = true) {
   return r
 }
 
-export function updateCache(cache: ApolloCache<any>, data: any, query: DocumentNode, variables?: any) {
+export function updateCache(
+  cache: ApolloCache<any>,
+  data: any,
+  query: DocumentNode,
+  variables?: any,
+  reversed: boolean = false
+) {
   const q: any = cache.readQuery({ query, variables })
   const key = Object.keys(q)[0]
   const obj: Record<string, any> = {}
   if (key === 'files') {
     obj[key] = {
       ...q[key],
-      items: q[key]['items'].concat(data),
+      items: reversed ? data.concat(q[key]['items']) : q[key]['items'].concat(data),
     }
   } else {
-    obj[key] = q[key].concat(data)
+    obj[key] = reversed ? data.concat(q[key]) : q[key].concat(data)
   }
   cache.writeQuery({ query, variables, data: obj })
 }
@@ -342,5 +348,11 @@ export const setTempValueGQL = gql`
       key
       value
     }
+  }
+`
+
+export const cancelNotificationsGQL = gql`
+  mutation cancelNotifications($ids: [ID!]!) {
+    cancelNotifications(ids: $ids)
   }
 `

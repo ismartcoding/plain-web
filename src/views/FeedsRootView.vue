@@ -6,13 +6,23 @@
           <h2 class="nav-title">
             {{ $t('page_title.feeds') }}
             <div style="position: relative">
-              <button class="icon-button" id="add-feed-ref" @click="() => (addMenuVisible = true)"
-                v-tooltip="t('add_subscription')">
+              <button
+                class="icon-button"
+                id="add-feed-ref"
+                @click="() => (addMenuVisible = true)"
+                v-tooltip="t('add_subscription')"
+              >
                 <md-ripple />
                 <i-material-symbols:add-rounded />
               </button>
-              <md-menu anchor="add-feed-ref" positioning="fixed" stay-open-on-focusout quick :open="addMenuVisible"
-                @closed="() => (addMenuVisible = false)">
+              <md-menu
+                anchor="add-feed-ref"
+                positioning="fixed"
+                stay-open-on-focusout
+                quick
+                :open="addMenuVisible"
+                @closed="() => (addMenuVisible = false)"
+              >
                 <md-menu-item v-for="item in actionItems" @click="item.click">
                   <div slot="headline">{{ $t(item.text) }}</div>
                 </md-menu-item>
@@ -20,14 +30,21 @@
             </div>
           </h2>
           <ul class="nav">
-            <li @click.prevent="all"
-              :class="{ active: route.path === '/feeds' && !selectedTagName && !selectedFeedName }">
+            <li
+              @click.prevent="all"
+              :class="{ active: route.path === '/feeds' && !selectedTagName && !selectedFeedName }"
+            >
               {{ $t('all') }}
             </li>
-            <li v-for="item in feeds" @click.stop.prevent="view(item)" @contextmenu="itemCtxMenu($event, item)" :class="{
-              active:
-                route.params.feedId === item.id || (selectedFeedName && kebabCase(item.name) === selectedFeedName),
-            }">
+            <li
+              v-for="item in feeds"
+              @click.stop.prevent="view(item)"
+              @contextmenu="itemCtxMenu($event, item)"
+              :class="{
+                active:
+                  route.params.feedId === item.id || (selectedFeedName && kebabCase(item.name) === selectedFeedName),
+              }"
+            >
               {{ item.name }}
             </li>
           </ul>

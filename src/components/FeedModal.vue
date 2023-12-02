@@ -8,8 +8,15 @@
         {{ data?.url }}
       </div>
       <div class="form-row">
-        <md-outlined-text-field ref="inputRef" class="form-control" :label="$t('name')" :error="valueError"
-          :error-text="valueError ? $t(valueError) : ''" v-model="inputValue" @keyup.enter="doAction" />
+        <md-outlined-text-field
+          ref="inputRef"
+          class="form-control"
+          :label="$t('name')"
+          :error="valueError"
+          :error-text="valueError ? $t(valueError) : ''"
+          v-model="inputValue"
+          @keyup.enter="doAction"
+        />
       </div>
       <div class="form-row">
         <label class="form-check-label">
@@ -55,10 +62,10 @@ const { mutate, loading, onDone } = initMutation({
 const { value: inputValue, errorMessage: valueError } = useField('inputValue', string().required())
 inputValue.value = props.data?.name ?? ''
 fetchContent.value = props.data?.fetchContent ?? false
-  ; (async () => {
-    await nextTick()
-    inputRef.value?.focus()
-  })()
+;(async () => {
+  await nextTick()
+  inputRef.value?.focus()
+})()
 
 const doAction = handleSubmit(() => {
   mutate({ id: props.data?.id, name: inputValue.value, fetchContent: fetchContent.value })

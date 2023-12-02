@@ -5,8 +5,14 @@
     </div>
     <div slot="content">
       <div class="form-row">
-        <md-outlined-text-field ref="inputRef" :label="$t('rss_url')" v-model="inputValue" @keyup.enter="doAction"
-          :error="valueError" :error-text="valueError ? $t(valueError) : ''" />
+        <md-outlined-text-field
+          ref="inputRef"
+          :label="$t('rss_url')"
+          v-model="inputValue"
+          @keyup.enter="doAction"
+          :error="valueError"
+          :error-text="valueError ? $t(valueError) : ''"
+        />
       </div>
       <div class="form-row">
         <label class="form-check-label">
@@ -28,8 +34,8 @@ import { useField, useForm } from 'vee-validate'
 import { nextTick, ref, type PropType } from 'vue'
 import { string } from 'yup'
 import { popModal } from './modal'
-import { createFeedGQL, initMutation } from '@/lib/api/mutation';
-import type { MdCheckbox } from '@material/web/checkbox/checkbox';
+import { createFeedGQL, initMutation } from '@/lib/api/mutation'
+import type { MdCheckbox } from '@material/web/checkbox/checkbox'
 
 const { handleSubmit } = useForm()
 
@@ -55,7 +61,7 @@ function cancel() {
   popModal()
 }
 
-; (async () => {
+;(async () => {
   await nextTick()
   inputRef.value?.focus()
 })()

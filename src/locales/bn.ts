@@ -75,6 +75,7 @@ export default {
     tasks: 'কার্যসমূহ',
     audios: 'অডিও',
     logout: 'লগআউট',
+    notifications: 'বিজ্ঞপ্তি',
   },
   page_title: {
     home: 'হোম',
