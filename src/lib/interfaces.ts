@@ -134,6 +134,20 @@ export interface IFeed {
   fetchContent: boolean
 }
 
+export interface INotification {
+  id: string
+  onlyOnce: boolean
+  isClearable: boolean
+  appId: string
+  appName: string
+  time: string
+  silent: boolean
+  title: string
+  body: string
+  icon: string
+  actions: string[]
+}
+
 export interface IAIChat {
   id: string
   parentId: string
@@ -155,6 +169,7 @@ export interface IApp {
   version: string
   path: string
   size: number
+  icon: string
   installedAt: string
   updatedAt: string
 }

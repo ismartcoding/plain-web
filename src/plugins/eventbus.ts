@@ -28,6 +28,8 @@ type Events = {
   message_created: any
   message_updated: any
   message_deleted: any
+  notification_created: any
+  notification_deleted: any
   color_mode_changed: undefined
   app_socket_connection_changed: boolean
 }

@@ -69,6 +69,10 @@ async function connect() {
       emitter.emit('message_deleted', JSON.parse(r.data))
     } else if (r.type === 'MESSAGE_UPDATED') {
       emitter.emit('message_updated', JSON.parse(r.data))
+    } else if (r.type === 'NOTIFICATION_CREATED') {
+      emitter.emit('notification_created', JSON.parse(r.data))
+    } else if (r.type === 'NOTIFICATION_DELETED') {
+      emitter.emit('notification_deleted', JSON.parse(r.data))
     }
   }
 

@@ -75,6 +75,7 @@ export default {
     tasks: 'Tasks',
     audios: 'Audio',
     logout: 'Logout',
+    notifications: 'Notifications',
   },
   page_title: {
     home: 'Home',

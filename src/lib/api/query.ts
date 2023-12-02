@@ -18,6 +18,7 @@ import {
   aiChatFragment,
   packageFragment,
   tagSubFragment,
+  notificationFragment,
 } from './fragments'
 
 export class InitQueryParams<TResult> {
@@ -452,4 +453,13 @@ export const screenMirrorImageGQL = gql`
   query screenMirrorImage {
     screenMirrorImage
   }
+`
+
+export const notificationsGQL = gql`
+  query {
+    notifications {
+      ...NotificationFragment
+    }
+  }
+  ${notificationFragment}
 `

@@ -46,6 +46,7 @@
               :indeterminate="!allChecked && checked"
             />
           </th>
+          <th></th>
           <th>{{ $t('name') }}</th>
           <th></th>
           <th>{{ $t('size') }}</th>
@@ -57,6 +58,7 @@
       <tbody>
         <tr v-for="item in items" :key="item.id" :class="{ selected: item.checked }" @click.stop="toggleRow(item)">
           <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
+          <td><img width="50" height="50" :src="item.icon" /></td>
           <td>
             <strong class="v-center">{{ item.name }} ({{ item.version }})</strong>
             <field-id :id="item.id" :raw="item" />
@@ -97,7 +99,7 @@
       </tbody>
       <tfoot v-if="!items.length">
         <tr>
-          <td colspan="7">
+          <td colspan="8">
             <div class="no-data-placeholder">
               {{ $t(noDataKey(loading)) }}
             </div>
@@ -131,6 +133,7 @@ import { useDownload, useDownloadItems, useFileUpload } from './hooks/files'
 import { deleteById } from '@/lib/array'
 import emitter from '@/plugins/eventbus'
 import { DataType } from '@/lib/data'
+import { getFileUrlByPath } from '@/lib/api/file'
 
 const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload()
 
@@ -185,7 +188,11 @@ const { loading } = initQuery({
       toast(t(error), 'error')
     } else {
       if (data) {
-        items.value = data.packages.map((it: IApp) => ({ ...it, checked: false }))
+        items.value = data.packages.map((it: IApp) => ({
+          ...it,
+          checked: false,
+          icon: getFileUrlByPath(urlTokenKey.value, 'pkgicon://' + it.id),
+        }))
         total.value = data.packageCount
       }
     }

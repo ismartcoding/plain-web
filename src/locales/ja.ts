@@ -1,5 +1,6 @@
 export default {
   app_name: 'PlainApp',
+  fetch_content_automatically: 'コンテンツを自動的に取得',
   sort: '並べ替え',
   sort_by: {
     date_asc: '古い順',
@@ -74,6 +75,7 @@ export default {
     tasks: 'タスク',
     audios: 'オーディオ',
     logout: 'ログアウト',
+    notifications: '通知',
   },
   page_title: {
     home: 'ホーム',

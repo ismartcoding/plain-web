@@ -1,5 +1,6 @@
 export default {
   app_name: 'PlainApp',
+  fetch_content_automatically: 'Inhoud automatisch ophalen',
   sort: 'Sorteren',
   sort_by: {
     date_asc: 'Oudste datum eerst',
@@ -74,6 +75,7 @@ export default {
     tasks: 'Taken',
     audios: 'Audio',
     logout: 'Uitloggen',
+    notifications: 'Meldingen',
   },
   page_title: {
     home: 'Startpagina',

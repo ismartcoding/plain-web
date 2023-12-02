@@ -78,12 +78,5 @@ watch(
   overflow-y: auto;
   width: var(--quick-content-width);
   height: 100%;
-
-  .no-data {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-  }
 }
 </style>
