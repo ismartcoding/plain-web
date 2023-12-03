@@ -8,7 +8,7 @@
       </button>
     </div>
     <div class="items-container">
-      <section class="list-items">
+      <section v-if="notifications.length" class="list-items">
         <div v-for="item in notifications" class="item" :key="item.id">
           <div class="title">
             <popper>
@@ -28,7 +28,7 @@
           </button>
         </div>
       </section>
-      <span class="no-data" v-if="!notifications.length">
+      <span class="no-data" v-else>
         {{ $t(noDataKey(loading, app.permissions, 'NOTIFICATION_LISTENER')) }}
       </span>
     </div>
