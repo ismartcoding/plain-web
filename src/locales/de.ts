@@ -1,6 +1,11 @@
 export default {
   app_name: 'EinfacheApp',
   fetch_content_automatically: 'Inhalt automatisch abrufen',
+  grant_permission: 'Bitte gewähren Sie die Berechtigung',
+  desktop_notification_permission_not_granted: 'Die Berechtigung für Desktop-Benachrichtigungen wurde nicht erteilt.',
+  desktop_notification_permission_grant_title: 'Berechtigung für Desktop-Benachrichtigungen erteilen',
+  desktop_notification_permission_grant_message:
+    '1. Klicken Sie auf das Vorhängeschlosssymbol in der Adressleiste.\n2. Öffnen Sie "Website-Einstellungen" oder "Berechtigungen".\n3. Suchen Sie "Benachrichtigungen" und ändern Sie es auf "Zulassen".',
   sort: 'Sortieren',
   sort_by: {
     date_asc: 'Älteste zuerst',

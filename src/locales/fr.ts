@@ -1,6 +1,11 @@
 export default {
   app_name: 'PlainApp',
   fetch_content_automatically: 'Récupérer le contenu automatiquement',
+  grant_permission: 'Accorder la permission',
+  desktop_notification_permission_not_granted: "La permission de notification du bureau n'a pas été accordée.",
+  desktop_notification_permission_grant_title: "Accorder l'autorisation pour les notifications du bureau",
+  desktop_notification_permission_grant_message:
+    '1. Cliquez sur l\'icône du cadenas dans la barre d\'adresse.\n2. Ouvrez "Paramètres du site" ou "Autorisations".\n3. Trouvez "Notifications" et changez-le en "Autoriser".',
   sort: 'Trier',
   sort_by: {
     date_asc: 'Date la plus ancienne en premier',

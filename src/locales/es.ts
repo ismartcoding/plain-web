@@ -1,6 +1,11 @@
 export default {
   app_name: 'PlainApp',
   fetch_content_automatically: 'Obtener contenido automáticamente',
+  grant_permission: 'Conceder permiso',
+  desktop_notification_permission_not_granted: 'No se ha otorgado el permiso de notificación de escritorio.',
+  desktop_notification_permission_grant_title: 'Conceder permiso para notificaciones de escritorio',
+  desktop_notification_permission_grant_message:
+    '1. Haga clic en el icono del candado en la barra de direcciones.\n2. Abra "Configuración del sitio" o "Permisos".\n3. Encuentre "Notificaciones" y cámbielo a "Permitir".',
   sort: 'Ordenar',
   sort_by: {
     date_asc: 'Fecha más antigua primero',

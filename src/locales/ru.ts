@@ -1,6 +1,11 @@
 export default {
   app_name: 'PlainApp',
   fetch_content_automatically: 'Автоматически получать содержимое',
+  grant_permission: 'Предоставить разрешение',
+  desktop_notification_permission_not_granted: 'Разрешение на уведомления на рабочем столе не предоставлено.',
+  desktop_notification_permission_grant_title: 'Предоставить разрешение на уведомления на рабочем столе',
+  desktop_notification_permission_grant_message:
+    '1. Щелкните по значку замка в адресной строке.\n2. Откройте "Настройки сайта" или "Разрешения".\n3. Найдите "Уведомления" и измените на "Разрешить".',
   sort: 'Сортировка',
   sort_by: {
     date_asc: 'Старые даты вначале',

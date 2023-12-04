@@ -1,6 +1,11 @@
 export default {
   app_name: 'PlainApp',
   fetch_content_automatically: 'Fetch content automatically',
+  grant_permission: 'Grant permission',
+  desktop_notification_permission_not_granted: 'Desktop notification permission is not granted.',
+  desktop_notification_permission_grant_title: 'Grant permission for desktop notifications',
+  desktop_notification_permission_grant_message:
+    '1. Click the padlock icon in the address bar.\n2. Open "Site settings" or "Permissions."\n3. Find "Notifications" and change it to "Allow."',
   sort: 'Sort',
   sort_by: {
     date_asc: 'Oldest date first',

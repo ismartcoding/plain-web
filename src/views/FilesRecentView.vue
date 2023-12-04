@@ -218,7 +218,8 @@ function itemCtxMenu(e: MouseEvent, f: IFile) {
       margin-right: 8px;
     }
 
-    &:hover, &.active {
+    &:hover,
+    &.active {
       background-color: var(--md-sys-color-on-surface-selected);
       border-radius: 8px;
     }

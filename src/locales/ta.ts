@@ -1,6 +1,11 @@
 export default {
   app_name: 'அரசியலமைப்பு',
   fetch_content_automatically: 'உருப்படியை தானாக பெறுங்கள்',
+  grant_permission: 'அனுமதி வழங்கு',
+  desktop_notification_permission_not_granted: 'டெஸ்க்டாப் அறிவிப்பு அனுமதி அளிக்கப்படவில்லை.',
+  desktop_notification_permission_grant_title: 'டெஸ்க்டாப் அறிவிப்பு அனுமதி அளிக்கவும்',
+  desktop_notification_permission_grant_message:
+    '1. முகவரி பட்டியில் பேட்லாக் ஐகானை கிளிக் செய்யவும்.\n2. "இணைய அமைப்புகள்" அல்லது "அனுமதிகள்" விரிவாக்கவும்.\n3. "அறிவிப்புகள்" ஐகானைக் கண்டு, அதை "அனுமதி" என்று மாற்றவும்.',
   sort: 'வரிசைப்படுத்து',
   sort_by: {
     date_asc: 'பழைய தேதி முதல்',

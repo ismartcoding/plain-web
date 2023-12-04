@@ -24,11 +24,12 @@ type Events = {
   toast: string
   feeds_fetched: any
   ai_chat_replied: any
-  screen_mirrorring: string
+  screen_mirroring: string
   message_created: any
   message_updated: any
   message_deleted: any
   notification_created: any
+  notification_updated: any
   notification_deleted: any
   color_mode_changed: undefined
   app_socket_connection_changed: boolean

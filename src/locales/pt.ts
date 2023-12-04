@@ -1,6 +1,11 @@
 export default {
   app_name: 'PlainApp',
   fetch_content_automatically: 'Obter conteúdo automaticamente',
+  grant_permission: 'Conceder permissão',
+  desktop_notification_permission_not_granted: 'A permissão de notificação na área de trabalho não foi concedida.',
+  desktop_notification_permission_grant_title: 'Conceder permissão para notificações na área de trabalho',
+  desktop_notification_permission_grant_message:
+    '1. Clique no ícone do cadeado na barra de endereço.\n2. Abra "Configurações do site" ou "Permissões".\n3. Encontre "Notificações" e altere para "Permitir".',
   sort: 'Ordenar',
   sort_by: {
     date_asc: 'Data mais antiga primeiro',

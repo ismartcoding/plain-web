@@ -1,6 +1,11 @@
 export default {
   app_name: 'PlainApp',
   fetch_content_automatically: 'Recupera contenuto automaticamente',
+  grant_permission: 'Concedi permesso',
+  desktop_notification_permission_not_granted: 'Il permesso di notifica desktop non è stato concesso.',
+  desktop_notification_permission_grant_title: 'Concedi autorizzazione per le notifiche desktop',
+  desktop_notification_permission_grant_message:
+    '1. Fai clic sull\'icona del lucchetto nella barra degli indirizzi.\n2. Apri "Impostazioni sito" o "Permessi".\n3. Trova "Notifiche" e cambialo su "Consenti".',
   sort: 'Ordina',
   sort_by: {
     date_asc: 'Data più antica prima',

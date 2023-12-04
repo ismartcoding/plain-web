@@ -1,5 +1,5 @@
 import { upload } from '@/lib/api/file'
-import { createChatItemGQL, initMutation, updateCache } from '@/lib/api/mutation'
+import { createChatItemGQL, initMutation, insertCache } from '@/lib/api/mutation'
 import type { IChatItem } from '@/lib/interfaces'
 import type { IUploadItem } from '@/stores/temp'
 import type { ApolloCache } from '@apollo/client/core'
@@ -21,7 +21,7 @@ export const useTasks = () => {
     options: {
       update: (cache: ApolloCache<any>, data: any) => {
         cache.evict({ id: cache.identify({ __typename: 'ChatItem', id: pending?.item.id }) })
-        updateCache(cache, data.data.createChatItem, chatItemsGQL)
+        insertCache(cache, data.data.createChatItem, chatItemsGQL)
         signalEnd()
       },
     },
