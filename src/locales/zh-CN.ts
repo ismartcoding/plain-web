@@ -1,6 +1,11 @@
 export default {
   app_name: '简朴',
   fetch_content_automatically: '自动拉取正文内容',
+  grant_permission: '授权',
+  desktop_notification_permission_not_granted: '未授予桌面通知权限。',
+  desktop_notification_permission_grant_title: '授予桌面通知权限',
+  desktop_notification_permission_grant_message:
+    '1. 点击地址栏中的挂锁图标。\n2. 打开“站点设置”或“权限”。\n3. 找到“通知”并将其更改为“允许”。',
   sort: '排序',
   sort_by: {
     date_asc: '最旧日期优先',

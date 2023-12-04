@@ -38,7 +38,7 @@ export function initMutation(params: InitMutationParams, handleError = true) {
   return r
 }
 
-export function updateCache(
+export function insertCache(
   cache: ApolloCache<any>,
   data: any,
   query: DocumentNode,

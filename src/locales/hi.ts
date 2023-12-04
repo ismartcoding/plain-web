@@ -1,6 +1,11 @@
 export default {
   app_name: 'प्लेन ऐप',
   fetch_content_automatically: 'ऑटोमेटिकली कंटेंट लोड करें',
+  grant_permission: 'अनुमति दें',
+  desktop_notification_permission_not_granted: 'डेस्कटॉप नोटिफिकेशन अनुमति प्रदान नहीं की गई है।',
+  desktop_notification_permission_grant_title: 'डेस्कटॉप सूचना के लिए अनुमति दें',
+  desktop_notification_permission_grant_message:
+    '1. पता बार में पैडलॉक आइकन पर क्लिक करें।\n2. "साइट सेटिंग्स" या "अनुमतियाँ" खोलें।\n3. "अधिसूचनाएँ" खोजें और इसे "अनुमति दें" पर बदलें।',
   sort: 'सॉर्ट',
   sort_by: {
     date_asc: 'सबसे पुरानी तारीख पहले',

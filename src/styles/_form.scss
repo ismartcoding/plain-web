@@ -56,3 +56,10 @@
         width: 24px;
     }
 }
+
+.btn-sm {
+    --_label-text-size: 0.75rem;
+    --_container-height: 24px;
+    --_leading-space: 16px;
+    --_trailing-space: 16px;
+}

@@ -87,12 +87,12 @@ const appSocketConnectionChangedHanlder = (connected: boolean) => {
 }
 
 onMounted(() => {
-  emitter.on('screen_mirrorring', screenMirroringHandler)
+  emitter.on('screen_mirroring', screenMirroringHandler)
   emitter.on('app_socket_connection_changed', appSocketConnectionChangedHanlder)
 })
 
 onUnmounted(() => {
-  emitter.off('screen_mirrorring', screenMirroringHandler)
+  emitter.off('screen_mirroring', screenMirroringHandler)
   emitter.off('app_socket_connection_changed', appSocketConnectionChangedHanlder)
 })
 

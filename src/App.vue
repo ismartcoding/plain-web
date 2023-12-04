@@ -57,22 +57,10 @@ async function connect() {
       r = JSON.parse(aesDecrypt(key, arrayBuffertoBits(await event.data.arrayBuffer())))
     }
     console.log(r)
-    if (r.type === 'FEEDS_FETCHED') {
-      emitter.emit('feeds_fetched', JSON.parse(r.data))
-    } else if (r.type === 'AI_CHAT_REPLIED') {
-      emitter.emit('ai_chat_replied', JSON.parse(r.data))
-    } else if (r.type === 'SCREEN_MIRRORING') {
-      emitter.emit('screen_mirrorring', r.data)
-    } else if (r.type === 'MESSAGE_CREATED') {
-      emitter.emit('message_created', JSON.parse(r.data))
-    } else if (r.type === 'MESSAGE_DELETED') {
-      emitter.emit('message_deleted', JSON.parse(r.data))
-    } else if (r.type === 'MESSAGE_UPDATED') {
-      emitter.emit('message_updated', JSON.parse(r.data))
-    } else if (r.type === 'NOTIFICATION_CREATED') {
-      emitter.emit('notification_created', JSON.parse(r.data))
-    } else if (r.type === 'NOTIFICATION_DELETED') {
-      emitter.emit('notification_deleted', JSON.parse(r.data))
+    if (r.encrypted) {
+      emitter.emit(r.type.toLowerCase(), JSON.parse(r.data))
+    } else {
+      emitter.emit(r.type.toLowerCase(), r.data)
     }
   }
 

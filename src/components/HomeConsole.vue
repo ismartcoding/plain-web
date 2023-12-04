@@ -90,7 +90,7 @@ import { formatTime, formatDateTimeFull, formatDate } from '@/lib/format'
 import ChatImages from './chat/ChatImages.vue'
 import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
-import { createChatItemGQL, deleteChatItemGQL, initMutation, updateCache } from '@/lib/api/mutation'
+import { createChatItemGQL, deleteChatItemGQL, initMutation, insertCache } from '@/lib/api/mutation'
 import { chatItemsGQL, initQuery } from '@/lib/api/query'
 import toast from './toaster'
 import { onMounted, ref } from 'vue'
@@ -172,7 +172,7 @@ const {
   document: createChatItemGQL,
   options: {
     update: (cache: ApolloCache<any>, data: any) => {
-      updateCache(cache, data.data.createChatItem, chatItemsGQL)
+      insertCache(cache, data.data.createChatItem, chatItemsGQL)
     },
   },
   appApi: true,
@@ -223,7 +223,7 @@ async function doUploadFiles(files: File[]) {
   items.push(item)
   enqueueTask(item, uploads)
   const client = resolveClient('a')
-  updateCache(client.cache, items, chatItemsGQL)
+  insertCache(client.cache, items, chatItemsGQL)
   scrollBottom()
 }
 
@@ -272,7 +272,7 @@ async function doUploadImages(files: File[]) {
   items.push(item)
   enqueueTask(item, uploads)
   const client = resolveClient('a')
-  updateCache(client.cache, items, chatItemsGQL)
+  insertCache(client.cache, items, chatItemsGQL)
   scrollBottom()
 }
 
@@ -385,7 +385,7 @@ onMounted(() => {
       }
       items.push({ ...item, data: data, __typename: 'ChatItem' })
     }
-    updateCache(client.cache, items, chatItemsGQL)
+    insertCache(client.cache, items, chatItemsGQL)
     scrollBottom()
   })
 
@@ -493,12 +493,5 @@ onMounted(() => {
 
 .chat-content {
   margin-top: 8px;
-
-  pre {
-    margin: 0;
-    white-space: pre-wrap;
-    font-size: 1rem;
-    word-break: break-all;
-  }
 }
 </style>

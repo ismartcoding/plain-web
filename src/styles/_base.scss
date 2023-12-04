@@ -25,6 +25,8 @@
     font-family: 'Google Sans', Roboto, system-ui;
     --md-ref-typeface-brand: 'Google Sans', Roboto, system-ui;
     --md-ref-typeface-plain: 'Google Sans', Roboto, system-ui;
+    --md-sys-color-warning-container: #fff3cd;
+    --md-sys-color-on-warning-container: #664d03;
     background-color: var(--md-sys-color-surface-container);
     color: var(--md-sys-color-on-surface);
     --plain-display-xl-font-size: 88px;
@@ -107,6 +109,11 @@ a:focus-visible {
 
 pre {
     font-family: inherit;
+    line-height: 1.5;
+    margin: 0;
+    white-space: pre-wrap;
+    font-size: 1rem;
+    word-break: break-all;
 }
 
 .tooltip {

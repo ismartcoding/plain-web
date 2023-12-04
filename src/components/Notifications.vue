@@ -7,6 +7,13 @@
         <i-material-symbols:delete-forever-outline-rounded />
       </button>
     </div>
+    <div class="alert-warning" v-if="notifcationPermission !== 'granted'">
+      {{ $t('desktop_notification_permission_not_granted') }}&nbsp;<md-filled-button
+        class="btn-sm"
+        @click.stop="grantPermission"
+        >{{ $t('grant_permission') }}</md-filled-button
+      >
+    </div>
     <div class="items-container">
       <section v-if="notifications.length" class="list-items">
         <div v-for="item in notifications" class="item" :key="item.id">
@@ -36,12 +43,12 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { formatDateTime, formatDateTimeFull } from '@/lib/format'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { initQuery, notificationsGQL } from '@/lib/api/query'
-import { initMutation, updateCache, cancelNotificationsGQL } from '@/lib/api/mutation'
+import { initMutation, insertCache, cancelNotificationsGQL } from '@/lib/api/mutation'
 import toast from '@/components/toaster'
 import type { INotification } from '@/lib/interfaces'
 import { useI18n } from 'vue-i18n'
@@ -49,7 +56,8 @@ import { noDataKey } from '@/lib/list'
 import { getFileUrlByPath } from '@/lib/api/file'
 import emitter from '@/plugins/eventbus'
 import { useApolloClient } from '@vue/apollo-composable'
-
+import { pushModal } from '@/components/modal'
+import ConfirmModal from '@/components/ConfirmModal.vue'
 const { resolveClient } = useApolloClient()
 
 const { t } = useI18n()
@@ -72,6 +80,8 @@ const { loading } = initQuery({
   appApi: true,
 })
 
+const notifcationPermission = ref(Notification.permission)
+
 const { mutate: cancelNotifications } = initMutation({
   document: cancelNotificationsGQL,
   appApi: true,
@@ -79,6 +89,19 @@ const { mutate: cancelNotifications } = initMutation({
 
 const deleteItem = (item: INotification) => {
   cancelNotifications({ ids: [item.id] })
+}
+
+const grantPermission = () => {
+  if (Notification.permission === 'denied') {
+    pushModal(ConfirmModal, {
+      title: t('desktop_notification_permission_grant_title'),
+      message: t('desktop_notification_permission_grant_message'),
+    })
+    return
+  }
+  Notification.requestPermission().then((permission) => {
+    notifcationPermission.value = permission
+  })
 }
 
 const clearAll = () => {
@@ -89,12 +112,30 @@ const clearAll = () => {
 onMounted(() => {
   emitter.on('notification_created', async (data: INotification) => {
     const client = resolveClient('a')
-    updateCache(client.cache, [{ ...data, __typename: 'Notification' }], notificationsGQL, null, true)
+    insertCache(client.cache, [{ ...data, __typename: 'Notification' }], notificationsGQL, null, true)
     data.icon = getFileUrlByPath(urlTokenKey.value, 'pkgicon://' + data.appId)
     if ('Notification' in window) {
-      if (Notification.permission !== 'granted') {
-        Notification.requestPermission()
-      } else {
+      if (Notification.permission === 'granted') {
+        const notification = new Notification(data.title, {
+          body: data.body,
+          icon: data.icon,
+        })
+        notification.onclick = () => {
+          window.focus()
+          notification.close()
+        }
+      }
+    }
+  })
+
+  emitter.on('notification_updated', async (data: INotification) => {
+    const client = resolveClient('a')
+    const cache = client.cache
+    cache.evict({ id: cache.identify({ __typename: 'Notification', id: data.id }) })
+    insertCache(cache, [{ ...data, __typename: 'Notification' }], notificationsGQL, null, true)
+    data.icon = getFileUrlByPath(urlTokenKey.value, 'pkgicon://' + data.appId)
+    if ('Notification' in window) {
+      if (Notification.permission === 'granted') {
         const notification = new Notification(data.title, {
           body: data.body,
           icon: data.icon,
@@ -135,6 +176,7 @@ onMounted(() => {
 .top-title {
   background-color: var(--md-sys-color-surface-container);
   height: 64px;
+
   .icon-button {
     margin-inline-start: auto;
   }
@@ -144,6 +186,7 @@ onMounted(() => {
   .item:first-child {
     margin-block-start: 8px;
   }
+
   .item:last-child {
     margin-block-end: 8px;
   }
@@ -157,5 +200,10 @@ onMounted(() => {
     font-size: 0.75rem;
     margin-inline-start: 8px;
   }
+}
+
+.alert-warning {
+  margin-block-end: 16px;
+  margin-inline-end: 16px;
 }
 </style>

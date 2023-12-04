@@ -1,11 +1,11 @@
 <template>
   <md-dialog type="alert">
-    <div slot="headline">{{ $t('confirm') }}</div>
-    <form id="form" slot="content" method="dialog">
-      {{ message }}
-    </form>
+    <div slot="headline">{{ title || $t('confirm') }}</div>
+    <section slot="content" method="dialog">
+      <pre>{{ message }}</pre>
+    </section>
     <div slot="actions">
-      <md-text-button form="form" value="ok" @click="ok">{{ $t('ok') }}</md-text-button>
+      <md-filled-button form="form" value="ok" @click="ok">{{ $t('ok') }}</md-filled-button>
     </div>
   </md-dialog>
 </template>
@@ -13,6 +13,7 @@
 import { popModal } from './modal'
 
 defineProps({
+  title: { type: String },
   message: { type: String },
 })
 

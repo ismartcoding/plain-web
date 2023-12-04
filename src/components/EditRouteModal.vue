@@ -87,7 +87,7 @@
   </md-dialog>
 </template>
 <script setup lang="ts">
-import { initMutation, updateCache } from '@/lib/api/mutation'
+import { initMutation, insertCache } from '@/lib/api/mutation'
 import { TargetType, Target } from '@/lib/target'
 import { useField, useForm } from 'vee-validate'
 import { reactive, ref, watch, type PropType } from 'vue'
@@ -135,7 +135,7 @@ const {
   `,
   options: {
     update: (cache: ApolloCache<any>, data: any) => {
-      updateCache(
+      insertCache(
         cache,
         data.data.createConfig,
         gql`

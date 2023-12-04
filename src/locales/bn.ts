@@ -1,6 +1,11 @@
 export default {
   app_name: 'PlainApp',
   fetch_content_automatically: 'স্বয়ংক্রিয়ভাবে সামগ্রী পূর্ণ করুন',
+  grant_permission: 'অনুমতি দিন',
+  desktop_notification_permission_not_granted: 'ডেস্কটপ বিজ্ঞপ্তি অনুমতি প্রদান করা হয়নি।',
+  desktop_notification_permission_grant_title: 'ডেস্কটপ বিজ্ঞপ্তির জন্য অনুমতি দিন',
+  desktop_notification_permission_grant_message:
+    '1. ঠিকানা বারে প্যাডলক আইকনে ক্লিক করুন।\n2. "সাইট সেটিংস" বা "অনুমতি" খোলুন।\n3. "বিজ্ঞপ্তি" খুঁজে বের করুন এবং এটি পরিবর্তন করুন "অনুমতি দিন"।',
   sort: 'সাজান',
   sort_by: {
     date_asc: 'নিম্নতম তারিখ আগে',

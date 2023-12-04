@@ -1,6 +1,11 @@
 export default {
   app_name: 'PlainApp',
   fetch_content_automatically: 'Inhoud automatisch ophalen',
+  grant_permission: 'Toestemming verlenen',
+  desktop_notification_permission_not_granted: 'Toestemming voor desktopmeldingen is niet verleend.',
+  desktop_notification_permission_grant_title: 'Toestemming verlenen voor desktopmeldingen',
+  desktop_notification_permission_grant_message:
+    '1. Klik op het hangslotsymbool in de adresbalk.\n2. Open "Site-instellingen" of "Machtigingen".\n3. Zoek "Meldingen" en wijzig het naar "Toestaan".',
   sort: 'Sorteren',
   sort_by: {
     date_asc: 'Oudste datum eerst',
