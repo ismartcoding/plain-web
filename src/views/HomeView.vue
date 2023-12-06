@@ -38,6 +38,7 @@
         <a href="#" @click.prevent="openTab('/json-viewer')">{{ $t('json_viewer') }}</a>
         <a href="#" @click.prevent="openTab('/qrcode-generator')">{{ $t('qrcode_generator') }}</a>
         <a href="#" @click.prevent="openTab('/screen-mirror')">{{ $t('screen_mirror') }}</a>
+        <a href="#" @click.prevent="openTab('/device-info')">{{ $t('device_info') }}</a>
       </p>
     </div>
   </div>

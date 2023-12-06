@@ -1,6 +1,7 @@
 export default {
   app_name: 'அரசியலமைப்பு',
   fetch_content_automatically: 'உருப்படியை தானாக பெறுங்கள்',
+  device_info: 'சாதன தகவல்',
   grant_permission: 'அனுமதி வழங்கு',
   desktop_notification_permission_not_granted: 'டெஸ்க்டாப் அறிவிப்பு அனுமதி அளிக்கப்படவில்லை.',
   desktop_notification_permission_grant_title: 'டெஸ்க்டாப் அறிவிப்பு அனுமதி அளிக்கவும்',
@@ -106,6 +107,7 @@ export default {
     trash: 'குப்பை',
     aichats: 'சாத்திகம் உரைகள்',
     screen_mirror: 'திரை பிரதிமை',
+    device_info: 'சாதன தகவல்',
   },
   wireguard: {},
   wifi: {

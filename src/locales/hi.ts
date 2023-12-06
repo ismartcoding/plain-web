@@ -1,6 +1,7 @@
 export default {
   app_name: 'प्लेन ऐप',
   fetch_content_automatically: 'ऑटोमेटिकली कंटेंट लोड करें',
+  device_info: 'डिवाइस इन्फो',
   grant_permission: 'अनुमति दें',
   desktop_notification_permission_not_granted: 'डेस्कटॉप नोटिफिकेशन अनुमति प्रदान नहीं की गई है।',
   desktop_notification_permission_grant_title: 'डेस्कटॉप सूचना के लिए अनुमति दें',
@@ -106,6 +107,7 @@ export default {
     trash: 'ट्रैश',
     aichats: 'ChatGPT',
     screen_mirror: 'स्क्रीन मिरर',
+    device_info: 'डिवाइस इन्फो',
   },
   wireguard: {},
   wifi: {

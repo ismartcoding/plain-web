@@ -1,6 +1,7 @@
 export default {
   app_name: 'EinfacheApp',
   fetch_content_automatically: 'Inhalt automatisch abrufen',
+  device_info: 'Geräteinformationen',
   grant_permission: 'Bitte gewähren Sie die Berechtigung',
   desktop_notification_permission_not_granted: 'Die Berechtigung für Desktop-Benachrichtigungen wurde nicht erteilt.',
   desktop_notification_permission_grant_title: 'Berechtigung für Desktop-Benachrichtigungen erteilen',
@@ -106,6 +107,7 @@ export default {
     trash: 'Papierkorb',
     aichats: 'ChatGPT',
     screen_mirror: 'Bildschirmspiegelung',
+    device_info: 'Geräteinformationen',
   },
   wireguard: {},
   wifi: {

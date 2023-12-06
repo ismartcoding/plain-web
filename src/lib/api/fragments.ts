@@ -361,3 +361,31 @@ export const notificationFragment = gql`
     actions
   }
 `
+
+export const deviceInfoFragment = gql`
+  fragment DeviceInfoFragment on DeviceInfo {
+    releaseBuildVersion
+    buildVersionCodeName
+    manufacturer
+    model
+    product
+    fingerprint
+    hardware
+    radioVersion
+    device
+    board
+    displayVersion
+    buildBrand
+    buildHost
+    buildTime
+    buildUser
+    serial
+    osVersion
+    language
+    sdkVersion
+    screenDensity
+    screenHeight
+    screenWidth
+  }
+`
+

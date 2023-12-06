@@ -1,6 +1,7 @@
 export default {
   app_name: '简朴',
   fetch_content_automatically: '自动拉取正文内容',
+  device_info: '设备信息',
   grant_permission: '授权',
   desktop_notification_permission_not_granted: '未授予桌面通知权限。',
   desktop_notification_permission_grant_title: '授予桌面通知权限',
@@ -106,6 +107,7 @@ export default {
     trash: '回收站',
     aichats: 'ChatGPT',
     screen_mirror: '屏幕镜像',
+    device_info: '设备信息',
   },
   wireguard: {},
   wifi: {

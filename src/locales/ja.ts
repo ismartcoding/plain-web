@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   fetch_content_automatically: 'コンテンツを自動的に取得',
+  device_info: 'デバイス情報',
   grant_permission: '権限を付与',
   desktop_notification_permission_not_granted: 'デスクトップ通知の許可が付与されていません。',
   desktop_notification_permission_grant_title: 'デスクトップ通知の許可を付与する',
@@ -106,6 +107,7 @@ export default {
     trash: 'ゴミ箱',
     aichats: 'ChatGPT',
     screen_mirror: 'スクリーンミラー',
+    device_info: 'デバイス情報',
   },
   wireguard: {},
   wifi: {

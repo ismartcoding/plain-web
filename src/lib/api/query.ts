@@ -19,6 +19,7 @@ import {
   packageFragment,
   tagSubFragment,
   notificationFragment,
+  deviceInfoFragment,
 } from './fragments'
 
 export class InitQueryParams<TResult> {
@@ -423,7 +424,7 @@ export const aichatDetailGQL = gql`
 `
 
 export const aiChatConfigGQL = gql`
-  query aiChatConfig {
+  query {
     aiChatConfig {
       chatGPTApiKey
     }
@@ -450,7 +451,7 @@ export const packageStatusesGQL = gql`
 `
 
 export const screenMirrorImageGQL = gql`
-  query screenMirrorImage {
+  query {
     screenMirrorImage
   }
 `
@@ -462,4 +463,13 @@ export const notificationsGQL = gql`
     }
   }
   ${notificationFragment}
+`
+
+export const deviceInfoGQL = gql`
+  query {
+    deviceInfo {
+      ...DeviceInfoFragment
+    }
+  }
+  ${deviceInfoFragment}
 `
