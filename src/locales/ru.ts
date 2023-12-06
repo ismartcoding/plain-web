@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   fetch_content_automatically: 'Автоматически получать содержимое',
+  device_info: 'Информация об устройстве',
   grant_permission: 'Предоставить разрешение',
   desktop_notification_permission_not_granted: 'Разрешение на уведомления на рабочем столе не предоставлено.',
   desktop_notification_permission_grant_title: 'Предоставить разрешение на уведомления на рабочем столе',
@@ -106,6 +107,7 @@ export default {
     trash: 'Корзина',
     aichats: 'Чат с ИИ',
     screen_mirror: 'Зеркало экрана',
+    device_info: 'Информация об устройстве',
   },
   wireguard: {},
   wifi: {

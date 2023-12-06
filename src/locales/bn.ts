@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   fetch_content_automatically: 'স্বয়ংক্রিয়ভাবে সামগ্রী পূর্ণ করুন',
+  device_info: 'ডিভাইস তথ্য',
   grant_permission: 'অনুমতি দিন',
   desktop_notification_permission_not_granted: 'ডেস্কটপ বিজ্ঞপ্তি অনুমতি প্রদান করা হয়নি।',
   desktop_notification_permission_grant_title: 'ডেস্কটপ বিজ্ঞপ্তির জন্য অনুমতি দিন',
@@ -106,6 +107,7 @@ export default {
     trash: 'ট্র্যাশ',
     aichats: 'চ্যাটজিপিটি',
     screen_mirror: 'স্ক্রীন মিরর',
+    device_info: 'ডিভাইস তথ্য',
   },
   wireguard: {},
   wifi: {

@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   fetch_content_automatically: 'Fetch content automatically',
+  device_info: 'Device info',
   grant_permission: 'Grant permission',
   desktop_notification_permission_not_granted: 'Desktop notification permission is not granted.',
   desktop_notification_permission_grant_title: 'Grant permission for desktop notifications',
@@ -106,6 +107,7 @@ export default {
     trash: 'Trash',
     aichats: 'ChatGPT',
     screen_mirror: 'Screen mirror',
+    device_info: 'Device info',
   },
   wireguard: {},
   wifi: {

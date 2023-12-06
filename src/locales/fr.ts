@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   fetch_content_automatically: 'Récupérer le contenu automatiquement',
+  device_info: 'Informations sur l\'appareil',
   grant_permission: 'Accorder la permission',
   desktop_notification_permission_not_granted: "La permission de notification du bureau n'a pas été accordée.",
   desktop_notification_permission_grant_title: "Accorder l'autorisation pour les notifications du bureau",
@@ -106,6 +107,7 @@ export default {
     trash: 'Corbeille',
     aichats: 'ChatGPT',
     screen_mirror: "Miroir d'écran",
+    device_info: 'Informations sur l\'appareil',
   },
   wireguard: {},
   wifi: {

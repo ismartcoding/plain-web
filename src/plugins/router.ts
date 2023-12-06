@@ -200,6 +200,11 @@ const router = createRouter({
           meta: { group: 'screen_mirror' },
         },
         {
+          path: 'device-info',
+          component: () => import('../views/DeviceInfoView.vue'),
+          meta: { group: 'device_info' },
+        },
+        {
           path: 'network',
           component: () => import('../views/NetworkView.vue'),
           meta: { group: 'network' },

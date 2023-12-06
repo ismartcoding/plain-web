@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   fetch_content_automatically: 'Recupera contenuto automaticamente',
+  device_info: 'Informazioni sul dispositivo',
   grant_permission: 'Concedi permesso',
   desktop_notification_permission_not_granted: 'Il permesso di notifica desktop non è stato concesso.',
   desktop_notification_permission_grant_title: 'Concedi autorizzazione per le notifiche desktop',
@@ -106,6 +107,7 @@ export default {
     trash: 'Cestino',
     aichats: 'ChatGPT',
     screen_mirror: 'Screen Mirror',
+    device_info: 'Informazioni sul dispositivo',
   },
   wireguard: {},
   wifi: {

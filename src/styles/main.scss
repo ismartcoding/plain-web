@@ -1,4 +1,8 @@
+@import "mixins/breakpoints";
+@import "mixins/grid";
+@import "variables";
 @import "base";
+@import "grid";
 @import "katex";
 @import "md";
 @import "tables";
@@ -11,6 +15,7 @@
 @import "chat";
 @import "mobile";
 @import "print";
+
 
 #app:has(~ .lightbox) {
   display: none;

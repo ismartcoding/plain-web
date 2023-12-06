@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   fetch_content_automatically: 'Inhoud automatisch ophalen',
+  device_info: 'Apparaatinfo',
   grant_permission: 'Toestemming verlenen',
   desktop_notification_permission_not_granted: 'Toestemming voor desktopmeldingen is niet verleend.',
   desktop_notification_permission_grant_title: 'Toestemming verlenen voor desktopmeldingen',
@@ -106,6 +107,7 @@ export default {
     trash: 'Prullenbak',
     aichats: 'ChatGPT',
     screen_mirror: 'Scherm spiegelen',
+    device_info: 'Apparaatinfo',
   },
   wireguard: {},
   wifi: {

@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   fetch_content_automatically: 'Obter conteúdo automaticamente',
+  device_info: 'Informações do dispositivo',
   grant_permission: 'Conceder permissão',
   desktop_notification_permission_not_granted: 'A permissão de notificação na área de trabalho não foi concedida.',
   desktop_notification_permission_grant_title: 'Conceder permissão para notificações na área de trabalho',
@@ -106,6 +107,7 @@ export default {
     trash: 'Lixeira',
     aichats: 'ChatGPT',
     screen_mirror: 'Espelhamento de Tela',
+    device_info: 'Informações do Dispositivo',
   },
   wireguard: {},
   wifi: {
