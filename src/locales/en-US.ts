@@ -372,7 +372,7 @@ export default {
   },
   load_failed: 'Load {name} failed',
   network_error: 'Network error, can not connnect to the API',
-  web_access_disabled: 'Web access is currently disabled',
+  web_access_disabled: 'Web access is currently disabled. Please open the PlainApp > top right 💻 icon > "Web on PC" page and tap "Enable" switch.',
   play: 'Play',
   add_to_playlist: 'Add to playlist',
   added_to_playlist: 'Added to playlist!',

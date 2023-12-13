@@ -373,7 +373,7 @@ export default {
   },
   load_failed: 'Laden van {name} mislukt',
   network_error: 'Netwerkfout, kan geen verbinding maken met de API',
-  web_access_disabled: 'Toegang tot internet is momenteel uitgeschakeld',
+  web_access_disabled: 'Webtoegang is momenteel uitgeschakeld. Open alstublieft PlainApp > pictogram rechtsboven 💻 > pagina "Web op pc" en tik op de schakelaar "Inschakelen".',
   play: 'Afspelen',
   add_to_playlist: 'Toevoegen aan afspeellijst',
   added_to_playlist: 'Toegevoegd aan afspeellijst!',

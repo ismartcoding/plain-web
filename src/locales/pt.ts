@@ -372,7 +372,7 @@ export default {
   },
   load_failed: 'Falha ao carregar {name}',
   network_error: 'Erro de rede, impossível conectar à API',
-  web_access_disabled: 'O acesso à web está desativado no momento',
+  web_access_disabled: 'O acesso à web está atualmente desativado. Por favor, abra o PlainApp > ícone do desktop no canto superior direito 💻 > página "Web no PC" e toque no interruptor "Ativar".',
   play: 'Reproduzir',
   add_to_playlist: 'Adicionar à playlist',
   added_to_playlist: 'Adicionado à playlist!',
