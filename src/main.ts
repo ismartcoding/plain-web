@@ -1,6 +1,7 @@
 import { createApp, provide, h } from 'vue'
 import { ApolloClients } from '@vue/apollo-composable'
 import App from './App.vue'
+import './registerServiceWorker'
 import router from './plugins/router'
 import '@material/web/all'
 import '@/styles/main.scss'
