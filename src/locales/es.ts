@@ -372,7 +372,7 @@ export default {
   },
   load_failed: 'Error al cargar {name}',
   network_error: 'Error de red, no se puede conectar al API',
-  web_access_disabled: 'El acceso a la web está deshabilitado en este momento',
+  web_access_disabled: 'El acceso web está actualmente deshabilitado. Por favor, abra PlainApp > icono de la parte superior derecha 💻 > página "Web en PC" y toque el interruptor "Habilitar".',
   play: 'Reproducir',
   add_to_playlist: 'Añadir a lista de reproducción',
   added_to_playlist: 'Añadido a la lista de reproducción',
