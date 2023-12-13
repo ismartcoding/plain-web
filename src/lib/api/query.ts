@@ -470,6 +470,16 @@ export const deviceInfoGQL = gql`
     deviceInfo {
       ...DeviceInfoFragment
     }
+    battery {
+      level
+      voltage
+      health
+      plugged
+      temperature
+      status
+      technology
+      capacity
+    }
   }
   ${deviceInfoFragment}
 `

@@ -30,12 +30,19 @@ export function formatTime(str: string) {
 }
 
 export function formatSeconds(seconds: number) {
-  let index = 11
-  if (seconds < 3600) {
-    index = 14
-  }
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const remainingSeconds = Math.floor(seconds % 60)
 
-  return new Date(seconds * 1000).toISOString().substring(index, 19)
+  const formattedHours = hours < 10 ? `0${hours}` : hours
+  const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes
+  const formattedSeconds = remainingSeconds < 10 ? `0${remainingSeconds}` : remainingSeconds
+
+  if (hours > 0) {
+    return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`
+  } else {
+    return `${formattedMinutes}:${formattedSeconds}`
+  }
 }
 
 export function formatFileSize(bytes: number, si = true, dp = 1) {

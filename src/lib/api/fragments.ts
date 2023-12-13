@@ -364,9 +364,13 @@ export const notificationFragment = gql`
 
 export const deviceInfoFragment = gql`
   fragment DeviceInfoFragment on DeviceInfo {
+    deviceName
     releaseBuildVersion
-    buildVersionCodeName
+    versionCodeName
     manufacturer
+    securityPatch
+    bootloader
+    deviceId
     model
     product
     fingerprint
@@ -378,14 +382,22 @@ export const deviceInfoFragment = gql`
     buildBrand
     buildHost
     buildTime
+    uptime
     buildUser
     serial
     osVersion
     language
     sdkVersion
+    javaVmVersion
+    kernelVersion
+    glEsVersion
     screenDensity
     screenHeight
     screenWidth
+    phoneNumbers {
+      id
+      name
+      number
+    }
   }
 `
-
