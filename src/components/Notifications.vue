@@ -24,8 +24,8 @@
                 <pre class="view-raw">{{ item }}</pre>
               </template>
             </popper>
-            <span>{{ item.appName }}</span>
-            <span class="time" v-tooltip="formatDateTimeFull(item.time)">{{ formatDateTime(item.time) }}</span>
+            <span class="name">{{ item.appName }}</span>
+            <span class="time nowrap" v-tooltip="formatDateTimeFull(item.time)">{{ formatDateTime(item.time) }}</span>
           </div>
           <div class="subtitle">{{ item.title }}</div>
           <div class="body">{{ item.body }}</div>
@@ -199,6 +199,13 @@ onMounted(() => {
     color: var(--md-sys-color-secondary);
     font-size: 0.75rem;
     margin-inline-start: 8px;
+    word-break: keep-all;
+    white-space: nowrap;
+  }
+  .name {
+    word-break: keep-all;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 }
 
