@@ -5,9 +5,6 @@
         <breadcrumb :current="() => $t('device_info')" />
       </div>
       <div class="panel-container">
-        <div v-if="loading" class="loading">
-          <md-circular-progress indeterminate />
-        </div>
         <div class="grid text-center">
           <div class="g-col-6 g-col-md-4">
             <section class="card">
@@ -85,7 +82,7 @@ const basicInfos = ref<any[]>([])
 const systemInfos = ref<any[]>([])
 const batteryInfos = ref<any[]>([])
 
-const { loading, refetch } = initQuery({
+const { refetch } = initQuery({
   handle: (data: any, error: string) => {
     if (error) {
       toast(t(error), 'error')
