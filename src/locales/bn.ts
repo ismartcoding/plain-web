@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   fetch_content_automatically: 'স্বয়ংক্রিয়ভাবে সামগ্রী পূর্ণ করুন',
+  web_socket_reconnecting: 'ওয়েবসকেট পুনরায় সংযোগ করা হচ্ছে ...',
   device_info: 'ডিভাইস তথ্য',
   basic_info: 'মৌলিক তথ্য',
   device_name: 'ডিভাইস নাম',

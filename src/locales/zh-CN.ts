@@ -1,6 +1,7 @@
 export default {
   app_name: '简朴',
   fetch_content_automatically: '自动拉取正文内容',
+  web_socket_reconnecting: 'WebSocket 正在重连中...',
   device_info: '设备信息',
   basic_info: '基本信息',
   device_name: '设备名称',

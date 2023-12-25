@@ -1,6 +1,7 @@
 export default {
   app_name: 'EinfacheApp',
   fetch_content_automatically: 'Inhalt automatisch abrufen',
+  web_socket_reconnecting: 'WebSocket wird wieder verbunden...',
   device_info: 'Geräteinformationen',
   basic_info: 'Grundlegende Informationen',
   device_name: 'Gerätename',
