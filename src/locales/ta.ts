@@ -1,6 +1,7 @@
 export default {
   app_name: 'அரசியலமைப்பு',
   fetch_content_automatically: 'உருப்படியை தானாக பெறுங்கள்',
+  web_socket_reconnecting: 'வலைப்பின்னல் சேர்க்கிறது...',
   device_info: 'கருவி தகவல்',
   basic_info: 'அடிப்படை தகவல்',
   device_name: 'கருவி பெயர்',

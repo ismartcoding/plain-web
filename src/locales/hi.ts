@@ -1,6 +1,7 @@
 export default {
   app_name: 'प्लेन ऐप',
   fetch_content_automatically: 'ऑटोमेटिकली कंटेंट लोड करें',
+  web_socket_reconnecting: 'वेब सॉकेट रीकनेक्टिंग...',
   device_info: 'डिवाइस जानकारी',
   basic_info: 'मौलिक जानकारी',
   device_name: 'डिवाइस नाम',

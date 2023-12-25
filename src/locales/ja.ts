@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   fetch_content_automatically: 'コンテンツを自動的に取得',
+  web_socket_reconnecting: 'WebSocketが再接続中です...',
   device_info: 'デバイス情報',
   basic_info: '基本情報',
   device_name: 'デバイス名',

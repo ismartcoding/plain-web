@@ -1,11 +1,14 @@
 <template>
+  <div class="top-error" v-if="wsStatus">
+    {{ $t('web_socket_reconnecting')}}
+  </div>
   <router-view />
   <Teleport to="body">
     <modal-container />
   </Teleport>
 </template>
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import emitter from './plugins/eventbus'
 import toast from '@/components/toaster'
@@ -27,6 +30,7 @@ import { applyThemeString } from './lib/theme/apply-theme-string'
 import { tokenToKey } from './lib/api/file'
 const { t } = useI18n()
 document.title = t('app_name')
+const wsStatus = ref('')
 
 let ws: WebSocket
 let retryTime = 1000
@@ -47,6 +51,7 @@ async function connect() {
     retryTime = 1000
     const enc = aesEncrypt(key, new Date().getTime().toString())
     ws.send(bitArrayToUint8Array(enc))
+    wsStatus.value = ''
   }
 
   ws.onmessage = async (event: MessageEvent) => {
@@ -64,6 +69,7 @@ async function connect() {
     }
   }
 
+
   ws.onclose = (_event: CloseEvent) => {
     setTimeout(
       () => {
@@ -72,12 +78,14 @@ async function connect() {
       Math.min(10000, retryTime)
     )
     retryTime += 1000
+    wsStatus.value = 'closed'
   }
 
   ws.onerror = (event: Event) => {
     console.error(event)
     ws.close()
     emitter.emit('app_socket_connection_changed', false)
+    wsStatus.value = 'error'
   }
 }
 
@@ -119,10 +127,23 @@ onMounted(() => {
     changeColor(getCurrentSeedColor()!)
   })
 
-  initializeTheme()
-
-  determinePageNavigationAutoMode()
+  try {
+    initializeTheme()
+    determinePageNavigationAutoMode()
+  } catch (ex) {
+    console.error(ex)
+  }
 
   connect()
 })
 </script>
+
+<style scoped>
+.top-error {
+  background-color: var(--md-sys-color-error);
+  color: var(--md-sys-color-on-error);
+  padding: 8px;
+  text-align: center;
+  font-size: 0.8rem;
+}
+</style>

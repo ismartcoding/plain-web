@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   fetch_content_automatically: 'Fetch content automatically',
+  web_socket_reconnecting: 'WebSocket is reconnecting...',
   device_info: 'Device info',
   basic_info: 'Basic info',
   device_name: 'Device name',
