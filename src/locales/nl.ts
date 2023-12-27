@@ -1,6 +1,8 @@
 export default {
   app_name: 'PlainApp',
   fetch_content_automatically: 'Inhoud automatisch ophalen',
+  call: 'Oproep',
+  call_phone: 'Telefoonoproep',
   web_socket_reconnecting: 'WebSocket is opnieuw aan het verbinden...',
   device_info: 'Apparaatinformatie',
   basic_info: 'Basisinformatie',
@@ -374,7 +376,8 @@ export default {
   },
   load_failed: 'Laden van {name} mislukt',
   network_error: 'Netwerkfout, kan geen verbinding maken met de API',
-  web_access_disabled: 'Webtoegang is momenteel uitgeschakeld. Open alstublieft PlainApp > pictogram rechtsboven 💻 > pagina "Web op pc" en tik op de schakelaar "Inschakelen".',
+  web_access_disabled:
+    'Webtoegang is momenteel uitgeschakeld. Open alstublieft PlainApp > pictogram rechtsboven 💻 > pagina "Web op pc" en tik op de schakelaar "Inschakelen".',
   play: 'Afspelen',
   add_to_playlist: 'Toevoegen aan afspeellijst',
   added_to_playlist: 'Toegevoegd aan afspeellijst!',

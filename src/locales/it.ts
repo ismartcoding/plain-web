@@ -1,6 +1,8 @@
 export default {
   app_name: 'PlainApp',
   fetch_content_automatically: 'Recupera contenuto automaticamente',
+  call: 'Chiamata',
+  call_phone: 'Chiamata telefonica',
   web_socket_reconnecting: 'WebSocket si sta riconnettendo...',
   device_info: 'Informazioni sul dispositivo',
   basic_info: 'Informazioni di base',
@@ -372,7 +374,8 @@ export default {
   },
   load_failed: 'Caricamento di {name} non riuscito',
   network_error: "Errore di rete, impossibile connettersi all'API",
-  web_access_disabled: 'L\'accesso web è attualmente disabilitato. Per favore, apri PlainApp > icona in alto a destra 💻 > pagina "Web su PC" e tocca l\'interruttore "Abilita".',
+  web_access_disabled:
+    'L\'accesso web è attualmente disabilitato. Per favore, apri PlainApp > icona in alto a destra 💻 > pagina "Web su PC" e tocca l\'interruttore "Abilita".',
   play: 'Riproduci',
   add_to_playlist: 'Aggiungi alla playlist',
   added_to_playlist: 'Aggiunto alla playlist!',
