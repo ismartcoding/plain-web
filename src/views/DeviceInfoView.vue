@@ -5,7 +5,7 @@
         <breadcrumb :current="() => $t('device_info')" />
       </div>
       <div class="panel-container">
-        <div class="grid text-center">
+        <div class="grid">
           <div class="g-col-6 g-col-md-4">
             <section class="card">
               <div class="card-body">

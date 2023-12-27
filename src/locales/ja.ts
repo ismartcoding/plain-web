@@ -1,6 +1,8 @@
 export default {
   app_name: 'PlainApp',
   fetch_content_automatically: 'コンテンツを自動的に取得',
+  call: 'コール',
+  call_phone: '電話する',
   web_socket_reconnecting: 'WebSocketが再接続中です...',
   device_info: 'デバイス情報',
   basic_info: '基本情報',
@@ -372,7 +374,8 @@ export default {
   },
   load_failed: '{name}の読み込みに失敗しました',
   network_error: 'ネットワークエラー、APIに接続できません',
-  web_access_disabled: 'Webアクセスは現在無効になっています。PlainAppを開き、右上の 💻 アイコン > "PC上のWeb"ページを開き、"有効にする"スイッチをタップしてください。',
+  web_access_disabled:
+    'Webアクセスは現在無効になっています。PlainAppを開き、右上の 💻 アイコン > "PC上のWeb"ページを開き、"有効にする"スイッチをタップしてください。',
   play: '再生',
   add_to_playlist: 'プレイリストに追加',
   added_to_playlist: 'プレイリストに追加しました！',

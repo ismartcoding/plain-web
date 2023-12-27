@@ -44,6 +44,7 @@ declare module 'vue' {
     'IMaterialSymbols:closeRounded': typeof import('~icons/material-symbols/close-rounded')['default']
     'IMaterialSymbols:contentCopyOutlineRounded': typeof import('~icons/material-symbols/content-copy-outline-rounded')['default']
     'IMaterialSymbols:contentCutRounded': typeof import('~icons/material-symbols/content-cut-rounded')['default']
+    'IMaterialSymbols:contentPasteRounded': typeof import('~icons/material-symbols/content-paste-rounded')['default']
     'IMaterialSymbols:darkModeOutlineRounded': typeof import('~icons/material-symbols/dark-mode-outline-rounded')['default']
     'IMaterialSymbols:deleteForeverOutlineRounded': typeof import('~icons/material-symbols/delete-forever-outline-rounded')['default']
     'IMaterialSymbols:deleteOutlineRounded': typeof import('~icons/material-symbols/delete-outline-rounded')['default']

@@ -1,6 +1,8 @@
 export default {
   app_name: 'PlainApp',
   fetch_content_automatically: 'Fetch content automatically',
+  call: 'Call',
+  call_phone: 'Call phone',
   web_socket_reconnecting: 'WebSocket is reconnecting...',
   device_info: 'Device info',
   basic_info: 'Basic info',
@@ -373,7 +375,8 @@ export default {
   },
   load_failed: 'Load {name} failed',
   network_error: 'Network error, can not connnect to the API',
-  web_access_disabled: 'Web access is currently disabled. Please open the PlainApp > top right 💻 icon > "Web on PC" page and tap "Enable" switch.',
+  web_access_disabled:
+    'Web access is currently disabled. Please open the PlainApp > top right 💻 icon > "Web on PC" page and tap "Enable" switch.',
   play: 'Play',
   add_to_playlist: 'Add to playlist',
   added_to_playlist: 'Added to playlist!',

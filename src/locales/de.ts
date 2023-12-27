@@ -1,6 +1,8 @@
 export default {
   app_name: 'EinfacheApp',
   fetch_content_automatically: 'Inhalt automatisch abrufen',
+  call: 'Anruf',
+  call_phone: 'Telefonanruf',
   web_socket_reconnecting: 'WebSocket wird wieder verbunden...',
   device_info: 'Geräteinformationen',
   basic_info: 'Grundlegende Informationen',
@@ -373,7 +375,8 @@ export default {
   },
   load_failed: 'Laden von {name} fehlgeschlagen',
   network_error: 'Netzwerkfehler, keine Verbindung zur API möglich',
-  web_access_disabled: 'Der Webzugriff ist derzeit deaktiviert. Bitte öffnen Sie PlainApp > rechts oben 💻 Symbol > Seite "Web auf PC" und tippen Sie auf den Schalter "Aktivieren".',
+  web_access_disabled:
+    'Der Webzugriff ist derzeit deaktiviert. Bitte öffnen Sie PlainApp > rechts oben 💻 Symbol > Seite "Web auf PC" und tippen Sie auf den Schalter "Aktivieren".',
   play: 'Abspielen',
   add_to_playlist: 'Zur Wiedergabeliste hinzufügen',
   added_to_playlist: 'Zur Wiedergabeliste hinzugefügt!',

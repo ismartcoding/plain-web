@@ -1,6 +1,6 @@
 <template>
   <div class="top-error" v-if="wsStatus">
-    {{ $t('web_socket_reconnecting')}}
+    {{ $t('web_socket_reconnecting') }}
   </div>
   <router-view />
   <Teleport to="body">
@@ -68,7 +68,6 @@ async function connect() {
       emitter.emit(r.type.toLowerCase(), r.data)
     }
   }
-
 
   ws.onclose = (_event: CloseEvent) => {
     setTimeout(

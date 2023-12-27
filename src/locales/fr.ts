@@ -1,6 +1,8 @@
 export default {
   app_name: 'PlainApp',
   fetch_content_automatically: 'Récupérer le contenu automatiquement',
+  call: 'Appel',
+  call_phone: 'Appeler par téléphone',
   web_socket_reconnecting: 'Reconnexion WebSocket en cours...',
   device_info: "Informations sur l'appareil",
   basic_info: 'Informations de base',
@@ -374,7 +376,8 @@ export default {
   },
   load_failed: 'Échec du chargement de {name}',
   network_error: "Erreur réseau, impossible de se connecter à l'API",
-  web_access_disabled: 'L\'accès au Web est actuellement désactivé. Veuillez ouvrir PlainApp > icône en haut à droite 💻 > page "Web sur PC" et appuyez sur l\'interrupteur "Activer".',
+  web_access_disabled:
+    'L\'accès au Web est actuellement désactivé. Veuillez ouvrir PlainApp > icône en haut à droite 💻 > page "Web sur PC" et appuyez sur l\'interrupteur "Activer".',
   play: 'Lecture',
   add_to_playlist: 'Ajouter à la liste de lecture',
   added_to_playlist: 'Ajouté à la liste de lecture',
