@@ -182,6 +182,9 @@ export async function upload(upload: IUploadItem, replace: boolean) {
     for (let i = 0; i < offsets.length; i++) {
       do {
         const r: any = await sendChunk(offsets[i], i, offsets.length)
+        if (upload.status === 'canceled') {
+          break
+        }
         if (r.error) {
           if (retry === 0) {
             upload.status = 'error'
