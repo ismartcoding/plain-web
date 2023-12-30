@@ -67,9 +67,8 @@
             <div class="card-body">
               <h5 class="card-title">{{ $t('call_phone') }}</h5>
               <p class="form-row">
-                <md-outlined-text-field type="tel" ref="phoneNumberRef" :label="$t('phone_number')"
-                  class="form-control flex-3" v-model="phoneNumberValue" :error="valueError"
-                  :error-text="valueError ? $t(valueError) : ''">
+                <md-outlined-text-field type="tel" :label="$t('phone_number')" class="form-control flex-3"
+                  v-model="phoneNumberValue" :error="valueError" :error-text="valueError ? $t(valueError) : ''">
                   <button class="icon-button" slot="trailing-icon" @click.prevent="pastePhoneNumber">
                     <md-ripple />
                     <i-material-symbols:content-paste-rounded />
@@ -92,7 +91,7 @@ import toast from '@/components/toaster'
 import { homeStatsGQL, initQuery } from '@/lib/api/query'
 import { replacePath } from '@/plugins/router'
 import { formatFileSize } from '@/lib/format'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
@@ -107,6 +106,8 @@ const { handleSubmit } = useForm()
 
 const mainStore = useMainStore()
 
+const { callNumber } = storeToRefs(mainStore)
+
 const { app } = storeToRefs(useTempStore())
 const messageCount = ref(-1)
 const contactCount = ref(-1)
@@ -114,9 +115,8 @@ const callCount = ref(-1)
 const totalBytes = ref(-1)
 const freeBytes = ref(-1)
 
-const phoneNumberRef = ref<HTMLInputElement>()
-const { value: phoneNumberValue, errorMessage: valueError } = useField('inputValue', string().required())
-
+const { value: phoneNumberValue, errorMessage: valueError } = useField('callNumber', string().required())
+phoneNumberValue.value = callNumber.value ?? ''
 function pastePhoneNumber() {
   navigator.clipboard.readText().then((text) => {
     phoneNumberValue.value = text
@@ -128,8 +128,15 @@ const { mutate: mutateCall, loading: callLoading } = initMutation({
   appApi: true,
 })
 
+watch(
+  () => phoneNumberValue.value,
+  (value) => {
+    callNumber.value = value
+  }
+)
+
 const callPhone = handleSubmit(() => {
-  mutateCall({ number: phoneNumberValue.value })
+  mutateCall({ number: callNumber.value })
 })
 
 initQuery({
