@@ -12,6 +12,7 @@ export type MainState = {
   fileSortBy: string
   json: string // data in jsonViewer
   qrCode: string // data in qrCode Generator
+  callNumber: string
 }
 
 export const useMainStore = defineStore({
@@ -31,6 +32,7 @@ export const useMainStore = defineStore({
       fileSortBy: 'NAME_ASC',
       json: '',
       qrCode: '',
+      callNumber: '',
     }) as MainState,
   actions: {
     replaceRoute(from: string, to: string) {
