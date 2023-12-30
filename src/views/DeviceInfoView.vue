@@ -15,7 +15,11 @@
                   <div class="key">{{ $t(item.label) }}</div>
                   <div class="value">
                     <span v-if="item.isTime" class="time" v-tooltip="formatDateTimeFull(item.value)">{{
-                      formatDateTime(item.value) }}</span>
+                      formatDateTime(item.value) }}
+                    </span>
+                    <template v-else-if="Array.isArray(item.value)">
+                      <div v-for="it in item.value">{{ it }}</div>
+                    </template>
                     <template v-else>
                       {{ item.value }}
                     </template>
@@ -35,6 +39,9 @@
                   <div class="value">
                     <span v-if="item.isTime" class="time" v-tooltip="formatDateTimeFull(item.value)">{{
                       formatDateTime(item.value) }}</span>
+                    <template v-else-if="Array.isArray(item.value)">
+                      <div v-for="it in item.value">{{ it }}</div>
+                    </template>
                     <template v-else>
                       {{ item.value }}
                     </template>
@@ -54,6 +61,9 @@
                   <div class="value">
                     <span v-if="item.isTime" class="time" v-tooltip="formatDateTimeFull(item.value)">{{
                       formatDateTime(item.value) }}</span>
+                    <template v-else-if="Array.isArray(item.value)">
+                      <div v-for="it in item.value">{{ it }}</div>
+                    </template>
                     <template v-else>
                       {{ item.value }}
                     </template>
@@ -122,12 +132,13 @@ const { refetch } = initQuery({
           value: d.fingerprint
         },
       ]
-      d.phoneNumbers.forEach((item: any) => {
+      if (d.phoneNumbers.length > 0) {
         basicInfos.value.push({
           label: 'phone_number',
-          value: item.name + ' ' + item.number
+          value: d.phoneNumbers.map((it: any) => it.name + ' ' + it.number)
         })
-      })
+      }
+
 
       systemInfos.value = [
         {
@@ -164,7 +175,7 @@ const { refetch } = initQuery({
         },
         {
           label: 'uptime',
-          value: formatSeconds(d.uptime /  1000)
+          value: formatSeconds(d.uptime / 1000)
         },
       ]
 
