@@ -70,6 +70,7 @@ const { locale, t } = useI18n()
 const langs = [
   { name: 'English', value: 'en-US' },
   { name: '简体中文', value: 'zh-CN' },
+  { name: '繁体中文', value: 'zh-TW' },
   { name: 'español', value: 'es' },
   { name: '日本語', value: 'ja' },
   { name: 'Nederlands', value: 'nl' },
@@ -81,6 +82,7 @@ const langs = [
   { name: 'Deutsch', value: 'de' },
   { name: 'Português', value: 'pt' },
   { name: 'தமிழ்', value: 'ta' },
+  { name: '한국어', value: 'ko' },
 ]
 
 function changeLang(loc: string) {
