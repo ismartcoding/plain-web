@@ -3,7 +3,10 @@
     <section class="list-items">
       <div v-for="item in visibleTasks" class="item" :key="item.file.name + item.file.size">
         <div class="title">{{ item.file.name }}</div>
-        <div class="subtitle">[{{ $t(`upload_status.${item.status}`) }}] {{formatFileSize(item.uploadedSize)}}({{ item.uploadedSize }}) / {{formatFileSize(item.file.size)}}</div>
+        <div class="subtitle">
+          [{{ $t(`upload_status.${item.status}`) }}] {{ formatFileSize(item.uploadedSize) }}({{ item.uploadedSize }}) /
+          {{ formatFileSize(item.file.size) }}
+        </div>
         <div class="body" v-if="item.error">{{ item.error }}</div>
         <button class="icon-button icon" @click.stop="deleteItem(item)">
           <md-ripple />
@@ -30,7 +33,6 @@ const store = useMainStore()
 const visibleTasks = computed(() => {
   return tempStore.uploads.reverse()
 })
-
 
 function deleteItem(item: IUploadItem) {
   tempStore.uploads.splice(tempStore.uploads.indexOf(item), 1)
