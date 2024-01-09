@@ -8,8 +8,8 @@
               <h5 class="card-title">
                 {{ $t('storage')
                 }}<span class="total-bytes" v-if="totalBytes >= 0">{{
-                  $t('storage_free_total', { free: formatFileSize(freeBytes), total: formatFileSize(totalBytes) })
-                }}</span>
+  $t('storage_free_total', { free: formatFileSize(freeBytes), total: formatFileSize(totalBytes) })
+}}</span>
               </h5>
               <p class="stats-items">
                 <a href="#" @click.prevent="openTab('/images')"> {{ $t('images') }}</a>
@@ -39,15 +39,12 @@
             <div class="card-body">
               <h5 class="card-title">{{ $t('social') }}</h5>
               <p class="stats-items">
-                <a href="#" @click.prevent="openTab('/messages')" v-if="app.allowSensitivePermissions"
-                  >{{ $t('messages') }}<template v-if="messageCount >= 0">({{ messageCount }})</template></a
-                >
-                <a href="#" @click.prevent="openTab('/contacts')"
-                  >{{ $t('contacts') }}<template v-if="contactCount >= 0">({{ contactCount }})</template></a
-                >
-                <a href="#" @click.prevent="openTab('/calls')" v-if="app.allowSensitivePermissions"
-                  >{{ $t('calls') }}<template v-if="callCount >= 0">({{ callCount }})</template></a
-                >
+                <a href="#" @click.prevent="openTab('/messages')" v-if="app.allowSensitivePermissions">{{ $t('messages')
+                }}<template v-if="messageCount >= 0">({{ messageCount }})</template></a>
+                <a href="#" @click.prevent="openTab('/contacts')">{{ $t('contacts') }}<template
+                    v-if="contactCount >= 0">({{ contactCount }})</template></a>
+                <a href="#" @click.prevent="openTab('/calls')" v-if="app.allowSensitivePermissions">{{ $t('calls')
+                }}<template v-if="callCount >= 0">({{ callCount }})</template></a>
               </p>
             </div>
           </section>
@@ -70,14 +67,8 @@
             <div class="card-body">
               <h5 class="card-title">{{ $t('call_phone') }}</h5>
               <p class="form-row">
-                <md-outlined-text-field
-                  type="tel"
-                  :label="$t('phone_number')"
-                  class="form-control flex-3"
-                  v-model="phoneNumberValue"
-                  :error="valueError"
-                  :error-text="valueError ? $t(valueError) : ''"
-                >
+                <md-outlined-text-field type="tel" :label="$t('phone_number')" class="form-control flex-3"
+                  v-model="callNumber" :error="callNumberError" :error-text="$t('valid.required')">
                   <button class="icon-button" slot="trailing-icon" @click.prevent="pastePhoneNumber">
                     <md-ripple />
                     <i-material-symbols:content-paste-rounded />
@@ -107,8 +98,7 @@ import { storeToRefs } from 'pinia'
 import { sumBy } from 'lodash-es'
 import type { IStorageStatsItem } from '@/lib/interfaces'
 import { useMainStore } from '@/stores/main'
-import { useField, useForm } from 'vee-validate'
-import { string } from 'yup'
+import { useForm } from 'vee-validate'
 import { callGQL, initMutation } from '@/lib/api/mutation'
 const { t } = useI18n()
 const { handleSubmit } = useForm()
@@ -116,6 +106,7 @@ const { handleSubmit } = useForm()
 const mainStore = useMainStore()
 
 const { callNumber } = storeToRefs(mainStore)
+const callNumberError = ref(false)
 
 const { app } = storeToRefs(useTempStore())
 const messageCount = ref(-1)
@@ -124,11 +115,9 @@ const callCount = ref(-1)
 const totalBytes = ref(-1)
 const freeBytes = ref(-1)
 
-const { value: phoneNumberValue, errorMessage: valueError } = useField('callNumber', string().required())
-phoneNumberValue.value = callNumber.value ?? ''
 function pastePhoneNumber() {
   navigator.clipboard.readText().then((text) => {
-    phoneNumberValue.value = text
+    callNumber.value = text
   })
 }
 
@@ -137,15 +126,16 @@ const { mutate: mutateCall, loading: callLoading } = initMutation({
   appApi: true,
 })
 
-watch(
-  () => phoneNumberValue.value,
-  (value) => {
-    callNumber.value = value
+const callPhone = () => {
+  if (!callNumber.value) {
+    callNumberError.value = true
+    return
   }
-)
-
-const callPhone = handleSubmit(() => {
   mutateCall({ number: callNumber.value })
+}
+
+watch(callNumber, () => {
+  callNumberError.value = false
 })
 
 initQuery({
@@ -186,7 +176,7 @@ function openTab(fullPath: string) {
 .stats-items {
   font-size: 1.2rem;
 
-  a + a {
+  a+a {
     margin-left: 24px;
   }
 }
