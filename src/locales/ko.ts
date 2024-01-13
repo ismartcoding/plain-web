@@ -128,6 +128,7 @@ export default {
     rejected: '로그인 요청이 거부되었습니다.',
     invalid_password: '잘못된 비밀번호입니다.',
   },
+  failed_connect_ws: 'WebSocket에 연결하지 못했습니다. 앱을 다시 시작하고 다시 시도해주세요.',
   header_actions: {
     language: '언어 변경',
     theme: '테마 변경',

@@ -129,6 +129,7 @@ export default {
     rejected: 'Richiesta di accesso rifiutata.',
     invalid_password: 'Password errata.',
   },
+  failed_connect_ws: 'Impossibile connettersi a WebSocket. Si prega di riavviare l\'applicazione e riprovare.',
   header_actions: {
     language: 'Cambia lingua',
     theme: 'Cambia tema',

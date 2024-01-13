@@ -129,6 +129,7 @@ export default {
     rejected: 'La demande de connexion a été rejetée.',
     invalid_password: 'Mot de passe incorrect.',
   },
+  failed_connect_ws: 'Échec de la connexion au WebSocket. Veuillez relancer l\'application et réessayer.',
   header_actions: {
     language: 'Changer de langue',
     theme: 'Changer de thème',

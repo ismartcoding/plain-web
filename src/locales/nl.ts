@@ -129,6 +129,7 @@ export default {
     rejected: 'Inlogverzoek is afgewezen.',
     invalid_password: 'Onjuist wachtwoord.',
   },
+  failed_connect_ws: 'Verbinding met WebSocket mislukt. Start de app opnieuw en probeer het opnieuw.',
   header_actions: {
     language: 'Taal wijzigen',
     theme: 'Thema wijzigen',

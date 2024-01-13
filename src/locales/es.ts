@@ -129,6 +129,7 @@ export default {
     rejected: 'La solicitud de inicio de sesión ha sido rechazada.',
     invalid_password: 'Contraseña incorrecta.',
   },
+  failed_connect_ws: 'Error al conectar con WebSocket. Por favor, vuelva a iniciar la aplicación e inténtelo nuevamente.',
   header_actions: {
     language: 'Cambiar idioma',
     theme: 'Cambiar tema',

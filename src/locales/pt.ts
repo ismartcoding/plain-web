@@ -129,6 +129,7 @@ export default {
     rejected: 'Solicitação de login foi rejeitada.',
     invalid_password: 'Senha incorreta.',
   },
+  failed_connect_ws: 'Falha ao conectar ao WebSocket. Por favor, reinicie o aplicativo e tente novamente.',
   header_actions: {
     language: 'Mudar idioma',
     theme: 'Mudar tema',

@@ -130,6 +130,7 @@ export default {
     rejected: 'உள்நுழைவு கோரிக்கை நிராகரிக்கப்பட்டுள்ளது.',
     invalid_password: 'தவறான கடவுச்சொல்.',
   },
+  failed_connect_ws: 'WebSocket-க்கு இணைக்க தோல்வி. அனுமதிக்கு மீள்விக்கவும் மற்றும் மீண்டும் முயற்சி செய்க.',
   header_actions: {
     language: 'மொழி மாற்று',
     theme: 'தீம் மாற்று',

@@ -128,6 +128,7 @@ export default {
     rejected: '登錄請求被拒絕。',
     invalid_password: '密碼錯誤。',
   },
+  failed_connect_ws: '無法連接到WebSocket。請重新啟動應用程序並重試。',
   header_actions: {
     language: '更改語言',
     theme: '更改主題',

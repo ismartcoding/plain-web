@@ -1,6 +1,7 @@
 <template>
   <div class="top-error" v-if="wsStatus">
-    {{ $t('web_socket_reconnecting') }}&nbsp;<md-filled-button class="btn-sm" @click.stop="troubleshoot">{{ $t('troubleshoot') }}</md-filled-button>
+    {{ $t('web_socket_reconnecting') }}&nbsp;<md-filled-button class="btn-sm" @click.stop="troubleshoot">{{
+      $t('troubleshoot') }}</md-filled-button>
   </div>
   <router-view />
   <Teleport to="body">
@@ -12,7 +13,7 @@ import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import emitter from './plugins/eventbus'
 import toast from '@/components/toaster'
-import { getWebSocketBaseUrl } from './lib/api/api'
+import { getApiBaseUrl, getWebSocketBaseUrl } from './lib/api/api'
 import { aesDecrypt, aesEncrypt, bitArrayToUint8Array } from './lib/api/crypto'
 import { arrayBuffertoBits } from './lib/api/sjcl-arraybuffer'
 import {
@@ -90,7 +91,15 @@ async function connect() {
   }
 }
 
-const troubleshoot = () => {
+const troubleshoot = async () => {
+  const r = await fetch(`${getApiBaseUrl()}/health_check`)
+  if (r.status === 200) {
+    pushModal(ConfirmModal, {
+      title: t('troubleshoot'),
+      message: t('failed_connect_ws'),
+    })
+    return
+  }
   pushModal(ConfirmModal, {
     title: t('troubleshoot'),
     message: t('fix_disconnect_tips'),

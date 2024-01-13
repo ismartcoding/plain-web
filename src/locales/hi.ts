@@ -129,6 +129,7 @@ export default {
     rejected: 'लॉगिन रिक्वेस्ट इस रिजेक्टेड.',
     invalid_password: 'गलत पासवर्ड.',
   },
+  failed_connect_ws: 'WebSocket से कनेक्ट करने में विफल। कृपया एप्लिकेशन को पुनः आरंभ करें और पुनः प्रयास करें।',
   header_actions: {
     language: 'भाषा बदले',
     theme: 'थीम बदले ',

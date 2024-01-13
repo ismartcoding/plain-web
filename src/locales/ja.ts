@@ -129,6 +129,7 @@ export default {
     rejected: 'ログイン要求が拒否されました。',
     invalid_password: 'パスワードが間違っています。',
   },
+  failed_connect_ws: 'WebSocketに接続できませんでした。アプリを再起動してもう一度お試しください。',
   header_actions: {
     language: '言語を変更',
     theme: 'テーマを変更',
