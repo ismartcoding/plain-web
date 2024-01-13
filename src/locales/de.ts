@@ -130,6 +130,7 @@ export default {
     rejected: 'Anfrage zur Anmeldung wurde abgelehnt.',
     invalid_password: 'Falsches Passwort.',
   },
+  failed_connect_ws: 'Verbindung zum WebSocket konnte nicht hergestellt werden. Bitte starten Sie die App neu und versuchen Sie es erneut.',
   header_actions: {
     language: 'Sprache ändern',
     theme: 'Thema ändern',

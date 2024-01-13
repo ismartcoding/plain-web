@@ -8,16 +8,9 @@
       <div class="alert alert-danger" role="alert" v-show="showError">
         {{ error ? $t(error) : '' }}
       </div>
-      <md-outlined-text-field
-        v-if="showPasswordInput"
-        :label="t('password')"
-        v-model="password"
-        @keydown.enter="onSubmit"
-        type="password"
-        class="form-control"
-        :error="passwordError"
-        :error-text="passwordError ? $t(passwordError) : ''"
-      />
+      <md-outlined-text-field v-if="showPasswordInput" :label="t('password')" v-model="password" @keydown.enter="onSubmit"
+        type="password" class="form-control" :error="passwordError"
+        :error-text="passwordError ? $t(passwordError) : ''" />
       <md-filled-button v-if="!webAccessDisabled" :disabled="isSubmitting">
         {{ $t(isSubmitting ? 'logging_in' : 'log_in') }}
       </md-filled-button>
@@ -110,13 +103,20 @@ const onSubmit = handleSubmit(async () => {
       window.location.href = router.currentRoute.value.query['redirect']?.toString() ?? '/'
     }
   }
-  ws.onclose = (event: CloseEvent) => {
+  ws.onclose = async (event: CloseEvent) => {
     if (event.reason === 'abort' || event.reason === 'OK') {
       return
     }
     isSubmitting.value = false
     showError.value = true
     showConfirm.value = false
+    if (!event.reason) {
+      const r = await fetch(`${getApiBaseUrl()}/health_check`)
+      if (r.status === 200) {
+        error.value = 'failed_connect_ws'
+        return
+      }
+    }
     error.value = `login.${event.reason ? event.reason : 'failed'}`
   }
 

@@ -129,6 +129,7 @@ export default {
     rejected: 'Login request is rejected.',
     invalid_password: 'Wrong password.',
   },
+  failed_connect_ws: 'Failed to connect to WebSocket. Please relaunch the app and try again.',
   header_actions: {
     language: 'Change language',
     theme: 'Change theme',

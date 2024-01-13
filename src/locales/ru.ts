@@ -129,6 +129,7 @@ export default {
     rejected: 'Запрос на вход отклонен.',
     invalid_password: 'Неправильный пароль.',
   },
+  failed_connect_ws: 'Не удалось подключиться к WebSocket. Пожалуйста, перезапустите приложение и попробуйте снова.',
   header_actions: {
     language: 'Изменить язык',
     theme: 'Изменить тему',
