@@ -1,5 +1,7 @@
 export default {
   app_name: 'PlainApp',
+  troubleshoot: 'Problemen oplossen',
+  fix_disconnect_tips: "Als de verbinding voortdurend wordt verbroken, probeer dan het scherm van uw telefoon aan te houden of de USB-adapter op een stopcontact aan te sluiten.",
   fetch_content_automatically: 'Inhoud automatisch ophalen',
   call: 'Oproep',
   call_phone: 'Telefoonoproep',

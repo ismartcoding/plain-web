@@ -1,5 +1,7 @@
 export default {
   app_name: 'PlainApp',
+  troubleshoot: 'Troubleshoot',
+  fix_disconnect_tips: 'If the connection keeps dropping, try keeping your phone screen awake or plugging the USB adapter into a power outlet.',
   fetch_content_automatically: 'Fetch content automatically',
   call: 'Call',
   call_phone: 'Call phone',

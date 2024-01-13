@@ -1,5 +1,7 @@
 export default {
   app_name: 'PlainApp',
+  troubleshoot: 'সমস্যা সমাধান',
+  fix_disconnect_tips: "যদি সংযোগটি বারবার বিচ্ছিন্ন হয়ে যায়, তাহলে আপনার ফোনের স্ক্রীন চালু রাখার চেষ্টা করুন অথবা USB অ্যাডাপ্টারটিকে একটি বিদ্যুৎ সকেট ​​প্লাগ ইন করুন।",
   fetch_content_automatically: 'স্বয়ংক্রিয়ভাবে সামগ্রী পূর্ণ করুন',
   call: 'কল',
   call_phone: 'ফোনে কল',

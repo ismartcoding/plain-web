@@ -1,5 +1,7 @@
 export default {
   app_name: '평범한 앱',
+  troubleshoot: '문제 해결',
+  fix_disconnect_tips: "연결이 계속 끊어지면 휴대전화 화면을 켜두거나 USB 어댑터를 전원 콘센트에 연결해 보세요.",
   fetch_content_automatically: '콘텐츠 자동으로 가져오기',
   call: '전화',
   call_phone: '전화 걸기',

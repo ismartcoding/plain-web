@@ -1,5 +1,7 @@
 export default {
   app_name: 'प्लेन ऐप',
+  troubleshoot: 'ट्रबलशूट',
+  fix_disconnect_tips: "अगर कनेक्शन बार-बार कट रहा है, तो अपने फ़ोन की स्क्रीन को जगाए रखने या USB एडॉप्टर को बिजली के आउटलेट में प्लग करने का प्रयास करें।",
   fetch_content_automatically: 'ऑटोमेटिकली कंटेंट लोड करें',
   call: 'कॉल',
   call_phone: 'फोन पर कॉल',

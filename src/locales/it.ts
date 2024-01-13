@@ -1,5 +1,7 @@
 export default {
   app_name: 'PlainApp',
+  troubleshoot: 'Risoluzione dei problemi',
+  fix_disconnect_tips: "Se la connessione si interrompe costantemente, prova a mantenere lo schermo del telefono acceso o a collegare l'adattatore USB a una presa di corrente.",
   fetch_content_automatically: 'Recupera contenuto automaticamente',
   call: 'Chiamata',
   call_phone: 'Chiamata telefonica',

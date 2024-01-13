@@ -1,6 +1,7 @@
 <template>
   <div class="top-error" v-if="wsStatus">
-    {{ $t('web_socket_reconnecting') }}
+    {{ $t('web_socket_reconnecting') }}&nbsp;<md-filled-button class="btn-sm" @click.stop="troubleshoot">{{
+      $t('troubleshoot') }}</md-filled-button>
   </div>
   <router-view />
   <Teleport to="body">
@@ -28,12 +29,14 @@ import {
 } from './lib/theme/theme'
 import { applyThemeString } from './lib/theme/apply-theme-string'
 import { tokenToKey } from './lib/api/file'
+import { pushModal } from './components/modal'
+import ConfirmModal from '@/components/ConfirmModal.vue'
 const { t } = useI18n()
 document.title = t('app_name')
 const wsStatus = ref('')
 
 let ws: WebSocket
-let retryTime = 1000
+let retryTime = 1000 // 1s
 
 async function connect() {
   const clientId = localStorage.getItem('client_id')
@@ -48,10 +51,9 @@ async function connect() {
   ws.onopen = async () => {
     emitter.emit('app_socket_connection_changed', true)
     console.log('WebSocket is connecting to app')
-    retryTime = 1000
+    retryTime = 1000 // reset retry time
     const enc = aesEncrypt(key, new Date().getTime().toString())
     ws.send(bitArrayToUint8Array(enc))
-    wsStatus.value = ''
   }
 
   ws.onmessage = async (event: MessageEvent) => {
@@ -74,7 +76,7 @@ async function connect() {
       () => {
         connect()
       },
-      Math.min(10000, retryTime)
+      Math.min(5000, retryTime) // wait at most 5s
     )
     retryTime += 1000
     wsStatus.value = 'closed'
@@ -86,6 +88,13 @@ async function connect() {
     emitter.emit('app_socket_connection_changed', false)
     wsStatus.value = 'error'
   }
+}
+
+const troubleshoot = () => {
+  pushModal(ConfirmModal, {
+    title: t('troubleshoot'),
+    message: t('fix_disconnect_tips'),
+  })
 }
 
 function determinePageNavigationAutoMode() {
@@ -142,7 +151,9 @@ onMounted(() => {
   background-color: var(--md-sys-color-error);
   color: var(--md-sys-color-on-error);
   padding: 8px;
-  text-align: center;
   font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

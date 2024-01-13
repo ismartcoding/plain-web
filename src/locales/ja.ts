@@ -1,5 +1,7 @@
 export default {
   app_name: 'PlainApp',
+  troubleshoot: 'トラブルシューティング',
+  fix_disconnect_tips: "接続が頻繁に切断される場合は、スマートフォンの画面をオンのままにするか、USBアダプタを電源コンセントに接続してみてください。",
   fetch_content_automatically: 'コンテンツを自動的に取得',
   call: 'コール',
   call_phone: '電話する',

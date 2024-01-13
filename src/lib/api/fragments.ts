@@ -33,14 +33,13 @@ export const appFragment = gql`
     battery
     appVersion
     osVersion
-    isPro
+    channel
     permissions
     audios {
       ...PlaylistAudioFragment
     }
     audioCurrent
     audioMode
-    allowSensitivePermissions
     sdcardPath
     usbDiskPaths
     internalStoragePath
