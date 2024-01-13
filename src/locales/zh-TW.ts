@@ -1,5 +1,7 @@
 export default {
   app_name: '簡樸',
+  troubleshoot: '故障排除',
+  fix_disconnect_tips: "如果連線频繁斷開，請嘗試保持手機螢幕亮起或將 USB 適配器插入電源插座。",
   fetch_content_automatically: '自動拉取正文內容',
   call: '呼叫',
   call_phone: '打電話',

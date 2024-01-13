@@ -1,5 +1,7 @@
 export default {
   app_name: 'EinfacheApp',
+  troubleshoot: 'Fehlerbehebung',
+  fix_disconnect_tips: "Wenn die Verbindung ständig unterbrochen wird, versuchen Sie, den Bildschirm Ihres Telefons wach zu halten oder den USB-Adapter an eine Steckdose anzuschließen.",
   fetch_content_automatically: 'Inhalt automatisch abrufen',
   call: 'Anruf',
   call_phone: 'Telefonanruf',

@@ -1,5 +1,7 @@
 export default {
   app_name: 'PlainApp',
+  troubleshoot: 'Solução de problemas',
+  fix_disconnect_tips: "Se a conexão estiver constantemente caindo, tente manter a tela do seu telefone acesa ou conectar o adaptador USB a uma tomada elétrica.",
   fetch_content_automatically: 'Obter conteúdo automaticamente',
   call: 'Chamada',
   call_phone: 'Chamar por telefone',

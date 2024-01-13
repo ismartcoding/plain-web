@@ -29,7 +29,7 @@
                 <a href="#" @click.prevent="openTab('/notes')">{{ $t('page_title.notes') }}</a>
                 <a style="display: none" href="#" @click.prevent="openTab('/books')">{{ $t('page_title.books') }}</a>
                 <a href="#" @click.prevent="openTab('/feeds')">{{ $t('page_title.feeds') }}</a>
-                <a href="#" @click.prevent="openTab('/aichats')">{{ $t('page_title.aichats') }}</a>
+                <!-- <a href="#" @click.prevent="openTab('/aichats')">{{ $t('page_title.aichats') }}</a> -->
               </p>
             </div>
           </section>
@@ -39,11 +39,11 @@
             <div class="card-body">
               <h5 class="card-title">{{ $t('social') }}</h5>
               <p class="stats-items">
-                <a href="#" @click.prevent="openTab('/messages')" v-if="app.allowSensitivePermissions">{{ $t('messages')
+                <a href="#" @click.prevent="openTab('/messages')" v-if="app.channel !== 'GOOGLE'">{{ $t('messages')
                 }}<template v-if="messageCount >= 0">({{ messageCount }})</template></a>
                 <a href="#" @click.prevent="openTab('/contacts')">{{ $t('contacts') }}<template
                     v-if="contactCount >= 0">({{ contactCount }})</template></a>
-                <a href="#" @click.prevent="openTab('/calls')" v-if="app.allowSensitivePermissions">{{ $t('calls')
+                <a href="#" @click.prevent="openTab('/calls')" v-if="app.channel !== 'GOOGLE'">{{ $t('calls')
                 }}<template v-if="callCount >= 0">({{ callCount }})</template></a>
               </p>
             </div>
