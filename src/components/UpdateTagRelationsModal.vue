@@ -5,13 +5,7 @@
     </div>
     <div slot="content">
       <md-chip-set>
-        <md-filter-chip
-          v-for="item in tags"
-          :key="item.id"
-          :label="item.name"
-          :selected="selectedTags.includes(item)"
-          @click="onTagSelect(item)"
-        />
+        <md-filter-chip v-for="item in tags" :key="item.id" :label="item.name" :selected="selectedTags.includes(item)" @click="onTagSelect(item)" />
       </md-chip-set>
     </div>
     <div slot="actions">

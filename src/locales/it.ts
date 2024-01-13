@@ -376,8 +376,7 @@ export default {
   },
   load_failed: 'Caricamento di {name} non riuscito',
   network_error: "Errore di rete, impossibile connettersi all'API",
-  web_access_disabled:
-    'L\'accesso web è attualmente disabilitato. Per favore, apri PlainApp > icona in alto a destra 💻 > pagina "Web su PC" e tocca l\'interruttore "Abilita".',
+  web_access_disabled: 'L\'accesso web è attualmente disabilitato. Per favore, apri PlainApp > icona in alto a destra 💻 > pagina "Web su PC" e tocca l\'interruttore "Abilita".',
   play: 'Riproduci',
   add_to_playlist: 'Aggiungi alla playlist',
   added_to_playlist: 'Aggiunto alla playlist!',
@@ -473,6 +472,5 @@ export default {
   select_all_items: 'Seleziona tutti gli {count} elementi',
   clear_selection: 'Cancella la selezione',
   screen_mirror_request_permission_failed: 'Non hai concesso il permesso a PlainApp di effettuare screenshot.',
-  screen_mirror_request_permission:
-    'Tocca "Avvia ora" sul telefono. \nSe la finestra dei permessi non viene visualizzata, riavvia PlainApp. \nRiprova tra {seconds} secondi.',
+  screen_mirror_request_permission: 'Tocca "Avvia ora" sul telefono. \nSe la finestra dei permessi non viene visualizzata, riavvia PlainApp. \nRiprova tra {seconds} secondi.',
 }

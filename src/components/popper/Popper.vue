@@ -1,12 +1,6 @@
 <template>
   <div class="inline-block" @mouseleave="hover && closePopper()" ref="popperContainerNode" v-click-away="closePopper">
-    <div
-      ref="triggerNode"
-      @mouseover="hover && openPopper()"
-      @click.stop="togglePopper"
-      @focus="openPopper"
-      @keyup.esc="closePopper"
-    >
+    <div ref="triggerNode" @mouseover="hover && openPopper()" @click.stop="togglePopper" @focus="openPopper" @keyup.esc="closePopper">
       <slot />
     </div>
     <transition name="fade">

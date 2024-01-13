@@ -1,7 +1,7 @@
 export default {
   app_name: 'PlainApp',
   troubleshoot: 'トラブルシューティング',
-  fix_disconnect_tips: "接続が頻繁に切断される場合は、スマートフォンの画面をオンのままにするか、USBアダプタを電源コンセントに接続してみてください。",
+  fix_disconnect_tips: '接続が頻繁に切断される場合は、スマートフォンの画面をオンのままにするか、USBアダプタを電源コンセントに接続してみてください。',
   fetch_content_automatically: 'コンテンツを自動的に取得',
   call: 'コール',
   call_phone: '電話する',
@@ -376,8 +376,7 @@ export default {
   },
   load_failed: '{name}の読み込みに失敗しました',
   network_error: 'ネットワークエラー、APIに接続できません',
-  web_access_disabled:
-    'Webアクセスは現在無効になっています。PlainAppを開き、右上の 💻 アイコン > "PC上のWeb"ページを開き、"有効にする"スイッチをタップしてください。',
+  web_access_disabled: 'Webアクセスは現在無効になっています。PlainAppを開き、右上の 💻 アイコン > "PC上のWeb"ページを開き、"有効にする"スイッチをタップしてください。',
   play: '再生',
   add_to_playlist: 'プレイリストに追加',
   added_to_playlist: 'プレイリストに追加しました！',
@@ -473,6 +472,5 @@ export default {
   select_all_items: '{count}個のアイテムをすべて選択',
   clear_selection: '選択を解除',
   screen_mirror_request_permission_failed: 'PlainAppにスクリーンショットの許可がありません。',
-  screen_mirror_request_permission:
-    '電話で[開始]をタップしてください。 \n許可ウィンドウが表示されない場合は、PlainAppを再起動してください。 \n{seconds}秒後に再試行します',
+  screen_mirror_request_permission: '電話で[開始]をタップしてください。 \n許可ウィンドウが表示されない場合は、PlainAppを再起動してください。 \n{seconds}秒後に再試行します',
 }

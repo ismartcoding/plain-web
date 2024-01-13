@@ -11,13 +11,7 @@
         <div class="default-content">
           <section class="start">
             <div class="tab-items">
-              <div
-                class="tab-item"
-                @click="selectTab('/')"
-                key="/"
-                :class="{ active: currentPath === '/' }"
-                @contextmenu="itemCtxMenu($event, '/')"
-              >
+              <div class="tab-item" @click="selectTab('/')" key="/" :class="{ active: currentPath === '/' }" @contextmenu="itemCtxMenu($event, '/')">
                 <span>{{ $t('page_title.home') }}</span>
               </div>
               <div
@@ -68,24 +62,11 @@
           <md-ripple />
           <i-material-symbols:format-list-numbered-rounded />
         </button>
-        <button
-          id="quick-audio"
-          class="icon-button q-action"
-          v-tooltip="$t('playlist')"
-          @click="toggleQuick('audio')"
-          toggle
-          :class="{ selected: store.quick === 'audio' }"
-        >
+        <button id="quick-audio" class="icon-button q-action" v-tooltip="$t('playlist')" @click="toggleQuick('audio')" toggle :class="{ selected: store.quick === 'audio' }">
           <md-ripple />
           <i-material-symbols:queue-music-rounded />
         </button>
-        <button
-          class="icon-button q-action"
-          v-tooltip="$t('my_phone')"
-          @click="toggleQuick('chat')"
-          toggle
-          :class="{ selected: store.quick === 'chat' }"
-        >
+        <button class="icon-button q-action" v-tooltip="$t('my_phone')" @click="toggleQuick('chat')" toggle :class="{ selected: store.quick === 'chat' }">
           <md-ripple />
           <i-material-symbols:chat-outline-rounded />
         </button>

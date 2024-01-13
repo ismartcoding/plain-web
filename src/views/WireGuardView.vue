@@ -24,12 +24,7 @@
               </td>
               <td>
                 <div class="form-check">
-                  <md-checkbox
-                    touch-target="wrapper"
-                    :disabled="enableLoading"
-                    @change="enableWireGuard(item)"
-                    :checked="item.isEnabled"
-                  />
+                  <md-checkbox touch-target="wrapper" :disabled="enableLoading" @change="enableWireGuard(item)" :checked="item.isEnabled" />
                 </div>
               </td>
               <td class="actions two">

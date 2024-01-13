@@ -206,8 +206,7 @@ export default {
   remote_port: 'port distant {port}',
   all_local_networks: 'Tous les réseaux locaux',
   examples_ip: 'Exemples\n10.10.10.2\n10.10.10.2:80\n10.10.10.2:80,443–453\n[2606:4700:4700::1111]:443–453',
-  examples_net:
-    'Exemples\n10.10.10.0/24\n10.10.10.0/24:80\n10.10.10.0/24:80,443–453\n[2606:4700:4700::1111/127]:443–453',
+  examples_net: 'Exemples\n10.10.10.0/24\n10.10.10.0/24:80\n10.10.10.0/24:80,443–453\n[2606:4700:4700::1111/127]:443–453',
   examples_dns: 'Exemples\nexemple.com\nexemple.com:80\nexemple.com:80,443–453',
   examples_remote_port: 'Exemples\n1419\n1001–1024',
   route_description: 'Routage du trafic vers {target} via {if_name}',
@@ -329,8 +328,7 @@ export default {
   prefix: 'Préfixe',
   suffix: 'Suffixe',
   browser_warning: "Il est recommandé d'utiliser la dernière version du navigateur web Chrome.",
-  no_permission:
-    'Pas de permission. Veuillez accéder à APP > "Web en PC" pour activer les autorisations et actualisez la page.',
+  no_permission: 'Pas de permission. Veuillez accéder à APP > "Web en PC" pour activer les autorisations et actualisez la page.',
   no_data: 'Pas de données.',
   loading: 'Chargement en cours...',
   duration: 'Durée',
@@ -474,8 +472,7 @@ export default {
   all_items_are_selected: 'Tous les {count} éléments sont sélectionnés.',
   select_all_items: 'Sélectionner tous les {count} éléments',
   clear_selection: 'Effacer la sélection',
-  screen_mirror_request_permission_failed:
-    "Vous n'avez pas accordé la permission à PlainApp pour prendre des captures d'écran.",
+  screen_mirror_request_permission_failed: "Vous n'avez pas accordé la permission à PlainApp pour prendre des captures d'écran.",
   screen_mirror_request_permission:
     'Veuillez appuyer sur "Commencer maintenant" sur votre téléphone. \nSi la fenêtre de permission n\'apparaît pas, rouvrez PlainApp. \nRéessayez dans {seconds} secondes.',
 }

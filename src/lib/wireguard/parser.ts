@@ -10,9 +10,7 @@ const findPartInString = ({ string, part }: FindPartInStringOptions) => {
   const wantedParts = parts.filter((x) => x.includes(part))
 
   if (!wantedParts.length) return undefined
-  const values = wantedParts
-    .map((x) => x.match(/((?<==).)(.+$)/gm)?.[0]?.trim())
-    .filter((x) => x !== undefined) as string[]
+  const values = wantedParts.map((x) => x.match(/((?<==).)(.+$)/gm)?.[0]?.trim()).filter((x) => x !== undefined) as string[]
 
   if (!values.length) return undefined
   return values as [string, ...string[]]
@@ -69,8 +67,7 @@ export const parseConfigString = (configString: string) => {
 
   const maybeAddress = findPartInString({ string: interfaceString, part: 'Address' })?.[0]?.split(',')
   const address = maybeAddress ? (maybeAddress.filter((x) => x !== undefined) as [string, ...string[]]) : undefined
-  if (!address || !address.length)
-    throw { code: 'no_valid_interface', message: `No address found in config:\n${configString}` }
+  if (!address || !address.length) throw { code: 'no_valid_interface', message: `No address found in config:\n${configString}` }
 
   const privateKey = findPartInString({ string: interfaceString, part: 'PrivateKey' })?.[0]
   if (!privateKey) throw { code: 'no_valid_interface', message: `No privateKey found in config:\n${configString}` }
@@ -113,11 +110,8 @@ export const parseConfigString = (configString: string) => {
           if (!x) return undefined
 
           const maybeAllowedIps = findPartInString({ string: x, part: 'AllowedIPs' })?.[0]?.split(',')
-          const allowedIps = maybeAllowedIps
-            ? (maybeAllowedIps.filter((y) => y !== undefined) as [string, ...string[]])
-            : undefined
-          if (!allowedIps || !allowedIps.length)
-            throw { code: 'invalid_peer', message: `No allowedIps found in peer:\n${x}` }
+          const allowedIps = maybeAllowedIps ? (maybeAllowedIps.filter((y) => y !== undefined) as [string, ...string[]]) : undefined
+          if (!allowedIps || !allowedIps.length) throw { code: 'invalid_peer', message: `No allowedIps found in peer:\n${x}` }
 
           const publicKey = findPartInString({ string: x, part: 'PublicKey' })?.[0]
           if (!publicKey) throw { code: 'invalid_peer', message: `No publicKey found in peer:\n${x}` }

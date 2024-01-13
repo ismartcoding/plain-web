@@ -5,23 +5,12 @@
       <field-id class="time" v-if="entry?.publishedAt" :id="formatDateTime(entry?.publishedAt)" :raw="entry" />
       <span class="author" v-if="entry?.author">{{ entry?.author }}</span>
       <span v-for="tag in entry?.tags" :key="tag.id" class="badge">{{ tag.name }}</span>
-      <button
-        class="icon-button"
-        v-tooltip="$t('add_to_tags')"
-        @click.prevent="addToTags"
-        style="margin-inline-start: 8px"
-      >
+      <button class="icon-button" v-tooltip="$t('add_to_tags')" @click.prevent="addToTags" style="margin-inline-start: 8px">
         <md-ripple />
         <i-material-symbols:label-outline-rounded />
       </button>
       <md-circular-progress indeterminate class="spinner-sm" v-if="syncContentLoading" />
-      <button
-        class="icon-button btn-icon"
-        v-else
-        :disabled="syncContentLoading"
-        v-tooltip="$t('sync_content')"
-        @click.prevent="syncContent"
-      >
+      <button class="icon-button btn-icon" v-else :disabled="syncContentLoading" v-tooltip="$t('sync_content')" @click.prevent="syncContent">
         <md-ripple />
         <i-material-symbols:sync-rounded />
       </button>

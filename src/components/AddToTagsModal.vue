@@ -13,13 +13,7 @@
         </md-outlined-segmented-button>
       </md-outlined-segmented-button-set>
       <md-chip-set>
-        <md-filter-chip
-          v-for="item in tags"
-          :key="item.id"
-          :label="item.name"
-          :selected="selectedTags.includes(item)"
-          @click="onTagSelect(item)"
-        />
+        <md-filter-chip v-for="item in tags" :key="item.id" :label="item.name" :selected="selectedTags.includes(item)" @click="onTagSelect(item)" />
       </md-chip-set>
       <div class="invalid-feedback" v-show="errorMessage">
         {{ errorMessage ? $t(errorMessage) : '' }}

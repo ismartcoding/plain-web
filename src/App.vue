@@ -1,7 +1,6 @@
 <template>
   <div class="top-error" v-if="wsStatus">
-    {{ $t('web_socket_reconnecting') }}&nbsp;<md-filled-button class="btn-sm" @click.stop="troubleshoot">{{
-      $t('troubleshoot') }}</md-filled-button>
+    {{ $t('web_socket_reconnecting') }}&nbsp;<md-filled-button class="btn-sm" @click.stop="troubleshoot">{{ $t('troubleshoot') }}</md-filled-button>
   </div>
   <router-view />
   <Teleport to="body">

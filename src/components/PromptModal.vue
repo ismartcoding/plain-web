@@ -4,14 +4,7 @@
       {{ title }}
     </div>
     <div slot="content">
-      <md-outlined-text-field
-        ref="inputRef"
-        class="form-control"
-        :error="valueError"
-        :error-text="valueError ? $t(valueError) : ''"
-        v-model="inputValue"
-        @keyup.enter="doAction"
-      />
+      <md-outlined-text-field ref="inputRef" class="form-control" :error="valueError" :error-text="valueError ? $t(valueError) : ''" v-model="inputValue" @keyup.enter="doAction" />
     </div>
     <div slot="actions">
       <md-outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</md-outlined-button>

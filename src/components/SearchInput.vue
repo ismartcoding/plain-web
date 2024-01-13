@@ -12,25 +12,12 @@
       :placeholder="$t('search_hint')"
     >
       <i-material-symbols:search-rounded slot="leading-icon" />
-      <button
-        class="icon-button"
-        ref="moreButton"
-        slot="trailing-icon"
-        @click.prevent="() => (searchPanelVisible = true)"
-      >
+      <button class="icon-button" ref="moreButton" slot="trailing-icon" @click.prevent="() => (searchPanelVisible = true)">
         <md-ripple />
         <i-material-symbols:tune-rounded />
       </button>
     </md-outlined-text-field>
-    <md-menu
-      anchor="input-ref"
-      menu-corner="start-end"
-      anchor-corner="end-end"
-      stay-open-on-focusout
-      quick
-      :open="searchPanelVisible"
-      @closed="() => (searchPanelVisible = false)"
-    >
+    <md-menu anchor="input-ref" menu-corner="start-end" anchor-corner="end-end" stay-open-on-focusout quick :open="searchPanelVisible" @closed="() => (searchPanelVisible = false)">
       <slot name="filters" />
     </md-menu>
   </div>

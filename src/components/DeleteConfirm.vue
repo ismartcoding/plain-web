@@ -5,9 +5,7 @@
     </form>
     <div slot="actions">
       <md-outlined-button form="form" value="cancel">{{ $t('cancel') }}</md-outlined-button>
-      <md-filled-button form="form" value="delete" :disabled="loading" @click="doDelete" autofocus>{{
-        $t('delete')
-      }}</md-filled-button>
+      <md-filled-button form="form" value="delete" :disabled="loading" @click="doDelete" autofocus>{{ $t('delete') }}</md-filled-button>
     </div>
   </md-dialog>
 </template>

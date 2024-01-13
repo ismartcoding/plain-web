@@ -2,12 +2,7 @@
   <div class="page-container">
     <div class="main">
       <breadcrumb :current="() => $t('page_title.network')" />
-      <edit-toolbar
-        v-model="currentTab"
-        :save="save"
-        :loading="loading"
-        :tabs="['/etc/netplan/config.yaml', '/etc/plainbox/netmix.yaml']"
-      />
+      <edit-toolbar v-model="currentTab" :save="save" :loading="loading" :tabs="['/etc/netplan/config.yaml', '/etc/plainbox/netmix.yaml']" />
       <monaco-editor language="yaml" height="700" v-model="netplan" v-show="currentTab === 0" />
       <monaco-editor language="yaml" height="700" v-model="netmix" v-show="currentTab === 1" />
     </div>

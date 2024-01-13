@@ -1,7 +1,7 @@
 export default {
   app_name: '简朴',
   troubleshoot: '故障排除',
-  fix_disconnect_tips: "如果连接频繁断开，请尝试保持手机屏幕亮起或将 USB 适配器插入电源插座。",
+  fix_disconnect_tips: '如果连接频繁断开，请尝试保持手机屏幕亮起或将 USB 适配器插入电源插座。',
   fetch_content_automatically: '自动拉取正文内容',
   call: '呼叫',
   call_phone: '打电话',
@@ -59,8 +59,7 @@ export default {
   grant_permission: '授权',
   desktop_notification_permission_not_granted: '未授予桌面通知权限。',
   desktop_notification_permission_grant_title: '授予桌面通知权限',
-  desktop_notification_permission_grant_message:
-    '1. 点击地址栏中的挂锁图标。\n2. 打开“站点设置”或“权限”。\n3. 找到“通知”并将其更改为“允许”。',
+  desktop_notification_permission_grant_message: '1. 点击地址栏中的挂锁图标。\n2. 打开“站点设置”或“权限”。\n3. 找到“通知”并将其更改为“允许”。',
   sort: '排序',
   sort_by: {
     date_asc: '最旧日期优先',
@@ -472,6 +471,5 @@ export default {
   select_all_items: '选择所有{count}项',
   clear_selection: '清除选择',
   screen_mirror_request_permission_failed: '您还没有授权简朴截屏的权限。',
-  screen_mirror_request_permission:
-    '请在手机上点击“现在开始”按钮。\n如果权限窗口未显示，请重新启动简朴。\n请在{seconds}秒后再试。',
+  screen_mirror_request_permission: '请在手机上点击“现在开始”按钮。\n如果权限窗口未显示，请重新启动简朴。\n请在{seconds}秒后再试。',
 }

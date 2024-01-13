@@ -17,9 +17,7 @@
             <i-material-symbols:fullscreen-rounded />
           </button>
         </template>
-        <md-outlined-button v-else-if="!relaunchAppLoading" @click="relaunchApp">{{
-          $t('relaunch_app')
-        }}</md-outlined-button>
+        <md-outlined-button v-else-if="!relaunchAppLoading" @click="relaunchApp">{{ $t('relaunch_app') }}</md-outlined-button>
       </div>
       <div ref="containerRef" class="panel-container">
         <div v-if="fetchImageLoading || startServiceLoading || relaunchAppLoading" class="loading">

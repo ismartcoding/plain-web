@@ -1,7 +1,7 @@
 export default {
   app_name: '평범한 앱',
   troubleshoot: '문제 해결',
-  fix_disconnect_tips: "연결이 계속 끊어지면 휴대전화 화면을 켜두거나 USB 어댑터를 전원 콘센트에 연결해 보세요.",
+  fix_disconnect_tips: '연결이 계속 끊어지면 휴대전화 화면을 켜두거나 USB 어댑터를 전원 콘센트에 연결해 보세요.',
   fetch_content_automatically: '콘텐츠 자동으로 가져오기',
   call: '전화',
   call_phone: '전화 걸기',
@@ -59,8 +59,7 @@ export default {
   grant_permission: '권한 부여',
   desktop_notification_permission_not_granted: '데스크톱 알림 권한이 부여되지 않았습니다.',
   desktop_notification_permission_grant_title: '데스크톱 알림 권한 부여',
-  desktop_notification_permission_grant_message:
-    '1. 주소 표시줄의 자물쇠 아이콘을 클릭하세요.\n2. "사이트 설정" 또는 "권한"을 엽니다.\n3. "알림"을 찾아 "허용"으로 변경하세요.',
+  desktop_notification_permission_grant_message: '1. 주소 표시줄의 자물쇠 아이콘을 클릭하세요.\n2. "사이트 설정" 또는 "권한"을 엽니다.\n3. "알림"을 찾아 "허용"으로 변경하세요.',
   sort: '정렬',
   sort_by: {
     date_asc: '오래된 날짜부터',
@@ -206,8 +205,7 @@ export default {
   remote_port: '원격 포트 {port}',
   all_local_networks: '모든 로컬 네트워크',
   examples_ip: '예시\n10.10.10.2\n10.10.10.2:80\n10.10.10.2:80,443–453\n[2606:4700:4700::1111]:443–453',
-  examples_net:
-    '예시\n10.10.10.0/24\n10.10.10.0/24:80\n10.10.10.0/24:80,443–453\n[2606:4700:4700::1111/127]:443–453',
+  examples_net: '예시\n10.10.10.0/24\n10.10.10.0/24:80\n10.10.10.0/24:80,443–453\n[2606:4700:4700::1111/127]:443–453',
   examples_dns: '예시\nexample.com\nexample.com:80\nexample.com:80,443–453',
   examples_remote_port: '예시\n1419\n1001–1024',
   route_description: '{if_name}을(를) 통해 {target}으로의 트래픽 라우팅',
@@ -473,6 +471,5 @@ export default {
   select_all_items: '모든 {count} 항목 선택',
   clear_selection: '선택 지우기',
   screen_mirror_request_permission_failed: 'PlainApp에 스크린샷 권한이 부여되지 않았습니다.',
-  screen_mirror_request_permission:
-    '전화에서 "지금 시작"을 탭하세요. \n권한 창이 표시되지 않으면 PlainApp을 다시 시작하세요. \n{seconds} 초 후에 다시 시도하세요',
+  screen_mirror_request_permission: '전화에서 "지금 시작"을 탭하세요. \n권한 창이 표시되지 않으면 PlainApp을 다시 시작하세요. \n{seconds} 초 후에 다시 시도하세요',
 }

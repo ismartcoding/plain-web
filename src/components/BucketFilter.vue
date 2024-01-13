@@ -1,12 +1,5 @@
 <template>
-  <li
-    v-for="item in mediaBuckets"
-    :key="item.id"
-    @click.prevent="view(item)"
-    :class="{ active: selected && item.id === selected }"
-  >
-    {{ item.name }} ({{ item.itemCount }})
-  </li>
+  <li v-for="item in mediaBuckets" :key="item.id" @click.prevent="view(item)" :class="{ active: selected && item.id === selected }">{{ item.name }} ({{ item.itemCount }})</li>
 </template>
 
 <script setup lang="ts">

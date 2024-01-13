@@ -20,13 +20,7 @@
           <md-outlined-text-field :label="$t('keywords')" v-model="filter.text" keyup.enter="applyAndDoSearch" />
           <label class="form-label">{{ $t('tags') }}</label>
           <md-chip-set>
-            <md-filter-chip
-              v-for="item in tags"
-              :key="item.id"
-              :label="item.name"
-              :selected="filter.tags.includes(item)"
-              @click="onTagSelect(item)"
-            />
+            <md-filter-chip v-for="item in tags" :key="item.id" :label="item.name" :selected="filter.tags.includes(item)" @click="onTagSelect(item)" />
           </md-chip-set>
           <div class="buttons">
             <md-filled-button @click.stop="applyAndDoSearch">
@@ -50,12 +44,7 @@
       <thead>
         <tr>
           <th>
-            <md-checkbox
-              touch-target="wrapper"
-              @change="toggleAllChecked"
-              :checked="allChecked"
-              :indeterminate="!allChecked && checked"
-            />
+            <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
           </th>
           <th></th>
           <th>{{ $t('title') }}</th>
@@ -121,15 +110,7 @@ import { useRoute } from 'vue-router'
 import router, { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useI18n } from 'vue-i18n'
-import type {
-  ITag,
-  IFeedEntryItem,
-  IFeedEntry,
-  IFeed,
-  IFeedEntryFilter,
-  IItemsTagsUpdatedEvent,
-  IItemTagsUpdatedEvent,
-} from '@/lib/interfaces'
+import type { ITag, IFeedEntryItem, IFeedEntry, IFeed, IFeedEntryFilter, IItemsTagsUpdatedEvent, IItemTagsUpdatedEvent } from '@/lib/interfaces'
 import { buildFilterQuery, buildQuery, parseQuery } from '@/lib/search'
 import { kebabCase, remove } from 'lodash-es'
 import { decodeBase64, encodeBase64 } from '@/lib/strutil'
@@ -177,18 +158,7 @@ const { deleteItems } = useDelete(
 )
 const syncing = ref(false)
 
-const {
-  allChecked,
-  realAllChecked,
-  selectRealAll,
-  allCheckedAlertVisible,
-  clearSelection,
-  toggleAllChecked,
-  toggleItemChecked,
-  toggleRow,
-  total,
-  checked,
-} = useSelectable(items)
+const { allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleItemChecked, toggleRow, total, checked } = useSelectable(items)
 const { loading, load, refetch } = initLazyQuery({
   handle: (data: any, error: string) => {
     if (error) {

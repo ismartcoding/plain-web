@@ -62,14 +62,10 @@ export function initQuery<TResult = any>(params: InitQueryParams<TResult>) {
 }
 
 export function initLazyQuery<TResult = any>(params: InitQueryParams<TResult>) {
-  const { result, onResult, load, loading, variables, refetch } = useLazyQuery(
-    params.document,
-    params.variables,
-    () => ({
-      clientId: params.appApi ? 'a' : 'b',
-      ...(typeof params.options === 'function' ? params.options() : params.options),
-    })
-  )
+  const { result, onResult, load, loading, variables, refetch } = useLazyQuery(params.document, params.variables, () => ({
+    clientId: params.appApi ? 'a' : 'b',
+    ...(typeof params.options === 'function' ? params.options() : params.options),
+  }))
 
   if (result.value) {
     params.handle(result.value, '')

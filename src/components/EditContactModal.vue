@@ -32,23 +32,14 @@
         {{ $t('phone_number') }}
       </label>
       <div class="form-row" v-for="(item, index) in editItem.phoneNumbers" :key="index">
-        <md-outlined-select
-          class="flex-2"
-          menu-positioning="fixed"
-          v-model.number="item.type"
-          @change="onTypeChanged(item)"
-        >
+        <md-outlined-select class="flex-2" menu-positioning="fixed" v-model.number="item.type" @change="onTypeChanged(item)">
           <md-select-option v-for="type of types.phoneNumberTypes" :key="type" :value="type">
             <div slot="headline">{{ getTypeLabel(item, type, 'phone_number_type') }}</div>
           </md-select-option>
         </md-outlined-select>
         <md-outlined-text-field :placeholder="$t('telephone')" v-model="item.value" class="flex-3" />
         <div class="v-center">
-          <button
-            class="icon-button"
-            @click="deleteField(editItem.phoneNumbers, index)"
-            v-if="editItem.phoneNumbers.length > 1"
-          >
+          <button class="icon-button" @click="deleteField(editItem.phoneNumbers, index)" v-if="editItem.phoneNumbers.length > 1">
             <md-ripple />
             <i-material-symbols:delete-forever-outline-rounded />
           </button>
@@ -58,12 +49,7 @@
         {{ $t('email') }}
       </label>
       <div class="form-row" v-for="(item, index) in editItem.emails" :key="index">
-        <md-outlined-select
-          class="flex-2"
-          menu-positioning="fixed"
-          v-model.number="item.type"
-          @change="onTypeChanged(item)"
-        >
+        <md-outlined-select class="flex-2" menu-positioning="fixed" v-model.number="item.type" @change="onTypeChanged(item)">
           <md-select-option v-for="type of types.emailTypes" :key="type" :value="type">
             <div slot="headline">{{ getTypeLabel(item, type, 'email_type') }}</div>
           </md-select-option>
@@ -80,12 +66,7 @@
         {{ $t('address') }}
       </label>
       <div class="form-row" v-for="(item, index) in editItem.addresses" :key="index">
-        <md-outlined-select
-          class="flex-2"
-          menu-positioning="fixed"
-          v-model.number="item.type"
-          @change="onTypeChanged(item)"
-        >
+        <md-outlined-select class="flex-2" menu-positioning="fixed" v-model.number="item.type" @change="onTypeChanged(item)">
           <md-select-option v-for="type of types.addressTypes" :key="type" :value="type">
             <div slot="headline">{{ getTypeLabel(item, type, 'address_type') }}</div>
           </md-select-option>
@@ -102,12 +83,7 @@
         {{ $t('website') }}
       </label>
       <div class="form-row" v-for="(item, index) in editItem.websites" :key="index">
-        <md-outlined-select
-          class="flex-2"
-          menu-positioning="fixed"
-          v-model.number="item.type"
-          @change="onTypeChanged(item)"
-        >
+        <md-outlined-select class="flex-2" menu-positioning="fixed" v-model.number="item.type" @change="onTypeChanged(item)">
           <md-select-option v-for="type of types.websiteTypes" :key="type" :value="type">
             <div slot="headline">{{ getTypeLabel(item, type, 'website_type') }}</div>
           </md-select-option>
@@ -124,12 +100,7 @@
         {{ $t('im') }}
       </label>
       <div class="form-row" v-for="(item, index) in editItem.ims" :key="index">
-        <md-outlined-select
-          class="flex-2"
-          menu-positioning="fixed"
-          v-model.number="item.type"
-          @change="onTypeChanged(item)"
-        >
+        <md-outlined-select class="flex-2" menu-positioning="fixed" v-model.number="item.type" @change="onTypeChanged(item)">
           <md-select-option v-for="type of types.imTypes" :key="type" :value="type">
             <div slot="headline">{{ getTypeLabel(item, type, 'im_type') }}</div>
           </md-select-option>

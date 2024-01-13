@@ -8,25 +8,11 @@
         <label class="col-md-3 col-form-label">{{ $t('actions') }}</label>
         <div class="col-md-9 form-checks">
           <div class="form-check form-check-inline">
-            <input
-              class="form-check-input"
-              type="radio"
-              name="action"
-              id="action-allow"
-              value="allow"
-              v-model="editItem.action"
-            />
+            <input class="form-check-input" type="radio" name="action" id="action-allow" value="allow" v-model="editItem.action" />
             <label class="form-check-label" for="action-allow">{{ $t('allow') }}</label>
           </div>
           <div class="form-check form-check-inline">
-            <input
-              class="form-check-input"
-              type="radio"
-              name="action"
-              id="action-block"
-              value="block"
-              v-model="editItem.action"
-            />
+            <input class="form-check-input" type="radio" name="action" id="action-block" value="block" v-model="editItem.action" />
             <label class="form-check-label" for="action-block">{{ $t('block') }}</label>
           </div>
         </div>
@@ -35,25 +21,11 @@
         <label for="action" class="col-md-3 col-form-label">{{ $t('direction') }}</label>
         <div class="col-md-9 form-checks">
           <div class="form-check form-check-inline">
-            <input
-              class="form-check-input"
-              type="radio"
-              name="direction"
-              id="direction-inbound"
-              value="inbound"
-              v-model="editItem.direction"
-            />
+            <input class="form-check-input" type="radio" name="direction" id="direction-inbound" value="inbound" v-model="editItem.direction" />
             <label class="form-check-label" for="direction-inbound">{{ $t('inbound') }}</label>
           </div>
           <div class="form-check form-check-inline">
-            <input
-              class="form-check-input"
-              type="radio"
-              name="direction"
-              id="direction-outbound"
-              value="outbound"
-              v-model="editItem.direction"
-            />
+            <input class="form-check-input" type="radio" name="direction" id="direction-outbound" value="outbound" v-model="editItem.direction" />
             <label class="form-check-label" for="direction-outbound">{{ $t('outbound') }}</label>
           </div>
         </div>
@@ -67,12 +39,7 @@
             </option>
           </select>
           <div class="input-group mt-2" v-if="Target.hasInput(targetType)">
-            <input
-              type="text"
-              class="form-control"
-              v-model="targetValue"
-              :placeholder="$t('for_example') + ' ' + Target.hint(targetType)"
-            />
+            <input type="text" class="form-control" v-model="targetValue" :placeholder="$t('for_example') + ' ' + Target.hint(targetType)" />
             <popper class="input-group-text">
               <span class="inner">
                 <i-material-symbols:question-mark-rounded />
@@ -98,11 +65,7 @@
         <div class="col-md-9">
           <select class="form-select" v-model="editItem.apply_to">
             <option value="all">{{ $t('all_devices') }}</option>
-            <option
-              v-for="item of networks?.filter((it: any) => it.type !== 'wan')"
-              :key="item.ifName"
-              :value="'iface:' + item.ifName"
-            >
+            <option v-for="item of networks?.filter((it: any) => it.type !== 'wan')" :key="item.ifName" :value="'iface:' + item.ifName">
               {{ item.name }}
             </option>
             <option v-for="item of devices" :value="'mac:' + item.mac">

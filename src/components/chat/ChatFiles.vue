@@ -1,18 +1,9 @@
 <template>
   <div class="chat-section">
-    <a
-      v-for="(item, i) in items"
-      :key="i"
-      class="file-item"
-      target="_blank"
-      :href="item.src"
-      @click.prevent="clickItem(item)"
-    >
+    <a v-for="(item, i) in items" :key="i" class="file-item" target="_blank" :href="item.src" @click.prevent="clickItem(item)">
       <span class="left">
         <span>{{ item.name }}</span>
-        <span class="info"
-          >{{ formatFileSize(item.size) }}{{ isVideo(item.name) ? ' / ' + formatSeconds(item.duration) : '' }}</span
-        >
+        <span class="info">{{ formatFileSize(item.size) }}{{ isVideo(item.name) ? ' / ' + formatSeconds(item.duration) : '' }}</span>
       </span>
       <img v-if="isImage(item.name) || isVideo(item.name)" :src="getPreview(item)" />
     </a>

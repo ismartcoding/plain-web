@@ -2,11 +2,7 @@
   <div class="v-toolbar">
     <breadcrumb :current="() => `${$t('page_title.audios')} (${total})`" />
     <template v-if="checked">
-      <button
-        class="icon-button"
-        @click.stop="deleteItems(dataType, items, realAllChecked, finalQ)"
-        v-tooltip="$t('delete')"
-      >
+      <button class="icon-button" @click.stop="deleteItems(dataType, items, realAllChecked, finalQ)" v-tooltip="$t('delete')">
         <md-ripple />
         <i-material-symbols:delete-forever-outline-rounded />
       </button>
@@ -14,11 +10,7 @@
         <md-ripple />
         <i-material-symbols:download-rounded />
       </button>
-      <button
-        class="icon-button"
-        @click.stop="addItemsToPlaylist($event, realAllChecked, finalQ)"
-        v-tooltip="$t('add_to_playlist')"
-      >
+      <button class="icon-button" @click.stop="addItemsToPlaylist($event, realAllChecked, finalQ)" v-tooltip="$t('add_to_playlist')">
         <md-ripple />
         <i-material-symbols:playlist-add />
       </button>
@@ -37,13 +29,7 @@
           <md-outlined-text-field :label="$t('keywords')" v-model="filter.text" keyup.enter="applyAndDoSearch" />
           <label class="form-label">{{ $t('tags') }}</label>
           <md-chip-set>
-            <md-filter-chip
-              v-for="item in tags"
-              :key="item.id"
-              :label="item.name"
-              :selected="filter.tags.includes(item)"
-              @click="onTagSelect(item)"
-            />
+            <md-filter-chip v-for="item in tags" :key="item.id" :label="item.name" :selected="filter.tags.includes(item)" @click="onTagSelect(item)" />
           </md-chip-set>
           <div class="buttons">
             <md-filled-button @click.stop="applyAndDoSearch">
@@ -67,12 +53,7 @@
       <thead>
         <tr>
           <th>
-            <md-checkbox
-              touch-target="wrapper"
-              @change="toggleAllChecked"
-              :checked="allChecked"
-              :indeterminate="!allChecked && checked"
-            />
+            <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
           </th>
           <th>ID</th>
           <th>{{ $t('name') }}</th>
@@ -96,11 +77,7 @@
                 <md-ripple />
                 <i-material-symbols:delete-forever-outline-rounded />
               </button>
-              <button
-                class="icon-button"
-                @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))"
-                v-tooltip="$t('download')"
-              >
+              <button class="icon-button" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))" v-tooltip="$t('download')">
                 <md-ripple />
                 <i-material-symbols:download-rounded />
               </button>
@@ -113,12 +90,7 @@
                 <i-material-symbols:label-outline-rounded />
               </button>
               <md-circular-progress indeterminate class="spinner-sm" v-if="playLoading && item.path === playPath" />
-              <button
-                class="icon-button"
-                v-else-if="isAudioPlaying(item)"
-                @click.stop="pause()"
-                v-tooltip="$t('pause')"
-              >
+              <button class="icon-button" v-else-if="isAudioPlaying(item)" @click.stop="pause()" v-tooltip="$t('pause')">
                 <md-ripple />
                 <i-material-symbols:pause-circle-outline-rounded />
               </button>
@@ -167,15 +139,7 @@ import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
 import { useI18n } from 'vue-i18n'
 import { formatFileSize } from '@/lib/format'
-import type {
-  IAudio,
-  IAudioItem,
-  IFilter,
-  IItemTagsUpdatedEvent,
-  IItemsTagsUpdatedEvent,
-  IMediaItemsDeletedEvent,
-  ITag,
-} from '@/lib/interfaces'
+import type { IAudio, IAudioItem, IFilter, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IMediaItemsDeletedEvent, ITag } from '@/lib/interfaces'
 import { storeToRefs } from 'pinia'
 import { buildFilterQuery, buildQuery, type IFilterField } from '@/lib/search'
 import { decodeBase64, encodeBase64 } from '@/lib/strutil'
@@ -221,18 +185,7 @@ const { tags } = useTags(dataType, q, filter, async (fields: IFilterField[]) => 
 })
 const { addToTags } = useAddToTags(dataType, items, tags)
 const { deleteItems, deleteItem } = useDeleteItems()
-const {
-  allChecked,
-  realAllChecked,
-  selectRealAll,
-  allCheckedAlertVisible,
-  clearSelection,
-  toggleAllChecked,
-  toggleRow,
-  toggleItemChecked,
-  total,
-  checked,
-} = useSelectable(items)
+const { allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleRow, toggleItemChecked, total, checked } = useSelectable(items)
 const { downloadItems } = useDownloadItems(urlTokenKey, dataType, items, clearSelection, 'audios.zip')
 const { downloadFile } = useDownload(urlTokenKey)
 const { addItemsToPlaylist, addToPlaylist } = useAddToPlaylist(items, clearSelection)

@@ -87,12 +87,7 @@ export const useMouse = (wrapperState: IImgWrapperState, status: IStatus, canMov
   }
 }
 
-export const useTouch = (
-  imgState: IImgState,
-  wrapperState: IImgWrapperState,
-  status: IStatus,
-  canMove: (button?: number) => boolean
-) => {
+export const useTouch = (imgState: IImgState, wrapperState: IImgWrapperState, status: IStatus, canMove: (button?: number) => boolean) => {
   // touch event handler
   let rafId: number
   let ticking = false
@@ -154,9 +149,7 @@ export const useTouch = (
       }
     } else if (status.gesturing && wrapperState.touches.length > 1 && touches.length > 1) {
       rafId = requestAnimationFrame(() => {
-        const calcScale =
-          (getDistance(wrapperState.touches[0], wrapperState.touches[1]) - getDistance(touches[0], touches[1])) /
-          imgState.width
+        const calcScale = (getDistance(wrapperState.touches[0], wrapperState.touches[1]) - getDistance(touches[0], touches[1])) / imgState.width
         wrapperState.touches = touches
 
         const newScale = scale - calcScale * 1.3
