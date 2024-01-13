@@ -28,9 +28,7 @@ export default class ModalError extends Error {
     return new ModalError('Configuration type must be an Object. Provided', config)
   }
   static ConfigurationUndefinedParam(param: string, availableParams: Array<string>) {
-    return new ModalError(
-      `In configuration founded unknown parameter: ${param}. Available are ${availableParams.join(', ')} `
-    )
+    return new ModalError(`In configuration founded unknown parameter: ${param}. Available are ${availableParams.join(', ')} `)
   }
 
   static QueueNoEmpty() {

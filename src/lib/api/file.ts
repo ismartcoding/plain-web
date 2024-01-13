@@ -111,9 +111,7 @@ export async function upload(upload: IUploadItem, replace: boolean) {
     const chunkEnd = Math.min(offset + chunkSize, upload.file.size)
     const uploadingFileSize = chunkEnd - offset
     const data = new FormData()
-    const v = bitArrayToUint8Array(
-      aesEncrypt(key, JSON.stringify({ dir: upload.dir, replace, index, size: uploadingFileSize, total: total }))
-    )
+    const v = bitArrayToUint8Array(aesEncrypt(key, JSON.stringify({ dir: upload.dir, replace, index, size: uploadingFileSize, total: total })))
     data.append('info', new Blob([v]))
     const slice = upload.file.slice(offset, chunkEnd)
     data.append('file', new File([slice], offset > 0 ? upload.fileName : upload.file.name))

@@ -14,11 +14,7 @@
             <li v-if="app.sdcardPath" @click.prevent="openByType('sdcard')" :class="{ active: type === 'sdcard' }">
               {{ $t('sdcard') }}
             </li>
-            <li
-              v-for="(_, index) in app.usbDiskPaths"
-              @click.prevent="openByType(`usb${index + 1}`)"
-              :class="{ active: type === `usb${index + 1}` }"
-            >
+            <li v-for="(_, index) in app.usbDiskPaths" @click.prevent="openByType(`usb${index + 1}`)" :class="{ active: type === `usb${index + 1}` }">
               {{ $t('usb_storage') + ' ' + (index + 1) }}
             </li>
             <li @click.prevent="openByType('app')" :class="{ active: type === 'app' }">

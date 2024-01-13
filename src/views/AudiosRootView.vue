@@ -5,10 +5,7 @@
         <aside class="sidebar">
           <h2 class="nav-title">{{ $t('page_title.audios') }}</h2>
           <ul class="nav">
-            <li
-              @click.prevent="all"
-              :class="{ active: route.path === '/audios' && !selectedTagName && !selectedBucketId }"
-            >
+            <li @click.prevent="all" :class="{ active: route.path === '/audios' && !selectedTagName && !selectedBucketId }">
               {{ $t('all') }}
             </li>
             <bucket-filter type="AUDIO" :selected="selectedBucketId" />

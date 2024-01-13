@@ -1,7 +1,8 @@
 export default {
   app_name: 'EinfacheApp',
   troubleshoot: 'Fehlerbehebung',
-  fix_disconnect_tips: "Wenn die Verbindung ständig unterbrochen wird, versuchen Sie, den Bildschirm Ihres Telefons wach zu halten oder den USB-Adapter an eine Steckdose anzuschließen.",
+  fix_disconnect_tips:
+    'Wenn die Verbindung ständig unterbrochen wird, versuchen Sie, den Bildschirm Ihres Telefons wach zu halten oder den USB-Adapter an eine Steckdose anzuschließen.',
   fetch_content_automatically: 'Inhalt automatisch abrufen',
   call: 'Anruf',
   call_phone: 'Telefonanruf',
@@ -206,8 +207,7 @@ export default {
   remote_port: 'Remote-Port {port}',
   all_local_networks: 'Alle lokalen Netzwerke',
   examples_ip: 'Beispiele\n10.10.10.2\n10.10.10.2:80\n10.10.10.2:80,443–453\n[2606:4700:4700::1111]:443–453',
-  examples_net:
-    'Beispiele\n10.10.10.0/24\n10.10.10.0/24:80\n10.10.10.0/24:80,443–453\n[2606:4700:4700::1111/127]:443–453',
+  examples_net: 'Beispiele\n10.10.10.0/24\n10.10.10.0/24:80\n10.10.10.0/24:80,443–453\n[2606:4700:4700::1111/127]:443–453',
   examples_dns: 'Beispiele\nexample.com\nexample.com:80\nexample.com:80,443–453',
   examples_remote_port: 'Beispiele\n1419\n1001–1024',
   route_description: 'Verkehr zu {target} über {if_name} routen',
@@ -328,8 +328,7 @@ export default {
   prefix: 'Präfix',
   suffix: 'Suffix',
   browser_warning: 'Empfohlen wird die Verwendung der neuesten Version des Chrome Webbrowsers',
-  no_permission:
-    'Keine Berechtigung. Bitte gehen Sie zu APP > "Web auf PC", um die Berechtigungen zu aktivieren, und aktualisieren Sie die Seite.',
+  no_permission: 'Keine Berechtigung. Bitte gehen Sie zu APP > "Web auf PC", um die Berechtigungen zu aktivieren, und aktualisieren Sie die Seite.',
   no_data: 'Keine Daten.',
   loading: 'Laden...',
   duration: 'Dauer',
@@ -473,8 +472,7 @@ export default {
   all_items_are_selected: 'Alle {count} Elemente sind ausgewählt.',
   select_all_items: 'Alle {count} Elemente auswählen',
   clear_selection: 'Auswahl aufheben',
-  screen_mirror_request_permission_failed:
-    'Sie haben PlainApp nicht die Erlaubnis zum Aufnehmen von Bildschirmfotos erteilt.',
+  screen_mirror_request_permission_failed: 'Sie haben PlainApp nicht die Erlaubnis zum Aufnehmen von Bildschirmfotos erteilt.',
   screen_mirror_request_permission:
     'Bitte tippen Sie auf "Jetzt starten" auf dem Telefon. \nWenn das Berechtigungsfenster nicht angezeigt wird, starten Sie PlainApp neu. \nVersuchen Sie es in {seconds} Sekunden erneut',
 }

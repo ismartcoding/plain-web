@@ -38,12 +38,7 @@
               <td>{{ item.data.notes }}</td>
               <td>
                 <div class="form-check">
-                  <md-checkbox
-                    touch-target="wrapper"
-                    :disabled="enableLoading"
-                    @change="enable(item)"
-                    :checked="item.data.is_enabled"
-                  />
+                  <md-checkbox touch-target="wrapper" :disabled="enableLoading" @change="enable(item)" :checked="item.data.is_enabled" />
                 </div>
               </td>
               <td class="nowrap">

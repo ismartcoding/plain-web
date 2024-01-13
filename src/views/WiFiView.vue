@@ -2,12 +2,7 @@
   <div class="page-container">
     <div class="main">
       <breadcrumb :current="() => $t('page_title.wifi')" />
-      <edit-toolbar
-        v-model="currentTab"
-        :save="save"
-        :loading="loading"
-        :tabs="['t:basic', '/etc/hostapd/hostapd.conf']"
-      />
+      <edit-toolbar v-model="currentTab" :save="save" :loading="loading" :tabs="['t:basic', '/etc/hostapd/hostapd.conf']" />
       <form v-show="currentTab === 0">
         <div class="row mb-3">
           <label for="is-enabled" class="col-sm-3 col-md-2 col-form-label">{{ t('enable') }}</label>
@@ -30,13 +25,7 @@
           <label for="password" class="col-sm-3 col-md-2 col-form-label">{{ t('password') }}</label>
           <div class="col-sm-4">
             <div class="input-group">
-              <input
-                class="form-control"
-                v-model="password"
-                id="password"
-                @change="updateConfig"
-                :type="showPassword ? 'text' : 'password'"
-              />
+              <input class="form-control" v-model="password" id="password" @change="updateConfig" :type="showPassword ? 'text' : 'password'" />
               <a href="#" @click.prevent="toggleEye" class="input-group-text">
                 <span class="inner">
                   <i-material-symbols:visibility-off-outline-rounded v-show="showPassword" />

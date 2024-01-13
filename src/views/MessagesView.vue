@@ -13,13 +13,7 @@
           <md-outlined-text-field :label="$t('keywords')" v-model="filter.text" keyup.enter="applyAndDoSearch" />
           <label class="form-label">{{ $t('tags') }}</label>
           <md-chip-set>
-            <md-filter-chip
-              v-for="item in tags"
-              :key="item.id"
-              :label="item.name"
-              :selected="filter.tags.includes(item)"
-              @click="onTagSelect(item)"
-            />
+            <md-filter-chip v-for="item in tags" :key="item.id" :label="item.name" :selected="filter.tags.includes(item)" @click="onTagSelect(item)" />
           </md-chip-set>
           <div class="buttons">
             <md-filled-button @click.stop="applyAndDoSearch">
@@ -43,12 +37,7 @@
       <thead>
         <tr>
           <th>
-            <md-checkbox
-              touch-target="wrapper"
-              @change="toggleAllChecked"
-              :checked="allChecked"
-              :indeterminate="!allChecked && checked"
-            />
+            <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
           </th>
           <th>ID</th>
           <th>{{ $t('content') }}</th>
@@ -112,14 +101,7 @@ import { useTempStore } from '@/stores/temp'
 import { useI18n } from 'vue-i18n'
 import { noDataKey } from '@/lib/list'
 import { storeToRefs } from 'pinia'
-import type {
-  IFilter,
-  IItemTagsUpdatedEvent,
-  IItemsTagsUpdatedEvent,
-  IMessage,
-  IMessageItem,
-  ITag,
-} from '@/lib/interfaces'
+import type { IFilter, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IMessage, IMessageItem, ITag } from '@/lib/interfaces'
 import { useAddToTags, useTags } from './hooks/tags'
 import { decodeBase64, encodeBase64 } from '@/lib/strutil'
 import { useSelectable } from './hooks/list'
@@ -163,18 +145,7 @@ const { tags } = useTags(dataType, q, filter, async (fields: IFilterField[]) => 
 })
 const { addToTags } = useAddToTags(dataType, items, tags)
 
-const {
-  allChecked,
-  realAllChecked,
-  selectRealAll,
-  allCheckedAlertVisible,
-  clearSelection,
-  toggleAllChecked,
-  toggleItemChecked,
-  toggleRow,
-  total,
-  checked,
-} = useSelectable(items)
+const { allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleItemChecked, toggleRow, total, checked } = useSelectable(items)
 const { loading, load, refetch } = initLazyQuery({
   handle: (data: any, error: string) => {
     if (error) {

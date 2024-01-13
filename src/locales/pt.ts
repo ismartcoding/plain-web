@@ -1,7 +1,7 @@
 export default {
   app_name: 'PlainApp',
   troubleshoot: 'Solução de problemas',
-  fix_disconnect_tips: "Se a conexão estiver constantemente caindo, tente manter a tela do seu telefone acesa ou conectar o adaptador USB a uma tomada elétrica.",
+  fix_disconnect_tips: 'Se a conexão estiver constantemente caindo, tente manter a tela do seu telefone acesa ou conectar o adaptador USB a uma tomada elétrica.',
   fetch_content_automatically: 'Obter conteúdo automaticamente',
   call: 'Chamada',
   call_phone: 'Chamar por telefone',
@@ -206,8 +206,7 @@ export default {
   remote_port: 'porta remota {port}',
   all_local_networks: 'Todas as redes locais',
   examples_ip: 'Exemplos\n10.10.10.2\n10.10.10.2:80\n10.10.10.2:80,443–453\n[2606:4700:4700::1111]:443–453',
-  examples_net:
-    'Exemplos\n10.10.10.0/24\n10.10.10.0/24:80\n10.10.10.0/24:80,443–453\n[2606:4700:4700::1111/127]:443–453',
+  examples_net: 'Exemplos\n10.10.10.0/24\n10.10.10.0/24:80\n10.10.10.0/24:80,443–453\n[2606:4700:4700::1111/127]:443–453',
   examples_dns: 'Exemplos\nexample.com\nexample.com:80\nexample.com:80,443–453',
   examples_remote_port: 'Exemplos\n1419\n1001–1024',
   route_description: 'Rota de tráfego para {target} via {if_name}',
@@ -328,8 +327,7 @@ export default {
   prefix: 'Prefixo',
   suffix: 'Sufixo',
   browser_warning: 'Sugere-se o uso da versão mais recente do navegador Chrome',
-  no_permission:
-    'Sem permissão. Por favor, vá para APP > "Web no PC" para habilitar as permissões e atualize a página.',
+  no_permission: 'Sem permissão. Por favor, vá para APP > "Web no PC" para habilitar as permissões e atualize a página.',
   no_data: 'Sem dados.',
   loading: 'Carregando...',
   duration: 'Duração',

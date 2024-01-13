@@ -8,11 +8,7 @@
       </button>
     </div>
     <div class="alert-warning" v-if="notifcationPermission !== 'granted'">
-      {{ $t('desktop_notification_permission_not_granted') }}&nbsp;<md-filled-button
-        class="btn-sm"
-        @click.stop="grantPermission"
-        >{{ $t('grant_permission') }}</md-filled-button
-      >
+      {{ $t('desktop_notification_permission_not_granted') }}&nbsp;<md-filled-button class="btn-sm" @click.stop="grantPermission">{{ $t('grant_permission') }}</md-filled-button>
     </div>
     <div class="items-container">
       <section v-if="notifications.length" class="list-items">

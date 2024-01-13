@@ -1,7 +1,7 @@
 export default {
   app_name: 'PlainApp',
   troubleshoot: 'Problemen oplossen',
-  fix_disconnect_tips: "Als de verbinding voortdurend wordt verbroken, probeer dan het scherm van uw telefoon aan te houden of de USB-adapter op een stopcontact aan te sluiten.",
+  fix_disconnect_tips: 'Als de verbinding voortdurend wordt verbroken, probeer dan het scherm van uw telefoon aan te houden of de USB-adapter op een stopcontact aan te sluiten.',
   fetch_content_automatically: 'Inhoud automatisch ophalen',
   call: 'Oproep',
   call_phone: 'Telefoonoproep',
@@ -206,8 +206,7 @@ export default {
   remote_port: 'externe poort {port}',
   all_local_networks: 'Alle lokale netwerken',
   examples_ip: 'Voorbeelden\n10.10.10.2\n10.10.10.2:80\n10.10.10.2:80,443–453\n[2606:4700:4700::1111]:443–453',
-  examples_net:
-    'Voorbeelden\n10.10.10.0/24\n10.10.10.0/24:80\n10.10.10.0/24:80,443–453\n[2606:4700:4700::1111/127]:443–453',
+  examples_net: 'Voorbeelden\n10.10.10.0/24\n10.10.10.0/24:80\n10.10.10.0/24:80,443–453\n[2606:4700:4700::1111/127]:443–453',
   examples_dns: 'Voorbeelden\nexample.com\nexample.com:80\nexample.com:80,443–453',
   examples_remote_port: 'Voorbeelden\n1419\n1001–1024',
   route_description: 'Verkeer naar {target} routeren via {if_name}',
@@ -329,8 +328,7 @@ export default {
   prefix: 'Voorvoegsel',
   suffix: 'Achtervoegsel',
   browser_warning: 'Wij raden aan de nieuwste versie van de Chrome webbrowser te gebruiken.',
-  no_permission:
-    'Geen toestemming. Ga naar APP > "Web op PC" om de toestemmingen in te schakelen en vernieuw de pagina.',
+  no_permission: 'Geen toestemming. Ga naar APP > "Web op PC" om de toestemmingen in te schakelen en vernieuw de pagina.',
   no_data: 'Geen gegevens.',
   loading: 'Laden...',
   duration: 'Duur',
@@ -378,8 +376,7 @@ export default {
   },
   load_failed: 'Laden van {name} mislukt',
   network_error: 'Netwerkfout, kan geen verbinding maken met de API',
-  web_access_disabled:
-    'Webtoegang is momenteel uitgeschakeld. Open alstublieft PlainApp > pictogram rechtsboven 💻 > pagina "Web op pc" en tik op de schakelaar "Inschakelen".',
+  web_access_disabled: 'Webtoegang is momenteel uitgeschakeld. Open alstublieft PlainApp > pictogram rechtsboven 💻 > pagina "Web op pc" en tik op de schakelaar "Inschakelen".',
   play: 'Afspelen',
   add_to_playlist: 'Toevoegen aan afspeellijst',
   added_to_playlist: 'Toegevoegd aan afspeellijst!',

@@ -1,9 +1,6 @@
 <template>
   <div class="chat">
-    <div class="top-title">
-      {{ app?.deviceName ?? $t('my_phone')
-      }}{{ app?.battery ? ' (' + $t('battery_left', { percentage: app?.battery }) + ')' : '' }}
-    </div>
+    <div class="top-title">{{ app?.deviceName ?? $t('my_phone') }}{{ app?.battery ? ' (' + $t('battery_left', { percentage: app?.battery }) + ')' : '' }}</div>
     <div class="chat-items-container" ref="scrollContainer">
       <div>
         <div v-for="(chatItem, index) of chatItems" :key="chatItem.id" class="chat-item">
@@ -11,9 +8,7 @@
           <popper>
             <div class="chat-title">
               <span class="name">{{ $t(chatItem.isMe ? 'me' : 'app_name') }}</span>
-              <span class="time" v-tooltip="formatDateTimeFull(chatItem.createdAt)">{{
-                formatTime(chatItem.createdAt)
-              }}</span>
+              <span class="time" v-tooltip="formatDateTimeFull(chatItem.createdAt)">{{ formatTime(chatItem.createdAt) }}</span>
               <span class="sending" v-if="chatItem.id.startsWith('new_')">{{ $t('sending') }}</span>
               <i-material-symbols:expand-more-rounded class="bi bi-more" />
             </div>
@@ -73,14 +68,7 @@
       </div>
     </div>
     <input ref="fileInput" style="display: none" type="file" multiple @change="uploadFilesChanged" />
-    <input
-      ref="imageInput"
-      style="display: none"
-      type="file"
-      accept="image/*, video/*"
-      multiple
-      @change="uploadImagesChanged"
-    />
+    <input ref="imageInput" style="display: none" type="file" accept="image/*, video/*" multiple @change="uploadImagesChanged" />
   </div>
 </template>
 

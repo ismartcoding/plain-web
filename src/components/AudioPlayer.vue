@@ -24,13 +24,7 @@
       </button>
     </div>
     <section class="list-items">
-      <div
-        v-for="item in audios"
-        class="item"
-        :key="item.path"
-        @click.stop="playItem(item)"
-        :class="{ selected: item.path === current?.path }"
-      >
+      <div v-for="item in audios" class="item" :key="item.path" @click.stop="playItem(item)" :class="{ selected: item.path === current?.path }">
         <md-ripple />
         <div class="title">{{ item.title }}</div>
         <div class="subtitle">{{ item.artist }} {{ formatSeconds(item.duration) }}</div>
@@ -50,13 +44,7 @@ import { storeToRefs } from 'pinia'
 import type { IPlaylistAudio } from '@/lib/interfaces'
 import { getFileUrlByPath } from '@/lib/api/file'
 import { formatSeconds } from '@/lib/format'
-import {
-  initMutation,
-  playAudioGQL,
-  updateAudioPlayModeGQL,
-  deletePlaylistAudioGQL,
-  clearAudioPlaylistGQL,
-} from '@/lib/api/mutation'
+import { initMutation, playAudioGQL, updateAudioPlayModeGQL, deletePlaylistAudioGQL, clearAudioPlaylistGQL } from '@/lib/api/mutation'
 import { sample, remove } from 'lodash-es'
 import emitter from '@/plugins/eventbus'
 

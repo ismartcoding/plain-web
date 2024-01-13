@@ -8,11 +8,7 @@
           <i-material-symbols:download-rounded />
         </button>
       </template>
-      <label class="form-check-label">
-        <md-checkbox touch-target="wrapper" @change="toggleSelectModeChecked" :checked="selectMode" />{{
-          $t('select_mode')
-        }}
-      </label>
+      <label class="form-check-label"> <md-checkbox touch-target="wrapper" @change="toggleSelectModeChecked" :checked="selectMode" />{{ $t('select_mode') }} </label>
     </div>
   </div>
   <div class="panel-container">
@@ -28,12 +24,7 @@
           @contextmenu="itemCtxMenu($event, f)"
         >
           <md-checkbox touch-target="wrapper" v-if="selectMode" :checked="f.checked" />
-          <img
-            v-if="isImage(f.name) || isVideo(f.name)"
-            :src="getFileUrl(f.fileId) + '&w=50&h=50'"
-            width="50"
-            height="50"
-          />
+          <img v-if="isImage(f.name) || isVideo(f.name)" :src="getFileUrl(f.fileId) + '&w=50&h=50'" width="50" height="50" />
           <div class="title">
             {{ f.name }}
             <div style="font-size: 0.75rem">

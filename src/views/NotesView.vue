@@ -18,13 +18,7 @@
           <md-outlined-text-field :label="$t('keywords')" v-model="filter.text" keyup.enter="applyAndDoSearch" />
           <label class="form-label">{{ $t('tags') }}</label>
           <md-chip-set>
-            <md-filter-chip
-              v-for="item in tags"
-              :key="item.id"
-              :label="item.name"
-              :selected="filter.tags.includes(item)"
-              @click="onTagSelect(item)"
-            />
+            <md-filter-chip v-for="item in tags" :key="item.id" :label="item.name" :selected="filter.tags.includes(item)" @click="onTagSelect(item)" />
           </md-chip-set>
           <div class="buttons">
             <md-filled-button @click.stop="applyAndDoSearch">
@@ -48,12 +42,7 @@
       <thead>
         <tr>
           <th>
-            <md-checkbox
-              touch-target="wrapper"
-              @change="toggleAllChecked"
-              :checked="allChecked"
-              :indeterminate="!allChecked && checked"
-            />
+            <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
           </th>
           <th>{{ $t('title') }}</th>
           <th></th>
@@ -66,17 +55,11 @@
         <tr v-for="item in items" :key="item.id" :class="{ selected: item.checked }" @click.stop="toggleRow(item)">
           <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
           <td style="min-width: 200px">
-            <a style="text-overflow: clip" href="#" @click.stop.prevent="view(item)">{{
-              item.title.split('\n')[0].trimStart() || $t('meta_no_title')
-            }}</a>
+            <a style="text-overflow: clip" href="#" @click.stop.prevent="view(item)">{{ item.title.split('\n')[0].trimStart() || $t('meta_no_title') }}</a>
           </td>
           <td class="nowrap">
             <div class="action-btns">
-              <button
-                class="icon-button"
-                @click.stop="trashNotes({ query: `ids:${item.id}` })"
-                v-tooltip="$t('move_to_trash')"
-              >
+              <button class="icon-button" @click.stop="trashNotes({ query: `ids:${item.id}` })" v-tooltip="$t('move_to_trash')">
                 <md-ripple />
                 <i-material-symbols:delete-outline-rounded />
               </button>
@@ -120,15 +103,7 @@ import { useRoute } from 'vue-router'
 import router, { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useI18n } from 'vue-i18n'
-import type {
-  INote,
-  IFilter,
-  INoteItem,
-  ISelectable,
-  ITag,
-  IItemTagsUpdatedEvent,
-  IItemsTagsUpdatedEvent,
-} from '@/lib/interfaces'
+import type { INote, IFilter, INoteItem, ISelectable, ITag, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent } from '@/lib/interfaces'
 import { buildFilterQuery, buildQuery, type IFilterField } from '@/lib/search'
 import { decodeBase64, encodeBase64 } from '@/lib/strutil'
 import { noDataKey } from '@/lib/list'
@@ -170,18 +145,7 @@ const { tags } = useTags(dataType, q, filter, async (fields: IFilterField[]) => 
 })
 const { addToTags } = useAddToTags(dataType, items, tags)
 
-const {
-  allChecked,
-  realAllChecked,
-  selectRealAll,
-  allCheckedAlertVisible,
-  clearSelection,
-  toggleAllChecked,
-  toggleItemChecked,
-  toggleRow,
-  total,
-  checked,
-} = useSelectable(items)
+const { allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleItemChecked, toggleRow, total, checked } = useSelectable(items)
 const { loading, load, refetch } = initLazyQuery({
   handle: (data: any, error: string) => {
     if (error) {

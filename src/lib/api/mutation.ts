@@ -1,15 +1,7 @@
 import type { ApolloCache, DocumentNode } from '@apollo/client/core'
 import gql from 'graphql-tag'
 import { useMutation } from '@vue/apollo-composable'
-import {
-  chatItemFragment,
-  feedEntryFragment,
-  feedFragment,
-  fileFragment,
-  noteFragment,
-  playlistAudioFragment,
-  tagFragment,
-} from './fragments'
+import { chatItemFragment, feedEntryFragment, feedFragment, fileFragment, noteFragment, playlistAudioFragment, tagFragment } from './fragments'
 import { logErrorMessages } from '@vue/apollo-util'
 import emitter from '@/plugins/eventbus'
 
@@ -38,13 +30,7 @@ export function initMutation(params: InitMutationParams, handleError = true) {
   return r
 }
 
-export function insertCache(
-  cache: ApolloCache<any>,
-  data: any,
-  query: DocumentNode,
-  variables?: any,
-  reversed: boolean = false
-) {
+export function insertCache(cache: ApolloCache<any>, data: any, query: DocumentNode, variables?: any, reversed: boolean = false) {
   const q: any = cache.readQuery({ query, variables })
   const key = Object.keys(q)[0]
   const obj: Record<string, any> = {}

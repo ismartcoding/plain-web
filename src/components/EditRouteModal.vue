@@ -13,12 +13,7 @@
             </option>
           </select>
           <div class="input-group mt-2" v-if="Target.hasInput(targetType)">
-            <input
-              type="text"
-              class="form-control"
-              v-model="targetValue"
-              :placeholder="$t('for_example') + ' ' + Target.hint(targetType)"
-            />
+            <input type="text" class="form-control" v-model="targetValue" :placeholder="$t('for_example') + ' ' + Target.hint(targetType)" />
             <popper class="input-group-text">
               <span class="inner">
                 <i-material-symbols:question-mark-rounded />
@@ -43,11 +38,7 @@
         <label class="col-md-3 col-form-label">{{ t('route_via') }}</label>
         <div class="col-md-9">
           <select class="form-select" v-model="editItem.if_name">
-            <option
-              v-for="item of networks?.filter((it: any) => ['wan', 'vpn'].includes(it.type))"
-              :key="item.ifName"
-              :value="item.ifName"
-            >
+            <option v-for="item of networks?.filter((it: any) => ['wan', 'vpn'].includes(it.type))" :key="item.ifName" :value="item.ifName">
               {{ item.name }}
             </option>
           </select>
@@ -58,11 +49,7 @@
         <div class="col-md-9">
           <select class="form-select" v-model="editItem.apply_to">
             <option value="all">{{ $t('all_devices') }}</option>
-            <option
-              v-for="item of networks?.filter((it: any) => !['wan', 'vpn'].includes(it.type))"
-              :key="item.ifName"
-              :value="'iface:' + item.ifName"
-            >
+            <option v-for="item of networks?.filter((it: any) => !['wan', 'vpn'].includes(it.type))" :key="item.ifName" :value="'iface:' + item.ifName">
               {{ item.name }}
             </option>
             <option v-for="item of devices" :value="'mac:' + item.mac">
@@ -108,9 +95,7 @@ const editItem = reactive({
 })
 
 const targetType = ref(TargetType.INTERNET)
-const targetTypes = Object.values(TargetType).filter((it) =>
-  [TargetType.IP, TargetType.NET, TargetType.REMOTE_PORT, TargetType.INTERNET].includes(it)
-)
+const targetTypes = Object.values(TargetType).filter((it) => [TargetType.IP, TargetType.NET, TargetType.REMOTE_PORT, TargetType.INTERNET].includes(it))
 
 const { t } = useI18n()
 

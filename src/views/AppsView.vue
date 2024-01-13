@@ -39,12 +39,7 @@
       <thead>
         <tr>
           <th>
-            <md-checkbox
-              touch-target="wrapper"
-              @change="toggleAllChecked"
-              :checked="allChecked"
-              :indeterminate="!allChecked && checked"
-            />
+            <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
           </th>
           <th></th>
           <th>{{ $t('name') }}</th>
@@ -65,21 +60,12 @@
           </td>
           <td class="nowrap">
             <div class="action-btns">
-              <md-circular-progress
-                indeterminate
-                class="spinner-sm"
-                v-if="item.isUninstalling"
-                v-tooltip="$t('uninstalling')"
-              />
+              <md-circular-progress indeterminate class="spinner-sm" v-if="item.isUninstalling" v-tooltip="$t('uninstalling')" />
               <button class="icon-button" v-else @click.stop="uninstall(item)" v-tooltip="$t('uninstall')">
                 <md-ripple />
                 <i-material-symbols:delete-forever-outline-rounded />
               </button>
-              <button
-                class="icon-button"
-                @click.stop="downloadFile(item.path, `${item.name.replace(' ', '')}-${item.id}.apk`)"
-                v-tooltip="$t('download')"
-              >
+              <button class="icon-button" @click.stop="downloadFile(item.path, `${item.name.replace(' ', '')}-${item.id}.apk`)" v-tooltip="$t('download')">
                 <md-ripple />
                 <i-material-symbols:download-rounded />
               </button>
@@ -147,18 +133,7 @@ const filter: IFilter = reactive({
   tags: [],
 })
 
-const {
-  allChecked,
-  realAllChecked,
-  selectRealAll,
-  allCheckedAlertVisible,
-  clearSelection,
-  toggleAllChecked,
-  toggleItemChecked,
-  toggleRow,
-  total,
-  checked,
-} = useSelectable(items)
+const { allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleItemChecked, toggleRow, total, checked } = useSelectable(items)
 const { downloadItems } = useDownloadItems(urlTokenKey, DataType.PACKAGE, items, clearSelection, 'apps.zip')
 const { downloadFile } = useDownload(urlTokenKey)
 const route = useRoute()

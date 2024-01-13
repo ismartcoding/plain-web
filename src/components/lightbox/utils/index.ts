@@ -17,20 +17,11 @@ try {
   voidFn()
 }
 
-export const on = (
-  target: Element | Document | Window,
-  event: string,
-  handler: EventListenerOrEventListenerObject,
-  passive = false
-) => {
+export const on = (target: Element | Document | Window, event: string, handler: EventListenerOrEventListenerObject, passive = false) => {
   target.addEventListener(event, handler, supportsPassive ? { capture: false, passive } : false)
 }
 
-export const off = (
-  target: Element | Document | Window,
-  event: string,
-  handler: EventListenerOrEventListenerObject
-) => {
+export const off = (target: Element | Document | Window, event: string, handler: EventListenerOrEventListenerObject) => {
   target.removeEventListener(event, handler)
 }
 

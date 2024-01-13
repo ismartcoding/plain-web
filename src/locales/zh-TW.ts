@@ -1,7 +1,7 @@
 export default {
   app_name: '簡樸',
   troubleshoot: '故障排除',
-  fix_disconnect_tips: "如果連線频繁斷開，請嘗試保持手機螢幕亮起或將 USB 適配器插入電源插座。",
+  fix_disconnect_tips: '如果連線频繁斷開，請嘗試保持手機螢幕亮起或將 USB 適配器插入電源插座。',
   fetch_content_automatically: '自動拉取正文內容',
   call: '呼叫',
   call_phone: '打電話',
@@ -59,8 +59,7 @@ export default {
   grant_permission: '授權',
   desktop_notification_permission_not_granted: '未授予桌面通知權限。',
   desktop_notification_permission_grant_title: '授予桌面通知權限',
-  desktop_notification_permission_grant_message:
-    '1. 點擊地址欄中的掛鎖圖標。\n2. 打開“站點設置”或“權限”。\n3. 找到“通知”並將其更改為“允許”。',
+  desktop_notification_permission_grant_message: '1. 點擊地址欄中的掛鎖圖標。\n2. 打開“站點設置”或“權限”。\n3. 找到“通知”並將其更改為“允許”。',
   sort: '排序',
   sort_by: {
     date_asc: '最舊日期優先',
@@ -472,6 +471,5 @@ export default {
   select_all_items: '選擇所有{count}項',
   clear_selection: '清除選擇',
   screen_mirror_request_permission_failed: '您還沒有授權簡樸截屏的權限。',
-  screen_mirror_request_permission:
-    '請在手機上點擊“現在開始”按鈕。\n如果權限窗口未顯示，請重新啟動簡樸。\n請在{seconds}秒後再試。',
+  screen_mirror_request_permission: '請在手機上點擊“現在開始”按鈕。\n如果權限窗口未顯示，請重新啟動簡樸。\n請在{seconds}秒後再試。',
 }

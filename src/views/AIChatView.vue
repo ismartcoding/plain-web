@@ -9,9 +9,7 @@
               <popper v-if="index > 0">
                 <div class="chat-title">
                   <span class="name">{{ $t(item.isMe ? 'me' : 'ai') }}</span>
-                  <span class="time" v-tooltip="formatDateTimeFull(item.createdAt)">{{
-                    formatTime(item.createdAt)
-                  }}</span>
+                  <span class="time" v-tooltip="formatDateTimeFull(item.createdAt)">{{ formatTime(item.createdAt) }}</span>
                   <i-material-symbols:expand-more-rounded class="bi bi-more" />
                 </div>
                 <template #content>
@@ -24,9 +22,7 @@
               </popper>
               <div v-else class="chat-title">
                 <span class="name">{{ $t(item.isMe ? 'me' : 'ai') }}</span>
-                <span class="time" v-tooltip="formatDateTimeFull(item.createdAt)">{{
-                  formatTime(item.createdAt)
-                }}</span>
+                <span class="time" v-tooltip="formatDateTimeFull(item.createdAt)">{{ formatTime(item.createdAt) }}</span>
               </div>
               <div class="chat-content md-container" v-html="item.md"></div>
             </div>

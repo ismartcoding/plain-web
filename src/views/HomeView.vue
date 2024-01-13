@@ -7,9 +7,7 @@
             <div class="card-body">
               <h5 class="card-title">
                 {{ $t('storage')
-                }}<span class="total-bytes" v-if="totalBytes >= 0">{{
-  $t('storage_free_total', { free: formatFileSize(freeBytes), total: formatFileSize(totalBytes) })
-}}</span>
+                }}<span class="total-bytes" v-if="totalBytes >= 0">{{ $t('storage_free_total', { free: formatFileSize(freeBytes), total: formatFileSize(totalBytes) }) }}</span>
               </h5>
               <p class="stats-items">
                 <a href="#" @click.prevent="openTab('/images')"> {{ $t('images') }}</a>
@@ -39,12 +37,15 @@
             <div class="card-body">
               <h5 class="card-title">{{ $t('social') }}</h5>
               <p class="stats-items">
-                <a href="#" @click.prevent="openTab('/messages')" v-if="app.channel !== 'GOOGLE'">{{ $t('messages')
-                }}<template v-if="messageCount >= 0">({{ messageCount }})</template></a>
-                <a href="#" @click.prevent="openTab('/contacts')">{{ $t('contacts') }}<template
-                    v-if="contactCount >= 0">({{ contactCount }})</template></a>
-                <a href="#" @click.prevent="openTab('/calls')" v-if="app.channel !== 'GOOGLE'">{{ $t('calls')
-                }}<template v-if="callCount >= 0">({{ callCount }})</template></a>
+                <a href="#" @click.prevent="openTab('/messages')" v-if="app.channel !== 'GOOGLE'"
+                  >{{ $t('messages') }}<template v-if="messageCount >= 0">({{ messageCount }})</template></a
+                >
+                <a href="#" @click.prevent="openTab('/contacts')"
+                  >{{ $t('contacts') }}<template v-if="contactCount >= 0">({{ contactCount }})</template></a
+                >
+                <a href="#" @click.prevent="openTab('/calls')" v-if="app.channel !== 'GOOGLE'"
+                  >{{ $t('calls') }}<template v-if="callCount >= 0">({{ callCount }})</template></a
+                >
               </p>
             </div>
           </section>
@@ -67,8 +68,14 @@
             <div class="card-body">
               <h5 class="card-title">{{ $t('call_phone') }}</h5>
               <p class="form-row">
-                <md-outlined-text-field type="tel" :label="$t('phone_number')" class="form-control flex-3"
-                  v-model="callNumber" :error="callNumberError" :error-text="$t('valid.required')">
+                <md-outlined-text-field
+                  type="tel"
+                  :label="$t('phone_number')"
+                  class="form-control flex-3"
+                  v-model="callNumber"
+                  :error="callNumberError"
+                  :error-text="$t('valid.required')"
+                >
                   <button class="icon-button" slot="trailing-icon" @click.prevent="pastePhoneNumber">
                     <md-ripple />
                     <i-material-symbols:content-paste-rounded />
@@ -176,7 +183,7 @@ function openTab(fullPath: string) {
 .stats-items {
   font-size: 1.2rem;
 
-  a+a {
+  a + a {
     margin-left: 24px;
   }
 }

@@ -1,7 +1,7 @@
 export default {
   app_name: 'PlainApp',
   troubleshoot: 'Solución de problemas',
-  fix_disconnect_tips: "Si la conexión se interrumpe constantemente, intente mantener la pantalla del teléfono encendida o conectar el adaptador USB a una toma de corriente.",
+  fix_disconnect_tips: 'Si la conexión se interrumpe constantemente, intente mantener la pantalla del teléfono encendida o conectar el adaptador USB a una toma de corriente.',
   fetch_content_automatically: 'Obtener contenido automáticamente',
   call: 'Llamada',
   call_phone: 'Llamar por teléfono',
@@ -206,8 +206,7 @@ export default {
   remote_port: 'puerto remoto {port}',
   all_local_networks: 'Todas las redes locales',
   examples_ip: 'Ejemplos\n10.10.10.2\n10.10.10.2:80\n10.10.10.2:80,443–453\n[2606:4700:4700::1111]:443–453',
-  examples_net:
-    'Ejemplos\n10.10.10.0/24\n10.10.10.0/24:80\n10.10.10.0/24:80,443–453\n[2606:4700:4700::1111/127]:443–453',
+  examples_net: 'Ejemplos\n10.10.10.0/24\n10.10.10.0/24:80\n10.10.10.0/24:80,443–453\n[2606:4700:4700::1111/127]:443–453',
   examples_dns: 'Ejemplos\nejemplo.com\nejemplo.com:80\nejemplo.com:80,443–453',
   examples_remote_port: 'Ejemplos\n1419\n1001–1024',
   route_description: 'Enrutamiento de tráfico a {target} a través de {if_name}',

@@ -111,12 +111,7 @@ export const useStats = () => {
   return { internal, sdcard, usb, refetch }
 }
 
-export const useFiles = (
-  urlTokenKey: Ref<sjcl.BitArray | null>,
-  rootDir: string,
-  initDir: string,
-  sortBy: Ref<string>
-) => {
+export const useFiles = (urlTokenKey: Ref<sjcl.BitArray | null>, rootDir: string, initDir: string, sortBy: Ref<string>) => {
   const currentDir = ref(rootDir)
   const _refetchDir = ref('')
 
@@ -326,19 +321,12 @@ export const useSingleSelect = (currentDir: Ref<string>, filesType: string, q: R
       q.value = buildQuery(fileds)
       selectedItem.value = item
 
-      replacePathNoReload(
-        mainStore,
-        filesType ? `/files/${filesType}?q=${encodeBase64(q.value)}` : `/files?q=${encodeBase64(q.value)}`
-      )
+      replacePathNoReload(mainStore, filesType ? `/files/${filesType}?q=${encodeBase64(q.value)}` : `/files?q=${encodeBase64(q.value)}`)
     },
   }
 }
 
-export const useCopyPaste = (
-  selectedFiles: Ref<IFile[]>,
-  refetchFiles: (path: string) => void,
-  refetchStats: () => void
-) => {
+export const useCopyPaste = (selectedFiles: Ref<IFile[]>, refetchFiles: (path: string) => void, refetchStats: () => void) => {
   const isCut = ref(false)
   const dstDir = ref<string>()
 
@@ -485,13 +473,7 @@ export const useChatFilesUpload = () => {
   }
 }
 
-export const useDownloadItems = (
-  urlTokenKey: Ref<sjcl.BitArray | null>,
-  type: string,
-  items: Ref<ISelectable[]>,
-  clearSelection: () => void,
-  fileName: string
-) => {
+export const useDownloadItems = (urlTokenKey: Ref<sjcl.BitArray | null>, type: string, items: Ref<ISelectable[]>, clearSelection: () => void, fileName: string) => {
   const { t } = useI18n()
 
   return {

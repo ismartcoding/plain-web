@@ -1,14 +1,7 @@
 <template>
   <Teleport to="body">
     <div class="toast-container" v-if="isActive">
-      <div
-        ref="root"
-        :class="['v-toast', type]"
-        @mouseover="toggleTimer(true)"
-        @mouseleave="toggleTimer(false)"
-        @click="click"
-        role="alert"
-      >
+      <div ref="root" :class="['v-toast', type]" @mouseover="toggleTimer(true)" @mouseleave="toggleTimer(false)" @click="click" role="alert">
         {{ message }}
       </div>
     </div>

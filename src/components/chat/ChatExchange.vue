@@ -32,8 +32,7 @@ const props = defineProps({
 
 const rates = computed(() => {
   const selected = props.data?._content?.value?.selected ?? []
-  const rates =
-    result?.value?.latestExchangeRates?.rates?.filter((it: { k: string }) => selected.indexOf(it.k) !== -1) ?? []
+  const rates = result?.value?.latestExchangeRates?.rates?.filter((it: { k: string }) => selected.indexOf(it.k) !== -1) ?? []
 
   const items: any[] = []
   for (const k of selected) {

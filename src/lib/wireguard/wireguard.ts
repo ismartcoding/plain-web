@@ -140,20 +140,8 @@ function generatePrivateKey() {
 }
 
 function encodeBase64(dest: Uint8Array | number[], src: Uint8Array | number[]) {
-  const input = Uint8Array.from([
-    (src[0] >> 2) & 63,
-    ((src[0] << 4) | (src[1] >> 4)) & 63,
-    ((src[1] << 2) | (src[2] >> 6)) & 63,
-    src[2] & 63,
-  ])
-  for (let i = 0; i < 4; ++i)
-    dest[i] =
-      input[i] +
-      65 +
-      (((25 - input[i]) >> 8) & 6) -
-      (((51 - input[i]) >> 8) & 75) -
-      (((61 - input[i]) >> 8) & 15) +
-      (((62 - input[i]) >> 8) & 3)
+  const input = Uint8Array.from([(src[0] >> 2) & 63, ((src[0] << 4) | (src[1] >> 4)) & 63, ((src[1] << 2) | (src[2] >> 6)) & 63, src[2] & 63])
+  for (let i = 0; i < 4; ++i) dest[i] = input[i] + 65 + (((25 - input[i]) >> 8) & 6) - (((51 - input[i]) >> 8) & 75) - (((61 - input[i]) >> 8) & 15) + (((62 - input[i]) >> 8) & 3)
 }
 
 function keyToBase64(key: any) {

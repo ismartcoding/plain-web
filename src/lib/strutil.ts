@@ -11,10 +11,7 @@ export const randomUUID = () => {
   const uuid = toHex(b).toLowerCase()
 
   // Return the string created by extracting substrings from the given result
-  return `${uuid.substring(0, 8)}-${uuid.substring(8, 12)}-${uuid.substring(12, 16)}-${uuid.substring(
-    16,
-    20
-  )}-${uuid.substring(20)}`
+  return `${uuid.substring(0, 8)}-${uuid.substring(8, 12)}-${uuid.substring(12, 16)}-${uuid.substring(16, 20)}-${uuid.substring(20)}`
 }
 
 export const shortUUID = () => {

@@ -1,9 +1,4 @@
-import {
-  isDomainWithOptionalPort,
-  isIPWithOptionalPort,
-  isNetWithOptionalPort,
-  isPortOrPortRangeMultiple,
-} from './validator'
+import { isDomainWithOptionalPort, isIPWithOptionalPort, isNetWithOptionalPort, isPortOrPortRangeMultiple } from './validator'
 
 export enum TargetType {
   IP = 'ip',

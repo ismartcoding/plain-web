@@ -1,16 +1,6 @@
 import { ApolloLink } from '@apollo/client/link/core'
-import {
-  createSignalIfSupported,
-  parseAndCheckHttpResponse,
-  selectURI,
-  serializeFetchParameter,
-} from '@apollo/client/link/http'
-import {
-  selectHttpOptionsAndBodyInternal,
-  defaultPrinter,
-  fallbackHttpConfig,
-  type HttpOptions,
-} from '@apollo/client/link/http/selectHttpOptionsAndBody'
+import { createSignalIfSupported, parseAndCheckHttpResponse, selectURI, serializeFetchParameter } from '@apollo/client/link/http'
+import { selectHttpOptionsAndBodyInternal, defaultPrinter, fallbackHttpConfig, type HttpOptions } from '@apollo/client/link/http/selectHttpOptionsAndBody'
 import { fromError } from '@apollo/client/link/utils'
 import { Observable } from '@apollo/client/utilities'
 import { visit, type VariableDefinitionNode } from 'graphql'
@@ -19,13 +9,7 @@ import { aesEncrypt, aesDecrypt, arrayBufferToBitArray, bitArrayToUint8Array } f
 import { tokenToKey } from './file'
 
 export const createHttpLink = (linkOptions: HttpOptions = {}) => {
-  const {
-    uri = `${getApiBaseUrl()}/graphql`,
-    print = defaultPrinter,
-    includeExtensions,
-    headers,
-    includeUnusedVariables = false,
-  } = linkOptions
+  const { uri = `${getApiBaseUrl()}/graphql`, print = defaultPrinter, includeExtensions, headers, includeUnusedVariables = false } = linkOptions
 
   return new ApolloLink((operation) => {
     const chosenURI = selectURI(operation, uri)
@@ -92,10 +76,7 @@ export const createHttpLink = (linkOptions: HttpOptions = {}) => {
         const key = tokenToKey(token)
         ;(options as any).body = bitArrayToUint8Array(aesEncrypt(key, json))
         const encryptTime = performance.now()
-        Promise.race([
-          fetch(chosenURI, options),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('connection_timeout')), 10000)),
-        ])
+        Promise.race([fetch(chosenURI, options), new Promise((_, reject) => setTimeout(() => reject(new Error('connection_timeout')), 10000))])
           .then(async (response: any) => {
             if (response.status === 403) {
             } else if (response.status === 401) {
@@ -107,11 +88,7 @@ export const createHttpLink = (linkOptions: HttpOptions = {}) => {
               const r = aesDecrypt(key, arrayBufferToBitArray(text))
               const decryptEndTime = performance.now()
               console.info(`[response] ${r}`)
-              console.info(
-                `[time] encrypt: ${encryptTime - startTime}ms, api: ${apiEndTime - encryptTime}ms, decrypt: ${
-                  decryptEndTime - apiEndTime
-                }ms`
-              )
+              console.info(`[time] encrypt: ${encryptTime - startTime}ms, api: ${apiEndTime - encryptTime}ms, decrypt: ${decryptEndTime - apiEndTime}ms`)
               response.text = async () => r
             }
 

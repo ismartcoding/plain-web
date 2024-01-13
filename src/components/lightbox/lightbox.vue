@@ -14,12 +14,7 @@
               </div>
 
               <template v-if="isImage(current.name)">
-                <button
-                  class="icon-button"
-                  v-if="!current.viewOriginImage"
-                  @click="viewOrigin"
-                  v-tooltip="$t('view_origin_image')"
-                >
+                <button class="icon-button" v-if="!current.viewOriginImage" @click="viewOrigin" v-tooltip="$t('view_origin_image')">
                   <md-ripple />
                   <i-material-symbols:image-outline-rounded />
                 </button>
@@ -55,20 +50,10 @@
               </button>
             </header>
             <section class="content" @click.self="closeDialog">
-              <div
-                v-if="tempStore.lightbox.sources.length > 1 && (loop || imgIndex > 0)"
-                class="btn-prev"
-                @click="onPrev"
-              >
+              <div v-if="tempStore.lightbox.sources.length > 1 && (loop || imgIndex > 0)" class="btn-prev" @click="onPrev">
                 <i-material-symbols:chevron-left-rounded />
               </div>
-              <div
-                v-if="
-                  tempStore.lightbox.sources.length > 1 && (loop || imgIndex < tempStore.lightbox.sources.length - 1)
-                "
-                class="btn-next"
-                @click="onNext"
-              >
+              <div v-if="tempStore.lightbox.sources.length > 1 && (loop || imgIndex < tempStore.lightbox.sources.length - 1)" class="btn-next" @click="onNext">
                 <i-material-symbols:chevron-right-rounded />
               </div>
               <div v-if="status.loading" class="loading">
@@ -77,39 +62,15 @@
               <div v-else-if="status.loadError" class="v-on-error">
                 {{ $t('load_failed', { name: current?.name }) }}
               </div>
-              <div
-                v-if="current && isVideo(current.name)"
-                v-show="!status.loading && !status.loadError"
-                class="v-video-wrapper"
-                @click.self="closeDialog"
-              >
-                <video
-                  ref="video"
-                  controls
-                  autoplay="true"
-                  :src="current.src"
-                  @error="onError"
-                  @canplay="onLoad"
-                  @playing="onPlaying"
-                  @pause="onPause"
-                />
+              <div v-if="current && isVideo(current.name)" v-show="!status.loading && !status.loadError" class="v-video-wrapper" @click.self="closeDialog">
+                <video ref="video" controls autoplay="true" :src="current.src" @error="onError" @canplay="onLoad" @playing="onPlaying" @pause="onPause" />
               </div>
-              <div
-                v-else-if="current && isAudio(current.name)"
-                v-show="!status.loading && !status.loadError"
-                class="v-audio-wrapper"
-                @click.self="closeDialog"
-              >
+              <div v-else-if="current && isAudio(current.name)" v-show="!status.loading && !status.loadError" class="v-audio-wrapper" @click.self="closeDialog">
                 <div style="padding: 50px">
                   <audio controls autoplay="true" :src="current.src" @error="onError" @canplay="onLoad" />
                 </div>
               </div>
-              <div
-                v-else-if="current && isImage(current.name)"
-                v-show="!status.loading && !status.loadError"
-                class="v-img-wrapper"
-                :style="imgWrapperStyle"
-              >
+              <div v-else-if="current && isImage(current.name)" v-show="!status.loading && !status.loadError" class="v-img-wrapper" :style="imgWrapperStyle">
                 <img
                   ref="imgRef"
                   draggable="false"
@@ -139,11 +100,7 @@
                   <md-ripple />
                   <i-material-symbols:delete-forever-outline-rounded />
                 </button>
-                <button
-                  class="icon-button"
-                  @click.stop="downloadFile(current?.path ?? '', getFileName(current?.path ?? '').replace(' ', '-'))"
-                  v-tooltip="$t('download')"
-                >
+                <button class="icon-button" @click.stop="downloadFile(current?.path ?? '', getFileName(current?.path ?? '').replace(' ', '-'))" v-tooltip="$t('download')">
                   <md-ripple />
                   <i-material-symbols:download-rounded />
                 </button>
@@ -159,9 +116,7 @@
                 <div class="item" v-if="fileInfo?.updatedAt">
                   <div class="title">{{ $t('updated_at') }}</div>
                   <div class="subtitle">
-                    <span v-tooltip="formatDateTimeFull(fileInfo.updatedAt)">{{
-                      formatDateTime(fileInfo.updatedAt)
-                    }}</span>
+                    <span v-tooltip="formatDateTimeFull(fileInfo.updatedAt)">{{ formatDateTime(fileInfo.updatedAt) }}</span>
                   </div>
                 </div>
                 <div class="item" v-if="current && (isAudio(current?.name) || isVideo(current?.name))">

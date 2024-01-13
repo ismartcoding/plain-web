@@ -24,13 +24,7 @@
           <md-outlined-text-field :label="$t('keywords')" v-model="filter.text" keyup.enter="applyAndDoSearch" />
           <label class="form-label">{{ $t('tags') }}</label>
           <md-chip-set>
-            <md-filter-chip
-              v-for="item in tags"
-              :key="item.id"
-              :label="item.name"
-              :selected="filter.tags.includes(item)"
-              @click="onTagSelect(item)"
-            />
+            <md-filter-chip v-for="item in tags" :key="item.id" :label="item.name" :selected="filter.tags.includes(item)" @click="onTagSelect(item)" />
           </md-chip-set>
           <div class="buttons">
             <md-filled-button @click.stop="applyAndDoSearch">
@@ -54,12 +48,7 @@
       <thead>
         <tr>
           <th>
-            <md-checkbox
-              touch-target="wrapper"
-              @change="toggleAllChecked"
-              :checked="allChecked"
-              :indeterminate="!allChecked && checked"
-            />
+            <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
           </th>
           <th>ID</th>
           <th>{{ $t('avatar') }}</th>
@@ -84,36 +73,17 @@
               <li class="v-center" v-for="(it, index) in item.phoneNumbers" :key="index">
                 {{ it.type > 0 ? $t(`contact.phone_number_type.${it.type}`) : it.label }}
                 {{ it.normalizedNumber || it.value }}
-                <md-circular-progress
-                  indeterminate
-                  class="spinner-sm"
-                  v-if="callLoading && callId === item.id && callIndex === index"
-                />
-                <button
-                  class="icon-button"
-                  v-else
-                  @click.stop="call(item.id, it.normalizedNumber || it.value, index)"
-                  v-tooltip="$t('make_a_phone_call')"
-                >
+                <md-circular-progress indeterminate class="spinner-sm" v-if="callLoading && callId === item.id && callIndex === index" />
+                <button class="icon-button" v-else @click.stop="call(item.id, it.normalizedNumber || it.value, index)" v-tooltip="$t('make_a_phone_call')">
                   <md-ripple />
                   <i-material-symbols:call-outline-rounded />
                 </button>
               </li>
-              <li v-for="it in item.emails">
-                {{ it.type > 0 ? $t(`contact.email_type.${it.type}`) : it.label }} {{ it.value }}
-              </li>
-              <li v-for="it in item.addresses">
-                {{ it.type > 0 ? $t(`contact.address_type.${it.type}`) : it.label }} {{ it.value }}
-              </li>
-              <li v-for="it in item.websites">
-                {{ it.type > 0 ? $t(`contact.website_type.${it.type}`) : it.label }} {{ it.value }}
-              </li>
-              <li v-for="it in item.ims">
-                {{ it.type > 0 ? $t(`contact.im_type.${it.type}`) : it.label }} {{ it.value }}
-              </li>
-              <li v-for="it in item.events">
-                {{ it.type > 0 ? $t(`contact.event_type.${it.type}`) : it.label }} {{ it.value }}
-              </li>
+              <li v-for="it in item.emails">{{ it.type > 0 ? $t(`contact.email_type.${it.type}`) : it.label }} {{ it.value }}</li>
+              <li v-for="it in item.addresses">{{ it.type > 0 ? $t(`contact.address_type.${it.type}`) : it.label }} {{ it.value }}</li>
+              <li v-for="it in item.websites">{{ it.type > 0 ? $t(`contact.website_type.${it.type}`) : it.label }} {{ it.value }}</li>
+              <li v-for="it in item.ims">{{ it.type > 0 ? $t(`contact.im_type.${it.type}`) : it.label }} {{ it.value }}</li>
+              <li v-for="it in item.events">{{ it.type > 0 ? $t(`contact.event_type.${it.type}`) : it.label }} {{ it.value }}</li>
             </ul>
           </td>
           <td class="nowrap">
@@ -220,18 +190,7 @@ const { deleteItems } = useDelete(
   items
 )
 
-const {
-  allChecked,
-  realAllChecked,
-  selectRealAll,
-  allCheckedAlertVisible,
-  clearSelection,
-  toggleAllChecked,
-  toggleItemChecked,
-  toggleRow,
-  total,
-  checked,
-} = useSelectable(items)
+const { allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleItemChecked, toggleRow, total, checked } = useSelectable(items)
 const { loading, load, refetch } = initLazyQuery({
   handle: (data: any, error: string) => {
     if (error) {

@@ -1,10 +1,4 @@
-import type {
-  IMediaItemDeletedEvent,
-  IMediaItemsDeletedEvent,
-  IItemTagsUpdatedEvent,
-  IItemsTagsUpdatedEvent,
-  IFileDeletedEvent,
-} from '@/lib/interfaces'
+import type { IMediaItemDeletedEvent, IMediaItemsDeletedEvent, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IFileDeletedEvent } from '@/lib/interfaces'
 import type { IUploadItem } from '@/stores/temp'
 import mitt, { type Emitter } from 'mitt'
 

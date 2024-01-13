@@ -5,14 +5,7 @@ import { getLegacyAgent } from './userAgent'
 
 export async function getAccurateAgent(): Promise<AgentInfo> {
   if (hasUserAgentData()) {
-    const info = await navigator.userAgentData.getHighEntropyValues([
-      'architecture',
-      'model',
-      'platform',
-      'platformVersion',
-      'uaFullVersion',
-      'fullVersionList',
-    ])
+    const info = await navigator.userAgentData.getHighEntropyValues(['architecture', 'model', 'platform', 'platformVersion', 'uaFullVersion', 'fullVersionList'])
     return getClientHintsAgent(info)
   }
 

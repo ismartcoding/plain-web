@@ -5,10 +5,7 @@
         <div class="sidebar">
           <h2 class="nav-title">{{ $t('page_title.images') }}</h2>
           <ul class="nav">
-            <li
-              @click.prevent="all"
-              :class="{ active: route.path === '/images' && !selectedTagName && !selectedBucketId }"
-            >
+            <li @click.prevent="all" :class="{ active: route.path === '/images' && !selectedTagName && !selectedBucketId }">
               {{ $t('all') }}
             </li>
             <bucket-filter type="IMAGE" :selected="selectedBucketId" />
