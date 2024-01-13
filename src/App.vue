@@ -53,6 +53,7 @@ async function connect() {
     retryTime = 1000 // reset retry time
     const enc = aesEncrypt(key, new Date().getTime().toString())
     ws.send(bitArrayToUint8Array(enc))
+    wsStatus.value = ''
   }
 
   ws.onmessage = async (event: MessageEvent) => {
