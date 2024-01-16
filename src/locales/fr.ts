@@ -1,8 +1,9 @@
 export default {
   app_name: 'PlainApp',
   troubleshoot: 'Dépannage',
-  fix_disconnect_tips: 'La connexion a été interrompue. Veuillez essayer de laisser l\'écran de votre téléphone allumé ou de connecter votre téléphone via un chargement USB. Sinon, rouvrez l\'application et actualisez la page.',
-  failed_connect_ws: 'La connexion a été interrompue. Veuillez redémarrer l\'application et réessayer.',
+  fix_disconnect_tips:
+    "La connexion a été interrompue. Veuillez essayer de laisser l'écran de votre téléphone allumé ou de connecter votre téléphone via un chargement USB. Sinon, rouvrez l'application et actualisez la page.",
+  failed_connect_ws: "La connexion a été interrompue. Veuillez redémarrer l'application et réessayer.",
   fetch_content_automatically: 'Récupérer le contenu automatiquement',
   call: 'Appel',
   call_phone: 'Appeler par téléphone',

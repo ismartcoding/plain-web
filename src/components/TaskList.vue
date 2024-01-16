@@ -21,7 +21,7 @@
 import { formatFileSize } from '@/lib/format'
 import { upload } from '@/lib/api/file'
 import { useTempStore, type IUploadItem } from '@/stores/temp'
-import { computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import emitter from '@/plugins/eventbus'
 import { chunk } from 'lodash-es'
 import { useMainStore } from '@/stores/main'
@@ -52,24 +52,30 @@ function deleteItem(item: IUploadItem) {
 
 watch(
   () => tempStore.uploads,
-  async (uploads) => {
+  async () => {
     store.quick = 'task'
-    const chunked = chunk(
-      uploads.filter((it) => it.status === 'created'),
-      5
-    )
-    for (const it of chunked) {
-      // batch execute 5 uploads
-      await Promise.all(
-        it.map(async (item) => {
-          item.status = 'pending'
-          await upload(item, true)
-          emitter.emit('upload_task_done', item)
-        })
-      )
+    const pending = tempStore.uploads.some((it) => it.status === 'pending')
+    if (pending) {
+      console.log('pending')
+      return
     }
+    doUpload()
   }
 )
+
+async function doUpload() {
+  console.log('doUpload')
+  // batch execute 5 uploads
+  const uploads = tempStore.uploads.filter((it) => it.status === 'created').slice(0, 5)
+  await Promise.all(
+    uploads.map(async (item) => {
+      item.status = 'pending'
+      await upload(item, true)
+      emitter.emit('upload_task_done', item)
+    })
+  )
+  doUpload()
+}
 </script>
 <style scoped lang="scss">
 .tasks {

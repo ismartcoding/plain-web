@@ -1,5 +1,5 @@
 <template>
-  <div class="top-error">
+  <div class="top-error" v-if="wsStatus">
     {{ $t('fix_disconnect_tips') }}
   </div>
   <router-view />
@@ -42,50 +42,61 @@ async function connect() {
     return
   }
 
-  const key = tokenToKey(token)
+  try {
+    const key = tokenToKey(token)
 
-  ws = new WebSocket(`${getWebSocketBaseUrl()}?cid=${clientId}`)
-  ws.onopen = async () => {
-    emitter.emit('app_socket_connection_changed', true)
-    console.log('WebSocket is connecting to app')
-    retryTime = 1000 // reset retry time
-    const enc = aesEncrypt(key, new Date().getTime().toString())
-    ws.send(bitArrayToUint8Array(enc))
-    wsStatus.value = ''
-  }
-
-  ws.onmessage = async (event: MessageEvent) => {
-    let r: any
-    try {
-      r = JSON.parse(await event.data.text())
-    } catch (ex) {
-      r = JSON.parse(aesDecrypt(key, arrayBuffertoBits(await event.data.arrayBuffer())))
+    ws = new WebSocket(`${getWebSocketBaseUrl()}?cid=${clientId}`)
+    ws.onopen = async () => {
+      emitter.emit('app_socket_connection_changed', true)
+      console.log('WebSocket is connecting to app')
+      retryTime = 1000 // reset retry time
+      const enc = aesEncrypt(key, new Date().getTime().toString())
+      ws.send(bitArrayToUint8Array(enc))
+      wsStatus.value = ''
     }
-    console.log(r)
-    if (r.encrypted) {
-      emitter.emit(r.type.toLowerCase(), JSON.parse(r.data))
-    } else {
-      emitter.emit(r.type.toLowerCase(), r.data)
+
+    ws.onmessage = async (event: MessageEvent) => {
+      let r: any
+      try {
+        r = JSON.parse(await event.data.text())
+      } catch (ex) {
+        r = JSON.parse(aesDecrypt(key, arrayBuffertoBits(await event.data.arrayBuffer())))
+      }
+      console.log(r)
+      wsStatus.value = ''
+      if (r.encrypted) {
+        emitter.emit(r.type.toLowerCase(), JSON.parse(r.data))
+      } else {
+        emitter.emit(r.type.toLowerCase(), r.data)
+      }
     }
-  }
 
-  ws.onclose = (_event: CloseEvent) => {
-    setTimeout(
-      () => {
-        connect()
-      },
-      Math.min(5000, retryTime) // wait at most 5s
-    )
-    retryTime += 1000
-    wsStatus.value = 'closed'
-  }
+    ws.onclose = (event: CloseEvent) => {
+      console.error(event)
+      wsStatus.value = 'closed'
+      retryConnect()
+    }
 
-  ws.onerror = (event: Event) => {
-    console.error(event)
-    ws.close()
-    emitter.emit('app_socket_connection_changed', false)
-    wsStatus.value = 'error'
+    ws.onerror = (event: Event) => {
+      console.error(event)
+      wsStatus.value = 'error'
+      ws.close()
+      emitter.emit('app_socket_connection_changed', false)
+    }
+  } catch (ex) {
+    console.error(ex)
+    retryConnect()
   }
+}
+
+function retryConnect() {
+  setTimeout(
+    () => {
+      connect()
+    },
+    Math.min(5000, retryTime) // wait at most 5s
+  )
+  retryTime += 1000
 }
 
 function determinePageNavigationAutoMode() {

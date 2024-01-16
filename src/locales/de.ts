@@ -1,7 +1,8 @@
 export default {
   app_name: 'EinfacheApp',
   troubleshoot: 'Fehlerbehebung',
-  fix_disconnect_tips: 'Die Verbindung wurde getrennt. Versuchen Sie, den Bildschirm Ihres Telefons eingeschaltet zu lassen oder Ihr Telefon über USB aufzuladen. Alternativ die Anwendung neu öffnen und die Seite aktualisieren.',
+  fix_disconnect_tips:
+    'Die Verbindung wurde getrennt. Versuchen Sie, den Bildschirm Ihres Telefons eingeschaltet zu lassen oder Ihr Telefon über USB aufzuladen. Alternativ die Anwendung neu öffnen und die Seite aktualisieren.',
   failed_connect_ws: 'Die Verbindung wurde getrennt. Bitte starten Sie die Anwendung neu und versuchen Sie es erneut.',
   fetch_content_automatically: 'Inhalt automatisch abrufen',
   call: 'Anruf',
