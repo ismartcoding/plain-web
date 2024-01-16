@@ -110,8 +110,15 @@ const URL_REGEX = /(\b(((https?|ftp):\/\/)|www.)[A-Z0-9+&@#\/%?=~_|!:,.;-]*[-A-Z
 const EMAIL_REGEX = /(\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,6})/gim
 
 export function addLinksToURLs(text: string) {
-  let newText = text ? String(text).replace(/<[^>]+>/gm, '') : '' // Remove all the html tags
+  let newText = encodeHTML(text)
   newText = newText.replace(URL_REGEX, '<a href="$1" target="_blank">$1</a>')
   newText = newText.replace(EMAIL_REGEX, '<a href="mailto:$1">$1</a>')
   return newText.replace(/\n\r?/g, '<br />')
+}
+
+
+export function encodeHTML(html: string) {
+  return html.replace(/[\u00A0-\u9999<>&'"]/gim, function (i) {
+    return '&#' + i.charCodeAt(0) + ';';
+  });
 }
