@@ -1,11 +1,11 @@
 export default {
   app_name: '평범한 앱',
   troubleshoot: '문제 해결',
-  fix_disconnect_tips: '연결이 계속 끊어지면 휴대전화 화면을 켜두거나 USB 어댑터를 전원 콘센트에 연결해 보세요.',
+  fix_disconnect_tips: '연결이 해제되었습니다. 핸드폰 화면을 켜놓거나 핸드폰을 USB로 연결해 보세요. 또는 애플리케이션을 다시 열고 페이지를 새로고침하세요.',
+  failed_connect_ws: '연결이 해제되었습니다. 애플리케이션을 재시작하고 다시 시도해보세요.',
   fetch_content_automatically: '콘텐츠 자동으로 가져오기',
   call: '전화',
   call_phone: '전화 걸기',
-  web_socket_reconnecting: 'WebSocket이 다시 연결 중...',
   device_info: '장치 정보',
   basic_info: '기본 정보',
   device_name: '장치 이름',
@@ -128,7 +128,6 @@ export default {
     rejected: '로그인 요청이 거부되었습니다.',
     invalid_password: '잘못된 비밀번호입니다.',
   },
-  failed_connect_ws: 'WebSocket에 연결하지 못했습니다. 앱을 다시 시작하고 다시 시도해주세요.',
   header_actions: {
     language: '언어 변경',
     theme: '테마 변경',

@@ -1,11 +1,11 @@
 export default {
   app_name: 'PlainApp',
   troubleshoot: 'Troubleshoot',
-  fix_disconnect_tips: 'If the connection keeps dropping, try keeping your phone screen awake or plugging the USB adapter into a power outlet.',
+  fix_disconnect_tips: 'Connection has been lost, please try keeping your phone screen on or connect your phone via USB charging. Alternatively, reopen the application and refresh the page.',
+  failed_connect_ws: 'Connection has been lost, please restart the application and try again.',
   fetch_content_automatically: 'Fetch content automatically',
   call: 'Call',
   call_phone: 'Call phone',
-  web_socket_reconnecting: 'WebSocket is reconnecting...',
   device_info: 'Device info',
   basic_info: 'Basic info',
   device_name: 'Device name',
@@ -129,7 +129,6 @@ export default {
     rejected: 'Login request is rejected.',
     invalid_password: 'Wrong password.',
   },
-  failed_connect_ws: 'Failed to connect to WebSocket. Please relaunch the app and try again.',
   header_actions: {
     language: 'Change language',
     theme: 'Change theme',

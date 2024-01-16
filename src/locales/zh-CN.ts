@@ -1,11 +1,11 @@
 export default {
   app_name: '简朴',
   troubleshoot: '故障排除',
-  fix_disconnect_tips: '如果连接频繁断开，请尝试保持手机屏幕亮起或将 USB 适配器插入电源插座。',
+  fix_disconnect_tips: '连接已断开，请尝试保持手机屏幕亮起或将手机连接 USB 充电。或重新打开应用并刷新页面。',
+  failed_connect_ws: '连接已断开，请重新启动应用程序并重试。',
   fetch_content_automatically: '自动拉取正文内容',
   call: '呼叫',
   call_phone: '打电话',
-  web_socket_reconnecting: 'WebSocket 正在重连中...',
   device_info: '设备信息',
   basic_info: '基本信息',
   device_name: '设备名称',
@@ -128,7 +128,6 @@ export default {
     rejected: '登录请求被拒绝。',
     invalid_password: '密码错误。',
   },
-  failed_connect_ws: '无法连接到WebSocket。请重新启动应用程序并重试。',
   header_actions: {
     language: '更改语言',
     theme: '更改主题',

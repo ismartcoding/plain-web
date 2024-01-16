@@ -1,11 +1,11 @@
 export default {
   app_name: '簡樸',
   troubleshoot: '故障排除',
-  fix_disconnect_tips: '如果連線频繁斷開，請嘗試保持手機螢幕亮起或將 USB 適配器插入電源插座。',
+  fix_disconnect_tips: '連線已中斷。請嘗試保持手機螢幕亮起或將手機連接 USB 充電。或重新開啟應用程式並刷新頁面。',
+  failed_connect_ws: '連線已中斷。請重新啟動應用程式並重試。',
   fetch_content_automatically: '自動拉取正文內容',
   call: '呼叫',
   call_phone: '打電話',
-  web_socket_reconnecting: 'WebSocket 正在重連中...',
   device_info: '設備信息',
   basic_info: '基本信息',
   device_name: '設備名稱',
@@ -128,7 +128,6 @@ export default {
     rejected: '登錄請求被拒絕。',
     invalid_password: '密碼錯誤。',
   },
-  failed_connect_ws: '無法連接到WebSocket。請重新啟動應用程序並重試。',
   header_actions: {
     language: '更改語言',
     theme: '更改主題',
