@@ -31,7 +31,15 @@ const tempStore = useTempStore()
 const store = useMainStore()
 
 const visibleTasks = computed(() => {
-  return tempStore.uploads.reverse()
+  return tempStore.uploads.sort((a, b) => {
+    if (a.status === 'pending' && b.status !== 'pending') {
+      return -1
+    }
+    if (a.status !== 'pending' && b.status === 'pending') {
+      return 1
+    }
+    return 0
+  })
 })
 
 function deleteItem(item: IUploadItem) {

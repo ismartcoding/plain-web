@@ -1,11 +1,11 @@
 export default {
   app_name: 'PlainApp',
   troubleshoot: 'トラブルシューティング',
-  fix_disconnect_tips: '接続が頻繁に切断される場合は、スマートフォンの画面をオンのままにするか、USBアダプタを電源コンセントに接続してみてください。',
+  fix_disconnect_tips: '接続が切断されました。携帯電話の画面を点灯させるか、携帯電話をUSBで充電することをお試しください。または、アプリケーションを再起動してページをリフレッシュしてください。',
+  failed_connect_ws: '接続が切断されました。アプリケーションを再起動してもう一度お試しください。',
   fetch_content_automatically: 'コンテンツを自動的に取得',
   call: 'コール',
   call_phone: '電話する',
-  web_socket_reconnecting: 'WebSocketが再接続中です...',
   device_info: 'デバイス情報',
   basic_info: '基本情報',
   device_name: 'デバイス名',
@@ -129,7 +129,6 @@ export default {
     rejected: 'ログイン要求が拒否されました。',
     invalid_password: 'パスワードが間違っています。',
   },
-  failed_connect_ws: 'WebSocketに接続できませんでした。アプリを再起動してもう一度お試しください。',
   header_actions: {
     language: '言語を変更',
     theme: 'テーマを変更',

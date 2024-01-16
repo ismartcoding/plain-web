@@ -1,11 +1,11 @@
 export default {
   app_name: 'PlainApp',
   troubleshoot: 'Problemen oplossen',
-  fix_disconnect_tips: 'Als de verbinding voortdurend wordt verbroken, probeer dan het scherm van uw telefoon aan te houden of de USB-adapter op een stopcontact aan te sluiten.',
+  fix_disconnect_tips: 'De verbinding is verbroken. Probeer het telefoonscherm aan te houden of de telefoon via USB op te laden. Of open de applicatie opnieuw en vernieuw de pagina.',
+  failed_connect_ws: 'De verbinding is verbroken. Start de applicatie opnieuw en probeer het opnieuw.',
   fetch_content_automatically: 'Inhoud automatisch ophalen',
   call: 'Oproep',
   call_phone: 'Telefoonoproep',
-  web_socket_reconnecting: 'WebSocket is opnieuw aan het verbinden...',
   device_info: 'Apparaatinformatie',
   basic_info: 'Basisinformatie',
   device_name: 'Apparaatnaam',
@@ -129,7 +129,6 @@ export default {
     rejected: 'Inlogverzoek is afgewezen.',
     invalid_password: 'Onjuist wachtwoord.',
   },
-  failed_connect_ws: 'Verbinding met WebSocket mislukt. Start de app opnieuw en probeer het opnieuw.',
   header_actions: {
     language: 'Taal wijzigen',
     theme: 'Thema wijzigen',

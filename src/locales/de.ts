@@ -1,12 +1,11 @@
 export default {
   app_name: 'EinfacheApp',
   troubleshoot: 'Fehlerbehebung',
-  fix_disconnect_tips:
-    'Wenn die Verbindung ständig unterbrochen wird, versuchen Sie, den Bildschirm Ihres Telefons wach zu halten oder den USB-Adapter an eine Steckdose anzuschließen.',
+  fix_disconnect_tips: 'Die Verbindung wurde getrennt. Versuchen Sie, den Bildschirm Ihres Telefons eingeschaltet zu lassen oder Ihr Telefon über USB aufzuladen. Alternativ die Anwendung neu öffnen und die Seite aktualisieren.',
+  failed_connect_ws: 'Die Verbindung wurde getrennt. Bitte starten Sie die Anwendung neu und versuchen Sie es erneut.',
   fetch_content_automatically: 'Inhalt automatisch abrufen',
   call: 'Anruf',
   call_phone: 'Telefonanruf',
-  web_socket_reconnecting: 'WebSocket wird wieder verbunden...',
   device_info: 'Geräteinformationen',
   basic_info: 'Grundlegende Informationen',
   device_name: 'Gerätename',
@@ -130,7 +129,6 @@ export default {
     rejected: 'Anfrage zur Anmeldung wurde abgelehnt.',
     invalid_password: 'Falsches Passwort.',
   },
-  failed_connect_ws: 'Verbindung zum WebSocket konnte nicht hergestellt werden. Bitte starten Sie die App neu und versuchen Sie es erneut.',
   header_actions: {
     language: 'Sprache ändern',
     theme: 'Thema ändern',

@@ -1,11 +1,11 @@
 export default {
   app_name: 'PlainApp',
   troubleshoot: 'Solução de problemas',
-  fix_disconnect_tips: 'Se a conexão estiver constantemente caindo, tente manter a tela do seu telefone acesa ou conectar o adaptador USB a uma tomada elétrica.',
+  fix_disconnect_tips: 'A conexão foi interrompida. Tente manter a tela do seu celular ligada ou conectar o celular via USB para carregamento. Ou, abra novamente o aplicativo e atualize a página.',
+  failed_connect_ws: 'A conexão foi interrompida. Reinicie o aplicativo e tente novamente.',
   fetch_content_automatically: 'Obter conteúdo automaticamente',
   call: 'Chamada',
   call_phone: 'Chamar por telefone',
-  web_socket_reconnecting: 'WebSocket reconectando...',
   device_info: 'Informações do dispositivo',
   basic_info: 'Informações básicas',
   device_name: 'Nome do dispositivo',
@@ -129,7 +129,6 @@ export default {
     rejected: 'Solicitação de login foi rejeitada.',
     invalid_password: 'Senha incorreta.',
   },
-  failed_connect_ws: 'Falha ao conectar ao WebSocket. Por favor, reinicie o aplicativo e tente novamente.',
   header_actions: {
     language: 'Mudar idioma',
     theme: 'Mudar tema',
