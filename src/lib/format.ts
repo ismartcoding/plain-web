@@ -1,5 +1,5 @@
 function getLocale() {
-  return localStorage.getItem('locale') ?? navigator.languages?.[0] ?? 'en-US'
+  return localStorage.getItem('locale') ?? navigator.language ?? 'en-US'
 }
 
 export function formatDateTime(str: string, options?: {}) {

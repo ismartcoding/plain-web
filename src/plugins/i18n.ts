@@ -27,7 +27,7 @@ setLocale({
 
 export default createI18n({
   legacy: false,
-  locale: localStorage.getItem('locale') ?? navigator.languages?.[0],
+  locale: localStorage.getItem('locale') ?? navigator.language,
   fallbackLocale: 'en-US',
   messages: {
     'en-US': en_US,
