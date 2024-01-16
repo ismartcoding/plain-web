@@ -10,8 +10,17 @@
 </head>
 
 <body>
+    <div id="browser-issue">Your browser is not supported or up-to-date. Please try updating it.</div>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
 </body>
-
+<script type="text/javascript">
+    if ('customElements' in window) {
+        document.getElementById('browser-issue').style.display = 'none';
+    } else {
+        if (navigator.language === 'zh-CN') {
+            document.getElementById('browser-issue').innerHTML = '您的浏览器不支持或者版本过低，请尝试更新。';
+        }
+    }
+</script>
 </html>
