@@ -1,7 +1,8 @@
 export default {
   app_name: 'PlainApp',
   troubleshoot: 'Solução de problemas',
-  fix_disconnect_tips: 'A conexão foi interrompida. Tente manter a tela do seu celular ligada ou conectar o celular via USB para carregamento. Ou, abra novamente o aplicativo e atualize a página.',
+  fix_disconnect_tips:
+    'A conexão foi interrompida. Tente manter a tela do seu celular ligada ou conectar o celular via USB para carregamento. Ou, abra novamente o aplicativo e atualize a página.',
   failed_connect_ws: 'A conexão foi interrompida. Reinicie o aplicativo e tente novamente.',
   fetch_content_automatically: 'Obter conteúdo automaticamente',
   call: 'Chamada',
