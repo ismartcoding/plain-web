@@ -64,6 +64,9 @@ async function doUpload() {
   console.log('doUpload')
   // batch execute 5 uploads
   const uploads = tempStore.uploads.filter((it) => it.status === 'created').slice(0, 5)
+  if (uploads.length === 0) {
+    return
+  }
   await Promise.all(
     uploads.map(async (item) => {
       item.status = 'pending'
