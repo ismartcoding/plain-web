@@ -3,6 +3,8 @@ export default {
   troubleshoot: 'Problemen oplossen',
   fix_disconnect_tips: 'De verbinding is verbroken. Probeer het telefoonscherm aan te houden of de telefoon via USB op te laden. Of open de applicatie opnieuw en vernieuw de pagina.',
   failed_connect_ws: 'De verbinding is verbroken. Start de applicatie opnieuw en probeer het opnieuw.',
+  desktop_notification_need_https: 'Desktopmeldingen hebben een beveiligde link nodig (HTTPS).',
+  use_https_link: 'Gebruik een HTTPS-link',
   fetch_content_automatically: 'Inhoud automatisch ophalen',
   call: 'Oproep',
   call_phone: 'Telefoonoproep',

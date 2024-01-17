@@ -68,13 +68,13 @@
 
 .card-title {
     margin: 0 0 var(--#{$prefix}card-title-spacer-y) 0;
-    font-size: 1.25rem;
+    font-size: 1rem;
 }
 
 .card-subtitle {
     margin-top: calc(-.5 * var(--#{$prefix}card-title-spacer-y)); // stylelint-disable-line function-disallowed-list
     margin-bottom: 0;
-    font-size: 1rem;
+    font-size: 0.875rem;
 }
 
 .card-text:last-child {

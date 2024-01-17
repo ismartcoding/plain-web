@@ -3,6 +3,8 @@ export default {
   troubleshoot: 'Solução de problemas',
   fix_disconnect_tips: 'A conexão foi interrompida. Tente manter a tela do seu celular ligada ou conectar o celular via USB para carregamento. Ou, abra novamente o aplicativo e atualize a página.',
   failed_connect_ws: 'A conexão foi interrompida. Reinicie o aplicativo e tente novamente.',
+  desktop_notification_need_https: 'As notificações de desktop precisam de um link seguro (HTTPS).',
+  use_https_link: 'Usar link HTTPS',
   fetch_content_automatically: 'Obter conteúdo automaticamente',
   call: 'Chamada',
   call_phone: 'Chamar por telefone',
