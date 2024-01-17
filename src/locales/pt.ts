@@ -1,8 +1,7 @@
 export default {
   app_name: 'PlainApp',
   troubleshoot: 'Solução de problemas',
-  fix_disconnect_tips:
-    'A conexão foi interrompida. Tente manter a tela do seu celular ligada ou conectar o celular via USB para carregamento. Ou, abra novamente o aplicativo e atualize a página.',
+  fix_disconnect_tips: 'A conexão foi interrompida. Tente manter a tela do seu celular ligada ou conectar o celular via USB para carregamento. Ou, abra novamente o aplicativo e atualize a página.',
   failed_connect_ws: 'A conexão foi interrompida. Reinicie o aplicativo e tente novamente.',
   fetch_content_automatically: 'Obter conteúdo automaticamente',
   call: 'Chamada',
@@ -60,8 +59,7 @@ export default {
   grant_permission: 'Conceder permissão',
   desktop_notification_permission_not_granted: 'A permissão de notificação na área de trabalho não foi concedida.',
   desktop_notification_permission_grant_title: 'Conceder permissão para notificações na área de trabalho',
-  desktop_notification_permission_grant_message:
-    '1. Clique no ícone do cadeado na barra de endereço.\n2. Abra "Configurações do site" ou "Permissões".\n3. Encontre "Notificações" e altere para "Permitir".',
+  desktop_notification_permission_grant_message: '1. Clique no ícone do cadeado na barra de endereço.\n2. Abra "Configurações do site" ou "Permissões".\n3. Encontre "Notificações" e altere para "Permitir".',
   sort: 'Ordenar',
   sort_by: {
     date_asc: 'Data mais antiga primeiro',
@@ -376,8 +374,7 @@ export default {
   },
   load_failed: 'Falha ao carregar {name}',
   network_error: 'Erro de rede, impossível conectar à API',
-  web_access_disabled:
-    'O acesso à web está atualmente desativado. Por favor, abra o PlainApp > ícone do desktop no canto superior direito 💻 > página "Web no PC" e toque no interruptor "Ativar".',
+  web_access_disabled: 'O acesso à web está atualmente desativado. Por favor, abra o PlainApp > ícone do desktop no canto superior direito 💻 > página "Web no PC" e toque no interruptor "Ativar".',
   play: 'Reproduzir',
   add_to_playlist: 'Adicionar à playlist',
   added_to_playlist: 'Adicionado à playlist!',
@@ -473,6 +470,5 @@ export default {
   select_all_items: 'Selecionar todos os {count} itens',
   clear_selection: 'Limpar seleção',
   screen_mirror_request_permission_failed: 'Você não concedeu permissão ao PlainApp para capturar capturas de tela.',
-  screen_mirror_request_permission:
-    'Por favor, toque em "Iniciar agora" no telefone. \nSe a janela de permissão não for exibida, reinicie o PlainApp. \nTente novamente em {seconds} segundos',
+  screen_mirror_request_permission: 'Por favor, toque em "Iniciar agora" no telefone. \nSe a janela de permissão não for exibida, reinicie o PlainApp. \nTente novamente em {seconds} segundos',
 }

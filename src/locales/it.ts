@@ -1,8 +1,7 @@
 export default {
   app_name: 'PlainApp',
   troubleshoot: 'Risoluzione dei problemi',
-  fix_disconnect_tips:
-    "La connessione è stata interrotta. Prova a mantenere acceso lo schermo del telefono o collega il telefono tramite USB. In alternativa, riapri l'applicazione e aggiorna la pagina.",
+  fix_disconnect_tips: "La connessione è stata interrotta. Prova a mantenere acceso lo schermo del telefono o collega il telefono tramite USB. In alternativa, riapri l'applicazione e aggiorna la pagina.",
   failed_connect_ws: "La connessione è stata interrotta. Riavvia l'applicazione e riprova.",
   fetch_content_automatically: 'Recupera contenuto automaticamente',
   call: 'Chiamata',
@@ -60,8 +59,7 @@ export default {
   grant_permission: 'Concedi permesso',
   desktop_notification_permission_not_granted: 'Il permesso di notifica desktop non è stato concesso.',
   desktop_notification_permission_grant_title: 'Concedi autorizzazione per le notifiche desktop',
-  desktop_notification_permission_grant_message:
-    '1. Fai clic sull\'icona del lucchetto nella barra degli indirizzi.\n2. Apri "Impostazioni sito" o "Permessi".\n3. Trova "Notifiche" e cambialo su "Consenti".',
+  desktop_notification_permission_grant_message: '1. Fai clic sull\'icona del lucchetto nella barra degli indirizzi.\n2. Apri "Impostazioni sito" o "Permessi".\n3. Trova "Notifiche" e cambialo su "Consenti".',
   sort: 'Ordina',
   sort_by: {
     date_asc: 'Data più antica prima',

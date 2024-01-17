@@ -31,16 +31,7 @@ async function replaceNodes(nodes: Array<any>, replace: (link: string) => void) 
 }
 
 export const useMarkdown = (app: Ref<any>, urlTokenKey: Ref<sjcl.BitArray | null>) => {
-  const md = new MarkdownIt()
-    .use(subscript)
-    .use(superscript)
-    .use(footnote)
-    .use(deflist)
-    .use(abbreviation)
-    .use(insert)
-    .use(mark)
-    .use(katex, { throwOnError: false, errorColor: ' #cc0000' })
-    .use(tasklists, { enabled: true })
+  const md = new MarkdownIt().use(subscript).use(superscript).use(footnote).use(deflist).use(abbreviation).use(insert).use(mark).use(katex, { throwOnError: false, errorColor: ' #cc0000' }).use(tasklists, { enabled: true })
   md.set({
     html: true,
     xhtmlOut: true,

@@ -15,19 +15,10 @@ import toast from '@/components/toaster'
 import { getWebSocketBaseUrl } from './lib/api/api'
 import { aesDecrypt, aesEncrypt, bitArrayToUint8Array } from './lib/api/crypto'
 import { arrayBuffertoBits } from './lib/api/sjcl-arraybuffer'
-import {
-  applyDarkClass,
-  changeColor,
-  changeColorAndMode,
-  changeColorMode,
-  getCurrentMode,
-  getCurrentSeedColor,
-  getCurrentThemeString,
-  getLastSavedAutoColorMode,
-  isModeDark,
-} from './lib/theme/theme'
+import { applyDarkClass, changeColor, changeColorAndMode, changeColorMode, getCurrentMode, getCurrentSeedColor, getCurrentThemeString, getLastSavedAutoColorMode, isModeDark } from './lib/theme/theme'
 import { applyThemeString } from './lib/theme/apply-theme-string'
 import { tokenToKey } from './lib/api/file'
+let retryConnectTimeout = 0
 const { t } = useI18n()
 document.title = t('app_name')
 const wsStatus = ref('')
@@ -90,7 +81,10 @@ async function connect() {
 }
 
 function retryConnect() {
-  setTimeout(
+  if (retryConnectTimeout) {
+    clearTimeout(retryConnectTimeout)
+  }
+  retryConnectTimeout = setTimeout(
     () => {
       connect()
     },

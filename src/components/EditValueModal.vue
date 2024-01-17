@@ -4,14 +4,7 @@
       {{ title }}
     </div>
     <div slot="content">
-      <md-outlined-text-field
-        ref="inputRef"
-        :placeholder="placeholder"
-        v-model="inputValue"
-        @keyup.enter="doAction"
-        :error="valueError"
-        :error-text="valueError ? $t(valueError) : ''"
-      />
+      <md-outlined-text-field ref="inputRef" :placeholder="placeholder" v-model="inputValue" @keyup.enter="doAction" :error="valueError" :error-text="valueError ? $t(valueError) : ''" />
     </div>
     <div slot="actions">
       <md-outlined-button value="cancel" @click="cancel">{{ $t('cancel') }}</md-outlined-button>

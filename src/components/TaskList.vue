@@ -4,8 +4,7 @@
       <div v-for="item in visibleTasks" class="item" :key="item.file.name + item.file.size">
         <div class="title">{{ item.file.name }}</div>
         <div class="subtitle">
-          [{{ $t(`upload_status.${item.status}`) }}] {{ formatFileSize(item.uploadedSize) }}({{ item.uploadedSize }}) /
-          {{ formatFileSize(item.file.size) }}
+          [{{ $t(`upload_status.${item.status}`) }}] <template v-if="!['created', 'done'].includes(item.status)">{{ formatFileSize(item.uploadedSize) }}({{ item.uploadedSize }}) / </template>{{ formatFileSize(item.file.size) }}
         </div>
         <div class="body" v-if="item.error">{{ item.error }}</div>
         <button class="icon-button icon" @click.stop="deleteItem(item)">
@@ -21,25 +20,23 @@
 import { formatFileSize } from '@/lib/format'
 import { upload } from '@/lib/api/file'
 import { useTempStore, type IUploadItem } from '@/stores/temp'
-import { computed, ref, watch } from 'vue'
+import { computed, watch } from 'vue'
 import emitter from '@/plugins/eventbus'
-import { chunk } from 'lodash-es'
 import { useMainStore } from '@/stores/main'
 import '@material/web/labs/badge/badge.js'
+import { sortBy } from 'lodash-es'
 
 const tempStore = useTempStore()
 const store = useMainStore()
 
 const visibleTasks = computed(() => {
-  return tempStore.uploads.sort((a, b) => {
-    if (a.status === 'pending' && b.status !== 'pending') {
-      return -1
-    }
-    if (a.status !== 'pending' && b.status === 'pending') {
-      return 1
-    }
-    return 0
-  })
+  const sortKeys: Map<string, number> = new Map()
+  sortKeys.set('saving', 0)
+  sortKeys.set('pending', 1)
+  sortKeys.set('error', 2)
+  sortKeys.set('created', 3)
+  sortKeys.set('done', 4)
+  return sortBy(tempStore.uploads, (it) => sortKeys.get(it.status) ?? 0)
 })
 
 function deleteItem(item: IUploadItem) {

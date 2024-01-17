@@ -1,8 +1,7 @@
 export default {
   app_name: 'PlainApp',
   troubleshoot: 'Dépannage',
-  fix_disconnect_tips:
-    "La connexion a été interrompue. Veuillez essayer de laisser l'écran de votre téléphone allumé ou de connecter votre téléphone via un chargement USB. Sinon, rouvrez l'application et actualisez la page.",
+  fix_disconnect_tips: "La connexion a été interrompue. Veuillez essayer de laisser l'écran de votre téléphone allumé ou de connecter votre téléphone via un chargement USB. Sinon, rouvrez l'application et actualisez la page.",
   failed_connect_ws: "La connexion a été interrompue. Veuillez redémarrer l'application et réessayer.",
   fetch_content_automatically: 'Récupérer le contenu automatiquement',
   call: 'Appel',
@@ -60,8 +59,7 @@ export default {
   grant_permission: 'Accorder la permission',
   desktop_notification_permission_not_granted: "La permission de notification du bureau n'a pas été accordée.",
   desktop_notification_permission_grant_title: "Accorder l'autorisation pour les notifications du bureau",
-  desktop_notification_permission_grant_message:
-    '1. Cliquez sur l\'icône du cadenas dans la barre d\'adresse.\n2. Ouvrez "Paramètres du site" ou "Autorisations".\n3. Trouvez "Notifications" et changez-le en "Autoriser".',
+  desktop_notification_permission_grant_message: '1. Cliquez sur l\'icône du cadenas dans la barre d\'adresse.\n2. Ouvrez "Paramètres du site" ou "Autorisations".\n3. Trouvez "Notifications" et changez-le en "Autoriser".',
   sort: 'Trier',
   sort_by: {
     date_asc: 'Date la plus ancienne en premier',
@@ -377,8 +375,7 @@ export default {
   },
   load_failed: 'Échec du chargement de {name}',
   network_error: "Erreur réseau, impossible de se connecter à l'API",
-  web_access_disabled:
-    'L\'accès au Web est actuellement désactivé. Veuillez ouvrir PlainApp > icône en haut à droite 💻 > page "Web sur PC" et appuyez sur l\'interrupteur "Activer".',
+  web_access_disabled: 'L\'accès au Web est actuellement désactivé. Veuillez ouvrir PlainApp > icône en haut à droite 💻 > page "Web sur PC" et appuyez sur l\'interrupteur "Activer".',
   play: 'Lecture',
   add_to_playlist: 'Ajouter à la liste de lecture',
   added_to_playlist: 'Ajouté à la liste de lecture',
@@ -474,6 +471,5 @@ export default {
   select_all_items: 'Sélectionner tous les {count} éléments',
   clear_selection: 'Effacer la sélection',
   screen_mirror_request_permission_failed: "Vous n'avez pas accordé la permission à PlainApp pour prendre des captures d'écran.",
-  screen_mirror_request_permission:
-    'Veuillez appuyer sur "Commencer maintenant" sur votre téléphone. \nSi la fenêtre de permission n\'apparaît pas, rouvrez PlainApp. \nRéessayez dans {seconds} secondes.',
+  screen_mirror_request_permission: 'Veuillez appuyer sur "Commencer maintenant" sur votre téléphone. \nSi la fenêtre de permission n\'apparaît pas, rouvrez PlainApp. \nRéessayez dans {seconds} secondes.',
 }

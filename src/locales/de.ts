@@ -1,8 +1,7 @@
 export default {
   app_name: 'EinfacheApp',
   troubleshoot: 'Fehlerbehebung',
-  fix_disconnect_tips:
-    'Die Verbindung wurde getrennt. Versuchen Sie, den Bildschirm Ihres Telefons eingeschaltet zu lassen oder Ihr Telefon über USB aufzuladen. Alternativ die Anwendung neu öffnen und die Seite aktualisieren.',
+  fix_disconnect_tips: 'Die Verbindung wurde getrennt. Versuchen Sie, den Bildschirm Ihres Telefons eingeschaltet zu lassen oder Ihr Telefon über USB aufzuladen. Alternativ die Anwendung neu öffnen und die Seite aktualisieren.',
   failed_connect_ws: 'Die Verbindung wurde getrennt. Bitte starten Sie die Anwendung neu und versuchen Sie es erneut.',
   fetch_content_automatically: 'Inhalt automatisch abrufen',
   call: 'Anruf',
@@ -60,8 +59,7 @@ export default {
   grant_permission: 'Bitte gewähren Sie die Berechtigung',
   desktop_notification_permission_not_granted: 'Die Berechtigung für Desktop-Benachrichtigungen wurde nicht erteilt.',
   desktop_notification_permission_grant_title: 'Berechtigung für Desktop-Benachrichtigungen erteilen',
-  desktop_notification_permission_grant_message:
-    '1. Klicken Sie auf das Vorhängeschlosssymbol in der Adressleiste.\n2. Öffnen Sie "Website-Einstellungen" oder "Berechtigungen".\n3. Suchen Sie "Benachrichtigungen" und ändern Sie es auf "Zulassen".',
+  desktop_notification_permission_grant_message: '1. Klicken Sie auf das Vorhängeschlosssymbol in der Adressleiste.\n2. Öffnen Sie "Website-Einstellungen" oder "Berechtigungen".\n3. Suchen Sie "Benachrichtigungen" und ändern Sie es auf "Zulassen".',
   sort: 'Sortieren',
   sort_by: {
     date_asc: 'Älteste zuerst',
@@ -376,8 +374,7 @@ export default {
   },
   load_failed: 'Laden von {name} fehlgeschlagen',
   network_error: 'Netzwerkfehler, keine Verbindung zur API möglich',
-  web_access_disabled:
-    'Der Webzugriff ist derzeit deaktiviert. Bitte öffnen Sie PlainApp > rechts oben 💻 Symbol > Seite "Web auf PC" und tippen Sie auf den Schalter "Aktivieren".',
+  web_access_disabled: 'Der Webzugriff ist derzeit deaktiviert. Bitte öffnen Sie PlainApp > rechts oben 💻 Symbol > Seite "Web auf PC" und tippen Sie auf den Schalter "Aktivieren".',
   play: 'Abspielen',
   add_to_playlist: 'Zur Wiedergabeliste hinzufügen',
   added_to_playlist: 'Zur Wiedergabeliste hinzugefügt!',
@@ -473,6 +470,5 @@ export default {
   select_all_items: 'Alle {count} Elemente auswählen',
   clear_selection: 'Auswahl aufheben',
   screen_mirror_request_permission_failed: 'Sie haben PlainApp nicht die Erlaubnis zum Aufnehmen von Bildschirmfotos erteilt.',
-  screen_mirror_request_permission:
-    'Bitte tippen Sie auf "Jetzt starten" auf dem Telefon. \nWenn das Berechtigungsfenster nicht angezeigt wird, starten Sie PlainApp neu. \nVersuchen Sie es in {seconds} Sekunden erneut',
+  screen_mirror_request_permission: 'Bitte tippen Sie auf "Jetzt starten" auf dem Telefon. \nWenn das Berechtigungsfenster nicht angezeigt wird, starten Sie PlainApp neu. \nVersuchen Sie es in {seconds} Sekunden erneut',
 }

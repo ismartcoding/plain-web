@@ -1,16 +1,6 @@
 <template>
   <div class="search-input">
-    <md-outlined-text-field
-      id="input-ref"
-      type="search"
-      data-search-input="true"
-      :value="modelValue"
-      @input="onInput"
-      @focus="onFocus"
-      @blur="hasFocus = false"
-      @keyup.enter="props.search"
-      :placeholder="$t('search_hint')"
-    >
+    <md-outlined-text-field id="input-ref" type="search" data-search-input="true" :value="modelValue" @input="onInput" @focus="onFocus" @blur="hasFocus = false" @keyup.enter="props.search" :placeholder="$t('search_hint')">
       <i-material-symbols:search-rounded slot="leading-icon" />
       <button class="icon-button" ref="moreButton" slot="trailing-icon" @click.prevent="() => (searchPanelVisible = true)">
         <md-ripple />
