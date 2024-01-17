@@ -28,6 +28,8 @@ export const appFragment = gql`
   fragment AppFragment on App {
     usbConnected
     urlToken
+    httpPort
+    httpsPort
     externalFilesDir
     deviceName
     battery

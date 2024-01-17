@@ -7,8 +7,13 @@
         <i-material-symbols:delete-forever-outline-rounded />
       </button>
     </div>
-    <div class="alert-warning" v-if="notifcationPermission !== 'granted'">
-      {{ $t('desktop_notification_permission_not_granted') }}&nbsp;<md-filled-button class="btn-sm" @click.stop="grantPermission">{{ $t('grant_permission') }}</md-filled-button>
+    <div class="alert-warning" v-if="!isHttps && notifcationPermission !== 'granted'">
+      {{ $t('desktop_notification_need_https') }}&nbsp;<md-filled-button class="btn-sm"
+        @click.stop="useHttpsLink">{{ $t('use_https_link') }}</md-filled-button>
+    </div>
+    <div class="alert-warning" v-else-if="notifcationPermission !== 'granted'">
+      {{ $t('desktop_notification_permission_not_granted') }}&nbsp;<md-filled-button class="btn-sm"
+        @click.stop="grantPermission">{{ $t('grant_permission') }}</md-filled-button>
     </div>
     <div class="items-container">
       <section v-if="notifications.length" class="list-items">
@@ -59,6 +64,7 @@ const { resolveClient } = useApolloClient()
 const { t } = useI18n()
 const { app, urlTokenKey } = storeToRefs(useTempStore())
 const notifications = ref<INotification[]>([])
+const isHttps = window.location.protocol === 'https:'
 const { loading } = initQuery({
   handle: (data: any, error: string) => {
     if (error) {
@@ -85,6 +91,10 @@ const { mutate: cancelNotifications } = initMutation({
 
 const deleteItem = (item: INotification) => {
   cancelNotifications({ ids: [item.id] })
+}
+
+const useHttpsLink = () => {
+  window.open(`https://${window.location.hostname}:${app.value.httpsPort}`, '_blank');
 }
 
 const grantPermission = () => {
@@ -198,6 +208,7 @@ onMounted(() => {
     word-break: keep-all;
     white-space: nowrap;
   }
+
   .name {
     word-break: keep-all;
     white-space: nowrap;

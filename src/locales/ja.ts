@@ -3,6 +3,8 @@ export default {
   troubleshoot: 'トラブルシューティング',
   fix_disconnect_tips: '接続が切断されました。携帯電話の画面を点灯させるか、携帯電話をUSBで充電することをお試しください。または、アプリケーションを再起動してページをリフレッシュしてください。',
   failed_connect_ws: '接続が切断されました。アプリケーションを再起動してもう一度お試しください。',
+  desktop_notification_need_https: 'デスクトップ通知には安全なリンク（HTTPS）が必要です。',
+  use_https_link: 'HTTPSリンクを使用する',
   fetch_content_automatically: 'コンテンツを自動的に取得',
   call: 'コール',
   call_phone: '電話する',

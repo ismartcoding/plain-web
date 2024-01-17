@@ -29,7 +29,7 @@ function go(fullPath: string) {
   margin: 0;
   list-style: none;
   font-weight: 600;
-  font-size: 1.25rem;
+  font-size: 1.125rem;
 
   li {
     + li {

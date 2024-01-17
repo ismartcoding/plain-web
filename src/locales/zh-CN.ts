@@ -3,6 +3,8 @@ export default {
   troubleshoot: '故障排除',
   fix_disconnect_tips: '连接已断开，请尝试保持手机屏幕亮起或将手机连接 USB 充电。或重新打开应用并刷新页面。',
   failed_connect_ws: '连接已断开，请重新启动应用程序并重试。',
+  desktop_notification_need_https: '桌面通知需要安全链接（HTTPS）。',
+  use_https_link: '使用HTTPS链接',
   fetch_content_automatically: '自动拉取正文内容',
   call: '呼叫',
   call_phone: '打电话',

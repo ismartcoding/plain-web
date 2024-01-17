@@ -3,6 +3,8 @@ export default {
   troubleshoot: '故障排除',
   fix_disconnect_tips: '連線已中斷。請嘗試保持手機螢幕亮起或將手機連接 USB 充電。或重新開啟應用程式並刷新頁面。',
   failed_connect_ws: '連線已中斷。請重新啟動應用程式並重試。',
+  desktop_notification_need_https: '桌面通知需要安全連結（HTTPS）。',
+  use_https_link: '使用HTTPS連結',
   fetch_content_automatically: '自動拉取正文內容',
   call: '呼叫',
   call_phone: '打電話',

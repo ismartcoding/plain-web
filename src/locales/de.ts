@@ -3,6 +3,8 @@ export default {
   troubleshoot: 'Fehlerbehebung',
   fix_disconnect_tips: 'Die Verbindung wurde getrennt. Versuchen Sie, den Bildschirm Ihres Telefons eingeschaltet zu lassen oder Ihr Telefon über USB aufzuladen. Alternativ die Anwendung neu öffnen und die Seite aktualisieren.',
   failed_connect_ws: 'Die Verbindung wurde getrennt. Bitte starten Sie die Anwendung neu und versuchen Sie es erneut.',
+  desktop_notification_need_https: 'Desktop-Benachrichtigungen benötigen einen sicheren Link (HTTPS).',
+  use_https_link: 'HTTPS-Link verwenden',
   fetch_content_automatically: 'Inhalt automatisch abrufen',
   call: 'Anruf',
   call_phone: 'Telefonanruf',

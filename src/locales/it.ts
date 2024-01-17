@@ -3,6 +3,8 @@ export default {
   troubleshoot: 'Risoluzione dei problemi',
   fix_disconnect_tips: "La connessione è stata interrotta. Prova a mantenere acceso lo schermo del telefono o collega il telefono tramite USB. In alternativa, riapri l'applicazione e aggiorna la pagina.",
   failed_connect_ws: "La connessione è stata interrotta. Riavvia l'applicazione e riprova.",
+  desktop_notification_need_https: 'Le notifiche desktop richiedono un collegamento sicuro (HTTPS).',
+  use_https_link: 'Usa il collegamento HTTPS',
   fetch_content_automatically: 'Recupera contenuto automaticamente',
   call: 'Chiamata',
   call_phone: 'Chiamata telefonica',
