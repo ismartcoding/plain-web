@@ -5,14 +5,7 @@
     </div>
     <div slot="content">
       <div class="form-row">
-        <md-outlined-text-field
-          ref="inputRef"
-          :label="$t('rss_url')"
-          v-model="inputValue"
-          @keyup.enter="doAction"
-          :error="valueError"
-          :error-text="valueError ? $t(valueError) : ''"
-        />
+        <md-outlined-text-field ref="inputRef" :label="$t('rss_url')" v-model="inputValue" @keyup.enter="doAction" :error="valueError" :error-text="valueError ? $t(valueError) : ''" />
       </div>
       <div class="form-row">
         <label class="form-check-label">

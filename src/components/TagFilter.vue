@@ -7,9 +7,7 @@
     </button>
   </h2>
   <ul class="nav">
-    <li v-for="item in tags" @click.prevent="view(item)" :key="item.id" @contextmenu="itemCtxMenu($event, item)" :class="{ active: selected && kebabCase(item.name) === selected }">
-      {{ item.name }} ({{ item.count }})
-    </li>
+    <li v-for="item in tags" @click.prevent="view(item)" :key="item.id" @contextmenu="itemCtxMenu($event, item)" :class="{ active: selected && kebabCase(item.name) === selected }">{{ item.name }} ({{ item.count }})</li>
   </ul>
 </template>
 

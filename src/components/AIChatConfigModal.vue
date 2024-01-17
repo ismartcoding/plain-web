@@ -2,15 +2,7 @@
   <md-dialog>
     <div slot="headline">ChatGPT</div>
     <div slot="content">
-      <md-outlined-text-field
-        ref="input"
-        :label="$t('api_key')"
-        class="form-control"
-        v-model="inputValue"
-        @keyup.enter="doAction"
-        :error="valueError"
-        :error-text="valueError ? $t(valueError) : ''"
-      />
+      <md-outlined-text-field ref="input" :label="$t('api_key')" class="form-control" v-model="inputValue" @keyup.enter="doAction" :error="valueError" :error-text="valueError ? $t(valueError) : ''" />
     </div>
     <div slot="actions">
       <md-outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</md-outlined-button>

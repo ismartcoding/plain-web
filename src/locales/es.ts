@@ -1,8 +1,7 @@
 export default {
   app_name: 'PlainApp',
   troubleshoot: 'Solución de problemas',
-  fix_disconnect_tips:
-    'La conexión se ha desconectado. Intente mantener la pantalla del teléfono encendida o conectar el teléfono mediante carga USB. O bien, vuelva a abrir la aplicación y actualice la página.',
+  fix_disconnect_tips: 'La conexión se ha desconectado. Intente mantener la pantalla del teléfono encendida o conectar el teléfono mediante carga USB. O bien, vuelva a abrir la aplicación y actualice la página.',
   failed_connect_ws: 'La conexión se ha desconectado. Reinicie la aplicación e inténtelo de nuevo.',
   fetch_content_automatically: 'Obtener contenido automáticamente',
   call: 'Llamada',
@@ -60,8 +59,7 @@ export default {
   grant_permission: 'Conceder permiso',
   desktop_notification_permission_not_granted: 'No se ha otorgado el permiso de notificación de escritorio.',
   desktop_notification_permission_grant_title: 'Conceder permiso para notificaciones de escritorio',
-  desktop_notification_permission_grant_message:
-    '1. Haga clic en el icono del candado en la barra de direcciones.\n2. Abra "Configuración del sitio" o "Permisos".\n3. Encuentre "Notificaciones" y cámbielo a "Permitir".',
+  desktop_notification_permission_grant_message: '1. Haga clic en el icono del candado en la barra de direcciones.\n2. Abra "Configuración del sitio" o "Permisos".\n3. Encuentre "Notificaciones" y cámbielo a "Permitir".',
   sort: 'Ordenar',
   sort_by: {
     date_asc: 'Fecha más antigua primero',
@@ -377,8 +375,7 @@ export default {
   },
   load_failed: 'Error al cargar {name}',
   network_error: 'Error de red, no se puede conectar al API',
-  web_access_disabled:
-    'El acceso web está actualmente deshabilitado. Por favor, abra PlainApp > icono de la parte superior derecha 💻 > página "Web en PC" y toque el interruptor "Habilitar".',
+  web_access_disabled: 'El acceso web está actualmente deshabilitado. Por favor, abra PlainApp > icono de la parte superior derecha 💻 > página "Web en PC" y toque el interruptor "Habilitar".',
   play: 'Reproducir',
   add_to_playlist: 'Añadir a lista de reproducción',
   added_to_playlist: 'Añadido a la lista de reproducción',
@@ -474,6 +471,5 @@ export default {
   select_all_items: 'Seleccionar todos los {count} elementos',
   clear_selection: 'Borrar selección',
   screen_mirror_request_permission_failed: 'No has concedido permiso a PlainApp para tomar capturas de pantalla.',
-  screen_mirror_request_permission:
-    'Por favor, toca "Comenzar ahora" en el teléfono. \nSi la ventana de permisos no se muestra, vuelve a abrir PlainApp. \nInténtalo de nuevo en {seconds} segundos.',
+  screen_mirror_request_permission: 'Por favor, toca "Comenzar ahora" en el teléfono. \nSi la ventana de permisos no se muestra, vuelve a abrir PlainApp. \nInténtalo de nuevo en {seconds} segundos.',
 }

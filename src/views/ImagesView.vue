@@ -47,14 +47,7 @@
       <span class="duration">{{ formatFileSize(item.size) }}</span>
     </div>
   </div>
-  <all-checked-alert
-    :limit="limit"
-    :total="total"
-    :all-checked-alert-visible="allCheckedAlertVisible"
-    :real-all-checked="realAllChecked"
-    :select-real-all="selectRealAll"
-    :clear-selection="clearSelection"
-  />
+  <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible" :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
   <div class="table-responsive" v-if="mainStore.imageViewType === 'list'">
     <table class="table">
       <thead>

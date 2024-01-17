@@ -50,14 +50,7 @@
   <div class="no-data-placeholder" v-if="mainStore.videoViewType === 'grid' && sources.length === 0">
     {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
   </div>
-  <all-checked-alert
-    :limit="limit"
-    :total="total"
-    :all-checked-alert-visible="allCheckedAlertVisible"
-    :real-all-checked="realAllChecked"
-    :select-real-all="selectRealAll"
-    :clear-selection="clearSelection"
-  />
+  <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible" :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
   <div class="table-responsive" v-if="mainStore.videoViewType === 'list'">
     <table class="table">
       <thead>

@@ -1,26 +1,7 @@
 import gql from 'graphql-tag'
 import { useLazyQuery, useQuery } from '@vue/apollo-composable'
 import type { DocumentParameter, OptionsParameter } from '@vue/apollo-composable/dist/useQuery'
-import {
-  chatItemFragment,
-  messageFragment,
-  contactFragment,
-  callFragment,
-  imageFragment,
-  videoFragment,
-  audioFragment,
-  fileFragment,
-  appFragment,
-  tagFragment,
-  noteFragment,
-  feedFragment,
-  feedEntryFragment,
-  aiChatFragment,
-  packageFragment,
-  tagSubFragment,
-  notificationFragment,
-  deviceInfoFragment,
-} from './fragments'
+import { chatItemFragment, messageFragment, contactFragment, callFragment, imageFragment, videoFragment, audioFragment, fileFragment, appFragment, tagFragment, noteFragment, feedFragment, feedEntryFragment, aiChatFragment, packageFragment, tagSubFragment, notificationFragment, deviceInfoFragment } from './fragments'
 
 export class InitQueryParams<TResult> {
   handle!: (data: TResult, error: string) => void

@@ -1,8 +1,7 @@
 export default {
   app_name: 'PlainApp',
   troubleshoot: 'Troubleshoot',
-  fix_disconnect_tips:
-    'Connection has been lost, please try keeping your phone screen on or connect your phone via USB charging. Alternatively, reopen the application and refresh the page.',
+  fix_disconnect_tips: 'Connection has been lost, please try keeping your phone screen on or connect your phone via USB charging. Alternatively, reopen the application and refresh the page.',
   failed_connect_ws: 'Connection has been lost, please restart the application and try again.',
   fetch_content_automatically: 'Fetch content automatically',
   call: 'Call',
@@ -60,8 +59,7 @@ export default {
   grant_permission: 'Grant permission',
   desktop_notification_permission_not_granted: 'Desktop notification permission is not granted.',
   desktop_notification_permission_grant_title: 'Grant permission for desktop notifications',
-  desktop_notification_permission_grant_message:
-    '1. Click the padlock icon in the address bar.\n2. Open "Site settings" or "Permissions."\n3. Find "Notifications" and change it to "Allow."',
+  desktop_notification_permission_grant_message: '1. Click the padlock icon in the address bar.\n2. Open "Site settings" or "Permissions."\n3. Find "Notifications" and change it to "Allow."',
   sort: 'Sort',
   sort_by: {
     date_asc: 'Oldest date first',

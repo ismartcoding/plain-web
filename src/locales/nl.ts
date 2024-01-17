@@ -1,8 +1,7 @@
 export default {
   app_name: 'PlainApp',
   troubleshoot: 'Problemen oplossen',
-  fix_disconnect_tips:
-    'De verbinding is verbroken. Probeer het telefoonscherm aan te houden of de telefoon via USB op te laden. Of open de applicatie opnieuw en vernieuw de pagina.',
+  fix_disconnect_tips: 'De verbinding is verbroken. Probeer het telefoonscherm aan te houden of de telefoon via USB op te laden. Of open de applicatie opnieuw en vernieuw de pagina.',
   failed_connect_ws: 'De verbinding is verbroken. Start de applicatie opnieuw en probeer het opnieuw.',
   fetch_content_automatically: 'Inhoud automatisch ophalen',
   call: 'Oproep',
@@ -60,8 +59,7 @@ export default {
   grant_permission: 'Toestemming verlenen',
   desktop_notification_permission_not_granted: 'Toestemming voor desktopmeldingen is niet verleend.',
   desktop_notification_permission_grant_title: 'Toestemming verlenen voor desktopmeldingen',
-  desktop_notification_permission_grant_message:
-    '1. Klik op het hangslotsymbool in de adresbalk.\n2. Open "Site-instellingen" of "Machtigingen".\n3. Zoek "Meldingen" en wijzig het naar "Toestaan".',
+  desktop_notification_permission_grant_message: '1. Klik op het hangslotsymbool in de adresbalk.\n2. Open "Site-instellingen" of "Machtigingen".\n3. Zoek "Meldingen" en wijzig het naar "Toestaan".',
   sort: 'Sorteren',
   sort_by: {
     date_asc: 'Oudste datum eerst',
@@ -473,6 +471,5 @@ export default {
   select_all_items: 'Selecteer alle {count} items',
   clear_selection: 'Selectie wissen',
   screen_mirror_request_permission_failed: 'Je hebt PlainApp geen toestemming gegeven om schermafbeeldingen te maken.',
-  screen_mirror_request_permission:
-    'Tik op "Nu starten" op je telefoon. \nAls het toestemmingsvenster niet wordt weergegeven, start je PlainApp opnieuw. \nProbeer het over {seconds} seconden opnieuw',
+  screen_mirror_request_permission: 'Tik op "Nu starten" op je telefoon. \nAls het toestemmingsvenster niet wordt weergegeven, start je PlainApp opnieuw. \nProbeer het over {seconds} seconden opnieuw',
 }

@@ -1,8 +1,7 @@
 export default {
   app_name: 'PlainApp',
   troubleshoot: 'トラブルシューティング',
-  fix_disconnect_tips:
-    '接続が切断されました。携帯電話の画面を点灯させるか、携帯電話をUSBで充電することをお試しください。または、アプリケーションを再起動してページをリフレッシュしてください。',
+  fix_disconnect_tips: '接続が切断されました。携帯電話の画面を点灯させるか、携帯電話をUSBで充電することをお試しください。または、アプリケーションを再起動してページをリフレッシュしてください。',
   failed_connect_ws: '接続が切断されました。アプリケーションを再起動してもう一度お試しください。',
   fetch_content_automatically: 'コンテンツを自動的に取得',
   call: 'コール',
@@ -60,8 +59,7 @@ export default {
   grant_permission: '権限を付与',
   desktop_notification_permission_not_granted: 'デスクトップ通知の許可が付与されていません。',
   desktop_notification_permission_grant_title: 'デスクトップ通知の許可を付与する',
-  desktop_notification_permission_grant_message:
-    '1. アドレスバーの南京錠アイコンをクリックします。\n2. "サイト設定"または"権限"を開きます。\n3. "通知"を見つけ、それを"許可"に変更します。',
+  desktop_notification_permission_grant_message: '1. アドレスバーの南京錠アイコンをクリックします。\n2. "サイト設定"または"権限"を開きます。\n3. "通知"を見つけ、それを"許可"に変更します。',
   sort: '並べ替え',
   sort_by: {
     date_asc: '古い順',
