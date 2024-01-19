@@ -5,6 +5,7 @@ export default {
   failed_connect_ws: 'সংযোগ কাটা হয়েছে। অ্যাপ্লিকেশনটি পুনরায় চালু করুন এবং আবার চেষ্টা করুন।',
   desktop_notification_need_https: 'ডেস্কটপ বিজ্ঞাপনগুলি একটি নিরাপদ লিংক (HTTPS) প্রয়োজন।',
   use_https_link: 'HTTPS লিংক ব্যবহার করুন',
+  confirm_uninstallation_on_phone: 'অনুগ্রহ করে আপনার ফোনে আনইনস্টলেশন নিশ্চিত করুন।',
   fetch_content_automatically: 'স্বয়ংক্রিয়ভাবে সামগ্রী পূর্ণ করুন',
   call: 'কল',
   call_phone: 'ফোনে কল',

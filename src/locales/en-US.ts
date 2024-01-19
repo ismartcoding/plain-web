@@ -5,6 +5,7 @@ export default {
   failed_connect_ws: 'Connection has been lost, please restart the application and try again.',
   desktop_notification_need_https: 'Desktop notifications need a secure link (HTTPS).',
   use_https_link: 'Use HTTPS link',
+  confirm_uninstallation_on_phone: 'Please confirm uninstallation on your phone.',
   fetch_content_automatically: 'Fetch content automatically',
   call: 'Call',
   call_phone: 'Call phone',

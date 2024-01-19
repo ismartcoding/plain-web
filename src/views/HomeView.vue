@@ -99,10 +99,8 @@ import { storeToRefs } from 'pinia'
 import { sumBy } from 'lodash-es'
 import type { IStorageStatsItem } from '@/lib/interfaces'
 import { useMainStore } from '@/stores/main'
-import { useForm } from 'vee-validate'
 import { callGQL, initMutation } from '@/lib/api/mutation'
 const { t } = useI18n()
-const { handleSubmit } = useForm()
 
 const mainStore = useMainStore()
 

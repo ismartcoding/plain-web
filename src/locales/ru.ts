@@ -5,6 +5,7 @@ export default {
   failed_connect_ws: 'Соединение прервано. Пожалуйста, перезапустите приложение и повторите попытку.',
   desktop_notification_need_https: 'Уведомления на рабочем столе требуют безопасной ссылки (HTTPS).',
   use_https_link: 'Использовать безопасную ссылку HTTPS',
+  confirm_uninstallation_on_phone: 'Пожалуйста, подтвердите удаление на своем телефоне.',
   fetch_content_automatically: 'Автоматически получать содержимое',
   call: 'Звонок',
   call_phone: 'Позвонить по телефону',

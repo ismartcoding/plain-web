@@ -5,6 +5,7 @@ export default {
   failed_connect_ws: 'இணைப்பு இழுக்கின்றது. அப்ளிகேஷனை மீண்டும் திறக்கவும் மற்றும் மீண்டும் முயற்சி செய்யவும்.',
   desktop_notification_need_https: 'டெஸ்காப் அறிவிப்புகளுக்கு ஒரு பாதுஷியான இணையம் (HTTPS) தேவையாகும்.',
   use_https_link: 'HTTPS இணையாக்கத்தை பயன்படுத்துக',
+  confirm_uninstallation_on_phone: 'உங்கள் கைபேசியில் அணைத்தலை உறுதி செய்க.',
   fetch_content_automatically: 'உருப்படியை தானாக பெறுங்கள்',
   call: 'அழை',
   call_phone: 'போனில் அழை',

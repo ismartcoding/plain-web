@@ -5,6 +5,7 @@ export default {
   failed_connect_ws: "La connessione è stata interrotta. Riavvia l'applicazione e riprova.",
   desktop_notification_need_https: 'Le notifiche desktop richiedono un collegamento sicuro (HTTPS).',
   use_https_link: 'Usa il collegamento HTTPS',
+  confirm_uninstallation_on_phone: 'Si prega di confermare la disinstallazione sul tuo telefono.',
   fetch_content_automatically: 'Recupera contenuto automaticamente',
   call: 'Chiamata',
   call_phone: 'Chiamata telefonica',

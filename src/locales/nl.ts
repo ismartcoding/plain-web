@@ -5,6 +5,7 @@ export default {
   failed_connect_ws: 'De verbinding is verbroken. Start de applicatie opnieuw en probeer het opnieuw.',
   desktop_notification_need_https: 'Desktopmeldingen hebben een beveiligde link nodig (HTTPS).',
   use_https_link: 'Gebruik een HTTPS-link',
+  confirm_uninstallation_on_phone: 'Bevestig de verwijdering op uw telefoon a.u.b.',
   fetch_content_automatically: 'Inhoud automatisch ophalen',
   call: 'Oproep',
   call_phone: 'Telefoonoproep',

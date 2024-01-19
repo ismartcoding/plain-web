@@ -5,6 +5,7 @@ export default {
   failed_connect_ws: 'A conexão foi interrompida. Reinicie o aplicativo e tente novamente.',
   desktop_notification_need_https: 'As notificações de desktop precisam de um link seguro (HTTPS).',
   use_https_link: 'Usar link HTTPS',
+  confirm_uninstallation_on_phone: 'Por favor, confirme a desinstalação no seu telefone.',
   fetch_content_automatically: 'Obter conteúdo automaticamente',
   call: 'Chamada',
   call_phone: 'Chamar por telefone',

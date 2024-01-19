@@ -5,6 +5,7 @@ export default {
   failed_connect_ws: "La connexion a été interrompue. Veuillez redémarrer l'application et réessayer.",
   desktop_notification_need_https: 'Les notifications de bureau nécessitent un lien sécurisé (HTTPS).',
   use_https_link: 'Utiliser le lien HTTPS',
+  confirm_uninstallation_on_phone: 'Veuillez confirmer la désinstallation sur votre téléphone.',
   fetch_content_automatically: 'Récupérer le contenu automatiquement',
   call: 'Appel',
   call_phone: 'Appeler par téléphone',

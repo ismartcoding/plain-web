@@ -8,12 +8,17 @@
       <div class="alert alert-danger" role="alert" v-show="showError">
         {{ error ? $t(error) : '' }}
       </div>
-      <md-outlined-text-field v-if="showPasswordInput" :label="t('password')" v-model="password" @keydown.enter="onSubmit" type="password" class="form-control" :error="passwordError" :error-text="passwordError ? $t(passwordError) : ''" />
+      <md-outlined-text-field v-if="showPasswordInput" :label="t('password')" v-model="password" @keydown.enter="onSubmit"
+        type="password" class="form-control" :error="passwordError"
+        :error-text="passwordError ? $t(passwordError) : ''" />
       <md-filled-button v-if="!webAccessDisabled" :disabled="isSubmitting">
         {{ $t(isSubmitting ? 'logging_in' : 'log_in') }}
       </md-filled-button>
     </form>
     <div v-show="showConfirm">
+      <div class="tap-phone">
+        <TouchPhone />
+      </div>
       {{ $t('login.to_continue') }}
       <md-outlined-button @click="cancel">
         {{ $t('cancel') }}
@@ -24,6 +29,7 @@
 </template>
 <script setup lang="ts">
 import { ref } from 'vue'
+import TouchPhone from '@/assets/touch-phone.svg'
 import { useField, useForm } from 'vee-validate'
 import { string } from 'yup'
 import { useI18n } from 'vue-i18n'
@@ -159,6 +165,17 @@ h1 {
   border-radius: var(--plain-shape-xl);
   padding-block: var(--plain-spacing-xl);
   padding: 40px;
+
+  .tap-phone {
+    text-align: center;
+    padding-block-end: 1rem;
+
+    svg {
+      width: 120px;
+      margin-inline-start: 24px;
+      fill: var(--md-sys-color-primary);
+    }
+  }
 }
 
 .tips {

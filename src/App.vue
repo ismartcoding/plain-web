@@ -5,6 +5,12 @@
   <router-view />
   <Teleport to="body">
     <modal-container />
+    <div class="tap-phone-container" v-click-away="closeTapPhone" v-if="tapPhoneMessage" @click="closeTapPhone">
+      <div>
+        {{ tapPhoneMessage }}
+      </div>
+      <TouchPhone />
+    </div>
   </Teleport>
 </template>
 <script setup lang="ts">
@@ -17,14 +23,21 @@ import { aesDecrypt, aesEncrypt, bitArrayToUint8Array } from './lib/api/crypto'
 import { arrayBuffertoBits } from './lib/api/sjcl-arraybuffer'
 import { applyDarkClass, changeColor, changeColorAndMode, changeColorMode, getCurrentMode, getCurrentSeedColor, getCurrentThemeString, getLastSavedAutoColorMode, isModeDark } from './lib/theme/theme'
 import { applyThemeString } from './lib/theme/apply-theme-string'
+import TouchPhone from '@/assets/touch-phone.svg'
 import { tokenToKey } from './lib/api/file'
 let retryConnectTimeout = 0
 const { t } = useI18n()
 document.title = t('app_name')
 const wsStatus = ref('')
+const tapPhoneMessage = ref('')
+
 
 let ws: WebSocket
 let retryTime = 1000 // 1s
+
+const closeTapPhone = () => {
+  tapPhoneMessage.value = ''
+}
 
 async function connect() {
   const clientId = localStorage.getItem('client_id')
@@ -121,6 +134,10 @@ function initializeTheme() {
 onMounted(() => {
   emitter.on('toast', (r: string) => {
     toast(t(r))
+  })
+
+  emitter.on('tap_phone', (r: string) => {
+    tapPhoneMessage.value = r
   })
 
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {

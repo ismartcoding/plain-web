@@ -1,7 +1,8 @@
 <template>
   <Teleport to="body">
     <div class="toast-container" v-if="isActive">
-      <div ref="root" :class="['v-toast', type]" @mouseover="toggleTimer(true)" @mouseleave="toggleTimer(false)" @click="click" role="alert">
+      <div :class="['v-toast', type]" @mouseover="toggleTimer(true)" @mouseleave="toggleTimer(false)" @click="click"
+        role="alert">
         {{ message }}
       </div>
     </div>
@@ -27,11 +28,10 @@ const props = defineProps({
   },
   onClick: {
     type: Function,
-    default: () => {},
+    default: () => { },
   },
 })
 
-const root = ref(null)
 const isActive = ref(true)
 
 const timer = props.duration !== false ? new Timer(close, props.duration as number) : null
