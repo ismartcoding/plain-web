@@ -187,8 +187,8 @@ export const callsGQL = gql`
 `
 
 export const imagesGQL = gql`
-  query images($offset: Int!, $limit: Int!, $query: String!) {
-    images(offset: $offset, limit: $limit, query: $query) {
+  query images($offset: Int!, $limit: Int!, $query: String!, $sortBy: FileSortBy!) {
+    images(offset: $offset, limit: $limit, query: $query, sortBy: $sortBy) {
       ...ImageFragment
     }
     imageCount(query: $query)
@@ -197,8 +197,8 @@ export const imagesGQL = gql`
 `
 
 export const videosGQL = gql`
-  query videos($offset: Int!, $limit: Int!, $query: String!) {
-    videos(offset: $offset, limit: $limit, query: $query) {
+  query videos($offset: Int!, $limit: Int!, $query: String!, $sortBy: FileSortBy!) {
+    videos(offset: $offset, limit: $limit, query: $query, sortBy: $sortBy) {
       ...VideoFragment
     }
     videoCount(query: $query)
@@ -207,8 +207,8 @@ export const videosGQL = gql`
 `
 
 export const audiosGQL = gql`
-  query audios($offset: Int!, $limit: Int!, $query: String!) {
-    audios(offset: $offset, limit: $limit, query: $query) {
+  query audios($offset: Int!, $limit: Int!, $query: String!, $sortBy: FileSortBy!) {
+    audios(offset: $offset, limit: $limit, query: $query, sortBy: $sortBy) {
       ...AudioFragment
     }
     audioCount(query: $query)
