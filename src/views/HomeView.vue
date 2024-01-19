@@ -37,15 +37,9 @@
             <div class="card-body">
               <h5 class="card-title">{{ $t('social') }}</h5>
               <p class="stats-items">
-                <a href="#" @click.prevent="openTab('/messages')" v-if="app.channel !== 'GOOGLE'"
-                  >{{ $t('messages') }}<template v-if="messageCount >= 0">({{ messageCount }})</template></a
-                >
-                <a href="#" @click.prevent="openTab('/contacts')"
-                  >{{ $t('contacts') }}<template v-if="contactCount >= 0">({{ contactCount }})</template></a
-                >
-                <a href="#" @click.prevent="openTab('/calls')" v-if="app.channel !== 'GOOGLE'"
-                  >{{ $t('calls') }}<template v-if="callCount >= 0">({{ callCount }})</template></a
-                >
+                <a href="#" @click.prevent="openTab('/messages')" v-if="app.channel !== 'GOOGLE'">{{ $t('messages') }}<template v-if="messageCount >= 0">({{ messageCount }})</template></a>
+                <a href="#" @click.prevent="openTab('/calls')" v-if="app.channel !== 'GOOGLE'">{{ $t('calls') }}<template v-if="callCount >= 0">({{ callCount }})</template></a>
+                <a href="#" @click.prevent="openTab('/contacts')" >{{ $t('contacts') }}<template v-if="contactCount >= 0">({{ contactCount }})</template></a>
               </p>
             </div>
           </section>
@@ -55,10 +49,10 @@
             <div class="card-body">
               <h5 class="card-title">{{ $t('tools') }}</h5>
               <p class="stats-items">
-                <a href="#" @click.prevent="openTab('/json-viewer')">{{ $t('json_viewer') }}</a>
-                <a href="#" @click.prevent="openTab('/qrcode-generator')">{{ $t('qrcode_generator') }}</a>
                 <a href="#" @click.prevent="openTab('/screen-mirror')">{{ $t('screen_mirror') }}</a>
                 <a href="#" @click.prevent="openTab('/device-info')">{{ $t('device_info') }}</a>
+                <a href="#" @click.prevent="openTab('/qrcode-generator')">{{ $t('qrcode_generator') }}</a>
+                <a href="#" @click.prevent="openTab('/json-viewer')">{{ $t('json_viewer') }}</a>
               </p>
             </div>
           </section>

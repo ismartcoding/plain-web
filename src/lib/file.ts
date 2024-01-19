@@ -84,6 +84,17 @@ export class FilePanel {
   }
 }
 
+export function getSortItems() {
+  return [
+    { label: 'sort_by.date_asc', value: 'DATE_ASC' },
+    { label: 'sort_by.date_desc', value: 'DATE_DESC' },
+    { label: 'sort_by.size_asc', value: 'SIZE_ASC' },
+    { label: 'sort_by.size_desc', value: 'SIZE_DESC' },
+    { label: 'sort_by.name_asc', value: 'NAME_ASC' },
+    { label: 'sort_by.name_desc', value: 'NAME_DESC' },
+  ]
+}
+
 export async function getVideoData(videoFile: File): Promise<{ src: string; duration: number; thumbnail: string }> {
   return new Promise((resolve) => {
     const video = document.createElement('video')

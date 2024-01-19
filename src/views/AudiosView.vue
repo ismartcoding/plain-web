@@ -23,6 +23,20 @@
       <md-ripple />
       <i-material-symbols:upload-rounded />
     </button>
+    <popper>
+      <button class="icon-button btn-sort" v-tooltip="$t('sort')">
+        <md-ripple />
+        <i-material-symbols:sort-rounded />
+      </button>
+      <template #content="slotProps">
+        <div class="menu-items">
+          <md-menu-item v-for="item in sortItems" @click="sort(slotProps, item.value)"
+            :selected="item.value === audioSortBy">
+            <div slot="headline">{{ $t(item.label) }}</div>
+          </md-menu-item>
+        </div>
+      </template>
+    </popper>
     <search-input ref="searchInputRef" v-model="q" :search="doSearch">
       <template #filters>
         <div class="filters">
@@ -149,8 +163,10 @@ import { getFileName } from '@/lib/api/file'
 import { remove } from 'lodash-es'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { DataType } from '@/lib/data'
+import { getSortItems } from '@/lib/file'
 
 const mainStore = useMainStore()
+const { audioSortBy } = storeToRefs(mainStore)
 const items = ref<IAudioItem[]>([])
 const searchInputRef = ref()
 const { t } = useI18n()
@@ -182,6 +198,7 @@ const { allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clear
 const { downloadItems } = useDownloadItems(urlTokenKey, dataType, items, clearSelection, 'audios.zip')
 const { downloadFile } = useDownload(urlTokenKey)
 const { addItemsToPlaylist, addToPlaylist } = useAddToPlaylist(items, clearSelection)
+const sortItems = getSortItems()
 
 const router = useRouter()
 
@@ -203,6 +220,7 @@ const { loading, load, refetch } = initLazyQuery({
     offset: (page.value - 1) * limit,
     limit,
     query: finalQ.value,
+    sortBy: audioSortBy.value,
   }),
   appApi: true,
 })
@@ -216,6 +234,11 @@ function upload() {
   pushModal(ConfirmModal, {
     message: t('upload_audios'),
   })
+}
+
+function sort(slotProps: any, sort: string) {
+  audioSortBy.value = sort
+  slotProps.close()
 }
 
 function onTagSelect(item: ITag) {

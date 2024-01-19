@@ -24,6 +24,20 @@
       <md-ripple />
       <i-material-symbols:upload-rounded />
     </button>
+    <popper>
+      <button class="icon-button btn-sort" v-tooltip="$t('sort')">
+        <md-ripple />
+        <i-material-symbols:sort-rounded />
+      </button>
+      <template #content="slotProps">
+        <div class="menu-items">
+          <md-menu-item v-for="item in sortItems" @click="sort(slotProps, item.value)"
+            :selected="item.value === videoSortBy">
+            <div slot="headline">{{ $t(item.label) }}</div>
+          </md-menu-item>
+        </div>
+      </template>
+    </popper>
     <search-input ref="searchInputRef" v-model="q" :search="doSearch">
       <template #filters>
         <div class="filters">
@@ -150,9 +164,11 @@ import { openModal } from '@/components/modal'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { DataType } from '@/lib/data'
 import { contextmenu } from '@/components/contextmenu'
+import { getSortItems } from '@/lib/file'
 
 const router = useRouter()
 const mainStore = useMainStore()
+const { videoSortBy } = storeToRefs(mainStore)
 const items = ref<IVideoItem[]>([])
 const searchInputRef = ref()
 const { t } = useI18n()
@@ -181,6 +197,7 @@ const { deleteItems, deleteItem } = useDeleteItems()
 const { allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleItemChecked, toggleRow, total, checked } = useSelectable(items)
 const { downloadItems } = useDownloadItems(urlTokenKey, dataType, items, clearSelection, 'videos.zip')
 const { downloadFile } = useDownload(urlTokenKey)
+const sortItems = getSortItems()
 
 const sources = computed<ISource[]>(() => {
   return items.value.map((it: IVideoItem) => ({
@@ -214,6 +231,7 @@ const { loading, load, refetch } = initLazyQuery({
     offset: (page.value - 1) * limit,
     limit,
     query: finalQ.value,
+    sortBy: videoSortBy.value
   }),
   appApi: true,
 })
@@ -228,6 +246,11 @@ function view(index: number) {
     index: index,
     visible: true,
   }
+}
+
+function sort(slotProps: any, sort: string) {
+  videoSortBy.value = sort
+  slotProps.close()
 }
 
 watch(page, () => {

@@ -97,7 +97,7 @@ import { useI18n } from 'vue-i18n'
 import { Splitpanes, Pane } from 'splitpanes'
 import { useMainStore } from '@/stores/main'
 import { storeToRefs } from 'pinia'
-import { type FilePanel, type IFile, isImage, isVideo, canOpenInBrowser, canView } from '@/lib/file'
+import { type FilePanel, type IFile, isImage, isVideo, canOpenInBrowser, canView, getSortItems } from '@/lib/file'
 import { getFileUrl, getFileUrlByPath } from '@/lib/api/file'
 import { noDataKey } from '@/lib/list'
 import emitter from '@/plugins/eventbus'
@@ -134,14 +134,7 @@ if (!dirTmp) {
   }
 }
 const initDir = ref(dirTmp)
-const sortItems = [
-  { label: 'sort_by.date_asc', value: 'DATE_ASC' },
-  { label: 'sort_by.date_desc', value: 'DATE_DESC' },
-  { label: 'sort_by.size_asc', value: 'SIZE_ASC' },
-  { label: 'sort_by.size_desc', value: 'SIZE_DESC' },
-  { label: 'sort_by.name_asc', value: 'NAME_ASC' },
-  { label: 'sort_by.name_desc', value: 'NAME_DESC' },
-]
+const sortItems = getSortItems()
 
 const selectMode = ref(false)
 const mainStore = useMainStore()
