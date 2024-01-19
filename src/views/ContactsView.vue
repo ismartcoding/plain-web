@@ -110,7 +110,7 @@
         <tr>
           <td colspan="9">
             <div class="no-data-placeholder">
-              {{ $t(noDataKey(loading, app.permissions, 'READ_CONTACTS')) }}
+              {{ $t(noDataKey(loading, app.permissions, 'WRITE_CONTACTS')) }}
             </div>
           </td>
         </tr>

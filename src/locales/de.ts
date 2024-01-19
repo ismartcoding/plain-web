@@ -5,6 +5,7 @@ export default {
   failed_connect_ws: 'Die Verbindung wurde getrennt. Bitte starten Sie die Anwendung neu und versuchen Sie es erneut.',
   desktop_notification_need_https: 'Desktop-Benachrichtigungen benötigen einen sicheren Link (HTTPS).',
   use_https_link: 'HTTPS-Link verwenden',
+  confirm_uninstallation_on_phone: 'Bitte bestätigen Sie die Deinstallation auf Ihrem Telefon.',
   fetch_content_automatically: 'Inhalt automatisch abrufen',
   call: 'Anruf',
   call_phone: 'Telefonanruf',

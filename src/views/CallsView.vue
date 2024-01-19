@@ -97,7 +97,7 @@
         <tr>
           <td colspan="10">
             <div class="no-data-placeholder">
-              {{ $t(noDataKey(loading, app.permissions, 'READ_CALL_LOG')) }}
+              {{ $t(noDataKey(loading, app.permissions, 'WRITE_CALL_LOG')) }}
             </div>
           </td>
         </tr>

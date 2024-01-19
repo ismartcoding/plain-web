@@ -5,6 +5,7 @@ export default {
   failed_connect_ws: 'कनेक्शन कट गया है। कृपया एप्लिकेशन को पुनः चालू करें और पुनः प्रयास करें।',
   desktop_notification_need_https: 'डेस्कटॉप सूचनाएं एक सुरक्षित लिंक (HTTPS) की आवश्यकता है।',
   use_https_link: 'HTTPS लिंक का उपयोग करें',
+  confirm_uninstallation_on_phone: 'कृपया अपने फ़ोन पर अनइंस्टॉलेशन की पुष्टि करें।',
   fetch_content_automatically: 'ऑटोमेटिकली कंटेंट लोड करें',
   call: 'कॉल',
   call_phone: 'फोन पर कॉल',

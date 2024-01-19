@@ -5,6 +5,7 @@ export default {
   failed_connect_ws: '连接已断开，请重新启动应用程序并重试。',
   desktop_notification_need_https: '桌面通知需要安全链接（HTTPS）。',
   use_https_link: '使用HTTPS链接',
+  confirm_uninstallation_on_phone: '请在您的手机上确认卸载。',
   fetch_content_automatically: '自动拉取正文内容',
   call: '呼叫',
   call_phone: '打电话',

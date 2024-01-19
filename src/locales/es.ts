@@ -5,6 +5,7 @@ export default {
   failed_connect_ws: 'La conexión se ha desconectado. Reinicie la aplicación e inténtelo de nuevo.',
   desktop_notification_need_https: 'Las notificaciones de escritorio necesitan un enlace seguro (HTTPS).',
   use_https_link: 'Usar enlace HTTPS',
+  confirm_uninstallation_on_phone: 'Por favor, confirme la desinstalación en su teléfono.',
   fetch_content_automatically: 'Obtener contenido automáticamente',
   call: 'Llamada',
   call_phone: 'Llamar por teléfono',

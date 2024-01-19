@@ -5,6 +5,7 @@ export default {
   failed_connect_ws: '接続が切断されました。アプリケーションを再起動してもう一度お試しください。',
   desktop_notification_need_https: 'デスクトップ通知には安全なリンク（HTTPS）が必要です。',
   use_https_link: 'HTTPSリンクを使用する',
+  confirm_uninstallation_on_phone: 'お使いの携帯電話でアンインストールを確認してください。',
   fetch_content_automatically: 'コンテンツを自動的に取得',
   call: 'コール',
   call_phone: '電話する',
