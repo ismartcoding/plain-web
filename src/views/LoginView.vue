@@ -170,7 +170,7 @@ h1 {
     text-align: center;
     padding-block-end: 1rem;
 
-    svg {
+    *:is(svg) {
       width: 120px;
       margin-inline-start: 24px;
       fill: var(--md-sys-color-primary);
