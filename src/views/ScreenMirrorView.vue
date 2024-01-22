@@ -212,7 +212,7 @@ img {
   font-size: 1.2rem;
   line-height: 2;
 
-  svg {
+  *:is(svg) {
     width: 160px;
     display: block;
     fill: currentColor;

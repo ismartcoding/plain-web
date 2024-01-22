@@ -51,7 +51,7 @@
     height: 40px;
     color: currentColor;
 
-    svg {
+    *:is(svg) {
         height: 24px;
         width: 24px;
     }

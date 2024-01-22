@@ -41,6 +41,7 @@ export default defineConfig({
       },
     },
   },
+  esbuild: { legalComments: 'none' },
   plugins: [
     vue({
       template: {

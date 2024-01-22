@@ -323,7 +323,7 @@ header {
   white-space: nowrap;
 
   .icon-button {
-    svg {
+    *:is(svg) {
       width: 12px;
       height: 12px;
     }

@@ -202,7 +202,7 @@
     font-size: 1.4rem;
   }
 
-  svg {
+  *:is(svg) {
     width: 120px;
     fill: var(--md-sys-color-primary);
   }
