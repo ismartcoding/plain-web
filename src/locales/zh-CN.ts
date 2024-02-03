@@ -1,6 +1,6 @@
 export default {
   app_name: '简朴',
-  troubleshoot: '故障排除',
+  troubleshoot: '排查问题',
   fix_disconnect_tips: '连接已断开，请尝试保持手机屏幕亮起或将手机连接 USB 充电。或重新打开应用并刷新页面。',
   failed_connect_ws: '连接已断开，请重新启动应用程序并重试。',
   desktop_notification_need_https: '桌面通知需要安全链接（HTTPS）。',
