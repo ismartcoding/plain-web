@@ -118,7 +118,7 @@ const { refetch: refetchApp } = initQuery({
         const oldToken = app.value?.urlToken
         const newToken = data.app.urlToken
         urlTokenKey.value = tokenToKey(newToken)
-        if (oldToken !== newToken) {
+        if (oldToken !== newToken) { // URL token is changed from app, need to reset the fileIdMap
           window.fileIdMap = new Map<string, string>()
         }
         app.value = data.app
