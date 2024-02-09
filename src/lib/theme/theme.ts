@@ -120,6 +120,7 @@ export function changeColor(color: string) {
   const isDark = isModeDark(lastColorMode)
 
   applyThemeFromColor(color, isDark)
+  applyDarkClass(isDark)
   saveSeedColor(color)
 }
 
@@ -134,7 +135,7 @@ export function changeColorMode(mode: ColorMode) {
 
   applyThemeFromColor(color, isDark)
   saveColorMode(mode)
-  applyDarkClass()
+  applyDarkClass(isDark)
 }
 
 /**
@@ -148,13 +149,13 @@ export function changeColorAndMode(color: string, mode: ColorMode) {
   const isDark = isModeDark(mode)
 
   applyThemeFromColor(color, isDark)
-  applyDarkClass()
+  applyDarkClass(isDark)
   saveSeedColor(color)
   saveColorMode(mode)
 }
 
-export function applyDarkClass() {
-  if (localStorage.getItem('color-mode') === 'dark' || window.matchMedia('(prefers-color-scheme: dark)').matches) {
+export function applyDarkClass(isDark?: boolean) {
+  if (isDark) {
     document.documentElement.classList.add('dark')
   } else {
     document.documentElement.classList.remove('dark')
