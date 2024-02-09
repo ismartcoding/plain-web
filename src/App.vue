@@ -124,7 +124,7 @@ function initializeTheme() {
   const lastThemeString = getCurrentThemeString()
   if (lastThemeString) {
     applyThemeString(document, lastThemeString)
-    applyDarkClass()
+    applyDarkClass(isModeDark(getCurrentMode() || 'auto', false))
   } else {
     // Generates a primary color close to GM3 baseline primary color.
     changeColorAndMode('#0000FF', 'auto')
