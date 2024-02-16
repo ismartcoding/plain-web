@@ -57,7 +57,7 @@
   </div>
   <div class="image-container" v-if="mainStore.videoViewType === 'grid'" style="margin-bottom: 24px">
     <div class="item" v-for="(item, i) in sources" @click="view(i)" @contextmenu="itemCtxMenu($event, item.data)">
-      <img class="image" :src="item.src + '&w=300&h=300'" />
+      <img class="image" :src="item.src + '&w=300&h=300'" onerror="this.src='/broken-image.png'"/>
       <span class="duration">{{ formatSeconds(item.duration) }}</span>
     </div>
   </div>
@@ -86,7 +86,7 @@
           <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
           <td><field-id :id="item.id" :raw="item" /></td>
           <td>
-            <img class="img-video" :src="getFileUrl(item.fileId) + '&w=300&h=300'" width="50" height="50" style="cursor: pointer" @click.stop="view(i)" />
+            <img class="img-video" :src="getFileUrl(item.fileId) + '&w=300&h=300'" width="50" height="50" style="cursor: pointer" @click.stop="view(i)" onerror="this.src='/broken-image.png'"/>
           </td>
           <td>
             {{ item.title }}
