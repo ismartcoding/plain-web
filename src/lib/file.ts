@@ -130,5 +130,8 @@ export async function getVideoData(videoFile: File): Promise<{ src: string; dura
         thumbnail,
       })
     }
+    video.onerror = () => { 
+      resolve({ src, duration: 0, thumbnail: '' })
+    }
   })
 }

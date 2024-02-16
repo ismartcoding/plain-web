@@ -5,7 +5,7 @@
         <span>{{ item.name }}</span>
         <span class="info">{{ formatFileSize(item.size) }}{{ isVideo(item.name) ? ' / ' + formatSeconds(item.duration) : '' }}</span>
       </span>
-      <img v-if="isImage(item.name) || isVideo(item.name)" :src="getPreview(item)" />
+      <img v-if="isImage(item.name) || isVideo(item.name)" :src="getPreview(item)" onerror="this.src='/broken-image.png'" />
     </a>
   </div>
 </template>
