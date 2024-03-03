@@ -9,7 +9,7 @@
         {{ error ? $t(error) : '' }}
       </div>
       <md-outlined-text-field v-if="showPasswordInput" :label="t('password')" v-model="password" @keydown.enter="onSubmit"
-        type="password" class="form-control" :error="passwordError"
+        type="password" class="form-control" :error="passwordError" autocomplete="current-password"
         :error-text="passwordError ? $t(passwordError) : ''" />
       <md-filled-button v-if="!webAccessDisabled" :disabled="isSubmitting">
         {{ $t(isSubmitting ? 'logging_in' : 'log_in') }}
