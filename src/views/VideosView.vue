@@ -1,7 +1,7 @@
 <template>
   <div class="v-toolbar">
     <breadcrumb :current="() => `${$t('page_title.videos')} (${total})`" />
-    <template v-if="checked && mainStore.videoViewType === 'list'">
+    <template v-if="checked">
       <button class="icon-button" @click.stop="deleteItems(dataType, items, realAllChecked, finalQ)" v-tooltip="$t('delete')">
         <md-ripple />
         <i-material-symbols:delete-forever-outline-rounded />
@@ -15,11 +15,7 @@
         <i-material-symbols:label-outline-rounded />
       </button>
     </template>
-    <button class="icon-button" @click.prevent="changeViewType" v-tooltip="$t(mainStore.videoViewType === 'list' ? 'view_as_grid' : 'view_as_list')">
-      <md-ripple />
-      <i-material-symbols:grid-view-outline-rounded v-if="mainStore.videoViewType === 'list'" />
-      <i-material-symbols:table-rows-rounded v-if="mainStore.videoViewType === 'grid'" />
-    </button>
+
     <button class="icon-button" @click.prevent="upload" v-tooltip="$t('upload')">
       <md-ripple />
       <i-material-symbols:upload-rounded />
@@ -38,6 +34,11 @@
         </div>
       </template>
     </popper>
+    <button class="icon-button" @click.prevent="changeViewType" v-tooltip="$t(mainStore.videoViewType === 'list' ? 'view_as_grid' : 'view_as_list')">
+      <md-ripple />
+      <i-material-symbols:grid-view-outline-rounded v-if="mainStore.videoViewType === 'list'" />
+      <i-material-symbols:table-rows-rounded v-if="mainStore.videoViewType === 'grid'" />
+    </button>
     <search-input ref="searchInputRef" v-model="q" :search="doSearch">
       <template #filters>
         <div class="filters">
@@ -55,16 +56,22 @@
       </template>
     </search-input>
   </div>
+  <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible" :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
+  <div v-if="mainStore.videoViewType === 'grid'">
+    <label class="form-check-label" > 
+      <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked"
+              :indeterminate="!allChecked && checked" />{{ $t('select_all') }} </label>
+  </div>
   <div class="image-container" v-if="mainStore.videoViewType === 'grid'" style="margin-bottom: 24px">
-    <div class="item" v-for="(item, i) in sources" @click="view(i)" @contextmenu="itemCtxMenu($event, item.data)">
-      <img class="image" :src="item.src + '&w=300&h=300'" onerror="this.src='/broken-image.png'"/>
+    <div class="item" v-for="(item, i) in items" >
+      <md-checkbox class="checkbox" touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked"  @click.stop="toggleRow(item)" />
+      <img class="image" :src="getFileUrl(item.fileId) + '&w=300&h=300'" onerror="this.src='/broken-image.png'" @click="view(i)" @contextmenu="itemCtxMenu($event, item)"/>
       <span class="duration">{{ formatSeconds(item.duration) }}</span>
     </div>
   </div>
   <div class="no-data-placeholder" v-if="mainStore.videoViewType === 'grid' && sources.length === 0">
     {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
   </div>
-  <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible" :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
   <div class="table-responsive" v-if="mainStore.videoViewType === 'list'">
     <table class="table">
       <thead>

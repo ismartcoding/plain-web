@@ -121,7 +121,7 @@
 }
 
 .v-toolbar+.alert-info {
-  margin-block-end: 16px;
+  margin-block-end: 8px;
 }
 
 .alert-all-checked {
@@ -132,7 +132,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin-bottom: 16px;
+  margin-block-end: 8px;
 
   .breadcrumb {
     flex-grow: 1;
@@ -402,6 +402,14 @@
     position: relative;
   }
 
+  .checkbox {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    z-index: 1;
+    margin: 12px;
+  }
+
   .duration {
     background: rgba(0, 0, 0, 0.5);
     color: #fff;
@@ -411,6 +419,8 @@
     font-size: 12px;
     padding: 1px 4px;
   }
+
+
 }
 
 .icon-button.selected {

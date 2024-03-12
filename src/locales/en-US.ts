@@ -1,5 +1,6 @@
 export default {
   app_name: 'PlainApp',
+  select_all: 'Select all',
   troubleshoot: 'Troubleshoot',
   fix_disconnect_tips: 'Connection has been lost, please try keeping your phone screen on or connect your phone via USB charging. Alternatively, reopen the application and refresh the page.',
   failed_connect_ws: 'Connection has been lost, please restart the application and try again.',

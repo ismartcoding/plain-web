@@ -19,7 +19,9 @@
       <div class="tap-phone">
         <TouchPhone />
       </div>
-      {{ $t('login.to_continue') }}
+      <div class="tap-phone-text">
+        {{ $t('login.to_continue') }}
+      </div>
       <md-outlined-button @click="cancel">
         {{ $t('cancel') }}
       </md-outlined-button>
@@ -175,6 +177,9 @@ h1 {
       margin-inline-start: 24px;
       fill: var(--md-sys-color-primary);
     }
+  }
+  .tap-phone-text {
+    text-align: center;
   }
 }
 
