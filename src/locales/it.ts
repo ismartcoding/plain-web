@@ -1,5 +1,6 @@
 export default {
   app_name: 'PlainApp',
+  select_all: 'Seleziona tutto',
   troubleshoot: 'Risoluzione dei problemi',
   fix_disconnect_tips: "La connessione è stata interrotta. Prova a mantenere acceso lo schermo del telefono o collega il telefono tramite USB. In alternativa, riapri l'applicazione e aggiorna la pagina.",
   failed_connect_ws: "La connessione è stata interrotta. Riavvia l'applicazione e riprova.",

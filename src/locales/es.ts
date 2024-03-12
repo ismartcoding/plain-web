@@ -1,5 +1,6 @@
 export default {
   app_name: 'PlainApp',
+  select_all: 'Seleccionar todo',
   troubleshoot: 'Solución de problemas',
   fix_disconnect_tips: 'La conexión se ha desconectado. Intente mantener la pantalla del teléfono encendida o conectar el teléfono mediante carga USB. O bien, vuelva a abrir la aplicación y actualice la página.',
   failed_connect_ws: 'La conexión se ha desconectado. Reinicie la aplicación e inténtelo de nuevo.',
