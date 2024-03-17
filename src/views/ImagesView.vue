@@ -191,7 +191,7 @@ const dataType = DataType.IMAGE
 const route = useRoute()
 const query = route.query
 const page = ref(parseInt(query.page?.toString() ?? '1'))
-const limit = 48
+const limit = 50
 const q = ref(decodeBase64(query.q?.toString() ?? ''))
 const finalQ = ref('')
 const { tags } = useTags(dataType, q, filter, async (fields: IFilterField[]) => {
@@ -381,7 +381,7 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 .image-container {
   .item {
-    width: calc(16.66% - 4px);
+    width: calc(20% - 4px);
     margin: 2px;
   }
 }
