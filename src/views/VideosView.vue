@@ -190,7 +190,7 @@ const dataType = DataType.VIDEO
 const route = useRoute()
 const query = route.query
 const page = ref(parseInt(query.page?.toString() ?? '1'))
-const limit = 50
+const limit = 48
 const q = ref(decodeBase64(query.q?.toString() ?? ''))
 const finalQ = ref('')
 const { tags } = useTags(dataType, q, filter, async (fields: IFilterField[]) => {
@@ -380,7 +380,7 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 .image-container {
   .item {
-    width: calc(20% - 4px);
+    width: calc(12.5% - 4px);
     margin: 2px;
   }
 }
