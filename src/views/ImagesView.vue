@@ -68,7 +68,7 @@
   <div class="image-container" v-if="mainStore.imageViewType === 'grid'" style="margin-bottom: 24px">
     <div class="item" v-for="(item, i) in items">
       <md-checkbox class="checkbox" touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked"  @click.stop="toggleRow(item)" />
-      <img class="image" :src="getFileUrl(item.fileId) + '&w=300&h=300'" @click="view(i)" @contextmenu="itemCtxMenu($event, item)" />
+      <img class="image" :src="getFileUrl(item.fileId, '&w=200&h=200')" @click="view(i)" @contextmenu="itemCtxMenu($event, item)" />
       <span class="duration">{{ formatFileSize(item.size) }}</span>
     </div>
   </div>
@@ -93,7 +93,7 @@
           <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
           <td><field-id :id="item.id" :raw="item" /></td>
           <td>
-            <img :src="getFileUrl(item.fileId) + '&w=300&h=300'" width="50" height="50" @click.stop="view(i)"
+            <img :src="getFileUrl(item.fileId, '&w=200&h=200')" width="50" height="50" @click.stop="view(i)"
               style="cursor: pointer" />
           </td>
           <td>

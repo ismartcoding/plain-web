@@ -51,7 +51,7 @@
         <tr v-for="item in items" :key="item.id" :class="{ selected: item.checked }" @click.stop="toggleRow(item)">
           <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
           <td>
-            <img v-if="item.image" :src="getFileUrl(item.image) + '&w=300&h=300'" width="50" height="50" />
+            <img v-if="item.image" :src="getFileUrl(item.image, '&w=200&h=200')" width="50" height="50" />
           </td>
           <td style="min-width: 200px">
             <a :href="viewUrl(item)" @click.stop.prevent="view(item)">{{ item.title || $t('no_content') }}</a>
