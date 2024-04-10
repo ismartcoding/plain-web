@@ -29,7 +29,7 @@ function getPreview(source: ISource) {
     return source.src
   }
 
-  return `${source.src}&w=300&h=300`
+  return `${source.src}&w=200&h=200`
 }
 
 function view(index: number) {

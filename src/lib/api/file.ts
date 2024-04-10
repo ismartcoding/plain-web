@@ -9,11 +9,12 @@ export function notId(id: string) {
   return l.startsWith('https://') || l.startsWith('http://') || l.startsWith('blob:')
 }
 
-export function getFileUrl(id: string) {
+export function getFileUrl(id: string, query: string = '') {
   if (notId(id)) {
     return id
   }
-  return `${getApiBaseUrl()}/fs?id=${encodeURIComponent(id)}`
+
+  return `${getApiBaseUrl()}/fs?id=${encodeURIComponent(id)}${query}`
 }
 
 export function getFileUrlByPath(key: sjcl.BitArray | null, path: string) {
