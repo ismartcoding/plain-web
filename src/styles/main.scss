@@ -260,6 +260,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  opacity: 0;
+  animation: showDiv 0.5s ease-in-out 0.5s forwards;
 }
 
 .page-container {
@@ -355,6 +357,12 @@
   50% {
     background-color: currentColor;
   }
+}
+
+@keyframes showDiv {
+  0% { opacity: 0; } /* Initial opacity */
+  50% { opacity: 0; } /* Stay hidden for the first 50% of animation */
+  100% { opacity: 1; } /* Fade in to full opacity */
 }
 
 .spinner-sm {
