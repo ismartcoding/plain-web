@@ -84,7 +84,6 @@ declare module 'vue' {
     'IMaterialSymbols:skipNextOutlineRounded': typeof import('~icons/material-symbols/skip-next-outline-rounded')['default']
     'IMaterialSymbols:skipPreviousOutlineRounded': typeof import('~icons/material-symbols/skip-previous-outline-rounded')['default']
     'IMaterialSymbols:sortRounded': typeof import('~icons/material-symbols/sort-rounded')['default']
-    'IMaterialSymbols:stopCircleOutlineRounded': typeof import('~icons/material-symbols/stop-circle-outline-rounded')['default']
     'IMaterialSymbols:sunnyOutlineRounded': typeof import('~icons/material-symbols/sunny-outline-rounded')['default']
     'IMaterialSymbols:syncRounded': typeof import('~icons/material-symbols/sync-rounded')['default']
     'IMaterialSymbols:tableRowsRounded': typeof import('~icons/material-symbols/table-rows-rounded')['default']

@@ -1,5 +1,6 @@
 export default {
   app_name: 'Ứng dụng Đơn giản',
+  resume: 'Tiếp tục',
   select_all: 'Chọn tất cả',
   troubleshoot: 'Khắc phục sự cố',
   fix_disconnect_tips: 'Đã mất kết nối, vui lòng thử giữ màn hình điện thoại của bạn hoặc kết nối điện thoại qua cổng USB sạc. Hoặc có thể mở lại ứng dụng và làm mới trang.',

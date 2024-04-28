@@ -3,15 +3,13 @@
     <div class="main">
       <div class="v-toolbar">
         <breadcrumb :current="() => $t('screen_mirror')" />
-        <template v-if="url">
-          <button class="icon-button" :disabled="stopServiceLoading" @click="stopService" v-tooltip="$t('stop_mirror')">
-            <md-ripple />
-            <i-material-symbols:stop-circle-outline-rounded />
-          </button>
-          <button class="icon-button" @click="() => refetch()" v-tooltip="$t('refresh')">
+        <template v-if="state">
+          <button class="icon-button" v-if="!paused" @click="() => refetch()" v-tooltip="$t('refresh')">
             <md-ripple />
             <i-material-symbols:refresh-rounded />
           </button>
+          <md-outlined-button @click="togglePause" class="btn-sm">{{ $t(paused ? 'resume' : 'pause') }}</md-outlined-button>
+          <md-outlined-button :disabled="stopServiceLoading" @click="stopService" v-tooltip="$t('stop_mirror')" class="btn-sm">{{ $t('stop_mirror') }}</md-outlined-button>
           <button class="icon-button" @click="requestFullscreen" v-tooltip="$t('fullscreen')">
             <md-ripple />
             <i-material-symbols:fullscreen-rounded />
@@ -27,12 +25,12 @@
           <img src="@/assets/screen-mirror-permission.png" />
           <pre class="text">{{ $t('screen_mirror_request_permission', { seconds: seconds }) }}</pre>
         </div>
-        <div v-if="failed && !url && !relaunchAppLoading" class="request-permission-failed">
+        <div v-if="failed && !state && !relaunchAppLoading" class="request-permission-failed">
           <MobileWarning />
           <p>{{ $t('screen_mirror_request_permission_failed') }}</p>
           <md-filled-button @click="start">{{ $t('try_again') }}</md-filled-button>
         </div>
-        <img v-if="url" :src="url" />
+        <canvas v-show="state" ref="canvasRef" class="canvas"></canvas>
       </div>
     </div>
   </div>
@@ -43,20 +41,23 @@ import emitter from '@/plugins/eventbus'
 import toast from '@/components/toaster'
 import { onMounted, onUnmounted, ref } from 'vue'
 import MobileWarning from '@/assets/mobile-warning.svg'
-import { initQuery, screenMirrorImageGQL } from '@/lib/api/query'
+import { initQuery, screenMirrorStateGQL } from '@/lib/api/query'
 import { useI18n } from 'vue-i18n'
 import { initMutation, relaunchAppGQL, startScreenMirrorGQL, stopScreenMirrorGQL } from '@/lib/api/mutation'
 import type { ApolloError } from '@apollo/client/errors'
 
 let countIntervalId: number
 const { t } = useI18n()
-const url = ref('')
+const state = ref(false)
 const seconds = ref(0)
 const failed = ref(false)
+const paused = ref(false)
 const containerRef = ref<HTMLElement>()
+const canvasRef = ref<HTMLCanvasElement>()
 
-const screenMirroringHandler = async (data: string) => {
-  url.value = data
+const screenMirroringHandler = async (data: Blob) => {
+  state.value = true
+  renderCanvas(data)
   failed.value = false
   seconds.value = 0
   clearInterval(countIntervalId)
@@ -69,6 +70,13 @@ const { mutate: doRelaunchApp } = initMutation({
   appApi: true,
 })
 
+const togglePause = () => {
+  paused.value = !paused.value
+  if (!paused.value) {
+    refetch()
+  }
+}
+
 const relaunchApp = () => {
   doRelaunchApp()
   relaunchAppLoading = true
@@ -80,6 +88,26 @@ const appSocketConnectionChangedHanlder = (connected: boolean) => {
       relaunchAppLoading = false
       clearInterval(countIntervalId)
       start()
+    }
+  }
+}
+
+function renderCanvas(blob: Blob) {
+  const canvas = canvasRef.value
+  if (!canvas) {
+    return
+  }
+  if (paused.value) {
+    return
+  }
+  const ctx = canvas.getContext('2d')
+  const img = new Image()
+  img.src = URL.createObjectURL(blob)
+  img.onload = function () {
+    if (ctx) {
+      canvas.width = img.width
+      canvas.height = img.height
+      ctx.drawImage(img, 0, 0)
     }
   }
 }
@@ -109,13 +137,15 @@ const { loading: fetchImageLoading, refetch } = initQuery({
     if (error) {
       toast(t(error), 'error')
     } else {
-      url.value = data.screenMirrorImage
-      if (!data.screenMirrorImage) {
+      if (!data.screenMirrorState) {
+        state.value = false
         start()
+      } else {
+        state.value = true
       }
     }
   },
-  document: screenMirrorImageGQL,
+  document: screenMirrorStateGQL,
   appApi: true,
 })
 
@@ -159,11 +189,11 @@ stopServiceError((error: ApolloError) => {
 
 stopServiceDone(() => {
   failed.value = true
-  url.value = ''
+  state.value = false
 })
 </script>
 <style lang="scss" scoped>
-img {
+.canvas {
   margin: 0 auto;
   display: block;
   width: 100%;
@@ -183,7 +213,7 @@ img {
 }
 
 :fullscreen {
-  img {
+  .canvas {
     max-height: 100%;
   }
 }

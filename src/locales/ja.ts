@@ -1,5 +1,6 @@
 export default {
   app_name: 'PlainApp',
+  resume: '再開',
   select_all: 'すべて選択',
   troubleshoot: 'トラブルシューティング',
   fix_disconnect_tips: '接続が切断されました。携帯電話の画面を点灯させるか、携帯電話をUSBで充電することをお試しください。または、アプリケーションを再起動してページをリフレッシュしてください。',
