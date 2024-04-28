@@ -11,12 +11,10 @@
         <div class="default-content">
           <section class="start">
             <div class="tab-items">
-              <div class="tab-item" @click="selectTab('/')" key="/" :class="{ active: currentPath === '/' }"
-                @contextmenu="itemCtxMenu($event, '/')">
+              <div class="tab-item" @click="selectTab('/')" key="/" :class="{ active: currentPath === '/' }" @contextmenu="itemCtxMenu($event, '/')">
                 <span>{{ $t('page_title.home') }}</span>
               </div>
-              <div v-for="item of store.pages" :key="item" @click="selectTab(item)" class="tab-item"
-                @contextmenu="itemCtxMenu($event, item)" :class="{ active: currentPath === item }">
+              <div v-for="item of store.pages" :key="item" @click="selectTab(item)" class="tab-item" @contextmenu="itemCtxMenu($event, item)" :class="{ active: currentPath === item }">
                 <span>{{ $t(`page_title.${getRouteName(item)}`) }}</span>
                 <button class="icon-button tab-icon" @click.stop="closeTab(item)">
                   <md-ripple />
@@ -36,24 +34,19 @@
         </router-view>
       </div>
       <div class="quick">
-        <button class="icon-button q-action" v-if="app.channel !== 'GOOGLE'"
-          v-tooltip="$t('header_actions.notifications')" @click="toggleQuick('notification')" toggle
-          :class="{ selected: store.quick === 'notification' }">
+        <button class="icon-button q-action" v-if="app.channel !== 'GOOGLE'" v-tooltip="$t('header_actions.notifications')" @click="toggleQuick('notification')" toggle :class="{ selected: store.quick === 'notification' }">
           <md-ripple />
           <i-material-symbols:notifications-outline-rounded />
         </button>
-        <button v-if="hasTasks" class="icon-button q-action" v-tooltip="$t('header_actions.tasks')"
-          @click="toggleQuick('task')" toggle :class="{ selected: store.quick === 'task' }">
+        <button v-if="hasTasks" class="icon-button q-action" v-tooltip="$t('header_actions.tasks')" @click="toggleQuick('task')" toggle :class="{ selected: store.quick === 'task' }">
           <md-ripple />
           <i-material-symbols:format-list-numbered-rounded />
         </button>
-        <button id="quick-audio" class="icon-button q-action" v-tooltip="$t('playlist')" @click="toggleQuick('audio')"
-          toggle :class="{ selected: store.quick === 'audio' }">
+        <button id="quick-audio" class="icon-button q-action" v-tooltip="$t('playlist')" @click="toggleQuick('audio')" toggle :class="{ selected: store.quick === 'audio' }">
           <md-ripple />
           <i-material-symbols:queue-music-rounded />
         </button>
-        <button class="icon-button q-action" v-tooltip="$t('my_phone')" @click="toggleQuick('chat')" toggle
-          :class="{ selected: store.quick === 'chat' }">
+        <button class="icon-button q-action" v-tooltip="$t('my_phone')" @click="toggleQuick('chat')" toggle :class="{ selected: store.quick === 'chat' }">
           <md-ripple />
           <i-material-symbols:chat-outline-rounded />
         </button>
@@ -118,7 +111,8 @@ const { refetch: refetchApp } = initQuery({
         const oldToken = app.value?.urlToken
         const newToken = data.app.urlToken
         urlTokenKey.value = tokenToKey(newToken)
-        if (oldToken !== newToken) { // URL token is changed from app, need to reset the fileIdMap
+        if (oldToken !== newToken) {
+          // URL token is changed from app, need to reset the fileIdMap
           window.fileIdMap = new Map<string, string>()
         }
         app.value = data.app
@@ -394,4 +388,5 @@ header {
   width: 360px;
   margin: 100px auto;
   text-align: center;
-}</style>
+}
+</style>

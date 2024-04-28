@@ -30,8 +30,7 @@
       </button>
       <template #content="slotProps">
         <div class="menu-items">
-          <md-menu-item v-for="item in sortItems" @click="sort(slotProps, item.value)"
-            :selected="item.value === audioSortBy">
+          <md-menu-item v-for="item in sortItems" @click="sort(slotProps, item.value)" :selected="item.value === audioSortBy">
             <div slot="headline">{{ $t(item.label) }}</div>
           </md-menu-item>
         </div>

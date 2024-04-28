@@ -31,7 +31,6 @@ document.title = t('app_name')
 const wsStatus = ref('')
 const tapPhoneMessage = ref('')
 
-
 let ws: WebSocket
 let retryTime = 1000 // 1s
 

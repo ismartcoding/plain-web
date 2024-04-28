@@ -14,6 +14,8 @@ import de from '@/locales/de'
 import pt from '@/locales/pt'
 import ta from '@/locales/ta'
 import ko from '@/locales/ko'
+import tr from '@/locales/tr'
+import vi from '@/locales/vi'
 import { setLocale } from 'yup'
 
 setLocale({
@@ -45,5 +47,7 @@ export default createI18n({
     pt: pt,
     ta: ta,
     ko: ko,
+    tr: tr,
+    vi: vi,
   },
 })

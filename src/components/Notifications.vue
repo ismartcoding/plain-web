@@ -8,12 +8,10 @@
       </button>
     </div>
     <div class="alert-warning" v-if="!isHttps && notifcationPermission !== 'granted'">
-      {{ $t('desktop_notification_need_https') }}&nbsp;<md-filled-button class="btn-sm"
-        @click.stop="useHttpsLink">{{ $t('use_https_link') }}</md-filled-button>
+      {{ $t('desktop_notification_need_https') }}&nbsp;<md-filled-button class="btn-sm" @click.stop="useHttpsLink">{{ $t('use_https_link') }}</md-filled-button>
     </div>
     <div class="alert-warning" v-else-if="notifcationPermission !== 'granted'">
-      {{ $t('desktop_notification_permission_not_granted') }}&nbsp;<md-filled-button class="btn-sm"
-        @click.stop="grantPermission">{{ $t('grant_permission') }}</md-filled-button>
+      {{ $t('desktop_notification_permission_not_granted') }}&nbsp;<md-filled-button class="btn-sm" @click.stop="grantPermission">{{ $t('grant_permission') }}</md-filled-button>
     </div>
     <div class="items-container">
       <section v-if="notifications.length" class="list-items">
@@ -94,7 +92,7 @@ const deleteItem = (item: INotification) => {
 }
 
 const useHttpsLink = () => {
-  window.open(`https://${window.location.hostname}:${app.value.httpsPort}`, '_blank');
+  window.open(`https://${window.location.hostname}:${app.value.httpsPort}`, '_blank')
 }
 
 const grantPermission = () => {
