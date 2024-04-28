@@ -27,8 +27,7 @@
       </button>
       <template #content="slotProps">
         <div class="menu-items">
-          <md-menu-item v-for="item in sortItems" @click="sort(slotProps, item.value)"
-            :selected="item.value === videoSortBy">
+          <md-menu-item v-for="item in sortItems" @click="sort(slotProps, item.value)" :selected="item.value === videoSortBy">
             <div slot="headline">{{ $t(item.label) }}</div>
           </md-menu-item>
         </div>
@@ -58,14 +57,12 @@
   </div>
   <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible" :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
   <div v-if="mainStore.videoViewType === 'grid'">
-    <label class="form-check-label" > 
-      <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked"
-              :indeterminate="!allChecked && checked" />{{ $t('select_all') }} </label>
+    <label class="form-check-label"> <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />{{ $t('select_all') }} </label>
   </div>
   <div class="image-container" v-if="mainStore.videoViewType === 'grid'" style="margin-bottom: 24px">
-    <div class="item" v-for="(item, i) in items" >
-      <md-checkbox class="checkbox" touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked"  @click.stop="toggleRow(item)" />
-      <img class="image" :src="getFileUrl(item.fileId, '&w=200&h=200')" onerror="this.src='/broken-image.png'" @click="view(i)" @contextmenu="itemCtxMenu($event, item)"/>
+    <div class="item" v-for="(item, i) in items">
+      <md-checkbox class="checkbox" touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" @click.stop="toggleRow(item)" />
+      <img class="image" :src="getFileUrl(item.fileId, '&w=200&h=200')" onerror="this.src='/broken-image.png'" @click="view(i)" @contextmenu="itemCtxMenu($event, item)" />
       <span class="duration">{{ formatSeconds(item.duration) }}</span>
     </div>
   </div>
@@ -93,7 +90,7 @@
           <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
           <td><field-id :id="item.id" :raw="item" /></td>
           <td>
-            <img class="img-video" :src="getFileUrl(item.fileId, '&w=200&h=200')" width="50" height="50" style="cursor: pointer" @click.stop="view(i)" onerror="this.src='/broken-image.png'"/>
+            <img class="img-video" :src="getFileUrl(item.fileId, '&w=200&h=200')" width="50" height="50" style="cursor: pointer" @click.stop="view(i)" onerror="this.src='/broken-image.png'" />
           </td>
           <td>
             {{ item.title }}
@@ -238,7 +235,7 @@ const { loading, load, refetch } = initLazyQuery({
     offset: (page.value - 1) * limit,
     limit,
     query: finalQ.value,
-    sortBy: videoSortBy.value
+    sortBy: videoSortBy.value,
   }),
   appApi: true,
 })

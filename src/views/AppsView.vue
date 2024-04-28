@@ -26,15 +26,13 @@
       </template>
     </search-input>
   </div>
-  <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible"
-    :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
+  <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible" :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
   <div class="table-responsive">
     <table class="table">
       <thead>
         <tr>
           <th>
-            <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked"
-              :indeterminate="!allChecked && checked" />
+            <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
           </th>
           <th></th>
           <th>{{ $t('name') }}</th>
@@ -57,16 +55,13 @@
             <div class="action-btns">
               <template v-if="item.isUninstalling">
                 <md-circular-progress indeterminate class="spinner-sm" v-tooltip="$t('uninstalling')" />
-                &nbsp;<md-outlined-button class="btn-sm" @click.stop="cancelUninstall(item)">{{ $t('cancel')
-                }}</md-outlined-button>
+                &nbsp;<md-outlined-button class="btn-sm" @click.stop="cancelUninstall(item)">{{ $t('cancel') }}</md-outlined-button>
               </template>
               <button class="icon-button" v-else @click.stop="uninstall(item)" v-tooltip="$t('uninstall')">
                 <md-ripple />
                 <i-material-symbols:delete-forever-outline-rounded />
               </button>
-              <button class="icon-button"
-                @click.stop="downloadFile(item.path, `${item.name.replace(' ', '')}-${item.id}.apk`)"
-                v-tooltip="$t('download')">
+              <button class="icon-button" @click.stop="downloadFile(item.path, `${item.name.replace(' ', '')}-${item.id}.apk`)" v-tooltip="$t('download')">
                 <md-ripple />
                 <i-material-symbols:download-rounded />
               </button>

@@ -55,6 +55,8 @@ const langs = [
   { name: 'Português', value: 'pt' },
   { name: 'தமிழ்', value: 'ta' },
   { name: '한국어', value: 'ko' },
+  { name: 'Türkçe', value: 'tr' },
+  { name: 'Tiếng Việt', value: 'vi' },
 ]
 
 function changeLang(loc: string) {
