@@ -427,9 +427,9 @@ export const packageStatusesGQL = gql`
   }
 `
 
-export const screenMirrorImageGQL = gql`
+export const screenMirrorStateGQL = gql`
   query {
-    screenMirrorImage
+    screenMirrorState
   }
 `
 

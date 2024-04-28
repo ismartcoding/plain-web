@@ -19,7 +19,7 @@ type Events = {
   tap_phone: string
   feeds_fetched: any
   ai_chat_replied: any
-  screen_mirroring: string
+  screen_mirroring: Blob
   message_created: any
   message_updated: any
   message_deleted: any

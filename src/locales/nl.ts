@@ -1,5 +1,6 @@
 export default {
   app_name: 'PlainApp',
+  resume: 'Hervatten',
   select_all: 'Alles selecteren',
   troubleshoot: 'Problemen oplossen',
   fix_disconnect_tips: 'De verbinding is verbroken. Probeer het telefoonscherm aan te houden of de telefoon via USB op te laden. Of open de applicatie opnieuw en vernieuw de pagina.',

@@ -1,5 +1,6 @@
 export default {
   app_name: 'PlainApp',
+  resume: 'Fortsetzen',
   select_all: 'Alle auswählen',
   troubleshoot: 'Fehlerbehebung',
   fix_disconnect_tips: 'Die Verbindung wurde getrennt. Versuchen Sie, den Bildschirm Ihres Telefons eingeschaltet zu lassen oder Ihr Telefon über USB aufzuladen. Alternativ die Anwendung neu öffnen und die Seite aktualisieren.',

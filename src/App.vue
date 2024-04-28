@@ -20,7 +20,7 @@ import emitter from './plugins/eventbus'
 import toast from '@/components/toaster'
 import { getWebSocketBaseUrl } from './lib/api/api'
 import { aesDecrypt, aesEncrypt, bitArrayToUint8Array } from './lib/api/crypto'
-import { arrayBuffertoBits } from './lib/api/sjcl-arraybuffer'
+import { parseWebSocketData } from './lib/api/sjcl-arraybuffer'
 import { applyDarkClass, changeColor, changeColorAndMode, changeColorMode, getCurrentMode, getCurrentSeedColor, getCurrentThemeString, getLastSavedAutoColorMode, isModeDark } from './lib/theme/theme'
 import { applyThemeString } from './lib/theme/apply-theme-string'
 import TouchPhone from '@/assets/touch-phone.svg'
@@ -36,6 +36,18 @@ let retryTime = 1000 // 1s
 
 const closeTapPhone = () => {
   tapPhoneMessage.value = ''
+}
+
+const EventType: { [key: number]: string } = {
+  1: 'message_created',
+  2: 'message_deleted',
+  3: 'message_updated',
+  4: 'feeds_fetched',
+  5: 'screen_mirroring',
+  6: 'ai_chat_replied',
+  7: 'notification_created',
+  8: 'notification_updated',
+  9: 'notification_deleted',
 }
 
 async function connect() {
@@ -59,19 +71,23 @@ async function connect() {
     }
 
     ws.onmessage = async (event: MessageEvent) => {
-      let r: any
-      try {
-        r = JSON.parse(await event.data.text())
-      } catch (ex) {
-        r = JSON.parse(aesDecrypt(key, arrayBuffertoBits(await event.data.arrayBuffer())))
-      }
-      console.log(r)
-      wsStatus.value = ''
-      if (r.encrypted) {
-        emitter.emit(r.type.toLowerCase(), JSON.parse(r.data))
+      const buffer = await event.data.arrayBuffer()
+      const plainTypes = [5]
+      const r = parseWebSocketData(buffer, plainTypes)
+      const type = EventType[r.type] ?? ''
+      if (plainTypes.includes(r.type)) {
+        emitter.emit(type, new Blob([r.data], { type: 'application/octet-stream' }))
+        console.log(type)
       } else {
-        emitter.emit(r.type.toLowerCase(), r.data)
+        try {
+          const json = aesDecrypt(key, r.data)
+          emitter.emit(type, JSON.parse(json))
+          console.log(`${type}, ${json}`)
+        } catch (ex) {
+          console.error(ex)
+        }
       }
+      wsStatus.value = ''
     }
 
     ws.onclose = (event: CloseEvent) => {

@@ -1,5 +1,6 @@
 export default {
   app_name: '簡樸',
+  resume: '繼續',
   select_all: '全選',
   troubleshoot: '故障排除',
   fix_disconnect_tips: '連線已中斷。請嘗試保持手機螢幕亮起或將手機連接 USB 充電。或重新開啟應用程式並刷新頁面。',
