@@ -149,8 +149,8 @@ function cancel() {
 
 md-filled-button,
 md-outlined-button {
-  display: block;
   margin-top: 24px;
+  width: 100%;
 }
 
 h1 {

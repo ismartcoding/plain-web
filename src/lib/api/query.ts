@@ -430,6 +430,19 @@ export const packageStatusesGQL = gql`
 export const screenMirrorStateGQL = gql`
   query {
     screenMirrorState
+    screenMirrorQuality {
+      resolution
+      quality
+    }
+  }
+`
+
+export const screenMirrorQualityGQL = gql`
+  query {
+    screenMirrorQuality {
+      resolution
+      quality
+    }
   }
 `
 

@@ -174,7 +174,7 @@ function itemCtxMenu(e: MouseEvent, f: IFile) {
 }
 
 .panel-container {
-  height: calc(100vh - 200px);
+  height: calc(100vh - 172px);
   display: flex;
 }
 

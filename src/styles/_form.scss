@@ -59,6 +59,7 @@
 
 .btn-sm {
     --_label-text-size: 0.75rem;
+    height: 24px;
     --_container-height: 24px;
     --_leading-space: 16px;
     --_trailing-space: 16px;
@@ -67,6 +68,7 @@
 .btn-lg {
     --_label-text-size: 1rem;
     --_container-height: 56px;
+    height: 56px;
     --_leading-space: 24px;
     --_trailing-space: 24px;
 }

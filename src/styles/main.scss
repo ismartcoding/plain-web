@@ -280,7 +280,7 @@
     background-color: var(--md-sys-color-surface);
     border-top-left-radius: var(--plain-shape-l);
     border-top-right-radius: var(--plain-shape-l);
-    padding: var(--plain-spacing-xl) var(--plain-spacing-xl) 0 var(--plain-spacing-xl);
+    padding: var(--plain-spacing-l) var(--plain-spacing-l) 0 var(--plain-spacing-l);
     box-sizing: border-box;
     height: calc(100vh - 64px);
     overflow-y: auto;
@@ -306,7 +306,7 @@
   padding: 0;
 
   li {
-    padding-block: 18px;
+    padding-block: 12px;
     padding-inline: 16px;
     position: relative;
     border-top-right-radius: 56px;
@@ -435,4 +435,21 @@
 
 .icon-button.selected {
   color: var(--md-sys-color-primary);
+}
+
+.btn-fullscreen-top-right {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 8px;
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 68px;
+    height: 68px;
+    border-radius: 0 0 0 100%;
+    background-color: rgba(255, 255, 255, 0.1)
+  }
 }

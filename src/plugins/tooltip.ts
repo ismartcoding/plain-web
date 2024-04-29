@@ -19,7 +19,12 @@ const directive: Directive = {
       tooltipElement = document.createElement('div')
       tooltipElement.className = 'tooltip'
       tooltipElement.textContent = el.tooltipText || binding.value
-      document.body.appendChild(tooltipElement)
+      const fullscreenElement = document.fullscreenElement
+      if (fullscreenElement) {
+        fullscreenElement.appendChild(tooltipElement)
+      } else {
+        document.body.appendChild(tooltipElement)
+      }
 
       // Set initial styles for the tooltip
       if (tooltipElement) {
@@ -51,7 +56,9 @@ const directive: Directive = {
     el.mouseleaveFunc = () => {
       clearTimeout(showTimeout)
       if (tooltipElement) {
-        document.body.removeChild(tooltipElement)
+        if (tooltipElement.parentNode) {
+          tooltipElement.parentNode.removeChild(tooltipElement)
+        }
         tooltipElement = null
       }
     }

@@ -4,11 +4,11 @@
       {{ $t('tags') }}
     </div>
     <div slot="content">
-      <md-outlined-segmented-button-set @segmented-button-set-selection="onColorModeSelection">
-        <md-outlined-segmented-button :label="$t('add_to_tags')" :selected="mode === 'add_to_tags'">
+      <md-outlined-segmented-button-set @segmented-button-set-selection="onModeSelected">
+        <md-outlined-segmented-button data-value="add_to_tags" :label="$t('add_to_tags')" :selected="mode === 'add_to_tags'">
           <i-material-symbols:label-outline-rounded slot="icon" />
         </md-outlined-segmented-button>
-        <md-outlined-segmented-button :label="$t('remove_from_tags')" :selected="mode === 'remove_from_tags'">
+        <md-outlined-segmented-button data-value="remove_from_tags" :label="$t('remove_from_tags')" :selected="mode === 'remove_from_tags'">
           <i-material-symbols:label-off-outline-rounded slot="icon" />
         </md-outlined-segmented-button>
       </md-outlined-segmented-button-set>
@@ -47,7 +47,7 @@ const props = defineProps({
   query: { type: String, required: true },
 })
 
-function onColorModeSelection(
+function onModeSelected(
   e: CustomEvent<{
     button: MdOutlinedSegmentedButton
     selected: boolean
