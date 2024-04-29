@@ -91,8 +91,6 @@ export function themeFromSourceColor(color: string, isDark: boolean): Theme {
   for (const [key, value] of Object.entries(materialColors)) {
     theme[key] = hexFromArgb(value.getArgb(scheme))
   }
-  // https://forum.bubble.io/t/super-easy-trick-to-change-the-opacity-of-dynamic-colors/177722
-  theme['on-surface-selected'] = theme['on-surface'] + '14'
   return theme
 }
 

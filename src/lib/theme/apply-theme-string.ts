@@ -1,4 +1,6 @@
-type WithStylesheet = typeof globalThis & { [stylesheetName: string]: CSSStyleSheet | undefined }
+type WithStylesheet = typeof globalThis & {
+  [stylesheetName: string]: CSSStyleSheet | undefined
+}
 
 /**
  * Applies a stringified CSS theme to a document or shadowroot by creating or
@@ -23,6 +25,12 @@ export function applyThemeString(doc: DocumentOrShadowRoot, themeString: string,
     sheet = new CSSStyleSheet()
     ;(globalThis as WithStylesheet)[ssName] = sheet
     doc.adoptedStyleSheets.push(sheet)
+  }
+
+  // Set the color of the URL bar because we are cool like that.
+  const surfaceContainer = themeString.match(/--md-sys-color-surface-container:(.+?);/)?.[1]
+  if (surfaceContainer) {
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', surfaceContainer)
   }
 
   sheet.replaceSync(themeString)

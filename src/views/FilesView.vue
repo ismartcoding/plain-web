@@ -487,7 +487,7 @@ onUnmounted(() => {
 }
 
 .panel-container {
-  height: calc(100vh - 200px);
+  height: calc(100vh - 172px);
 }
 
 .no-data-placeholder {

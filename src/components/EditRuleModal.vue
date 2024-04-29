@@ -38,7 +38,7 @@
               {{ $t(`target_type.${item}`) }}
             </option>
           </select>
-          <div class="input-group mt-2" v-if="Target.hasInput(targetType)">
+          <div class="input-group" v-if="Target.hasInput(targetType)">
             <input type="text" class="form-control" v-model="targetValue" :placeholder="$t('for_example') + ' ' + Target.hint(targetType)" />
             <popper class="input-group-text">
               <span class="inner">
@@ -49,7 +49,7 @@
               </template>
             </popper>
           </div>
-          <select class="form-select mt-2" v-model="targetValue" v-if="targetType === TargetType.INTERFACE">
+          <select class="form-select" v-model="targetValue" v-if="targetType === TargetType.INTERFACE">
             <option value="">{{ $t('all_local_networks') }}</option>
             <option v-for="item of networks?.filter((it: any) => it.type !== 'wan')" :value="item.ifName">
               {{ item.name }}

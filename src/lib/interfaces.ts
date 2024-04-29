@@ -204,3 +204,13 @@ export interface IItemTagsUpdatedEvent {
 export interface IItemsTagsUpdatedEvent {
   type: string
 }
+
+export interface IScreenMirrorQuality {
+  resolution: number
+  quality: number
+}
+
+export interface IScreenMirrorQualityOption {
+  id: string
+  data?: IScreenMirrorQuality
+}

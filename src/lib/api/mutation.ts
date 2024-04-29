@@ -342,3 +342,9 @@ export const cancelNotificationsGQL = gql`
     cancelNotifications(ids: $ids)
   }
 `
+
+export const updateScreenMirrorQualityGQL = gql`
+  mutation updateScreenMirrorQuality($quality: Int!, $resolution: Int!) {
+    updateScreenMirrorQuality(quality: $quality, resolution: $resolution)
+  }
+`

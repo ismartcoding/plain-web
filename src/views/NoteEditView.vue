@@ -208,7 +208,7 @@ onUnmounted(() => {
 </script>
 <style lang="scss" scoped>
 .panel-container {
-  height: calc(100vh - 148px);
+  height: calc(100vh - 128px);
 }
 
 .time {

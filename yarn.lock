@@ -354,12 +354,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@iconify-json/material-symbols@npm:^1.1.31":
-  version: 1.1.32
-  resolution: "@iconify-json/material-symbols@npm:1.1.32"
+"@iconify-json/material-symbols@npm:^1.1.79":
+  version: 1.1.79
+  resolution: "@iconify-json/material-symbols@npm:1.1.79"
   dependencies:
     "@iconify/types": "npm:*"
-  checksum: 7f6705b45f75a2fc2d527db6faeadbab9339f0df848f815dc3203e060c11431fef674ad96e965cae1484a1f368a447f850f3bd73edb99208bc4c43d84b6d7c10
+  checksum: f6eaca120cd73c0cc4b23126bcd21198ceb47e422b8d1404dd263ab1b35c3fda3e95e77964bd27fd3e32ac61ccc7e349c9fd010583989c79de836c7146fa45b5
   languageName: node
   linkType: hard
 
@@ -441,13 +441,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@material/web@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "@material/web@npm:1.0.1"
+"@material/web@npm:^1.4.1":
+  version: 1.4.1
+  resolution: "@material/web@npm:1.4.1"
   dependencies:
     lit: "npm:^2.7.4 || ^3.0.0"
     tslib: "npm:^2.4.0"
-  checksum: febc2ee82d5d85a3387ca89ef6179893e50d491655355a7377f6b79bd2d367a685c14fe7f805acb2a77dd2d0f313ab661c6fbcedd70d243fcfaef890152751cc
+  checksum: d712a885d131ce39b4fb44fe2219ada737e1874480db956eb675dfd8569c7f50f4f005b6cd79c18c54d728873de8b7861241ced3332f8cc6f252b4a4088e2b6a
   languageName: node
   linkType: hard
 
@@ -3479,9 +3479,9 @@ __metadata:
   resolution: "plain@workspace:."
   dependencies:
     "@apollo/client": "npm:^3.8.5"
-    "@iconify-json/material-symbols": "npm:^1.1.31"
+    "@iconify-json/material-symbols": "npm:^1.1.79"
     "@material/material-color-utilities": "npm:^0.2.7"
-    "@material/web": "npm:^1.0.1"
+    "@material/web": "npm:^1.4.1"
     "@nuintun/qrcode": "npm:^3.3.0"
     "@popperjs/core": "npm:^2.11.6"
     "@rushstack/eslint-patch": "npm:^1.2.0"
