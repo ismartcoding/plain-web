@@ -84,12 +84,12 @@ export const fileInfoGQL = gql`
       ... on FileInfo {
         updatedAt
         size
+        tags {
+          ...TagSubFragment
+        }
       }
       data {
         ... on ImageFileInfo {
-          tags {
-            ...TagSubFragment
-          }
           width
           height
           location {
@@ -98,9 +98,6 @@ export const fileInfoGQL = gql`
           }
         }
         ... on VideoFileInfo {
-          tags {
-            ...TagSubFragment
-          }
           duration
           width
           height
@@ -110,9 +107,6 @@ export const fileInfoGQL = gql`
           }
         }
         ... on AudioFileInfo {
-          tags {
-            ...TagSubFragment
-          }
           duration
           location {
             latitude
