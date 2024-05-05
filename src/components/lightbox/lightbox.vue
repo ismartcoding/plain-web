@@ -131,7 +131,7 @@
                       <i-material-symbols:label-outline-rounded />
                     </button>
                   </div>
-                  <div class="subtitle"><item-tags :tags="fileInfo?.data?.tags" /></div>
+                  <div class="subtitle"><item-tags :tags="fileInfo?.tags" /></div>
                 </div>
                 <div class="item" v-if="current?.path">
                   <div class="title">{{ $t('path') }}</div>
@@ -300,7 +300,10 @@ function getResolution() {
   const height = fileInfo.value?.data?.height ?? 0
   let r = `  ${width} x ${height}`
   if (isImage(current.value?.name ?? '')) {
-    r += `  ${Math.round((width * height) / 1000000)} MP`
+    const mp = Math.round((width * height) / 1000000)
+    if (mp > 1) {
+      r += `  ${mp} MP`
+    }
   }
 
   return r
@@ -535,7 +538,7 @@ function addToTags() {
       title: item.title,
       size: item.size,
     },
-    selected: tags.filter((it: ITag) => fileInfo.value?.data?.tags.some((t: ITag) => t.id === it.id)),
+    selected: tags.filter((it: ITag) => fileInfo.value?.tags.some((t: ITag) => t.id === it.id)),
   })
 }
 
