@@ -3,6 +3,8 @@ import type { DataType } from '@/lib/data'
 export interface IImgState {
   width: number
   height: number
+  naturalWidth: number
+  naturalHeight: number
   maxScale: number
 }
 
