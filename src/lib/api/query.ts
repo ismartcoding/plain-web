@@ -82,6 +82,7 @@ export const fileInfoGQL = gql`
   query ($id: ID!, $path: String!) {
     fileInfo(id: $id, path: $path) {
       ... on FileInfo {
+        path
         updatedAt
         size
         tags {

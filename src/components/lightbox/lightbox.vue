@@ -255,6 +255,7 @@ const {
     } else {
       if (data) {
         fileInfo.value = data.fileInfo
+        updateViewOriginImageState()
       }
     }
   },
@@ -265,6 +266,19 @@ const {
   }),
   appApi: true,
 })
+
+function updateViewOriginImageState() {
+  if (current.value && fileInfo.value && isImage(current.value.name) && current.value.path === fileInfo.value.path) {
+    if (isSvg(current.value.name)) {
+      current.value.viewOriginImage = true
+    } else {
+      const { width, height } = fileInfo.value.data
+      if (width === imgState.naturalWidth && height === imgState.naturalHeight) {
+        current.value.viewOriginImage = true
+      }
+    }
+  }
+}
 
 const tagsMap = new Map<string, ITag[]>()
 const { loading: tagsLoading, load: loadTags } = initLazyQuery({
@@ -490,6 +504,7 @@ const onLoad = () => {
   status.loading = false
   if (current.value && isImage(current.value.name)) {
     setImgSize()
+    updateViewOriginImageState()
   }
 }
 

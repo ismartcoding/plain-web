@@ -12,13 +12,17 @@ export const useImage = () => {
   const imgState = reactive<IImgState>({
     width: 0,
     height: 0,
+    naturalWidth: 0,
+    naturalHeight: 0,
     maxScale: 1,
   })
 
   const setImgSize = () => {
     if (imgRef.value) {
-      const { width, height, naturalWidth } = imgRef.value
+      const { width, height, naturalWidth, naturalHeight } = imgRef.value
       imgState.maxScale = naturalWidth / width
+      imgState.naturalWidth = naturalWidth
+      imgState.naturalHeight = naturalHeight
       imgState.width = width
       imgState.height = height
     }
