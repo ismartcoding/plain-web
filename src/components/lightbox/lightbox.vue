@@ -75,6 +75,7 @@
                   ref="imgRef"
                   draggable="false"
                   class="v-img"
+                  :style="isSvg(current.name) ? 'min-width: ' + imgState.width + 'px;' : ''"
                   :src="current?.src + (current?.viewOriginImage ? '' : '&w=1024&h=1024&cc=false')"
                   @mousedown="onMouseDown"
                   @mouseup="onMouseUp"
@@ -151,7 +152,7 @@ import { computed, ref, reactive, watch, onMounted, onBeforeUnmount } from 'vue'
 import { on, off, isArray, preventDefault } from './utils/index'
 import { useImage, useMouse, useTouch } from './utils/hooks'
 import type { ISource, IImgWrapperState, IndexChangeActions } from './types'
-import { isVideo, isImage, isAudio } from '@/lib/file'
+import { isVideo, isImage, isAudio, isSvg } from '@/lib/file'
 import { getFileUrlByPath } from '@/lib/api/file'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
@@ -378,7 +379,7 @@ const onPrev = () => {
 }
 
 // actions for changing img
-const defaultScale = 0.2
+const defaultScale = 1.5
 const zoom = (newScale: number) => {
   if (Math.abs(1 - newScale) < 0.05) {
     newScale = 1
@@ -390,14 +391,14 @@ const zoom = (newScale: number) => {
 }
 
 const zoomIn = () => {
-  const newScale = imgWrapperState.scale + defaultScale
-  if (newScale < imgState.maxScale * 3) {
+  const newScale = imgWrapperState.scale * defaultScale
+  if (newScale < imgState.maxScale * 100) {
     zoom(newScale)
   }
 }
 
 const zoomOut = () => {
-  const newScale = imgWrapperState.scale - (imgWrapperState.scale < 0.7 ? 0.1 : defaultScale)
+  const newScale = imgWrapperState.scale / defaultScale
   if (newScale > 0.1) {
     zoom(newScale)
   }

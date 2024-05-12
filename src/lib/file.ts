@@ -21,6 +21,11 @@ export function isImage(name: string) {
   return photoExtensions.some((it) => v.endsWith(it))
 }
 
+export function isSvg(name: string) {
+  const v = name.toLowerCase()
+  return v.endsWith('.svg')
+}
+
 export function isVideo(name: string) {
   const v = name.toLowerCase()
   return videoExtensions.some((it) => v.endsWith(it))
