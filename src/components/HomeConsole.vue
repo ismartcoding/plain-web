@@ -91,7 +91,7 @@ import emitter from '@/plugins/eventbus'
 import { chatItemFragment } from '@/lib/api/fragments'
 import { useChatFilesUpload } from '@/views/hooks/files'
 import { shortUUID } from '@/lib/strutil'
-import { getVideoData } from '@/lib/file'
+import { getVideoData, getImageData } from '@/lib/file'
 import { useTasks } from '@/views/hooks/chat'
 import { addLinksToURLs } from '@/lib/strutil'
 
@@ -185,9 +185,12 @@ async function doUploadFiles(files: File[]) {
   for (const upload of uploads) {
     if (upload.file.type.startsWith('video')) {
       const v = await getVideoData(upload.file)
-      valueItems.push({ uri: upload.fileName, size: upload.file.size, duration: v.duration, thumbnail: v.thumbnail })
+      valueItems.push({ uri: upload.fileName, size: upload.file.size, duration: v.duration, thumbnail: v.thumbnail, width: v.width, height: v.height })
+    } else if (upload.file.type.startsWith('image')) {
+      const v = await getImageData(upload.file)
+      valueItems.push({ uri: upload.fileName, size: upload.file.size, duration: 0, width: v.width, height: v.height })
     } else {
-      valueItems.push({ uri: upload.fileName, size: upload.file.size, duration: 0 })
+      valueItems.push({ uri: upload.fileName, size: upload.file.size, duration: 0, width: 0, height: 0 })
     }
   }
   const _content = {
@@ -234,9 +237,10 @@ async function doUploadImages(files: File[]) {
   for (const upload of uploads) {
     if (upload.file.type.startsWith('video')) {
       const v = await getVideoData(upload.file)
-      valueItems.push({ uri: upload.fileName, size: upload.file.size, duration: v.duration, thumbnail: v.thumbnail })
+      valueItems.push({ uri: upload.fileName, size: upload.file.size, duration: v.duration, thumbnail: v.thumbnail, width: v.width, height: v.height })
     } else {
-      valueItems.push({ uri: upload.fileName, size: upload.file.size, duration: 0 })
+      const v = await getImageData(upload.file)
+      valueItems.push({ uri: upload.fileName, size: upload.file.size, duration: 0, width: v.width, height: v.height })
     }
   }
   const _content = {

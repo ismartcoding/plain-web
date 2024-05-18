@@ -59,6 +59,8 @@ export const useTasks = () => {
           uri: `app://${dir}/` + pending!.uploads[index].fileName,
           size: it.size,
           duration: it.duration,
+          width: it.width,
+          height: it.height,
         })
       })
       mutate({ content: JSON.stringify({ type: c.type, value: { items } }) })
