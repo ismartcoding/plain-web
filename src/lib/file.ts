@@ -100,7 +100,7 @@ export function getSortItems() {
   ]
 }
 
-export async function getVideoData(videoFile: File): Promise<{ src: string; duration: number; thumbnail: string }> {
+export async function getVideoData(videoFile: File): Promise<{ src: string; duration: number; thumbnail: string; width: number; height: number }> {
   return new Promise((resolve) => {
     const video = document.createElement('video')
     const canvas = document.createElement('canvas')
@@ -133,10 +133,31 @@ export async function getVideoData(videoFile: File): Promise<{ src: string; dura
         src,
         duration: Math.round(video.duration),
         thumbnail,
+        width: video.videoWidth,
+        height: video.videoHeight,
       })
     }
     video.onerror = () => {
-      resolve({ src, duration: 0, thumbnail: '' })
+      resolve({ src, duration: 0, thumbnail: '', width: 0, height: 0 })
+    }
+  })
+}
+
+export async function getImageData(file: File): Promise<{ src: string; width: number; height: number }> {
+  return new Promise((resolve) => {
+    const img = new Image()
+    const src = URL.createObjectURL(file)
+    img.onload = function () {
+      URL.revokeObjectURL(src)
+      resolve({
+        src,
+        width: img.width,
+        height: img.height,
+      })
+    }
+    img.src = src
+    img.onerror = () => {
+      resolve({ src, width: 0, height: 0 })
     }
   })
 }
