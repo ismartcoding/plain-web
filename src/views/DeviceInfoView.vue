@@ -1,80 +1,64 @@
 <template>
-  <div class="page-container">
-    <div class="main">
-      <div class="v-toolbar">
-        <breadcrumb :current="() => $t('device_info')" />
-      </div>
-      <div class="panel-container">
-        <div class="grid">
-          <div class="g-col-6 g-col-md-4">
-            <section class="card">
-              <div class="card-body">
-                <h5 class="card-title">{{ $t('device') }}</h5>
-                <p class="card-text">
-                <div class="key-value" v-for="item in basicInfos">
-                  <div class="key">{{ $t(item.label) }}</div>
-                  <div class="value">
-                    <span v-if="item.isTime" class="time" v-tooltip="formatDateTimeFull(item.value)">{{
-                      formatDateTime(item.value) }}
-                    </span>
-                    <template v-else-if="Array.isArray(item.value)">
-                      <div v-for="it in item.value">{{ it }}</div>
-                    </template>
-                    <template v-else>
-                      {{ item.value }}
-                    </template>
-                  </div>
-                </div>
-                </p>
-              </div>
-            </section>
-          </div>
-          <div class="g-col-6 g-col-md-4">
-            <section class="card">
-              <div class="card-body">
-                <h5 class="card-title">{{ $t('system') }}</h5>
-                <p class="card-text">
-                <div class="key-value" v-for="item in systemInfos">
-                  <div class="key">{{ $t(item.label) }}</div>
-                  <div class="value">
-                    <span v-if="item.isTime" class="time" v-tooltip="formatDateTimeFull(item.value)">{{
-                      formatDateTime(item.value) }}</span>
-                    <template v-else-if="Array.isArray(item.value)">
-                      <div v-for="it in item.value">{{ it }}</div>
-                    </template>
-                    <template v-else>
-                      {{ item.value }}
-                    </template>
-                  </div>
-                </div>
-                </p>
-              </div>
-            </section>
-          </div>
-          <div class="g-col-6 g-col-md-4">
-            <section class="card">
-              <div class="card-body">
-                <h5 class="card-title">{{ $t('battery') }}</h5>
-                <p class="card-text">
-                <div class="key-value" v-for="item in batteryInfos">
-                  <div class="key">{{ $t(item.label) }}</div>
-                  <div class="value">
-                    <span v-if="item.isTime" class="time" v-tooltip="formatDateTimeFull(item.value)">{{
-                      formatDateTime(item.value) }}</span>
-                    <template v-else-if="Array.isArray(item.value)">
-                      <div v-for="it in item.value">{{ it }}</div>
-                    </template>
-                    <template v-else>
-                      {{ item.value }}
-                    </template>
-                  </div>
-                </div>
-                </p>
-              </div>
-            </section>
+  <div class="v-toolbar">
+    <breadcrumb :current="() => $t('device_info')" />
+  </div>
+  <div class="grids">
+    <div>
+      <section class="card">
+        <h5 class="card-title">{{ $t('device') }}</h5>
+        <div class="card-body">
+          <div class="key-value" v-for="item in basicInfos">
+            <div class="key">{{ $t(item.label) }}</div>
+            <div class="value">
+              <span v-if="item.isTime" class="time" v-tooltip="formatDateTimeFull(item.value)">{{ formatDateTime(item.value) }} </span>
+              <template v-else-if="Array.isArray(item.value)">
+                <div v-for="it in item.value">{{ it }}</div>
+              </template>
+              <template v-else>
+                {{ item.value }}
+              </template>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
+    </div>
+    <div>
+      <section class="card">
+        <h5 class="card-title">{{ $t('system') }}</h5>
+        <div class="card-body">
+          <div class="key-value" v-for="item in systemInfos">
+            <div class="key">{{ $t(item.label) }}</div>
+            <div class="value">
+              <span v-if="item.isTime" class="time" v-tooltip="formatDateTimeFull(item.value)">{{ formatDateTime(item.value) }}</span>
+              <template v-else-if="Array.isArray(item.value)">
+                <div v-for="it in item.value">{{ it }}</div>
+              </template>
+              <template v-else>
+                {{ item.value }}
+              </template>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <div>
+      <section class="card">
+        <h5 class="card-title">{{ $t('battery') }}</h5>
+        <div class="card-body">
+          <div class="key-value" v-for="item in batteryInfos">
+            <div class="key">{{ $t(item.label) }}</div>
+            <div class="value">
+              <span v-if="item.isTime" class="time" v-tooltip="formatDateTimeFull(item.value)">{{ formatDateTime(item.value) }}</span>
+              <template v-else-if="Array.isArray(item.value)">
+                <div v-for="it in item.value">{{ it }}</div>
+              </template>
+              <template v-else>
+                {{ item.value }}
+              </template>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 </template>
@@ -82,7 +66,7 @@
 <script setup lang="ts">
 import toast from '@/components/toaster'
 import { initQuery, deviceInfoGQL } from '@/lib/api/query'
-import { ref } from 'vue';
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { formatDateTime, formatDateTimeFull, formatSeconds } from '@/lib/format'
 
@@ -101,81 +85,80 @@ const { refetch } = initQuery({
       basicInfos.value = [
         {
           label: 'device_name',
-          value: d.deviceName
+          value: d.deviceName,
         },
         {
           label: 'model',
-          value: d.model
+          value: d.model,
         },
         {
           label: 'manufacturer',
-          value: d.manufacturer
+          value: d.manufacturer,
         },
         {
           label: 'device',
-          value: d.device
+          value: d.device,
         },
         {
           label: 'board',
-          value: d.board
+          value: d.board,
         },
         {
           label: 'hardware',
-          value: d.hardware
+          value: d.hardware,
         },
         {
           label: 'brand',
-          value: d.buildBrand
+          value: d.buildBrand,
         },
         {
           label: 'build_fingerprint',
-          value: d.fingerprint
+          value: d.fingerprint,
         },
       ]
       if (d.phoneNumbers.length > 0) {
         basicInfos.value.push({
           label: 'phone_number',
-          value: d.phoneNumbers.map((it: any) => it.name + ' ' + it.number)
+          value: d.phoneNumbers.map((it: any) => it.name + ' ' + it.number),
         })
       }
-
 
       systemInfos.value = [
         {
           label: 'android_version',
-          value: d.releaseBuildVersion + ' (' + d.sdkVersion + ')'
+          value: d.releaseBuildVersion + ' (' + d.sdkVersion + ')',
         },
         {
           label: 'security_patch',
-          value: d.securityPatch
+          value: d.securityPatch,
         },
         {
           label: 'bootloader',
-          value: d.bootloader
+          value: d.bootloader,
         },
         {
           label: 'build_number',
-          value: d.displayVersion
+          value: d.displayVersion,
         },
         {
           label: 'baseband',
-          value: d.radioVersion
+          value: d.radioVersion,
         },
         {
           label: 'java_vm',
-          value: d.javaVmVersion
+          value: d.javaVmVersion,
         },
         {
           label: 'kernel',
-          value: d.kernelVersion
+          value: d.kernelVersion,
         },
         {
           label: 'opengl_es',
-          value: d.glEsVersion
+          value: d.glEsVersion,
         },
         {
           label: 'uptime',
-          value: formatSeconds(d.uptime / 1000)
+          value: formatSeconds(d.uptime / 1000),
         },
       ]
 
@@ -183,35 +166,35 @@ const { refetch } = initQuery({
       batteryInfos.value = [
         {
           label: 'health',
-          value: t(`battery_health.${battery.health}`)
+          value: t(`battery_health.${battery.health}`),
         },
         {
           label: 'remaining',
-          value: `${battery.level}%`
+          value: `${battery.level}%`,
         },
         {
           label: 'status',
-          value: t(`battery_status.${battery.status}`)
+          value: t(`battery_status.${battery.status}`),
         },
         {
           label: 'power_source',
-          value: t(`battery_plugged.${battery.plugged}`)
+          value: t(`battery_plugged.${battery.plugged}`),
         },
         {
           label: 'technology',
-          value: battery.technology
+          value: battery.technology,
         },
         {
           label: 'temperature',
-          value: `${battery.temperature} ℃`
+          value: `${battery.temperature} ℃`,
         },
         {
           label: 'voltage',
-          value: `${battery.voltage} mV`
+          value: `${battery.voltage} mV`,
         },
         {
           label: 'capacity',
-          value: battery.capacity + ' mAh'
+          value: battery.capacity + ' mAh',
         },
       ]
     }
@@ -219,17 +202,17 @@ const { refetch } = initQuery({
   document: deviceInfoGQL,
   appApi: true,
 })
-
 </script>
 <style lang="scss" scoped>
-.main {
-  height: 100%;
+.grids {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
 }
 
-.panel-container {
-  position: relative;
+.card {
   height: 100%;
-  min-height: calc(100vh - 118px);
 }
 
 .key-value {

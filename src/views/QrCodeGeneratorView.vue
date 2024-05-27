@@ -1,23 +1,16 @@
 <template>
-  <div class="page-container">
-    <div class="main">
-      <div class="v-toolbar">
-        <breadcrumb :current="() => $t('qrcode_generator')" />
-      </div>
-      <splitpanes class="panel-container">
-        <pane>
-          <md-outlined-text-field type="textarea" rows="3" v-model="qrCode" />
-        </pane>
-        <pane class="qrcode-panel">
-          <img v-if="url" :src="url" />
-        </pane>
-      </splitpanes>
+  <div class="v-toolbar">
+    <breadcrumb :current="() => $t('qrcode_generator')" />
+  </div>
+  <div class="panel-container">
+    <md-outlined-text-field class="textarea" type="textarea" rows="3" v-model="qrCode" />
+    <div class="qrcode-panel">
+      <img v-if="url" :src="url" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Splitpanes, Pane } from 'splitpanes'
 import { ref, watch } from 'vue'
 import { Encoder, ErrorCorrectionLevel } from '@nuintun/qrcode'
 import { useMainStore } from '@/stores/main'
@@ -44,6 +37,15 @@ watch(qrCode, () => {
 updateUrl()
 </script>
 <style lang="scss" scoped>
+.panel-container {
+  display: grid;
+  grid-template-columns: 50% 50%;
+
+  .textarea {
+    height: calc(100vh - 132px);
+  }
+}
+
 img {
   width: 50%;
   min-width: 200px;
@@ -56,8 +58,5 @@ img {
 md-outlined-text-field {
   width: 100%;
   height: 100%;
-}
-.page-container .splitpanes {
-  height: calc(100vh - 186px);
 }
 </style>

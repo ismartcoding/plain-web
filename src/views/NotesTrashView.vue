@@ -85,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, reactive, ref, watch } from 'vue'
+import { nextTick, onActivated, onBeforeMount, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatDateTime } from '@/lib/format'
 import { notesGQL, initLazyQuery } from '@/lib/api/query'
@@ -229,4 +229,8 @@ function deleteItem(item: INoteItem) {
     typeName: 'Note',
   })
 }
+
+onActivated(() => {
+  // load data
+})
 </script>

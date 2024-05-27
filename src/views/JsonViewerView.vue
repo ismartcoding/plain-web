@@ -1,27 +1,18 @@
 <template>
-  <div class="page-container">
-    <div class="main">
-      <div class="v-toolbar">
-        <breadcrumb :current="() => $t('json_viewer')" />
-        <md-outlined-button @click.prevent="toggle(true)">{{ $t('expand_all') }}</md-outlined-button>
-        <md-outlined-button @click.prevent="toggle(false)">{{ $t('collapse_all') }}</md-outlined-button>
-      </div>
-      <splitpanes class="panel-container">
-        <pane>
-          <monaco-editor language="json" v-model="json" />
-        </pane>
-        <pane>
-          <json-viewer v-if="jsonData" :value="jsonData" :expand-depth="expandDepth" :key="updateKey" />
-        </pane>
-      </splitpanes>
-    </div>
+  <div class="v-toolbar">
+    <breadcrumb :current="() => $t('json_viewer')" />
+    <md-outlined-button @click.prevent="toggle(true)">{{ $t('expand_all') }}</md-outlined-button>
+    <md-outlined-button @click.prevent="toggle(false)">{{ $t('collapse_all') }}</md-outlined-button>
+  </div>
+  <div class="panel-container">
+    <monaco-editor language="json" v-model="json" />
+    <json-viewer v-if="jsonData" :value="jsonData" :expand-depth="expandDepth" :key="updateKey" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { useMainStore } from '@/stores/main'
 import { storeToRefs } from 'pinia'
-import { Splitpanes, Pane } from 'splitpanes'
 import { ref, watch } from 'vue'
 
 const { json } = storeToRefs(useMainStore())
@@ -53,6 +44,8 @@ function toggle(expand: boolean) {
 </script>
 <style lang="scss" scoped>
 .panel-container {
-  height: calc(100vh - 148px);
+  display: grid;
+  height: calc(100vh - 132px);
+  grid-template-columns: 50% 50%;
 }
 </style>

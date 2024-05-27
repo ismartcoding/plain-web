@@ -1,5 +1,6 @@
 export default {
   app_name: '简朴',
+  audio_player: '音频播放器',
   screenshot: '截屏',
   quality_hd: '高清',
   quality_sd: '标清',

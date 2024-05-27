@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="content">
     <h2 class="title">{{ entry?.title }}</h2>
     <div class="subtitle v-center">
       <field-id class="time" v-if="entry?.publishedAt" :id="formatDateTime(entry?.publishedAt)" :raw="entry" />
@@ -14,7 +14,7 @@
         <md-ripple />
         <i-material-symbols:sync-rounded />
       </button>
-      <a :href="entry?.url" target="_blank" v-tooltip="$t('view_original_article')">
+      <a :href="entry?.url" class="icon-button" target="_blank" v-tooltip="$t('view_original_article')">
         <button class="icon-button">
           <md-ripple />
           <i-material-symbols:open-in-new-rounded />
@@ -147,10 +147,27 @@ onUnmounted(() => {
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
 })
 </script>
+<style lang="scss">
+.main-feed-entry {
+  display: flex;
+
+  .sidebar2 {
+    width: 400px;
+  }
+  .content {
+    flex: 1;
+    padding: 16px 16px 16px 8px;
+    overflow-y: auto;
+    width: 0px; // fix flexbox overflow
+  }
+}
+</style>
 <style lang="scss" scoped>
 h2.title {
-  font-size: 2rem;
-  margin-block-start: 0;
+  font-size: 1.5rem;
+  margin-block-start: 8px;
+  margin-block-end: 16px;
+  padding: 0;
 }
 
 .subtitle {

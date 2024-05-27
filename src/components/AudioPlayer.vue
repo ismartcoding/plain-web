@@ -1,39 +1,47 @@
 <template>
-  <div class="audio-player">
-    <div class="play-title" v-if="current">{{ current.title }}</div>
-    <audio ref="audioRef" class="audio" controls :src="src" @ended="onEnded" />
-    <div class="buttons" v-if="audios.length">
-      <button class="icon-button" @click.stop="playPrev">
+  <div class="quick-content-main">
+    <div class="top-app-bar">
+      <button class="icon-button" @click.prevent="store.quick = ''" v-tooltip="$t('close')">
         <md-ripple />
-        <i-material-symbols:skip-previous-outline-rounded />
+        <i-material-symbols:right-panel-close-outline />
       </button>
-      <button class="icon-button mode" @click.stop="changeMode">
-        <md-ripple />
-        <i-material-symbols:shuffle-outline-rounded v-if="app?.audioMode === 'SHUFFLE'" />
-        <i-material-symbols:repeat-rounded v-else-if="app?.audioMode === 'REPEAT'" />
-        <i-material-symbols:repeat-one-rounded v-else />
-      </button>
-      <button class="icon-button" @click.stop="playNext">
-        <md-ripple />
-        <i-material-symbols:skip-next-outline-rounded />
-      </button>
-      <md-circular-progress indeterminate v-if="clearLoading" class="spinner-sm" />
-      <button class="icon-button" v-else @click.prevent="clear" v-tooltip="$t('clear_list')">
-        <md-ripple />
-        <i-material-symbols:delete-forever-outline-rounded />
-      </button>
+      <div class="title">{{ current?.title ?? $t('audio_player') }}</div>
     </div>
-    <section class="list-items">
-      <div v-for="item in audios" class="item" :key="item.path" @click.stop="playItem(item)" :class="{ selected: item.path === current?.path }">
-        <md-ripple />
-        <div class="title">{{ item.title }}</div>
-        <div class="subtitle">{{ item.artist }} {{ formatSeconds(item.duration) }}</div>
-        <button class="icon-button icon" @click.stop="deleteItem(item)">
+    <div class="quick-content-body">
+      <audio ref="audioRef" class="audio" controls :src="src" @ended="onEnded" />
+      <div class="buttons" v-if="audios.length">
+        <button class="icon-button" @click.stop="playPrev">
           <md-ripple />
-          <i-material-symbols:close-rounded />
+          <i-material-symbols:skip-previous-outline-rounded />
+        </button>
+        <button class="icon-button mode" @click.stop="changeMode">
+          <md-ripple />
+          <i-material-symbols:shuffle-outline-rounded v-if="app?.audioMode === 'SHUFFLE'" />
+          <i-material-symbols:repeat-rounded v-else-if="app?.audioMode === 'REPEAT'" />
+          <i-material-symbols:repeat-one-rounded v-else />
+        </button>
+        <button class="icon-button" @click.stop="playNext">
+          <md-ripple />
+          <i-material-symbols:skip-next-outline-rounded />
+        </button>
+        <md-circular-progress indeterminate v-if="clearLoading" class="spinner-sm" />
+        <button class="icon-button" v-else @click.prevent="clear" v-tooltip="$t('clear_list')">
+          <md-ripple />
+          <i-material-symbols:delete-forever-outline-rounded />
         </button>
       </div>
-    </section>
+      <section class="list-items">
+        <div v-for="item in audios" class="item" :key="item.path" @click.stop="playItem(item)" :class="{ selected: item.path === current?.path }">
+          <md-ripple />
+          <div class="title">{{ item.title }}</div>
+          <div class="subtitle">{{ item.artist }} {{ formatSeconds(item.duration) }}</div>
+          <button class="icon-button icon" @click.stop="deleteItem(item)">
+            <md-ripple />
+            <i-material-symbols:close-rounded />
+          </button>
+        </div>
+      </section>
+    </div>
   </div>
 </template>
 
@@ -47,8 +55,10 @@ import { formatSeconds } from '@/lib/format'
 import { initMutation, playAudioGQL, updateAudioPlayModeGQL, deletePlaylistAudioGQL, clearAudioPlaylistGQL } from '@/lib/api/mutation'
 import { sample, remove } from 'lodash-es'
 import emitter from '@/plugins/eventbus'
+import { useMainStore } from '@/stores/main'
 
 const { app, urlTokenKey, audioPlaying } = storeToRefs(useTempStore())
+const store = useMainStore()
 
 const audios = computed<IPlaylistAudio[]>(() => {
   return (app.value as any).audios ?? []
@@ -252,14 +262,6 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.audio-player {
-  background-color: var(--md-sys-color-surface);
-  overflow-x: hidden;
-  overflow-y: auto;
-  width: var(--quick-content-width);
-  height: 100%;
-}
-
 .list-items .item {
   cursor: pointer;
 }

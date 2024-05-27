@@ -1,55 +1,51 @@
 <template>
-  <div class="page-container">
-    <div class="main">
-      <breadcrumb :current="() => $t('page_title.wifi')" />
-      <edit-toolbar v-model="currentTab" :save="save" :loading="loading" :tabs="['t:basic', '/etc/hostapd/hostapd.conf']" />
-      <form v-show="currentTab === 0">
-        <div class="row mb-3">
-          <label for="is-enabled" class="col-sm-3 col-md-2 col-form-label">{{ t('enable') }}</label>
-          <div class="col-sm-4">
-            <div class="form-check">
-              <md-checkbox touch-target="wrapper" :checked="isEnabled" id="is-enabled" />
-            </div>
-          </div>
+  <breadcrumb :current="() => $t('page_title.wifi')" />
+  <edit-toolbar v-model="currentTab" :save="save" :loading="loading" :tabs="['t:basic', '/etc/hostapd/hostapd.conf']" />
+  <form v-show="currentTab === 0">
+    <div class="row mb-3">
+      <label for="is-enabled" class="col-sm-3 col-md-2 col-form-label">{{ t('enable') }}</label>
+      <div class="col-sm-4">
+        <div class="form-check">
+          <md-checkbox touch-target="wrapper" :checked="isEnabled" id="is-enabled" />
         </div>
-        <div class="row mb-3">
-          <label for="ssid" class="col-sm-3 col-md-2 col-form-label">{{ t('wifi.ssid') }}</label>
-          <div class="col-sm-4">
-            <input type="text" v-model="ssid" class="form-control" id="ssid" @change="updateConfig" />
-            <div class="invalid-feedback" v-show="ssidError">
-              {{ ssidError ? t(ssidError) : '' }}
-            </div>
-          </div>
-        </div>
-        <div class="row mb-3">
-          <label for="password" class="col-sm-3 col-md-2 col-form-label">{{ t('password') }}</label>
-          <div class="col-sm-4">
-            <div class="input-group">
-              <input class="form-control" v-model="password" id="password" @change="updateConfig" :type="showPassword ? 'text' : 'password'" />
-              <a href="#" @click.prevent="toggleEye" class="input-group-text">
-                <span class="inner">
-                  <i-material-symbols:visibility-off-outline-rounded v-show="showPassword" />
-                  <i-material-symbols:visibility-outline-rounded v-show="!showPassword" />
-                </span>
-              </a>
-            </div>
-            <div class="invalid-feedback" v-show="passwordError">
-              {{ passwordError ? t(passwordError, { min: 8 }) : '' }}
-            </div>
-          </div>
-        </div>
-        <div class="row mb-3">
-          <label for="hide-ssid" class="col-sm-3 col-md-2 col-form-label">{{ t('wifi.hide_ssid') }}</label>
-          <div class="col-sm-4">
-            <div class="form-check">
-              <md-checkbox touch-target="wrapper" :checked="hideSSID" @change="updateConfig" id="hide-ssid" />
-            </div>
-          </div>
-        </div>
-      </form>
-      <monaco-editor language="ini" @change="updateForm" height="700" v-model="config" v-show="currentTab === 1" />
+      </div>
     </div>
-  </div>
+    <div class="row mb-3">
+      <label for="ssid" class="col-sm-3 col-md-2 col-form-label">{{ t('wifi.ssid') }}</label>
+      <div class="col-sm-4">
+        <input type="text" v-model="ssid" class="form-control" id="ssid" @change="updateConfig" />
+        <div class="invalid-feedback" v-show="ssidError">
+          {{ ssidError ? t(ssidError) : '' }}
+        </div>
+      </div>
+    </div>
+    <div class="row mb-3">
+      <label for="password" class="col-sm-3 col-md-2 col-form-label">{{ t('password') }}</label>
+      <div class="col-sm-4">
+        <div class="input-group">
+          <input class="form-control" v-model="password" id="password" @change="updateConfig" :type="showPassword ? 'text' : 'password'" />
+          <a href="#" @click.prevent="toggleEye" class="input-group-text">
+            <span class="inner">
+              <i-material-symbols:visibility-off-outline-rounded v-show="showPassword" />
+              <i-material-symbols:visibility-outline-rounded v-show="!showPassword" />
+            </span>
+          </a>
+        </div>
+        <div class="invalid-feedback" v-show="passwordError">
+          {{ passwordError ? t(passwordError, { min: 8 }) : '' }}
+        </div>
+      </div>
+    </div>
+    <div class="row mb-3">
+      <label for="hide-ssid" class="col-sm-3 col-md-2 col-form-label">{{ t('wifi.hide_ssid') }}</label>
+      <div class="col-sm-4">
+        <div class="form-check">
+          <md-checkbox touch-target="wrapper" :checked="hideSSID" @change="updateConfig" id="hide-ssid" />
+        </div>
+      </div>
+    </div>
+  </form>
+  <monaco-editor language="ini" @change="updateForm" height="700" v-model="config" v-show="currentTab === 1" />
 </template>
 
 <script setup lang="ts">

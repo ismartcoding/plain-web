@@ -48,8 +48,8 @@
       </popper>
     </div>
   </div>
-  <splitpanes class="panel-container">
-    <pane v-for="panel in panels" :key="panel.dir">
+  <div class="panel-container">
+    <div v-for="panel in panels" :key="panel.dir">
       <div class="file-items">
         <template v-for="f of panel.items" :key="f.path">
           <div
@@ -79,11 +79,11 @@
           </div>
         </div>
       </div>
-    </pane>
-    <pane class="no-data-placeholder" v-if="panels.length === 0">
+    </div>
+    <div class="no-data-placeholder" v-if="panels.length === 0">
       {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
-    </pane>
-  </splitpanes>
+    </div>
+  </div>
   <div class="file-item-info" v-if="selectedItem">{{ $t('path') }}: {{ selectedItem.path }}</div>
   <input ref="fileInput" style="display: none" type="file" multiple @change="uploadChanged" />
   <input ref="dirFileInput" style="display: none" type="file" multiple webkitdirectory mozdirectory directory @change="dirUploadChanged" />
@@ -94,7 +94,6 @@ import { contextmenu } from '@/components/contextmenu'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { formatDateTime, formatFileSize } from '@/lib/format'
 import { useI18n } from 'vue-i18n'
-import { Splitpanes, Pane } from 'splitpanes'
 import { useMainStore } from '@/stores/main'
 import { storeToRefs } from 'pinia'
 import { type FilePanel, type IFile, isImage, isVideo, canOpenInBrowser, canView, getSortItems } from '@/lib/file'

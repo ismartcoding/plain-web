@@ -1,66 +1,59 @@
 <template>
-  <div class="page-container">
-    <div class="main">
-      <splitpanes class="chat-container" horizontal>
-        <pane size="80">
-          <div class="chat-items" ref="scrollContainer">
-            <div v-for="(item, index) in chats" :key="item.id" class="chat-item">
-              <div class="date" v-if="dateVisible(item, index)">{{ formatDate(item.createdAt) }}</div>
-              <popper v-if="index > 0">
-                <div class="chat-title">
-                  <span class="name">{{ $t(item.isMe ? 'me' : 'ai') }}</span>
-                  <span class="time" v-tooltip="formatDateTimeFull(item.createdAt)">{{ formatTime(item.createdAt) }}</span>
-                  <i-material-symbols:expand-more-rounded class="bi bi-more" />
-                </div>
-                <template #content>
-                  <div class="menu-items">
-                    <md-menu-item @click="deleteMessage(item.id)" :disabled="deleteLoading">
-                      <div slot="headline">{{ $t('delete_message') }}</div>
-                    </md-menu-item>
-                  </div>
-                </template>
-              </popper>
-              <div v-else class="chat-title">
-                <span class="name">{{ $t(item.isMe ? 'me' : 'ai') }}</span>
-                <span class="time" v-tooltip="formatDateTimeFull(item.createdAt)">{{ formatTime(item.createdAt) }}</span>
-              </div>
-              <div class="chat-content md-container" v-html="item.md"></div>
-            </div>
-            <div v-if="replying" class="chat-item replying">
-              <div class="chat-title">
-                <span class="name">{{ $t('ai') }}</span>
-              </div>
-              <div class="chat-content md-container" v-html="replyingContentMD"></div>
-            </div>
+  <div class="chat-container">
+    <div class="chat-items" ref="scrollContainer">
+      <div v-for="(item, index) in chats" :key="item.id" class="chat-item">
+        <div class="date" v-if="dateVisible(item, index)">{{ formatDate(item.createdAt) }}</div>
+        <popper v-if="index > 0">
+          <div class="chat-title">
+            <span class="name">{{ $t(item.isMe ? 'me' : 'ai') }}</span>
+            <span class="time" v-tooltip="formatDateTimeFull(item.createdAt)">{{ formatTime(item.createdAt) }}</span>
+            <i-material-symbols:expand-more-rounded class="bi bi-more" />
           </div>
-        </pane>
-        <pane class="chat-input" size="12" style="min-height: 80px">
-          <md-outlined-text-field
-            class="textarea"
-            type="textarea"
-            v-model="content"
-            autocomplete="off"
-            :placeholder="$t('chat_input_hint')"
-            @keydown.enter.exact.prevent="send"
-            @keydown.enter.shift.exact.prevent="content += '\n'"
-            @keydown.enter.ctrl.exact.prevent="content += '\n'"
-            @keydown.enter.alt.exact.prevent="content += '\n'"
-            @keydown.enter.meta.exact.prevent="content += '\n'"
-          />
-          <div class="btns">
-            <button class="icon-button" @click.stop="send">
-              <md-ripple />
-              <i-material-symbols:send-outline-rounded />
-            </button>
-          </div>
-        </pane>
-      </splitpanes>
+          <template #content>
+            <div class="menu-items">
+              <md-menu-item @click="deleteMessage(item.id)" :disabled="deleteLoading">
+                <div slot="headline">{{ $t('delete_message') }}</div>
+              </md-menu-item>
+            </div>
+          </template>
+        </popper>
+        <div v-else class="chat-title">
+          <span class="name">{{ $t(item.isMe ? 'me' : 'ai') }}</span>
+          <span class="time" v-tooltip="formatDateTimeFull(item.createdAt)">{{ formatTime(item.createdAt) }}</span>
+        </div>
+        <div class="chat-content md-container" v-html="item.md"></div>
+      </div>
+      <div v-if="replying" class="chat-item replying">
+        <div class="chat-title">
+          <span class="name">{{ $t('ai') }}</span>
+        </div>
+        <div class="chat-content md-container" v-html="replyingContentMD"></div>
+      </div>
+    </div>
+    <div class="chat-input" style="min-height: 80px">
+      <md-outlined-text-field
+        class="textarea"
+        type="textarea"
+        v-model="content"
+        autocomplete="off"
+        :placeholder="$t('chat_input_hint')"
+        @keydown.enter.exact.prevent="send"
+        @keydown.enter.shift.exact.prevent="content += '\n'"
+        @keydown.enter.ctrl.exact.prevent="content += '\n'"
+        @keydown.enter.alt.exact.prevent="content += '\n'"
+        @keydown.enter.meta.exact.prevent="content += '\n'"
+      />
+      <div class="btns">
+        <button class="icon-button" @click.stop="send">
+          <md-ripple />
+          <i-material-symbols:send-outline-rounded />
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Splitpanes, Pane } from 'splitpanes'
 import { useRoute } from 'vue-router'
 import { nextTick, onMounted, onUnmounted, ref } from 'vue'
 import toast from '@/components/toaster'
@@ -258,7 +251,7 @@ onUnmounted(() => {
 }
 
 .chat-container {
-  height: calc(100vh - 100px);
+  height: calc(100vh - 180px);
 }
 
 .md-container {

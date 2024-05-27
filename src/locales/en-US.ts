@@ -1,5 +1,6 @@
 export default {
   app_name: 'PlainApp',
+  audio_player: 'Audio player',
   screenshot: 'Screenshot',
   quality_hd: 'HD',
   quality_sd: 'SD',

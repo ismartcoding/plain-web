@@ -8,7 +8,6 @@
         <slot name="content" :close="close" :isOpen="modifiedIsOpen">
           {{ content }}
         </slot>
-        <arrow v-if="arrow" />
       </div>
     </transition>
   </div>
@@ -40,10 +39,6 @@ const props = defineProps({
   zIndex: {
     type: [Number, String],
     default: 9999,
-  },
-  arrow: {
-    type: Boolean,
-    default: false,
   },
   content: {
     type: String,

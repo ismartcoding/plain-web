@@ -1,6 +1,6 @@
 <template>
   <div class="tags">
-    <span v-for="tag in tags" class="badge" @click.stop="view(tag)">{{ tag.name }}</span>
+    <a v-for="tag in tags" @click.stop.prevent="view(tag)">#{{ tag.name }}</a>
   </div>
 </template>
 
@@ -34,3 +34,16 @@ function view(item: ITag) {
   replacePath(mainStore, `/${names[props.type]}?q=${encodeBase64(q)}`)
 }
 </script>
+
+<style scoped lang="scss">
+.tags {
+  a {
+    white-space: nowrap;
+    margin-inline-end: 8px;
+    cursor: pointer;
+  }
+  a:last-child {
+    margin-inline-end: 0;
+  }
+}
+</style>

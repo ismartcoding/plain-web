@@ -61,11 +61,4 @@ const sources = computed(() => {
 })
 </script>
 
-<style lang="scss" scoped>
-.image-container {
-  .item {
-    width: calc(33.33% - 2px);
-    margin: 1px;
-  }
-}
-</style>
+<style lang="scss" scoped></style>

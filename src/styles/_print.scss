@@ -1,21 +1,19 @@
 @media print {
-    header,
+    #header,
     .quick,
     .quick-content,
     .v-toolbar,
-    .subtitle,
-    .splitpanes__pane:first-child {
+    .sidebar,
+    .sidebar2,
+    .subtitle {
         display: none !important;
     }
 
-    .splitpanes__pane {
-        width: 100% !important;
-    }
-    .layout, .page-content, .panel-container, .page-container .main {
+    .layout, .page-content, .page-content .main {
         height: auto !important;
     }
 
-    .page-container .main {
+    .page-content .main {
         margin: 0 !important;
         border-top-left-radius: 0 !important;
         border-top-right-radius: 0 !important;

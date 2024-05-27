@@ -1,87 +1,63 @@
 <template>
-  <div class="page-container">
-    <div class="main">
-      <div class="grid">
-        <div class="g-col-lg-6 g-col-md-12">
-          <section class="card">
-            <div class="card-body">
-              <h5 class="card-title">
-                {{ $t('storage') }}<span class="total-bytes" v-if="totalBytes >= 0">{{ $t('storage_free_total', { free: formatFileSize(freeBytes), total: formatFileSize(totalBytes) }) }}</span>
-              </h5>
-              <p class="stats-items">
-                <a href="#" @click.prevent="openTab('/images')"> {{ $t('images') }}</a>
-                <a href="#" @click.prevent="openTab('/audios')"> {{ $t('audios') }}</a>
-                <a href="#" @click.prevent="openTab('/videos')">{{ $t('videos') }}</a>
-                <a href="#" @click.prevent="openTab('/files')">{{ $t('files') }} </a>
-                <a v-if="app.channel !== 'GOOGLE'" href="#" @click.prevent="openTab('/apps')">{{ $t('apps') }}</a>
-              </p>
-            </div>
-          </section>
-        </div>
-        <div class="g-col-lg-6 g-col-md-12">
-          <section class="card">
-            <div class="card-body">
-              <h5 class="card-title">{{ $t('work') }}</h5>
-              <p class="stats-items">
-                <a href="#" @click.prevent="openTab('/notes')">{{ $t('page_title.notes') }}</a>
-                <a style="display: none" href="#" @click.prevent="openTab('/books')">{{ $t('page_title.books') }}</a>
-                <a href="#" @click.prevent="openTab('/feeds')">{{ $t('page_title.feeds') }}</a>
-                <!-- <a href="#" @click.prevent="openTab('/aichats')">{{ $t('page_title.aichats') }}</a> -->
-              </p>
-            </div>
-          </section>
-        </div>
-        <div class="g-col-lg-6 g-col-md-12">
-          <section class="card">
-            <div class="card-body">
-              <h5 class="card-title">{{ $t('social') }}</h5>
-              <p class="stats-items">
-                <a href="#" @click.prevent="openTab('/messages')" v-if="app.channel !== 'GOOGLE'"
-                  >{{ $t('messages') }}<template v-if="messageCount >= 0">({{ messageCount }})</template></a
-                >
-                <a href="#" @click.prevent="openTab('/calls')" v-if="app.channel !== 'GOOGLE'"
-                  >{{ $t('calls') }}<template v-if="callCount >= 0">({{ callCount }})</template></a
-                >
-                <a href="#" @click.prevent="openTab('/contacts')"
-                  >{{ $t('contacts') }}<template v-if="contactCount >= 0">({{ contactCount }})</template></a
-                >
-              </p>
-            </div>
-          </section>
-        </div>
-        <div class="g-col-lg-6 g-col-md-12">
-          <section class="card">
-            <div class="card-body">
-              <h5 class="card-title">{{ $t('tools') }}</h5>
-              <p class="stats-items">
-                <a href="#" @click.prevent="openTab('/screen-mirror')">{{ $t('screen_mirror') }}</a>
-                <a href="#" @click.prevent="openTab('/device-info')">{{ $t('device_info') }}</a>
-                <a href="#" @click.prevent="openTab('/qrcode-generator')">{{ $t('qrcode_generator') }}</a>
-                <a href="#" @click.prevent="openTab('/json-viewer')">{{ $t('json_viewer') }}</a>
-              </p>
-            </div>
-          </section>
-        </div>
-        <div class="g-col-lg-6 g-col-md-12">
-          <section class="card">
-            <div class="card-body">
-              <h5 class="card-title">{{ $t('call_phone') }}</h5>
-              <p class="form-row">
-                <md-outlined-text-field type="tel" :label="$t('phone_number')" class="form-control flex-3" v-model="callNumber" :error="callNumberError" :error-text="$t('valid.required')">
-                  <button class="icon-button" slot="trailing-icon" @click.prevent="pastePhoneNumber">
-                    <md-ripple />
-                    <i-material-symbols:content-paste-rounded />
-                  </button>
-                </md-outlined-text-field>
-                <md-filled-button class="btn-lg" @click.prevent="callPhone" :disabled="callLoading">
-                  {{ $t('call') }}
-                </md-filled-button>
-              </p>
-            </div>
-          </section>
-        </div>
+  <div class="grids">
+    <section class="card">
+      <h5 class="card-title">
+        {{ $t('storage') }}<span class="total-bytes" v-if="totalBytes >= 0">{{ $t('storage_free_total', { free: formatFileSize(freeBytes), total: formatFileSize(totalBytes) }) }}</span>
+      </h5>
+      <div class="card-body">
+        <a href="#" @click.prevent="openTab('/images')"> {{ $t('images') }}</a>
+        <a href="#" @click.prevent="openTab('/audios')"> {{ $t('audios') }}</a>
+        <a href="#" @click.prevent="openTab('/videos')">{{ $t('videos') }}</a>
+        <a href="#" @click.prevent="openTab('/files')">{{ $t('files') }} </a>
+        <a v-if="app.channel !== 'GOOGLE'" href="#" @click.prevent="openTab('/apps')">{{ $t('apps') }}</a>
       </div>
-    </div>
+    </section>
+    <section class="card">
+      <h5 class="card-title">{{ $t('work') }}</h5>
+      <div class="card-body">
+        <a href="#" @click.prevent="openTab('/notes')">{{ $t('page_title.notes') }}</a>
+        <a style="display: none" href="#" @click.prevent="openTab('/books')">{{ $t('page_title.books') }}</a>
+        <a href="#" @click.prevent="openTab('/feeds')">{{ $t('page_title.feeds') }}</a>
+        <!-- <a href="#" @click.prevent="openTab('/aichats')">{{ $t('page_title.aichats') }}</a> -->
+      </div>
+    </section>
+    <section class="card">
+      <h5 class="card-title">{{ $t('social') }}</h5>
+      <div class="card-body">
+        <a href="#" @click.prevent="openTab('/messages')" v-if="app.channel !== 'GOOGLE'"
+          >{{ $t('messages') }}<template v-if="messageCount >= 0">({{ messageCount }})</template></a
+        >
+        <a href="#" @click.prevent="openTab('/calls')" v-if="app.channel !== 'GOOGLE'"
+          >{{ $t('calls') }}<template v-if="callCount >= 0">({{ callCount }})</template></a
+        >
+        <a href="#" @click.prevent="openTab('/contacts')"
+          >{{ $t('contacts') }}<template v-if="contactCount >= 0">({{ contactCount }})</template></a
+        >
+      </div>
+    </section>
+    <section class="card">
+      <h5 class="card-title">{{ $t('tools') }}</h5>
+      <div class="card-body">
+        <a href="#" @click.prevent="openTab('/screen-mirror')">{{ $t('screen_mirror') }}</a>
+        <a href="#" @click.prevent="openTab('/device-info')">{{ $t('device_info') }}</a>
+        <a href="#" @click.prevent="openTab('/qrcode-generator')">{{ $t('qrcode_generator') }}</a>
+        <a href="#" @click.prevent="openTab('/json-viewer')">{{ $t('json_viewer') }}</a>
+      </div>
+    </section>
+    <section class="card">
+      <h5 class="card-title">{{ $t('call_phone') }}</h5>
+      <div class="card-body form-row">
+        <md-outlined-text-field type="tel" :label="$t('phone_number')" class="form-control flex-3" v-model="callNumber" :error="callNumberError" :error-text="$t('valid.required')">
+          <button class="icon-button" slot="trailing-icon" @click.prevent="pastePhoneNumber">
+            <md-ripple />
+            <i-material-symbols:content-paste-rounded />
+          </button>
+        </md-outlined-text-field>
+        <md-filled-button class="btn-lg" @click.prevent="callPhone" :disabled="callLoading">
+          {{ $t('call') }}
+        </md-filled-button>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -170,7 +146,12 @@ function openTab(fullPath: string) {
 </script>
 
 <style lang="scss" scoped>
-.stats-items {
+.grids {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+  gap: 16px;
+}
+.card-body {
   a + a {
     margin-left: 1rem;
   }
