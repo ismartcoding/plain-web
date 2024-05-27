@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import MainView from '../views/MainView.vue'
-import { nextTick } from 'vue'
+import type { IPage } from '@/lib/interfaces'
 
 const router = createRouter({
   strict: true,
@@ -21,107 +21,66 @@ const router = createRouter({
         {
           name: 'home',
           path: '',
-          component: () => import('../views/HomeView.vue'),
+          components: {
+            default: () => import('../views/HomeView.vue'),
+          },
           meta: { group: 'home' },
         },
         {
-          path: 'messages',
-          component: () => import('../views/MessagesRootView.vue'),
+          path: 'messages/:type?',
+          components: {
+            default: () => import('../views/MessagesView.vue'),
+            LeftSidebar: () => import('../components/MessagesSidebar.vue'),
+          },
           meta: { group: 'messages' },
-          children: [
-            {
-              path: '',
-              component: () => import('../views/MessagesView.vue'),
-              meta: { group: 'messages' },
-            },
-            {
-              path: ':type',
-              component: () => import('../views/MessagesView.vue'),
-              meta: { group: 'messages' },
-            },
-          ],
         },
         {
-          path: 'calls',
-          component: () => import('../views/CallsRootView.vue'),
+          path: 'calls/:type?',
+          components: {
+            default: () => import('../views/CallsView.vue'),
+            LeftSidebar: () => import('../components/CallsSidebar.vue'),
+          },
           meta: { group: 'calls' },
-          children: [
-            {
-              path: '',
-              component: () => import('../views/CallsView.vue'),
-              meta: { group: 'calls' },
-            },
-            {
-              path: ':type',
-              component: () => import('../views/CallsView.vue'),
-              meta: { group: 'calls' },
-            },
-          ],
         },
         {
-          path: 'apps',
-          component: () => import('../views/AppsRootView.vue'),
+          path: 'apps/:type?',
+          components: {
+            default: () => import('../views/AppsView.vue'),
+            LeftSidebar: () => import('../components/AppsSidebar.vue'),
+          },
           meta: { group: 'apps' },
-          children: [
-            {
-              path: '',
-              component: () => import('../views/AppsView.vue'),
-              meta: { group: 'apps' },
-            },
-            {
-              path: ':type',
-              component: () => import('../views/AppsView.vue'),
-              meta: { group: 'apps' },
-            },
-          ],
         },
         {
           path: 'contacts',
-          component: () => import('../views/ContactsRootView.vue'),
+          components: {
+            default: () => import('../views/ContactsView.vue'),
+            LeftSidebar: () => import('../components/ContactsSidebar.vue'),
+          },
           meta: { group: 'contacts' },
-          children: [
-            {
-              path: '',
-              component: () => import('../views/ContactsView.vue'),
-              meta: { group: 'contacts' },
-            },
-          ],
         },
         {
           path: 'images',
-          component: () => import('../views/ImagesRootView.vue'),
+          components: {
+            default: () => import('../views/ImagesView.vue'),
+            LeftSidebar: () => import('../components/MediaSidebar.vue'),
+          },
           meta: { group: 'images' },
-          children: [
-            {
-              path: '',
-              component: () => import('../views/ImagesView.vue'),
-              meta: { group: 'images' },
-            },
-          ],
         },
         {
           path: 'videos',
-          component: () => import('../views/VideosRootView.vue'),
+          components: {
+            default: () => import('../views/VideosView.vue'),
+            LeftSidebar: () => import('../components/MediaSidebar.vue'),
+          },
           meta: { group: 'videos' },
-          children: [
-            {
-              path: '',
-              component: () => import('../views/VideosView.vue'),
-              meta: { group: 'videos' },
-            },
-          ],
         },
         {
           path: 'audios',
-          component: () => import('../views/AudiosRootView.vue'),
+          components: {
+            default: () => import('../views/AudiosView.vue'),
+            LeftSidebar: () => import('../components/MediaSidebar.vue'),
+          },
           meta: { group: 'audios' },
-          children: [
-            {
-              path: '',
-              component: () => import('../views/AudiosView.vue'),
-              meta: { group: 'audios' },
-            },
-          ],
         },
         {
           path: 'notes/:id',
@@ -130,20 +89,19 @@ const router = createRouter({
         },
         {
           path: 'notes',
-          component: () => import('../views/NotesRootView.vue'),
+          components: {
+            default: () => import('../views/NotesView.vue'),
+            LeftSidebar: () => import('../components/NotesSidebar.vue'),
+          },
           meta: { group: 'notes' },
-          children: [
-            {
-              path: '',
-              component: () => import('../views/NotesView.vue'),
-              meta: { group: 'notes' },
-            },
-            {
-              path: 'trash',
-              component: () => import('../views/NotesTrashView.vue'),
-              meta: { group: 'trash' },
-            },
-          ],
+        },
+        {
+          path: 'notes/trash',
+          components: {
+            default: () => import('../views/NotesTrashView.vue'),
+            LeftSidebar: () => import('../components/NotesSidebar.vue'),
+          },
+          meta: { group: 'notes' },
         },
         {
           path: 'aichats/:id',
@@ -152,37 +110,27 @@ const router = createRouter({
         },
         {
           path: 'aichats',
-          component: () => import('../views/AIChatsRootView.vue'),
+          components: {
+            default: () => import('../views/AIChatsView.vue'),
+            LeftSidebar: () => import('../components/AIChatsSidebar.vue'),
+          },
           meta: { group: 'aichats' },
-          children: [
-            {
-              path: '',
-              component: () => import('../views/AIChatsView.vue'),
-              meta: { group: 'aichats' },
-            },
-          ],
         },
         {
-          path: 'files',
-          component: () => import('../views/FilesRootView.vue'),
+          path: 'files/:type?',
+          components: {
+            default: () => import('../views/FilesView.vue'),
+            LeftSidebar: () => import('../components/FilesSidebar.vue'),
+          },
           meta: { group: 'files' },
-          children: [
-            {
-              path: '',
-              component: () => import('../views/FilesVIew.vue'),
-              meta: { group: 'files' },
-            },
-            {
-              path: 'recent',
-              component: () => import('../views/FilesRecentVIew.vue'),
-              meta: { group: 'files' },
-            },
-            {
-              path: ':type',
-              component: () => import('../views/FilesVIew.vue'),
-              meta: { group: 'files' },
-            },
-          ],
+        },
+        {
+          path: 'files/recent',
+          components: {
+            default: () => import('../views/FilesRecentView.vue'),
+            LeftSidebar: () => import('../components/FilesSidebar.vue'),
+          },
+          meta: { group: 'files' },
         },
         {
           path: 'json-viewer',
@@ -241,20 +189,28 @@ const router = createRouter({
         },
         {
           path: 'feeds',
-          component: () => import('../views/FeedsRootView.vue'),
+          components: {
+            LeftSidebar: () => import('../components/FeedsSidebar.vue'),
+            LeftSidebar2: () => import('../components/FeedsSidebar2.vue'),
+          },
+          meta: { group: 'feeds', className: 'feeds' },
+        },
+        {
+          path: 'feeds/manage',
+          components: {
+            LeftSidebar: () => import('../components/FeedsSidebar.vue'),
+            LeftSidebar2: () => import('../views/FeedsManageView.vue'),
+          },
           meta: { group: 'feeds' },
-          children: [
-            {
-              path: '',
-              component: () => import('../views/FeedsView.vue'),
-              meta: { group: 'feeds' },
-            },
-            {
-              path: ':feedId/entries/:id',
-              component: () => import('../views/FeedEntryView.vue'),
-              meta: { group: 'feeds' },
-            },
-          ],
+        },
+        {
+          path: 'feeds/:feedId/entries/:id',
+          components: {
+            default: () => import('../views/FeedEntryView.vue'),
+            LeftSidebar: () => import('../components/FeedsSidebar.vue'),
+            LeftSidebar2: () => import('../components/FeedsSidebar2.vue'),
+          },
+          meta: { group: 'feeds', className: 'feed-entry' },
         },
       ],
     },
@@ -287,9 +243,7 @@ router.afterEach((to, from) => {
     const a = document.getElementsByClassName('main')[0]
     if (a) {
       const top = scrollTops.get(to.fullPath)
-      if (top) {
-        a.scrollTop = top
-      }
+      a.scrollTop = top || 0
     }
   }, 0)
 })
@@ -299,7 +253,8 @@ export default router
 export const replacePathNoReload = (store: any, fullPath: string) => {
   const oldPath = router.currentRoute.value.fullPath
   router.currentRoute.value.fullPath = fullPath
-  if (store.pages.includes(fullPath)) {
+  const index = store.pages.findIndex((it: IPage) => it.path === fullPath)
+  if (index !== -1) {
     window.history.pushState({}, document.title, fullPath)
   } else {
     window.history.replaceState({}, document.title, fullPath)
@@ -308,11 +263,13 @@ export const replacePathNoReload = (store: any, fullPath: string) => {
 }
 
 export const replacePath = (store: any, fullPath: string) => {
-  if (store.pages.includes(fullPath)) {
+  const index = store.pages.findIndex((it: IPage) => it.path === fullPath)
+  if (index !== -1) {
     router.push(fullPath)
   } else {
+    const oldPath = router.currentRoute.value.fullPath
     router.replace(fullPath)
-    store.replaceRoute(router.currentRoute.value.fullPath, fullPath)
+    store.replaceRoute(oldPath, fullPath)
   }
 }
 

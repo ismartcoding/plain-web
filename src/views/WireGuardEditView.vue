@@ -1,11 +1,7 @@
 <template>
-  <div class="page-container">
-    <div class="main">
-      <breadcrumb :paths="['/wireguard']" :current="name" />
-      <edit-toolbar v-model="currentTab" :save="save" :loading="loading" :tabs="[`/etc/wireguard/${id}.conf`]" />
-      <monaco-editor language="ini" height="700" v-model="config" :actions="actions" />
-    </div>
-  </div>
+  <breadcrumb :paths="['/wireguard']" :current="name" />
+  <edit-toolbar v-model="currentTab" :save="save" :loading="loading" :tabs="[`/etc/wireguard/${id}.conf`]" />
+  <monaco-editor language="ini" height="700" v-model="config" :actions="actions" />
 </template>
 
 <script setup lang="ts">

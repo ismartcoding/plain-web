@@ -1,58 +1,48 @@
 <template>
-  <div class="page-container">
-    <splitpanes>
-      <pane size="20" min-size="10">
-        <div class="sidebar">
-          <h2 class="nav-title">
-            {{ $t('page_title.feeds') }}
-            <div style="position: relative">
-              <button class="icon-button" id="add-feed-ref" @click="() => (addMenuVisible = true)" v-tooltip="t('add_subscription')">
-                <md-ripple />
-                <i-material-symbols:add-rounded />
-              </button>
-              <md-menu anchor="add-feed-ref" positioning="fixed" stay-open-on-focusout quick :open="addMenuVisible" @closed="() => (addMenuVisible = false)">
-                <md-menu-item v-for="item in actionItems" @click="item.click">
-                  <div slot="headline">{{ $t(item.text) }}</div>
-                </md-menu-item>
-              </md-menu>
-            </div>
-          </h2>
-          <ul class="nav">
-            <li @click.prevent="all" :class="{ active: route.path === '/feeds' && !selectedTagName && !selectedFeedName }">
-              {{ $t('all') }}
-            </li>
-            <li
-              v-for="item in feeds"
-              @click.stop.prevent="view(item)"
-              @contextmenu="itemCtxMenu($event, item)"
-              :class="{
-                active: route.params.feedId === item.id || (selectedFeedName && kebabCase(item.name) === selectedFeedName),
-              }"
-            >
-              {{ item.name }}
-            </li>
-          </ul>
-          <tag-filter type="FEED_ENTRY" :selected="selectedTagName" />
-        </div>
-      </pane>
-      <pane>
-        <div class="main">
-          <router-view />
-        </div>
-      </pane>
-    </splitpanes>
-    <input ref="fileInput" style="display: none" accept=".xml" type="file" @change="uploadChanged" />
-  </div>
+  <left-sidebar>
+    <template #title>
+      {{ $t('page_title.feeds') }}
+    </template>
+    <template #actions>
+      <button class="icon-button" id="add-feed-ref" @click="() => (addMenuVisible = true)" v-tooltip="t('add_subscription')">
+        <md-ripple />
+        <i-material-symbols:add-rounded />
+      </button>
+      <md-menu anchor="add-feed-ref" positioning="fixed" stay-open-on-focusout quick :open="addMenuVisible" @closed="() => (addMenuVisible = false)">
+        <md-menu-item v-for="item in actionItems" @click="item.click">
+          <div slot="headline">{{ $t(item.text) }}</div>
+        </md-menu-item>
+      </md-menu>
+    </template>
+    <template #body>
+      <ul class="nav">
+        <li @click.prevent="all" :class="{ active: !selectedTagName && !selectedFeedName }">
+          {{ $t('all') }}
+        </li>
+        <li
+          v-for="item in feeds"
+          @click.stop.prevent="view(item)"
+          @contextmenu="itemCtxMenu($event, item)"
+          :class="{
+            active: selectedFeedName && kebabCase(item.name) === selectedFeedName,
+          }"
+        >
+          {{ item.name }}
+        </li>
+      </ul>
+      <tag-filter type="FEED_ENTRY" :selected="selectedTagName" />
+      <input ref="fileInput" style="display: none" accept=".xml" type="file" @change="uploadChanged" />
+    </template>
+  </left-sidebar>
 </template>
 
 <script setup lang="ts">
-import { Splitpanes, Pane } from 'splitpanes'
 import { useRoute } from 'vue-router'
-import { replacePath } from '@/plugins/router'
+import router, { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { buildQuery, parseFeedName, parseTagName } from '@/lib/search'
 import type { IDropdownItem, IFeed } from '@/lib/interfaces'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import AddFeedModal from '@/components/AddFeedModal.vue'
 import { deleteFeedGQL, exportFeedsGQL, importFeedsGQL, initMutation } from '@/lib/api/mutation'
 import { downloadFromString } from '@/lib/api/file'
@@ -76,9 +66,23 @@ const actionItems: IDropdownItem[] = [
 ]
 const addMenuVisible = ref(false)
 const route = useRoute()
-const selectedTagName = parseTagName(route.query)
-const selectedFeedName = parseFeedName(route.query)
+const selectedTagName = ref('')
+const selectedFeedName = ref('')
 const fileInput = ref<HTMLInputElement>()
+
+function updateActive() {
+  selectedTagName.value = parseTagName(route.query)
+  selectedFeedName.value = parseFeedName(route.query)
+}
+
+updateActive()
+
+watch(
+  () => router.currentRoute.value,
+  () => {
+    updateActive()
+  }
+)
 
 const { refetch } = initQuery({
   handle: (data: any, error: string) => {

@@ -1,19 +1,33 @@
 <template>
-  <div class="notifications">
-    <div class="top-title">
-      {{ $t('header_actions.notifications') }} ({{ notifications.length }})
-      <button v-if="notifications.length" class="icon-button" @click.prevent="clearAll" v-tooltip="$t('clear_list')">
+  <div class="quick-content-main">
+    <div class="top-app-bar">
+      <button class="icon-button" @click.prevent="store.quick = ''" v-tooltip="$t('close')">
         <md-ripple />
-        <i-material-symbols:delete-forever-outline-rounded />
+        <i-material-symbols:right-panel-close-outline />
       </button>
+      <div class="title">{{ $t('header_actions.notifications') }} ({{ notifications.length }})</div>
+      <div class="actions">
+        <button v-if="notifications.length" class="icon-button" @click.prevent="clearAll" v-tooltip="$t('clear_list')">
+          <md-ripple />
+          <i-material-symbols:delete-forever-outline-rounded />
+        </button>
+      </div>
     </div>
     <div class="alert-warning" v-if="!isHttps && notifcationPermission !== 'granted'">
-      {{ $t('desktop_notification_need_https') }}&nbsp;<md-filled-button class="btn-sm" @click.stop="useHttpsLink">{{ $t('use_https_link') }}</md-filled-button>
+      <i-material-symbols:error-outline-rounded />
+      <div class="body">{{ $t('desktop_notification_need_https') }}</div>
+      <div class="actions">
+        <md-filled-button class="btn-sm" @click.stop="useHttpsLink">{{ $t('use_https_link') }}</md-filled-button>
+      </div>
     </div>
     <div class="alert-warning" v-else-if="notifcationPermission !== 'granted'">
-      {{ $t('desktop_notification_permission_not_granted') }}&nbsp;<md-filled-button class="btn-sm" @click.stop="grantPermission">{{ $t('grant_permission') }}</md-filled-button>
+      <i-material-symbols:error-outline-rounded />
+      <div class="body">{{ $t('desktop_notification_permission_not_granted') }}</div>
+      <div class="actions">
+        <md-filled-button class="btn-sm" @click.stop="grantPermission">{{ $t('grant_permission') }}</md-filled-button>
+      </div>
     </div>
-    <div class="items-container">
+    <div class="quick-content-body">
       <section v-if="notifications.length" class="list-items">
         <div v-for="item in notifications" class="item" :key="item.id">
           <div class="title">
@@ -42,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref } from 'vue'
 import { formatDateTime, formatDateTimeFull } from '@/lib/format'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
@@ -57,7 +71,10 @@ import emitter from '@/plugins/eventbus'
 import { useApolloClient } from '@vue/apollo-composable'
 import { pushModal } from '@/components/modal'
 import ConfirmModal from '@/components/ConfirmModal.vue'
+import { useMainStore } from '@/stores/main'
+
 const { resolveClient } = useApolloClient()
+const store = useMainStore()
 
 const { t } = useI18n()
 const { app, urlTokenKey } = storeToRefs(useTempStore())
@@ -161,31 +178,6 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.notifications {
-  width: var(--quick-content-width);
-  flex: 0 0 auto;
-  display: flex;
-  flex-flow: column;
-  height: 100vh;
-}
-
-.items-container {
-  overflow-y: scroll;
-  display: flex;
-  flex: 1 1 auto;
-  background-color: var(--md-sys-color-surface);
-  border-top-left-radius: var(--plain-shape-l);
-}
-
-.top-title {
-  background-color: var(--md-sys-color-surface-container);
-  height: 64px;
-
-  .icon-button {
-    margin-inline-start: auto;
-  }
-}
-
 .list-items {
   .item:first-child {
     margin-block-start: 8px;
@@ -215,7 +207,7 @@ onMounted(() => {
 }
 
 .alert-warning {
-  margin-block-end: 16px;
-  margin-inline-end: 16px;
+  margin-block-end: 8px;
+  margin-inline-end: 8px;
 }
 </style>

@@ -6,7 +6,7 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import { initQuery, mediaBucketsGQL } from '@/lib/api/query'
 import { replacePath } from '@/plugins/router'
-import type { IBucket, IMediaItem, IMediaItemDeletedEvent, IMediaItemsDeletedEvent } from '@/lib/interfaces'
+import type { IBucket, IMediaItemDeletedEvent, IMediaItemsDeletedEvent } from '@/lib/interfaces'
 import { useMainStore } from '@/stores/main'
 import { encodeBase64 } from '@/lib/strutil'
 import { buildQuery } from '@/lib/search'
@@ -18,6 +18,7 @@ const props = defineProps({
   type: { type: String, required: true },
   selected: { type: String, required: true },
 })
+
 const { t } = useI18n()
 
 const mainStore = useMainStore()

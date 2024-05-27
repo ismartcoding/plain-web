@@ -1,39 +1,30 @@
 <template>
-  <div class="page-container">
-    <div class="main">
-      <div class="v-toolbar">
-        <breadcrumb :paths="paths">
-          <template #current>
-            {{ isCreate() ? t('create') : t('edit') }}
-            <span class="state-point" v-show="notsaved">*</span>
-            <field-id class="time" v-if="note?.updatedAt" :id="getTime()" :raw="note" />
-          </template>
-        </breadcrumb>
-        <span v-for="tag in note?.tags" :key="tag.id" class="badge">{{ tag.name }}</span>
-        <button class="icon-button" v-if="!isCreate()" v-tooltip="$t('add_to_tags')" @click.prevent="addToTags" style="margin-inline-start: 8px">
-          <md-ripple />
-          <i-material-symbols:label-outline-rounded />
-        </button>
+  <div class="v-toolbar">
+    <breadcrumb :paths="paths">
+      <template #current>
+        {{ isCreate() ? t('create') : t('edit') }}
+        <span class="state-point" v-show="notsaved">*</span>
+        <field-id class="time" v-if="note?.updatedAt" :id="getTime()" :raw="note" />
+      </template>
+    </breadcrumb>
+    <span v-for="tag in note?.tags" :key="tag.id" class="badge">{{ tag.name }}</span>
+    <button class="icon-button" v-if="!isCreate()" v-tooltip="$t('add_to_tags')" @click.prevent="addToTags" style="margin-inline-start: 8px">
+      <md-ripple />
+      <i-material-symbols:label-outline-rounded />
+    </button>
 
-        <button class="icon-button" v-if="!isCreate()" v-tooltip="$t('print')" @click.prevent="print">
-          <md-ripple />
-          <i-material-symbols:print-outline-rounded />
-        </button>
-      </div>
-      <splitpanes class="panel-container">
-        <pane>
-          <monaco-editor language="html" v-model="content" />
-        </pane>
-        <pane>
-          <div class="md-container" v-html="markdown"></div>
-        </pane>
-      </splitpanes>
-    </div>
+    <button class="icon-button" v-if="!isCreate()" v-tooltip="$t('print')" @click.prevent="print">
+      <md-ripple />
+      <i-material-symbols:print-outline-rounded />
+    </button>
+  </div>
+  <div class="panel-container">
+    <monaco-editor language="html" v-model="content" />
+    <div class="md-container" v-html="markdown"></div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Splitpanes, Pane } from 'splitpanes'
 import { useRoute } from 'vue-router'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import toast from '@/components/toaster'
@@ -208,7 +199,9 @@ onUnmounted(() => {
 </script>
 <style lang="scss" scoped>
 .panel-container {
-  height: calc(100vh - 128px);
+  display: flex;
+  flex-direction: row;
+  height: calc(100vh - 120px);
 }
 
 .time {
@@ -221,7 +214,11 @@ onUnmounted(() => {
   color: red;
 }
 
+.monaco-editor {
+  width: 50% !important;
+}
 .md-container {
+  width: 50%;
   padding: 16px;
   height: 100%;
   box-sizing: border-box;

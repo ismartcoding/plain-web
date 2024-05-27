@@ -6,7 +6,10 @@
   <div class="login-block">
     <form @submit.prevent="onSubmit" v-show="!showConfirm">
       <div class="alert alert-danger" role="alert" v-show="showError">
-        {{ error ? $t(error) : '' }}
+        <i-material-symbols:error-outline-rounded />
+        <div class="body">
+          {{ error ? $t(error) : '' }}
+        </div>
       </div>
       <md-outlined-text-field v-if="showPasswordInput" :label="t('password')" v-model="password" @keydown.enter="onSubmit" type="password" class="form-control" :error="passwordError" autocomplete="current-password" :error-text="passwordError ? $t(passwordError) : ''" />
       <md-filled-button v-if="!webAccessDisabled" :disabled="isSubmitting">
@@ -162,8 +165,8 @@ h1 {
   width: 280px;
   margin: 0 auto;
   background-color: var(--md-sys-color-surface-variant);
-  border-radius: var(--plain-shape-xl);
-  padding-block: var(--plain-spacing-xl);
+  border-radius: var(--pl-shape-xl);
+  padding-block: var(--pl-spacing-xl);
   padding: 40px;
 
   .tap-phone {

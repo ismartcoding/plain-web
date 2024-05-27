@@ -58,11 +58,11 @@ function onHexPickerInput(e: Event) {
   position: relative;
   display: flex;
   flex-direction: column;
-  margin: var(--plain-spacing-m) var(--plain-spacing-l);
+  margin: var(--pl-spacing-m) var(--pl-spacing-l);
 }
 
 .theme-changer > * {
-  margin-block-end: var(--plain-spacing-l);
+  margin-block-end: var(--pl-spacing-l);
 }
 
 .theme-changer > *:last-child {
@@ -75,7 +75,7 @@ input {
 }
 
 #hex {
-  border-radius: var(--plain-shape-l);
+  border-radius: var(--pl-shape-l);
   background-color: var(--md-sys-color-surface-variant);
   color: var(--md-sys-color-on-surface-variant);
 

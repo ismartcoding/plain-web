@@ -373,12 +373,3 @@ onUnmounted(() => {
   emitter.off('media_items_deleted', mediaItemsDeletedHandler)
 })
 </script>
-
-<style lang="scss" scoped>
-.image-container {
-  .item {
-    width: calc(12.5% - 4px);
-    margin: 2px;
-  }
-}
-</style>

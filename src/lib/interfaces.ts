@@ -6,6 +6,11 @@ export interface ITag {
   count: number
 }
 
+export interface IPage {
+  path: string // full path
+  sidebar?: boolean
+}
+
 export interface IBucket {
   id: string
   name: string

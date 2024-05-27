@@ -1,31 +1,35 @@
 <template>
-  <div class="chat">
-    <div class="top-title">{{ app?.deviceName ?? $t('my_phone') }}{{ app?.battery ? ' (' + $t('battery_left', { percentage: app?.battery }) + ')' : '' }}</div>
-    <div class="chat-items-container" ref="scrollContainer">
-      <div>
-        <div v-for="(chatItem, index) of chatItems" :key="chatItem.id" class="chat-item">
-          <div class="date" v-if="dateVisible(chatItem, index)">{{ formatDate(chatItem.createdAt) }}</div>
-          <popper>
-            <div class="chat-title">
-              <span class="name">{{ $t(chatItem.isMe ? 'me' : 'app_name') }}</span>
-              <span class="time" v-tooltip="formatDateTimeFull(chatItem.createdAt)">{{ formatTime(chatItem.createdAt) }}</span>
-              <span class="sending" v-if="chatItem.id.startsWith('new_')">{{ $t('sending') }}</span>
-              <i-material-symbols:expand-more-rounded class="bi bi-more" />
-            </div>
-            <template #content>
-              <div class="menu-items">
-                <md-menu-item @click="deleteMessage(chatItem.id)" :disabled="deleteLoading">
-                  <div slot="headline">{{ $t('delete_message') }}</div>
-                </md-menu-item>
-              </div>
-            </template>
-          </popper>
-          <div class="chat-content">
-            <div v-if="chatItem._content.type === 'text'">
-              <pre v-html="addLinksToURLs(chatItem._content.value.text)"></pre>
-            </div>
-            <component v-else :is="getComponent(chatItem._content.type)" :data="chatItem"></component>
+  <div class="quick-content-main">
+    <div class="top-app-bar">
+      <button class="icon-button" @click.prevent="store.quick = ''" v-tooltip="$t('close')">
+        <md-ripple />
+        <i-material-symbols:right-panel-close-outline />
+      </button>
+      <div class="title">{{ app?.deviceName ?? $t('my_phone') }}{{ app?.battery ? ' (' + $t('battery_left', { percentage: app?.battery }) + ')' : '' }}</div>
+    </div>
+    <div class="quick-content-body" ref="scrollContainer">
+      <div v-for="(chatItem, index) of chatItems" :key="chatItem.id" class="chat-item">
+        <div class="date" v-if="dateVisible(chatItem, index)">{{ formatDate(chatItem.createdAt) }}</div>
+        <popper>
+          <div class="chat-title">
+            <span class="name">{{ $t(chatItem.isMe ? 'me' : 'app_name') }}</span>
+            <span class="time" v-tooltip="formatDateTimeFull(chatItem.createdAt)">{{ formatTime(chatItem.createdAt) }}</span>
+            <span class="sending" v-if="chatItem.id.startsWith('new_')">{{ $t('sending') }}</span>
+            <i-material-symbols:expand-more-rounded class="bi bi-more" />
           </div>
+          <template #content>
+            <div class="menu-items">
+              <md-menu-item @click="deleteMessage(chatItem.id)" :disabled="deleteLoading">
+                <div slot="headline">{{ $t('delete_message') }}</div>
+              </md-menu-item>
+            </div>
+          </template>
+        </popper>
+        <div class="chat-content">
+          <div v-if="chatItem._content.type === 'text'">
+            <pre v-html="addLinksToURLs(chatItem._content.value.text)"></pre>
+          </div>
+          <component v-else :is="getComponent(chatItem._content.type)" :data="chatItem"></component>
         </div>
       </div>
     </div>
@@ -48,23 +52,22 @@
           @keydown.enter.ctrl.exact.prevent="chatText += '\n'"
           @keydown.enter.alt.exact.prevent="chatText += '\n'"
           @keydown.enter.meta.exact.prevent="chatText += '\n'"
-        />
-      </div>
-      <div class="btns">
-        <button class="icon-button" @click="sendImages">
-          <md-ripple />
-          <i-material-symbols:image-outline-rounded />
-        </button>
-        <button class="icon-button" @click="sendFiles">
-          <md-ripple />
-          <i-material-symbols:folder-outline-rounded />
-        </button>
-        <div class="btn-send-container">
-          <button class="icon-button btn-send" @click="send" :disable="createLoading">
+        >
+          <div class="leading-icons" slot="leading-icon">
+            <button class="icon-button" @click="sendImages">
+              <md-ripple />
+              <i-material-symbols:image-outline-rounded />
+            </button>
+            <button class="icon-button" @click="sendFiles">
+              <md-ripple />
+              <i-material-symbols:folder-outline-rounded />
+            </button>
+          </div>
+          <button class="icon-button btn-send" @click="send" :disable="createLoading" slot="trailing-icon">
             <md-ripple />
             <i-material-symbols:send-outline-rounded />
           </button>
-        </div>
+        </md-outlined-text-field>
       </div>
     </div>
     <input ref="fileInput" style="display: none" type="file" multiple @change="uploadFilesChanged" />
@@ -413,42 +416,17 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.chat {
-  width: var(--quick-content-width);
-  flex: 0 0 auto;
-  display: flex;
-  flex-flow: column;
-  height: 100vh;
-}
-
-.top-title {
-  background-color: var(--md-sys-color-surface-container);
-  height: 64px;
-}
-
 .chat-input {
   background-color: var(--md-sys-color-surface);
   padding: 8px 16px;
 
-  .btns {
+  .leading-icons {
     display: flex;
-    flex-direction: row;
-
-    .icon-button + .icon-button {
-      margin-inline-start: 8px;
-    }
-
-    .btn-send-container {
-      flex: 1;
-      display: flex;
-      justify-content: end;
-    }
+    flex-direction: column;
   }
 
   .textarea-wrapper {
     position: relative;
-    padding-block-end: 8px;
-
     .textarea {
       display: block;
     }
@@ -460,7 +438,7 @@ onMounted(() => {
   top: 0;
   left: 0;
   right: 0;
-  bottom: 8px;
+  bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
   color: white;
   font-size: 1.2rem;
@@ -471,19 +449,8 @@ onMounted(() => {
   border: 2px dashed var(--md-sys-color-primary);
 }
 
-.chat-items-container {
-  overflow-y: scroll;
-  display: flex;
-  flex: 1 1 auto;
-  background-color: var(--md-sys-color-surface);
-  border-top-left-radius: var(--plain-shape-l);
-
-  & > div {
-    width: 100%;
-  }
-}
-
 .chat-content {
   margin-top: 8px;
+  max-width: 800px;
 }
 </style>

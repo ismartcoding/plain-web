@@ -95,16 +95,18 @@
               </div>
             </section>
             <section class="info" v-if="lightboxInfoVisible">
-              <div class="top-title">
+              <div class="top-app-bar">
                 <field-id :id="$t('info')" :raw="fileInfo" />
-                <button class="icon-button" @click.stop="deleteFile" v-tooltip="$t('delete')" v-if="current?.data">
-                  <md-ripple />
-                  <i-material-symbols:delete-forever-outline-rounded />
-                </button>
-                <button class="icon-button" @click.stop="downloadFile(current?.path ?? '', getFileName(current?.path ?? '').replace(' ', '-'))" v-tooltip="$t('download')">
-                  <md-ripple />
-                  <i-material-symbols:download-rounded />
-                </button>
+                <div class="actions">
+                  <button class="icon-button" @click.stop="deleteFile" v-tooltip="$t('delete')" v-if="current?.data">
+                    <md-ripple />
+                    <i-material-symbols:delete-forever-outline-rounded />
+                  </button>
+                  <button class="icon-button" @click.stop="downloadFile(current?.path ?? '', getFileName(current?.path ?? '').replace(' ', '-'))" v-tooltip="$t('download')">
+                    <md-ripple />
+                    <i-material-symbols:download-rounded />
+                  </button>
+                </div>
               </div>
               <section class="list-items">
                 <div class="item">
@@ -649,10 +651,6 @@ onBeforeUnmount(() => {
   background: var(--md-sys-color-surface-container);
   overflow-y: auto;
   z-index: 1;
-
-  .top-title {
-    height: 56px;
-  }
 }
 
 .lightbox {

@@ -1,10 +1,12 @@
 <template>
   <h2 class="nav-title">
-    {{ $t('tags') }}
-    <button class="icon-button" @click.prevent="add" v-tooltip="$t('add_tag')">
-      <md-ripple />
-      <i-material-symbols:add-rounded />
-    </button>
+    <div class="title">{{ $t('tags') }}</div>
+    <div class="actions">
+      <button class="icon-button" @click.prevent="add" v-tooltip="$t('add_tag')">
+        <md-ripple />
+        <i-material-symbols:add-rounded />
+      </button>
+    </div>
   </h2>
   <ul class="nav">
     <li v-for="item in tags" @click.prevent="view(item)" :key="item.id" @contextmenu="itemCtxMenu($event, item)" :class="{ active: selected && kebabCase(item.name) === selected }">{{ item.name }} ({{ item.count }})</li>

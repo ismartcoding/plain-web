@@ -6,4 +6,3 @@ declare module 'vue-router' {
     requiresAuth?: boolean
   }
 }
-declare module 'splitpanes'
