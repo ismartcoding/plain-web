@@ -21,7 +21,7 @@
         </li>
         <li
           v-for="item in feeds"
-          @click.stop.prevent="view(item)"
+          @click.stop.prevent="viewFeed(item)"
           @contextmenu="itemCtxMenu($event, item)"
           :class="{
             active: selectedFeedName && kebabCase(item.name) === selectedFeedName,
@@ -40,7 +40,7 @@
 import { useRoute } from 'vue-router'
 import router, { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
-import { buildQuery, parseFeedName, parseTagName } from '@/lib/search'
+import { parseFeedName, parseTagName } from '@/lib/search'
 import type { IDropdownItem, IFeed } from '@/lib/interfaces'
 import { ref, watch } from 'vue'
 import AddFeedModal from '@/components/AddFeedModal.vue'
@@ -51,10 +51,10 @@ import toast from '@/components/toaster'
 import { contextmenu } from '@/components/contextmenu'
 import { openModal } from '@/components/modal'
 import { initQuery, feedsGQL } from '@/lib/api/query'
-import { encodeBase64 } from '@/lib/strutil'
 import { kebabCase } from 'lodash-es'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
-import FeedModal from '@/components/FeedModal.vue'
+import FeedModal from './FeedModal.vue'
+import { useFeeds } from '@/hooks/feeds'
 
 const { t } = useI18n()
 const mainStore = useMainStore()
@@ -83,6 +83,8 @@ watch(
     updateActive()
   }
 )
+
+const { viewFeed } = useFeeds(mainStore)
 
 const { refetch } = initQuery({
   handle: (data: any, error: string) => {
@@ -148,17 +150,6 @@ function importFile() {
 
 function exportFile() {
   exportOPML()
-}
-
-function view(item: IFeed) {
-  const q = buildQuery([
-    {
-      name: 'feed',
-      op: '',
-      value: kebabCase(item.name),
-    },
-  ])
-  replacePath(mainStore, `/feeds?q=${encodeBase64(q)}`)
 }
 
 function itemCtxMenu(e: MouseEvent, item: IFeed) {

@@ -3260,13 +3260,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mitt@npm:^2.1.0":
-  version: 2.1.0
-  resolution: "mitt@npm:2.1.0"
-  checksum: d4087f8678ef9de18af10171ed39c14fc9282532f9104b522265e4a206f81630767bce5e3ae2405e9d863d7f6a7f3095f738c33c55c06872ed25978f1c8ea9f3
-  languageName: node
-  linkType: hard
-
 "mitt@npm:^3.0.1":
   version: 3.0.1
   resolution: "mitt@npm:3.0.1"
@@ -3702,7 +3695,6 @@ __metadata:
     vue-i18n: "npm:^9.4.1"
     vue-router: "npm:^4.3.2"
     vue-tsc: "npm:^2.0.19"
-    vue-virtual-scroller: "npm:^2.0.0-beta.8"
     yup: "npm:^0.32.11"
   languageName: unknown
   linkType: soft
@@ -4678,24 +4670,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vue-observe-visibility@npm:^2.0.0-alpha.1":
-  version: 2.0.0-alpha.1
-  resolution: "vue-observe-visibility@npm:2.0.0-alpha.1"
-  peerDependencies:
-    vue: ^3.0.0
-  checksum: 251948d4bdcc67e134962a754fcf10407add5ca1f6093a931f94081f0a434603a24175a0ae0fa147766e4a487f7e733f68558d245989f081dd29ea1e68f5fa57
-  languageName: node
-  linkType: hard
-
-"vue-resize@npm:^2.0.0-alpha.1":
-  version: 2.0.0-alpha.1
-  resolution: "vue-resize@npm:2.0.0-alpha.1"
-  peerDependencies:
-    vue: ^3.0.0
-  checksum: d6e66472cd312b256fb277d1f7fc1b19f1faa45b1d8ea32bb473130a9075f5b2b0aa9efb3ad3f9492e88f6def65f8c93bc64b7cb818147ca6522e95981cb90ef
-  languageName: node
-  linkType: hard
-
 "vue-router@npm:^4.3.2":
   version: 4.3.2
   resolution: "vue-router@npm:4.3.2"
@@ -4729,19 +4703,6 @@ __metadata:
   bin:
     vue-tsc: bin/vue-tsc.js
   checksum: b95afad59e59314338f2588e1d8b826a25b5eeeddb3118dd6d40f539e267561ef8553a082e4a3a29c0a424196a88035df3ef1acb87d53921f7c9b38462c90e63
-  languageName: node
-  linkType: hard
-
-"vue-virtual-scroller@npm:^2.0.0-beta.8":
-  version: 2.0.0-beta.8
-  resolution: "vue-virtual-scroller@npm:2.0.0-beta.8"
-  dependencies:
-    mitt: "npm:^2.1.0"
-    vue-observe-visibility: "npm:^2.0.0-alpha.1"
-    vue-resize: "npm:^2.0.0-alpha.1"
-  peerDependencies:
-    vue: ^3.2.0
-  checksum: 78047d2281dd133b63cc317d69e7a098088fb0fdfad386f2455aa791f3666f4dc7c9787e8beede7ec2113d46831d8cc89da63a61c9a9f59b09f2da0e8f4f96bb
   languageName: node
   linkType: hard
 

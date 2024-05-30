@@ -1,6 +1,9 @@
 <template>
-  <div class="tags">
-    <a v-for="tag in tags" @click.stop.prevent="view(tag)">#{{ tag.name }}</a>
+  <template v-if="onlyLinks">
+    <a v-for="tag in tags" :key="tag.id" @click.stop.prevent="view(tag)">#{{ tag.name }}</a>
+  </template>
+  <div class="tags" v-else-if="tags.length">
+    <a v-for="tag in tags" :key="tag.id" @click.stop.prevent="view(tag)">#{{ tag.name }}</a>
   </div>
 </template>
 
@@ -16,6 +19,7 @@ import { names } from '@/lib/tag'
 
 const props = defineProps({
   type: { type: String },
+  onlyLinks: { type: Boolean, default: false },
   tags: { type: Object as PropType<Array<ITag>>, default: [], required: true },
 })
 const mainStore = useMainStore()
@@ -36,14 +40,11 @@ function view(item: ITag) {
 </script>
 
 <style scoped lang="scss">
-.tags {
-  a {
-    white-space: nowrap;
-    margin-inline-end: 8px;
-    cursor: pointer;
-  }
-  a:last-child {
-    margin-inline-end: 0;
-  }
+a {
+  white-space: nowrap;
+  margin-inline-end: 8px;
+}
+a:last-child {
+  margin-inline-end: 0;
 }
 </style>

@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import MainView from '../views/MainView.vue'
+import MainView from '@/views/MainView.vue'
 import type { IPage } from '@/lib/interfaces'
 
 const router = createRouter({
@@ -22,14 +22,14 @@ const router = createRouter({
           name: 'home',
           path: '',
           components: {
-            default: () => import('../views/HomeView.vue'),
+            default: () => import('@/views/HomeView.vue'),
           },
           meta: { group: 'home' },
         },
         {
           path: 'messages/:type?',
           components: {
-            default: () => import('../views/MessagesView.vue'),
+            default: () => import('@/views/MessagesView.vue'),
             LeftSidebar: () => import('../components/MessagesSidebar.vue'),
           },
           meta: { group: 'messages' },
@@ -37,7 +37,7 @@ const router = createRouter({
         {
           path: 'calls/:type?',
           components: {
-            default: () => import('../views/CallsView.vue'),
+            default: () => import('@/views/CallsView.vue'),
             LeftSidebar: () => import('../components/CallsSidebar.vue'),
           },
           meta: { group: 'calls' },
@@ -45,7 +45,7 @@ const router = createRouter({
         {
           path: 'apps/:type?',
           components: {
-            default: () => import('../views/AppsView.vue'),
+            default: () => import('@/views/AppsView.vue'),
             LeftSidebar: () => import('../components/AppsSidebar.vue'),
           },
           meta: { group: 'apps' },
@@ -53,7 +53,7 @@ const router = createRouter({
         {
           path: 'contacts',
           components: {
-            default: () => import('../views/ContactsView.vue'),
+            default: () => import('@/views/ContactsView.vue'),
             LeftSidebar: () => import('../components/ContactsSidebar.vue'),
           },
           meta: { group: 'contacts' },
@@ -61,7 +61,7 @@ const router = createRouter({
         {
           path: 'images',
           components: {
-            default: () => import('../views/ImagesView.vue'),
+            default: () => import('@/views/ImagesView.vue'),
             LeftSidebar: () => import('../components/MediaSidebar.vue'),
           },
           meta: { group: 'images' },
@@ -69,7 +69,7 @@ const router = createRouter({
         {
           path: 'videos',
           components: {
-            default: () => import('../views/VideosView.vue'),
+            default: () => import('@/views/VideosView.vue'),
             LeftSidebar: () => import('../components/MediaSidebar.vue'),
           },
           meta: { group: 'videos' },
@@ -77,20 +77,20 @@ const router = createRouter({
         {
           path: 'audios',
           components: {
-            default: () => import('../views/AudiosView.vue'),
+            default: () => import('@/views/AudiosView.vue'),
             LeftSidebar: () => import('../components/MediaSidebar.vue'),
           },
           meta: { group: 'audios' },
         },
         {
           path: 'notes/:id',
-          component: () => import('../views/NoteEditView.vue'),
+          component: () => import('@/views/NoteEditView.vue'),
           meta: { group: 'notes' },
         },
         {
           path: 'notes',
           components: {
-            default: () => import('../views/NotesView.vue'),
+            default: () => import('@/views/NotesView.vue'),
             LeftSidebar: () => import('../components/NotesSidebar.vue'),
           },
           meta: { group: 'notes' },
@@ -98,20 +98,20 @@ const router = createRouter({
         {
           path: 'notes/trash',
           components: {
-            default: () => import('../views/NotesTrashView.vue'),
+            default: () => import('@/views/NotesTrashView.vue'),
             LeftSidebar: () => import('../components/NotesSidebar.vue'),
           },
           meta: { group: 'notes' },
         },
         {
           path: 'aichats/:id',
-          component: () => import('../views/AIChatView.vue'),
+          component: () => import('@/views/AIChatView.vue'),
           meta: { group: 'aichats' },
         },
         {
           path: 'aichats',
           components: {
-            default: () => import('../views/AIChatsView.vue'),
+            default: () => import('@/views/AIChatsView.vue'),
             LeftSidebar: () => import('../components/AIChatsSidebar.vue'),
           },
           meta: { group: 'aichats' },
@@ -119,7 +119,7 @@ const router = createRouter({
         {
           path: 'files/:type?',
           components: {
-            default: () => import('../views/FilesView.vue'),
+            default: () => import('@/views/FilesView.vue'),
             LeftSidebar: () => import('../components/FilesSidebar.vue'),
           },
           meta: { group: 'files' },
@@ -127,88 +127,80 @@ const router = createRouter({
         {
           path: 'files/recent',
           components: {
-            default: () => import('../views/FilesRecentView.vue'),
+            default: () => import('@/views/FilesRecentView.vue'),
             LeftSidebar: () => import('../components/FilesSidebar.vue'),
           },
           meta: { group: 'files' },
         },
         {
           path: 'json-viewer',
-          component: () => import('../views/JsonViewerView.vue'),
+          component: () => import('@/views/JsonViewerView.vue'),
           meta: { group: 'json_viewer' },
         },
         {
           path: 'qrcode-generator',
-          component: () => import('../views/QrCodeGeneratorView.vue'),
+          component: () => import('@/views/QrCodeGeneratorView.vue'),
           meta: { group: 'qrcode_generator' },
         },
         {
           path: 'screen-mirror',
-          component: () => import('../views/ScreenMirrorView.vue'),
+          component: () => import('@/views/ScreenMirrorView.vue'),
           meta: { group: 'screen_mirror' },
         },
         {
           path: 'device-info',
-          component: () => import('../views/DeviceInfoView.vue'),
+          component: () => import('@/views/DeviceInfoView.vue'),
           meta: { group: 'device_info' },
         },
         {
           path: 'network',
-          component: () => import('../views/NetworkView.vue'),
+          component: () => import('@/views/NetworkView.vue'),
           meta: { group: 'network' },
         },
         {
           path: 'wifi',
-          component: () => import('../views/WiFiView.vue'),
+          component: () => import('@/views/WiFiView.vue'),
           meta: { group: 'wifi' },
         },
         {
           path: 'wireguard',
-          component: () => import('../views/WireGuardView.vue'),
+          component: () => import('@/views/WireGuardView.vue'),
           meta: { group: 'wireguard' },
         },
         {
           path: 'wireguard/:id',
-          component: () => import('../views/WireGuardEditView.vue'),
+          component: () => import('@/views/WireGuardEditView.vue'),
           meta: { group: 'wireguard' },
         },
         {
           path: 'rules',
-          component: () => import('../views/RulesView.vue'),
+          component: () => import('@/views/RulesView.vue'),
           meta: { group: 'rules' },
         },
         {
           path: 'routes',
-          component: () => import('../views/RoutesView.vue'),
+          component: () => import('@/views/RoutesView.vue'),
           meta: { group: 'routes' },
         },
         {
           path: 'devices',
-          component: () => import('../views/DevicesView.vue'),
+          component: () => import('@/views/DevicesView.vue'),
           meta: { group: 'devices' },
         },
         {
           path: 'feeds',
           components: {
-            LeftSidebar: () => import('../components/FeedsSidebar.vue'),
-            LeftSidebar2: () => import('../components/FeedsSidebar2.vue'),
+            LeftSidebar: () => import('@/views/feeds/FeedsSidebar.vue'),
+            LeftSidebar2: () => import('@/views/feeds/FeedsSidebar2.vue'),
           },
           meta: { group: 'feeds', className: 'feeds' },
         },
         {
-          path: 'feeds/manage',
-          components: {
-            LeftSidebar: () => import('../components/FeedsSidebar.vue'),
-            LeftSidebar2: () => import('../views/FeedsManageView.vue'),
-          },
-          meta: { group: 'feeds' },
-        },
-        {
           path: 'feeds/:feedId/entries/:id',
           components: {
-            default: () => import('../views/FeedEntryView.vue'),
-            LeftSidebar: () => import('../components/FeedsSidebar.vue'),
-            LeftSidebar2: () => import('../components/FeedsSidebar2.vue'),
+            default: () => import('@/views/feeds/FeedEntryView.vue'),
+            LeftSidebar: () => import('@/views/feeds/FeedsSidebar.vue'),
+            LeftSidebar2: () => import('@/views/feeds/FeedsSidebar2.vue'),
           },
           meta: { group: 'feeds', className: 'feed-entry' },
         },
@@ -217,7 +209,7 @@ const router = createRouter({
     {
       name: 'login',
       path: '/login',
-      component: () => import('../views/LoginView.vue'),
+      component: () => import('@/views/LoginView.vue'),
       meta: { requiresAuth: false },
     },
   ],

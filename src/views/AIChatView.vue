@@ -68,7 +68,7 @@ import { replacePathNoReload } from '@/plugins/router'
 import { formatTime, formatDateTimeFull, formatDate } from '@/lib/format'
 import type { ApolloCache } from '@apollo/client/cache'
 import emitter from '@/plugins/eventbus'
-import { useMarkdown } from './hooks/markdown'
+import { useMarkdown } from '@/hooks/markdown'
 
 const mainStore = useMainStore()
 

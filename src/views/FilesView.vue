@@ -100,7 +100,7 @@ import { type FilePanel, type IFile, isImage, isVideo, canOpenInBrowser, canView
 import { getFileUrl, getFileUrlByPath } from '@/lib/api/file'
 import { noDataKey } from '@/lib/list'
 import emitter from '@/plugins/eventbus'
-import { useFiles, useCreateDir, useDeleteFiles, useRename, useStats, useDownload, useView, useFileUpload, useSingleSelect, useCopyPaste } from './hooks/files'
+import { useFiles, useCreateDir, useDeleteFiles, useRename, useStats, useDownload, useView, useFileUpload, useSingleSelect, useCopyPaste } from '@/hooks/files'
 import { useTempStore, type IUploadItem } from '@/stores/temp'
 import { openModal } from '@/components/modal'
 import DeleteFileConfirm from '@/components/DeleteFileConfirm.vue'

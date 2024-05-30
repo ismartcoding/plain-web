@@ -11,8 +11,6 @@ import VueClickAway from './plugins/clickaway'
 import VueTooltip from './plugins/tooltip'
 import i18n from './plugins/i18n'
 import { shortUUID } from './lib/strutil'
-import VueVirtualScroller from 'vue-virtual-scroller'
-import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 
 const clientId = localStorage.getItem('client_id')
 if (!clientId) {
@@ -30,5 +28,4 @@ createApp({
   .use(createPinia())
   .use(router)
   .use(i18n)
-  .use(VueVirtualScroller)
   .mount('#app')

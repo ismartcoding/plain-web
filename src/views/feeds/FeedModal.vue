@@ -31,7 +31,7 @@ import type { IFeed } from '@/lib/interfaces'
 import { useField, useForm } from 'vee-validate'
 import { nextTick, ref, type PropType } from 'vue'
 import { string } from 'yup'
-import { popModal } from './modal'
+import { popModal } from '@/components/modal'
 import type { MdCheckbox } from '@material/web/checkbox/checkbox'
 
 const { handleSubmit } = useForm()
