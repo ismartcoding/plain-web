@@ -1,3 +1,5 @@
+import { format } from "./timeago"
+
 function getLocale() {
   return localStorage.getItem('locale') ?? navigator.language ?? 'en-US'
 }
@@ -19,6 +21,10 @@ export function formatDateTimeFull(str: string) {
     return ''
   }
   return formatDateTime(str, { dateStyle: 'long', timeStyle: 'long' })
+}
+
+export function formatTimeAgo(str: string) {
+  return format(new Date(str), getLocale().replace('-', '_'))
 }
 
 export function formatDate(str: string) {

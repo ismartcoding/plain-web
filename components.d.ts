@@ -76,6 +76,7 @@ declare module 'vue' {
     'IMaterialSymbols:leftPanelOpenOutlineRounded': typeof import('~icons/material-symbols/left-panel-open-outline-rounded')['default']
     'IMaterialSymbols:logoutRounded': typeof import('~icons/material-symbols/logout-rounded')['default']
     'IMaterialSymbols:materialSymbols:rightPanelCloseOutline': typeof import('~icons/material-symbols/material-symbols')['default']
+    'IMaterialSymbols:moreVert': typeof import('~icons/material-symbols/more-vert')['default']
     'IMaterialSymbols:notificationsOutlineRounded': typeof import('~icons/material-symbols/notifications-outline-rounded')['default']
     'IMaterialSymbols:openInNewRounded': typeof import('~icons/material-symbols/open-in-new-rounded')['default']
     'IMaterialSymbols:paletteOutline': typeof import('~icons/material-symbols/palette-outline')['default']

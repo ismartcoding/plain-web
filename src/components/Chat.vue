@@ -92,10 +92,10 @@ import ChatFiles from './chat/ChatFiles.vue'
 import { useApolloClient } from '@vue/apollo-composable'
 import emitter from '@/plugins/eventbus'
 import { chatItemFragment } from '@/lib/api/fragments'
-import { useChatFilesUpload } from '@/views/hooks/files'
+import { useChatFilesUpload } from '@/hooks/files'
 import { shortUUID } from '@/lib/strutil'
 import { getVideoData, getImageData } from '@/lib/file'
-import { useTasks } from '@/views/hooks/chat'
+import { useTasks } from '@/hooks/chat'
 import { addLinksToURLs } from '@/lib/strutil'
 
 const { getUploads } = useChatFilesUpload()

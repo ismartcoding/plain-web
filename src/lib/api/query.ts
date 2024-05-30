@@ -355,8 +355,12 @@ export const feedEntryGQL = gql`
   query feedEntry($id: ID!) {
     feedEntry(id: $id) {
       ...FeedEntryFragment
+      feed {
+        ...FeedFragment
+      }
     }
   }
+  ${feedFragment}
   ${feedEntryFragment}
 `
 

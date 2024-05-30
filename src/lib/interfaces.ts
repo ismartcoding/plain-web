@@ -53,6 +53,10 @@ export interface IFeedEntry {
   updatedAt: string
 }
 
+export interface IFeedEntryDetail extends IFeedEntry {
+  feed?: IFeed
+}
+
 export interface IMedia {
   id: string
   title: string

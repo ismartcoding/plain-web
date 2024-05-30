@@ -1,10 +1,15 @@
 <template>
   <div class="content">
-    <h2 class="title">{{ entry?.title }}</h2>
-    <div class="subtitle v-center">
-      <field-id class="time" v-if="entry?.publishedAt" :id="formatDateTime(entry?.publishedAt)" :raw="entry" />
-      <span class="author" v-if="entry?.author">{{ entry?.author }}</span>
-      <span v-for="tag in entry?.tags" :key="tag.id" class="badge">{{ tag.name }}</span>
+    <h2 class="title">
+      <field-id v-if="entry" :id="entry?.title" :raw="entry" />
+    </h2>
+    <div class="subtitle v-center" v-if="entry">
+      <a v-if="entry.feed" @click.stop.prevent="viewFeed(entry.feed)">{{ entry.feed.name }}</a
+      ><span>&nbsp;&nbsp;·&nbsp;&nbsp;</span>
+      <span v-tooltip="formatDateTime(entry.publishedAt)">
+        {{ formatTimeAgo(entry.publishedAt) }}
+      </span>
+      <item-tags :tags="entry?.tags" :type="dataType" />
       <button class="icon-button" v-tooltip="$t('add_to_tags')" @click.prevent="addToTags" style="margin-inline-start: 8px">
         <md-ripple />
         <i-material-symbols:label-outline-rounded />
@@ -35,22 +40,24 @@ import { onMounted, onUnmounted, ref } from 'vue'
 import toast from '@/components/toaster'
 import { useI18n } from 'vue-i18n'
 import { feedEntryGQL, initQuery, tagsGQL } from '@/lib/api/query'
-import type { IFeedEntry, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, ITag } from '@/lib/interfaces'
-import { useMarkdown } from './hooks/markdown'
-import { formatDateTime } from '@/lib/format'
+import type { IFeedEntryDetail, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, ITag } from '@/lib/interfaces'
+import { useMarkdown } from '@/hooks/markdown'
+import { formatDateTime, formatTimeAgo } from '@/lib/format'
 import { openModal } from '@/components/modal'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import emitter from '@/plugins/eventbus'
 import { initMutation, syncFeedContentGQL } from '@/lib/api/mutation'
 import { storeToRefs } from 'pinia'
 import { useTempStore } from '@/stores/temp'
+import { useMainStore } from '@/stores/main'
+import { useFeeds } from '@/hooks/feeds'
 
 const { t } = useI18n()
 
 const dataType = 'FEED_ENTRY'
 const route = useRoute()
 const id = ref(route.params.id)
-const entry = ref<IFeedEntry>()
+const entry = ref<IFeedEntryDetail>()
 const markdown = ref('')
 const tags = ref<ITag[]>()
 const { app, urlTokenKey } = storeToRefs(useTempStore())
@@ -71,6 +78,10 @@ const { refetch } = initQuery({
   }),
   appApi: true,
 })
+
+const mainStore = useMainStore()
+
+const { viewFeed } = useFeeds(mainStore)
 
 initQuery({
   handle: (data: any, error: string) => {
@@ -177,12 +188,8 @@ h2.title {
     margin-inline-end: 16px;
   }
 
-  .author {
-    margin-inline-end: 8px;
-  }
-
-  .author {
-    font-weight: 600;
+  .tags {
+    margin-inline-start: 16px;
   }
 }
 </style>

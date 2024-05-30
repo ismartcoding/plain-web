@@ -48,9 +48,10 @@
               <img v-if="item.image" :src="getFileUrl(item.image, '&w=200&h=200')" />
               <div class="subtitle">{{ getSummary(item.description) }}</div>
               <div class="title3">
-                <a @click.stop.prevent="viewFeed(feedsMap[item.feedId])">{{ feedsMap[item.feedId].name }}</a><span>&nbsp;&nbsp;·&nbsp;&nbsp;</span> 
-                <span v-tooltip="formatDateTimeFull(item.publishedAt)">
-                  {{ formatDateTime(item.publishedAt) }}
+                <a @click.stop.prevent="viewFeed(feedsMap[item.feedId])">{{ feedsMap[item.feedId].name }}</a
+                ><span>&nbsp;&nbsp;·&nbsp;&nbsp;</span>
+                <span v-tooltip="formatDateTime(item.publishedAt)">
+                  {{ formatTimeAgo(item.publishedAt) }}
                 </span>
                 <item-tags :tags="item.tags" :type="dataType" />
               </div>
@@ -66,20 +67,20 @@
 import { getFileUrl } from '@/lib/api/file'
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
-import { formatDateTime, formatDateTimeFull } from '@/lib/format'
+import { formatTimeAgo, formatDateTime } from '@/lib/format'
 import { initQuery, feedsTagsGQL, initLazyQuery, feedEntriesGQL } from '@/lib/api/query'
 import { useRoute } from 'vue-router'
-import router, { replacePath, replacePathNoReload } from '@/plugins/router'
+import router, { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useI18n } from 'vue-i18n'
 import type { ITag, IFeedEntryItem, IFeedEntry, IFeed, IFeedEntryFilter, IItemsTagsUpdatedEvent, IItemTagsUpdatedEvent } from '@/lib/interfaces'
 import { buildFilterQuery, buildQuery, parseQuery } from '@/lib/search'
-import { kebabCase, remove, replace } from 'lodash-es'
+import { kebabCase, remove } from 'lodash-es'
 import { decodeBase64, encodeBase64 } from '@/lib/strutil'
-import { noDataKey } from '@/lib/list'
-import { useDelete, useSelectable } from '../views/hooks/list'
+import { useFeeds } from '@/hooks/feeds'
+import { useDelete, useSelectable } from '@/hooks/list'
 import emitter from '@/plugins/eventbus'
-import { useAddToTags } from '../views/hooks/tags'
+import { useAddToTags } from '@/hooks/tags'
 import { deleteFeedEntriesGQL, initMutation, syncFeedsGQL } from '@/lib/api/mutation'
 import { openModal } from '@/components/modal'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
@@ -325,16 +326,7 @@ function view(item: IFeedEntry) {
   replacePath(mainStore, viewUrl(item))
 }
 
-function viewFeed(item: IFeed) {
-  const q = buildQuery([
-    {
-      name: 'feed',
-      op: '',
-      value: kebabCase(item.name),
-    },
-  ])
-  replacePath(mainStore, `/feeds?q=${encodeBase64(q)}`)
-}
+const { viewFeed } = useFeeds(mainStore)
 
 function viewUrl(item: IFeedEntry) {
   const q = route.query.q
