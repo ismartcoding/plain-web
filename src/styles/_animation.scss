@@ -1,0 +1,20 @@
+.width-enter-active,
+.width-leave-active {
+  transition: width 0.3s ease;
+}
+
+.width-enter-from,
+.width-leave-to {
+  width: 0 !important;
+}
+
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}

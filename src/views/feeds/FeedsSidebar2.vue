@@ -12,6 +12,11 @@
           <i-material-symbols:label-outline-rounded />
         </button>
       </template>
+      <button class="icon-button" @click.prevent="changeViewType" v-tooltip="$t(mainStore.feedsTableView ? 'view_as_column' : 'view_as_list')">
+        <md-ripple />
+        <i-material-symbols:view-column-2-outline v-if="mainStore.feedsTableView" />
+        <i-material-symbols:table v-else />
+      </button>
       <md-circular-progress indeterminate class="spinner-sm" v-if="syncing" />
       <button class="icon-button btn-icon" v-else :disabled="syncing" v-tooltip="$t('sync_feeds')" @click.prevent="syncFeeds">
         <md-ripple />
@@ -39,35 +44,42 @@
       </button>
     </div>
     <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible" :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
-    <DynamicScroller :items="items" :min-item-size="54" class="scroller">
-      <template v-slot="{ item, index, active }">
-        <DynamicScrollerItem :item="item" :active="active" :size-dependencies="[item.title, item.description]" :data-index="index">
-          <a class="item-link" :href="viewUrl(item)" @click.stop.prevent="view(item)">
-            <article class="card feed-item" :class="{ selected: item.id == $route.params['id'] }">
+    <VirtualList class="scroller" :data-key="'id'" :data-sources="items" :estimate-size="160" @tobottom="loadMore">
+      <template #item="{ index, item }">
+        <a class="item-link" :href="viewUrl(item)" @click.stop.prevent="view(item)">
+          <article class="card feed-item" :class="{ selected: item.id == $route.params['id'] }">
+            <div class="grid1">
               <div class="title">{{ item.title }}</div>
               <img v-if="item.image" :src="getFileUrl(item.image, '&w=200&h=200')" />
               <div class="subtitle">{{ getSummary(item.description) }}</div>
+            </div>
+            <div class="grid2">
               <div class="title3">
                 <a @click.stop.prevent="viewFeed(feedsMap[item.feedId])">{{ feedsMap[item.feedId].name }}</a
                 ><span>&nbsp;&nbsp;·&nbsp;&nbsp;</span>
-                <span v-tooltip="formatDateTime(item.publishedAt)">
+                <span class="time" v-tooltip="formatDateTime(item.publishedAt)">
                   {{ formatTimeAgo(item.publishedAt) }}
                 </span>
-                <item-tags :tags="item.tags" :type="dataType" />
+                <item-tags :tags="item.tags" :type="dataType" :only-links="true" />
               </div>
-            </article>
-          </a>
-        </DynamicScrollerItem>
+              <button class="icon-button sm" v-tooltip="$t('actions')" style="visibility: hidden;">
+                <md-ripple />
+                <i-material-symbols:more-vert />
+              </button>
+            </div>
+          </article>
+        </a>
       </template>
-    </DynamicScroller>
+      <template #footer>
+        <md-circular-progress v-if="!noMore" indeterminate class="spinner-sm" />
+      </template>
+    </VirtualList>
   </aside>
 </template>
 
 <script setup lang="ts">
-import { getFileUrl } from '@/lib/api/file'
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
-import { formatTimeAgo, formatDateTime } from '@/lib/format'
 import { initQuery, feedsTagsGQL, initLazyQuery, feedEntriesGQL } from '@/lib/api/query'
 import { useRoute } from 'vue-router'
 import router, { replacePath } from '@/plugins/router'
@@ -86,6 +98,10 @@ import { openModal } from '@/components/modal'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import gql from 'graphql-tag'
+import { getFileUrl } from '@/lib/api/file'
+import { formatTimeAgo, formatDateTime } from '@/lib/format'
+import VirtualList from '@/components/virtualscroll'
+import { getSummary } from '@/lib/strutil'
 import { DataType } from '@/lib/data'
 
 const mainStore = useMainStore()
@@ -103,6 +119,7 @@ const route = useRoute()
 const query = route.query
 const page = ref(parseInt(query.page?.toString() ?? '1'))
 const limit = 50
+let noMore = false
 const tags = ref<ITag[]>([])
 const feeds = ref<IFeed[]>([])
 const feedsMap = computed(() => {
@@ -139,7 +156,13 @@ const { loading, load, refetch } = initLazyQuery({
       toast(t(error), 'error')
     } else {
       if (data) {
-        items.value = data.feedEntries.map((it: IFeedEntry) => ({ ...it, checked: false }))
+        if (data.feedEntries.length < limit) {
+          noMore = true
+        }
+        const newItems = data.feedEntries.map((it: IFeedEntry) => ({ ...it, checked: false }))
+        newItems.forEach((it: IFeedEntryItem) => {
+          items.value.push(it)
+        })
         total.value = data.feedEntryCount
       }
     }
@@ -152,6 +175,18 @@ const { loading, load, refetch } = initLazyQuery({
   }),
   appApi: true,
 })
+
+function changeViewType() {
+  mainStore.feedsTableView = !mainStore.feedsTableView
+}
+
+function loadMore() {
+  if (noMore || loading.value) {
+    return
+  }
+  page.value++
+  refetch()
+}
 
 function deleteItem(item: IFeedEntryItem) {
   openModal(DeleteConfirm, {
@@ -175,14 +210,6 @@ function deleteItem(item: IFeedEntryItem) {
       }
     },
   })
-}
-
-function getSummary(description: string): string {
-  // Define the regex to match patterns like ![text](url) or ![text][ref]
-  var regex = /!\[.*?\]\(.*?\)|!\[.*?\]\[.*?\]/g
-
-  // Replace the matched patterns with an empty string and trim leading whitespace
-  return description.replace(regex, '').replace(/^\s*/, '')
 }
 
 function backToSearch() {
@@ -270,10 +297,6 @@ function addItemToTags(item: IFeedEntryItem) {
   })
 }
 
-watch(page, (value: number) => {
-  replacePath(mainStore, `/feeds?page=${value}&q=${encodeBase64(q.value)}`)
-})
-
 function onTagSelect(item: ITag) {
   if (filter.tags.includes(item)) {
     remove(filter.tags, (it: ITag) => it.id === item.id)
@@ -322,20 +345,20 @@ onUnmounted(() => {
   emitter.off('feeds_fetched', feedsFetchedHandler)
 })
 
-function view(item: IFeedEntry) {
-  replacePath(mainStore, viewUrl(item))
-}
-
-const { viewFeed } = useFeeds(mainStore)
-
 function viewUrl(item: IFeedEntry) {
-  const q = route.query.q
+  const q = router.currentRoute.value.query.q
   if (q) {
     return `/feeds/${item.feedId}/entries/${item.id}?q=${q}`
   }
 
   return `/feeds/${item.feedId}/entries/${item.id}`
 }
+
+function view(item: IFeedEntry) {
+  replacePath(mainStore, viewUrl(item))
+}
+
+const { viewFeed } = useFeeds(mainStore)
 
 const { mutate: doSyncFeeds } = initMutation({
   document: syncFeedsGQL,
@@ -349,7 +372,9 @@ function syncFeeds() {
 </script>
 <style scoped lang="scss">
 .scroller {
-  height: calc(100% - 64px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: calc(100vh - 122px);
   .item-link {
     text-decoration: none;
     display: block;
@@ -361,12 +386,15 @@ function syncFeeds() {
 }
 
 .feed-item {
-  display: grid;
-  grid-template-areas:
-    'title img'
-    'subtitle img'
-    'title3 title3';
-  grid-template-columns: 1fr auto;
+  .grid1 {
+    padding-inline-end: 8px;
+    display: grid;
+    grid-template-areas:
+      'title img'
+      'subtitle img';
+    grid-template-columns: 1fr auto;
+  }
+  padding: 16px 8px 8px 16px;
   .title {
     font-weight: 500;
     text-decoration: none;
@@ -380,14 +408,19 @@ function syncFeeds() {
     height: 50px;
     border-radius: 8px;
     margin-inline-start: 8px;
+    margin-block-end: 8px;
   }
   .subtitle {
     font-size: 0.875rem;
     max-height: 40px;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-block-end: 8px;
     grid-area: subtitle;
+  }
+  .grid2 {
+    display: grid;
+    grid-template-areas: 'title3 actions';
+    grid-template-columns: 1fr auto;
   }
   .title3 {
     font-size: 0.875rem;
@@ -395,9 +428,18 @@ function syncFeeds() {
     grid-area: title3;
     display: flex;
     flex-direction: row;
-    .tags {
-      margin-inline-start: 8px;
+    flex-flow: wrap;
+    align-items: end;
+    margin-block-end: 4px;
+    .time {
+      margin-inline-end: 8px;
     }
+  }
+  .icon-button {
+    grid-area: actions;
+    margin-inline-start: auto;
+    margin-block-start: 8px;
+    margin-inline-end: 4px;
   }
 }
 </style>

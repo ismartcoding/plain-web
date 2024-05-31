@@ -1,6 +1,6 @@
 <template>
   <Teleport to="body">
-    <transition v-if="tempStore.lightbox.visible">
+    <transition name="fade" v-if="tempStore.lightbox.visible">
       <div @touchmove="preventDefault" class="lightbox" @wheel="onWheel">
         <transition mode="out-in">
           <div class="layout">
@@ -611,6 +611,11 @@ onBeforeUnmount(() => {
   left: 50%;
 }
 
+.loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+}
 .toolbar {
   display: flex;
   flex-direction: row;

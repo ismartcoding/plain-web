@@ -32,10 +32,10 @@
         </div>
       </template>
     </popper>
-    <button class="icon-button" @click.stop="changeViewType" v-tooltip="$t(mainStore.imageViewType === 'list' ? 'view_as_grid' : 'view_as_list')">
+    <button class="icon-button" @click.stop="changeViewType" v-tooltip="$t(mainStore.imagesTableView  ? 'view_as_grid' : 'view_as_list')">
       <md-ripple />
-      <i-material-symbols:grid-view-outline-rounded v-if="mainStore.imageViewType === 'list'" />
-      <i-material-symbols:table-rows-rounded v-if="mainStore.imageViewType === 'grid'" />
+      <i-material-symbols:grid-view-outline-rounded v-if="mainStore.imagesTableView" />
+      <i-material-symbols:table v-else />
     </button>
     <search-input ref="searchInputRef" v-model="q" :search="doSearch">
       <template #filters>
@@ -55,24 +55,24 @@
     </search-input>
   </div>
   <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible" :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
-  <div v-if="mainStore.imageViewType === 'grid'">
+  <div v-if="!mainStore.imagesTableView">
     <label class="form-check-label"> <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />{{ $t('select_all') }} </label>
   </div>
-  <div class="image-container" v-if="mainStore.imageViewType === 'grid'" style="margin-bottom: 24px">
+  <div class="image-container" v-if="!mainStore.imagesTableView" style="margin-bottom: 24px">
     <div class="item" v-for="(item, i) in items">
       <md-checkbox class="checkbox" touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" @click.stop="toggleRow(item)" />
       <img class="image" :src="getFileUrl(item.fileId, '&w=200&h=200')" @click="view(i)" @contextmenu="itemCtxMenu($event, item)" />
       <span class="duration">{{ formatFileSize(item.size) }}</span>
     </div>
   </div>
-  <div class="table-responsive" v-if="mainStore.imageViewType === 'list'">
+  <div class="table-responsive" v-if="mainStore.imagesTableView">
     <table class="table">
       <thead>
         <tr>
           <th>
             <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
           </th>
-          <th>ID</th>
+          <th v-if="app.developerMode">ID</th>
           <th></th>
           <th>{{ $t('name') }}</th>
           <th></th>
@@ -83,7 +83,7 @@
       <tbody>
         <tr v-for="(item, i) in items" :key="item.id" :class="{ selected: item.checked }" @click.stop="toggleRow(item)">
           <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
-          <td><field-id :id="item.id" :raw="item" /></td>
+          <td v-if="app.developerMode"><field-id :id="item.id" :raw="item" /></td>
           <td>
             <img :src="getFileUrl(item.fileId, '&w=200&h=200')" width="50" height="50" @click.stop="view(i)" style="cursor: pointer" />
           </td>
@@ -116,7 +116,7 @@
       </tbody>
       <tfoot v-if="!items.length">
         <tr>
-          <td colspan="7">
+          <td :colspan="app.developerMode ? 7 : 6">
             <div class="no-data-placeholder">
               {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
             </div>
@@ -125,14 +125,14 @@
       </tfoot>
     </table>
   </div>
-  <div class="no-data-placeholder" v-if="mainStore.imageViewType === 'grid' && sources.length === 0">
+  <div class="no-data-placeholder" v-if="!mainStore.imagesTableView && sources.length === 0">
     {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
   </div>
   <v-pagination v-if="total > limit" v-model="page" :total="total" :limit="limit" />
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { nextTick, onActivated, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { computed } from 'vue'
 import { imagesGQL, initLazyQuery } from '@/lib/api/query'
@@ -181,13 +181,23 @@ const dataType = DataType.IMAGE
 const route = useRoute()
 const query = route.query
 const page = ref(parseInt(query.page?.toString() ?? '1'))
-const limit = 48
+const limit = 50
 const q = ref(decodeBase64(query.q?.toString() ?? ''))
 const finalQ = ref('')
-const { tags } = useTags(dataType, q, filter, async (fields: IFilterField[]) => {
+const isInitialized = ref(false)
+const {
+  tags,
+  load: loadTags,
+  refetch: refetchTags,
+} = useTags(dataType, q, filter, async (fields: IFilterField[]) => {
   finalQ.value = buildQuery(fields)
   await nextTick()
-  load()
+  if (isInitialized.value) {
+    refetch()
+  } else {
+    load()
+  }
+  isInitialized.value = true
 })
 const { addToTags } = useAddToTags(dataType, items, tags)
 const { deleteItems, deleteItem } = useDeleteItems()
@@ -287,11 +297,7 @@ function doSearch() {
 }
 
 function changeViewType() {
-  if (mainStore.imageViewType === 'grid') {
-    mainStore.imageViewType = 'list'
-  } else {
-    mainStore.imageViewType = 'grid'
-  }
+  mainStore.imagesTableView = !mainStore.imagesTableView
 }
 
 function upload() {
@@ -365,5 +371,13 @@ onUnmounted(() => {
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
   emitter.off('media_item_deleted', mediaItemDeletedHandler)
   emitter.off('media_items_deleted', mediaItemsDeletedHandler)
+})
+
+onActivated(() => {
+  if (isInitialized.value) {
+    refetchTags()
+  } else {
+    loadTags()
+  }
 })
 </script>

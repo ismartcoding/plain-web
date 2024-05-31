@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'Lettore audio',
+  view_as_column: 'Visualizza come colonna',
   screenshot: 'Screenshot',
   quality_hd: 'HD',
   quality_sd: 'SD',

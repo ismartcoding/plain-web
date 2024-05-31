@@ -5,6 +5,7 @@ import Icons from 'unplugin-icons/vite'
 import IconsResolver from 'unplugin-icons/resolver'
 import Components from 'unplugin-vue-components/vite'
 import svgLoader from 'vite-svg-loader'
+import vueJsx from '@vitejs/plugin-vue-jsx'
 
 const INVALID_CHAR_REGEX = /[_\x00-\x1F\x7F<>*#"{}|^[\]`;?:&=+$,]/g
 const DRIVE_LETTER_REGEX = /^[a-z]:/i
@@ -50,6 +51,7 @@ export default defineConfig({
         },
       },
     }),
+    vueJsx(),
     svgLoader(),
     Components({
       resolvers: [IconsResolver()],

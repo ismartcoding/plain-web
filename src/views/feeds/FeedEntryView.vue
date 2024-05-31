@@ -36,10 +36,10 @@
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onActivated, onMounted, onUnmounted, ref } from 'vue'
 import toast from '@/components/toaster'
 import { useI18n } from 'vue-i18n'
-import { feedEntryGQL, initQuery, tagsGQL } from '@/lib/api/query'
+import { feedEntryGQL, initLazyQuery, initQuery, tagsGQL } from '@/lib/api/query'
 import type { IFeedEntryDetail, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, ITag } from '@/lib/interfaces'
 import { useMarkdown } from '@/hooks/markdown'
 import { formatDateTime, formatTimeAgo } from '@/lib/format'
@@ -63,7 +63,8 @@ const tags = ref<ITag[]>()
 const { app, urlTokenKey } = storeToRefs(useTempStore())
 
 const { render } = useMarkdown(app, urlTokenKey)
-const { refetch } = initQuery({
+const isInitialized = ref(false)
+const { load, refetch } = initLazyQuery({
   handle: async (data: any, error: string) => {
     if (error) {
       toast(t(error), 'error')
@@ -71,6 +72,7 @@ const { refetch } = initQuery({
       entry.value = data.feedEntry
       markdown.value = await render(data.feedEntry.content || data.feedEntry.description)
     }
+    isInitialized.value = true
   },
   document: feedEntryGQL,
   variables: () => ({
@@ -156,6 +158,14 @@ onMounted(() => {
 onUnmounted(() => {
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
+})
+
+onActivated(() => {
+  if (isInitialized.value) {
+    refetch()
+  } else {
+    load()
+  }
 })
 </script>
 <style lang="scss">

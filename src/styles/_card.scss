@@ -1,0 +1,24 @@
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  word-wrap: break-word;
+  background-clip: border-box;
+  border-radius: 8px;
+  padding: 16px;
+  box-sizing: border-box;
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
+  &.selected {
+    background: var(--md-sys-color-surface-container-highest);
+  }
+}
+
+.card-body {
+  flex: 1 1 auto;
+}
+
+.card-title {
+  font-size: 1rem;
+  margin: 0 0 16px 0;
+}

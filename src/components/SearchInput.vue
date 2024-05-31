@@ -46,6 +46,10 @@ defineExpose({ dismiss: () => (searchPanelVisible.value = false) })
 <style lang="scss" scoped>
 .search-input {
   position: relative;
-  margin-left: 16px;
+  margin-inline-start: 16px;
+  md-outlined-text-field {
+    --_top-space: 8px;
+    --_bottom-space: 8px;
+  }
 }
 </style>

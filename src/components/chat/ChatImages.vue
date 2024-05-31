@@ -61,4 +61,3 @@ const sources = computed(() => {
 })
 </script>
 
-<style lang="scss" scoped></style>

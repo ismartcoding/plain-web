@@ -1,4 +1,4 @@
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   return [
     ['recent', 'binnenkort'],
     ['%s seconden geleden', 'binnen %s seconden'],
@@ -14,5 +14,5 @@ export default function(number: number, index: number): [string, string] {
     ['%s maanden geleden', 'binnen %s maanden'],
     ['1 jaar geleden', 'binnen 1 jaar'],
     ['%s jaar geleden', 'binnen %s jaar'],
-  ][index] as [string, string];
+  ][index] as [string, string]
 }

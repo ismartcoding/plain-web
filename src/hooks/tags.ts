@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import toast from '@/components/toaster'
 import { openModal } from '@/components/modal'
 import AddToTagsModal from '@/components/AddToTagsModal.vue'
-import { initQuery, tagsGQL } from '@/lib/api/query'
+import { initLazyQuery, tagsGQL } from '@/lib/api/query'
 import { parseQuery, type IFilterField } from '@/lib/search'
 import { kebabCase } from 'lodash-es'
 
@@ -36,7 +36,7 @@ export const useTags = (type: string, q: Ref<string>, filter: IFilter, onLoad: (
   const tags = ref<ITag[]>([])
   const { t } = useI18n()
 
-  initQuery({
+  const { loading, load, refetch } = initLazyQuery({
     handle: async (data: any, error: string) => {
       if (error) {
         toast(t(error), 'error')
@@ -82,5 +82,8 @@ export const useTags = (type: string, q: Ref<string>, filter: IFilter, onLoad: (
   })
   return {
     tags,
+    loading,
+    load,
+    refetch,
   }
 }

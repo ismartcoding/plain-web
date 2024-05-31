@@ -132,13 +132,3 @@ pre {
   word-break: keep-all;
   white-space: nowrap;
 }
-
-.width-enter-active,
-.width-leave-active {
-  transition: width 0.3s ease;
-}
-
-.width-enter-from,
-.width-leave-to {
-  width: 0 !important;
-}

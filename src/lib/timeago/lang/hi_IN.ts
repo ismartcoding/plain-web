@@ -1,5 +1,5 @@
 // Hindi (India)
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   return [
     ['अभी', 'कुछ समय'],
     ['%s सेकंड पहले', '%s सेकंड में'],
@@ -15,5 +15,5 @@ export default function(number: number, index: number): [string, string] {
     ['%s महीने पहले', '%s महीनों में'],
     ['1 साल पहले', '1 साल में'],
     ['%s साल पहले', '%s साल में'],
-  ][index] as [string, string];
+  ][index] as [string, string]
 }

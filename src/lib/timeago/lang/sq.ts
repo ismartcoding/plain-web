@@ -1,4 +1,4 @@
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   return [
     ['pak më parë', 'pas pak'],
     ['para %s sekondash', 'pas %s sekondash'],
@@ -14,5 +14,5 @@ export default function(number: number, index: number): [string, string] {
     ['para %s muajsh', 'pas %s muajsh'],
     ['para një viti', 'pas një viti'],
     ['para %s vjetësh', 'pas %s vjetësh'],
-  ][index] as [string, string];
+  ][index] as [string, string]
 }

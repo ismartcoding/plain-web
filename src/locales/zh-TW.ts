@@ -1,6 +1,7 @@
 export default {
   app_name: '簡樸',
   audio_player: '音頻播放器',
+  view_as_column: '列視圖',
   screenshot: '截屏',
   quality_hd: '高清',
   quality_sd: '標清',

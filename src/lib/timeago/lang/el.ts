@@ -1,4 +1,4 @@
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   return [
     ['μόλις τώρα', 'σε λίγο'],
     ['%s δευτερόλεπτα πριν', 'σε %s δευτερόλεπτα'],
@@ -14,5 +14,5 @@ export default function(number: number, index: number): [string, string] {
     ['%s μήνες πριν', 'σε %s μήνες'],
     ['1 χρόνο πριν', 'σε 1 χρόνο'],
     ['%s χρόνια πριν', 'σε %s χρόνια'],
-  ][index] as [string, string];
+  ][index] as [string, string]
 }

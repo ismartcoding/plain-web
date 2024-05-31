@@ -1,4 +1,4 @@
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   return [
     ['poco fa', 'fra poco'],
     ['%s secondi fa', 'fra %s secondi'],
@@ -14,5 +14,5 @@ export default function(number: number, index: number): [string, string] {
     ['%s mesi fa', 'fra %s mesi'],
     ['un anno fa', 'fra un anno'],
     ['%s anni fa', 'fra %s anni'],
-  ][index] as [string, string];
+  ][index] as [string, string]
 }

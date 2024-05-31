@@ -1,4 +1,4 @@
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   return [
     ['剛剛', '片刻後'],
     ['%s 秒前', '%s 秒後'],
@@ -14,5 +14,5 @@ export default function(number: number, index: number): [string, string] {
     ['%s 個月前', '%s 個月後'],
     ['1 年前', '1 年後'],
     ['%s 年前', '%s 年後'],
-  ][index] as [string, string];
+  ][index] as [string, string]
 }

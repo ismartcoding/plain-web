@@ -1,4 +1,4 @@
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   return [
     ['just nu', 'om en stund'],
     ['%s sekunder sedan', 'om %s sekunder'],
@@ -14,5 +14,5 @@ export default function(number: number, index: number): [string, string] {
     ['%s månader sedan', 'om %s månader'],
     ['1 år sedan', 'om 1 år'],
     ['%s år sedan', 'om %s år'],
-  ][index] as [string, string];
+  ][index] as [string, string]
 }

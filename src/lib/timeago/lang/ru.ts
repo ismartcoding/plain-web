@@ -8,18 +8,18 @@
  * @returns
  */
 function formatNum(f1: string, f: string, s: string, t: string, n: number): string {
-  const n10 = n % 10;
-  let str = t;
+  const n10 = n % 10
+  let str = t
 
   if (n === 1) {
-    str = f1;
+    str = f1
   } else if (n10 === 1 && n > 20) {
-    str = f;
+    str = f
   } else if (n10 > 1 && n10 < 5 && (n > 20 || n < 10)) {
-    str = s;
+    str = s
   }
 
-  return str;
+  return str
 }
 
 const seconds = formatNum.bind(null, 'секунду', '%s секунду', '%s секунды', '%s секунд'),
@@ -28,34 +28,34 @@ const seconds = formatNum.bind(null, 'секунду', '%s секунду', '%s 
   days = formatNum.bind(null, 'день', '%s день', '%s дня', '%s дней'),
   weeks = formatNum.bind(null, 'неделю', '%s неделю', '%s недели', '%s недель'),
   months = formatNum.bind(null, 'месяц', '%s месяц', '%s месяца', '%s месяцев'),
-  years = formatNum.bind(null, 'год', '%s год', '%s года', '%s лет');
+  years = formatNum.bind(null, 'год', '%s год', '%s года', '%s лет')
 
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   switch (index) {
     case 0:
-      return ['только что', 'через несколько секунд'];
+      return ['только что', 'через несколько секунд']
     case 1:
-      return [seconds(number) + ' назад', 'через ' + seconds(number)];
+      return [seconds(number) + ' назад', 'через ' + seconds(number)]
     case 2: // ['минуту назад', 'через минуту'];
     case 3:
-      return [minutes(number) + ' назад', 'через ' + minutes(number)];
+      return [minutes(number) + ' назад', 'через ' + minutes(number)]
     case 4: // ['час назад', 'через час'];
     case 5:
-      return [hours(number) + ' назад', 'через ' + hours(number)];
+      return [hours(number) + ' назад', 'через ' + hours(number)]
     case 6:
-      return ['вчера', 'завтра'];
+      return ['вчера', 'завтра']
     case 7:
-      return [days(number) + ' назад', 'через ' + days(number)];
+      return [days(number) + ' назад', 'через ' + days(number)]
     case 8: // ['неделю назад', 'через неделю'];
     case 9:
-      return [weeks(number) + ' назад', 'через ' + weeks(number)];
+      return [weeks(number) + ' назад', 'через ' + weeks(number)]
     case 10: // ['месяц назад', 'через месяц'];
     case 11:
-      return [months(number) + ' назад', 'через ' + months(number)];
+      return [months(number) + ' назад', 'через ' + months(number)]
     case 12: // ['год назад', 'через год'];
     case 13:
-      return [years(number) + ' назад', 'через ' + years(number)];
+      return [years(number) + ' назад', 'через ' + years(number)]
     default:
-      return ['', ''];
+      return ['', '']
   }
 }

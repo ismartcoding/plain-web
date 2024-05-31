@@ -1,4 +1,4 @@
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   return [
     ['az önce', 'şimdi'],
     ['%s saniye önce', '%s saniye içinde'],
@@ -14,5 +14,5 @@ export default function(number: number, index: number): [string, string] {
     ['%s ay önce', '%s ay içinde'],
     ['1 yıl önce', '1 yıl içinde'],
     ['%s yıl önce', '%s yıl içinde'],
-  ][index] as [string, string];
+  ][index] as [string, string]
 }

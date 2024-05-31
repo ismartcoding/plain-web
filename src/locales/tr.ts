@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'Müzik ç',
+  view_as_column: 'Sütun olarak görüntüle',
   screenshot: 'Ekran Görüntüsü',
   quality_hd: 'HD',
   quality_sd: 'SD',

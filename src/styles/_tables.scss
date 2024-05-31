@@ -4,8 +4,6 @@ table {
 }
 
 caption {
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
   text-align: left;
 }
 
@@ -40,7 +38,6 @@ th {
   vertical-align: top;
 
   > :not(caption)>*>* {
-    padding: 0.4rem;
     border-bottom-width: 1px;
     word-break: break-all;
   }
@@ -48,19 +45,16 @@ th {
   th {
     word-break: keep-all;
     white-space: nowrap;
+    padding-block: 0px;
   }
 
   td {
     vertical-align: middle;
+    padding: 4px;
 
     .tags {
       display: flex;
       flex-wrap: wrap;
-
-      .badge {
-        margin: 2px;
-        cursor: pointer;
-      }
     }
   }
 

@@ -2,7 +2,7 @@
   <div class="v-toolbar">
     <breadcrumb :current="() => $t('qrcode_generator')" />
   </div>
-  <div class="panel-container">
+  <div class="content">
     <md-outlined-text-field class="textarea" type="textarea" rows="3" v-model="qrCode" />
     <div class="qrcode-panel">
       <img v-if="url" :src="url" />
@@ -37,7 +37,7 @@ watch(qrCode, () => {
 updateUrl()
 </script>
 <style lang="scss" scoped>
-.panel-container {
+.content {
   display: grid;
   grid-template-columns: 50% 50%;
 

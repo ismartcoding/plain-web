@@ -46,6 +46,7 @@ export const appFragment = gql`
     usbDiskPaths
     internalStoragePath
     downloadsDir
+    developerMode
   }
   ${playlistAudioFragment}
 `

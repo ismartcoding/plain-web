@@ -1,4 +1,4 @@
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   return [
     ['방금', '곧'],
     ['%s초 전', '%s초 후'],
@@ -14,5 +14,5 @@ export default function(number: number, index: number): [string, string] {
     ['%s개월 전', '%s개월 후'],
     ['1년 전', '1년 후'],
     ['%s년 전', '%s년 후'],
-  ][index] as [string, string];
+  ][index] as [string, string]
 }

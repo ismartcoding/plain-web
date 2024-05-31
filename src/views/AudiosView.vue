@@ -61,7 +61,7 @@
           <th>
             <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
           </th>
-          <th>ID</th>
+          <th v-if="app.developerMode">ID</th>
           <th>{{ $t('name') }}</th>
           <th></th>
           <th class="artist">{{ $t('artist') }}</th>
@@ -73,7 +73,7 @@
       <tbody>
         <tr v-for="item in items" :key="item.id" :class="{ selected: item.checked }" @click.stop="toggleRow(item)">
           <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
-          <td><field-id :id="item.id" :raw="item" /></td>
+          <td v-if="app.developerMode"><field-id :id="item.id" :raw="item" /></td>
           <td class="title">
             {{ item.title }}
           </td>
@@ -122,7 +122,7 @@
       </tbody>
       <tfoot v-if="!items.length">
         <tr>
-          <td colspan="8">
+          <td :colspan="app.developerMode ? 8 : 7">
             <div class="no-data-placeholder">
               {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
             </div>
@@ -135,7 +135,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { nextTick, onActivated, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatSeconds } from '@/lib/format'
 import { audiosGQL, initLazyQuery } from '@/lib/api/query'
@@ -186,10 +186,16 @@ const page = ref(parseInt(query.page?.toString() ?? '1'))
 const limit = 50
 const q = ref(decodeBase64(query.q?.toString() ?? ''))
 const finalQ = ref('')
-const { tags } = useTags(dataType, q, filter, async (fields: IFilterField[]) => {
+const isInitialized = ref(false)
+const { tags, load: loadTags, refetch: refetchTags } = useTags(dataType, q, filter, async (fields: IFilterField[]) => {
   finalQ.value = buildQuery(fields)
   await nextTick() // hack: to fix the lazy query load twice
-  load()
+  if (isInitialized.value) {
+    refetch()
+  } else {
+    load()
+  }
+  isInitialized.value = true
 })
 const { addToTags } = useAddToTags(dataType, items, tags)
 const { deleteItems, deleteItem } = useDeleteItems()
@@ -308,6 +314,14 @@ function addItemToTags(item: IAudioItem) {
     selected: tags.value.filter((it) => item.tags.some((t) => t.id === it.id)),
   })
 }
+
+onActivated(() => {
+  if (isInitialized.value) {
+    refetchTags()
+  } else {
+    loadTags()
+  }
+})
 </script>
 <style scoped lang="scss">
 .artist {

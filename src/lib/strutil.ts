@@ -121,3 +121,12 @@ export function encodeHTML(html: string) {
     return '&#' + i.charCodeAt(0) + ';'
   })
 }
+
+
+export function getSummary(description: string): string {
+  // Define regex to match Markdown image syntax and HTML img tags
+  const regex = /!\[.*?\]\(.*?\)|!\[.*?\]\[.*?\]|<img.*?>/gi
+
+  // Replace the matched patterns with an image emoji and trim leading whitespace
+  return description.replace(regex, '🖼').replace('\n', '').replace(/^\s*/, '')
+}

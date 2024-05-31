@@ -8,18 +8,18 @@
  * @returns
  */
 function formatNum(f1: string, f: string, s: string, t: string, n: number): string {
-  const n10 = n % 10;
-  let str = t;
+  const n10 = n % 10
+  let str = t
 
   if (n === 1) {
-    str = f1;
+    str = f1
   } else if (n10 === 1 && n > 20) {
-    str = f;
+    str = f
   } else if (n10 > 1 && n10 < 5 && (n > 20 || n < 10)) {
-    str = s;
+    str = s
   }
 
-  return str;
+  return str
 }
 
 const seconds = formatNum.bind(null, 'секунду', '%s секунду', '%s секунды', '%s секунд'),
@@ -28,33 +28,33 @@ const seconds = formatNum.bind(null, 'секунду', '%s секунду', '%s 
   days = formatNum.bind(null, 'дзень', '%s дзень', '%s дні', '%s дзён'),
   weeks = formatNum.bind(null, 'тыдзень', '%s тыдзень', '%s тыдні', '%s тыдняў'),
   months = formatNum.bind(null, 'месяц', '%s месяц', '%s месяцы', '%s месяцаў'),
-  years = formatNum.bind(null, 'год', '%s год', '%s гады', '%s гадоў');
+  years = formatNum.bind(null, 'год', '%s год', '%s гады', '%s гадоў')
 
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   switch (index) {
     case 0:
-      return ['толькі што', 'праз некалькі секунд'];
+      return ['толькі што', 'праз некалькі секунд']
     case 1:
-      return [seconds(number) + ' таму', 'праз ' + seconds(number)];
+      return [seconds(number) + ' таму', 'праз ' + seconds(number)]
     case 2:
     case 3:
-      return [minutes(number) + ' таму', 'праз ' + minutes(number)];
+      return [minutes(number) + ' таму', 'праз ' + minutes(number)]
     case 4:
     case 5:
-      return [hours(number) + ' таму', 'праз ' + hours(number)];
+      return [hours(number) + ' таму', 'праз ' + hours(number)]
     case 6:
     case 7:
-      return [days(number) + ' таму', 'праз ' + days(number)];
+      return [days(number) + ' таму', 'праз ' + days(number)]
     case 8:
     case 9:
-      return [weeks(number) + ' таму', 'праз ' + weeks(number)];
+      return [weeks(number) + ' таму', 'праз ' + weeks(number)]
     case 10:
     case 11:
-      return [months(number) + ' таму', 'праз ' + months(number)];
+      return [months(number) + ' таму', 'праз ' + months(number)]
     case 12:
     case 13:
-      return [years(number) + ' таму', 'праз ' + years(number)];
+      return [years(number) + ' таму', 'праз ' + years(number)]
     default:
-      return ['', ''];
+      return ['', '']
   }
 }

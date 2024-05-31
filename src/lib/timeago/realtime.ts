@@ -1,39 +1,42 @@
-import { setTimerId, getTimerId, getDateAttribute } from './utils/dom';
-import { formatDiff, diffSec, nextInterval } from './utils/date';
-import { getLocale } from './register';
-import type { LocaleFunc, Opts, TimerPool } from './interface';
+import { setTimerId, getTimerId, getDateAttribute } from './utils/dom'
+import { formatDiff, diffSec, nextInterval } from './utils/date'
+import { getLocale } from './register'
+import type { LocaleFunc, Opts, TimerPool } from './interface'
 
 // all realtime timer
-const TIMER_POOL: TimerPool = {};
+const TIMER_POOL: TimerPool = {}
 
 /**
  * clear a timer from pool
  * @param tid
  */
 const clear = (tid: number): void => {
-  clearTimeout(tid);
-  delete TIMER_POOL[tid];
-};
+  clearTimeout(tid)
+  delete TIMER_POOL[tid]
+}
 
 // run with timer(setTimeout)
 function run(node: HTMLElement, date: string, localeFunc: LocaleFunc, opts: Opts): void {
   // clear the node's exist timer
-  clear(getTimerId(node));
+  clear(getTimerId(node))
 
-  const { relativeDate, minInterval } = opts;
+  const { relativeDate, minInterval } = opts
 
   // get diff seconds
-  const diff = diffSec(date, relativeDate);
+  const diff = diffSec(date, relativeDate)
   // render
-  node.innerText = formatDiff(diff, localeFunc);
+  node.innerText = formatDiff(diff, localeFunc)
 
-  const tid = (setTimeout(() => {
-    run(node, date, localeFunc, opts);
-  }, Math.min(Math.max(nextInterval(diff), minInterval || 1) * 1000, 0x7fffffff)) as unknown) as number;
+  const tid = setTimeout(
+    () => {
+      run(node, date, localeFunc, opts)
+    },
+    Math.min(Math.max(nextInterval(diff), minInterval || 1) * 1000, 0x7fffffff)
+  ) as unknown as number
 
   // there is no need to save node in object. Just save the key
-  TIMER_POOL[tid] = 0;
-  setTimerId(node, tid);
+  TIMER_POOL[tid] = 0
+  setTimerId(node, tid)
 }
 
 /**
@@ -42,10 +45,10 @@ function run(node: HTMLElement, date: string, localeFunc: LocaleFunc, opts: Opts
  */
 export function cancel(node?: HTMLElement): void {
   // cancel one
-  if (node) clear(getTimerId(node));
+  if (node) clear(getTimerId(node))
   // cancel all
   // @ts-ignore
-  else Object.keys(TIMER_POOL).forEach(clear);
+  else Object.keys(TIMER_POOL).forEach(clear)
 }
 
 /**
@@ -58,11 +61,11 @@ export function render(nodes: HTMLElement | HTMLElement[] | NodeList, locale?: s
   // by .length
   // @ts-ignore
   // supports empty list of nodes
-  const nodeList: HTMLElement[] = NodeList.prototype.isPrototypeOf(nodes) ? nodes : [nodes];
+  const nodeList: HTMLElement[] = NodeList.prototype.isPrototypeOf(nodes) ? nodes : [nodes]
 
   nodeList.forEach((node: HTMLElement) => {
-    run(node, getDateAttribute(node), getLocale(locale), opts || {});
-  });
+    run(node, getDateAttribute(node), getLocale(locale), opts || {})
+  })
 
-  return nodeList;
+  return nodeList
 }
