@@ -1,4 +1,4 @@
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   return [
     ['orain', 'denbora bat barru'],
     ['duela %s segundu', '%s segundu barru'],
@@ -14,5 +14,5 @@ export default function(number: number, index: number): [string, string] {
     ['duela %s hillabete', '%s hillabete barru'],
     ['duela urte 1', 'urte 1 barru'],
     ['duela %s urte', '%s urte barru'],
-  ][index] as [string, string];
+  ][index] as [string, string]
 }

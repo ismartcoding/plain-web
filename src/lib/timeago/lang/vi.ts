@@ -1,4 +1,4 @@
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   return [
     ['vừa xong', 'một lúc'],
     ['%s giây trước', 'trong %s giây'],
@@ -14,5 +14,5 @@ export default function(number: number, index: number): [string, string] {
     ['%s tháng trước', 'trong %s tháng'],
     ['1 năm trước', 'trong 1 năm'],
     ['%s năm trước', 'trong %s năm'],
-  ][index] as [string, string];
+  ][index] as [string, string]
 }

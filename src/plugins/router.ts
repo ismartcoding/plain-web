@@ -84,13 +84,13 @@ const router = createRouter({
         },
         {
           path: 'notes/:id',
-          component: () => import('@/views/NoteEditView.vue'),
+          component: () => import('@/views/notes/NoteEditView.vue'),
           meta: { group: 'notes' },
         },
         {
           path: 'notes',
           components: {
-            default: () => import('@/views/NotesView.vue'),
+            default: () => import('@/views/notes/NotesView.vue'),
             LeftSidebar: () => import('../components/NotesSidebar.vue'),
           },
           meta: { group: 'notes' },
@@ -98,7 +98,7 @@ const router = createRouter({
         {
           path: 'notes/trash',
           components: {
-            default: () => import('@/views/NotesTrashView.vue'),
+            default: () => import('@/views/notes/NotesTrashView.vue'),
             LeftSidebar: () => import('../components/NotesSidebar.vue'),
           },
           meta: { group: 'notes' },

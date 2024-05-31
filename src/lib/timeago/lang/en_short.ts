@@ -1,4 +1,4 @@
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   return [
     ['just now', 'right now'],
     ['%ss ago', 'in %ss'],
@@ -14,5 +14,5 @@ export default function(number: number, index: number): [string, string] {
     ['%smo ago', 'in %smo'],
     ['1yr ago', 'in 1yr'],
     ['%syr ago', 'in %syr'],
-  ][index] as [string, string];
+  ][index] as [string, string]
 }

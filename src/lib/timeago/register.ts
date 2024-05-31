@@ -1,9 +1,9 @@
-import type { LocaleFunc, LocaleMap } from './interface';
+import type { LocaleFunc, LocaleMap } from './interface'
 
 /**
  * All supported locales
  */
-const Locales: LocaleMap = {};
+const Locales: LocaleMap = {}
 
 /**
  * register a locale
@@ -11,8 +11,8 @@ const Locales: LocaleMap = {};
  * @param func
  */
 export const register = (locale: string, func: LocaleFunc) => {
-  Locales[locale] = func;
-};
+  Locales[locale] = func
+}
 
 /**
  * get a locale, default is en_US
@@ -20,5 +20,5 @@ export const register = (locale: string, func: LocaleFunc) => {
  * @returns {*}
  */
 export const getLocale = (locale: string): LocaleFunc => {
-  return Locales[locale] || Locales['en_US'];
-};
+  return Locales[locale] || Locales['en_US']
+}

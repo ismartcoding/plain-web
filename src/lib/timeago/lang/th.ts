@@ -1,4 +1,4 @@
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   return [
     ['เมื่อสักครู่นี้', 'อีกสักครู่'],
     ['%s วินาทีที่แล้ว', 'ใน %s วินาที'],
@@ -14,5 +14,5 @@ export default function(number: number, index: number): [string, string] {
     ['%s เดือนที่แล้ว', 'ใน %s เดือน'],
     ['1 ปีที่แล้ว', 'ใน 1 ปี'],
     ['%s ปีที่แล้ว', 'ใน %s ปี'],
-  ][index] as [string, string];
+  ][index] as [string, string]
 }

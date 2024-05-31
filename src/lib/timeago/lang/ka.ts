@@ -1,4 +1,4 @@
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   return [
     ['ამ წამს', 'ახლა'],
     ['%s წამის წინ', '%s წამში'],
@@ -14,5 +14,5 @@ export default function(number: number, index: number): [string, string] {
     ['%s თვის წინ', '%s თვეში'],
     ['1 წლის წინ', '1 წელიწადში'],
     ['%s წლის წინ', '%s წელიწადში'],
-  ][index] as [string, string];
+  ][index] as [string, string]
 }

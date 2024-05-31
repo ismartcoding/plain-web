@@ -33,10 +33,10 @@
         </div>
       </template>
     </popper>
-    <button class="icon-button" @click.prevent="changeViewType" v-tooltip="$t(mainStore.videoViewType === 'list' ? 'view_as_grid' : 'view_as_list')">
+    <button class="icon-button" @click.prevent="changeViewType" v-tooltip="$t(mainStore.videosTableView ? 'view_as_grid' : 'view_as_list')">
       <md-ripple />
-      <i-material-symbols:grid-view-outline-rounded v-if="mainStore.videoViewType === 'list'" />
-      <i-material-symbols:table-rows-rounded v-if="mainStore.videoViewType === 'grid'" />
+      <i-material-symbols:grid-view-outline-rounded v-if="mainStore.videosTableView" />
+      <i-material-symbols:table v-else />
     </button>
     <search-input ref="searchInputRef" v-model="q" :search="doSearch">
       <template #filters>
@@ -56,27 +56,27 @@
     </search-input>
   </div>
   <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible" :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
-  <div v-if="mainStore.videoViewType === 'grid'">
+  <div v-if="!mainStore.videosTableView">
     <label class="form-check-label"> <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />{{ $t('select_all') }} </label>
   </div>
-  <div class="image-container" v-if="mainStore.videoViewType === 'grid'" style="margin-bottom: 24px">
+  <div class="image-container" v-if="!mainStore.videosTableView" style="margin-bottom: 24px">
     <div class="item" v-for="(item, i) in items">
       <md-checkbox class="checkbox" touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" @click.stop="toggleRow(item)" />
       <img class="image" :src="getFileUrl(item.fileId, '&w=200&h=200')" onerror="this.src='/broken-image.png'" @click="view(i)" @contextmenu="itemCtxMenu($event, item)" />
       <span class="duration">{{ formatSeconds(item.duration) }}</span>
     </div>
   </div>
-  <div class="no-data-placeholder" v-if="mainStore.videoViewType === 'grid' && sources.length === 0">
+  <div class="no-data-placeholder" v-if="!mainStore.videosTableView && sources.length === 0">
     {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
   </div>
-  <div class="table-responsive" v-if="mainStore.videoViewType === 'list'">
+  <div class="table-responsive" v-if="mainStore.videosTableView">
     <table class="table">
       <thead>
         <tr>
           <th>
             <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
           </th>
-          <th>ID</th>
+          <th v-if="app.developerMode">ID</th>
           <th></th>
           <th>{{ $t('name') }}</th>
           <th></th>
@@ -88,7 +88,7 @@
       <tbody>
         <tr v-for="(item, i) in items" :key="item.id" :class="{ selected: item.checked }" @click.stop="toggleRow(item)">
           <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
-          <td><field-id :id="item.id" :raw="item" /></td>
+          <td v-if="app.developerMode"><field-id :id="item.id" :raw="item" /></td>
           <td>
             <img class="img-video" :src="getFileUrl(item.fileId, '&w=200&h=200')" width="50" height="50" style="cursor: pointer" @click.stop="view(i)" onerror="this.src='/broken-image.png'" />
           </td>
@@ -124,7 +124,7 @@
       </tbody>
       <tfoot v-if="!items.length">
         <tr>
-          <td colspan="8">
+          <td :colspan="app.developerMode ? 8 : 7">
             <div class="no-data-placeholder">
               {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
             </div>
@@ -137,7 +137,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { nextTick, onActivated, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatSeconds } from '@/lib/format'
 import { computed } from 'vue'
@@ -187,13 +187,23 @@ const dataType = DataType.VIDEO
 const route = useRoute()
 const query = route.query
 const page = ref(parseInt(query.page?.toString() ?? '1'))
-const limit = 48
+const limit = 50
 const q = ref(decodeBase64(query.q?.toString() ?? ''))
 const finalQ = ref('')
-const { tags } = useTags(dataType, q, filter, async (fields: IFilterField[]) => {
+const isInitialized = ref(false)
+const {
+  tags,
+  load: loadTags,
+  refetch: refetchTags,
+} = useTags(dataType, q, filter, async (fields: IFilterField[]) => {
   finalQ.value = buildQuery(fields)
   await nextTick()
-  load()
+  if (isInitialized.value) {
+    refetch()
+  } else {
+    load()
+  }
+  isInitialized.value = true
 })
 
 const { addToTags } = useAddToTags(dataType, items, tags)
@@ -293,11 +303,7 @@ function doSearch() {
 }
 
 function changeViewType() {
-  if (mainStore.videoViewType === 'grid') {
-    mainStore.videoViewType = 'list'
-  } else {
-    mainStore.videoViewType = 'grid'
-  }
+  mainStore.videosTableView = !mainStore.videosTableView
 }
 
 function upload() {
@@ -371,5 +377,13 @@ onUnmounted(() => {
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
   emitter.off('media_item_deleted', mediaItemDeletedHandler)
   emitter.off('media_items_deleted', mediaItemsDeletedHandler)
+})
+
+onActivated(() => {
+  if (isInitialized.value) {
+    refetchTags()
+  } else {
+    loadTags()
+  }
 })
 </script>

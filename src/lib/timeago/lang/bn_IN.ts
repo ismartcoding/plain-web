@@ -1,5 +1,5 @@
 // Bangla (India)
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   return [
     ['এইমাত্র', 'একটা সময়'],
     ['%s সেকেন্ড আগে', '%s এর সেকেন্ডের মধ্যে'],
@@ -15,5 +15,5 @@ export default function(number: number, index: number): [string, string] {
     ['%s মাস আগে', '%s মাসে'],
     ['1 বছর আগে', '1 বছরের মধ্যে'],
     ['%s বছর আগে', '%s বছরে'],
-  ][index] as [string, string];
+  ][index] as [string, string]
 }

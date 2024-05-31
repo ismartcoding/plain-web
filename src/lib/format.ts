@@ -1,4 +1,4 @@
-import { format } from "./timeago"
+import { format } from './timeago'
 
 function getLocale() {
   return localStorage.getItem('locale') ?? navigator.language ?? 'en-US'

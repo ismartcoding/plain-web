@@ -1,5 +1,5 @@
 // Indonesian (Indonesia)
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   return [
     ['baru saja', 'sebentar'],
     ['%s detik yang lalu', 'dalam %s detik'],
@@ -15,5 +15,5 @@ export default function(number: number, index: number): [string, string] {
     ['%s bulan yang lalu', 'dalam %s bulan'],
     ['1 tahun yang lalu', 'dalam 1 tahun'],
     ['%s tahun yang lalu', 'dalam %s tahun'],
-  ][index] as [string, string];
+  ][index] as [string, string]
 }

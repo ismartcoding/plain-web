@@ -1,4 +1,4 @@
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   return [
     ['juuri äsken', 'juuri nyt'],
     ['%s sekuntia sitten', '%s sekunnin päästä'],
@@ -14,5 +14,5 @@ export default function(number: number, index: number): [string, string] {
     ['%s kuukautta sitten', '%s kuukauden päästä'],
     ['vuosi sitten', 'vuoden päästä'],
     ['%s vuotta sitten', '%s vuoden päästä'],
-  ][index] as [string, string];
+  ][index] as [string, string]
 }

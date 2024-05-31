@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'ஆடியோ பிளேயர்',
+  view_as_column: 'நெடுஞ்சாலாக பார்',
   screenshot: 'ஸ்கிரீன் ஷாட்',
   quality_hd: 'உயர் தரம்',
   quality_sd: 'சாதாரண தரம்',

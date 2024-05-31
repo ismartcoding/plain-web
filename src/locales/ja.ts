@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'オーディオプレーヤー',
+  view_as_column: 'カラムビュー',
   screenshot: 'スクリーンショット',
   quality_hd: '高品質',
   quality_sd: '標準品質',

@@ -1,4 +1,4 @@
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   return [
     ['току що', 'съвсем скоро'],
     ['преди %s секунди', 'след %s секунди'],
@@ -14,5 +14,5 @@ export default function(number: number, index: number): [string, string] {
     ['преди %s месеца', 'след %s месеца'],
     ['преди 1 година', 'след 1 година'],
     ['преди %s години', 'след %s години'],
-  ][index] as [string, string];
+  ][index] as [string, string]
 }

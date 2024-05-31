@@ -1,4 +1,4 @@
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   return [
     ['זה עתה', 'עכשיו'],
     ['לפני %s שניות', 'בעוד %s שניות'],
@@ -14,5 +14,5 @@ export default function(number: number, index: number): [string, string] {
     number === 2 ? ['לפני חודשיים', 'בעוד חודשיים'] : ['לפני %s חודשים', 'בעוד %s חודשים'],
     ['לפני שנה', 'בעוד שנה'],
     number === 2 ? ['לפני שנתיים', 'בעוד שנתיים'] : ['לפני %s שנים', 'בעוד %s שנים'],
-  ][index] as [string, string];
+  ][index] as [string, string]
 }

@@ -10,8 +10,9 @@ export type MainState = {
   quickContentWidth: number
   pages: IPage[]
   lightboxInfoVisible: boolean
-  videoViewType: string
-  imageViewType: string
+  videosTableView: boolean
+  imagesTableView: boolean
+  feedsTableView: boolean
   fileSortBy: string
   imageSortBy: string
   videoSortBy: string
@@ -34,8 +35,9 @@ export const useMainStore = defineStore({
       audios: [],
       audioPlaying: null,
       lightboxInfoVisible: false,
-      videoViewType: 'grid',
-      imageViewType: 'grid',
+      videosTableView: false,
+      imagesTableView: false,
+      feedsTableView: false,
       fileSortBy: 'NAME_ASC',
       imageSortBy: 'DATE_DESC',
       videoSortBy: 'DATE_DESC',

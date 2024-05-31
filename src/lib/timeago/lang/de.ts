@@ -1,4 +1,4 @@
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   return [
     ['gerade eben', 'vor einer Weile'],
     ['vor %s Sekunden', 'in %s Sekunden'],
@@ -14,5 +14,5 @@ export default function(number: number, index: number): [string, string] {
     ['vor %s Monaten', 'in %s Monaten'],
     ['vor 1 Jahr', 'in 1 Jahr'],
     ['vor %s Jahren', 'in %s Jahren'],
-  ][index] as [string, string];
+  ][index] as [string, string]
 }

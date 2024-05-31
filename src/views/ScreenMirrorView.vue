@@ -1,42 +1,44 @@
 <template>
-  <div class="v-toolbar">
-    <breadcrumb :current="() => $t('screen_mirror')" />
-    <template v-if="state">
-      <button class="icon-button" @click="() => refetch()" v-tooltip="$t('refresh')">
-        <md-ripple />
-        <i-material-symbols:refresh-rounded />
-      </button>
-      <md-outlined-button @click="changeQuality" class="btn-sm" v-tooltip="$t('change_quality')">{{ $t('mirror_quality') }}</md-outlined-button>
-      <md-outlined-button @click="takeScreenshot" class="btn-sm" v-tooltip="$t('screenshot')">{{ $t('screenshot') }}</md-outlined-button>
-      <md-outlined-button @click="togglePause" class="btn-sm" v-tooltip="$t(paused ? 'resume' : 'pause')">{{ $t(paused ? 'resume' : 'pause') }}</md-outlined-button>
-      <md-outlined-button :disabled="stopServiceLoading" @click="stopService" v-tooltip="$t('stop_mirror')" class="btn-sm btn-stop">{{ $t('stop_mirror') }}</md-outlined-button>
-      <button class="icon-button btn-enter-fullscreen" @click="requestFullscreen" v-tooltip="$t('fullscreen')">
-        <md-ripple />
-        <i-material-symbols:fullscreen-rounded />
-      </button>
-      <button class="icon-button btn-exit-fullscreen" @click="exitFullscreen" v-tooltip="$t('exit_fullscreen')">
-        <md-ripple />
-        <i-material-symbols:fullscreen-exit-rounded />
-      </button>
-    </template>
-    <md-outlined-button v-else-if="!relaunchAppLoading" class="btn-sm" @click="relaunchApp">{{ $t('relaunch_app') }}</md-outlined-button>
-  </div>
-  <div class="panel-container">
-    <div v-if="fetchImageLoading || startServiceLoading || relaunchAppLoading" class="loading">
-      <md-circular-progress indeterminate />
+  <div class="screen-mirror">
+    <div class="v-toolbar">
+      <breadcrumb :current="() => $t('screen_mirror')" />
+      <template v-if="state">
+        <button class="icon-button" @click="() => refetch()" v-tooltip="$t('refresh')">
+          <md-ripple />
+          <i-material-symbols:refresh-rounded />
+        </button>
+        <md-outlined-button @click="changeQuality" class="btn-sm" v-tooltip="$t('change_quality')">{{ $t('mirror_quality') }}</md-outlined-button>
+        <md-outlined-button @click="takeScreenshot" class="btn-sm" v-tooltip="$t('screenshot')">{{ $t('screenshot') }}</md-outlined-button>
+        <md-outlined-button @click="togglePause" class="btn-sm" v-tooltip="$t(paused ? 'resume' : 'pause')">{{ $t(paused ? 'resume' : 'pause') }}</md-outlined-button>
+        <md-outlined-button :disabled="stopServiceLoading" @click="stopService" v-tooltip="$t('stop_mirror')" class="btn-sm btn-stop">{{ $t('stop_mirror') }}</md-outlined-button>
+        <button class="icon-button btn-enter-fullscreen" @click="requestFullscreen" v-tooltip="$t('fullscreen')">
+          <md-ripple />
+          <i-material-symbols:fullscreen-rounded />
+        </button>
+        <button class="icon-button btn-exit-fullscreen" @click="exitFullscreen" v-tooltip="$t('exit_fullscreen')">
+          <md-ripple />
+          <i-material-symbols:fullscreen-exit-rounded />
+        </button>
+      </template>
+      <md-outlined-button v-else-if="!relaunchAppLoading" class="btn-sm" @click="relaunchApp">{{ $t('relaunch_app') }}</md-outlined-button>
     </div>
-    <div v-if="seconds > 0 && !relaunchAppLoading" class="request-permission">
-      <div class="tap-phone">
-        <TouchPhone />
+    <div class="content">
+      <div v-if="fetchImageLoading || startServiceLoading || relaunchAppLoading">
+        <md-circular-progress indeterminate />
       </div>
-      <pre class="text">{{ $t('screen_mirror_request_permission', { seconds: seconds }) }}</pre>
+      <div v-if="seconds > 0 && !relaunchAppLoading" class="request-permission">
+        <div class="tap-phone">
+          <TouchPhone />
+        </div>
+        <pre class="text">{{ $t('screen_mirror_request_permission', { seconds: seconds }) }}</pre>
+      </div>
+      <div v-if="failed && !state && !relaunchAppLoading" class="request-permission-failed">
+        <MobileWarning />
+        <p>{{ $t('screen_mirror_request_permission_failed') }}</p>
+        <md-filled-button @click="start">{{ $t('try_again') }}</md-filled-button>
+      </div>
+      <canvas v-show="state" ref="canvasRef" class="canvas"></canvas>
     </div>
-    <div v-if="failed && !state && !relaunchAppLoading" class="request-permission-failed">
-      <MobileWarning />
-      <p>{{ $t('screen_mirror_request_permission_failed') }}</p>
-      <md-filled-button @click="start">{{ $t('try_again') }}</md-filled-button>
-    </div>
-    <canvas v-show="state" ref="canvasRef" class="canvas"></canvas>
   </div>
 </template>
 
@@ -178,7 +180,7 @@ const { loading: fetchImageLoading, refetch } = initQuery({
 })
 
 const requestFullscreen = () => {
-  document.getElementsByClassName('page-content')[0].requestFullscreen({ navigationUI: 'show' })
+  document.getElementsByClassName('screen-mirror')[0].requestFullscreen({ navigationUI: 'show' })
 }
 
 const start = () => {
@@ -226,35 +228,23 @@ stopServiceDone(() => {
   state.value = false
 })
 </script>
-<style lang="scss">
-.page-content .main {
-  flex-direction: column;
-  display: flex;
-}
-:fullscreen {
-  .main {
-    border-radius: 0;
-    height: 100vh;
-    margin: 0;
-  }
-}
-</style>
 <style lang="scss" scoped>
 .canvas {
   margin: 0 auto;
   display: block;
   width: 100%;
   height: 100%;
-  max-height: calc(100vh - 132px);
   object-fit: contain;
 }
 
 :fullscreen {
-  .canvas {
-    max-height: 100%;
+  background-color: var(--md-sys-color-surface);
+  padding: 8px 16px 0 16px;
+  .content {
+    height: auto;
   }
   .canvas {
-    max-height: calc(100vh - 72px);
+    max-height: calc(100vh - 60px);
   }
   .btn-exit-fullscreen {
     display: block;
@@ -265,11 +255,11 @@ stopServiceDone(() => {
   }
 }
 
-.panel-container {
+.content {
   display: flex;
-  flex: 1;
   justify-content: center;
   align-items: center;
+  height: calc(100vh - 132px);
 }
 
 .btn-enter-fullscreen,

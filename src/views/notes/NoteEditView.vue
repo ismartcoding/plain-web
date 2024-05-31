@@ -7,7 +7,7 @@
         <field-id class="time" v-if="note?.updatedAt" :id="getTime()" :raw="note" />
       </template>
     </breadcrumb>
-    <span v-for="tag in note?.tags" :key="tag.id" class="badge">{{ tag.name }}</span>
+    <item-tags :tags="note?.tags" :type="dataType" :only-links="true" />
     <button class="icon-button" v-if="!isCreate()" v-tooltip="$t('add_to_tags')" @click.prevent="addToTags" style="margin-inline-start: 8px">
       <md-ripple />
       <i-material-symbols:label-outline-rounded />

@@ -1,4 +1,4 @@
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   return [
     ['இப்போது', 'சற்று நேரம் முன்பு'],
     ['%s நொடிக்கு முன்', '%s நொடிகளில்'],
@@ -14,5 +14,5 @@ export default function(number: number, index: number): [string, string] {
     ['%s மாதங்களுக்கு முன்', '%s மாதங்களில்'],
     ['1 வருடத்திற்கு முன்', '1 வருடத்தில்'],
     ['%s வருடங்களுக்கு முன்', '%s வருடங்களில்'],
-  ][index] as [string, string];
+  ][index] as [string, string]
 }

@@ -1,4 +1,4 @@
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   const langTable = [
     ['chiar acum', 'chiar acum'],
     ['acum %s secunde', 'peste %s secunde'],
@@ -14,13 +14,13 @@ export default function(number: number, index: number): [string, string] {
     ['acum %s luni', 'peste %s luni'],
     ['acum un an', 'peste un an'],
     ['acum %s ani', 'peste %s ani'],
-  ];
+  ]
 
   if (number < 20) {
-    return langTable[index] as [string, string];
+    return langTable[index] as [string, string]
   }
 
   // A `de` preposition must be added between the number and the adverb
   // if the number is greater than 20.
-  return [langTable[index][0].replace('%s', '%s de'), langTable[index][1].replace('%s', '%s de')];
+  return [langTable[index][0].replace('%s', '%s de'), langTable[index][1].replace('%s', '%s de')]
 }

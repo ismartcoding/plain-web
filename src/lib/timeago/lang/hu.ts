@@ -1,4 +1,4 @@
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   return [
     ['éppen most', 'éppen most'],
     ['%s másodperce', '%s másodpercen belül'],
@@ -14,5 +14,5 @@ export default function(number: number, index: number): [string, string] {
     ['%s hónapja', '%s hónapon belül'],
     ['1 éve', '1 éven belül'],
     ['%s éve', '%s éven belül'],
-  ][index] as [string, string];
+  ][index] as [string, string]
 }

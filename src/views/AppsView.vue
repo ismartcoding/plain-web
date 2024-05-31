@@ -95,7 +95,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { onActivated, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import tapPhone from '@/plugins/tapphone'
 import { formatDateTime, formatDateTimeFull, formatFileSize } from '@/lib/format'
@@ -158,7 +158,7 @@ const cancelUninstall = (item: any) => {
   item.isUninstalling = false
 }
 
-const { loading } = initQuery({
+const { loading, load, refetch } = initLazyQuery({
   handle: (data: any, error: string) => {
     if (error) {
       toast(t(error), 'error')
@@ -270,5 +270,16 @@ onMounted(() => {
 
 onUnmounted(() => {
   emitter.off('upload_task_done', uploadTaskDoneHandler)
+})
+
+const isInitialized = ref(false)
+
+onActivated(() => {
+  if (isInitialized.value) {
+    refetch()
+  } else {
+    load()
+    isInitialized.value = true
+  }
 })
 </script>

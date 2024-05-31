@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'ऑडियो प्लेयर',
+  view_as_column: 'कॉलम के रूप में देखें',
   screenshot: 'स्क्रीनशॉट',
   quality_hd: 'एचडी',
   quality_sd: 'एसडी',

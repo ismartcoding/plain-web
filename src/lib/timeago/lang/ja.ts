@@ -1,4 +1,4 @@
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   return [
     ['すこし前', 'すぐに'],
     ['%s秒前', '%s秒以内'],
@@ -14,5 +14,5 @@ export default function(number: number, index: number): [string, string] {
     ['%sヶ月前', '%sヶ月以内'],
     ['1年前', '1年以内'],
     ['%s年前', '%s年以内'],
-  ][index] as [string, string];
+  ][index] as [string, string]
 }

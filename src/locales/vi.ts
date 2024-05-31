@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'Trình phát âm thanh',
+  view_as_column: 'Xem dạng cột',
   screenshot: 'Chụp màn hình',
   quality_hd: 'HD',
   quality_sd: 'SD',

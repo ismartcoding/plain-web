@@ -1,4 +1,4 @@
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   return [
     ['ယခုအတွင်း', 'ယခု'],
     ['%s စက္ကန့် အကြာက', '%s စက္ကန့်အတွင်း'],
@@ -14,5 +14,5 @@ export default function(number: number, index: number): [string, string] {
     ['%s လ အကြာက', '%s လအတွင်း'],
     ['1 နှစ် အကြာက', '1 နှစ်အတွင်း'],
     ['%s နှစ် အကြာက', '%s နှစ်အတွင်း'],
-  ][index] as [string, string];
+  ][index] as [string, string]
 }

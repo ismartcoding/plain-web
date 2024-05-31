@@ -1,16 +1,17 @@
 <template>
   <div class="v-toolbar">
-    <breadcrumb :current="() => `${$t('page_title.trash')} (${total})`" />
+    <breadcrumb :current="() => `${$t('page_title.notes')} (${total})`" />
     <template v-if="checked">
-      <button class="icon-button" @click.stop="deleteItems(realAllChecked, finalQ)" v-tooltip="$t('delete')">
+      <button class="icon-button" @click.stop="moveToTrash" v-tooltip="$t('move_to_trash')">
         <md-ripple />
-        <i-material-symbols:delete-forever-outline-rounded />
+        <i-material-symbols:delete-outline-rounded />
       </button>
-      <button class="icon-button" @click.stop="untrash" v-tooltip="$t('restore')">
+      <button class="icon-button" @click.stop="addToTags(realAllChecked, finalQ)" v-tooltip="$t('add_to_tags')">
         <md-ripple />
-        <i-material-symbols:restore-from-trash-outline-rounded />
+        <i-material-symbols:label-outline-rounded />
       </button>
     </template>
+    <md-outlined-button @click.prevent="create">{{ $t('create') }}</md-outlined-button>
     <search-input ref="searchInputRef" v-model="q" :search="doSearch">
       <template #filters>
         <div class="filters">
@@ -36,9 +37,9 @@
           <th>
             <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
           </th>
-          <th>ID</th>
           <th>{{ $t('title') }}</th>
           <th></th>
+          <th>{{ $t('tags') }}</th>
           <th>{{ $t('updated_at') }}</th>
           <th>{{ $t('created_at') }}</th>
         </tr>
@@ -46,21 +47,25 @@
       <tbody>
         <tr v-for="item in items" :key="item.id" :class="{ selected: item.checked }" @click.stop="toggleRow(item)">
           <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
-          <td><field-id :id="item.id" :raw="item" /></td>
-          <td>
-            <a href="#" @click.stop.prevent="view(item)">{{ item.title || $t('no_content') }}</a>
+          <td style="min-width: 200px">
+            <a style="text-overflow: clip" href="#" @click.stop.prevent="view(item)">
+              {{ getSummary(item.title.split('\n')[0].trimStart()) || $t('meta_no_title') }}
+            </a>
           </td>
           <td class="nowrap">
             <div class="action-btns">
-              <button class="icon-button" @click.stop="deleteItem(item)" v-tooltip="$t('delete')">
+              <button class="icon-button" @click.stop="trashNotes({ query: `ids:${item.id}` })" v-tooltip="$t('move_to_trash')">
                 <md-ripple />
-                <i-material-symbols:delete-forever-outline-rounded />
+                <i-material-symbols:delete-outline-rounded />
               </button>
-              <button class="icon-button" @click.stop="untrashNotes({ query: `ids:${item.id}` })" v-tooltip="$t('restore')">
+              <button class="icon-button" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
                 <md-ripple />
-                <i-material-symbols:restore-from-trash-outline-rounded />
+                <i-material-symbols:label-outline-rounded />
               </button>
             </div>
+          </td>
+          <td>
+            <item-tags :tags="item.tags" :type="dataType" />
           </td>
           <td class="nowrap">
             {{ formatDateTime(item.updatedAt) }}
@@ -85,7 +90,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onActivated, onBeforeMount, reactive, ref, watch } from 'vue'
+import { nextTick, onActivated, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatDateTime } from '@/lib/format'
 import { notesGQL, initLazyQuery } from '@/lib/api/query'
@@ -93,19 +98,19 @@ import { useRoute } from 'vue-router'
 import router, { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useI18n } from 'vue-i18n'
-import type { INote, IFilter, INoteItem, ISelectable, ITag } from '@/lib/interfaces'
+import type { INote, IFilter, INoteItem, ISelectable, ITag, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent } from '@/lib/interfaces'
 import { buildFilterQuery, buildQuery, type IFilterField } from '@/lib/search'
 import { decodeBase64, encodeBase64 } from '@/lib/strutil'
 import { noDataKey } from '@/lib/list'
 import { useSelectable } from '@/hooks/list'
-import { useDelete } from '@/hooks/list'
-import { deleteNotesGQL, initMutation, untrashNotesGQL } from '@/lib/api/mutation'
-import { useTags } from '@/hooks/tags'
-import { remove } from 'lodash-es'
+import emitter from '@/plugins/eventbus'
+import { useAddToTags, useTags } from '@/hooks/tags'
+import { initMutation, trashNotesGQL } from '@/lib/api/mutation'
 import { openModal } from '@/components/modal'
-import DeleteConfirm from '@/components/DeleteConfirm.vue'
-import gql from 'graphql-tag'
+import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
+import { remove } from 'lodash-es'
 import { DataType } from '@/lib/data'
+import { getSummary } from '@/lib/strutil'
 
 const mainStore = useMainStore()
 const items = ref<INoteItem[]>([])
@@ -123,25 +128,28 @@ const page = ref(parseInt(query.page?.toString() ?? '1'))
 const limit = 50
 const q = ref(decodeBase64(query.q?.toString() ?? ''))
 const finalQ = ref('')
-const { tags } = useTags(dataType, q, filter, async (fields: IFilterField[]) => {
+const isInitialized = ref(false)
+const {
+  tags,
+  load: loadTags,
+  refetch: refetchTags,
+} = useTags(dataType, q, filter, async (fields: IFilterField[]) => {
   fields.push({
     name: 'trash',
     op: '',
-    value: 'true',
+    value: 'false',
   })
 
   finalQ.value = buildQuery(fields)
   await nextTick()
-  load()
-})
-const { deleteItems } = useDelete(
-  deleteNotesGQL,
-  () => {
-    clearSelection()
+  if (isInitialized.value) {
     refetch()
-  },
-  items
-)
+  } else {
+    load()
+  }
+  isInitialized.value = true
+})
+const { addToTags } = useAddToTags(dataType, items, tags)
 
 const { allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleItemChecked, toggleRow, total, checked } = useSelectable(items)
 const { loading, load, refetch } = initLazyQuery({
@@ -164,8 +172,43 @@ const { loading, load, refetch } = initLazyQuery({
   appApi: true,
 })
 
+function addItemToTags(item: INoteItem) {
+  openModal(UpdateTagRelationsModal, {
+    type: dataType,
+    tags: tags.value,
+    item: {
+      key: item.id,
+      title: '',
+      size: 0,
+    },
+    selected: tags.value.filter((it) => item.tags.some((t) => t.id === it.id)),
+  })
+}
+
 watch(page, (value: number) => {
-  replacePath(mainStore, `/notes/trash?page=${value}&q=${encodeBase64(q.value)}`)
+  replacePath(mainStore, `/notes?page=${value}&q=${encodeBase64(q.value)}`)
+})
+
+const { mutate: trashNotes, onDone: onTrash } = initMutation({
+  document: trashNotesGQL,
+  appApi: true,
+})
+
+function moveToTrash() {
+  const selectedItems = items.value.filter((it: ISelectable) => it.checked)
+  if (selectedItems.length === 0) {
+    toast(t('select_first'), 'error')
+    return
+  }
+  trashNotes({ query: `ids:${selectedItems.map((it: INote) => it.id).join(',')}` })
+}
+
+onTrash(() => {
+  clearSelection()
+  refetch()
+  if (items.value.some((it) => it.tags.length)) {
+    emitter.emit('refetch_tags', dataType)
+  }
 })
 
 function onTagSelect(item: ITag) {
@@ -183,54 +226,45 @@ function applyAndDoSearch() {
 }
 
 function doSearch() {
-  replacePath(mainStore, `/notes/trash?q=${encodeBase64(q.value)}`)
+  replacePath(mainStore, `/notes?q=${encodeBase64(q.value)}`)
 }
 
-const { mutate: untrashNotes, onDone: onRestored } = initMutation({
-  document: untrashNotesGQL,
-  appApi: true,
+const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
+  if (event.type === dataType) {
+    clearSelection()
+    refetch()
+  }
+}
+
+const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
+  if (event.type === dataType) {
+    refetch()
+  }
+}
+
+onMounted(() => {
+  emitter.on('item_tags_updated', itemTagsUpdatedHandler)
+  emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
 })
 
-function untrash() {
-  const selectedItems = items.value.filter((it: ISelectable) => it.checked)
-  if (selectedItems.length === 0) {
-    toast(t('select_first'), 'error')
-    return
-  }
-  untrashNotes({ query: `ids:${selectedItems.map((it: INote) => it.id).join(',')}` })
-}
+onUnmounted(() => {
+  emitter.off('item_tags_updated', itemTagsUpdatedHandler)
+  emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
+})
 
 function view(item: INote) {
   router.push(`/notes/${item.id}`)
 }
 
-onRestored(() => {
-  clearSelection()
-  refetch()
-})
-
-function deleteItem(item: INoteItem) {
-  openModal(DeleteConfirm, {
-    id: item.id,
-    name: item.id,
-    gql: gql`
-      mutation DeleteNote($query: String!) {
-        deleteNotes(query: $query)
-      }
-    `,
-    variables: () => ({
-      query: `ids:${item.id}`,
-    }),
-    done: () => {
-      clearSelection()
-      total.value--
-    },
-    appApi: true,
-    typeName: 'Note',
-  })
+function create() {
+  router.push(`/notes/create`)
 }
 
 onActivated(() => {
-  // load data
+  if (isInitialized.value) {
+    refetchTags()
+  } else {
+    loadTags()
+  }
 })
 </script>

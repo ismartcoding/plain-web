@@ -1,15 +1,15 @@
 function formatNum(single: string, one: string, few: string, other: string, n: number): string {
-  const rem10 = n % 10;
-  const rem100 = n % 100;
+  const rem10 = n % 10
+  const rem100 = n % 100
 
   if (n == 1) {
-    return single;
+    return single
   } else if (rem10 == 1 && rem100 != 11) {
-    return one;
+    return one
   } else if (rem10 >= 2 && rem10 <= 4 && !(rem100 >= 12 && rem100 <= 14)) {
-    return few;
+    return few
   } else {
-    return other;
+    return other
   }
 }
 
@@ -19,33 +19,33 @@ const seconds = formatNum.bind(null, '1 секунд', '%s секунд', '%s с
   days = formatNum.bind(null, '1 дан', '%s дан', '%s дана', '%s дана'),
   weeks = formatNum.bind(null, 'недељу дана', '%s недељу', '%s недеље', '%s недеља'),
   months = formatNum.bind(null, 'месец дана', '%s месец', '%s месеца', '%s месеци'),
-  years = formatNum.bind(null, 'годину дана', '%s годину', '%s године', '%s година');
+  years = formatNum.bind(null, 'годину дана', '%s годину', '%s године', '%s година')
 
-export default function(number: number, index: number): [string, string] {
+export default function (number: number, index: number): [string, string] {
   switch (index) {
     case 0:
-      return ['малопре', 'управо сад'];
+      return ['малопре', 'управо сад']
     case 1:
-      return ['пре ' + seconds(number), 'за ' + seconds(number)];
+      return ['пре ' + seconds(number), 'за ' + seconds(number)]
     case 2:
     case 3:
-      return ['пре ' + minutes(number), 'за ' + minutes(number)];
+      return ['пре ' + minutes(number), 'за ' + minutes(number)]
     case 4:
     case 5:
-      return ['пре ' + hours(number), 'за ' + hours(number)];
+      return ['пре ' + hours(number), 'за ' + hours(number)]
     case 6:
     case 7:
-      return ['пре ' + days(number), 'за ' + days(number)];
+      return ['пре ' + days(number), 'за ' + days(number)]
     case 8:
     case 9:
-      return ['пре ' + weeks(number), 'за ' + weeks(number)];
+      return ['пре ' + weeks(number), 'за ' + weeks(number)]
     case 10:
     case 11:
-      return ['пре ' + months(number), 'за ' + months(number)];
+      return ['пре ' + months(number), 'за ' + months(number)]
     case 12:
     case 13:
-      return ['пре ' + years(number), 'за ' + years(number)];
+      return ['пре ' + years(number), 'за ' + years(number)]
     default:
-      return ['', ''];
+      return ['', '']
   }
 }
