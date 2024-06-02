@@ -12,7 +12,7 @@
         <md-outlined-text-field v-if="complexName" :label="$t('middle_name')" v-model="editItem.middleName" />
         <md-outlined-text-field :label="$t('last_name')" v-model="editItem.lastName" />
         <div class="v-center" v-if="!complexName">
-          <button class="icon-button" @click="complexName = true">
+          <button class="btn-icon" @click="complexName = true">
             <md-ripple />
             <i-material-symbols:keyboard-double-arrow-down-rounded />
           </button>
@@ -22,7 +22,7 @@
         <md-outlined-text-field :label="$t('prefix')" v-model="editItem.prefix" />
         <md-outlined-text-field :label="$t('suffix')" v-model="editItem.suffix" />
         <div class="v-center">
-          <button class="icon-button" @click="complexName = false">
+          <button class="btn-icon" @click="complexName = false">
             <md-ripple />
             <i-material-symbols:keyboard-double-arrow-up-rounded />
           </button>
@@ -39,7 +39,7 @@
         </md-outlined-select>
         <md-outlined-text-field :placeholder="$t('telephone')" v-model="item.value" class="flex-3" />
         <div class="v-center">
-          <button class="icon-button" @click="deleteField(editItem.phoneNumbers, index)" v-if="editItem.phoneNumbers.length > 1">
+          <button class="btn-icon" @click="deleteField(editItem.phoneNumbers, index)" v-if="editItem.phoneNumbers.length > 1">
             <md-ripple />
             <i-material-symbols:delete-forever-outline-rounded />
           </button>
@@ -56,7 +56,7 @@
         </md-outlined-select>
         <md-outlined-text-field :label="$t('email')" v-model="item.value" class="flex-3" />
         <div class="v-center">
-          <button class="icon-button" @click="deleteField(editItem.emails, index)">
+          <button class="btn-icon" @click="deleteField(editItem.emails, index)">
             <md-ripple />
             <i-material-symbols:delete-forever-outline-rounded />
           </button>
@@ -73,7 +73,7 @@
         </md-outlined-select>
         <md-outlined-text-field :label="$t('address')" v-model="item.value" class="flex-3" />
         <div class="v-center">
-          <button class="icon-button" @click="deleteField(editItem.addresses, index)">
+          <button class="btn-icon" @click="deleteField(editItem.addresses, index)">
             <md-ripple />
             <i-material-symbols:delete-forever-outline-rounded />
           </button>
@@ -90,7 +90,7 @@
         </md-outlined-select>
         <md-outlined-text-field :placeholder="$t('website')" v-model="item.value" class="flex-3" />
         <div class="v-center">
-          <button class="icon-button" @click="deleteField(editItem.websites, index)">
+          <button class="btn-icon" @click="deleteField(editItem.websites, index)">
             <md-ripple />
             <i-material-symbols:delete-forever-outline-rounded />
           </button>
@@ -107,7 +107,7 @@
         </md-outlined-select>
         <md-outlined-text-field :placeholder="$t('im')" v-model="item.value" class="flex-3" />
         <div class="v-center">
-          <button class="icon-button" @click="deleteField(editItem.ims, index)">
+          <button class="btn-icon" @click="deleteField(editItem.ims, index)">
             <md-ripple />
             <i-material-symbols:delete-forever-outline-rounded />
           </button>

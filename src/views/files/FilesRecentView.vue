@@ -1,9 +1,9 @@
 <template>
-  <div class="v-toolbar">
-    <breadcrumb :current="$t('recent_files')" />
-    <div class="right-actions">
+  <div class="top-app-bar">
+    <div class="title">{{ $t('recent_files') }}</div>
+    <div class="actions">
       <template v-if="selectMode && checked">
-        <button class="icon-button" @click.stop="downloadItems" v-tooltip="$t('download')">
+        <button class="btn-icon" @click.stop="downloadItems" v-tooltip="$t('download')">
           <md-ripple />
           <i-material-symbols:download-rounded />
         </button>
@@ -211,7 +211,7 @@ function itemCtxMenu(e: MouseEvent, f: IFile) {
 
     &:hover,
     &.active {
-      background-color: var(--md-sys-color-on-surface-selected);
+      background-color: var(--md-sys-color-surface-variant);
       border-radius: 8px;
     }
   }

@@ -1,9 +1,14 @@
 <template>
-  <div class="v-toolbar">
-    <breadcrumb :current="() => $t('page_title.rules')" />
-    <button type="button" class="btn right-actions" @click="create">
-      {{ $t('create') }}
-    </button>
+  <div class="top-app-bar">
+    <div class="title">{{ $t('page_title.rules') }}</div>
+  </div>
+  <div class="top-app-bar">
+    <div class="title">{{ $t('page_title.rules') }}</div>
+    <div class="actions">
+      <button type="button" class="btn" @click="create">
+        {{ $t('create') }}
+      </button>
+    </div>
   </div>
   <div class="table-responsive">
     <table class="table">
@@ -40,14 +45,14 @@
             </div>
           </td>
           <td class="nowrap">
-            <span v-tooltip="formatDateTimeFull(item.createdAt)">
+            <time v-tooltip="formatDateTimeFull(item.createdAt)">
               {{ formatDateTime(item.createdAt) }}
-            </span>
+            </time>
           </td>
           <td class="nowrap">
-            <span v-tooltip="formatDateTimeFull(item.updatedAt)">
+            <time v-tooltip="formatDateTimeFull(item.updatedAt)">
               {{ formatDateTime(item.updatedAt) }}
-            </span>
+            </time>
           </td>
           <td class="actions two">
             <a href="#" class="v-link" @click.prevent="edit(item)">{{ $t('edit') }}</a>

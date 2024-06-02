@@ -1,6 +1,6 @@
 <template>
   <div class="image-container">
-    <div class="item" v-for="(item, i) in sources" :key="i" @click="view(i)">
+    <div class="media-grid-item" v-for="(item, i) in sources" :key="i" @click="view(i)">
       <img class="image" :src="getPreview(item)" onerror="this.src='/broken-image.png'" />
       <span class="duration">{{ isVideo(item.name) ? formatSeconds(item.duration) : formatFileSize(item.size) }}</span>
     </div>
@@ -60,4 +60,3 @@ const sources = computed(() => {
   return items
 })
 </script>
-

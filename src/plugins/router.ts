@@ -27,58 +27,58 @@ const router = createRouter({
           meta: { group: 'home' },
         },
         {
-          path: 'messages/:type?',
+          path: 'messages',
           components: {
-            default: () => import('@/views/MessagesView.vue'),
-            LeftSidebar: () => import('../components/MessagesSidebar.vue'),
+            default: () => import('@/views/messages/MessagesView.vue'),
+            LeftSidebar: () => import('@/views/messages/MessagesSidebar.vue'),
           },
           meta: { group: 'messages' },
         },
         {
-          path: 'calls/:type?',
+          path: 'calls',
           components: {
-            default: () => import('@/views/CallsView.vue'),
-            LeftSidebar: () => import('../components/CallsSidebar.vue'),
+            default: () => import('@/views/calls/CallsView.vue'),
+            LeftSidebar: () => import('@/views/calls/CallsSidebar.vue'),
           },
           meta: { group: 'calls' },
         },
         {
-          path: 'apps/:type?',
+          path: 'apps',
           components: {
-            default: () => import('@/views/AppsView.vue'),
-            LeftSidebar: () => import('../components/AppsSidebar.vue'),
+            default: () => import('@/views/apps/AppsView.vue'),
+            LeftSidebar: () => import('@/views/apps/AppsSidebar.vue'),
           },
           meta: { group: 'apps' },
         },
         {
           path: 'contacts',
           components: {
-            default: () => import('@/views/ContactsView.vue'),
-            LeftSidebar: () => import('../components/ContactsSidebar.vue'),
+            default: () => import('@/views/contacts/ContactsView.vue'),
+            LeftSidebar: () => import('@/views/contacts/ContactsSidebar.vue'),
           },
           meta: { group: 'contacts' },
         },
         {
           path: 'images',
           components: {
-            default: () => import('@/views/ImagesView.vue'),
-            LeftSidebar: () => import('../components/MediaSidebar.vue'),
+            default: () => import('@/views/images/ImagesView.vue'),
+            LeftSidebar: () => import('@/views/images/ImagesSidebar.vue'),
           },
           meta: { group: 'images' },
         },
         {
           path: 'videos',
           components: {
-            default: () => import('@/views/VideosView.vue'),
-            LeftSidebar: () => import('../components/MediaSidebar.vue'),
+            default: () => import('@/views/videos/VideosView.vue'),
+            LeftSidebar: () => import('@/views/videos/VideosSidebar.vue'),
           },
           meta: { group: 'videos' },
         },
         {
           path: 'audios',
           components: {
-            default: () => import('@/views/AudiosView.vue'),
-            LeftSidebar: () => import('../components/MediaSidebar.vue'),
+            default: () => import('@/views/audios/AudiosView.vue'),
+            LeftSidebar: () => import('@/views/audios/AudiosSidebar.vue'),
           },
           meta: { group: 'audios' },
         },
@@ -91,15 +91,7 @@ const router = createRouter({
           path: 'notes',
           components: {
             default: () => import('@/views/notes/NotesView.vue'),
-            LeftSidebar: () => import('../components/NotesSidebar.vue'),
-          },
-          meta: { group: 'notes' },
-        },
-        {
-          path: 'notes/trash',
-          components: {
-            default: () => import('@/views/notes/NotesTrashView.vue'),
-            LeftSidebar: () => import('../components/NotesSidebar.vue'),
+            LeftSidebar: () => import('../views/notes/NotesSidebar.vue'),
           },
           meta: { group: 'notes' },
         },
@@ -119,16 +111,16 @@ const router = createRouter({
         {
           path: 'files/:type?',
           components: {
-            default: () => import('@/views/FilesView.vue'),
-            LeftSidebar: () => import('../components/FilesSidebar.vue'),
+            default: () => import('@/views/files/FilesView.vue'),
+            LeftSidebar: () => import('@/views/files/FilesSidebar.vue'),
           },
           meta: { group: 'files' },
         },
         {
           path: 'files/recent',
           components: {
-            default: () => import('@/views/FilesRecentView.vue'),
-            LeftSidebar: () => import('../components/FilesSidebar.vue'),
+            default: () => import('@/views/files/FilesRecentView.vue'),
+            LeftSidebar: () => import('@/views/files/FilesSidebar.vue'),
           },
           meta: { group: 'files' },
         },

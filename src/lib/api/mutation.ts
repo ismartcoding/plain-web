@@ -265,8 +265,12 @@ export const syncFeedContentGQL = gql`
   mutation syncFeedContent($id: ID!) {
     syncFeedContent(id: $id) {
       ...FeedEntryFragment
+      feed {
+        ...FeedFragment
+      }
     }
   }
+  ${feedFragment}
   ${feedEntryFragment}
 `
 

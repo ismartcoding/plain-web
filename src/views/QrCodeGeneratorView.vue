@@ -1,9 +1,11 @@
 <template>
-  <div class="v-toolbar">
-    <breadcrumb :current="() => $t('qrcode_generator')" />
+  <div class="top-app-bar">
+    <div class="title">
+      {{ $t('qrcode_generator') }}
+    </div>
   </div>
   <div class="content">
-    <md-outlined-text-field class="textarea" type="textarea" rows="3" v-model="qrCode" />
+    <md-outlined-text-field v-model="qrCode" class="textarea" type="textarea" rows="3" />
     <div class="qrcode-panel">
       <img v-if="url" :src="url" />
     </div>

@@ -48,9 +48,11 @@ export function initLazyQuery<TResult = any>(params: InitQueryParams<TResult>) {
     ...(typeof params.options === 'function' ? params.options() : params.options),
   }))
 
-  if (result.value) {
-    params.handle(result.value, '')
-  }
+  // if (result.value) {
+  //   params.handle(result.value, '')
+  // }
+
+  let first = true
 
   onResult((r) => {
     let error = ''
@@ -66,7 +68,22 @@ export function initLazyQuery<TResult = any>(params: InitQueryParams<TResult>) {
     }
   })
 
-  return { result, onResult, load, loading, variables, refetch }
+  return {
+    result,
+    onResult,
+    load,
+    loading,
+    variables,
+    refetch,
+    fetch: () => {
+      if (first) {
+        first = false
+        load()
+      } else {
+        refetch()
+      }
+    },
+  }
 }
 
 export const chatItemsGQL = gql`
@@ -145,6 +162,12 @@ export const homeStatsGQL = gql`
     messageCount(query: "")
     contactCount(query: "")
     callCount(query: "")
+    imageCount(query: "")
+    audioCount(query: "")
+    videoCount(query: "")
+    packageCount(query: "")
+    noteCount(query: "trash:false")
+    feedEntryCount(query: "")
     storageStats {
       internal {
         totalBytes
@@ -324,7 +347,6 @@ export const feedEntriesGQL = gql`
       image
       author
       feedId
-      description
       rawId
       publishedAt
       createdAt
@@ -348,6 +370,21 @@ export const feedsTagsGQL = gql`
     }
   }
   ${feedFragment}
+  ${tagFragment}
+`
+
+export const bucketsTagsGQL = gql`
+  query bucketsTags($type: DataType!) {
+    tags(type: $type) {
+      ...TagFragment
+    }
+    mediaBuckets(type: $type) {
+      id
+      name
+      itemCount
+      topItems
+    }
+  }
   ${tagFragment}
 `
 
@@ -384,6 +421,73 @@ export const aichatsGQL = gql`
     aiChatCount(query: $query)
   }
   ${aiChatFragment}
+`
+
+export const imageCountGQL = gql`
+  query {
+    total: imageCount(query: "")
+  }
+`
+
+export const audioCountGQL = gql`
+  query {
+    total: audioCount(query: "")
+  }
+`
+
+export const videoCountGQL = gql`
+  query {
+    total: videoCount(query: "")
+  }
+`
+
+export const packageCountGQL = gql`
+  query {
+    total: packageCount(query: "")
+    system: packageCount(query: "type:system")
+  }
+`
+
+export const feedEntryCountGQL = gql`
+  query {
+    total: feedEntryCount(query: "")
+    today: feedEntryCount(query: "today:true")
+    feedsCount {
+      id
+      count
+    }
+  }
+`
+
+export const contactCountGQL = gql`
+  query {
+    total: contactCount(query: "")
+  }
+`
+
+export const callCountGQL = gql`
+  query {
+    total: callCount(query: "")
+    incoming: callCount(query: "type:1")
+    outgoing: callCount(query: "type:2")
+    missed: callCount(query: "type:3")
+  }
+`
+
+export const smsCountGQL = gql`
+  query {
+    total: messageCount(query: "")
+    inbox: messageCount(query: "type:1")
+    sent: messageCount(query: "type:2")
+    drafts: messageCount(query: "type:3")
+  }
+`
+
+export const noteCountGQL = gql`
+  query {
+    total: noteCount(query: "trash:false")
+    trash: noteCount(query: "trash:true")
+  }
 `
 
 export const aichatDetailGQL = gql`

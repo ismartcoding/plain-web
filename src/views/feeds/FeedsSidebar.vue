@@ -4,7 +4,7 @@
       {{ $t('page_title.feeds') }}
     </template>
     <template #actions>
-      <button class="icon-button" id="add-feed-ref" @click="() => (addMenuVisible = true)" v-tooltip="t('add_subscription')">
+      <button class="btn-icon" id="add-feed-ref" @click="() => (addMenuVisible = true)" v-tooltip="t('add_subscription')">
         <md-ripple />
         <i-material-symbols:add-rounded />
       </button>
@@ -16,48 +16,68 @@
     </template>
     <template #body>
       <ul class="nav">
-        <li @click.prevent="all" :class="{ active: !selectedTagName && !selectedFeedName }">
-          {{ $t('all') }}
+        <li @click.prevent="viewAll" :class="{ active: !today && !selectedTagId && !selectedFeedId }">
+          {{ $t('all') }}<span class="count" v-if="counter.feedEntries >= 0">{{ counter.feedEntries.toLocaleString() }}</span>
+        </li>
+        <li @click.prevent="viewToday" :class="{ active: today }">
+          {{ $t('today') }}<span class="count" v-if="counter.feedEntriesToday >= 0">{{ counter.feedEntriesToday.toLocaleString() }}</span>
         </li>
         <li
           v-for="item in feeds"
           @click.stop.prevent="viewFeed(item)"
-          @contextmenu="itemCtxMenu($event, item)"
           :class="{
-            active: selectedFeedName && kebabCase(item.name) === selectedFeedName,
+            active: selectedFeedId && item.id === selectedFeedId,
           }"
         >
-          {{ item.name }}
+          <span>{{ item.name }}</span>
+          <button :id="'feed-' + item.id" class="btn-icon sm" @click.prevent.stop="showFeedMenu(item)" v-tooltip="$t('actions')">
+            <md-ripple />
+            <i-material-symbols:more-vert />
+          </button>
+          <span class="count" v-if="getFeedCount(item.id) >= 0">{{ getFeedCount(item.id).toLocaleString() }}</span>
         </li>
       </ul>
-      <tag-filter type="FEED_ENTRY" :selected="selectedTagName" />
+      <md-menu positioning="popover" :anchor="'feed-' + selectedFeed?.id" stay-open-on-focusout quick :open="feedMenuVisible" @closed="feedMenuVisible = false">
+        <md-menu-item @click="editFeed(selectedFeed!)">
+          <div slot="headline">{{ $t('rename') }}</div>
+        </md-menu-item>
+        <md-menu-item @click="deleteFeed(selectedFeed!)">
+          <div slot="headline">{{ $t('delete') }}</div>
+        </md-menu-item>
+      </md-menu>
+      <tag-filter type="FEED_ENTRY" :selected="selectedTagId" />
       <input ref="fileInput" style="display: none" accept=".xml" type="file" @change="uploadChanged" />
     </template>
   </left-sidebar>
 </template>
 
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
 import router, { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
-import { parseFeedName, parseTagName } from '@/lib/search'
-import type { IDropdownItem, IFeed } from '@/lib/interfaces'
-import { ref, watch } from 'vue'
+import type { IDropdownItem, IFeed, IFilter } from '@/lib/interfaces'
+import { reactive, ref, watch } from 'vue'
 import AddFeedModal from '@/components/AddFeedModal.vue'
 import { deleteFeedGQL, exportFeedsGQL, importFeedsGQL, initMutation } from '@/lib/api/mutation'
 import { downloadFromString } from '@/lib/api/file'
 import { useI18n } from 'vue-i18n'
 import toast from '@/components/toaster'
-import { contextmenu } from '@/components/contextmenu'
 import { openModal } from '@/components/modal'
-import { initQuery, feedsGQL } from '@/lib/api/query'
-import { kebabCase } from 'lodash-es'
+import { initQuery, feedsGQL, initLazyQuery, feedEntryCountGQL } from '@/lib/api/query'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import FeedModal from './FeedModal.vue'
 import { useFeeds } from '@/hooks/feeds'
+import { decodeBase64 } from '@/lib/strutil'
+import { useSearch } from '@/hooks/search'
+import { storeToRefs } from 'pinia'
+import { useTempStore } from '@/stores/temp'
 
 const { t } = useI18n()
 const mainStore = useMainStore()
+const { counter } = storeToRefs(useTempStore())
+const { parseQ } = useSearch()
+const filter = reactive<IFilter>({
+  tagIds: [],
+})
 const feeds = ref<IFeed[]>([])
 const actionItems: IDropdownItem[] = [
   { text: 'add_subscription', click: add },
@@ -65,14 +85,47 @@ const actionItems: IDropdownItem[] = [
   { text: 'export_opml_file', click: exportFile },
 ]
 const addMenuVisible = ref(false)
-const route = useRoute()
-const selectedTagName = ref('')
-const selectedFeedName = ref('')
+const selectedTagId = ref('')
+const selectedFeedId = ref('')
+const today = ref(false)
 const fileInput = ref<HTMLInputElement>()
+const feedsCount = ref<Map<string, number>>(new Map())
+const feedMenuVisible = ref(false)
+const selectedFeed = ref<IFeed>()
+
+const { fetch } = initLazyQuery({
+  handle: (data: any) => {
+    if (data) {
+      counter.value.feedEntries = data.total
+      counter.value.feedEntriesToday = data.today
+      data.feedsCount.forEach((item: { id: string; count: number }) => {
+        feedsCount.value.set(item.id, item.count)
+      })
+    }
+  },
+  document: feedEntryCountGQL,
+  variables: () => ({}),
+  appApi: true,
+})
+
+function getFeedCount(id: string) {
+  return feedsCount.value.get(id) ?? -1
+}
 
 function updateActive() {
-  selectedTagName.value = parseTagName(route.query)
-  selectedFeedName.value = parseFeedName(route.query)
+  const route = router.currentRoute.value
+  const q = decodeBase64(route.query.q?.toString() ?? '')
+  parseQ(filter, q)
+  selectedTagId.value = filter.tagIds.length === 1 ? filter.tagIds[0] : ''
+  selectedFeedId.value = filter.feedId ?? ''
+  today.value = filter.today ?? false
+  if (today.value) {
+    selectedTagId.value = ''
+    selectedFeedId.value = ''
+  } else if (selectedTagId.value && selectedFeedId.value) {
+    selectedTagId.value = ''
+  }
+  fetch()
 }
 
 updateActive()
@@ -84,7 +137,7 @@ watch(
   }
 )
 
-const { viewFeed } = useFeeds(mainStore)
+const { viewFeed, viewAll, viewToday } = useFeeds(mainStore)
 
 const { refetch } = initQuery({
   handle: (data: any, error: string) => {
@@ -152,40 +205,27 @@ function exportFile() {
   exportOPML()
 }
 
-function itemCtxMenu(e: MouseEvent, item: IFeed) {
-  e.preventDefault()
-  contextmenu({
-    x: e.x,
-    y: e.y,
-    items: [
-      {
-        label: t('edit'),
-        onClick: () => {
-          openModal(FeedModal, {
-            data: item,
-          })
-        },
-      },
-      {
-        label: t('delete'),
-        onClick: () => {
-          openModal(DeleteConfirm, {
-            id: item.id,
-            name: item.name,
-            gql: deleteFeedGQL,
-            appApi: true,
-            typeName: 'Feed',
-            done: () => {
-              replacePath(mainStore, `/feeds`)
-            },
-          })
-        },
-      },
-    ],
+function showFeedMenu(item: IFeed) {
+  selectedFeed.value = item
+  feedMenuVisible.value = true
+}
+
+function editFeed(item: IFeed) {
+  openModal(FeedModal, {
+    data: item,
   })
 }
 
-function all() {
-  replacePath(mainStore, '/feeds')
+function deleteFeed(item: IFeed) {
+  openModal(DeleteConfirm, {
+    id: item.id,
+    name: item.name,
+    gql: deleteFeedGQL,
+    appApi: true,
+    typeName: 'Feed',
+    done: () => {
+      replacePath(mainStore, `/feeds`)
+    },
+  })
 }
 </script>

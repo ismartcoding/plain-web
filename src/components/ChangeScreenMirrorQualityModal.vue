@@ -15,7 +15,7 @@
         </label>
         <md-outlined-select menu-positioning="fixed" v-model.number="quality" :disabled="qualityId !== 'custom'">
           <md-select-option v-for="o of qualityOptions" :key="o" :value="o">
-            <div slot="headline">{{ o }}</div>
+            <div slot="headline">{{ getCompressOptionText(o) }}</div>
           </md-select-option>
         </md-outlined-select>
         <label class="form-label">
@@ -72,6 +72,17 @@ initQuery({
   document: screenMirrorQualityGQL,
   appApi: true,
 })
+
+function getCompressOptionText(value: number) {
+  if (value === 10) {
+    return `10 (${t('low_quality')})`
+  } else if (value === 60) {
+    return `60 (${t('high_quality')})`
+  } else if (value === 100) {
+    return `100 (${t('best_quality')})`
+  }
+  return value.toString()
+}
 
 function onOptionSelected(
   e: CustomEvent<{

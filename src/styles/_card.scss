@@ -19,6 +19,13 @@
 }
 
 .card-title {
-  font-size: 1rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 1.25rem;
   margin: 0 0 16px 0;
+}
+
+.card.outlined {
+  border: 1px solid var(--md-sys-color-outline);
+  background-color: transparent;
 }

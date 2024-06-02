@@ -1,6 +1,5 @@
 import type { IPage } from '@/lib/interfaces'
 import { defineStore } from 'pinia'
-import type { Router } from 'vue-router/dist/vue-router'
 
 // data will be stored to local storage
 export type MainState = {
@@ -8,6 +7,7 @@ export type MainState = {
   chatText: string
   quick: string
   quickContentWidth: number
+  sidebarWidth: number
   pages: IPage[]
   lightboxInfoVisible: boolean
   videosTableView: boolean
@@ -30,6 +30,7 @@ export const useMainStore = defineStore({
       chatText: '',
       quick: 'chat',
       quickContentWidth: 400,
+      sidebarWidth: 240,
       noteExpand: true,
       pages: [],
       audios: [],

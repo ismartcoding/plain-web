@@ -1,22 +1,23 @@
 <template>
-  <div class="v-toolbar">
-    <breadcrumb :paths="paths">
-      <template #current>
-        {{ isCreate() ? t('create') : t('edit') }}
-        <span class="state-point" v-show="notsaved">*</span>
-        <field-id class="time" v-if="note?.updatedAt" :id="getTime()" :raw="note" />
+  <div class="top-app-bar">
+    <button class="btn-icon" v-tooltip="$t('back')" @click.prevent="backToList">
+      <md-ripple />
+      <i-material-symbols:arrow-back-rounded />
+    </button>
+    <div class="title">{{ isCreate() ? t('create') : t('edit') }} <span class="state-point" v-show="notsaved">*</span> <field-id class="time" v-if="note?.updatedAt" :id="getTime()" :raw="note" /></div>
+    <div class="actions">
+      <item-tags :tags="note?.tags" :type="dataType" :only-links="true" />
+      <template v-if="!isCreate()">
+        <button class="btn-icon" v-tooltip="$t('add_to_tags')" @click.prevent="addToTags">
+          <md-ripple />
+          <i-material-symbols:label-outline-rounded />
+        </button>
+        <button class="btn-icon" v-tooltip="$t('print')" @click.prevent="print">
+          <md-ripple />
+          <i-material-symbols:print-outline-rounded />
+        </button>
       </template>
-    </breadcrumb>
-    <item-tags :tags="note?.tags" :type="dataType" :only-links="true" />
-    <button class="icon-button" v-if="!isCreate()" v-tooltip="$t('add_to_tags')" @click.prevent="addToTags" style="margin-inline-start: 8px">
-      <md-ripple />
-      <i-material-symbols:label-outline-rounded />
-    </button>
-
-    <button class="icon-button" v-if="!isCreate()" v-tooltip="$t('print')" @click.prevent="print">
-      <md-ripple />
-      <i-material-symbols:print-outline-rounded />
-    </button>
+    </div>
   </div>
   <div class="panel-container">
     <monaco-editor language="html" v-model="content" />
@@ -26,7 +27,7 @@
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { onActivated, onDeactivated, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { useI18n } from 'vue-i18n'
 import { initQuery, noteGQL, tagsGQL } from '@/lib/api/query'
@@ -35,7 +36,7 @@ import { formatDateTime } from '@/lib/format'
 import { useMarkdown } from '@/hooks/markdown'
 import { initMutation, saveNoteGQL } from '@/lib/api/mutation'
 import { debounce, truncate } from 'lodash-es'
-import { replacePathNoReload } from '@/plugins/router'
+import router, { replacePath, replacePathNoReload } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
@@ -56,13 +57,15 @@ const notsaved = ref(false)
 
 const { app, urlTokenKey } = storeToRefs(useTempStore())
 
-const paths = computed(() => {
-  if (note.value?.deletedAt) {
-    return ['/notes', '/notes/trash']
+function backToList() {
+  const q = router.currentRoute.value.query.q
+  let path = '/notes'
+  if (q) {
+    path += `?q=${q}`
   }
 
-  return ['/notes']
-})
+  replacePath(mainStore, path)
+}
 
 const { render } = useMarkdown(app, urlTokenKey)
 let init = false
@@ -187,12 +190,12 @@ const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
   }
 }
 
-onMounted(() => {
+onActivated(() => {
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
   emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
 })
 
-onUnmounted(() => {
+onDeactivated(() => {
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
 })

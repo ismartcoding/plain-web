@@ -1,8 +1,10 @@
 <template>
-  <div class="v-toolbar">
-    <breadcrumb :current="() => $t('json_viewer')" />
-    <md-outlined-button @click.prevent="toggle(true)">{{ $t('expand_all') }}</md-outlined-button>
-    <md-outlined-button @click.prevent="toggle(false)">{{ $t('collapse_all') }}</md-outlined-button>
+  <div class="top-app-bar">
+    <div class="title">{{ $t('json_viewer') }}</div>
+    <div class="actions">
+      <md-outlined-button class="btn-sm" @click.prevent="toggle(true)">{{ $t('expand_all') }}</md-outlined-button>
+      <md-outlined-button class="btn-sm" @click.prevent="toggle(false)">{{ $t('collapse_all') }}</md-outlined-button>
+    </div>
   </div>
   <div class="content">
     <monaco-editor language="json" v-model="json" />

@@ -5,6 +5,7 @@ import { h, onMounted, TransitionGroup } from 'vue'
 import { modalQueue } from './utils/state'
 
 export default {
+  components: { ContainerModalItem },
   setup() {
     onMounted(initialize)
 
@@ -24,6 +25,5 @@ export default {
       )
     }
   },
-  components: { ContainerModalItem },
 }
 </script>

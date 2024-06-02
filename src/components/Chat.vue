@@ -1,7 +1,7 @@
 <template>
   <div class="quick-content-main">
     <div class="top-app-bar">
-      <button class="icon-button" @click.prevent="store.quick = ''" v-tooltip="$t('close')">
+      <button class="btn-icon" @click.prevent="store.quick = ''" v-tooltip="$t('close')">
         <md-ripple />
         <i-material-symbols:right-panel-close-outline />
       </button>
@@ -13,7 +13,7 @@
         <popper>
           <div class="chat-title">
             <span class="name">{{ $t(chatItem.isMe ? 'me' : 'app_name') }}</span>
-            <span class="time" v-tooltip="formatDateTimeFull(chatItem.createdAt)">{{ formatTime(chatItem.createdAt) }}</span>
+            <time class="time" v-tooltip="formatDateTimeFull(chatItem.createdAt)">{{ formatTime(chatItem.createdAt) }}</time>
             <span class="sending" v-if="chatItem.id.startsWith('new_')">{{ $t('sending') }}</span>
             <i-material-symbols:expand-more-rounded class="bi bi-more" />
           </div>
@@ -54,16 +54,16 @@
           @keydown.enter.meta.exact.prevent="chatText += '\n'"
         >
           <div class="leading-icons" slot="leading-icon">
-            <button class="icon-button" @click="sendImages">
+            <button class="btn-icon" @click="sendImages">
               <md-ripple />
               <i-material-symbols:image-outline-rounded />
             </button>
-            <button class="icon-button" @click="sendFiles">
+            <button class="btn-icon" @click="sendFiles">
               <md-ripple />
               <i-material-symbols:folder-outline-rounded />
             </button>
           </div>
-          <button class="icon-button btn-send" @click="send" :disable="createLoading" slot="trailing-icon">
+          <button class="btn-icon btn-send" @click="send" :disable="createLoading" slot="trailing-icon">
             <md-ripple />
             <i-material-symbols:send-outline-rounded />
           </button>

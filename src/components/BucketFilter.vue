@@ -1,5 +1,7 @@
 <template>
-  <li v-for="item in mediaBuckets" :key="item.id" @click.prevent="view(item)" :class="{ active: selected && item.id === selected }">{{ item.name }} ({{ item.itemCount }})</li>
+  <li v-for="item in mediaBuckets" :key="item.id" @click.prevent="view(item)" :class="{ active: selected && item.id === selected }">
+    {{ item.name }}<span class="count">{{ item.itemCount.toLocaleString() }}</span>
+  </li>
 </template>
 
 <script setup lang="ts">
