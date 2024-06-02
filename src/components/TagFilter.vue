@@ -1,20 +1,37 @@
 <template>
-  <h2 class="nav-title">
+  <div class="top-app-bar">
+    <div class="btn-icon no-click">
+      <i-material-symbols:label-outline-rounded />
+    </div>
     <div class="title">{{ $t('tags') }}</div>
     <div class="actions">
-      <button class="icon-button" @click.prevent="add" v-tooltip="$t('add_tag')">
+      <button class="btn-icon" @click.prevent="add" v-tooltip="$t('add_tag')">
         <md-ripple />
         <i-material-symbols:add-rounded />
       </button>
     </div>
-  </h2>
+  </div>
   <ul class="nav">
-    <li v-for="item in tags" @click.prevent="view(item)" :key="item.id" @contextmenu="itemCtxMenu($event, item)" :class="{ active: selected && kebabCase(item.name) === selected }">{{ item.name }} ({{ item.count }})</li>
+    <li v-for="item in tags" @click.prevent="view(item)" :key="item.id" :class="{ active: item.id === selected }">
+      <span>{{ item.name }}</span>
+      <button :id="'tag-' + item.id" class="btn-icon sm" @click.prevent.stop="showMenu(item)" v-tooltip="$t('actions')">
+        <md-ripple />
+        <i-material-symbols:more-vert />
+      </button>
+      <span class="count">{{ item.count.toLocaleString() }}</span>
+    </li>
   </ul>
+  <md-menu positioning="popover" :anchor="'tag-' + selectedItem?.id" stay-open-on-focusout quick :open="tagMenuVisible" @closed="tagMenuVisible = false">
+    <md-menu-item @click="renameTag(selectedItem!)">
+      <div slot="headline">{{ $t('rename') }}</div>
+    </md-menu-item>
+    <md-menu-item @click="deleteTag(selectedItem!)">
+      <div slot="headline">{{ $t('delete') }}</div>
+    </md-menu-item>
+  </md-menu>
 </template>
 
 <script setup lang="ts">
-import { contextmenu } from '@/components/contextmenu'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { initQuery, tagsGQL } from '@/lib/api/query'
 import { replacePath } from '@/plugins/router'
@@ -23,7 +40,6 @@ import { openModal } from '@/components/modal'
 import { useMainStore } from '@/stores/main'
 import { encodeBase64 } from '@/lib/strutil'
 import { buildQuery } from '@/lib/search'
-import { kebabCase } from 'lodash-es'
 import toast from '@/components/toaster'
 import { useI18n } from 'vue-i18n'
 import { initMutation, createTagGQL, deleteTagGQL, updateTagGQL } from '@/lib/api/mutation'
@@ -40,6 +56,8 @@ const { t } = useI18n()
 
 const mainStore = useMainStore()
 const tags = ref<ITag[]>([])
+const tagMenuVisible = ref(false)
+const selectedItem = ref<ITag>()
 
 const { refetch } = initQuery({
   handle: (data: any, error: string) => {
@@ -57,6 +75,40 @@ const { refetch } = initQuery({
   },
   appApi: true,
 })
+
+function showMenu(item: ITag) {
+  selectedItem.value = item
+  tagMenuVisible.value = true
+}
+
+function renameTag(item: ITag) {
+  openModal(EditValueModal, {
+    title: t('rename'),
+    placeholder: t('name'),
+    value: item.name,
+    mutation: () =>
+      initMutation({
+        document: updateTagGQL,
+        appApi: true,
+      }),
+    getVariables: (value: string) => {
+      return { id: item.id, name: value }
+    },
+    done: () => {
+      refetch()
+    },
+  })
+}
+
+function deleteTag(item: ITag) {
+  openModal(DeleteConfirm, {
+    id: item.id,
+    name: item.name,
+    gql: deleteTagGQL,
+    appApi: true,
+    typeName: 'Tag',
+  })
+}
 
 function add() {
   openModal(EditValueModal, {
@@ -82,55 +134,12 @@ function add() {
 function view(item: ITag) {
   const q = buildQuery([
     {
-      name: 'tag',
+      name: 'tag_id',
       op: '',
-      value: kebabCase(item.name),
+      value: item.id,
     },
   ])
   replacePath(mainStore, `/${names[props.type]}?q=${encodeBase64(q)}`)
-}
-
-function itemCtxMenu(e: MouseEvent, item: ITag) {
-  e.preventDefault()
-  contextmenu({
-    x: e.x,
-    y: e.y,
-    items: [
-      {
-        label: t('rename'),
-        onClick: () => {
-          openModal(EditValueModal, {
-            title: t('rename'),
-            placeholder: t('name'),
-            value: item.name,
-            mutation: () =>
-              initMutation({
-                document: updateTagGQL,
-                appApi: true,
-              }),
-            getVariables: (value: string) => {
-              return { id: item.id, name: value }
-            },
-            done: () => {
-              refetch()
-            },
-          })
-        },
-      },
-      {
-        label: t('delete'),
-        onClick: () => {
-          openModal(DeleteConfirm, {
-            id: item.id,
-            name: item.name,
-            gql: deleteTagGQL,
-            appApi: true,
-            typeName: 'Tag',
-          })
-        },
-      },
-    ],
-  })
 }
 
 const refetchTagsHandler = (type: string) => {

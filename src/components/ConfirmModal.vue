@@ -1,11 +1,15 @@
 <template>
   <md-dialog type="alert">
-    <div slot="headline">{{ title || $t('confirm') }}</div>
+    <div slot="headline">
+      {{ title || $t('confirm') }}
+    </div>
     <section slot="content" method="dialog">
       <pre>{{ message }}</pre>
     </section>
     <div slot="actions">
-      <md-filled-button form="form" value="ok" @click="ok">{{ $t('ok') }}</md-filled-button>
+      <md-filled-button form="form" value="ok" @click="ok">
+        {{ $t('ok') }}
+      </md-filled-button>
     </div>
   </md-dialog>
 </template>

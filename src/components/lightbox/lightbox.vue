@@ -6,7 +6,7 @@
           <div class="layout">
             <header class="toolbar" v-if="current">
               <div v-if="current.name" class="source-name v-center">
-                <button class="icon-button" @click="closeDialog" v-tooltip="$t('close')">
+                <button class="btn-icon" @click="closeDialog" v-tooltip="$t('close')">
                   <md-ripple />
                   <i-material-symbols:close-rounded />
                 </button>
@@ -14,37 +14,37 @@
               </div>
 
               <template v-if="isImage(current.name)">
-                <button class="icon-button" v-if="!current.viewOriginImage" @click="viewOrigin" v-tooltip="$t('view_origin_image')">
+                <button class="btn-icon" v-if="!current.viewOriginImage" @click="viewOrigin" v-tooltip="$t('view_origin_image')">
                   <md-ripple />
                   <i-material-symbols:image-outline-rounded />
                 </button>
 
-                <button class="icon-button" @click="zoomIn" v-tooltip="$t('zoom_in')">
+                <button class="btn-icon" @click="zoomIn" v-tooltip="$t('zoom_in')">
                   <md-ripple />
                   <i-material-symbols:zoom-in-rounded />
                 </button>
 
-                <button class="icon-button" @click="zoomOut" v-tooltip="$t('zoom_out')">
+                <button class="btn-icon" @click="zoomOut" v-tooltip="$t('zoom_out')">
                   <md-ripple />
                   <i-material-symbols:zoom-out-rounded />
                 </button>
 
-                <button class="icon-button" @click="resize" v-tooltip="$t('resize')">
+                <button class="btn-icon" @click="resize" v-tooltip="$t('resize')">
                   <md-ripple />
                   <i-material-symbols:aspect-ratio-outline-rounded />
                 </button>
 
-                <button class="icon-button" @click="rotateLeft" v-tooltip="$t('rotate_left')">
+                <button class="btn-icon" @click="rotateLeft" v-tooltip="$t('rotate_left')">
                   <md-ripple />
                   <i-material-symbols:rotate-left-rounded />
                 </button>
 
-                <button class="icon-button" @click="rotateRight" v-tooltip="$t('rotate_right')">
+                <button class="btn-icon" @click="rotateRight" v-tooltip="$t('rotate_right')">
                   <md-ripple />
                   <i-material-symbols:rotate-right-rounded />
                 </button>
               </template>
-              <button class="icon-button" @click="lightboxInfoVisible = !lightboxInfoVisible" v-tooltip="$t('info')">
+              <button class="btn-icon" @click="lightboxInfoVisible = !lightboxInfoVisible" v-tooltip="$t('info')">
                 <md-ripple />
                 <i-material-symbols:info-outline-rounded />
               </button>
@@ -98,11 +98,11 @@
               <div class="top-app-bar">
                 <field-id :id="$t('info')" :raw="fileInfo" />
                 <div class="actions">
-                  <button class="icon-button" @click.stop="deleteFile" v-tooltip="$t('delete')" v-if="current?.data">
+                  <button class="btn-icon" @click.stop="deleteFile" v-tooltip="$t('delete')" v-if="current?.data">
                     <md-ripple />
                     <i-material-symbols:delete-forever-outline-rounded />
                   </button>
-                  <button class="icon-button" @click.stop="downloadFile(current?.path ?? '', getFileName(current?.path ?? '').replace(' ', '-'))" v-tooltip="$t('download')">
+                  <button class="btn-icon" @click.stop="downloadFile(current?.path ?? '', getFileName(current?.path ?? '').replace(' ', '-'))" v-tooltip="$t('download')">
                     <md-ripple />
                     <i-material-symbols:download-rounded />
                   </button>
@@ -119,7 +119,7 @@
                 <div class="item" v-if="fileInfo?.updatedAt">
                   <div class="title">{{ $t('updated_at') }}</div>
                   <div class="subtitle">
-                    <span v-tooltip="formatDateTimeFull(fileInfo.updatedAt)">{{ formatDateTime(fileInfo.updatedAt) }}</span>
+                    <time v-tooltip="formatDateTimeFull(fileInfo.updatedAt)">{{ formatDateTime(fileInfo.updatedAt) }}</time>
                   </div>
                 </div>
                 <div class="item" v-if="current && (isAudio(current?.name) || isVideo(current?.name))">
@@ -129,7 +129,7 @@
                 <div class="item" v-if="current?.type">
                   <div class="title">
                     {{ $t('tags') }}
-                    <button class="icon-button" v-tooltip="$t('add_to_tags')" @click.prevent="addToTags">
+                    <button class="btn-icon" v-tooltip="$t('add_to_tags')" @click.prevent="addToTags">
                       <md-ripple />
                       <i-material-symbols:label-outline-rounded />
                     </button>
@@ -615,7 +615,10 @@ onBeforeUnmount(() => {
   position: absolute;
   top: 50%;
   left: 50%;
+  opacity: 0;
+  animation: showDiv 0.5s ease-in-out 0.5s forwards;
 }
+
 .toolbar {
   display: flex;
   flex-direction: row;
@@ -631,13 +634,13 @@ onBeforeUnmount(() => {
   .source-name {
     flex: 1;
 
-    .icon-button {
+    .btn-icon {
       margin-inline-start: 16px;
     }
   }
 
   md-outlined-button,
-  .icon-button {
+  .btn-icon {
     margin-inline-end: 16px;
   }
 }

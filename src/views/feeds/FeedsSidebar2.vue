@@ -1,68 +1,113 @@
 <template>
-  <aside class="sidebar2">
-    <div class="v-toolbar">
-      <breadcrumb :current="() => `${$t('page_title.feeds')} (${total})`" />
-      <template v-if="checked">
-        <button class="icon-button" @click.stop="deleteItems(realAllChecked, finalQ)" v-tooltip="$t('delete')">
-          <md-ripple />
-          <i-material-symbols:delete-forever-outline-rounded />
-        </button>
-        <button class="icon-button" @click.stop="addToTags(realAllChecked, finalQ)" v-tooltip="$t('add_to_tags')">
-          <md-ripple />
-          <i-material-symbols:label-outline-rounded />
-        </button>
-      </template>
-      <button class="icon-button" @click.prevent="changeViewType" v-tooltip="$t(mainStore.feedsTableView ? 'view_as_column' : 'view_as_list')">
-        <md-ripple />
-        <i-material-symbols:view-column-2-outline v-if="mainStore.feedsTableView" />
-        <i-material-symbols:table v-else />
-      </button>
-      <md-circular-progress indeterminate class="spinner-sm" v-if="syncing" />
-      <button class="icon-button btn-icon" v-else :disabled="syncing" v-tooltip="$t('sync_feeds')" @click.prevent="syncFeeds">
-        <md-ripple />
-        <i-material-symbols:sync-rounded />
-      </button>
-      <search-input ref="searchInputRef" v-model="q" :search="doSearch" v-if="showSearch">
-        <template #filters>
-          <div class="filters">
-            <md-outlined-text-field :label="$t('keywords')" v-model="filter.text" keyup.enter="applyAndDoSearch" />
-            <label class="form-label">{{ $t('tags') }}</label>
-            <md-chip-set>
-              <md-filter-chip v-for="item in tags" :key="item.id" :label="item.name" :selected="filter.tags.includes(item)" @click="onTagSelect(item)" />
-            </md-chip-set>
-            <div class="buttons">
-              <md-filled-button @click.stop="applyAndDoSearch">
-                {{ $t('search') }}
-              </md-filled-button>
-            </div>
-          </div>
+  <aside class="sidebar2" v-show="showSidebar">
+    <div class="top-app-bar">
+      <div class="title">{{ $t('page_title.feeds') }} ({{ total.toLocaleString() }})</div>
+      <div class="actions">
+        <search-input :filter="filter" :tags="tags" :feeds="feeds" :show-chips="!isDetail" :get-url="getUrl" :show-today="true" />
+        <template v-if="checked">
+          <button class="btn-icon" @click.stop="deleteItems(realAllChecked, q)" v-tooltip="$t('delete')">
+            <md-ripple />
+            <i-material-symbols:delete-forever-outline-rounded />
+          </button>
+          <button class="btn-icon" @click.stop="addToTags(tableItems, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
+            <md-ripple />
+            <i-material-symbols:label-outline-rounded />
+          </button>
         </template>
-      </search-input>
-      <button class="icon-button btn-icon" v-else v-tooltip="$t('search')" @click.prevent="backToSearch">
-        <md-ripple />
-        <i-material-symbols:search-rounded />
-      </button>
+        <button class="btn-icon" @click.prevent="toggleViewType" v-tooltip="$t(mainStore.feedsTableView ? 'view_as_list' : 'view_as_table')">
+          <md-ripple />
+          <i-material-symbols:table-rows-outline v-if="mainStore.feedsTableView" />
+          <i-material-symbols:table v-else />
+        </button>
+        <md-circular-progress indeterminate class="spinner-sm" v-if="syncing" />
+        <button class="btn-icon" v-else :disabled="syncing" v-tooltip="$t('sync_feeds')" @click.prevent="syncFeeds">
+          <md-ripple />
+          <i-material-symbols:sync-rounded />
+        </button>
+      </div>
     </div>
-    <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible" :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
-    <VirtualList class="scroller" :data-key="'id'" :data-sources="items" :estimate-size="160" @tobottom="loadMore">
+    <template v-if="mainStore.feedsTableView">
+      <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible" :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>
+                <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
+              </th>
+              <th></th>
+              <th>{{ $t('title') }}</th>
+              <th></th>
+              <th>{{ $t('source') }}</th>
+              <th>{{ $t('tags') }}</th>
+              <th>{{ $t('published_at') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in tableItems" :key="item.id" :class="{ selected: item.checked }" @click.stop="toggleRow(item)">
+              <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
+              <td>
+                <img v-if="item.image" :src="getFileUrl(item.image, '&w=200&h=200')" width="50" height="50" />
+              </td>
+              <td style="min-width: 200px; cursor: pointer" @click.stop.prevent="view(item)">
+                <a :href="viewUrl(item)" @click.stop.prevent="view(item)">{{ item.title || $t('no_content') }}</a>
+              </td>
+              <td class="nowrap">
+                <div class="action-btns">
+                  <button class="btn-icon sm" @click.stop="deleteItem(item)" v-tooltip="$t('delete')">
+                    <md-ripple />
+                    <i-material-symbols:delete-forever-outline-rounded />
+                  </button>
+                  <button class="btn-icon sm" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
+                    <md-ripple />
+                    <i-material-symbols:label-outline-rounded />
+                  </button>
+                </div>
+              </td>
+              <td class="nowrap">
+                <a @click.stop.prevent="viewFeed(feedsMap[item.feedId])">{{ feedsMap[item.feedId]?.name }}</a>
+              </td>
+              <td>
+                <item-tags :tags="item.tags" :type="dataType" />
+              </td>
+              <td class="nowrap">
+                <time v-tooltip="formatDateTime(item.publishedAt)">
+                  {{ formatTimeAgo(item.publishedAt) }}
+                </time>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot v-if="!tableItems.length">
+            <tr>
+              <td colspan="7">
+                <div class="no-data-placeholder">
+                  {{ $t(noDataKey(loading)) }}
+                </div>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <v-pagination v-if="total > limit" v-model="page" :total="total" :limit="limit" />
+    </template>
+    <VirtualList v-else class="scroller" :data-key="'id'" :data-sources="listItems" :estimate-size="100" @tobottom="loadMore">
       <template #item="{ index, item }">
         <a class="item-link" :href="viewUrl(item)" @click.stop.prevent="view(item)">
           <article class="card feed-item" :class="{ selected: item.id == $route.params['id'] }">
             <div class="grid1">
-              <div class="title">{{ item.title }}</div>
+              <div class="title">{{ item.title || $t('no_content') }}</div>
               <img v-if="item.image" :src="getFileUrl(item.image, '&w=200&h=200')" />
-              <div class="subtitle">{{ getSummary(item.description) }}</div>
             </div>
             <div class="grid2">
-              <div class="title3">
-                <a @click.stop.prevent="viewFeed(feedsMap[item.feedId])">{{ feedsMap[item.feedId].name }}</a
+              <div class="subtitle">
+                <span>{{ index + 1 }}&nbsp;&nbsp;·&nbsp;&nbsp;</span><a @click.stop.prevent="viewFeed(feedsMap[item.feedId])">{{ feedsMap[item.feedId]?.name }}</a
                 ><span>&nbsp;&nbsp;·&nbsp;&nbsp;</span>
                 <span class="time" v-tooltip="formatDateTime(item.publishedAt)">
                   {{ formatTimeAgo(item.publishedAt) }}
                 </span>
                 <item-tags :tags="item.tags" :type="dataType" :only-links="true" />
               </div>
-              <button class="icon-button sm" v-tooltip="$t('actions')" style="visibility: hidden;">
+              <button class="btn-icon sm" v-tooltip="$t('actions')" style="display: none">
                 <md-ripple />
                 <i-material-symbols:more-vert />
               </button>
@@ -78,17 +123,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { computed, onActivated, onDeactivated, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
-import { initQuery, feedsTagsGQL, initLazyQuery, feedEntriesGQL } from '@/lib/api/query'
+import { formatTimeAgo, formatDateTime } from '@/lib/format'
+import { feedsTagsGQL, initLazyQuery } from '@/lib/api/query'
 import { useRoute } from 'vue-router'
 import router, { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useI18n } from 'vue-i18n'
-import type { ITag, IFeedEntryItem, IFeedEntry, IFeed, IFeedEntryFilter, IItemsTagsUpdatedEvent, IItemTagsUpdatedEvent } from '@/lib/interfaces'
-import { buildFilterQuery, buildQuery, parseQuery } from '@/lib/search'
-import { kebabCase, remove } from 'lodash-es'
-import { decodeBase64, encodeBase64 } from '@/lib/strutil'
+import type { ITag, IFeedEntryItem, IFeedEntry, IFeed, IItemsTagsUpdatedEvent, IItemTagsUpdatedEvent, IFilter } from '@/lib/interfaces'
+import { noDataKey } from '@/lib/list'
 import { useFeeds } from '@/hooks/feeds'
 import { useDelete, useSelectable } from '@/hooks/list'
 import emitter from '@/plugins/eventbus'
@@ -99,27 +143,23 @@ import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import gql from 'graphql-tag'
 import { getFileUrl } from '@/lib/api/file'
-import { formatTimeAgo, formatDateTime } from '@/lib/format'
 import VirtualList from '@/components/virtualscroll'
-import { getSummary } from '@/lib/strutil'
 import { DataType } from '@/lib/data'
+import { useList, useTable } from '@/hooks/feed-entries'
+import { useSearch } from '@/hooks/search'
+import { decodeBase64 } from '@/lib/strutil'
 
 const mainStore = useMainStore()
-const items = ref<IFeedEntryItem[]>([])
-const searchInputRef = ref()
 const { t } = useI18n()
-const filter: IFeedEntryFilter = reactive({
-  text: '',
-  feeds: [],
-  tags: [],
+const filter = reactive<IFilter>({
+  tagIds: [],
 })
-
+const { parseQ } = useSearch()
 const dataType = DataType.FEED_ENTRY
 const route = useRoute()
 const query = route.query
 const page = ref(parseInt(query.page?.toString() ?? '1'))
 const limit = 50
-let noMore = false
 const tags = ref<ITag[]>([])
 const feeds = ref<IFeed[]>([])
 const feedsMap = computed(() => {
@@ -129,63 +169,46 @@ const feedsMap = computed(() => {
   })
   return map
 })
-const q = ref(decodeBase64(query.q?.toString() ?? ''))
-const finalQ = ref('')
-const { addToTags } = useAddToTags(dataType, items, tags)
+const showSidebar = computed(() => !(route.params.id !== undefined && mainStore.feedsTableView))
+const listItems = ref<IFeedEntryItem[]>([])
+const tableItems = ref<IFeedEntryItem[]>([])
+const q = ref('')
+const { allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleItemChecked, toggleRow, total, checked } = useSelectable(tableItems)
+const { page: listPage, loadMore, fetch: fetchList, noMore } = useList(listItems, q, total)
+const { loading, fetch: fetchTable } = useTable(tableItems, q, total, page, limit)
+const { addToTags } = useAddToTags(dataType, tags)
+const fetch = () => {
+  if (mainStore.feedsTableView) {
+    fetchTable()
+  } else {
+    listPage.value = 1
+    fetchList()
+  }
+}
 const { deleteItems } = useDelete(
   deleteFeedEntriesGQL,
   () => {
     clearSelection()
-    refetch()
-    if (items.value.some((it) => it.tags.length)) {
+    fetchTable()
+    if (tableItems.value.some((it) => it.tags.length)) {
       emitter.emit('refetch_tags', dataType)
     }
   },
-  items
+  tableItems
 )
 
 const syncing = ref(false)
-const showSearch = computed(() => {
-  return router.currentRoute.value.path === '/feeds'
+const isDetail = computed(() => {
+  const path = router.currentRoute.value.path
+  return path !== '/feeds'
 })
 
-const { allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleItemChecked, toggleRow, total, checked } = useSelectable(items)
-const { loading, load, refetch } = initLazyQuery({
-  handle: (data: any, error: string) => {
-    if (error) {
-      toast(t(error), 'error')
-    } else {
-      if (data) {
-        if (data.feedEntries.length < limit) {
-          noMore = true
-        }
-        const newItems = data.feedEntries.map((it: IFeedEntry) => ({ ...it, checked: false }))
-        newItems.forEach((it: IFeedEntryItem) => {
-          items.value.push(it)
-        })
-        total.value = data.feedEntryCount
-      }
-    }
-  },
-  document: feedEntriesGQL,
-  variables: () => ({
-    offset: (page.value - 1) * limit,
-    limit,
-    query: finalQ.value,
-  }),
-  appApi: true,
-})
-
-function changeViewType() {
+function toggleViewType() {
   mainStore.feedsTableView = !mainStore.feedsTableView
-}
-
-function loadMore() {
-  if (noMore || loading.value) {
-    return
+  fetch()
+  if (route.params.id !== undefined) {
+    backToList()
   }
-  page.value++
-  refetch()
 }
 
 function deleteItem(item: IFeedEntryItem) {
@@ -212,16 +235,20 @@ function deleteItem(item: IFeedEntryItem) {
   })
 }
 
-function backToSearch() {
+function backToList() {
   const q = route.query.q
   if (q) {
     replacePath(mainStore, `/feeds?q=${q}`)
-    return
+  } else {
+    replacePath(mainStore, `/feeds`)
   }
-  replacePath(mainStore, `/feeds`)
 }
 
-initQuery({
+function getUrl(q: string) {
+  return q ? `/feeds?q=${q}` : '/feeds'
+}
+
+const { fetch: fetchFeedsTags } = initLazyQuery({
   handle: async (data: any, error: string) => {
     if (error) {
       toast(t(error), 'error')
@@ -229,51 +256,6 @@ initQuery({
       if (data) {
         tags.value = data.tags
         feeds.value = data.feeds
-        const fields = parseQuery(q.value as string)
-        filter.tags = []
-        const tagIds: string[] = []
-        const feedIds: string[] = []
-        fields.forEach((it) => {
-          if (it.name === 'text') {
-            filter.text = it.value
-          } else if (it.name === 'tag') {
-            const tag = data.tags.find((t: ITag) => kebabCase(t.name) === it.value)
-            if (tag) {
-              filter.tags.push(tag)
-              tagIds.push(tag.id)
-            } else {
-              tagIds.push('invalid')
-            }
-          } else if (it.name === 'feed') {
-            const feed = data.feeds.find((t: IFeed) => kebabCase(t.name) === it.value)
-            if (feed) {
-              filter.feeds.push(feed)
-              feedIds.push(feed.id)
-            } else {
-              feedIds.push('invalid')
-            }
-          }
-        })
-        const newFields = [...fields].filter((it) => it.name !== 'tag' && it.name !== 'feed')
-        tagIds.forEach((it) => {
-          newFields.push({
-            name: 'tag_id',
-            op: '',
-            value: it,
-          })
-        })
-
-        feedIds.forEach((it) => {
-          newFields.push({
-            name: 'feed_id',
-            op: '',
-            value: it,
-          })
-        })
-
-        finalQ.value = buildQuery(newFields)
-        await nextTick()
-        load()
       }
     }
   },
@@ -296,54 +278,6 @@ function addItemToTags(item: IFeedEntryItem) {
     selected: tags.value.filter((it) => item.tags.some((t) => t.id === it.id)),
   })
 }
-
-function onTagSelect(item: ITag) {
-  if (filter.tags.includes(item)) {
-    remove(filter.tags, (it: ITag) => it.id === item.id)
-  } else {
-    filter.tags.push(item)
-  }
-}
-
-function applyAndDoSearch() {
-  q.value = buildFilterQuery(filter)
-  doSearch()
-  searchInputRef.value.dismiss()
-}
-
-function doSearch() {
-  replacePath(mainStore, `/feeds?q=${encodeBase64(q.value)}`)
-}
-
-const feedsFetchedHandler = (data: any) => {
-  syncing.value = false
-  toast(data.error || t('feeds_synced'))
-}
-
-const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
-  if (event.type === dataType) {
-    clearSelection()
-    refetch()
-  }
-}
-
-const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
-  if (event.type === dataType) {
-    refetch()
-  }
-}
-
-onMounted(() => {
-  emitter.on('item_tags_updated', itemTagsUpdatedHandler)
-  emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
-  emitter.on('feeds_fetched', feedsFetchedHandler)
-})
-
-onUnmounted(() => {
-  emitter.off('item_tags_updated', itemTagsUpdatedHandler)
-  emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
-  emitter.off('feeds_fetched', feedsFetchedHandler)
-})
 
 function viewUrl(item: IFeedEntry) {
   const q = router.currentRoute.value.query.q
@@ -369,7 +303,58 @@ function syncFeeds() {
   syncing.value = true
   doSyncFeeds({ id: '' })
 }
+
+const feedsFetchedHandler = (data: any) => {
+  syncing.value = false
+  toast(data.error || t('feeds_synced'))
+}
+
+const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
+  if (event.type === dataType) {
+    clearSelection()
+    fetchTable()
+  }
+}
+
+const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
+  if (event.type === dataType) {
+    fetchTable()
+  }
+}
+
+watch(page, (value: number) => {
+  const q = route.query.q
+  replacePath(mainStore, q ? `/feeds?page=${value}&q=${q}` : `/feeds?page=${value}`)
+})
+
+onActivated(() => {
+  const scroller = document.getElementsByClassName('scroller')?.[0]
+  if (scroller) {
+    scroller.scrollTop = 0
+  }
+  q.value = decodeBase64(query.q?.toString() ?? '')
+  parseQ(filter, q.value)
+  fetchFeedsTags()
+  fetch()
+  emitter.on('item_tags_updated', itemTagsUpdatedHandler)
+  emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
+  emitter.on('feeds_fetched', feedsFetchedHandler)
+})
+
+onDeactivated(() => {
+  listPage.value = 1
+  noMore.value = false
+  emitter.off('item_tags_updated', itemTagsUpdatedHandler)
+  emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
+  emitter.off('feeds_fetched', feedsFetchedHandler)
+})
 </script>
+<style lang="scss">
+.main-feeds .alert-all-checked {
+  margin-inline: 16px;
+  margin-block-end: 8px;
+}
+</style>
 <style scoped lang="scss">
 .scroller {
   overflow-y: auto;
@@ -381,17 +366,12 @@ function syncFeeds() {
     padding: 0 16px 8px 16px;
   }
 }
-.v-toolbar {
-  padding: 16px 16px 8px 16px;
-}
 
 .feed-item {
   .grid1 {
     padding-inline-end: 8px;
     display: grid;
-    grid-template-areas:
-      'title img'
-      'subtitle img';
+    grid-template-areas: 'title img';
     grid-template-columns: 1fr auto;
   }
   padding: 16px 8px 8px 16px;
@@ -410,22 +390,15 @@ function syncFeeds() {
     margin-inline-start: 8px;
     margin-block-end: 8px;
   }
-  .subtitle {
-    font-size: 0.875rem;
-    max-height: 40px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    grid-area: subtitle;
-  }
   .grid2 {
     display: grid;
-    grid-template-areas: 'title3 actions';
+    grid-template-areas: 'subtitle actions';
     grid-template-columns: 1fr auto;
   }
-  .title3 {
+  .subtitle {
     font-size: 0.875rem;
     color: var(--md-sys-color-secondary);
-    grid-area: title3;
+    grid-area: subtitle;
     display: flex;
     flex-direction: row;
     flex-flow: wrap;
@@ -435,11 +408,14 @@ function syncFeeds() {
       margin-inline-end: 8px;
     }
   }
-  .icon-button {
+  .btn-icon {
     grid-area: actions;
     margin-inline-start: auto;
     margin-block-start: 8px;
     margin-inline-end: 4px;
   }
+}
+.table-responsive {
+  padding-inline: 16px;
 }
 </style>

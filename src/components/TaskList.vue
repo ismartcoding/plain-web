@@ -1,7 +1,7 @@
 <template>
   <div class="quick-content-main">
     <div class="top-app-bar">
-      <button class="icon-button" @click.prevent="store.quick = ''" v-tooltip="$t('close')">
+      <button class="btn-icon" @click.prevent="store.quick = ''" v-tooltip="$t('close')">
         <md-ripple />
         <i-material-symbols:right-panel-close-outline />
       </button>
@@ -15,7 +15,7 @@
             [{{ $t(`upload_status.${item.status}`) }}] <template v-if="!['created', 'done'].includes(item.status)">{{ formatFileSize(item.uploadedSize) }}({{ item.uploadedSize }}) / </template>{{ formatFileSize(item.file.size) }}
           </div>
           <div class="body" v-if="item.error">{{ item.error }}</div>
-          <button class="icon-button icon" @click.stop="deleteItem(item)">
+          <button class="btn-icon icon" @click.stop="deleteItem(item)">
             <md-ripple />
             <i-material-symbols:close-rounded />
           </button>

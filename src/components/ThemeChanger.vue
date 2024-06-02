@@ -58,11 +58,11 @@ function onHexPickerInput(e: Event) {
   position: relative;
   display: flex;
   flex-direction: column;
-  margin: var(--pl-spacing-m) var(--pl-spacing-l);
+  margin: 12px 16px;
 }
 
 .theme-changer > * {
-  margin-block-end: var(--pl-spacing-l);
+  margin-block-end: 16px;
 }
 
 .theme-changer > *:last-child {

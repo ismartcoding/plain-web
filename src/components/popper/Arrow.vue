@@ -1,5 +1,5 @@
 <template>
-  <div class="popper-arrow" data-popper-arrow></div>
+  <div class="popper-arrow" data-popper-arrow />
 </template>
 
 <style lang="scss" scoped>

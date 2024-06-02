@@ -1,4 +1,4 @@
-import Toaster from './Toaster.vue'
+import Toaster from './PToaster.vue'
 import { render, h } from 'vue'
 
 export default (message: string, type = '') => {

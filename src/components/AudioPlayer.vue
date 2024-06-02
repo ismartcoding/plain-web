@@ -1,7 +1,7 @@
 <template>
   <div class="quick-content-main">
     <div class="top-app-bar">
-      <button class="icon-button" @click.prevent="store.quick = ''" v-tooltip="$t('close')">
+      <button class="btn-icon" @click.prevent="store.quick = ''" v-tooltip="$t('close')">
         <md-ripple />
         <i-material-symbols:right-panel-close-outline />
       </button>
@@ -10,22 +10,22 @@
     <div class="quick-content-body">
       <audio ref="audioRef" class="audio" controls :src="src" @ended="onEnded" />
       <div class="buttons" v-if="audios.length">
-        <button class="icon-button" @click.stop="playPrev">
+        <button class="btn-icon" @click.stop="playPrev">
           <md-ripple />
           <i-material-symbols:skip-previous-outline-rounded />
         </button>
-        <button class="icon-button mode" @click.stop="changeMode">
+        <button class="btn-icon mode" @click.stop="changeMode">
           <md-ripple />
           <i-material-symbols:shuffle-outline-rounded v-if="app?.audioMode === 'SHUFFLE'" />
           <i-material-symbols:repeat-rounded v-else-if="app?.audioMode === 'REPEAT'" />
           <i-material-symbols:repeat-one-rounded v-else />
         </button>
-        <button class="icon-button" @click.stop="playNext">
+        <button class="btn-icon" @click.stop="playNext">
           <md-ripple />
           <i-material-symbols:skip-next-outline-rounded />
         </button>
         <md-circular-progress indeterminate v-if="clearLoading" class="spinner-sm" />
-        <button class="icon-button" v-else @click.prevent="clear" v-tooltip="$t('clear_list')">
+        <button class="btn-icon" v-else @click.prevent="clear" v-tooltip="$t('clear_list')">
           <md-ripple />
           <i-material-symbols:delete-forever-outline-rounded />
         </button>
@@ -35,7 +35,7 @@
           <md-ripple />
           <div class="title">{{ item.title }}</div>
           <div class="subtitle">{{ item.artist }} {{ formatSeconds(item.duration) }}</div>
-          <button class="icon-button icon" @click.stop="deleteItem(item)">
+          <button class="btn-icon icon" @click.stop="deleteItem(item)">
             <md-ripple />
             <i-material-symbols:close-rounded />
           </button>

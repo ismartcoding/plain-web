@@ -78,7 +78,7 @@ initRequest()
 const onSubmit = handleSubmit(async () => {
   const clientId = localStorage.getItem('client_id')
   ws = new WebSocket(`${getWebSocketBaseUrl()}?cid=${clientId}&auth=1`)
-  const pass = password.value ?? ''
+  const pass = (password.value as string) ?? ''
   const hash = sha512(pass)
   const key = hashToKey(hash)
   error.value = ''

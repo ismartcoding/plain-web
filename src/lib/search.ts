@@ -1,8 +1,4 @@
-import { without, keys, kebabCase } from 'lodash-es'
-import { ref } from 'vue'
-import type { LocationQuery } from 'vue-router'
-import type { IFilter } from './interfaces'
-import { decodeBase64 } from './strutil'
+import { without, keys } from 'lodash-es'
 
 export interface IQueryGroup {
   length: number
@@ -129,53 +125,4 @@ export const buildQuery = (fileds: IFilterField[]) => {
   })
 
   return items.join(' ')
-}
-
-export const parseLocationQuery = (query: LocationQuery) => {
-  const q = ref(decodeBase64(query.q?.toString() ?? ''))
-  return parseQuery(q.value as string)
-}
-
-const parseQueryName = (query: LocationQuery, name: string) => {
-  const fields = parseLocationQuery(query)
-  if (fields.length === 1) {
-    return fields.find((it) => it.name === name)?.value ?? ''
-  }
-  return ''
-}
-
-export const parseTagName = (query: LocationQuery) => {
-  return parseQueryName(query, 'tag')
-}
-
-export const parseFeedName = (query: LocationQuery) => {
-  return parseQueryName(query, 'feed')
-}
-
-export const buildFilterQuery = (filter: IFilter): string => {
-  const fields: IFilterField[] = []
-  if (filter.bucketId) {
-    fields.push({
-      name: 'bucket_id',
-      op: '',
-      value: filter.bucketId,
-    })
-  }
-
-  for (const tag of filter.tags) {
-    fields.push({
-      name: 'tag',
-      op: '',
-      value: kebabCase(tag.name),
-    })
-  }
-
-  if (filter.text) {
-    fields.push({
-      name: 'text',
-      op: '',
-      value: filter.text,
-    })
-  }
-  return buildQuery(fields)
 }

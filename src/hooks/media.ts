@@ -2,10 +2,11 @@ import DeleteItemsConfirm from '@/components/DeleteItemsConfirm.vue'
 import { openModal } from '@/components/modal'
 import { useI18n } from 'vue-i18n'
 import toast from '@/components/toaster'
-import type { IMediaItem, ISelectable } from '@/lib/interfaces'
+import type { IFilter, IMediaItem, ISelectable, ITag } from '@/lib/interfaces'
 import { deleteMediaItemsGQL } from '@/lib/api/mutation'
 import emitter from '@/plugins/eventbus'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
+import { parseQuery } from '@/lib/search'
 
 export const useDeleteItems = () => {
   const { t } = useI18n()

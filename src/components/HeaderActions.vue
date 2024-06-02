@@ -1,6 +1,6 @@
 <template>
   <div class="h-action" style="position: relative">
-    <button class="icon-button" id="lang-ref" @click="() => (langMenuVisible = true)" v-tooltip="t('header_actions.language')">
+    <button class="btn-icon" id="lang-ref" @click="() => (langMenuVisible = true)" v-tooltip="t('header_actions.language')">
       <md-ripple />
       <i-material-symbols:translate-rounded />
     </button>
@@ -12,7 +12,7 @@
   </div>
 
   <div class="h-action" style="position: relative">
-    <button class="icon-button" id="theme-ref" @click="() => (themeMenuVisible = true)" v-tooltip="t('header_actions.theme')">
+    <button class="btn-icon" id="theme-ref" @click="() => (themeMenuVisible = true)" v-tooltip="t('header_actions.theme')">
       <md-ripple />
       <i-material-symbols:palette-outline />
     </button>
@@ -21,7 +21,7 @@
     </md-menu>
   </div>
 
-  <button class="icon-button h-action" style="margin-inline-end: 8px" @click="logout" v-if="props.loggedIn" v-tooltip="$t('header_actions.logout')">
+  <button class="btn-icon h-action" style="margin-inline-end: 8px" @click="logout" v-if="props.loggedIn" v-tooltip="$t('header_actions.logout')">
     <md-ripple />
     <i-material-symbols:logout-rounded />
   </button>

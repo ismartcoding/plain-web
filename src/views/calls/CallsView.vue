@@ -1,32 +1,19 @@
 <template>
-  <div class="v-toolbar">
-    <breadcrumb :current="() => `${$t('page_title.calls')} (${total})`" />
-    <template v-if="checked">
-      <button class="icon-button" @click.stop="deleteItems(realAllChecked, finalQ)" v-tooltip="$t('delete')">
-        <md-ripple />
-        <i-material-symbols:delete-forever-outline-rounded />
-      </button>
-      <button class="icon-button" @click.stop="addToTags(realAllChecked, finalQ)" v-tooltip="$t('add_to_tags')">
-        <md-ripple />
-        <i-material-symbols:label-outline-rounded />
-      </button>
-    </template>
-    <search-input ref="searchInputRef" v-model="q" :search="doSearch">
-      <template #filters>
-        <div class="filters">
-          <md-outlined-text-field :label="$t('keywords')" v-model="filter.text" keyup.enter="applyAndDoSearch" />
-          <label class="form-label">{{ $t('tags') }}</label>
-          <md-chip-set>
-            <md-filter-chip v-for="item in tags" :key="item.id" :label="item.name" :selected="filter.tags.includes(item)" @click="onTagSelect(item)" />
-          </md-chip-set>
-          <div class="buttons">
-            <md-filled-button @click.stop="applyAndDoSearch">
-              {{ $t('search') }}
-            </md-filled-button>
-          </div>
-        </div>
+  <div class="top-app-bar">
+    <div class="title">{{ $t('page_title.calls') }} ({{ total.toLocaleString() }})</div>
+    <div class="actions">
+      <search-input :filter="filter" :tags="tags" :types="types" :get-url="getUrl" />
+      <template v-if="checked">
+        <button class="btn-icon" @click.stop="deleteItems(realAllChecked, q)" v-tooltip="$t('delete')">
+          <md-ripple />
+          <i-material-symbols:delete-forever-outline-rounded />
+        </button>
+        <button class="btn-icon" @click.stop="addToTags(items, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
+          <md-ripple />
+          <i-material-symbols:label-outline-rounded />
+        </button>
       </template>
-    </search-input>
+    </div>
   </div>
   <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible" :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
   <div class="table-responsive">
@@ -36,12 +23,12 @@
           <th>
             <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
           </th>
-          <th>ID</th>
+          <th v-if="app.developerMode">ID</th>
           <th>{{ $t('name') }}</th>
           <th>{{ $t('phone_number') }}</th>
-          <th></th>
           <th>{{ $t('phone_geo') }}</th>
           <th>{{ $t('duration') }}</th>
+          <th></th>
           <th>{{ $t('type') }}</th>
           <th>{{ $t('tags') }}</th>
           <th>{{ $t('started_at') }}</th>
@@ -50,7 +37,7 @@
       <tbody>
         <tr v-for="item in items" :key="item.id" :class="{ selected: item.checked }" @click.stop="toggleRow(item)">
           <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
-          <td><field-id :id="item.id" :raw="item" /></td>
+          <td v-if="app.developerMode"><field-id :id="item.id" :raw="item" /></td>
           <td>
             {{ item.name }}
           </td>
@@ -59,43 +46,43 @@
               {{ item.number }}
             </div>
           </td>
-          <td class="nowrap">
-            <div class="action-btns">
-              <button class="icon-button" @click.stop="deleteItem(item)" v-tooltip="$t('delete')">
-                <md-ripple />
-                <i-material-symbols:delete-forever-outline-rounded />
-              </button>
-              <md-circular-progress indeterminate class="spinner-sm" v-if="callLoading && callId === item.id" />
-              <button class="icon-button" v-else @click.stop="call(item)" v-tooltip="$t('make_a_phone_call')">
-                <md-ripple />
-                <i-material-symbols:call-outline-rounded />
-              </button>
-              <button class="icon-button" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
-                <md-ripple />
-                <i-material-symbols:label-outline-rounded />
-              </button>
-            </div>
-          </td>
           <td>
             {{ getGeoText(item.geo) }}
           </td>
           <td class="nowrap">
             {{ formatSeconds(item.duration) }}
           </td>
+          <td class="nowrap">
+            <div class="action-btns">
+              <button class="btn-icon sm" @click.stop="deleteItem(item)" v-tooltip="$t('delete')">
+                <md-ripple />
+                <i-material-symbols:delete-forever-outline-rounded />
+              </button>
+              <md-circular-progress indeterminate class="spinner-sm" v-if="callLoading && callId === item.id" />
+              <button class="btn-icon sm" v-else @click.stop="call(item)" v-tooltip="$t('make_a_phone_call')">
+                <md-ripple />
+                <i-material-symbols:call-outline-rounded />
+              </button>
+              <button class="btn-icon sm" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
+                <md-ripple />
+                <i-material-symbols:label-outline-rounded />
+              </button>
+            </div>
+          </td>
           <td class="nowrap">{{ $t('call_type.' + item.type) }}</td>
           <td>
             <item-tags :tags="item.tags" :type="dataType" />
           </td>
           <td class="nowrap">
-            <span v-tooltip="formatDateTimeFull(item.startedAt)">
+            <time v-tooltip="formatDateTimeFull(item.startedAt)">
               {{ formatDateTime(item.startedAt) }}
-            </span>
+            </time>
           </td>
         </tr>
       </tbody>
       <tfoot v-if="!items.length">
         <tr>
-          <td colspan="10">
+          <td :colspan="app.developerMode ? 10 : 9">
             <div class="no-data-placeholder">
               {{ $t(noDataKey(loading, app.permissions, 'WRITE_CALL_LOG')) }}
             </div>
@@ -108,7 +95,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { onActivated, onDeactivated, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatDateTime, formatDateTimeFull, formatSeconds } from '@/lib/format'
 import { callsGQL, initLazyQuery } from '@/lib/api/query'
@@ -122,26 +109,23 @@ import { noDataKey } from '@/lib/list'
 import { storeToRefs } from 'pinia'
 import { openModal } from '@/components/modal'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
-import { buildQuery, type IFilterField } from '@/lib/search'
 import type { IFilter, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, ITag } from '@/lib/interfaces'
-import { decodeBase64, encodeBase64 } from '@/lib/strutil'
-import { kebabCase } from 'lodash'
+import { decodeBase64 } from '@/lib/strutil'
 import { useDelete, useSelectable } from '@/hooks/list'
+import { useSearch } from '@/hooks/search'
 import { useAddToTags, useTags } from '@/hooks/tags'
 import emitter from '@/plugins/eventbus'
 import { callGQL, deleteCallsGQL, initMutation } from '@/lib/api/mutation'
-import { remove } from 'lodash-es'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { DataType } from '@/lib/data'
 
 const mainStore = useMainStore()
 const { app } = storeToRefs(useTempStore())
 const items = ref<any[]>([])
-const searchInputRef = ref()
 const { t } = useI18n()
-const filter: IFilter = reactive({
-  text: '',
-  tags: [],
+const { parseQ } = useSearch()
+const filter = reactive<IFilter>({
+  tagIds: [],
 })
 
 const dataType = DataType.CALL
@@ -149,34 +133,21 @@ const route = useRoute()
 const query = route.query
 const page = ref(parseInt(query.page?.toString() ?? '1'))
 const limit = 50
-const q = ref(decodeBase64(query.q?.toString() ?? ''))
-const finalQ = ref('')
-const { tags } = useTags(dataType, q, filter, async (fields: IFilterField[]) => {
-  if (currentType) {
-    fields.push({
-      name: 'type',
-      op: '',
-      value: types[currentType].toString(),
-    })
-  }
-
-  finalQ.value = buildQuery(fields)
-  await nextTick()
-  load()
-})
-const { addToTags } = useAddToTags(dataType, items, tags)
+const q = ref('')
+const { tags, fetch: fetchTags } = useTags(dataType)
+const { addToTags } = useAddToTags(dataType, tags)
 const { deleteItems } = useDelete(
   deleteCallsGQL,
   () => {
     clearSelection()
-    refetch()
+    fetch()
     emitter.emit('refetch_tags', dataType)
   },
   items
 )
 
 const { allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleItemChecked, toggleRow, total, checked } = useSelectable(items)
-const { loading, load, refetch } = initLazyQuery({
+const { loading, fetch } = initLazyQuery({
   handle: (data: any, error: string) => {
     if (error) {
       toast(t(error), 'error')
@@ -191,24 +162,16 @@ const { loading, load, refetch } = initLazyQuery({
   variables: () => ({
     offset: (page.value - 1) * limit,
     limit,
-    query: finalQ.value,
+    query: q.value,
   }),
   appApi: true,
 })
 
-const currentType = route.params['type'] as string
-const types: Record<string, number> = {
-  incoming: 1,
-  outgoing: 2,
-  missed: 3,
-}
+const types = ['1', '2', '3'].map((it) => ({ id: it, name: t('call_type.' + it) }))
 
 watch(page, (value: number) => {
-  if (currentType) {
-    replacePath(mainStore, `/calls/${currentType}?page=${value}&q=${encodeBase64(q.value)}`)
-  } else {
-    replacePath(mainStore, `/calls?page=${value}&q=${encodeBase64(q.value)}`)
-  }
+  const q = route.query.q
+  replacePath(mainStore, q ? `/calls?page=${value}&q=${q}` : `/calls?page=${value}`)
 })
 
 function addItemToTags(item: any) {
@@ -224,67 +187,22 @@ function addItemToTags(item: any) {
   })
 }
 
-function onTagSelect(item: ITag) {
-  if (filter.tags.includes(item)) {
-    remove(filter.tags, (it: ITag) => it.id === item.id)
-  } else {
-    filter.tags.push(item)
-  }
-}
-
-function applyAndDoSearch() {
-  const fileds: IFilterField[] = []
-  for (const tag of filter.tags) {
-    fileds.push({
-      name: 'tag',
-      op: '',
-      value: kebabCase(tag.name),
-    })
-  }
-
-  if (filter.text) {
-    fileds.push({
-      name: 'text',
-      op: '',
-      value: filter.text,
-    })
-  }
-
-  q.value = buildQuery(fileds)
-  doSearch()
-  searchInputRef.value.dismiss()
-}
-
-function doSearch() {
-  if (currentType) {
-    replacePath(mainStore, `/calls/${currentType}?q=${encodeBase64(q.value)}`)
-  } else {
-    replacePath(mainStore, `/calls?q=${encodeBase64(q.value)}`)
-  }
+function getUrl(q: string) {
+  return q ? `/calls?q=${q}` : `/calls`
 }
 
 const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
   if (event.type === dataType) {
     clearSelection()
-    refetch()
+    fetch()
   }
 }
 
 const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
   if (event.type === dataType) {
-    refetch()
+    fetch()
   }
 }
-
-onMounted(() => {
-  emitter.on('item_tags_updated', itemTagsUpdatedHandler)
-  emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
-})
-
-onUnmounted(() => {
-  emitter.off('item_tags_updated', itemTagsUpdatedHandler)
-  emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
-})
 
 function getGeoText(geo: any) {
   if (!geo) {
@@ -338,4 +256,18 @@ function deleteItem(item: any) {
     },
   })
 }
+
+onActivated(() => {
+  q.value = decodeBase64(query.q?.toString() ?? '')
+  parseQ(filter, q.value)
+  fetchTags()
+  fetch()
+  emitter.on('item_tags_updated', itemTagsUpdatedHandler)
+  emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
+})
+
+onDeactivated(() => {
+  emitter.off('item_tags_updated', itemTagsUpdatedHandler)
+  emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
+})
 </script>

@@ -1,57 +1,44 @@
 <template>
-  <div class="v-toolbar">
-    <breadcrumb :current="() => `${$t('page_title.audios')} (${total})`" />
-    <template v-if="checked">
-      <button class="icon-button" @click.stop="deleteItems(dataType, items, realAllChecked, finalQ)" v-tooltip="$t('delete')">
-        <md-ripple />
-        <i-material-symbols:delete-forever-outline-rounded />
-      </button>
-      <button class="icon-button" @click.stop="downloadItems(realAllChecked, finalQ)" v-tooltip="$t('download')">
-        <md-ripple />
-        <i-material-symbols:download-rounded />
-      </button>
-      <button class="icon-button" @click.stop="addItemsToPlaylist($event, realAllChecked, finalQ)" v-tooltip="$t('add_to_playlist')">
-        <md-ripple />
-        <i-material-symbols:playlist-add />
-      </button>
-      <button class="icon-button" @click.stop="addToTags(realAllChecked, finalQ)" v-tooltip="$t('add_to_tags')">
-        <md-ripple />
-        <i-material-symbols:label-outline-rounded />
-      </button>
-    </template>
-    <button class="icon-button" @click.stop="upload" v-tooltip="$t('upload')">
-      <md-ripple />
-      <i-material-symbols:upload-rounded />
-    </button>
-    <popper>
-      <button class="icon-button btn-sort" v-tooltip="$t('sort')">
-        <md-ripple />
-        <i-material-symbols:sort-rounded />
-      </button>
-      <template #content="slotProps">
-        <div class="menu-items">
-          <md-menu-item v-for="item in sortItems" @click="sort(slotProps, item.value)" :selected="item.value === audioSortBy">
-            <div slot="headline">{{ $t(item.label) }}</div>
-          </md-menu-item>
-        </div>
+  <div class="top-app-bar">
+    <div class="title">{{ $t('page_title.audios') }} ({{ total.toLocaleString() }})</div>
+    <div class="actions">
+      <search-input :filter="filter" :tags="tags" :buckets="buckets" :get-url="getUrl" />
+      <template v-if="checked">
+        <button class="btn-icon" @click.stop="deleteItems(dataType, items, realAllChecked, q)" v-tooltip="$t('delete')">
+          <md-ripple />
+          <i-material-symbols:delete-forever-outline-rounded />
+        </button>
+        <button class="btn-icon" @click.stop="downloadItems(realAllChecked, q)" v-tooltip="$t('download')">
+          <md-ripple />
+          <i-material-symbols:download-rounded />
+        </button>
+        <button class="btn-icon" @click.stop="addItemsToPlaylist($event, realAllChecked, q)" v-tooltip="$t('add_to_playlist')">
+          <md-ripple />
+          <i-material-symbols:playlist-add />
+        </button>
+        <button class="btn-icon" @click.stop="addToTags(items, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
+          <md-ripple />
+          <i-material-symbols:label-outline-rounded />
+        </button>
       </template>
-    </popper>
-    <search-input ref="searchInputRef" v-model="q" :search="doSearch">
-      <template #filters>
-        <div class="filters">
-          <md-outlined-text-field :label="$t('keywords')" v-model="filter.text" keyup.enter="applyAndDoSearch" />
-          <label class="form-label">{{ $t('tags') }}</label>
-          <md-chip-set>
-            <md-filter-chip v-for="item in tags" :key="item.id" :label="item.name" :selected="filter.tags.includes(item)" @click="onTagSelect(item)" />
-          </md-chip-set>
-          <div class="buttons">
-            <md-filled-button @click.stop="applyAndDoSearch">
-              {{ $t('search') }}
-            </md-filled-button>
+      <button class="btn-icon" @click.stop="upload" v-tooltip="$t('upload')">
+        <md-ripple />
+        <i-material-symbols:upload-rounded />
+      </button>
+      <popper>
+        <button class="btn-icon btn-sort" v-tooltip="$t('sort')">
+          <md-ripple />
+          <i-material-symbols:sort-rounded />
+        </button>
+        <template #content="slotProps">
+          <div class="menu-items">
+            <md-menu-item v-for="item in sortItems" @click="sort(slotProps, item.value)" :selected="item.value === audioSortBy">
+              <div slot="headline">{{ $t(item.label) }}</div>
+            </md-menu-item>
           </div>
-        </div>
-      </template>
-    </search-input>
+        </template>
+      </popper>
+    </div>
   </div>
   <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible" :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
   <div class="table-responsive">
@@ -79,28 +66,28 @@
           </td>
           <td class="nowrap">
             <div class="action-btns">
-              <button class="icon-button" @click.stop="deleteItem(dataType, item)" v-tooltip="$t('delete')">
+              <button class="btn-icon sm" @click.stop="deleteItem(dataType, item)" v-tooltip="$t('delete')">
                 <md-ripple />
                 <i-material-symbols:delete-forever-outline-rounded />
               </button>
-              <button class="icon-button" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))" v-tooltip="$t('download')">
+              <button class="btn-icon sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))" v-tooltip="$t('download')">
                 <md-ripple />
                 <i-material-symbols:download-rounded />
               </button>
-              <button class="icon-button" @click.stop="addToPlaylist($event, item)" v-tooltip="$t('add_to_playlist')">
+              <button class="btn-icon sm" @click.stop="addToPlaylist($event, item)" v-tooltip="$t('add_to_playlist')">
                 <md-ripple />
                 <i-material-symbols:playlist-add />
               </button>
-              <button class="icon-button" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
+              <button class="btn-icon sm" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
                 <md-ripple />
                 <i-material-symbols:label-outline-rounded />
               </button>
               <md-circular-progress indeterminate class="spinner-sm" v-if="playLoading && item.path === playPath" />
-              <button class="icon-button" v-else-if="isAudioPlaying(item)" @click.stop="pause()" v-tooltip="$t('pause')">
+              <button class="btn-icon sm" v-else-if="isAudioPlaying(item)" @click.stop="pause()" v-tooltip="$t('pause')">
                 <md-ripple />
                 <i-material-symbols:pause-circle-outline-rounded />
               </button>
-              <button class="icon-button" v-else @click.stop="play(item)" v-tooltip="$t('play')">
+              <button class="btn-icon sm" v-else @click.stop="play(item)" v-tooltip="$t('play')">
                 <md-ripple />
                 <i-material-symbols:play-circle-outline-rounded />
               </button>
@@ -135,31 +122,30 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onActivated, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { onActivated, onDeactivated, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatSeconds } from '@/lib/format'
-import { audiosGQL, initLazyQuery } from '@/lib/api/query'
+import { audiosGQL, bucketsTagsGQL, initLazyQuery } from '@/lib/api/query'
 import { useRoute, useRouter } from 'vue-router'
 import { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
 import { useI18n } from 'vue-i18n'
 import { formatFileSize } from '@/lib/format'
-import type { IAudio, IAudioItem, IFilter, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IMediaItemsDeletedEvent, ITag } from '@/lib/interfaces'
+import type { IAudio, IAudioItem, IBucket, IFilter, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IMediaItemsDeletedEvent, ITag } from '@/lib/interfaces'
 import { storeToRefs } from 'pinia'
-import { buildFilterQuery, buildQuery, type IFilterField } from '@/lib/search'
-import { decodeBase64, encodeBase64 } from '@/lib/strutil'
+import { decodeBase64 } from '@/lib/strutil'
 import { noDataKey } from '@/lib/list'
+import { useSearch } from '@/hooks/search'
 import { useAddToPlaylist, useAudioPlayer } from '@/hooks/audios'
 import { useSelectable } from '@/hooks/list'
 import emitter from '@/plugins/eventbus'
-import { useAddToTags, useTags } from '@/hooks/tags'
+import { useAddToTags } from '@/hooks/tags'
 import { useDeleteItems } from '@/hooks/media'
 import { useDownload, useDownloadItems } from '@/hooks/files'
 import { openModal, pushModal } from '@/components/modal'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 import { getFileName } from '@/lib/api/file'
-import { remove } from 'lodash-es'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { DataType } from '@/lib/data'
 import { getSortItems } from '@/lib/file'
@@ -167,14 +153,12 @@ import { getSortItems } from '@/lib/file'
 const mainStore = useMainStore()
 const { audioSortBy } = storeToRefs(mainStore)
 const items = ref<IAudioItem[]>([])
-const searchInputRef = ref()
 const { t } = useI18n()
-const { app, urlTokenKey, audioPlaying } = storeToRefs(useTempStore())
-const filter: IFilter = reactive({
-  text: '',
-  tags: [],
+const { parseQ } = useSearch()
+const filter = reactive<IFilter>({
+  tagIds: [],
 })
-
+const { app, urlTokenKey, audioPlaying } = storeToRefs(useTempStore())
 const isAudioPlaying = (item: IAudioItem) => {
   return audioPlaying.value && app.value?.audioCurrent === item.path
 }
@@ -184,20 +168,10 @@ const route = useRoute()
 const query = route.query
 const page = ref(parseInt(query.page?.toString() ?? '1'))
 const limit = 50
-const q = ref(decodeBase64(query.q?.toString() ?? ''))
-const finalQ = ref('')
-const isInitialized = ref(false)
-const { tags, load: loadTags, refetch: refetchTags } = useTags(dataType, q, filter, async (fields: IFilterField[]) => {
-  finalQ.value = buildQuery(fields)
-  await nextTick() // hack: to fix the lazy query load twice
-  if (isInitialized.value) {
-    refetch()
-  } else {
-    load()
-  }
-  isInitialized.value = true
-})
-const { addToTags } = useAddToTags(dataType, items, tags)
+const tags = ref<ITag[]>([])
+const buckets = ref<IBucket[]>([])
+const q = ref('')
+const { addToTags } = useAddToTags(dataType, tags)
 const { deleteItems, deleteItem } = useDeleteItems()
 const { allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleRow, toggleItemChecked, total, checked } = useSelectable(items)
 const { downloadItems } = useDownloadItems(urlTokenKey, dataType, items, clearSelection, 'audios.zip')
@@ -209,7 +183,25 @@ const router = useRouter()
 
 const { play, playPath, loading: playLoading, pause } = useAudioPlayer()
 
-const { loading, load, refetch } = initLazyQuery({
+const { fetch: fetchBucketsTags } = initLazyQuery({
+  handle: async (data: any, error: string) => {
+    if (error) {
+      toast(t(error), 'error')
+    } else {
+      if (data) {
+        tags.value = data.tags
+        buckets.value = data.mediaBuckets
+      }
+    }
+  },
+  document: bucketsTagsGQL,
+  variables: {
+    type: dataType,
+  },
+  appApi: true,
+})
+
+const { loading, fetch } = initLazyQuery({
   handle: (data: any, error: string) => {
     if (error) {
       toast(t(error), 'error')
@@ -224,15 +216,20 @@ const { loading, load, refetch } = initLazyQuery({
   variables: () => ({
     offset: (page.value - 1) * limit,
     limit,
-    query: finalQ.value,
+    query: q.value,
     sortBy: audioSortBy.value,
   }),
   appApi: true,
 })
 
 watch(page, (value: number) => {
-  replacePath(mainStore, `/audios?page=${value}&q=${encodeBase64(q.value)}`)
+  const q = route.query.q
+  replacePath(mainStore, q ? `/audios?page=${value}&q=${q}` : `/audios?page=${value}`)
 })
+
+function getUrl(q: string) {
+  return q ? `/audios?q=${q}` : `/audios`
+}
 
 function upload() {
   router.push(`/files`)
@@ -246,61 +243,29 @@ function sort(slotProps: any, sort: string) {
   slotProps.close()
 }
 
-function onTagSelect(item: ITag) {
-  if (filter.tags.includes(item)) {
-    remove(filter.tags, (it: ITag) => it.id === item.id)
-  } else {
-    filter.tags.push(item)
-  }
-}
-
-function applyAndDoSearch() {
-  q.value = buildFilterQuery(filter)
-  doSearch()
-  searchInputRef.value.dismiss()
-}
-
-function doSearch() {
-  replacePath(mainStore, `/audios?q=${encodeBase64(q.value)}`)
-}
-
 const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
   if (event.type === dataType) {
     clearSelection()
-    refetch()
+    fetch()
   }
 }
 
 const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
   if (event.type === dataType) {
-    refetch()
+    fetch()
   }
 }
 
 const mediaItemsDeletedHandler = (event: IMediaItemsDeletedEvent) => {
   if (event.type === dataType) {
     clearSelection()
-    refetch()
+    fetch()
   }
 }
 
 const mediaItemDeletedHandler = () => {
   total.value--
 }
-
-onMounted(() => {
-  emitter.on('item_tags_updated', itemTagsUpdatedHandler)
-  emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
-  emitter.on('media_item_deleted', mediaItemDeletedHandler)
-  emitter.on('media_items_deleted', mediaItemsDeletedHandler)
-})
-
-onUnmounted(() => {
-  emitter.off('item_tags_updated', itemTagsUpdatedHandler)
-  emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
-  emitter.off('media_item_deleted', mediaItemDeletedHandler)
-  emitter.off('media_items_deleted', mediaItemsDeletedHandler)
-})
 
 function addItemToTags(item: IAudioItem) {
   openModal(UpdateTagRelationsModal, {
@@ -316,11 +281,22 @@ function addItemToTags(item: IAudioItem) {
 }
 
 onActivated(() => {
-  if (isInitialized.value) {
-    refetchTags()
-  } else {
-    loadTags()
-  }
+  q.value = decodeBase64(query.q?.toString() ?? '')
+  parseQ(filter, q.value)
+  fetchBucketsTags()
+  fetch()
+  emitter.on('item_tags_updated', itemTagsUpdatedHandler)
+  emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
+  emitter.on('media_item_deleted', mediaItemDeletedHandler)
+  emitter.on('media_items_deleted', mediaItemsDeletedHandler)
+  fetch()
+})
+
+onDeactivated(() => {
+  emitter.off('item_tags_updated', itemTagsUpdatedHandler)
+  emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
+  emitter.off('media_item_deleted', mediaItemDeletedHandler)
+  emitter.off('media_items_deleted', mediaItemsDeletedHandler)
 })
 </script>
 <style scoped lang="scss">

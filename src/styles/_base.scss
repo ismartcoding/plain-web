@@ -22,32 +22,18 @@
   --md-ref-typeface-brand: 'Google Sans', Roboto, system-ui;
   --md-ref-typeface-plain: 'Google Sans', Roboto, system-ui;
   --md-sys-color-warning: #F57F17;
-  --md-sys-color-on-surface-selected: var(--md-sys-color-surface-variant);
   background-color: var(--md-sys-color-surface-container);
   color: var(--md-sys-color-on-surface);
-  --pl-display-xl-font-size: 88px;
-  --pl-display-m-font-size: 45px;
-  --pl-title-l-font-size: 22px;
-  --pl-title-m-font-size: 16px;
-  --pl-title-s-font-size: 14px;
-  --pl-body-l-font-size: 16px;
-  --pl-body-m-font-size: 14px;
-  --pl-headline-s-font-size: 24px;
-  --pl-label-s-font-size: 11px;
   --pl-shape-xl: 28px;
   --pl-shape-l: 16px;
   --pl-shape-m: 12px;
   --pl-shape-s: 8px;
   --pl-shape-xs: 4px;
   --pl-spacing-xl: 28px;
-  --pl-spacing-l: 16px;
-  --pl-spacing-m: 12px;
-  --pl-spacing-s: 8px;
   --pl-top-app-bar-height: 56px;
   --_scrollbar-width: 8px;
   --border-radius-sm: 4px;
-  --screen-min-width: 992px;
-  --quick-content-width: 330px;
+  --screen-min-width: 768px;
   /* firefox */
   scrollbar-color: var(--md-sys-color-primary) transparent;
   scrollbar-width: thin;
@@ -75,13 +61,8 @@
 
 @media screen and (max-width: 600px) {
   :root {
-    --pl-display-xl-font-size: 55px;
-    --pl-title-l-font-size: 16px;
-    --pl-body-l-font-size: 14px;
-    --pl-body-m-font-size: 12px;
     /* Mostly to accommodate content padding on small screens */
     --pl-spacing-xl: 16px;
-    --pl-spacing-l: 12px;
   }
 }
 

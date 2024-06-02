@@ -48,25 +48,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@apollo/client@npm:^3.8.5":
-  version: 3.8.5
-  resolution: "@apollo/client@npm:3.8.5"
+"@apollo/client@npm:^3.10.4":
+  version: 3.10.4
+  resolution: "@apollo/client@npm:3.10.4"
   dependencies:
     "@graphql-typed-document-node/core": "npm:^3.1.1"
-    "@wry/context": "npm:^0.7.3"
+    "@wry/caches": "npm:^1.0.0"
     "@wry/equality": "npm:^0.5.6"
-    "@wry/trie": "npm:^0.4.3"
+    "@wry/trie": "npm:^0.5.0"
     graphql-tag: "npm:^2.12.6"
     hoist-non-react-statics: "npm:^3.3.2"
-    optimism: "npm:^0.17.5"
+    optimism: "npm:^0.18.0"
     prop-types: "npm:^15.7.2"
+    rehackt: "npm:^0.1.0"
     response-iterator: "npm:^0.2.6"
     symbol-observable: "npm:^4.0.0"
     ts-invariant: "npm:^0.10.3"
     tslib: "npm:^2.3.0"
     zen-observable-ts: "npm:^1.2.5"
   peerDependencies:
-    graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
+    graphql: ^15.0.0 || ^16.0.0
     graphql-ws: ^5.5.5
     react: ^16.8.0 || ^17.0.0 || ^18.0.0
     react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
@@ -80,7 +81,7 @@ __metadata:
       optional: true
     subscriptions-transport-ws:
       optional: true
-  checksum: 657ebbcb96bb0a66e73c9892640c174dcc9c3e6152c795bab4ce8137bdf8184060ac3c0486df898621d4e11a7413ec4ac815f62bf9d632743e4d87e1a639f81d
+  checksum: 8db77625bb96f3330187a6b45c9792edf338c42d4e48ed66f6b0ce38c7cea503db9a5de27f9987b7d83306201a57f90e8ef7ebc06c8a6899aaadb8a090b175cb
   languageName: node
   linkType: hard
 
@@ -721,12 +722,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@iconify-json/material-symbols@npm:^1.1.80":
-  version: 1.1.80
-  resolution: "@iconify-json/material-symbols@npm:1.1.80"
+"@iconify-json/material-symbols@npm:^1.1.82":
+  version: 1.1.82
+  resolution: "@iconify-json/material-symbols@npm:1.1.82"
   dependencies:
     "@iconify/types": "npm:*"
-  checksum: 4d290cd55632c225fc10fd865d6fb8fe3147698a18e9e784da36d1496442470e66d1d6409a66aed68f64939c44fd31bee59c869a737d6a10e9eddb5dfac0db43
+  checksum: ed56416e7753ab911f27113724aea03adc3bfb4217c2e209bd89e32f00ffca27ddffcaa87851423aec74d5c7ed5e6f41e22c40f923e5b22a8ea4745c8e745c19
   languageName: node
   linkType: hard
 
@@ -856,13 +857,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@material/web@npm:^1.4.1":
-  version: 1.4.1
-  resolution: "@material/web@npm:1.4.1"
+"@material/web@npm:^1.5.0":
+  version: 1.5.0
+  resolution: "@material/web@npm:1.5.0"
   dependencies:
     lit: "npm:^2.7.4 || ^3.0.0"
     tslib: "npm:^2.4.0"
-  checksum: d712a885d131ce39b4fb44fe2219ada737e1874480db956eb675dfd8569c7f50f4f005b6cd79c18c54d728873de8b7861241ced3332f8cc6f252b4a4088e2b6a
+  checksum: 6bf651e8eaf33332b7f83aa04d473f6844a1f8280d5a2025a30583fbe03aa718de348260c5b9466d587f166772759aba0d100137e3e13d4d7c6fba6ffb79efa4
   languageName: node
   linkType: hard
 
@@ -1366,9 +1367,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vue/apollo-composable@npm:^4.0.0-beta.11":
-  version: 4.0.0-beta.11
-  resolution: "@vue/apollo-composable@npm:4.0.0-beta.11"
+"@vue/apollo-composable@npm:^4.0.2":
+  version: 4.0.2
+  resolution: "@vue/apollo-composable@npm:4.0.2"
   dependencies:
     throttle-debounce: "npm:^5.0.0"
     ts-essentials: "npm:^9.4.0"
@@ -1381,7 +1382,7 @@ __metadata:
   peerDependenciesMeta:
     "@vue/composition-api":
       optional: true
-  checksum: a053b179e197a0a42c81c4aaf883dc1d02cd95c6cf0544e46d33e8160158219403c5a3e4c958f4b7e8c38b44127a014014c2ced4e5275a4536a96c8492d3c948
+  checksum: fc07bf29876d9852208b83c50b18771deaa60ddc7d4fbe0cdb2026dacf3bfafe098e8a6c7bb10cc99786ee3479dcfa2497406fbd505d142d45302590a8c12666
   languageName: node
   linkType: hard
 
@@ -1502,6 +1503,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@vue/devtools-api@npm:^6.6.1":
+  version: 6.6.3
+  resolution: "@vue/devtools-api@npm:6.6.3"
+  checksum: 3566ca63d5dc4aed8be0cd7c1d326f6eca13e2f1f4071f1be6e7eeaee9723f6475ad6c6cfa2b3801f432bb4d81e373c8743786bd33b1a6e11e724323f4868f6e
+  languageName: node
+  linkType: hard
+
 "@vue/eslint-config-prettier@npm:^9.0.0":
   version: 9.0.0
   resolution: "@vue/eslint-config-prettier@npm:9.0.0"
@@ -1609,21 +1617,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@wry/caches@npm:^1.0.0":
+  version: 1.0.1
+  resolution: "@wry/caches@npm:1.0.1"
+  dependencies:
+    tslib: "npm:^2.3.0"
+  checksum: 055f592ee52b5fd9aa86e274e54e4a8b2650f619000bf6f61880ce14aaf47eb2ab34f3ada2eab964fe8b2f19bf8097ecacddcea4638fcc64c3d3a0a512aaa07c
+  languageName: node
+  linkType: hard
+
 "@wry/context@npm:^0.7.0":
   version: 0.7.0
   resolution: "@wry/context@npm:0.7.0"
   dependencies:
     tslib: "npm:^2.3.0"
   checksum: 75e53a64e320b8f1924f5580ce935e55e94238df9fc78259da7d7e6be85dbc1d822eb5f252d9add68646d966ad88d4142c240b25ca7cb5b13849454792d293d4
-  languageName: node
-  linkType: hard
-
-"@wry/context@npm:^0.7.3":
-  version: 0.7.3
-  resolution: "@wry/context@npm:0.7.3"
-  dependencies:
-    tslib: "npm:^2.3.0"
-  checksum: e890f4c36fe93d4cff842ad794b4cab11bbc93e45091b560a0adac466cbcfcfb92f8897ffa5845a2a88c7be6c6a684c2d0f8a4ed071a635345c79755e7a48def
   languageName: node
   linkType: hard
 
@@ -1642,6 +1650,15 @@ __metadata:
   dependencies:
     tslib: "npm:^2.3.0"
   checksum: 106e021125cfafd22250a6631a0438a6a3debae7bd73f6db87fe42aa0757fe67693db0dfbe200ae1f60ba608c3e09ddb8a4e2b3527d56ed0a7e02aa0ee4c94e1
+  languageName: node
+  linkType: hard
+
+"@wry/trie@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "@wry/trie@npm:0.5.0"
+  dependencies:
+    tslib: "npm:^2.3.0"
+  checksum: 578a08f3a96256c9b163230337183d9511fd775bdfe147a30561ccaacedc9ce33b9731ee6e591bb1f5f53e41b26789e519b47dff5100c7bf4e1cd2df3062f797
   languageName: node
   linkType: hard
 
@@ -4071,14 +4088,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"optimism@npm:^0.17.5":
-  version: 0.17.5
-  resolution: "optimism@npm:0.17.5"
+"optimism@npm:^0.18.0":
+  version: 0.18.0
+  resolution: "optimism@npm:0.18.0"
   dependencies:
+    "@wry/caches": "npm:^1.0.0"
     "@wry/context": "npm:^0.7.0"
     "@wry/trie": "npm:^0.4.3"
     tslib: "npm:^2.3.0"
-  checksum: a56bff5b9c483752f13858a72d79dfbd4d54b969522a5c7809573b10f4a971af34a039b726acda97fdad67465ca150c24b9668df0f86072c54b519e24e82317f
+  checksum: b461968008eb7aafd5b5dd63b81fd41fbd907f39858bdd5190f10b71db6a5bf54541cdb3d2a569b2bf5585ca917ac192f953e6239d81702a4391fdb476a00ae8
   languageName: node
   linkType: hard
 
@@ -4243,10 +4261,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "plain@workspace:."
   dependencies:
-    "@apollo/client": "npm:^3.8.5"
-    "@iconify-json/material-symbols": "npm:^1.1.80"
+    "@apollo/client": "npm:^3.10.4"
+    "@iconify-json/material-symbols": "npm:^1.1.82"
     "@material/material-color-utilities": "npm:^0.2.7"
-    "@material/web": "npm:^1.4.1"
+    "@material/web": "npm:^1.5.0"
     "@nuintun/qrcode": "npm:^3.3.0"
     "@popperjs/core": "npm:^2.11.6"
     "@rushstack/eslint-patch": "npm:^1.10.3"
@@ -4257,7 +4275,7 @@ __metadata:
     "@types/sjcl": "npm:^1.0.30"
     "@vitejs/plugin-vue": "npm:^5.0.4"
     "@vitejs/plugin-vue-jsx": "npm:^4.0.0"
-    "@vue/apollo-composable": "npm:^4.0.0-beta.11"
+    "@vue/apollo-composable": "npm:^4.0.2"
     "@vue/apollo-util": "npm:^4.0.0-beta.6"
     "@vue/compiler-sfc": "npm:^3.4.27"
     "@vue/eslint-config-prettier": "npm:^9.0.0"
@@ -4291,7 +4309,7 @@ __metadata:
     typescript: "npm:~5.4.5"
     unplugin-icons: "npm:^0.19.0"
     unplugin-vue-components: "npm:^0.27.0"
-    vee-validate: "npm:^4.11.6"
+    vee-validate: "npm:^4.13.1"
     vite: "npm:^5.2.12"
     vite-svg-loader: "npm:^5.1.0"
     vue: "npm:^3.4.27"
@@ -4428,6 +4446,21 @@ __metadata:
   version: 0.13.11
   resolution: "regenerator-runtime@npm:0.13.11"
   checksum: d493e9e118abef5b099c78170834f18540c4933cedf9bfabc32d3af94abfb59a7907bd7950259cbab0a929ebca7db77301e8024e5121e6482a82f78283dfd20c
+  languageName: node
+  linkType: hard
+
+"rehackt@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "rehackt@npm:0.1.0"
+  peerDependencies:
+    "@types/react": "*"
+    react: "*"
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    react:
+      optional: true
+  checksum: c81adead82c165dffc574cbf9e1de3605522782a56b48df48b68d53d45c4d8c9253df3790109335bf97072424e54ad2423bb9544ca3a985fa91995dda43452fc
   languageName: node
   linkType: hard
 
@@ -5012,10 +5045,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"type-fest@npm:^4.2.0":
-  version: 4.3.1
-  resolution: "type-fest@npm:4.3.1"
-  checksum: 67ec9bd6fd1b1c5e7361d5ffad639607f60a3d497ff9fa7b1359b9e4c6b08a8f31f1cb0328e633f640adc2b8f692b35719efc328af0aea1d816828e4195519ae
+"type-fest@npm:^4.8.3":
+  version: 4.20.0
+  resolution: "type-fest@npm:4.20.0"
+  checksum: df037c11f6393312f27825ea6eb2c8cd62b1ba21c31144bed41854648ba2a18dcb8c68a930607c7227dd531b42006cc7c7a60f7f034668d1c92c205523ae1ea2
   languageName: node
   linkType: hard
 
@@ -5186,15 +5219,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vee-validate@npm:^4.11.6":
-  version: 4.11.6
-  resolution: "vee-validate@npm:4.11.6"
+"vee-validate@npm:^4.13.1":
+  version: 4.13.1
+  resolution: "vee-validate@npm:4.13.1"
   dependencies:
-    "@vue/devtools-api": "npm:^6.5.0"
-    type-fest: "npm:^4.2.0"
+    "@vue/devtools-api": "npm:^6.6.1"
+    type-fest: "npm:^4.8.3"
   peerDependencies:
-    vue: ^3.3.4
-  checksum: 0720e7901d3bb7da1e4148cecd506abc103b9a16a46119007ec2c4456e8cd001832ae5c1f4c7fa72d2e646ecf8b4fb0e62f83971f8589ce9cc784827c51801dd
+    vue: ^3.4.26
+  checksum: 7322806c7f59d7f65faa3958fcab01d193e59c7b93ab88262c6e88d5750e62a80a3221d0dc1ef8d9f0d75a9d6b487c8824060de954e212e96f1762d5feb70414
   languageName: node
   linkType: hard
 

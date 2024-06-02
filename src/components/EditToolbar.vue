@@ -1,13 +1,15 @@
 <template>
-  <div class="v-toolbar">
+  <div class="top-app-bar">
     <ul class="v-tabs">
       <li v-for="(item, index) in tabs" :key="index" @click="swtichTab(index)" :class="{ active: currentTab === index }">
         {{ item.startsWith('t:') ? $t(item.slice(2)) : item }}
       </li>
     </ul>
-    <button type="button" :disabled="loading" class="btn right-actions" @click="save">
-      {{ $t(loading ? 'saving' : 'save') }}
-    </button>
+    <div class="actions">
+      <button type="button" :disabled="loading" class="btn" @click="save">
+        {{ $t(loading ? 'saving' : 'save') }}
+      </button>
+    </div>
   </div>
 </template>
 <script setup lang="ts">

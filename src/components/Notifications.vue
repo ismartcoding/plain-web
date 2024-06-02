@@ -1,13 +1,13 @@
 <template>
   <div class="quick-content-main">
     <div class="top-app-bar">
-      <button class="icon-button" @click.prevent="store.quick = ''" v-tooltip="$t('close')">
+      <button class="btn-icon" @click.prevent="store.quick = ''" v-tooltip="$t('close')">
         <md-ripple />
         <i-material-symbols:right-panel-close-outline />
       </button>
       <div class="title">{{ $t('header_actions.notifications') }} ({{ notifications.length }})</div>
       <div class="actions">
-        <button v-if="notifications.length" class="icon-button" @click.prevent="clearAll" v-tooltip="$t('clear_list')">
+        <button v-if="notifications.length" class="btn-icon" @click.prevent="clearAll" v-tooltip="$t('clear_list')">
           <md-ripple />
           <i-material-symbols:delete-forever-outline-rounded />
         </button>
@@ -38,11 +38,11 @@
               </template>
             </popper>
             <span class="name">{{ item.appName }}</span>
-            <span class="time nowrap" v-tooltip="formatDateTimeFull(item.time)">{{ formatDateTime(item.time) }}</span>
+            <time class="time nowrap" v-tooltip="formatDateTimeFull(item.time)">{{ formatDateTime(item.time) }}</time>
           </div>
           <div class="subtitle">{{ item.title }}</div>
           <div class="body">{{ item.body }}</div>
-          <button class="icon-button icon" @click.stop="deleteItem(item)">
+          <button class="btn-icon icon" @click.stop="deleteItem(item)">
             <md-ripple />
             <i-material-symbols:close-rounded />
           </button>

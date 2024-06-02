@@ -1,21 +1,21 @@
 <template>
-  <div class="v-toolbar">
-    <breadcrumb :current="getPageTitle" />
-    <div class="right-actions">
+  <div class="top-app-bar">
+    <div class="title">{{ getPageTitle() }}</div>
+    <div class="actions">
       <template v-if="selectMode && checked">
-        <button class="icon-button" @click.stop="() => copy(getSelectedFiles())" v-tooltip="$t('copy')">
+        <button class="btn-icon" @click.stop="() => copy(getSelectedFiles())" v-tooltip="$t('copy')">
           <md-ripple />
           <i-material-symbols:content-copy-outline-rounded />
         </button>
-        <button class="icon-button" @click.stop="() => cut(getSelectedFiles())" v-tooltip="$t('cut')">
+        <button class="btn-icon" @click.stop="() => cut(getSelectedFiles())" v-tooltip="$t('cut')">
           <md-ripple />
           <i-material-symbols:content-cut-rounded />
         </button>
-        <button class="icon-button" @click.stop="deleteItems" v-tooltip="$t('delete')">
+        <button class="btn-icon" @click.stop="deleteItems" v-tooltip="$t('delete')">
           <md-ripple />
           <i-material-symbols:delete-forever-outline-rounded />
         </button>
-        <button class="icon-button" @click.stop="downloadItems" v-tooltip="$t('download')">
+        <button class="btn-icon" @click.stop="downloadItems" v-tooltip="$t('download')">
           <md-ripple />
           <i-material-symbols:download-rounded />
         </button>
@@ -29,12 +29,12 @@
       <div class="form-check">
         <label class="form-check-label"><md-checkbox touch-target="wrapper" @change="toggleShowHiddenChecked" :checked="fileShowHidden" />{{ $t('show_hidden') }}</label>
       </div>
-      <button class="icon-button btn-refresh" v-tooltip="$t('refresh')" @click="refreshCurrentDir">
+      <button class="btn-icon btn-refresh" v-tooltip="$t('refresh')" @click="refreshCurrentDir">
         <md-ripple />
         <i-material-symbols:refresh-rounded />
       </button>
       <popper>
-        <button class="icon-button btn-sort" v-tooltip="$t('sort')">
+        <button class="btn-icon btn-sort" v-tooltip="$t('sort')">
           <md-ripple />
           <i-material-symbols:sort-rounded />
         </button>
@@ -91,7 +91,7 @@
 
 <script setup lang="ts">
 import { contextmenu } from '@/components/contextmenu'
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onActivated, onDeactivated, ref, watch } from 'vue'
 import { formatDateTime, formatFileSize } from '@/lib/format'
 import { useI18n } from 'vue-i18n'
 import { useMainStore } from '@/stores/main'
@@ -465,12 +465,12 @@ const fileDeletedHanlder = (event: IFileDeletedEvent) => {
   onDeleted([event.item])
 }
 
-onMounted(() => {
+onActivated(() => {
   emitter.on('upload_task_done', uploadTaskDoneHandler)
   emitter.on('file_deleted', fileDeletedHanlder)
 })
 
-onUnmounted(() => {
+onDeactivated(() => {
   emitter.off('upload_task_done', uploadTaskDoneHandler)
   emitter.off('file_deleted', fileDeletedHanlder)
 })
@@ -478,11 +478,6 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 .file-item-info {
   padding-top: 8px;
-}
-
-.btn-sort,
-.btn-refresh {
-  margin-inline-start: 16px;
 }
 
 .panel-container {
@@ -520,7 +515,7 @@ onUnmounted(() => {
 
     &:hover,
     &.active {
-      background-color: var(--md-sys-color-on-surface-selected);
+      background-color: var(--md-sys-color-surface-variant);
       border-radius: 8px;
     }
   }

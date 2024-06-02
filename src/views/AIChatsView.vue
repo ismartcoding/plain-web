@@ -1,34 +1,20 @@
 <template>
-  <div class="v-toolbar">
-    <breadcrumb :current="() => `${$t('page_title.aichats')} (${total})`" />
-    <template v-if="checked">
-      <button class="icon-button" @click.stop="deleteItems(realAllChecked, finalQ)" v-tooltip="$t('delete')">
-        <md-ripple />
-        <i-material-symbols:delete-forever-outline-rounded />
-      </button>
-      <button class="icon-button" @click.stop="addToTags(realAllChecked, finalQ)" v-tooltip="$t('add_to_tags')">
-        <md-ripple />
-        <i-material-symbols:label-outline-rounded />
-      </button>
-    </template>
-
-    <md-outlined-button @click.prevent="create">{{ $t('new_chat') }}</md-outlined-button>
-    <search-input ref="searchInputRef" v-model="q" :search="doSearch">
-      <template #filters>
-        <div class="filters">
-          <md-outlined-text-field :label="$t('keywords')" v-model="filter.text" keyup.enter="applyAndDoSearch" />
-          <label class="form-label">{{ $t('tags') }}</label>
-          <md-chip-set>
-            <md-filter-chip v-for="item in tags" :key="item.id" :label="item.name" :selected="filter.tags.includes(item)" @click="onTagSelect(item)" />
-          </md-chip-set>
-          <div class="buttons">
-            <md-filled-button @click.stop="applyAndDoSearch">
-              {{ $t('search') }}
-            </md-filled-button>
-          </div>
-        </div>
+  <div class="top-app-bar">
+    <div class="title">{{ $t('page_title.aichats') }} ({{ total.toLocaleString() }})</div>
+    <div class="actions">
+      <search-input :filter="filter" :tags="tags" :get-url="getUrl" />
+      <template v-if="checked">
+        <button class="btn-icon" @click.stop="deleteItems(realAllChecked, q)" v-tooltip="$t('delete')">
+          <md-ripple />
+          <i-material-symbols:delete-forever-outline-rounded />
+        </button>
+        <button class="btn-icon" @click.stop="addToTags(items, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
+          <md-ripple />
+          <i-material-symbols:label-outline-rounded />
+        </button>
       </template>
-    </search-input>
+      <md-outlined-button @click.prevent="create">{{ $t('new_chat') }}</md-outlined-button>
+    </div>
   </div>
   <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible" :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
   <div class="table-responsive">
@@ -55,11 +41,11 @@
           </td>
           <td class="nowrap">
             <div class="action-btns">
-              <button class="icon-button" @click.stop="deleteItem(item)" v-tooltip="$t('delete')">
+              <button class="btn-icon sm" @click.stop="deleteItem(item)" v-tooltip="$t('delete')">
                 <md-ripple />
                 <i-material-symbols:delete-forever-outline-rounded />
               </button>
-              <button class="icon-button" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
+              <button class="btn-icon sm" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
                 <md-ripple />
                 <i-material-symbols:label-outline-rounded />
               </button>
@@ -69,14 +55,14 @@
             <item-tags :tags="item.tags" :type="dataType" />
           </td>
           <td class="nowrap">
-            <span v-tooltip="formatDateTimeFull(item.updatedAt)">
+            <time v-tooltip="formatDateTimeFull(item.updatedAt)">
               {{ formatDateTime(item.updatedAt) }}
-            </span>
+            </time>
           </td>
           <td class="nowrap">
-            <span v-tooltip="formatDateTimeFull(item.createdAt)">
+            <time v-tooltip="formatDateTimeFull(item.createdAt)">
               {{ formatDateTime(item.updatedAt) }}
-            </span>
+            </time>
           </td>
         </tr>
       </tbody>
@@ -95,7 +81,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { onActivated, onDeactivated, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatDateTime, formatDateTimeFull } from '@/lib/format'
 import { aichatsGQL, initLazyQuery } from '@/lib/api/query'
@@ -103,28 +89,27 @@ import { useRoute } from 'vue-router'
 import { pushPath, replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useI18n } from 'vue-i18n'
-import type { IAIChatItem, IFilter, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, ITag } from '@/lib/interfaces'
-import { buildFilterQuery, buildQuery, type IFilterField } from '@/lib/search'
-import { decodeBase64, encodeBase64 } from '@/lib/strutil'
+import type { IAIChatItem, IFilter, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent } from '@/lib/interfaces'
+import { decodeBase64 } from '@/lib/strutil'
 import { noDataKey } from '@/lib/list'
 import { useDelete, useSelectable } from '@/hooks/list'
 import emitter from '@/plugins/eventbus'
 import { useAddToTags, useTags } from '@/hooks/tags'
 import { deleteAIChatsGQL } from '@/lib/api/mutation'
-import { remove, truncate } from 'lodash-es'
+import { truncate } from 'lodash-es'
 import { openModal } from '@/components/modal'
 import gql from 'graphql-tag'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import { DataType } from '@/lib/data'
+import { useSearch } from '@/hooks/search'
 
 const mainStore = useMainStore()
 const items = ref<IAIChatItem[]>([])
-const searchInputRef = ref()
 const { t } = useI18n()
-const filter: IFilter = reactive({
-  text: '',
-  tags: [],
+const { parseQ } = useSearch()
+const filter = reactive<IFilter>({
+  tagIds: [],
 })
 
 const dataType = DataType.AI_CHAT
@@ -132,24 +117,18 @@ const route = useRoute()
 const query = route.query
 const page = ref(parseInt(query.page?.toString() ?? '1'))
 const limit = 50
-const q = ref(decodeBase64(query.q?.toString() ?? ''))
-const finalQ = ref('')
-const { tags } = useTags(dataType, q, filter, async (fields: IFilterField[]) => {
-  fields.push({ name: 'parent_id', op: '', value: '' })
-  finalQ.value = buildQuery(fields)
-  await nextTick()
-  load()
-})
-const { addToTags } = useAddToTags(dataType, items, tags)
+const q = ref('')
+const { tags, fetch: fetchTags } = useTags(dataType)
+const { addToTags } = useAddToTags(dataType, tags)
 const { deleteItems } = useDelete(
   deleteAIChatsGQL,
   () => {
-    refetch()
+    fetch()
   },
   items
 )
 const { allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleItemChecked, toggleRow, total, checked } = useSelectable(items)
-const { loading, load, refetch } = initLazyQuery({
+const { loading, fetch } = initLazyQuery({
   handle: (data: any, error: string) => {
     if (error) {
       toast(t(error), 'error')
@@ -164,52 +143,43 @@ const { loading, load, refetch } = initLazyQuery({
   variables: () => ({
     offset: (page.value - 1) * limit,
     limit,
-    query: finalQ.value,
+    query: q.value,
   }),
   appApi: true,
 })
 
 watch(page, (value: number) => {
-  replacePath(mainStore, `/aichats?page=${value}&q=${encodeBase64(q.value)}`)
+  const q = route.query.q
+  replacePath(mainStore, q ? `/aichats?page=${value}&q=${q}` : `/aichats?page=${value}`)
 })
 
-function onTagSelect(item: ITag) {
-  if (filter.tags.includes(item)) {
-    remove(filter.tags, (it: ITag) => it.id === item.id)
-  } else {
-    filter.tags.push(item)
-  }
-}
-
-function applyAndDoSearch() {
-  q.value = buildFilterQuery(filter)
-  doSearch()
-  searchInputRef.value.dismiss()
-}
-
-function doSearch() {
-  replacePath(mainStore, `/aichats?q=${encodeBase64(q.value)}`)
+function getUrl(q: string) {
+  return q ? `/aichats?q=${q}` : `/aichats`
 }
 
 const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
   if (event.type === dataType) {
     clearSelection()
-    refetch()
+    fetch()
   }
 }
 
 const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
   if (event.type === dataType) {
-    refetch()
+    fetch()
   }
 }
 
-onMounted(() => {
+onActivated(() => {
+  q.value = decodeBase64(query.q?.toString() ?? '')
+  parseQ(filter, q.value)
+  fetchTags()
+  fetch()
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
   emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
 })
 
-onUnmounted(() => {
+onDeactivated(() => {
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
 })

@@ -1,67 +1,68 @@
 <template>
-  <div class="v-toolbar">
-    <breadcrumb :current="() => `${$t('page_title.images')} (${total})`" />
-    <template v-if="checked">
-      <button class="icon-button" @click.stop="deleteItems(dataType, items, realAllChecked, finalQ)" v-tooltip="$t('delete')">
-        <md-ripple />
-        <i-material-symbols:delete-forever-outline-rounded />
-      </button>
-      <button class="icon-button" @click.stop="downloadItems(realAllChecked, finalQ)" v-tooltip="$t('download')">
-        <md-ripple />
-        <i-material-symbols:download-rounded />
-      </button>
-      <button class="icon-button" @click.stop="addToTags(realAllChecked, finalQ)" v-tooltip="$t('add_to_tags')">
-        <md-ripple />
-        <i-material-symbols:label-outline-rounded />
-      </button>
-    </template>
-    <button class="icon-button" @click.prevent="upload" v-tooltip="$t('upload')">
-      <md-ripple />
-      <i-material-symbols:upload-rounded />
-    </button>
-    <popper>
-      <button class="icon-button btn-sort" v-tooltip="$t('sort')">
-        <md-ripple />
-        <i-material-symbols:sort-rounded />
-      </button>
-      <template #content="slotProps">
-        <div class="menu-items">
-          <md-menu-item v-for="item in sortItems" @click="sort(slotProps, item.value)" :selected="item.value === imageSortBy">
-            <div slot="headline">{{ $t(item.label) }}</div>
-          </md-menu-item>
-        </div>
+  <div class="top-app-bar">
+    <div class="title">{{ $t('page_title.images') }} ({{ total.toLocaleString() }})</div>
+    <div class="actions">
+      <search-input :filter="filter" :tags="tags" :buckets="buckets" :get-url="getUrl" />
+      <template v-if="checked">
+        <button class="btn-icon" @click.stop="deleteItems(dataType, items, realAllChecked, q)" v-tooltip="$t('delete')">
+          <md-ripple />
+          <i-material-symbols:delete-forever-outline-rounded />
+        </button>
+        <button class="btn-icon" @click.stop="downloadItems(realAllChecked, q)" v-tooltip="$t('download')">
+          <md-ripple />
+          <i-material-symbols:download-rounded />
+        </button>
+        <button class="btn-icon" @click.stop="addToTags(items, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
+          <md-ripple />
+          <i-material-symbols:label-outline-rounded />
+        </button>
       </template>
-    </popper>
-    <button class="icon-button" @click.stop="changeViewType" v-tooltip="$t(mainStore.imagesTableView  ? 'view_as_grid' : 'view_as_list')">
-      <md-ripple />
-      <i-material-symbols:grid-view-outline-rounded v-if="mainStore.imagesTableView" />
-      <i-material-symbols:table v-else />
-    </button>
-    <search-input ref="searchInputRef" v-model="q" :search="doSearch">
-      <template #filters>
-        <div class="filters">
-          <md-outlined-text-field :label="$t('keywords')" v-model="filter.text" keyup.enter="applyAndDoSearch" />
-          <label class="form-label">{{ $t('tags') }}</label>
-          <md-chip-set>
-            <md-filter-chip v-for="item in tags" :key="item.id" :label="item.name" :selected="filter.tags.includes(item)" @click="onTagSelect(item)" />
-          </md-chip-set>
-          <div class="buttons">
-            <md-filled-button @click.stop="applyAndDoSearch">
-              {{ $t('search') }}
-            </md-filled-button>
+      <button class="btn-icon" @click.prevent="upload" v-tooltip="$t('upload')">
+        <md-ripple />
+        <i-material-symbols:upload-rounded />
+      </button>
+      <popper>
+        <button class="btn-icon btn-sort" v-tooltip="$t('sort')">
+          <md-ripple />
+          <i-material-symbols:sort-rounded />
+        </button>
+        <template #content="slotProps">
+          <div class="menu-items">
+            <md-menu-item v-for="item in sortItems" @click="sort(slotProps, item.value)" :selected="item.value === imageSortBy">
+              <div slot="headline">{{ $t(item.label) }}</div>
+            </md-menu-item>
           </div>
-        </div>
-      </template>
-    </search-input>
+        </template>
+      </popper>
+      <button class="btn-icon" @click.stop="changeViewType" v-tooltip="$t(mainStore.imagesTableView ? 'view_as_grid' : 'view_as_table')">
+        <md-ripple />
+        <i-material-symbols:grid-view-outline-rounded v-if="mainStore.imagesTableView" />
+        <i-material-symbols:table v-else />
+      </button>
+    </div>
   </div>
   <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible" :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
   <div v-if="!mainStore.imagesTableView">
     <label class="form-check-label"> <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />{{ $t('select_all') }} </label>
   </div>
-  <div class="image-container" v-if="!mainStore.imagesTableView" style="margin-bottom: 24px">
-    <div class="item" v-for="(item, i) in items">
+  <div class="media-grid" v-if="!mainStore.imagesTableView" style="margin-bottom: 24px">
+    <div class="media-grid-item" v-for="(item, i) in items">
+      <img class="image" :src="getFileUrl(item.fileId, '&w=200&h=200')" @click="view(i)" />
       <md-checkbox class="checkbox" touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" @click.stop="toggleRow(item)" />
-      <img class="image" :src="getFileUrl(item.fileId, '&w=200&h=200')" @click="view(i)" @contextmenu="itemCtxMenu($event, item)" />
+      <div class="actions">
+        <button class="btn-icon sm" @click.stop="deleteItem(dataType, item)" v-tooltip="$t('delete')">
+          <md-ripple />
+          <i-material-symbols:delete-forever-outline-rounded />
+        </button>
+        <button class="btn-icon sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))" v-tooltip="$t('download')">
+          <md-ripple />
+          <i-material-symbols:download-rounded />
+        </button>
+        <button class="btn-icon sm" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
+          <md-ripple />
+          <i-material-symbols:label-outline-rounded />
+        </button>
+      </div>
       <span class="duration">{{ formatFileSize(item.size) }}</span>
     </div>
   </div>
@@ -75,9 +76,9 @@
           <th v-if="app.developerMode">ID</th>
           <th></th>
           <th>{{ $t('name') }}</th>
+          <th>{{ $t('file_size') }}</th>
           <th></th>
           <th>{{ $t('tags') }}</th>
-          <th>{{ $t('file_size') }}</th>
         </tr>
       </thead>
       <tbody>
@@ -91,16 +92,19 @@
             {{ getFileName(item.path) }}
           </td>
           <td class="nowrap">
+            {{ formatFileSize(item.size) }}
+          </td>
+          <td class="nowrap">
             <div class="action-btns">
-              <button class="icon-button" @click.stop="deleteItem(dataType, item)" v-tooltip="$t('delete')">
+              <button class="btn-icon sm" @click.stop="deleteItem(dataType, item)" v-tooltip="$t('delete')">
                 <md-ripple />
                 <i-material-symbols:delete-forever-outline-rounded />
               </button>
-              <button class="icon-button" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))" v-tooltip="$t('download')">
+              <button class="btn-icon sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))" v-tooltip="$t('download')">
                 <md-ripple />
                 <i-material-symbols:download-rounded />
               </button>
-              <button class="icon-button" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
+              <button class="btn-icon sm" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
                 <md-ripple />
                 <i-material-symbols:label-outline-rounded />
               </button>
@@ -108,9 +112,6 @@
           </td>
           <td>
             <item-tags :tags="item.tags" :type="dataType" />
-          </td>
-          <td class="nowrap">
-            {{ formatFileSize(item.size) }}
           </td>
         </tr>
       </tbody>
@@ -132,21 +133,21 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onActivated, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { onActivated, onDeactivated, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { computed } from 'vue'
-import { imagesGQL, initLazyQuery } from '@/lib/api/query'
+import { bucketsTagsGQL, imagesGQL, initLazyQuery } from '@/lib/api/query'
 import { useRoute, useRouter } from 'vue-router'
 import { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useI18n } from 'vue-i18n'
 import { getFileId, getFileUrl } from '@/lib/api/file'
 import { formatFileSize } from '@/lib/format'
-import type { IFilter, IImageItem, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IMediaItemsDeletedEvent, ITag } from '@/lib/interfaces'
-import { decodeBase64, encodeBase64 } from '@/lib/strutil'
+import type { IBucket, IFilter, IImageItem, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IMediaItemsDeletedEvent, ITag } from '@/lib/interfaces'
+import { decodeBase64 } from '@/lib/strutil'
 import { noDataKey } from '@/lib/list'
-import { buildFilterQuery, buildQuery, type IFilterField } from '@/lib/search'
-import { useAddToTags, useTags } from '@/hooks/tags'
+import { useSearch } from '@/hooks/search'
+import { useAddToTags } from '@/hooks/tags'
 import { getFileName } from '@/lib/api/file'
 import { useSelectable } from '@/hooks/list'
 import { useDeleteItems } from '@/hooks/media'
@@ -157,49 +158,32 @@ import { storeToRefs } from 'pinia'
 import { pushModal } from '@/components/modal'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 import type { ISource } from '@/components/lightbox/types'
-import { remove } from 'lodash-es'
 import { openModal } from '@/components/modal'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { DataType } from '@/lib/data'
-import { contextmenu } from '@/components/contextmenu'
 import { getSortItems } from '@/lib/file'
 
 const router = useRouter()
 const mainStore = useMainStore()
 const { imageSortBy } = storeToRefs(mainStore)
 const items = ref<IImageItem[]>([])
-const searchInputRef = ref()
 const { t } = useI18n()
+const { parseQ } = useSearch()
+const filter = reactive<IFilter>({
+  tagIds: [],
+})
 const tempStore = useTempStore()
 const { app, urlTokenKey } = storeToRefs(tempStore)
-const filter: IFilter = reactive({
-  text: '',
-  tags: [],
-})
 
 const dataType = DataType.IMAGE
 const route = useRoute()
 const query = route.query
 const page = ref(parseInt(query.page?.toString() ?? '1'))
 const limit = 50
-const q = ref(decodeBase64(query.q?.toString() ?? ''))
-const finalQ = ref('')
-const isInitialized = ref(false)
-const {
-  tags,
-  load: loadTags,
-  refetch: refetchTags,
-} = useTags(dataType, q, filter, async (fields: IFilterField[]) => {
-  finalQ.value = buildQuery(fields)
-  await nextTick()
-  if (isInitialized.value) {
-    refetch()
-  } else {
-    load()
-  }
-  isInitialized.value = true
-})
-const { addToTags } = useAddToTags(dataType, items, tags)
+const tags = ref<ITag[]>([])
+const buckets = ref<IBucket[]>([])
+const q = ref('')
+const { addToTags } = useAddToTags(dataType, tags)
 const { deleteItems, deleteItem } = useDeleteItems()
 const { allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleItemChecked, toggleRow, total, checked } = useSelectable(items)
 const { downloadItems } = useDownloadItems(urlTokenKey, dataType, items, clearSelection, 'images.zip')
@@ -226,6 +210,24 @@ function view(index: number) {
   }
 }
 
+const { fetch: fetchBucketsTags } = initLazyQuery({
+  handle: async (data: any, error: string) => {
+    if (error) {
+      toast(t(error), 'error')
+    } else {
+      if (data) {
+        tags.value = data.tags
+        buckets.value = data.mediaBuckets
+      }
+    }
+  },
+  document: bucketsTagsGQL,
+  variables: {
+    type: dataType,
+  },
+  appApi: true,
+})
+
 function addItemToTags(item: IImageItem) {
   openModal(UpdateTagRelationsModal, {
     type: dataType,
@@ -245,7 +247,7 @@ function sort(slotProps: any, sort: string) {
   slotProps.close()
 }
 
-const { loading, load, refetch } = initLazyQuery({
+const { loading, fetch } = initLazyQuery({
   handle: async (data: any, error: string) => {
     if (error) {
       toast(t(error), 'error')
@@ -264,36 +266,19 @@ const { loading, load, refetch } = initLazyQuery({
   variables: () => ({
     offset: (page.value - 1) * limit,
     limit,
-    query: finalQ.value,
+    query: q.value,
     sortBy: imageSortBy.value,
   }),
   appApi: true,
 })
 
-function updateUrl() {
-  replacePath(mainStore, `/images?page=${page.value}&q=${encodeBase64(q.value)}`)
-}
-
-watch(page, () => {
-  updateUrl()
+watch(page, (value: number) => {
+  const q = route.query.q
+  replacePath(mainStore, q ? `/images?page=${value}&q=${q}` : `/images?page=${value}`)
 })
 
-function onTagSelect(item: ITag) {
-  if (filter.tags.includes(item)) {
-    remove(filter.tags, (it: ITag) => it.id === item.id)
-  } else {
-    filter.tags.push(item)
-  }
-}
-
-function applyAndDoSearch() {
-  q.value = buildFilterQuery(filter)
-  doSearch()
-  searchInputRef.value.dismiss()
-}
-
-function doSearch() {
-  replacePath(mainStore, `/images?q=${encodeBase64(q.value)}`)
+function getUrl(q: string) {
+  return q ? `/images?q=${q}` : `/images`
 }
 
 function changeViewType() {
@@ -307,51 +292,23 @@ function upload() {
   })
 }
 
-function itemCtxMenu(e: MouseEvent, item: IImageItem) {
-  e.preventDefault()
-  contextmenu({
-    x: e.x,
-    y: e.y,
-    items: [
-      {
-        label: t('add_to_tags'),
-        onClick: () => {
-          addItemToTags(item)
-        },
-      },
-      {
-        label: t('download'),
-        onClick: () => {
-          downloadFile(item.path, getFileName(item.path).replace(' ', '-'))
-        },
-      },
-      {
-        label: t('delete'),
-        onClick: () => {
-          deleteItem(dataType, item)
-        },
-      },
-    ],
-  })
-}
-
 const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
   if (event.type === dataType) {
     clearSelection()
-    refetch()
+    fetch()
   }
 }
 
 const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
   if (event.type === dataType) {
-    refetch()
+    fetch()
   }
 }
 
 const mediaItemsDeletedHandler = (event: IMediaItemsDeletedEvent) => {
   if (event.type === dataType) {
     clearSelection()
-    refetch()
+    fetch()
   }
 }
 
@@ -359,25 +316,21 @@ const mediaItemDeletedHandler = () => {
   total.value--
 }
 
-onMounted(() => {
+onActivated(() => {
+  q.value = decodeBase64(query.q?.toString() ?? '')
+  parseQ(filter, q.value)
+  fetchBucketsTags()
+  fetch()
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
   emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
   emitter.on('media_item_deleted', mediaItemDeletedHandler)
   emitter.on('media_items_deleted', mediaItemsDeletedHandler)
 })
 
-onUnmounted(() => {
+onDeactivated(() => {
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
   emitter.off('media_item_deleted', mediaItemDeletedHandler)
   emitter.off('media_items_deleted', mediaItemsDeletedHandler)
-})
-
-onActivated(() => {
-  if (isInitialized.value) {
-    refetchTags()
-  } else {
-    loadTags()
-  }
 })
 </script>

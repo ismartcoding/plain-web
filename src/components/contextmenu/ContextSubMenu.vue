@@ -29,19 +29,7 @@
         <div slot="headline">{{ item.label }}</div>
       </md-menu-item>
     </div>
-    <ContextSubMenu
-      ref="childMenu"
-      v-if="activeItem && activeItem.children"
-      :zIndex="zIndex + 1"
-      :items="activeItem.children"
-      :parentItem="activeItem"
-      :options="options"
-      :globalData="childGlobalData"
-      :position="childPosition"
-      @close="onChildrenClose"
-      @keepOpen="onChildrenKeepOpen"
-      @preUpdatePos="onChildrenUpdatePos"
-    ></ContextSubMenu>
+    <ContextSubMenu ref="childMenu" v-if="activeItem && activeItem.children" :zIndex="zIndex + 1" :items="activeItem.children" :parentItem="activeItem" :options="options" :globalData="childGlobalData" :position="childPosition" @close="onChildrenClose" @keepOpen="onChildrenKeepOpen" @preUpdatePos="onChildrenUpdatePos"></ContextSubMenu>
   </div>
 </template>
 

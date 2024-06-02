@@ -1,5 +1,5 @@
 <template>
-  <div v-if="loading" class="loading">
+  <div v-if="loading" class="content-loading">
     <md-circular-progress indeterminate />
   </div>
   <div v-else-if="errorMessage" class="alert alert-danger">
@@ -15,7 +15,7 @@
             </div>
             <div v-for="item of store.pages" :key="item.path" @click="selectTab(item.path)" class="tab-item" @contextmenu="itemCtxMenu($event, item.path)" :class="{ active: currentPath === item.path }">
               <span>{{ $t(`page_title.${getRouteName(item.path)}`) }}</span>
-              <button class="icon-button tab-icon" @click.stop="closeTab(item.path)">
+              <button class="btn-icon sm tab-icon" @click.stop="closeTab(item.path)">
                 <md-ripple />
                 <i-material-symbols:close-rounded />
               </button>
@@ -47,19 +47,19 @@
         </main>
       </div>
       <div class="quick">
-        <button class="icon-button q-action" v-if="app.channel !== 'GOOGLE'" v-tooltip="$t('header_actions.notifications')" @click="toggleQuick('notification')" toggle :class="{ selected: store.quick === 'notification' }">
+        <button class="btn-icon q-action" v-if="app.channel !== 'GOOGLE'" v-tooltip="$t('header_actions.notifications')" @click="toggleQuick('notification')" toggle :class="{ selected: store.quick === 'notification' }">
           <md-ripple />
           <i-material-symbols:notifications-outline-rounded />
         </button>
-        <button v-if="hasTasks" class="icon-button q-action" v-tooltip="$t('header_actions.tasks')" @click="toggleQuick('task')" toggle :class="{ selected: store.quick === 'task' }">
+        <button v-if="hasTasks" class="btn-icon q-action" v-tooltip="$t('header_actions.tasks')" @click="toggleQuick('task')" toggle :class="{ selected: store.quick === 'task' }">
           <md-ripple />
           <i-material-symbols:format-list-numbered-rounded />
         </button>
-        <button id="quick-audio" class="icon-button q-action" v-tooltip="$t('playlist')" @click="toggleQuick('audio')" toggle :class="{ selected: store.quick === 'audio' }">
+        <button id="quick-audio" class="btn-icon q-action" v-tooltip="$t('playlist')" @click="toggleQuick('audio')" toggle :class="{ selected: store.quick === 'audio' }">
           <md-ripple />
           <i-material-symbols:queue-music-rounded />
         </button>
-        <button class="icon-button q-action" v-tooltip="$t('my_phone')" @click="toggleQuick('chat')" toggle :class="{ selected: store.quick === 'chat' }">
+        <button class="btn-icon q-action" v-tooltip="$t('my_phone')" @click="toggleQuick('chat')" toggle :class="{ selected: store.quick === 'chat' }">
           <md-ripple />
           <i-material-symbols:chat-outline-rounded />
         </button>
@@ -316,6 +316,9 @@ router.afterEach((to, from, failure) => {
 </script>
 
 <style lang="scss" scoped>
+.content-loading {
+  height: 100vh;
+}
 .layout {
   display: grid;
   grid-template-areas:
@@ -356,7 +359,7 @@ router.afterEach((to, from, failure) => {
   display: flex;
   white-space: nowrap;
 
-  .icon-button {
+  .btn-icon {
     *:is(svg) {
       width: 12px;
       height: 12px;

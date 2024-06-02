@@ -4,7 +4,7 @@
       {{ title }}
     </div>
     <div slot="content">
-      <md-outlined-text-field ref="inputRef" :placeholder="placeholder" v-model="inputValue" @keyup.enter="doAction" :error="valueError" :error-text="valueError ? $t(valueError) : ''" />
+      <md-outlined-text-field ref="inputRef" :placeholder="placeholder" v-model="name" @keyup.enter="doAction" :error="errors.name" :error-text="errors.name ? $t(errors.name) : ''" />
     </div>
     <div slot="actions">
       <md-outlined-button value="cancel" @click="cancel">{{ $t('cancel') }}</md-outlined-button>
@@ -15,13 +15,11 @@
   </md-dialog>
 </template>
 <script setup lang="ts">
-import { useField, useForm } from 'vee-validate'
-import { nextTick, ref, type PropType } from 'vue'
-import { string } from 'yup'
+import { useForm } from 'vee-validate'
+import { onMounted, ref, type PropType } from 'vue'
+import * as yup from 'yup'
 import type { OperationVariables } from '@apollo/client/core'
 import { popModal } from './modal'
-
-const { handleSubmit } = useForm()
 
 const inputRef = ref<HTMLInputElement>()
 
@@ -39,28 +37,35 @@ const props = defineProps({
   },
 })
 
+const { errors, handleSubmit, defineField } = useForm({
+  validationSchema: yup.object({
+    name: yup.string().required(),
+  }),
+  initialValues: {
+    name: props.value ?? '',
+  },
+})
+const [name] = defineField('name')
+
 const { mutate, loading, onDone } = props.mutation()
-const { value: inputValue, resetField, errorMessage: valueError } = useField('inputValue', string().required())
-inputValue.value = props.value ?? ''
-if (!inputValue.value) {
-  resetField()
-}
+name.value = props.value ?? ''
 
 function cancel() {
   popModal()
 }
 
-;(async () => {
-  await nextTick()
-  inputRef.value?.focus()
-})()
+onMounted(async () => {
+  setTimeout(() => {
+    inputRef.value?.focus()
+  }, 100)
+})
 
 const doAction = handleSubmit(() => {
-  mutate(props.getVariables(inputValue.value ?? ''))
+  mutate(props.getVariables(name.value ?? ''))
 })
 
 onDone(() => {
-  props.done?.call(this, inputValue.value!)
+  props.done?.call(this, name.value!)
   popModal()
 })
 </script>

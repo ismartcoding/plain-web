@@ -22,7 +22,7 @@ const appApolloClient = new ApolloClient({
   defaultOptions: {
     watchQuery: {
       errorPolicy: 'all',
-      fetchPolicy: 'cache-and-network',
+      fetchPolicy: 'network-only',
     },
   },
 })
@@ -43,7 +43,7 @@ const boxApolloClient = new ApolloClient({
   defaultOptions: {
     watchQuery: {
       errorPolicy: 'all',
-      fetchPolicy: 'cache-and-network',
+      fetchPolicy: 'network-only',
     },
   },
 })

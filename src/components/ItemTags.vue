@@ -14,7 +14,6 @@ import type { ITag } from '@/lib/interfaces'
 import { useMainStore } from '@/stores/main'
 import { encodeBase64 } from '@/lib/strutil'
 import { buildQuery } from '@/lib/search'
-import { kebabCase } from 'lodash-es'
 import { names } from '@/lib/tag'
 
 const props = defineProps({
@@ -30,9 +29,9 @@ function view(item: ITag) {
   }
   const q = buildQuery([
     {
-      name: 'tag',
+      name: 'tag_id',
       op: '',
-      value: kebabCase(item.name),
+      value: item.id,
     },
   ])
   replacePath(mainStore, `/${names[props.type]}?q=${encodeBase64(q)}`)

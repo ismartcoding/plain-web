@@ -6,6 +6,11 @@ export interface ITag {
   count: number
 }
 
+export interface IType {
+  id: string
+  name: string
+}
+
 export interface IPage {
   path: string // full path
   sidebar?: boolean
@@ -87,13 +92,13 @@ export interface IPlaylistAudio {
 }
 
 export interface IFilter {
-  tags: ITag[]
-  text: string
+  tagIds: string[]
+  text?: string
   bucketId?: string
-}
-
-export interface IFeedEntryFilter extends IFilter {
-  feeds: IFeed[]
+  feedId?: string
+  today?: boolean
+  type?: string
+  trash?: boolean
 }
 
 export interface ISelectable {

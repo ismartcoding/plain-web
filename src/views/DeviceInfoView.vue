@@ -1,6 +1,6 @@
 <template>
-  <div class="v-toolbar">
-    <breadcrumb :current="() => $t('device_info')" />
+  <div class="top-app-bar">
+    <div class="title">{{ $t('device_info') }}</div>
   </div>
   <div class="grids">
     <div>
@@ -10,7 +10,7 @@
           <div class="key-value" v-for="item in basicInfos">
             <div class="key">{{ $t(item.label) }}</div>
             <div class="value">
-              <span v-if="item.isTime" class="time" v-tooltip="formatDateTimeFull(item.value)">{{ formatDateTime(item.value) }} </span>
+              <time v-if="item.isTime" class="time" v-tooltip="formatDateTimeFull(item.value)">{{ formatDateTime(item.value) }} </time>
               <template v-else-if="Array.isArray(item.value)">
                 <div v-for="it in item.value">{{ it }}</div>
               </template>
@@ -29,7 +29,7 @@
           <div class="key-value" v-for="item in systemInfos">
             <div class="key">{{ $t(item.label) }}</div>
             <div class="value">
-              <span v-if="item.isTime" class="time" v-tooltip="formatDateTimeFull(item.value)">{{ formatDateTime(item.value) }}</span>
+              <time v-if="item.isTime" class="time" v-tooltip="formatDateTimeFull(item.value)">{{ formatDateTime(item.value) }}</time>
               <template v-else-if="Array.isArray(item.value)">
                 <div v-for="it in item.value">{{ it }}</div>
               </template>
@@ -48,7 +48,7 @@
           <div class="key-value" v-for="item in batteryInfos">
             <div class="key">{{ $t(item.label) }}</div>
             <div class="value">
-              <span v-if="item.isTime" class="time" v-tooltip="formatDateTimeFull(item.value)">{{ formatDateTime(item.value) }}</span>
+              <time v-if="item.isTime" class="time" v-tooltip="formatDateTimeFull(item.value)">{{ formatDateTime(item.value) }}</time>
               <template v-else-if="Array.isArray(item.value)">
                 <div v-for="it in item.value">{{ it }}</div>
               </template>
@@ -208,7 +208,7 @@ const { refetch } = initQuery({
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
   gap: 16px;
-  margin-bottom: 16px;
+  margin-block-end: 16px;
 }
 
 .card {

@@ -28,14 +28,14 @@
           <td>{{ item.macVendor ? item.macVendor : $t('unknown') }}</td>
           <td>{{ $t(item.isOnline ? 'online' : 'offline') }}</td>
           <td class="nowrap">
-            <span v-tooltip="formatDateTimeFull(item.createdAt)">
+            <time v-tooltip="formatDateTimeFull(item.createdAt)">
               {{ formatDateTime(item.createdAt) }}
-            </span>
+            </time>
           </td>
           <td class="nowrap">
-            <span v-tooltip="formatDateTimeFull(item.activeAt)">
+            <time v-tooltip="formatDateTimeFull(item.activeAt)">
               {{ formatDateTime(item.activeAt) }}
-            </span>
+            </time>
           </td>
           <td class="actions one">
             <a href="#" class="v-link" @click.prevent="deleteItem(item)">{{ $t('delete') }}</a>

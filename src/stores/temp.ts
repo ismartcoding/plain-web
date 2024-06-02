@@ -19,6 +19,23 @@ export interface ILightBox {
   index: number
 }
 
+export interface IDataCounter {
+  messages: number
+  contacts: number
+  calls: number
+  videos: number
+  images: number
+  audios: number
+  packages: number
+  packagesSystem: number
+  notes: number
+  notesTrash: number
+  feedEntries: number
+  feedEntriesToday: number
+  total: number
+  free: number
+}
+
 // data will be lost when page refreshed, or the data use different way to store data
 export type TempState = {
   app: any // store the appFragment result
@@ -27,6 +44,7 @@ export type TempState = {
   selectedFiles: IFile[]
   audioPlaying: boolean
   lightbox: ILightBox
+  counter: IDataCounter
 }
 
 export const useTempStore = defineStore({
@@ -39,5 +57,21 @@ export const useTempStore = defineStore({
       selectedFiles: [],
       audioPlaying: false,
       lightbox: { sources: [], visible: false, index: -1 },
+      counter: {
+        messages: -1,
+        contacts: -1,
+        calls: -1,
+        videos: -1,
+        images: -1,
+        audios: -1,
+        packages: -1,
+        packagesSystem: -1,
+        notes: -1,
+        notesTrash: -1,
+        feedEntries: -1,
+        feedEntriesToday: -1,
+        total: -1,
+        free: -1,
+      },
     }) as TempState,
 })
