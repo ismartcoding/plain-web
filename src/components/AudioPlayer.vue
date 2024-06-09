@@ -32,7 +32,6 @@
       </div>
       <section class="list-items">
         <div v-for="item in audios" class="item" :key="item.path" @click.stop="playItem(item)" :class="{ selected: item.path === current?.path }">
-          <md-ripple />
           <div class="title">{{ item.title }}</div>
           <div class="subtitle">{{ item.artist }} {{ formatSeconds(item.duration) }}</div>
           <button class="btn-icon icon" @click.stop="deleteItem(item)">
@@ -61,7 +60,7 @@ const { app, urlTokenKey, audioPlaying } = storeToRefs(useTempStore())
 const store = useMainStore()
 
 const audios = computed<IPlaylistAudio[]>(() => {
-  return (app.value as any).audios ?? []
+  return app.value?.audios ?? []
 })
 
 const current = ref<IPlaylistAudio | undefined>()

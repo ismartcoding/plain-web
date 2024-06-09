@@ -4,7 +4,7 @@
     <div class="actions">
       <search-input :filter="filter" :tags="tags" :get-url="getUrl" />
       <template v-if="checked">
-        <button class="btn-icon" @click.stop="deleteItems(realAllChecked, q)" v-tooltip="$t('delete')">
+        <button class="btn-icon" @click.stop="deleteItems(realAllChecked, selectedIds, q)" v-tooltip="$t('delete')">
           <md-ripple />
           <i-material-symbols:delete-forever-outline-rounded />
         </button>
@@ -12,7 +12,7 @@
           <md-ripple />
           <i-material-symbols:download-rounded />
         </button>
-        <button class="btn-icon" @click.stop="addToTags(items, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
+        <button class="btn-icon" @click.stop="addToTags(selectedIds, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
           <md-ripple />
           <i-material-symbols:label-outline-rounded />
         </button>
@@ -22,7 +22,14 @@
       </md-outlined-button>
     </div>
   </div>
-  <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible" :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
+  <all-checked-alert
+    :limit="limit"
+    :total="total"
+    :all-checked-alert-visible="allCheckedAlertVisible"
+    :real-all-checked="realAllChecked"
+    :select-real-all="selectRealAll"
+    :clear-selection="clearSelection"
+  />
   <div class="table-responsive">
     <table class="table">
       <thead>
@@ -41,8 +48,8 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="item in items" :key="item.id" :class="{ selected: item.checked }" @click.stop="toggleRow(item)">
-          <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
+        <tr v-for="(item, i) in items" :key="item.id" :class="{ selected: selectedIds.includes(item.id) }" @click.stop="toggleRow($event, item, i)">
+          <td><md-checkbox touch-target="wrapper" @change="toggleRow($event, item, i)" :checked="selectedIds.includes(item.id)" /></td>
           <td v-if="app.developerMode"><field-id :id="item.id" :raw="item" /></td>
           <td><img v-if="item.thumbnailId" :src="getFileUrl(item.thumbnailId)" width="50" /></td>
           <td class="nowrap">
@@ -59,11 +66,11 @@
                   <i-material-symbols:call-outline-rounded />
                 </button>
               </li>
-              <li v-for="it in item.emails">{{ it.type > 0 ? $t(`contact.email_type.${it.type}`) : it.label }} {{ it.value }}</li>
-              <li v-for="it in item.addresses">{{ it.type > 0 ? $t(`contact.address_type.${it.type}`) : it.label }} {{ it.value }}</li>
-              <li v-for="it in item.websites">{{ it.type > 0 ? $t(`contact.website_type.${it.type}`) : it.label }} {{ it.value }}</li>
-              <li v-for="it in item.ims">{{ it.type > 0 ? $t(`contact.im_type.${it.type}`) : it.label }} {{ it.value }}</li>
-              <li v-for="it in item.events">{{ it.type > 0 ? $t(`contact.event_type.${it.type}`) : it.label }} {{ it.value }}</li>
+              <li v-for="it in item.emails" :key="it.type + it.value">{{ it.type > 0 ? $t(`contact.email_type.${it.type}`) : it.label }} {{ it.value }}</li>
+              <li v-for="it in item.addresses" :key="it.type + it.value">{{ it.type > 0 ? $t(`contact.address_type.${it.type}`) : it.label }} {{ it.value }}</li>
+              <li v-for="it in item.websites" :key="it.type + it.value">{{ it.type > 0 ? $t(`contact.website_type.${it.type}`) : it.label }} {{ it.value }}</li>
+              <li v-for="it in item.ims" :key="it.type + it.value">{{ it.type > 0 ? $t(`contact.im_type.${it.type}`) : it.label }} {{ it.value }}</li>
+              <li v-for="it in item.events" :key="it.type + it.value">{{ it.type > 0 ? $t(`contact.event_type.${it.type}`) : it.label }} {{ it.value }}</li>
             </ul>
           </td>
           <td class="nowrap">
@@ -104,12 +111,11 @@
       </tfoot>
     </table>
   </div>
-
-  <v-pagination v-if="total > limit" v-model="page" :total="total" :limit="limit" />
+  <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" />
 </template>
 
 <script setup lang="ts">
-import { onActivated, onDeactivated, reactive, ref, watch } from 'vue'
+import { onActivated, onDeactivated, reactive, ref } from 'vue'
 import toast from '@/components/toaster'
 import { formatDateTime, formatDateTimeFull } from '@/lib/format'
 import { initQuery, contactsGQL, contactSourcesGQL, initLazyQuery } from '@/lib/api/query'
@@ -126,7 +132,7 @@ import { storeToRefs } from 'pinia'
 import { openModal } from '@/components/modal'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import EditContactModal from '@/components/EditContactModal.vue'
-import type { IFilter, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, ITag } from '@/lib/interfaces'
+import type { IContact, IContactSource, IFilter, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, ITag } from '@/lib/interfaces'
 import { useAddToTags, useTags } from '@/hooks/tags'
 import { useDelete, useSelectable } from '@/hooks/list'
 import emitter from '@/plugins/eventbus'
@@ -134,11 +140,11 @@ import { callGQL, deleteContactsGQL, initMutation } from '@/lib/api/mutation'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { DataType } from '@/lib/data'
 import { useSearch } from '@/hooks/search'
+import { useKeyEvents } from '@/hooks/key-events'
 
 const mainStore = useMainStore()
 const { app } = storeToRefs(useTempStore())
-const items = ref<any[]>([])
-const searchInputRef = ref()
+const items = ref<IContact[]>([])
 const { t } = useI18n()
 const { parseQ } = useSearch()
 const filter = reactive<IFilter>({
@@ -149,29 +155,32 @@ const dataType = DataType.CONTACT
 const route = useRoute()
 const query = route.query
 const page = ref(parseInt(query.page?.toString() ?? '1'))
-const sources = ref([])
+const sources = ref<IContactSource[]>([])
 const limit = 50
 const q = ref('')
 const { tags, fetch: fetchTags } = useTags(dataType)
 const { addToTags } = useAddToTags(dataType, tags)
-const { deleteItems } = useDelete(
-  deleteContactsGQL,
-  () => {
-    clearSelection()
-    fetch()
-    emitter.emit('refetch_tags', dataType)
-  },
-  items
-)
+const { deleteItems } = useDelete(deleteContactsGQL, () => {
+  clearSelection()
+  fetch()
+  emitter.emit('refetch_tags', dataType)
+})
 
-const { allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleItemChecked, toggleRow, total, checked } = useSelectable(items)
+const { selectedIds, allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleRow, total, checked, selectAll } = useSelectable(items)
+const gotoPage = (page: number) => {
+  const q = route.query.q
+  replacePath(mainStore, q ? `/calls?page=${page}&q=${q}` : `/calls?page=${page}`)
+}
+const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(total, limit, page, selectAll, clearSelection, gotoPage, () => {
+  deleteItems(realAllChecked.value, selectedIds.value, q.value)
+})
 const { loading, fetch } = initLazyQuery({
-  handle: (data: any, error: string) => {
+  handle: (data: { contacts: IContact[]; contactCount: number }, error: string) => {
     if (error) {
       toast(t(error), 'error')
     } else {
       if (data) {
-        items.value = data.contacts.map((it: any) => ({ ...it, checked: false }))
+        items.value = data.contacts
         total.value = data.contactCount
       }
     }
@@ -186,7 +195,7 @@ const { loading, fetch } = initLazyQuery({
 })
 
 initQuery({
-  handle: (data: any, error: string) => {
+  handle: (data: { contactSources: IContactSource[] }, error: string) => {
     if (error) {
       toast(t(error), 'error')
     } else {
@@ -198,11 +207,6 @@ initQuery({
   document: contactSourcesGQL,
   variables: null,
   appApi: true,
-})
-
-watch(page, (value: number) => {
-  const q = route.query.q
-  replacePath(mainStore, q ? `/contacts?page=${value}&q=${q}` : `/contacts?page=${value}`)
 })
 
 const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
@@ -218,7 +222,7 @@ const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
   }
 }
 
-function addItemToTags(item: any) {
+function addItemToTags(item: IContact) {
   openModal(UpdateTagRelationsModal, {
     type: dataType,
     tags: tags.value,
@@ -231,7 +235,7 @@ function addItemToTags(item: any) {
   })
 }
 
-function fullName(item: any) {
+function fullName(item: IContact) {
   let name = ''
   if (containsChinese(item.firstName) || containsChinese(item.lastName)) {
     name = `${item.lastName}${item.middleName}${item.firstName}`
@@ -252,7 +256,7 @@ function fullName(item: any) {
   return ''
 }
 
-function deleteItem(item: any) {
+function deleteItem(item: IContact) {
   openModal(DeleteConfirm, {
     id: item.id,
     name: fullName(item),
@@ -275,7 +279,7 @@ function deleteItem(item: any) {
   })
 }
 
-function edit(item: any) {
+function edit(item: IContact) {
   openModal(EditContactModal, {
     data: item,
     sources: sources,
@@ -315,10 +319,14 @@ onActivated(() => {
   fetch()
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
   emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
+  window.addEventListener('keydown', pageKeyDown)
+  window.addEventListener('keyup', pageKeyUp)
 })
 onDeactivated(() => {
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
+  window.removeEventListener('keydown', pageKeyDown)
+  window.removeEventListener('keyup', pageKeyUp)
 })
 </script>
 <style lang="scss" scoped>

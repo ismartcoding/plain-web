@@ -6,7 +6,8 @@
     <template #body>
       <ul class="nav">
         <li @click.prevent="all" :class="{ active: !selectedTagId && !selectedBucketId }">
-          {{ $t('all') }} <span class="count" v-if="total >= 0">{{ total.toLocaleString() }}</span>
+          <span class="title">{{ $t('all') }}</span>
+          <span class="count" v-if="total >= 0">{{ total.toLocaleString() }}</span>
         </li>
         <bucket-filter :type="props.type" :selected="selectedBucketId" />
       </ul>
@@ -58,7 +59,7 @@ const total = computed(() => {
 })
 
 const { fetch } = initLazyQuery({
-  handle: (data: any) => {
+  handle: (data: { total: number }) => {
     if (data) {
       if (props.type === DataType.IMAGE) {
         counter.value.images = data.total

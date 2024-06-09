@@ -4,7 +4,7 @@ function getLocale() {
   return localStorage.getItem('locale') ?? navigator.language ?? 'en-US'
 }
 
-export function formatDateTime(str: string, options?: {}) {
+export function formatDateTime(str: string, options?: Intl.DateTimeFormatOptions | undefined) {
   if (str === '1970-01-01T00:00:00Z') {
     return ''
   }

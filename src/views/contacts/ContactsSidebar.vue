@@ -6,7 +6,8 @@
     <template #body>
       <ul class="nav">
         <li @click.prevent="viewAll" :class="{ active: !selectedTagId }">
-          {{ $t('all') }}<span class="count" v-if="counter.contacts >= 0">{{ counter.contacts.toLocaleString() }}</span>
+          <span class="title">{{ $t('all') }}</span>
+          <span class="count" v-if="counter.contacts >= 0">{{ counter.contacts.toLocaleString() }}</span>
         </li>
       </ul>
       <tag-filter type="CONTACT" :selected="selectedTagId" />
@@ -35,7 +36,7 @@ const filter = reactive<IFilter>({
 const selectedTagId = ref('')
 
 const { fetch } = initLazyQuery({
-  handle: (data: any) => {
+  handle: (data: { total: number }) => {
     if (data) {
       counter.value.contacts = data.total
     }

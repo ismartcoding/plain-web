@@ -2,6 +2,7 @@ import type { ISource } from '@/components/lightbox/types'
 import type { IFile } from '@/lib/file'
 import { defineStore } from 'pinia'
 import type sjcl from 'sjcl'
+import type { IApp } from '@/lib/interfaces'
 
 export interface IUploadItem {
   dir: string
@@ -38,7 +39,7 @@ export interface IDataCounter {
 
 // data will be lost when page refreshed, or the data use different way to store data
 export type TempState = {
-  app: any // store the appFragment result
+  app: IApp // store the appFragment result
   urlTokenKey: sjcl.BitArray | null
   uploads: IUploadItem[]
   selectedFiles: IFile[]
@@ -51,7 +52,7 @@ export const useTempStore = defineStore({
   id: 'temp',
   state: () =>
     ({
-      app: null,
+      app: {},
       urlTokenKey: null,
       uploads: [],
       selectedFiles: [],

@@ -2,7 +2,7 @@
   <div class="top-app-bar">
     <div class="title">{{ $t('device_info') }}</div>
   </div>
-  <div class="grids">
+  <div class="grids scroll-content">
     <div>
       <section class="card">
         <h5 class="card-title">{{ $t('device') }}</h5>
@@ -208,7 +208,6 @@ const { refetch } = initQuery({
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
   gap: 16px;
-  margin-block-end: 16px;
 }
 
 .card {

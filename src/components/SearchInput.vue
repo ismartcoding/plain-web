@@ -232,3 +232,23 @@ function hide() {
 
 defineExpose({ dismiss: hide })
 </script>
+<style lang="scss" scoped>
+.filters {
+  padding: 16px;
+  min-width: 400px;
+
+  md-outlined-text-field {
+    width: 100%;
+  }
+
+  .buttons {
+    text-align: right;
+    margin-block-start: 16px;
+  }
+
+  .form-label {
+    margin-block-start: 16px;
+    margin-block-end: 8px;
+  }
+}
+</style>

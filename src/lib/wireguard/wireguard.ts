@@ -59,23 +59,23 @@ function subtract(o: Float64Array | number[], a: Float64Array | number[], b: Flo
 
 function multmod(o: Float64Array | number[], a: Float64Array | number[], b: Float64Array | number[]) {
   const t = new Float64Array(31)
-  for (var i = 0; i < 16; ++i) {
+  for (let i = 0; i < 16; ++i) {
     for (let j = 0; j < 16; ++j) t[i + j] += a[i] * b[j]
   }
-  for (var i = 0; i < 15; ++i) t[i] += 38 * t[i + 16]
-  for (var i = 0; i < 16; ++i) o[i] = t[i]
+  for (let i = 0; i < 15; ++i) t[i] += 38 * t[i + 16]
+  for (let i = 0; i < 16; ++i) o[i] = t[i]
   carry(o)
   carry(o)
 }
 
 function invert(o: Float64Array | number[], i: Float64Array | number[]) {
   const c = gf()
-  for (var a = 0; a < 16; ++a) c[a] = i[a]
-  for (var a = 253; a >= 0; --a) {
+  for (let a = 0; a < 16; ++a) c[a] = i[a]
+  for (let a = 253; a >= 0; --a) {
     multmod(c, c, c)
     if (a !== 2 && a !== 4) multmod(c, c, i)
   }
-  for (var a = 0; a < 16; ++a) o[a] = c[a]
+  for (let a = 0; a < 16; ++a) o[a] = c[a]
 }
 
 function clamp(z: Uint8Array | number[]) {
@@ -84,8 +84,8 @@ function clamp(z: Uint8Array | number[]) {
 }
 
 function generatePublicKey(privateKey: Uint8Array | number[]) {
-  let r,
-    z = new Uint8Array(32)
+  let r
+  const z = new Uint8Array(32)
   const a = gf([1]),
     b = gf([9]),
     c = gf(),
@@ -145,8 +145,8 @@ function encodeBase64(dest: Uint8Array | number[], src: Uint8Array | number[]) {
 }
 
 function keyToBase64(key: any) {
-  let i,
-    base64 = new Uint8Array(44)
+  let i
+  const base64 = new Uint8Array(44)
   for (i = 0; i < 32 / 3; ++i) encodeBase64(base64.subarray(i * 4), key.subarray(i * 3))
   encodeBase64(base64.subarray(i * 4), Uint8Array.from([key[i * 3 + 0], key[i * 3 + 1], 0]))
   base64[43] = 61

@@ -88,7 +88,7 @@ setTempValueDone((r: any) => {
 })
 
 const getSelectedFiles = () => {
-  const items: any[] = []
+  const items: { path: string }[] = []
   files.value.forEach((f: IFile) => {
     if (f.checked) {
       items.push({ path: f.path })

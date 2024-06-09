@@ -1,33 +1,31 @@
 import { feedEntriesGQL, initLazyQuery } from '@/lib/api/query'
-import type { IFeedEntry, IFeedEntryItem } from '@/lib/interfaces'
+import type { IFeedEntry } from '@/lib/interfaces'
 import { ref, type Ref } from 'vue'
 import toast from '@/components/toaster'
 import { useI18n } from 'vue-i18n'
 
-export const useList = (items: Ref<IFeedEntryItem[]>, q: Ref<string>, total: Ref<number>) => {
+export const useList = (items: Ref<IFeedEntry[]>, q: Ref<string>, total: Ref<number>) => {
   const { t } = useI18n()
 
   const page = ref(1)
   const limit = 50
   const noMore = ref(false)
   const { loading, fetch } = initLazyQuery({
-    handle: (data: any, error: string) => {
+    handle: (data: { items: IFeedEntry[]; count: number }, error: string) => {
       if (error) {
         toast(t(error), 'error')
       } else {
         if (data) {
-          if (data.feedEntries.length < limit) {
+          if (data.items.length < limit) {
             noMore.value = true
           }
-          const newItems = data.feedEntries.map((it: IFeedEntry) => ({ ...it, checked: false }))
+          const newItems = data.items
           if (page.value === 1) {
             items.value = newItems
           } else {
-            newItems.forEach((it: IFeedEntryItem) => {
-              items.value.push(it)
-            })
+            items.value = items.value.concat(newItems)
           }
-          total.value = data.feedEntryCount
+          total.value = data.total
         }
       }
     },
@@ -54,17 +52,17 @@ export const useList = (items: Ref<IFeedEntryItem[]>, q: Ref<string>, total: Ref
   }
 }
 
-export const useTable = (items: Ref<IFeedEntryItem[]>, q: Ref<string>, total: Ref<number>, page: Ref<number>, limit: number) => {
+export const useTable = (items: Ref<IFeedEntry[]>, q: Ref<string>, total: Ref<number>, page: Ref<number>, limit: number) => {
   const { t } = useI18n()
 
   const { loading, fetch } = initLazyQuery({
-    handle: (data: any, error: string) => {
+    handle: (data: { items: IFeedEntry[]; total: number }, error: string) => {
       if (error) {
         toast(t(error), 'error')
       } else {
         if (data) {
-          items.value = data.feedEntries.map((it: IFeedEntry) => ({ ...it, checked: false }))
-          total.value = data.feedEntryCount
+          items.value = data.items
+          total.value = data.total
         }
       }
     },

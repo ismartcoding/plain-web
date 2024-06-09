@@ -4,19 +4,26 @@
     <div class="actions">
       <search-input :filter="filter" :tags="tags" :get-url="getUrl" />
       <template v-if="checked">
-        <button class="btn-icon" @click.stop="deleteItems(realAllChecked, q)" v-tooltip="$t('delete')">
+        <button class="btn-icon" @click.stop="deleteItems(realAllChecked, selectedIds, q)" v-tooltip="$t('delete')">
           <md-ripple />
           <i-material-symbols:delete-forever-outline-rounded />
         </button>
-        <button class="btn-icon" @click.stop="addToTags(items, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
+        <button class="btn-icon" @click.stop="addToTags(selectedIds, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
           <md-ripple />
           <i-material-symbols:label-outline-rounded />
         </button>
       </template>
-      <md-outlined-button @click.prevent="create">{{ $t('new_chat') }}</md-outlined-button>
+      <md-outlined-button class="btn-sm" @click.prevent="create">{{ $t('new_chat') }}</md-outlined-button>
     </div>
   </div>
-  <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible" :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
+  <all-checked-alert
+    :limit="limit"
+    :total="total"
+    :all-checked-alert-visible="allCheckedAlertVisible"
+    :real-all-checked="realAllChecked"
+    :select-real-all="selectRealAll"
+    :clear-selection="clearSelection"
+  />
   <div class="table-responsive">
     <table class="table">
       <thead>
@@ -24,7 +31,7 @@
           <th>
             <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
           </th>
-          <th>ID</th>
+          <th v-if="app.developerMode">ID</th>
           <th>{{ $t('content') }}</th>
           <th></th>
           <th>{{ $t('tags') }}</th>
@@ -33,9 +40,9 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="item in items" :key="item.id" :class="{ selected: item.checked }" @click.stop="toggleRow(item)">
-          <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
-          <td><field-id :id="item.id" :raw="item" /></td>
+        <tr v-for="(item, i) in items" :key="item.id" :class="{ selected: selectedIds.includes(item.id) }" @click.stop="toggleRow($event, item, i)">
+          <td><md-checkbox touch-target="wrapper" @change="toggleRow($event, item, i)" :checked="selectedIds.includes(item.id)" /></td>
+          <td v-if="app.developerMode"><field-id :id="item.id" :raw="item" /></td>
           <td>
             <a href="#" @click.prevent="view(item)">{{ truncate(item.content, { length: 200, omission: '' }) }}</a>
           </td>
@@ -68,7 +75,7 @@
       </tbody>
       <tfoot v-if="!items.length">
         <tr>
-          <td colspan="7">
+          <td :colspan="app.developerMode ? 7 : 6">
             <div class="no-data-placeholder">
               {{ $t(noDataKey(loading)) }}
             </div>
@@ -77,19 +84,18 @@
       </tfoot>
     </table>
   </div>
-  <v-pagination v-if="total > limit" v-model="page" :total="total" :limit="limit" />
+  <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" />
 </template>
 
 <script setup lang="ts">
-import { onActivated, onDeactivated, reactive, ref, watch } from 'vue'
+import { onActivated, onDeactivated, reactive, ref } from 'vue'
 import toast from '@/components/toaster'
 import { formatDateTime, formatDateTimeFull } from '@/lib/format'
 import { aichatsGQL, initLazyQuery } from '@/lib/api/query'
 import { useRoute } from 'vue-router'
 import { pushPath, replacePath } from '@/plugins/router'
-import { useMainStore } from '@/stores/main'
 import { useI18n } from 'vue-i18n'
-import type { IAIChatItem, IFilter, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent } from '@/lib/interfaces'
+import type { IAIChat, IFilter, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent } from '@/lib/interfaces'
 import { decodeBase64 } from '@/lib/strutil'
 import { noDataKey } from '@/lib/list'
 import { useDelete, useSelectable } from '@/hooks/list'
@@ -103,15 +109,20 @@ import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import { DataType } from '@/lib/data'
 import { useSearch } from '@/hooks/search'
+import { storeToRefs } from 'pinia'
+import { useTempStore } from '@/stores/temp'
+import { useMainStore } from '@/stores/main'
+import { useKeyEvents } from '@/hooks/key-events'
 
-const mainStore = useMainStore()
-const items = ref<IAIChatItem[]>([])
+const items = ref<IAIChat[]>([])
 const { t } = useI18n()
 const { parseQ } = useSearch()
 const filter = reactive<IFilter>({
   tagIds: [],
 })
-
+const mainStore = useMainStore()
+const tempStore = useTempStore()
+const { app } = storeToRefs(tempStore)
 const dataType = DataType.AI_CHAT
 const route = useRoute()
 const query = route.query
@@ -120,21 +131,27 @@ const limit = 50
 const q = ref('')
 const { tags, fetch: fetchTags } = useTags(dataType)
 const { addToTags } = useAddToTags(dataType, tags)
-const { deleteItems } = useDelete(
-  deleteAIChatsGQL,
-  () => {
-    fetch()
-  },
-  items
-)
-const { allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleItemChecked, toggleRow, total, checked } = useSelectable(items)
+const { deleteItems } = useDelete(deleteAIChatsGQL, () => {
+  fetch()
+})
+const { selectedIds, allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleRow, total, checked, selectAll } = useSelectable(items)
+
+const gotoPage = (page: number) => {
+  const q = route.query.q
+  replacePath(mainStore, q ? `/aichats?page=${page}&q=${q}` : `/aichats?page=${page}`)
+}
+
+const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(total, limit, page, selectAll, clearSelection, gotoPage, () => {
+  deleteItems(realAllChecked.value, selectedIds.value, q.value)
+})
+
 const { loading, fetch } = initLazyQuery({
-  handle: (data: any, error: string) => {
+  handle: (data: { aiChats: IAIChat[]; aiChatCount: number }, error: string) => {
     if (error) {
       toast(t(error), 'error')
     } else {
       if (data) {
-        items.value = data.aiChats.map((it: IAIChatItem) => ({ ...it, checked: false }))
+        items.value = data.aiChats
         total.value = data.aiChatCount
       }
     }
@@ -146,11 +163,6 @@ const { loading, fetch } = initLazyQuery({
     query: q.value,
   }),
   appApi: true,
-})
-
-watch(page, (value: number) => {
-  const q = route.query.q
-  replacePath(mainStore, q ? `/aichats?page=${value}&q=${q}` : `/aichats?page=${value}`)
 })
 
 function getUrl(q: string) {
@@ -177,14 +189,18 @@ onActivated(() => {
   fetch()
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
   emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
+  window.addEventListener('keydown', pageKeyDown)
+  window.addEventListener('keyup', pageKeyUp)
 })
 
 onDeactivated(() => {
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
+  window.removeEventListener('keydown', pageKeyDown)
+  window.removeEventListener('keyup', pageKeyUp)
 })
 
-function view(item: IAIChatItem) {
+function view(item: IAIChat) {
   pushPath(`/aichats/${item.id}`)
 }
 
@@ -215,7 +231,7 @@ function deleteItem(item: any) {
   })
 }
 
-function addItemToTags(item: IAIChatItem) {
+function addItemToTags(item: IAIChat) {
   openModal(UpdateTagRelationsModal, {
     type: dataType,
     tags: tags.value,

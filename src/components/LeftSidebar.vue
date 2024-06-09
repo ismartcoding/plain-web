@@ -16,7 +16,7 @@
     <div class="sidebar-body">
       <slot name="body" />
     </div>
-    <div class="drag-indicator" v-show="!miniSidebar" @mousedown="initResize"></div>
+    <div class="sidebar-drag-indicator" v-show="!miniSidebar" @mousedown="resizeWidth"></div>
   </aside>
 </template>
 
@@ -24,6 +24,7 @@
 import { ref } from 'vue'
 import router from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
+import { useLeftSidebarResize } from '@/hooks/sidebar'
 
 const mainStore = useMainStore()
 
@@ -35,36 +36,13 @@ function toggleSidebar() {
   mainStore.updatePageSidebar(router.currentRoute.value.fullPath, !miniSidebar.value)
 }
 
-function initResize(e: MouseEvent) {
-  const startX = e.clientX
-  const startWidth = mainStore.sidebarWidth
-  const appElement = document.getElementById('app')
-  if (appElement) {
-    appElement.style.userSelect = 'none'
-  }
-  const move = (e: MouseEvent) => {
-    let width = startWidth + (e.clientX - startX)
-    if (width < 160) {
-      width = 160
-    }
+const { resizeWidth } = useLeftSidebarResize(
+  160,
+  () => {
+    return mainStore.sidebarWidth
+  },
+  (width: number) => {
     mainStore.sidebarWidth = width
   }
-  const up = () => {
-    appElement?.style.removeProperty('user-select')
-    window.removeEventListener('mousemove', move)
-    window.removeEventListener('mouseup', up)
-  }
-  window.addEventListener('mousemove', move)
-  window.addEventListener('mouseup', up)
-}
+)
 </script>
-<style lang="scss" scoped>
-.drag-indicator {
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 16px;
-  cursor: col-resize;
-}
-</style>

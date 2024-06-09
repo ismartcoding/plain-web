@@ -4,10 +4,12 @@
     <template #body>
       <ul class="nav">
         <li @click.prevent="viewAll" :class="{ active: !selectedTagId && !type }">
-          {{ $t('all') }}<span class="count" v-if="counter.calls >= 0">{{ counter.calls.toLocaleString() }}</span>
+          <span class="title">{{ $t('all') }}</span>
+          <span class="count" v-if="counter.calls >= 0">{{ counter.calls.toLocaleString() }}</span>
         </li>
         <li v-for="t in ['1', '2', '3']" :key="t" @click.prevent="openByType(t)" :class="{ active: t === type }">
-          {{ $t(`call_type.${t}`) }}<span class="count" v-if="getTypeCount(t) >= 0">{{ getTypeCount(t).toLocaleString() }}</span>
+          <span class="title">{{ $t(`call_type.${t}`) }}</span>
+          <span class="count" v-if="getTypeCount(t) >= 0">{{ getTypeCount(t).toLocaleString() }}</span>
         </li>
       </ul>
       <tag-filter type="CALL" :selected="selectedTagId" />
@@ -39,13 +41,12 @@ const selectedTagId = ref('')
 const typesCount = ref<Map<string, number>>(new Map())
 
 const { fetch } = initLazyQuery({
-  handle: (data: any) => {
+  handle: (data: { total: number; incoming: number; outgoing: number; missed: number }) => {
     if (data) {
       counter.value.calls = data.total
       typesCount.value.set('1', data.incoming)
       typesCount.value.set('2', data.outgoing)
       typesCount.value.set('3', data.missed)
-
     }
   },
   document: callCountGQL,

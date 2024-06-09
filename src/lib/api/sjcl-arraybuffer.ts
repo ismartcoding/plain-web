@@ -1,13 +1,13 @@
 import sjcl from 'sjcl'
 
 export function arrayBufferFromBits(arr: sjcl.BitArray): ArrayBuffer {
-  let out, i, ol, tmp, smallest
+  let out, i
 
   if (arr.length === 0) {
     return new ArrayBuffer(0)
   }
 
-  ol = sjcl.bitArray.bitLength(arr) / 8
+  const ol = sjcl.bitArray.bitLength(arr) / 8
 
   //check to make sure the bitLength is divisible by 8, if it isn't
   //we can't do anything since arraybuffers work with bytes, not bits
@@ -16,7 +16,7 @@ export function arrayBufferFromBits(arr: sjcl.BitArray): ArrayBuffer {
   }
 
   //padded temp for easy copying
-  tmp = new DataView(new ArrayBuffer(arr.length * 4))
+  const tmp = new DataView(new ArrayBuffer(arr.length * 4))
   for (i = 0; i < arr.length; i++) {
     tmp.setUint32(i * 4, arr[i] << 32) //get rid of the higher bits
   }
@@ -29,7 +29,7 @@ export function arrayBufferFromBits(arr: sjcl.BitArray): ArrayBuffer {
     return tmp.buffer
   }
 
-  smallest = tmp.byteLength < out.byteLength ? tmp.byteLength : out.byteLength
+  const smallest = tmp.byteLength < out.byteLength ? tmp.byteLength : out.byteLength
   for (i = 0; i < smallest; i++) {
     out.setUint8(i, tmp.getUint8(i))
   }
@@ -38,17 +38,15 @@ export function arrayBufferFromBits(arr: sjcl.BitArray): ArrayBuffer {
 }
 
 export function arrayBuffertoBits(buffer: ArrayBuffer) {
-  let out = [],
-    len,
-    inView,
-    tmp
+  const out = []
+  let inView, tmp
 
   if (buffer.byteLength === 0) {
     return []
   }
 
   inView = new DataView(buffer)
-  len = inView.byteLength - (inView.byteLength % 4)
+  const len = inView.byteLength - (inView.byteLength % 4)
 
   for (let i = 0; i < len; i += 4) {
     out.push(inView.getUint32(i))
@@ -67,9 +65,8 @@ export function arrayBuffertoBits(buffer: ArrayBuffer) {
 }
 
 export function parseWebSocketData(buffer: ArrayBuffer, plainTypes: number[]): { type: number; data: any } {
-  let out = [],
-    len,
-    tmp
+  const out = []
+  let tmp
 
   let prefix = 0
 
@@ -89,7 +86,7 @@ export function parseWebSocketData(buffer: ArrayBuffer, plainTypes: number[]): {
     }
   }
 
-  len = inView.byteLength - (inView.byteLength % 4)
+  const len = inView.byteLength - (inView.byteLength % 4)
 
   for (let i = 0; i < len; i += 4) {
     if (i === 0) {

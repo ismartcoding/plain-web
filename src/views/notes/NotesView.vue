@@ -1,11 +1,11 @@
 <template>
   <div class="top-app-bar">
-    <div class="title">{{ $t('page_title.notes') }} ({{ total.toLocaleString() }})</div>
-    <div class="actions">
-      <search-input :filter="filter" :tags="tags" :get-url="getUrl" :show-trash="true" />
+    <div class="title">
+      <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
+      <span v-else>{{ $t('page_title.notes') }} ({{ total.toLocaleString() }})</span>
       <template v-if="filter.trash">
         <template v-if="checked">
-          <button class="btn-icon" @click.stop="deleteItems(realAllChecked, q)" v-tooltip="$t('delete')">
+          <button class="btn-icon" @click.stop="deleteItems(realAllChecked, selectedIds, q)" v-tooltip="$t('delete')">
             <md-ripple />
             <i-material-symbols:delete-forever-outline-rounded />
           </button>
@@ -21,17 +21,52 @@
             <md-ripple />
             <i-material-symbols:delete-outline-rounded />
           </button>
-          <button class="btn-icon" @click.stop="addToTags(items, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
+          <button class="btn-icon" @click.stop="addToTags(selectedIds, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
             <md-ripple />
             <i-material-symbols:label-outline-rounded />
           </button>
-          <md-outlined-button @click.prevent="create">{{ $t('create') }}</md-outlined-button>
         </template>
       </template>
     </div>
+    <div class="actions">
+      <search-input :filter="filter" :tags="tags" :get-url="getUrl" :show-trash="true" />
+      <md-outlined-button v-if="!filter.trash" class="btn-sm" @click.prevent="create">{{ $t('create') }}</md-outlined-button>
+    </div>
   </div>
-  <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible" :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
-  <div class="table-responsive">
+  <all-checked-alert
+    :limit="limit"
+    :total="total"
+    :all-checked-alert-visible="allCheckedAlertVisible"
+    :real-all-checked="realAllChecked"
+    :select-real-all="selectRealAll"
+    :clear-selection="clearSelection"
+  />
+
+  <VirtualList class="scroller" :data-key="'id'" :data-sources="items" :estimate-size="100">
+    <template #item="{ index, item }">
+      <a class="item-link" :href="viewUrl(item)" @click.stop.prevent="view(item)">
+        <article class="card note-item" :class="{ selected: item.id == $route.params['id'] }">
+          <div class="grid1">
+            <div class="title">{{ getSummary(item.title.split('\n')[0].trimStart()) || $t('meta_no_title') }}</div>
+          </div>
+          <div class="grid2">
+            <div class="subtitle">
+              <span>{{ index + 1 }}&nbsp;&nbsp;·&nbsp;&nbsp;</span>
+              <span class="time" v-tooltip="formatDateTime(item.updatedAt)">
+                {{ formatTimeAgo(item.updatedAt) }}
+              </span>
+              <item-tags :tags="item.tags" :type="dataType" :only-links="true" />
+            </div>
+          </div>
+        </article>
+      </a>
+    </template>
+    <template #footer>
+      <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" />
+    </template>
+  </VirtualList>
+
+  <div class="table-responsive" style="display: none">
     <table class="table">
       <thead>
         <tr>
@@ -47,8 +82,8 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="item in items" :key="item.id" :class="{ selected: item.checked }" @click.stop="toggleRow(item)">
-          <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
+        <tr v-for="(item, i) in items" :key="item.id" :class="{ selected: selectedIds.includes(item.id) }" @click.stop="toggleRow($event, item, i)">
+          <td><md-checkbox touch-target="wrapper" @change="toggleRow($event, item, i)" :checked="selectedIds.includes(item.id)" /></td>
           <td v-if="app.developerMode"><field-id :id="item.id" :raw="item" /></td>
           <td style="min-width: 200px; cursor: pointer" @click.stop.prevent="view(item)">
             <a style="text-overflow: clip" :href="viewUrl(item)" @click.stop.prevent="view(item)">
@@ -99,19 +134,18 @@
       </tfoot>
     </table>
   </div>
-  <v-pagination v-if="total > limit" v-model="page" :total="total" :limit="limit" />
 </template>
 
 <script setup lang="ts">
-import { computed, onActivated, onDeactivated, reactive, ref, watch } from 'vue'
+import { computed, onActivated, onDeactivated, reactive, ref } from 'vue'
 import toast from '@/components/toaster'
-import { formatDateTime, formatDateTimeFull } from '@/lib/format'
+import { formatTimeAgo, formatDateTime, formatDateTimeFull } from '@/lib/format'
 import { notesGQL, initLazyQuery } from '@/lib/api/query'
 import { useRoute } from 'vue-router'
 import router, { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useI18n } from 'vue-i18n'
-import type { INote, INoteItem, ISelectable, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IFilter } from '@/lib/interfaces'
+import type { INote, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IFilter } from '@/lib/interfaces'
 import { decodeBase64 } from '@/lib/strutil'
 import { noDataKey } from '@/lib/list'
 import { useDelete, useSelectable } from '@/hooks/list'
@@ -128,11 +162,13 @@ import { useSearch } from '@/hooks/search'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { truncate } from 'lodash-es'
+import { useKeyEvents } from '@/hooks/key-events'
+import VirtualList from '@/components/virtualscroll'
 
 const mainStore = useMainStore()
 const tempStore = useTempStore()
 const { app } = storeToRefs(tempStore)
-const items = ref<INoteItem[]>([])
+const items = ref<INote[]>([])
 const { t } = useI18n()
 const { parseQ } = useSearch()
 const filter = reactive<IFilter>({
@@ -148,15 +184,22 @@ const q = ref('')
 const { tags, fetch: fetchTags } = useTags(dataType)
 
 const { addToTags } = useAddToTags(dataType, tags)
+const { selectedIds, allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleRow, total, checked, selectAll } = useSelectable(items)
+const gotoPage = (page: number) => {
+  const q = route.query.q
+  replacePath(mainStore, q ? `/notes?page=${page}&q=${q}` : `/notes?page=${page}`)
+}
+const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(total, limit, page, selectAll, clearSelection, gotoPage, () => {
+  deleteItems(realAllChecked.value, selectedIds.value, q.value)
+})
 
-const { allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleItemChecked, toggleRow, total, checked } = useSelectable(items)
 const { loading, fetch } = initLazyQuery({
-  handle: (data: any, error: string) => {
+  handle: (data: { notes: INote[]; noteCount: number }, error: string) => {
     if (error) {
       toast(t(error), 'error')
     } else {
       if (data) {
-        items.value = data.notes.map((it: INote) => ({ ...it, checked: false }))
+        items.value = data.notes
         total.value = data.noteCount
       }
     }
@@ -170,7 +213,7 @@ const { loading, fetch } = initLazyQuery({
   appApi: true,
 })
 
-function addItemToTags(item: INoteItem) {
+function addItemToTags(item: INote) {
   openModal(UpdateTagRelationsModal, {
     type: dataType,
     tags: tags.value,
@@ -191,11 +234,6 @@ const colspan = computed(() => {
   return app.value.developerMode ? 7 : 6
 })
 
-watch(page, (value: number) => {
-  const q = route.query.q
-  replacePath(mainStore, q ? `/notes?page=${value}&q=${q}` : `/notes?page=${value}`)
-})
-
 function getUrl(q: string) {
   return q ? `/notes?q=${q}` : `/notes`
 }
@@ -206,22 +244,17 @@ const { mutate: trashNotes, onDone: onTrash } = initMutation({
 })
 
 function moveToTrash() {
-  const selectedItems = items.value.filter((it: ISelectable) => it.checked)
-  if (selectedItems.length === 0) {
+  if (selectedIds.value.length === 0) {
     toast(t('select_first'), 'error')
     return
   }
-  trashNotes({ query: `ids:${selectedItems.map((it: INote) => it.id).join(',')}` })
+  trashNotes({ query: `ids:${selectedIds.value.join(',')}` })
 }
 
-const { deleteItems } = useDelete(
-  deleteNotesGQL,
-  () => {
-    clearSelection()
-    fetch()
-  },
-  items
-)
+const { deleteItems } = useDelete(deleteNotesGQL, () => {
+  clearSelection()
+  fetch()
+})
 
 onTrash(() => {
   clearSelection()
@@ -237,12 +270,11 @@ const { mutate: untrashNotes, onDone: onRestored } = initMutation({
 })
 
 function untrash() {
-  const selectedItems = items.value.filter((it: ISelectable) => it.checked)
-  if (selectedItems.length === 0) {
+  if (selectedIds.value.length === 0) {
     toast(t('select_first'), 'error')
     return
   }
-  untrashNotes({ query: `ids:${selectedItems.map((it: INote) => it.id).join(',')}` })
+  untrashNotes({ query: `ids:${selectedIds.value.join(',')}` })
 }
 
 onRestored(() => {
@@ -250,7 +282,7 @@ onRestored(() => {
   fetch()
 })
 
-function deleteItem(item: INoteItem) {
+function deleteItem(item: INote) {
   openModal(DeleteConfirm, {
     id: item.id,
     name: truncate(item.title, { length: 20 }),
@@ -312,10 +344,25 @@ onActivated(() => {
   fetch()
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
   emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
+  window.addEventListener('keydown', pageKeyDown)
+  window.addEventListener('keyup', pageKeyUp)
 })
 
 onDeactivated(() => {
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
+  window.removeEventListener('keydown', pageKeyDown)
+  window.removeEventListener('keyup', pageKeyUp)
 })
 </script>
+<style lang="scss" scoped>
+.scroller {
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: calc(100vh - 112px);
+  .item-link {
+    text-decoration: none;
+    display: block;
+  }
+}
+</style>

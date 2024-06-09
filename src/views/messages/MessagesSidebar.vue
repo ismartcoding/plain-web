@@ -6,10 +6,12 @@
     <template #body>
       <ul class="nav">
         <li @click.prevent="viewAll" :class="{ active: !selectedTagId && !type }">
-          {{ $t('all') }}<span class="count" v-if="counter.messages >= 0">{{ counter.messages.toLocaleString() }}</span>
+          <span class="title">{{ $t('all') }}</span>
+          <span class="count" v-if="counter.messages >= 0">{{ counter.messages.toLocaleString() }}</span>
         </li>
         <li v-for="t in ['1', '2', '3']" :key="t" @click.prevent="openByType(t)" :class="{ active: t === type }">
-          {{ $t(`message_type.${t}`) }}<span class="count" v-if="getTypeCount(t) >= 0">{{ getTypeCount(t).toLocaleString() }}</span>
+          <span class="title">{{ $t(`message_type.${t}`) }}</span>
+          <span class="count" v-if="getTypeCount(t) >= 0">{{ getTypeCount(t).toLocaleString() }}</span>
         </li>
       </ul>
       <tag-filter type="SMS" :selected="selectedTagId" />
@@ -40,7 +42,7 @@ const selectedTagId = ref('')
 const typesCount = ref<Map<string, number>>(new Map())
 
 const { fetch } = initLazyQuery({
-  handle: (data: any) => {
+  handle: (data: { total: number; inbox: number; sent: number; drafts: number }) => {
     if (data) {
       counter.value.messages = data.total
       typesCount.value.set('1', data.inbox)
@@ -56,7 +58,6 @@ const { fetch } = initLazyQuery({
 function getTypeCount(id: string) {
   return typesCount.value.get(id) ?? -1
 }
-
 
 function updateActive() {
   const route = router.currentRoute.value
@@ -93,9 +94,6 @@ function openByType(type: string) {
 function viewAll() {
   replacePath(mainStore, '/messages')
 }
-</script>import { initLazyQuery, smsCountGQL } from '@/lib/api/query'
-import { useTempStore } from '@/stores/temp'
-import { storeToRefs } from 'pinia'
-initLazyQuery, import { useTempStore } from '@/stores/temp'
-import { storeToRefs } from 'pinia'
-
+</script>
+import { initLazyQuery, smsCountGQL } from '@/lib/api/query' import { useTempStore } from '@/stores/temp' import { storeToRefs } from 'pinia' initLazyQuery, import { useTempStore } from
+'@/stores/temp' import { storeToRefs } from 'pinia'

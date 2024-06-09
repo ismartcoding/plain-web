@@ -352,3 +352,13 @@ export const updateScreenMirrorQualityGQL = gql`
     updateScreenMirrorQuality(quality: $quality, resolution: $resolution)
   }
 `
+
+
+export const saveFeedEntriesToNotesGQL = gql`
+  mutation saveFeedEntriesToNotes($query: String!) {
+    saveFeedEntriesToNotes(query: $query) {
+      ...NoteFragment
+    }
+  }
+  ${noteFragment}
+`

@@ -2,7 +2,11 @@ export default {
   app_name: 'PlainApp',
   audio_player: 'Lecteur audio',
   types: 'Types',
-  view_as_table: 'Vue en tableau',
+  save_to_notes: 'Enregistrer dans les notes',
+  x_selected: '{count} sélectionné',
+  card_view: 'Vue en carte',
+  grid_view: 'Vue en grille',
+  table_view: 'Vue en tableau',
   low_quality: 'Basse qualité',
   high_quality: 'Haute qualité',
   best_quality: 'Meilleure qualité',
@@ -16,12 +20,14 @@ export default {
   compress_quality: 'Qualité de compression',
   mirror_quality: 'Qualité du miroir',
   resolution: 'Résolution',
-  screen_mirror_quality_tips: "Plus la valeur de qualité de compression est faible, plus la qualité est basse. Opter pour des paramètres de qualité plus élevés peut entraîner une mise en miroir d'écran plus lente et des retards potentiels.",
+  screen_mirror_quality_tips:
+    "Plus la valeur de qualité de compression est faible, plus la qualité est basse. Opter pour des paramètres de qualité plus élevés peut entraîner une mise en miroir d'écran plus lente et des retards potentiels.",
   exit_fullscreen: 'Quitter le mode plein écran',
   resume: 'Reprendre',
   select_all: 'Tout sélectionner',
   troubleshoot: 'Dépannage',
-  fix_disconnect_tips: "La connexion a été interrompue. Veuillez essayer de laisser l'écran de votre téléphone allumé ou de connecter votre téléphone via un chargement USB. Sinon, rouvrez l'application et actualisez la page.",
+  fix_disconnect_tips:
+    "La connexion a été interrompue. Veuillez essayer de laisser l'écran de votre téléphone allumé ou de connecter votre téléphone via un chargement USB. Sinon, rouvrez l'application et actualisez la page.",
   failed_connect_ws: "La connexion a été interrompue. Veuillez redémarrer l'application et réessayer.",
   desktop_notification_need_https: 'Les notifications de bureau nécessitent un lien sécurisé (HTTPS).',
   use_https_link: 'Utiliser le lien HTTPS',
@@ -82,7 +88,8 @@ export default {
   grant_permission: 'Accorder la permission',
   desktop_notification_permission_not_granted: "La permission de notification du bureau n'a pas été accordée.",
   desktop_notification_permission_grant_title: "Accorder l'autorisation pour les notifications du bureau",
-  desktop_notification_permission_grant_message: '1. Cliquez sur l\'icône du cadenas dans la barre d\'adresse.\n2. Ouvrez "Paramètres du site" ou "Autorisations".\n3. Trouvez "Notifications" et changez-le en "Autoriser".',
+  desktop_notification_permission_grant_message:
+    '1. Cliquez sur l\'icône du cadenas dans la barre d\'adresse.\n2. Ouvrez "Paramètres du site" ou "Autorisations".\n3. Trouvez "Notifications" et changez-le en "Autoriser".',
   sort: 'Trier',
   sort_by: {
     date_asc: 'Date la plus ancienne en premier',
@@ -466,8 +473,6 @@ export default {
   folders: 'Dossiers',
   color: 'Couleur',
   make_a_phone_call: 'Passer un appel',
-  view_as_list: 'Vue en liste',
-  view_as_grid: 'Vue en grille',
   pause: 'Pause',
   playlist: 'Liste de lecture',
   no_api_key: 'Pas de clé API.',
@@ -487,5 +492,6 @@ export default {
   select_all_items: 'Sélectionner tous les {count} éléments',
   clear_selection: 'Effacer la sélection',
   screen_mirror_request_permission_failed: "Vous n'avez pas accordé la permission à PlainApp pour prendre des captures d'écran.",
-  screen_mirror_request_permission: 'Veuillez appuyer sur "Commencer maintenant" sur votre téléphone. \nSi la fenêtre de permission n\'apparaît pas, rouvrez PlainApp. \nRéessayez dans {seconds} secondes.',
+  screen_mirror_request_permission:
+    'Veuillez appuyer sur "Commencer maintenant" sur votre téléphone. \nSi la fenêtre de permission n\'apparaît pas, rouvrez PlainApp. \nRéessayez dans {seconds} secondes.',
 }

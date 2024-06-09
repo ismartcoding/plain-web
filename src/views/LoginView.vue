@@ -5,13 +5,23 @@
   <h1>{{ $t('app_name') }}</h1>
   <div class="login-block">
     <form @submit.prevent="onSubmit" v-show="!showConfirm">
-      <div class="alert alert-danger" role="alert" v-show="showError">
+      <div class="alert alert-danger show" role="alert" v-show="showError">
         <i-material-symbols:error-outline-rounded />
         <div class="body">
           {{ error ? $t(error) : '' }}
         </div>
       </div>
-      <md-outlined-text-field v-if="showPasswordInput" :label="t('password')" v-model="password" @keydown.enter="onSubmit" type="password" class="form-control" :error="passwordError" autocomplete="current-password" :error-text="passwordError ? $t(passwordError) : ''" />
+      <md-outlined-text-field
+        v-if="showPasswordInput"
+        :label="t('password')"
+        v-model="password"
+        @keydown.enter="onSubmit"
+        type="password"
+        class="form-control"
+        :error="passwordError"
+        autocomplete="current-password"
+        :error-text="passwordError ? $t(passwordError) : ''"
+      />
       <md-filled-button v-if="!webAccessDisabled" :disabled="isSubmitting">
         {{ $t(isSubmitting ? 'logging_in' : 'log_in') }}
       </md-filled-button>
@@ -192,6 +202,6 @@ h1 {
 }
 
 .alert-danger {
-  margin-block-end: 32px;
+  margin-block-end: 16px;
 }
 </style>

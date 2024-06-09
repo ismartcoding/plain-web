@@ -25,11 +25,32 @@
         maxHeight: maxHeight > 0 ? `${maxHeight}px` : '',
       }"
     >
-      <md-menu-item v-for="(item, i) in items" :key="i" :disabled="item.disabled" @mouseenter="showChildItem($event, item)" @mouseleave="hideChildItem()" @focus="showChildItem($event, item)" @blur="hideChildItem()" @click="onMouseClick(item)">
+      <md-menu-item
+        v-for="(item, i) in items"
+        :key="i"
+        :disabled="item.disabled"
+        @mouseenter="showChildItem($event, item)"
+        @mouseleave="hideChildItem()"
+        @focus="showChildItem($event, item)"
+        @blur="hideChildItem()"
+        @click="onMouseClick(item)"
+      >
         <div slot="headline">{{ item.label }}</div>
       </md-menu-item>
     </div>
-    <ContextSubMenu ref="childMenu" v-if="activeItem && activeItem.children" :zIndex="zIndex + 1" :items="activeItem.children" :parentItem="activeItem" :options="options" :globalData="childGlobalData" :position="childPosition" @close="onChildrenClose" @keepOpen="onChildrenKeepOpen" @preUpdatePos="onChildrenUpdatePos"></ContextSubMenu>
+    <ContextSubMenu
+      ref="childMenu"
+      v-if="activeItem && activeItem.children"
+      :zIndex="zIndex + 1"
+      :items="activeItem.children"
+      :parentItem="activeItem"
+      :options="options"
+      :globalData="childGlobalData"
+      :position="childPosition"
+      @close="onChildrenClose"
+      @keepOpen="onChildrenKeepOpen"
+      @preUpdatePos="onChildrenUpdatePos"
+    ></ContextSubMenu>
   </div>
 </template>
 

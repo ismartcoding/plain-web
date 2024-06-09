@@ -3,10 +3,10 @@ import emitter from '@/plugins/eventbus'
 import { ref, type Ref } from 'vue'
 import toast from '@/components/toaster'
 import { useI18n } from 'vue-i18n'
-import type { IAudio, IAudioItem, ISelectable } from '@/lib/interfaces'
+import type { IAudio } from '@/lib/interfaces'
 import { transferEffect } from '@/lib/effect'
 
-export const useAddToPlaylist = (items: Ref<IAudioItem[]>, clearSelection: () => void) => {
+export const useAddToPlaylist = (items: Ref<IAudio[]>, clearSelection: () => void) => {
   const { mutate, loading, onDone } = initMutation({
     document: addPlaylistAudiosGQL,
     appApi: true,
@@ -21,15 +21,14 @@ export const useAddToPlaylist = (items: Ref<IAudioItem[]>, clearSelection: () =>
 
   return {
     loading,
-    addItemsToPlaylist: (e: MouseEvent, realAllChecked: boolean, query: string) => {
+    addItemsToPlaylist: (e: MouseEvent, selectedIds: string[], realAllChecked: boolean, query: string) => {
       let q = query
       if (!realAllChecked) {
-        const selectedItems = items.value.filter((it: ISelectable) => it.checked)
-        if (selectedItems.length === 0) {
+        if (selectedIds.length === 0) {
           toast(t('select_first'), 'error')
           return
         }
-        q = `ids:${selectedItems.map((it: any) => it.id).join(',')}`
+        q = `ids:${selectedIds.join(',')}`
       }
 
       const sourceElement = e.target

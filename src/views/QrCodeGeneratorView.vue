@@ -4,7 +4,7 @@
       {{ $t('qrcode_generator') }}
     </div>
   </div>
-  <div class="content">
+  <div class="scroll-content">
     <md-outlined-text-field v-model="qrCode" class="textarea" type="textarea" rows="3" />
     <div class="qrcode-panel">
       <img v-if="url" :src="url" />
@@ -39,7 +39,7 @@ watch(qrCode, () => {
 updateUrl()
 </script>
 <style lang="scss" scoped>
-.content {
+.scroll-content {
   display: grid;
   grid-template-columns: 50% 50%;
 

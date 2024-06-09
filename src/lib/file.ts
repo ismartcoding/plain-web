@@ -1,11 +1,11 @@
-import type { ISelectable } from './interfaces'
+import type { IData } from './interfaces'
 
 const photoExtensions = ['.jpg', '.png', '.jpeg', '.bmp', '.webp', '.heic', '.heif', '.apng', '.avif', '.gif', '.tiff', '.tif', '.svg']
 const videoExtensions = ['.mp4', '.mkv', '.webm', '.avi', '.3gp', '.mov', '.m4v', '.3gpp']
 const audioExtensions = ['.mp3', '.wav', '.wma', '.ogg', '.m4a', '.opus', '.flac', '.aac']
 const rawExtensions = ['.dng', '.orf', '.nef', '.arw', '.rw2', '.cr2', '.cr3']
 
-export interface IFile extends ISelectable {
+export interface IFile extends IData {
   fileId: string
   path: string
   name: string

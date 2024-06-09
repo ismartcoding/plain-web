@@ -59,13 +59,9 @@ function onModeSelected(
   mode.value = value
 }
 
-const { value: selectedTags, errorMessage } = useField(
+const { value: selectedTags, errorMessage } = useField<ITag[]>(
   'selectedTags',
-  array().test(
-    'required',
-    () => 'valid.required',
-    (value: any) => value.length
-  ),
+  array().test('required', 'valid.required', (value: any) => value.length),
   {
     initialValue: [],
   }

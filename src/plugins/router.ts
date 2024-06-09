@@ -1,11 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import MainView from '@/views/MainView.vue'
 import type { IPage } from '@/lib/interfaces'
+import type { MainState } from '@/stores/main'
 
 const router = createRouter({
   strict: true,
   history: createWebHistory(),
-  scrollBehavior(to, from, savedPosition) {
+  scrollBehavior(to: string, from: string, savedPosition: { top: number } | null) {
     if (savedPosition) {
       return savedPosition
     } else {
@@ -234,7 +235,7 @@ router.afterEach((to, from) => {
 
 export default router
 
-export const replacePathNoReload = (store: any, fullPath: string) => {
+export const replacePathNoReload = (store: MainState, fullPath: string) => {
   const oldPath = router.currentRoute.value.fullPath
   router.currentRoute.value.fullPath = fullPath
   const index = store.pages.findIndex((it: IPage) => it.path === fullPath)
@@ -246,7 +247,7 @@ export const replacePathNoReload = (store: any, fullPath: string) => {
   }
 }
 
-export const replacePath = (store: any, fullPath: string) => {
+export const replacePath = (store: MainState, fullPath: string) => {
   const index = store.pages.findIndex((it: IPage) => it.path === fullPath)
   if (index !== -1) {
     router.push(fullPath)

@@ -228,6 +228,8 @@ export const imageFragment = gql`
     path
     size
     bucketId
+    createdAt
+    updatedAt
     tags {
       ...TagSubFragment
     }
@@ -243,6 +245,8 @@ export const videoFragment = gql`
     duration
     size
     bucketId
+    createdAt
+    updatedAt
     tags {
       ...TagSubFragment
     }
@@ -259,6 +263,9 @@ export const audioFragment = gql`
     duration
     size
     bucketId
+    albumFileId
+    createdAt
+    updatedAt
     tags {
       ...TagSubFragment
     }

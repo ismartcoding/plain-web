@@ -40,7 +40,7 @@
         </button>
         <template #content="slotProps">
           <div class="menu-items">
-            <md-menu-item v-for="item in sortItems" @click="sort(slotProps, item.value)" :selected="item.value === fileSortBy">
+            <md-menu-item v-for="item in sortItems" @click="sort(slotProps, item.value)" :key="item.value" :selected="item.value === fileSortBy">
               <div slot="headline">{{ $t(item.label) }}</div>
             </md-menu-item>
           </div>
@@ -269,7 +269,7 @@ function clickItem(panel: FilePanel, item: IFile) {
   select(panel, item)
 }
 
-function sort(slotProps: any, sort: string) {
+function sort(slotProps: { close: () => void }, sort: string) {
   // only sort the last column
   fileSortBy.value = sort
   slotProps.close()

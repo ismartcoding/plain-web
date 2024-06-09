@@ -13,7 +13,14 @@
             <div class="tab-item" @click="selectTab('/')" key="/" :class="{ active: currentPath === '/' }" @contextmenu="itemCtxMenu($event, '/')">
               <span>{{ $t('page_title.home') }}</span>
             </div>
-            <div v-for="item of store.pages" :key="item.path" @click="selectTab(item.path)" class="tab-item" @contextmenu="itemCtxMenu($event, item.path)" :class="{ active: currentPath === item.path }">
+            <div
+              v-for="item of store.pages"
+              :key="item.path"
+              @click="selectTab(item.path)"
+              class="tab-item"
+              @contextmenu="itemCtxMenu($event, item.path)"
+              :class="{ active: currentPath === item.path }"
+            >
               <span>{{ $t(`page_title.${getRouteName(item.path)}`) }}</span>
               <button class="btn-icon sm tab-icon" @click.stop="closeTab(item.path)">
                 <md-ripple />
@@ -40,14 +47,21 @@
             </keep-alive>
           </router-view>
           <router-view v-slot="{ Component }">
-            <keep-alive>
+            <keep-alive exclude="NoteEditView">
               <component :is="Component" :key="$route.fullPath" />
             </keep-alive>
           </router-view>
         </main>
       </div>
       <div class="quick">
-        <button class="btn-icon q-action" v-if="app.channel !== 'GOOGLE'" v-tooltip="$t('header_actions.notifications')" @click="toggleQuick('notification')" toggle :class="{ selected: store.quick === 'notification' }">
+        <button
+          class="btn-icon q-action"
+          v-if="app.channel !== 'GOOGLE'"
+          v-tooltip="$t('header_actions.notifications')"
+          @click="toggleQuick('notification')"
+          toggle
+          :class="{ selected: store.quick === 'notification' }"
+        >
           <md-ripple />
           <i-material-symbols:notifications-outline-rounded />
         </button>
@@ -70,7 +84,7 @@
       </div>
       <transition name="width">
         <div class="quick-content" v-show="store.quick" :style="{ width: store.quickContentWidth + 'px' }">
-          <chat v-show="store.quick === 'chat'" />
+          <p-chat v-show="store.quick === 'chat'" />
           <audio-player v-show="store.quick === 'audio'" />
           <task-list v-show="store.quick === 'task'" />
           <notifications v-show="store.quick === 'notification'" />
@@ -91,7 +105,7 @@ import { storeToRefs } from 'pinia'
 import { appGQL, initQuery } from '@/lib/api/query'
 import emitter from '@/plugins/eventbus'
 import { tokenToKey } from '@/lib/api/file'
-import type { IMediaItemDeletedEvent, IMediaItemsDeletedEvent, IPage } from '@/lib/interfaces'
+import type { IApp, IMediaItemDeletedEvent, IMediaItemsDeletedEvent, IPage } from '@/lib/interfaces'
 import { contextmenu } from '@/components/contextmenu'
 import { useI18n } from 'vue-i18n'
 import { remove } from 'lodash-es'
@@ -124,7 +138,7 @@ function toggleQuick(name: string) {
 }
 
 const { refetch: refetchApp } = initQuery({
-  handle: (data: any, error: string) => {
+  handle: (data: { app: IApp }, error: string) => {
     loading.value = false
     if (error) {
       errorMessage.value = error

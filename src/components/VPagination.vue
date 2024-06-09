@@ -3,7 +3,7 @@
     <li class="page-item" :class="{ disabled: !isPrevActive }">
       <a class="page-link" href="#" @click.prevent="prev">&laquo;</a>
     </li>
-    <li v-for="page in pagination" class="page-item" :class="{ disabled: page === null, active: page === modelValue }">
+    <li v-for="page in pagination" class="page-item" :class="{ disabled: page === null, active: page === props.page }">
       <span class="page-link" v-if="page === null">···</span>
       <a v-else class="page-link" href="#" @click.prevent="go(page)">
         {{ page }}
@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, type PropType } from 'vue'
 
 const props = defineProps({
   total: {
@@ -31,15 +31,15 @@ const props = defineProps({
     type: Number,
     default: 2,
   },
-  modelValue: {
+  go: {
+    type: Function as PropType<(value: number) => void>,
+    required: true,
+  },
+  page: {
     type: Number,
-    default: 0,
+    default: 1,
   },
 })
-
-function go(value: number) {
-  emit('update:modelValue', value)
-}
 
 const pages = computed(() => {
   return Math.ceil(props.total / props.limit)
@@ -50,8 +50,8 @@ const pagination = computed((): (number | null)[] => {
   const res = []
   const minPaginationElems = 5 + props.rangeSize * 2
 
-  let rangeStart = pages.value <= minPaginationElems ? 1 : props.modelValue - props.rangeSize
-  let rangeEnd = pages.value <= minPaginationElems ? pages.value : props.modelValue + props.rangeSize
+  let rangeStart = pages.value <= minPaginationElems ? 1 : props.page - props.rangeSize
+  let rangeEnd = pages.value <= minPaginationElems ? pages.value : props.page + props.rangeSize
 
   rangeEnd = rangeEnd > pages.value ? pages.value : rangeEnd
   rangeStart = rangeStart < 1 ? 1 : rangeStart
@@ -92,22 +92,22 @@ const pagination = computed((): (number | null)[] => {
 })
 
 const isPrevActive = computed((): boolean => {
-  return props.modelValue > 1
+  return props.page > 1
 })
 
 const isNextActive = computed((): boolean => {
-  return props.modelValue < pages.value
+  return props.page < pages.value
 })
 
 function prev(): void {
   if (isPrevActive.value) {
-    emit('update:modelValue', props.modelValue - 1)
+    props.go(props.page - 1)
   }
 }
 
 function next(): void {
   if (isNextActive.value) {
-    emit('update:modelValue', props.modelValue + 1)
+    props.go(props.page + 1)
   }
 }
 </script>

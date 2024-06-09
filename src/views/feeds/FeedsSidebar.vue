@@ -9,7 +9,7 @@
         <i-material-symbols:add-rounded />
       </button>
       <md-menu anchor="add-feed-ref" positioning="fixed" stay-open-on-focusout quick :open="addMenuVisible" @closed="() => (addMenuVisible = false)">
-        <md-menu-item v-for="item in actionItems" @click="item.click">
+        <md-menu-item v-for="item in actionItems" :key="item.text" @click="item.click">
           <div slot="headline">{{ $t(item.text) }}</div>
         </md-menu-item>
       </md-menu>
@@ -17,19 +17,22 @@
     <template #body>
       <ul class="nav">
         <li @click.prevent="viewAll" :class="{ active: !today && !selectedTagId && !selectedFeedId }">
-          {{ $t('all') }}<span class="count" v-if="counter.feedEntries >= 0">{{ counter.feedEntries.toLocaleString() }}</span>
+          <span class="title">{{ $t('all') }}</span>
+          <span class="count" v-if="counter.feedEntries >= 0">{{ counter.feedEntries.toLocaleString() }}</span>
         </li>
         <li @click.prevent="viewToday" :class="{ active: today }">
-          {{ $t('today') }}<span class="count" v-if="counter.feedEntriesToday >= 0">{{ counter.feedEntriesToday.toLocaleString() }}</span>
+          <span class="title">{{ $t('today') }}</span>
+          <span class="count" v-if="counter.feedEntriesToday >= 0">{{ counter.feedEntriesToday.toLocaleString() }}</span>
         </li>
         <li
           v-for="item in feeds"
+          :key="item.id"
           @click.stop.prevent="viewFeed(item)"
           :class="{
             active: selectedFeedId && item.id === selectedFeedId,
           }"
         >
-          <span>{{ item.name }}</span>
+          <span class="title">{{ item.name }}</span>
           <button :id="'feed-' + item.id" class="btn-icon sm" @click.prevent.stop="showFeedMenu(item)" v-tooltip="$t('actions')">
             <md-ripple />
             <i-material-symbols:more-vert />
@@ -39,7 +42,7 @@
       </ul>
       <md-menu positioning="popover" :anchor="'feed-' + selectedFeed?.id" stay-open-on-focusout quick :open="feedMenuVisible" @closed="feedMenuVisible = false">
         <md-menu-item @click="editFeed(selectedFeed!)">
-          <div slot="headline">{{ $t('rename') }}</div>
+          <div slot="headline">{{ $t('edit') }}</div>
         </md-menu-item>
         <md-menu-item @click="deleteFeed(selectedFeed!)">
           <div slot="headline">{{ $t('delete') }}</div>
@@ -54,7 +57,7 @@
 <script setup lang="ts">
 import router, { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
-import type { IDropdownItem, IFeed, IFilter } from '@/lib/interfaces'
+import type { IDropdownItem, IFeed, IFeedCount, IFilter } from '@/lib/interfaces'
 import { reactive, ref, watch } from 'vue'
 import AddFeedModal from '@/components/AddFeedModal.vue'
 import { deleteFeedGQL, exportFeedsGQL, importFeedsGQL, initMutation } from '@/lib/api/mutation'
@@ -94,11 +97,11 @@ const feedMenuVisible = ref(false)
 const selectedFeed = ref<IFeed>()
 
 const { fetch } = initLazyQuery({
-  handle: (data: any) => {
+  handle: (data: { total: number; today: number; feedsCount: IFeedCount[] }) => {
     if (data) {
       counter.value.feedEntries = data.total
       counter.value.feedEntriesToday = data.today
-      data.feedsCount.forEach((item: { id: string; count: number }) => {
+      data.feedsCount.forEach((item: IFeedCount) => {
         feedsCount.value.set(item.id, item.count)
       })
     }
@@ -140,7 +143,7 @@ watch(
 const { viewFeed, viewAll, viewToday } = useFeeds(mainStore)
 
 const { refetch } = initQuery({
-  handle: (data: any, error: string) => {
+  handle: (data: { feeds: IFeed[] }, error: string) => {
     if (error) {
       toast(t(error), 'error')
     } else {

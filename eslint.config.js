@@ -3,7 +3,7 @@ import pluginVue from 'eslint-plugin-vue'
 import prettier from 'eslint-config-prettier'
 
 // https://github.com/vuejs/eslint-config-prettier/issues/19
-// too complicated to fix this issue, ignore it for now
+// too complicated to fix this issue, ignore this file for now
 export default [
   js.configs.recommended,
   ...pluginVue.configs['flat/recommended'],
@@ -15,6 +15,7 @@ export default [
     ignores: ['**/.gitignore'],
     rules: {
       'vue/no-deprecated-slot-attribute': 'off',
+      'no-control-regex': 'off', // Fix Unexpected control character(s) in regular expression: \x08  no-control-regex
     },
   },
 ]
