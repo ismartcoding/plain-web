@@ -6,10 +6,12 @@
     <template #body>
       <ul class="nav">
         <li @click.prevent="viewAll" :class="{ active: !selectedTagId && !trash }">
-          {{ $t('all') }}<span class="count" v-if="counter.notes >= 0">{{ counter.notes.toLocaleString() }}</span>
+          <span class="title">{{ $t('all') }}</span>
+          <span class="count" v-if="counter.notes >= 0">{{ counter.notes.toLocaleString() }}</span>
         </li>
         <li @click.prevent="viewTrash" :class="{ active: trash }">
-          {{ $t('trash') }}<span class="count" v-if="counter.notesTrash >= 0">{{ counter.notesTrash.toLocaleString() }}</span>
+          <span class="title">{{ $t('trash') }}</span>
+          <span class="count" v-if="counter.notesTrash >= 0">{{ counter.notesTrash.toLocaleString() }}</span>
         </li>
       </ul>
       <tag-filter type="NOTE" :selected="selectedTagId" />
@@ -40,7 +42,7 @@ const trash = ref(false)
 const selectedTagId = ref('')
 
 const { fetch } = initLazyQuery({
-  handle: (data: any) => {
+  handle: (data: { total: number; trash: number }) => {
     if (data) {
       counter.value.notes = data.total
       counter.value.notesTrash = data.trash

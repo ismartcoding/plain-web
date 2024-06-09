@@ -2,7 +2,11 @@ export default {
   app_name: 'PlainApp',
   audio_player: 'Audio-Player',
   types: 'Typen',
-  view_as_table: 'Tabellenansicht',
+  save_to_notes: 'In Notizen speichern',
+  x_selected: '{count} ausgewählt',
+  card_view: 'Kartenansicht',
+  grid_view: 'Rasteransicht',
+  table_view: 'Tabellenansicht',
   low_quality: 'Niedrige Qualität',
   high_quality: 'Hohe Qualität',
   best_quality: 'Beste Qualität',
@@ -16,12 +20,14 @@ export default {
   compress_quality: 'Qualität komprimieren',
   mirror_quality: 'Spiegelqualität',
   resolution: 'Auflösung',
-  screen_mirror_quality_tips: 'Je kleiner der Kompressionsqualitätswert, desto niedriger die Qualität. Die Auswahl höherer Qualitätsstufen kann zu langsamerer Bildschirmspiegelung und möglicher Verzögerung führen.',
+  screen_mirror_quality_tips:
+    'Je kleiner der Kompressionsqualitätswert, desto niedriger die Qualität. Die Auswahl höherer Qualitätsstufen kann zu langsamerer Bildschirmspiegelung und möglicher Verzögerung führen.',
   exit_fullscreen: 'Vollbildmodus beenden',
   resume: 'Fortsetzen',
   select_all: 'Alle auswählen',
   troubleshoot: 'Fehlerbehebung',
-  fix_disconnect_tips: 'Die Verbindung wurde getrennt. Versuchen Sie, den Bildschirm Ihres Telefons eingeschaltet zu lassen oder Ihr Telefon über USB aufzuladen. Alternativ die Anwendung neu öffnen und die Seite aktualisieren.',
+  fix_disconnect_tips:
+    'Die Verbindung wurde getrennt. Versuchen Sie, den Bildschirm Ihres Telefons eingeschaltet zu lassen oder Ihr Telefon über USB aufzuladen. Alternativ die Anwendung neu öffnen und die Seite aktualisieren.',
   failed_connect_ws: 'Die Verbindung wurde getrennt. Bitte starten Sie die Anwendung neu und versuchen Sie es erneut.',
   desktop_notification_need_https: 'Desktop-Benachrichtigungen benötigen einen sicheren Link (HTTPS).',
   use_https_link: 'HTTPS-Link verwenden',
@@ -82,7 +88,8 @@ export default {
   grant_permission: 'Bitte gewähren Sie die Berechtigung',
   desktop_notification_permission_not_granted: 'Die Berechtigung für Desktop-Benachrichtigungen wurde nicht erteilt.',
   desktop_notification_permission_grant_title: 'Berechtigung für Desktop-Benachrichtigungen erteilen',
-  desktop_notification_permission_grant_message: '1. Klicken Sie auf das Vorhängeschlosssymbol in der Adressleiste.\n2. Öffnen Sie "Website-Einstellungen" oder "Berechtigungen".\n3. Suchen Sie "Benachrichtigungen" und ändern Sie es auf "Zulassen".',
+  desktop_notification_permission_grant_message:
+    '1. Klicken Sie auf das Vorhängeschlosssymbol in der Adressleiste.\n2. Öffnen Sie "Website-Einstellungen" oder "Berechtigungen".\n3. Suchen Sie "Benachrichtigungen" und ändern Sie es auf "Zulassen".',
   sort: 'Sortieren',
   sort_by: {
     date_asc: 'Älteste zuerst',
@@ -465,8 +472,6 @@ export default {
   folders: 'Ordner',
   color: 'Farbe',
   make_a_phone_call: 'Telefonanruf tätigen',
-  view_as_list: 'Listenansicht',
-  view_as_grid: 'Rasteransicht',
   pause: 'Pause',
   playlist: 'Wiedergabeliste',
   no_api_key: 'Kein API-Schlüssel',
@@ -486,5 +491,6 @@ export default {
   select_all_items: 'Alle {count} Elemente auswählen',
   clear_selection: 'Auswahl aufheben',
   screen_mirror_request_permission_failed: 'Sie haben PlainApp nicht die Erlaubnis zum Aufnehmen von Bildschirmfotos erteilt.',
-  screen_mirror_request_permission: 'Bitte tippen Sie auf "Jetzt starten" auf dem Telefon. \nWenn das Berechtigungsfenster nicht angezeigt wird, starten Sie PlainApp neu. \nVersuchen Sie es in {seconds} Sekunden erneut',
+  screen_mirror_request_permission:
+    'Bitte tippen Sie auf "Jetzt starten" auf dem Telefon. \nWenn das Berechtigungsfenster nicht angezeigt wird, starten Sie PlainApp neu. \nVersuchen Sie es in {seconds} Sekunden erneut',
 }

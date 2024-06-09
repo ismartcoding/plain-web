@@ -129,7 +129,7 @@
                 <div class="item" v-if="current?.type">
                   <div class="title">
                     {{ $t('tags') }}
-                    <button class="btn-icon" v-tooltip="$t('add_to_tags')" @click.prevent="addToTags">
+                    <button class="btn-icon sm" v-tooltip="$t('add_to_tags')" @click.prevent="addToTags">
                       <md-ripple />
                       <i-material-symbols:label-outline-rounded />
                     </button>
@@ -481,14 +481,22 @@ const onPause = () => {
 
 // key press events handler
 const onKeyPress = (e: Event) => {
+  if (!tempStore.lightbox.visible) {
+    return
+  }
   const evt = e as KeyboardEvent
   if (evt.key === 'Escape') {
     // if has md-dialog tag with attribute open should not close lightbox
-    if (document.querySelector('md-dialog[open]')) return
+    if (document.querySelector('md-dialog[open]')) {
+      return
+    }
+    evt?.stopPropagation()
     closeDialog()
   } else if (evt.key === 'ArrowLeft') {
+    evt?.stopPropagation()
     onPrev()
   } else if (evt.key === 'ArrowRight') {
+    evt?.stopPropagation()
     onNext()
   } else if (evt.key === ' ') {
     const v = video.value

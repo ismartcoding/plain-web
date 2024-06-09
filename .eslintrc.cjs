@@ -9,5 +9,6 @@ module.exports = {
   },
   rules: {
     'vue/no-deprecated-slot-attribute': 'off',
+    'no-control-regex': 'off', // Fix Unexpected control character(s) in regular expression: \x08  no-control-regex
   },
 }

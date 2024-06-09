@@ -8,7 +8,7 @@
         <label class="col-md-3 col-form-label">{{ $t('traffic_to') }}</label>
         <div class="col-md-9">
           <select class="form-select" v-model="targetType">
-            <option v-for="item of targetTypes" :value="item">
+            <option v-for="item of targetTypes" :key="item" :value="item">
               {{ $t(`target_type.${item}`) }}
             </option>
           </select>

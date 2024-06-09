@@ -6,7 +6,7 @@
       <md-outlined-button class="btn-sm" @click.prevent="toggle(false)">{{ $t('collapse_all') }}</md-outlined-button>
     </div>
   </div>
-  <div class="content">
+  <div class="scroll-content">
     <monaco-editor language="json" v-model="json" />
     <json-viewer v-if="jsonData" :value="jsonData" :expand-depth="expandDepth" :key="updateKey" />
   </div>
@@ -45,7 +45,7 @@ function toggle(expand: boolean) {
 }
 </script>
 <style lang="scss" scoped>
-.content {
+.scroll-content {
   display: grid;
   height: calc(100vh - 132px);
   grid-template-columns: 50% 50%;

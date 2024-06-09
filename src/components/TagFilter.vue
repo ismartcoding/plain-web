@@ -13,7 +13,7 @@
   </div>
   <ul class="nav">
     <li v-for="item in tags" @click.prevent="view(item)" :key="item.id" :class="{ active: item.id === selected }">
-      <span>{{ item.name }}</span>
+      <span class="title">{{ item.name }}</span>
       <button :id="'tag-' + item.id" class="btn-icon sm" @click.prevent.stop="showMenu(item)" v-tooltip="$t('actions')">
         <md-ripple />
         <i-material-symbols:more-vert />

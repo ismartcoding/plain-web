@@ -1,7 +1,27 @@
 import gql from 'graphql-tag'
 import { useLazyQuery, useQuery } from '@vue/apollo-composable'
 import type { DocumentParameter, OptionsParameter } from '@vue/apollo-composable/dist/useQuery'
-import { chatItemFragment, messageFragment, contactFragment, callFragment, imageFragment, videoFragment, audioFragment, fileFragment, appFragment, tagFragment, noteFragment, feedFragment, feedEntryFragment, aiChatFragment, packageFragment, tagSubFragment, notificationFragment, deviceInfoFragment } from './fragments'
+import {
+  chatItemFragment,
+  messageFragment,
+  contactFragment,
+  callFragment,
+  imageFragment,
+  videoFragment,
+  audioFragment,
+  fileFragment,
+  appFragment,
+  tagFragment,
+  noteFragment,
+  feedFragment,
+  feedEntryFragment,
+  aiChatFragment,
+  packageFragment,
+  tagSubFragment,
+  notificationFragment,
+  deviceInfoFragment,
+} from './fragments'
+import type { ApolloQueryResult } from '@apollo/client'
 
 export class InitQueryParams<TResult> {
   handle!: (data: TResult, error: string) => void
@@ -54,7 +74,7 @@ export function initLazyQuery<TResult = any>(params: InitQueryParams<TResult>) {
 
   let first = true
 
-  onResult((r) => {
+  onResult((r: ApolloQueryResult<any>) => {
     let error = ''
     if (r.error) {
       if (r.error?.networkError) {
@@ -226,10 +246,10 @@ export const videosGQL = gql`
 
 export const audiosGQL = gql`
   query audios($offset: Int!, $limit: Int!, $query: String!, $sortBy: FileSortBy!) {
-    audios(offset: $offset, limit: $limit, query: $query, sortBy: $sortBy) {
+    items: audios(offset: $offset, limit: $limit, query: $query, sortBy: $sortBy) {
       ...AudioFragment
     }
-    audioCount(query: $query)
+    total: audioCount(query: $query)
   }
   ${audioFragment}
 `
@@ -340,7 +360,7 @@ export const feedsGQL = gql`
 
 export const feedEntriesGQL = gql`
   query feedEntries($offset: Int!, $limit: Int!, $query: String!) {
-    feedEntries(offset: $offset, limit: $limit, query: $query) {
+    items: feedEntries(offset: $offset, limit: $limit, query: $query) {
       id
       title
       url
@@ -355,7 +375,7 @@ export const feedEntriesGQL = gql`
         ...TagSubFragment
       }
     }
-    feedEntryCount(query: $query)
+    total: feedEntryCount(query: $query)
   }
   ${tagSubFragment}
 `

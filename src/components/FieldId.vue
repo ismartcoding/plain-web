@@ -8,7 +8,7 @@
 </template>
 <script setup lang="ts">
 defineProps({
-  id: { type: String, required: true },
+  id: { type: [String, Number], required: true },
   raw: { type: [String, Object], default: '' },
 })
 </script>

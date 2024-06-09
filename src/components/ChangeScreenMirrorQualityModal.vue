@@ -41,7 +41,7 @@
 </template>
 <script setup lang="ts">
 import { updateScreenMirrorQualityGQL, initMutation } from '@/lib/api/mutation'
-import type { IScreenMirrorQualityOption } from '@/lib/interfaces'
+import type { IScreenMirrorQuality, IScreenMirrorQualityOption } from '@/lib/interfaces'
 import { ref } from 'vue'
 import { popModal } from './modal'
 import type { MdOutlinedSegmentedButton } from '@material/web/labs/segmentedbutton/outlined-segmented-button'
@@ -53,12 +53,17 @@ const { t } = useI18n()
 const resolution = ref(720) // 480P, 720P, 1080P
 const quality = ref(60) // 60, 70, 80
 const qualityId = ref('quality_sd')
-const options: IScreenMirrorQualityOption[] = [{ id: 'quality_ld', data: { resolution: 480, quality: 50 } }, { id: 'quality_sd', data: { resolution: 720, quality: 50 } }, { id: 'quality_hd', data: { resolution: 1080, quality: 50 } }, { id: 'custom' }]
+const options: IScreenMirrorQualityOption[] = [
+  { id: 'quality_ld', data: { resolution: 480, quality: 50 } },
+  { id: 'quality_sd', data: { resolution: 720, quality: 50 } },
+  { id: 'quality_hd', data: { resolution: 1080, quality: 50 } },
+  { id: 'custom' },
+]
 const qualityOptions = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
 const resolutionOptions = [480, 720, 1080]
 
 initQuery({
-  handle: (data: any, error: string) => {
+  handle: (data: { screenMirrorQuality: IScreenMirrorQuality }, error: string) => {
     if (error) {
       toast(t(error), 'error')
     } else {

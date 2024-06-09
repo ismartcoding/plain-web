@@ -1,24 +1,24 @@
 <template>
-  <aside class="sidebar2" v-show="showSidebar">
+  <aside class="sidebar2" :style="{ width: route.params.id ? mainStore.sidebar2Width + 'px' : 'auto' }">
     <div class="top-app-bar">
-      <div class="title">{{ $t('page_title.feeds') }} ({{ total.toLocaleString() }})</div>
-      <div class="actions">
-        <search-input :filter="filter" :tags="tags" :feeds="feeds" :show-chips="!isDetail" :get-url="getUrl" :show-today="true" />
+      <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
+      <div class="title">
+        <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
+        <span v-else>{{ $t('page_title.feeds') }} ({{ total.toLocaleString() }})</span>
         <template v-if="checked">
-          <button class="btn-icon" @click.stop="deleteItems(realAllChecked, q)" v-tooltip="$t('delete')">
+          <button class="btn-icon" @click.stop="deleteItems(realAllChecked, selectedIds, q)" v-tooltip="$t('delete')">
             <md-ripple />
             <i-material-symbols:delete-forever-outline-rounded />
           </button>
-          <button class="btn-icon" @click.stop="addToTags(tableItems, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
+          <button class="btn-icon" @click.stop="addToTags(selectedIds, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
             <md-ripple />
             <i-material-symbols:label-outline-rounded />
           </button>
         </template>
-        <button class="btn-icon" @click.prevent="toggleViewType" v-tooltip="$t(mainStore.feedsTableView ? 'view_as_list' : 'view_as_table')">
-          <md-ripple />
-          <i-material-symbols:table-rows-outline v-if="mainStore.feedsTableView" />
-          <i-material-symbols:table v-else />
-        </button>
+      </div>
+
+      <div class="actions">
+        <search-input :filter="filter" :tags="tags" :feeds="feeds" :show-chips="!isDetail" :get-url="getUrl" :show-today="true" />
         <md-circular-progress indeterminate class="spinner-sm" v-if="syncing" />
         <button class="btn-icon" v-else :disabled="syncing" v-tooltip="$t('sync_feeds')" @click.prevent="syncFeeds">
           <md-ripple />
@@ -26,92 +26,49 @@
         </button>
       </div>
     </div>
-    <template v-if="mainStore.feedsTableView">
-      <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible" :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
-      <div class="table-responsive">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>
-                <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
-              </th>
-              <th></th>
-              <th>{{ $t('title') }}</th>
-              <th></th>
-              <th>{{ $t('source') }}</th>
-              <th>{{ $t('tags') }}</th>
-              <th>{{ $t('published_at') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in tableItems" :key="item.id" :class="{ selected: item.checked }" @click.stop="toggleRow(item)">
-              <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
-              <td>
-                <img v-if="item.image" :src="getFileUrl(item.image, '&w=200&h=200')" width="50" height="50" />
-              </td>
-              <td style="min-width: 200px; cursor: pointer" @click.stop.prevent="view(item)">
-                <a :href="viewUrl(item)" @click.stop.prevent="view(item)">{{ item.title || $t('no_content') }}</a>
-              </td>
-              <td class="nowrap">
-                <div class="action-btns">
-                  <button class="btn-icon sm" @click.stop="deleteItem(item)" v-tooltip="$t('delete')">
-                    <md-ripple />
-                    <i-material-symbols:delete-forever-outline-rounded />
-                  </button>
-                  <button class="btn-icon sm" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
-                    <md-ripple />
-                    <i-material-symbols:label-outline-rounded />
-                  </button>
-                </div>
-              </td>
-              <td class="nowrap">
-                <a @click.stop.prevent="viewFeed(feedsMap[item.feedId])">{{ feedsMap[item.feedId]?.name }}</a>
-              </td>
-              <td>
-                <item-tags :tags="item.tags" :type="dataType" />
-              </td>
-              <td class="nowrap">
-                <time v-tooltip="formatDateTime(item.publishedAt)">
-                  {{ formatTimeAgo(item.publishedAt) }}
-                </time>
-              </td>
-            </tr>
-          </tbody>
-          <tfoot v-if="!tableItems.length">
-            <tr>
-              <td colspan="7">
-                <div class="no-data-placeholder">
-                  {{ $t(noDataKey(loading)) }}
-                </div>
-              </td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-      <v-pagination v-if="total > limit" v-model="page" :total="total" :limit="limit" />
-    </template>
-    <VirtualList v-else class="scroller" :data-key="'id'" :data-sources="listItems" :estimate-size="100" @tobottom="loadMore">
+
+    <all-checked-alert
+      :limit="limit"
+      :total="total"
+      :all-checked-alert-visible="allCheckedAlertVisible"
+      :real-all-checked="realAllChecked"
+      :select-real-all="selectRealAll"
+      :clear-selection="clearSelection"
+    />
+    <VirtualList class="scroller" :data-key="'id'" :data-sources="listItems" :estimate-size="100" @tobottom="loadMore">
       <template #item="{ index, item }">
-        <a class="item-link" :href="viewUrl(item)" @click.stop.prevent="view(item)">
-          <article class="card feed-item" :class="{ selected: item.id == $route.params['id'] }">
-            <div class="grid1">
-              <div class="title">{{ item.title || $t('no_content') }}</div>
-              <img v-if="item.image" :src="getFileUrl(item.image, '&w=200&h=200')" />
+        <a class="item-link" :key="item.id" :href="viewUrl(item)">
+          <article
+            class="feed-item"
+            :class="{ selected: selectedIds.includes(item.id) || item.id == $route.params['id'], selecting: shiftEffectingIds.includes(item.id) }"
+            @click.stop.prevent="
+              handleMouseDown($event, item, index, () => {
+                view(item)
+              })
+            "
+            @mouseover="handleMouseOver($event, index)"
+          >
+            <div class="title">
+              <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, index)" :checked="shouldSelect" />
+              <md-checkbox v-else class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, index)" :checked="selectedIds.includes(item.id)" />
+              <span>{{ item.title || $t('no_content') }}</span>
             </div>
-            <div class="grid2">
-              <div class="subtitle">
-                <span>{{ index + 1 }}&nbsp;&nbsp;·&nbsp;&nbsp;</span><a @click.stop.prevent="viewFeed(feedsMap[item.feedId])">{{ feedsMap[item.feedId]?.name }}</a
-                ><span>&nbsp;&nbsp;·&nbsp;&nbsp;</span>
+            <div class="subtitle">
+              <span class="number"><field-id :id="index + 1" :raw="item" /></span>
+              <div class="info">
+                <a @click.stop.prevent="viewFeed(feedsMap[item.feedId])">{{ feedsMap[item.feedId]?.name }}</a>
+                <span>·</span>
                 <span class="time" v-tooltip="formatDateTime(item.publishedAt)">
                   {{ formatTimeAgo(item.publishedAt) }}
                 </span>
                 <item-tags :tags="item.tags" :type="dataType" :only-links="true" />
               </div>
-              <button class="btn-icon sm" v-tooltip="$t('actions')" style="display: none">
-                <md-ripple />
-                <i-material-symbols:more-vert />
-              </button>
             </div>
+            <button class="btn-icon sm" v-tooltip="$t('actions')" style="display: none">
+              <md-ripple />
+              <i-material-symbols:more-vert />
+            </button>
+            <img v-if="item.image" class="image" :src="getFileUrl(item.image, '&w=200&h=200')" />
           </article>
         </a>
       </template>
@@ -119,11 +76,15 @@
         <md-circular-progress v-if="!noMore" indeterminate class="spinner-sm" />
       </template>
     </VirtualList>
+    <div class="no-data-placeholder" v-if="listItems.length === 0">
+      {{ $t(noDataKey(loading)) }}
+    </div>
+    <div class="sidebar-drag-indicator" @mousedown="resizeWidth"></div>
   </aside>
 </template>
 
 <script setup lang="ts">
-import { computed, onActivated, onDeactivated, reactive, ref, watch } from 'vue'
+import { computed, onActivated, onDeactivated, reactive, ref } from 'vue'
 import toast from '@/components/toaster'
 import { formatTimeAgo, formatDateTime } from '@/lib/format'
 import { feedsTagsGQL, initLazyQuery } from '@/lib/api/query'
@@ -131,7 +92,7 @@ import { useRoute } from 'vue-router'
 import router, { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useI18n } from 'vue-i18n'
-import type { ITag, IFeedEntryItem, IFeedEntry, IFeed, IItemsTagsUpdatedEvent, IItemTagsUpdatedEvent, IFilter } from '@/lib/interfaces'
+import type { ITag, IFeedEntry, IFeed, IItemsTagsUpdatedEvent, IItemTagsUpdatedEvent, IFilter } from '@/lib/interfaces'
 import { noDataKey } from '@/lib/list'
 import { useFeeds } from '@/hooks/feeds'
 import { useDelete, useSelectable } from '@/hooks/list'
@@ -148,6 +109,8 @@ import { DataType } from '@/lib/data'
 import { useList, useTable } from '@/hooks/feed-entries'
 import { useSearch } from '@/hooks/search'
 import { decodeBase64 } from '@/lib/strutil'
+import { useKeyEvents } from '@/hooks/key-events'
+import { useLeftSidebarResize } from '@/hooks/sidebar'
 
 const mainStore = useMainStore()
 const { t } = useI18n()
@@ -169,33 +132,48 @@ const feedsMap = computed(() => {
   })
   return map
 })
-const showSidebar = computed(() => !(route.params.id !== undefined && mainStore.feedsTableView))
-const listItems = ref<IFeedEntryItem[]>([])
-const tableItems = ref<IFeedEntryItem[]>([])
+const listItems = ref<IFeedEntry[]>([])
+const tableItems = ref<IFeedEntry[]>([])
 const q = ref('')
-const { allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleItemChecked, toggleRow, total, checked } = useSelectable(tableItems)
+const {
+  selectedIds,
+  allChecked,
+  realAllChecked,
+  selectRealAll,
+  allCheckedAlertVisible,
+  clearSelection,
+  toggleAllChecked,
+  toggleSelect,
+  total,
+  checked,
+  shiftEffectingIds,
+  handleMouseDown,
+  handleMouseOver,
+  selectAll,
+  shouldSelect,
+} = useSelectable(listItems)
+const gotoPage = (value: number) => {
+  page.value = value
+  const q = route.query.q
+  replacePath(mainStore, q ? `/feeds?page=${value}&q=${q}` : `/feeds?page=${value}`)
+}
+const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(total, limit, page, selectAll, clearSelection, gotoPage, () => {
+  deleteItems(realAllChecked.value, selectedIds.value, q.value)
+})
 const { page: listPage, loadMore, fetch: fetchList, noMore } = useList(listItems, q, total)
 const { loading, fetch: fetchTable } = useTable(tableItems, q, total, page, limit)
 const { addToTags } = useAddToTags(dataType, tags)
 const fetch = () => {
-  if (mainStore.feedsTableView) {
-    fetchTable()
-  } else {
-    listPage.value = 1
-    fetchList()
-  }
+  listPage.value = 1
+  fetchList()
 }
-const { deleteItems } = useDelete(
-  deleteFeedEntriesGQL,
-  () => {
-    clearSelection()
-    fetchTable()
-    if (tableItems.value.some((it) => it.tags.length)) {
-      emitter.emit('refetch_tags', dataType)
-    }
-  },
-  tableItems
-)
+const { deleteItems } = useDelete(deleteFeedEntriesGQL, () => {
+  clearSelection()
+  fetchTable()
+  if (tableItems.value.some((it) => it.tags.length)) {
+    emitter.emit('refetch_tags', dataType)
+  }
+})
 
 const syncing = ref(false)
 const isDetail = computed(() => {
@@ -203,15 +181,17 @@ const isDetail = computed(() => {
   return path !== '/feeds'
 })
 
-function toggleViewType() {
-  mainStore.feedsTableView = !mainStore.feedsTableView
-  fetch()
-  if (route.params.id !== undefined) {
-    backToList()
+const { resizeWidth } = useLeftSidebarResize(
+  300,
+  () => {
+    return mainStore.sidebar2Width
+  },
+  (width: number) => {
+    mainStore.sidebar2Width = width
   }
-}
+)
 
-function deleteItem(item: IFeedEntryItem) {
+function deleteItem(item: IFeedEntry) {
   openModal(DeleteConfirm, {
     id: item.id,
     name: item.title,
@@ -249,7 +229,7 @@ function getUrl(q: string) {
 }
 
 const { fetch: fetchFeedsTags } = initLazyQuery({
-  handle: async (data: any, error: string) => {
+  handle: async (data: { tags: ITag[]; feeds: IFeed[] }, error: string) => {
     if (error) {
       toast(t(error), 'error')
     } else {
@@ -266,7 +246,7 @@ const { fetch: fetchFeedsTags } = initLazyQuery({
   appApi: true,
 })
 
-function addItemToTags(item: IFeedEntryItem) {
+function addItemToTags(item: IFeedEntry) {
   openModal(UpdateTagRelationsModal, {
     type: dataType,
     tags: tags.value,
@@ -322,11 +302,6 @@ const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
   }
 }
 
-watch(page, (value: number) => {
-  const q = route.query.q
-  replacePath(mainStore, q ? `/feeds?page=${value}&q=${q}` : `/feeds?page=${value}`)
-})
-
 onActivated(() => {
   const scroller = document.getElementsByClassName('scroller')?.[0]
   if (scroller) {
@@ -339,6 +314,8 @@ onActivated(() => {
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
   emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
   emitter.on('feeds_fetched', feedsFetchedHandler)
+  window.addEventListener('keydown', pageKeyDown)
+  window.addEventListener('keyup', pageKeyUp)
 })
 
 onDeactivated(() => {
@@ -347,15 +324,17 @@ onDeactivated(() => {
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
   emitter.off('feeds_fetched', feedsFetchedHandler)
+  window.removeEventListener('keydown', pageKeyDown)
+  window.removeEventListener('keyup', pageKeyUp)
 })
 </script>
-<style lang="scss">
-.main-feeds .alert-all-checked {
-  margin-inline: 16px;
-  margin-block-end: 8px;
-}
-</style>
 <style scoped lang="scss">
+.sidebar2 {
+  position: relative;
+}
+.scroll-content {
+  height: calc(100vh - 135px);
+}
 .scroller {
   overflow-y: auto;
   overflow-x: hidden;
@@ -363,37 +342,37 @@ onDeactivated(() => {
   .item-link {
     text-decoration: none;
     display: block;
-    padding: 0 16px 8px 16px;
   }
 }
 
 .feed-item {
-  .grid1 {
-    padding-inline-end: 8px;
-    display: grid;
-    grid-template-areas: 'title img';
-    grid-template-columns: 1fr auto;
+  margin: 0 16px 8px 16px;
+  display: grid;
+  box-sizing: border-box;
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
+  border-radius: 8px;
+  grid-template-areas:
+    'title image'
+    'subtitle image';
+  grid-template-columns: 1fr auto;
+  &.selected {
+    background: var(--md-sys-color-surface-container-highest);
   }
-  padding: 16px 8px 8px 16px;
+  &:hover {
+    background: var(--md-sys-color-surface-variant);
+    cursor: pointer;
+  }
   .title {
     font-weight: 500;
-    text-decoration: none;
-    display: block;
-    margin-block-end: 8px;
     grid-area: title;
-  }
-  img {
-    grid-area: img;
-    width: 50px;
-    height: 50px;
-    border-radius: 8px;
-    margin-inline-start: 8px;
-    margin-block-end: 8px;
-  }
-  .grid2 {
-    display: grid;
-    grid-template-areas: 'subtitle actions';
-    grid-template-columns: 1fr auto;
+    display: flex;
+    span {
+      flex: 1;
+      width: 0;
+      margin-block-start: 12px;
+      margin-inline-end: 12px;
+    }
   }
   .subtitle {
     font-size: 0.875rem;
@@ -401,21 +380,42 @@ onDeactivated(() => {
     grid-area: subtitle;
     display: flex;
     flex-direction: row;
-    flex-flow: wrap;
+    gap: 4px;
     align-items: end;
-    margin-block-end: 4px;
-    .time {
-      margin-inline-end: 8px;
+    margin-block-start: 8px;
+    margin-block-end: 12px;
+    margin-inline-end: 16px;
+    .number {
+      min-width: 40px;
+      text-align: center;
+    }
+    .info {
+      display: flex;
+      gap: 4px;
+      flex: 1;
+      flex-flow: wrap;
+      align-items: center;
     }
   }
-  .btn-icon {
-    grid-area: actions;
-    margin-inline-start: auto;
-    margin-block-start: 8px;
-    margin-inline-end: 4px;
+  .image {
+    width: 50px;
+    height: 50px;
+    grid-area: image;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-block: 12px;
+    margin-inline-end: 12px;
+  }
+  &.selecting {
+    background: var(--pl-selecting-container-color);
   }
 }
-.table-responsive {
-  padding-inline: 16px;
+.drag-indicator {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 16px;
+  cursor: col-resize;
 }
 </style>

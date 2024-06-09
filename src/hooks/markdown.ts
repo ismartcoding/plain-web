@@ -14,7 +14,7 @@ import { render } from 'dom-serializer'
 import { getFileUrlByPath } from '@/lib/api/file'
 import type sjcl from 'sjcl'
 
-async function replaceNodes(nodes: Array<any>, replace: (link: string) => void) {
+async function replaceNodes(nodes: Array<ChildNode>, replace: (link: string) => void) {
   if (!nodes) return
   for (let i = 0; i < nodes.length; i++) {
     const node = nodes[i]
@@ -30,8 +30,17 @@ async function replaceNodes(nodes: Array<any>, replace: (link: string) => void) 
   }
 }
 
-export const useMarkdown = (app: Ref<any>, urlTokenKey: Ref<sjcl.BitArray | null>) => {
-  const md = new MarkdownIt().use(subscript).use(superscript).use(footnote).use(deflist).use(abbreviation).use(insert).use(mark).use(katex, { throwOnError: false, errorColor: ' #cc0000' }).use(tasklists, { enabled: true })
+export const useMarkdown = (app: Ref<{ externalFilesDir: string }>, urlTokenKey: Ref<sjcl.BitArray | null>) => {
+  const md = new MarkdownIt()
+    .use(subscript)
+    .use(superscript)
+    .use(footnote)
+    .use(deflist)
+    .use(abbreviation)
+    .use(insert)
+    .use(mark)
+    .use(katex, { throwOnError: false, errorColor: ' #cc0000' })
+    .use(tasklists, { enabled: true })
   md.set({
     html: true,
     xhtmlOut: true,

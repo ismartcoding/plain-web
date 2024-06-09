@@ -162,7 +162,7 @@ const {
 })
 
 const { loading: fetchImageLoading, refetch } = initQuery({
-  handle: (data: any, error: string) => {
+  handle: (data: { screenMirrorState: boolean }, error: string) => {
     if (error) {
       toast(t(error), 'error')
     } else {

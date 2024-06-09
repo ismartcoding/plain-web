@@ -5,7 +5,7 @@
       <i-material-symbols:translate-rounded />
     </button>
     <md-menu anchor="lang-ref" stay-open-on-focusout quick :open="langMenuVisible" @closed="() => (langMenuVisible = false)">
-      <md-menu-item v-for="lang in langs" @click="changeLang(lang.value)">
+      <md-menu-item v-for="lang in langs" :key="lang.value" @click="changeLang(lang.value)">
         <div slot="headline">{{ lang.name }}</div>
       </md-menu-item>
     </md-menu>

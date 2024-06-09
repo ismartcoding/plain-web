@@ -4,14 +4,21 @@
     <div class="actions">
       <search-input :filter="filter" :tags="tags" :types="types" :get-url="getUrl" />
       <template v-if="checked">
-        <button class="btn-icon" @click.stop="addToTags(items, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
+        <button class="btn-icon" @click.stop="addToTags(selectedIds, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
           <md-ripple />
           <i-material-symbols:label-outline-rounded />
         </button>
       </template>
     </div>
   </div>
-  <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible" :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
+  <all-checked-alert
+    :limit="limit"
+    :total="total"
+    :all-checked-alert-visible="allCheckedAlertVisible"
+    :real-all-checked="realAllChecked"
+    :select-real-all="selectRealAll"
+    :clear-selection="clearSelection"
+  />
   <div class="table-responsive">
     <table class="table">
       <thead>
@@ -29,8 +36,8 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="item in items" :key="item.id" :class="{ selected: item.checked }" @click.stop="toggleRow(item)">
-          <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
+        <tr v-for="(item, i) in items" :key="item.id" :class="{ selected: selectedIds.includes(item.id) }" @click.stop="toggleRow($event, item, i)">
+          <td><md-checkbox touch-target="wrapper" @change="toggleRow($event, item, i)" :checked="selectedIds.includes(item.id)" /></td>
           <td v-if="app.developerMode">
             <field-id :id="item.id" :raw="item" />
           </td>
@@ -74,11 +81,11 @@
       </tfoot>
     </table>
   </div>
-  <v-pagination v-if="total > limit" v-model="page" :total="total" :limit="limit" />
+  <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" />
 </template>
 
 <script setup lang="ts">
-import { onActivated, onDeactivated, reactive, ref, watch } from 'vue'
+import { onActivated, onDeactivated, reactive, ref } from 'vue'
 import toast from '@/components/toaster'
 import { formatDateTime, formatDateTimeFull } from '@/lib/format'
 import { initLazyQuery, messagesGQL } from '@/lib/api/query'
@@ -89,7 +96,7 @@ import { useTempStore } from '@/stores/temp'
 import { useI18n } from 'vue-i18n'
 import { noDataKey } from '@/lib/list'
 import { storeToRefs } from 'pinia'
-import type { IFilter, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IMessage, IMessageItem } from '@/lib/interfaces'
+import type { IFilter, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IMessage } from '@/lib/interfaces'
 import { useAddToTags, useTags } from '@/hooks/tags'
 import { decodeBase64 } from '@/lib/strutil'
 import { useSelectable } from '@/hooks/list'
@@ -100,10 +107,11 @@ import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { addLinksToURLs } from '@/lib/strutil'
 import { DataType } from '@/lib/data'
 import { callGQL, initMutation } from '@/lib/api/mutation'
+import { useKeyEvents } from '@/hooks/key-events'
 
 const mainStore = useMainStore()
 const { app } = storeToRefs(useTempStore())
-const items = ref<IMessageItem[]>([])
+const items = ref<IMessage[]>([])
 const { t } = useI18n()
 const { parseQ } = useSearch()
 const filter = reactive<IFilter>({
@@ -118,14 +126,19 @@ const limit = 50
 const q = ref('')
 const { tags, fetch: fetchTags } = useTags(dataType)
 const { addToTags } = useAddToTags(dataType, tags)
-const { allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleItemChecked, toggleRow, total, checked } = useSelectable(items)
+const { selectedIds, allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleRow, total, checked, selectAll } = useSelectable(items)
+const gotoPage = (page: number) => {
+  const q = route.query.q
+  replacePath(mainStore, q ? `/messages?page=${page}&q=${q}` : `/messages?page=${page}`)
+}
+const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(total, limit, page, selectAll, clearSelection, gotoPage, () => {})
 const { loading, fetch } = initLazyQuery({
-  handle: (data: any, error: string) => {
+  handle: (data: { messages: IMessage[]; messageCount: number }, error: string) => {
     if (error) {
       toast(t(error), 'error')
     } else {
       if (data) {
-        items.value = data.messages.map((it: IMessage) => ({ ...it, checked: false }))
+        items.value = data.messages
         total.value = data.messageCount
       }
     }
@@ -141,12 +154,7 @@ const { loading, fetch } = initLazyQuery({
 
 const types = ['1', '2', '3'].map((it) => ({ id: it, name: t('message_type.' + it) }))
 
-watch(page, (value: number) => {
-  const q = route.query.q
-  replacePath(mainStore, q ? `/messages?page=${value}&q=${q}` : `/messages?page=${value}`)
-})
-
-function addItemToTags(item: IMessageItem) {
+function addItemToTags(item: IMessage) {
   openModal(UpdateTagRelationsModal, {
     type: dataType,
     tags: tags.value,
@@ -165,7 +173,7 @@ const { mutate: mutateCall, loading: callLoading } = initMutation({
   appApi: true,
 })
 
-function call(item: any) {
+function call(item: IMessage) {
   callId.value = item.id
   mutateCall({ number: item.address })
 }
@@ -194,10 +202,14 @@ onActivated(() => {
   fetch()
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
   emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
+  window.addEventListener('keydown', pageKeyDown)
+  window.addEventListener('keyup', pageKeyUp)
 })
 
 onDeactivated(() => {
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
+  window.removeEventListener('keydown', pageKeyDown)
+  window.removeEventListener('keyup', pageKeyUp)
 })
 </script>

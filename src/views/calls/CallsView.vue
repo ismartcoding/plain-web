@@ -4,18 +4,25 @@
     <div class="actions">
       <search-input :filter="filter" :tags="tags" :types="types" :get-url="getUrl" />
       <template v-if="checked">
-        <button class="btn-icon" @click.stop="deleteItems(realAllChecked, q)" v-tooltip="$t('delete')">
+        <button class="btn-icon" @click.stop="deleteItems(realAllChecked, selectedIds, q)" v-tooltip="$t('delete')">
           <md-ripple />
           <i-material-symbols:delete-forever-outline-rounded />
         </button>
-        <button class="btn-icon" @click.stop="addToTags(items, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
+        <button class="btn-icon" @click.stop="addToTags(selectedIds, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
           <md-ripple />
           <i-material-symbols:label-outline-rounded />
         </button>
       </template>
     </div>
   </div>
-  <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible" :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
+  <all-checked-alert
+    :limit="limit"
+    :total="total"
+    :all-checked-alert-visible="allCheckedAlertVisible"
+    :real-all-checked="realAllChecked"
+    :select-real-all="selectRealAll"
+    :clear-selection="clearSelection"
+  />
   <div class="table-responsive">
     <table class="table">
       <thead>
@@ -35,8 +42,8 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="item in items" :key="item.id" :class="{ selected: item.checked }" @click.stop="toggleRow(item)">
-          <td><md-checkbox touch-target="wrapper" @change="toggleItemChecked" :checked="item.checked" /></td>
+        <tr v-for="(item, i) in items" :key="item.id" :class="{ selected: selectedIds.includes(item.id) }" @click.stop="toggleRow($event, item, i)">
+          <td><md-checkbox touch-target="wrapper" @change="toggleRow($event, item, i)" :checked="selectedIds.includes(item.id)" /></td>
           <td v-if="app.developerMode"><field-id :id="item.id" :raw="item" /></td>
           <td>
             {{ item.name }}
@@ -91,11 +98,11 @@
       </tfoot>
     </table>
   </div>
-  <v-pagination v-if="total > limit" v-model="page" :total="total" :limit="limit" />
+  <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" />
 </template>
 
 <script setup lang="ts">
-import { onActivated, onDeactivated, reactive, ref, watch } from 'vue'
+import { onActivated, onDeactivated, reactive, ref } from 'vue'
 import toast from '@/components/toaster'
 import { formatDateTime, formatDateTimeFull, formatSeconds } from '@/lib/format'
 import { callsGQL, initLazyQuery } from '@/lib/api/query'
@@ -109,7 +116,7 @@ import { noDataKey } from '@/lib/list'
 import { storeToRefs } from 'pinia'
 import { openModal } from '@/components/modal'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
-import type { IFilter, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, ITag } from '@/lib/interfaces'
+import type { ICall, ICallGeo, IFilter, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, ITag } from '@/lib/interfaces'
 import { decodeBase64 } from '@/lib/strutil'
 import { useDelete, useSelectable } from '@/hooks/list'
 import { useSearch } from '@/hooks/search'
@@ -118,10 +125,11 @@ import emitter from '@/plugins/eventbus'
 import { callGQL, deleteCallsGQL, initMutation } from '@/lib/api/mutation'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { DataType } from '@/lib/data'
+import { useKeyEvents } from '@/hooks/key-events'
 
 const mainStore = useMainStore()
 const { app } = storeToRefs(useTempStore())
-const items = ref<any[]>([])
+const items = ref<ICall[]>([])
 const { t } = useI18n()
 const { parseQ } = useSearch()
 const filter = reactive<IFilter>({
@@ -136,24 +144,27 @@ const limit = 50
 const q = ref('')
 const { tags, fetch: fetchTags } = useTags(dataType)
 const { addToTags } = useAddToTags(dataType, tags)
-const { deleteItems } = useDelete(
-  deleteCallsGQL,
-  () => {
-    clearSelection()
-    fetch()
-    emitter.emit('refetch_tags', dataType)
-  },
-  items
-)
+const { deleteItems } = useDelete(deleteCallsGQL, () => {
+  clearSelection()
+  fetch()
+  emitter.emit('refetch_tags', dataType)
+})
 
-const { allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleItemChecked, toggleRow, total, checked } = useSelectable(items)
+const { selectedIds, allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleRow, total, checked, selectAll } = useSelectable(items)
+const gotoPage = (page: number) => {
+  const q = route.query.q
+  replacePath(mainStore, q ? `/calls?page=${page}&q=${q}` : `/calls?page=${page}`)
+}
+const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(total, limit, page, selectAll, clearSelection, gotoPage, () => {
+  deleteItems(realAllChecked.value, selectedIds.value, q.value)
+})
 const { loading, fetch } = initLazyQuery({
-  handle: (data: any, error: string) => {
+  handle: (data: { calls: ICall[]; callCount: number }, error: string) => {
     if (error) {
       toast(t(error), 'error')
     } else {
       if (data) {
-        items.value = data.calls.map((it: any) => ({ ...it, checked: false }))
+        items.value = data.calls
         total.value = data.callCount
       }
     }
@@ -169,12 +180,7 @@ const { loading, fetch } = initLazyQuery({
 
 const types = ['1', '2', '3'].map((it) => ({ id: it, name: t('call_type.' + it) }))
 
-watch(page, (value: number) => {
-  const q = route.query.q
-  replacePath(mainStore, q ? `/calls?page=${value}&q=${q}` : `/calls?page=${value}`)
-})
-
-function addItemToTags(item: any) {
+function addItemToTags(item: ICall) {
   openModal(UpdateTagRelationsModal, {
     type: dataType,
     tags: tags.value,
@@ -204,7 +210,7 @@ const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
   }
 }
 
-function getGeoText(geo: any) {
+function getGeoText(geo: ICallGeo | null | undefined) {
   if (!geo) {
     return ''
   }
@@ -229,12 +235,12 @@ const { mutate: mutateCall, loading: callLoading } = initMutation({
   appApi: true,
 })
 
-function call(item: any) {
+function call(item: ICall) {
   callId.value = item.id
   mutateCall({ number: item.number })
 }
 
-function deleteItem(item: any) {
+function deleteItem(item: ICall) {
   openModal(DeleteConfirm, {
     id: item.id,
     name: item.id,
@@ -264,10 +270,14 @@ onActivated(() => {
   fetch()
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
   emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
+  window.addEventListener('keydown', pageKeyDown)
+  window.addEventListener('keyup', pageKeyUp)
 })
 
 onDeactivated(() => {
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
+  window.removeEventListener('keydown', pageKeyDown)
+  window.removeEventListener('keyup', pageKeyUp)
 })
 </script>

@@ -8,7 +8,15 @@
         {{ data?.url }}
       </div>
       <div class="form-row">
-        <md-outlined-text-field ref="inputRef" class="form-control" :label="$t('name')" :error="valueError" :error-text="valueError ? $t(valueError) : ''" v-model="inputValue" @keyup.enter="doAction" />
+        <md-outlined-text-field
+          ref="inputRef"
+          class="form-control"
+          :label="$t('name')"
+          :error="valueError"
+          :error-text="valueError ? $t(valueError) : ''"
+          v-model="inputValue"
+          @keyup.enter="doAction"
+        />
       </div>
       <div class="form-row">
         <label class="form-check-label">

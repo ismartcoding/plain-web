@@ -4,10 +4,12 @@
       <md-ripple />
       <i-material-symbols:arrow-back-rounded />
     </button>
-    <div class="title">{{ isCreate() ? t('create') : t('edit') }} <span class="state-point" v-show="notsaved">*</span> <field-id class="time" v-if="note?.updatedAt" :id="getTime()" :raw="note" /></div>
+    <div class="title">
+      {{ id ? t('edit') : t('create') }} <span class="state-point" v-show="notSaved">*</span> <field-id class="time" v-if="note?.updatedAt" :id="getTime()" :raw="note" />
+    </div>
     <div class="actions">
       <item-tags :tags="note?.tags" :type="dataType" :only-links="true" />
-      <template v-if="!isCreate()">
+      <template v-if="id">
         <button class="btn-icon" v-tooltip="$t('add_to_tags')" @click.prevent="addToTags">
           <md-ripple />
           <i-material-symbols:label-outline-rounded />
@@ -27,10 +29,10 @@
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { onActivated, onDeactivated, ref, watch } from 'vue'
+import { onActivated, onDeactivated, onMounted, onUnmounted, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { useI18n } from 'vue-i18n'
-import { initQuery, noteGQL, tagsGQL } from '@/lib/api/query'
+import { initLazyQuery, initQuery, noteGQL, tagsGQL } from '@/lib/api/query'
 import type { IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, INote, ITag } from '@/lib/interfaces'
 import { formatDateTime } from '@/lib/format'
 import { useMarkdown } from '@/hooks/markdown'
@@ -49,11 +51,11 @@ const mainStore = useMainStore()
 const { t } = useI18n()
 
 const route = useRoute()
-const id = ref(route.params.id)
+const id = ref('')
 const note = ref<INote>()
 const content = ref('')
 const markdown = ref('')
-const notsaved = ref(false)
+const notSaved = ref(false)
 
 const { app, urlTokenKey } = storeToRefs(useTempStore())
 
@@ -68,15 +70,10 @@ function backToList() {
 }
 
 const { render } = useMarkdown(app, urlTokenKey)
-let init = false
-function isCreate() {
-  return id.value === 'create'
-}
-
 const saveContent = debounce(() => {
-  notsaved.value = false
+  notSaved.value = false
   save({
-    id: isCreate() ? '' : id.value,
+    id: id.value,
     input: {
       content: content.value,
       title: truncate(content.value, { length: 100, omission: '' }),
@@ -86,7 +83,7 @@ const saveContent = debounce(() => {
 
 const watchContent = () => {
   watch(content, async (value: string) => {
-    notsaved.value = true
+    notSaved.value = true
     markdown.value = await render(value)
     saveContent()
   })
@@ -99,7 +96,7 @@ const print = () => {
 const tags = ref<ITag[]>()
 const dataType = 'NOTE'
 initQuery({
-  handle: (data: any, error: string) => {
+  handle: (data: { tags: ITag[] }, error: string) => {
     if (error) {
       toast(t(error), 'error')
     } else {
@@ -115,33 +112,23 @@ initQuery({
   appApi: true,
 })
 
-let refecthEntry = () => {}
-if (!isCreate()) {
-  const { refetch } = initQuery({
-    handle: async (data: any, error: string) => {
-      if (error) {
-        toast(t(error), 'error')
-      } else {
-        note.value = data.note
-        if (init) {
-          return
-        }
-        content.value = data.note.content
-        markdown.value = await render(content.value)
-        init = true
-        watchContent()
-      }
-    },
-    document: noteGQL,
-    variables: () => ({
-      id: id.value,
-    }),
-    appApi: true,
-  })
-  refecthEntry = refetch
-} else {
-  watchContent()
-}
+const { fetch } = initLazyQuery({
+  handle: async (data: { note: INote }, error: string) => {
+    if (error) {
+      toast(t(error), 'error')
+    } else {
+      note.value = data.note
+      content.value = data.note.content
+      markdown.value = await render(content.value)
+      watchContent()
+    }
+  },
+  document: noteGQL,
+  variables: () => ({
+    id: id.value,
+  }),
+  appApi: true,
+})
 
 const { mutate: save, onDone: saveDone } = initMutation({
   document: saveNoteGQL,
@@ -150,8 +137,7 @@ const { mutate: save, onDone: saveDone } = initMutation({
 
 saveDone((r: any) => {
   note.value = r.data.saveNote
-  const create = isCreate()
-  if (create && note.value?.id) {
+  if (!id.value && note.value?.id) {
     id.value = note.value?.id
     replacePathNoReload(mainStore, `/notes/${id.value}`)
   }
@@ -180,22 +166,31 @@ function addToTags() {
 
 const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
   if (event.type === dataType) {
-    refecthEntry()
+    fetch()
   }
 }
 
 const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
   if (event.type === dataType) {
-    refecthEntry()
+    fetch()
   }
 }
 
-onActivated(() => {
+onMounted(() => {
+  id.value = route.params.id as string
+  if (id.value === 'create') {
+    id.value = ''
+  }
+  if (id.value) {
+    fetch()
+  } else {
+    watchContent()
+  }
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
   emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
 })
 
-onDeactivated(() => {
+onUnmounted(() => {
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
 })

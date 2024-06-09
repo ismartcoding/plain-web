@@ -57,3 +57,23 @@
     margin-left: 4px;
   }
 }
+
+.image-container .media-item {
+  box-sizing: border-box;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  position: relative;
+  transition: padding 0.3s ease-in-out;
+  .duration {
+    background: rgba(0, 0, 0, 0.4);
+    color: #fff;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 8px 0 8px 0;
+  }
+}

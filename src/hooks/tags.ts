@@ -1,4 +1,4 @@
-import type { ISelectable, ITag } from '@/lib/interfaces'
+import type { ITag } from '@/lib/interfaces'
 import { ref, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import toast from '@/components/toaster'
@@ -10,15 +10,14 @@ export const useAddToTags = (type: string, tags: Ref<ITag[]>) => {
   const { t } = useI18n()
 
   return {
-    addToTags: (items: ISelectable[], realAllChecked: boolean, query: string) => {
+    addToTags: (ids: string[], realAllChecked: boolean, query: string) => {
       let q = query
       if (!realAllChecked) {
-        const selectedItems = items.filter((it: ISelectable) => it.checked)
-        if (selectedItems.length === 0) {
+        if (ids.length === 0) {
           toast(t('select_first'), 'error')
           return
         }
-        q = `ids:${selectedItems.map((it: any) => it.id).join(',')}`
+        q = `ids:${ids.join(',')}`
       }
 
       openModal(AddToTagsModal, {

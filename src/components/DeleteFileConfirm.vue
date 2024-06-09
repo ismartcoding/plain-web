@@ -28,7 +28,11 @@ const props = defineProps({
   },
 })
 
-const { mutate, loading, onDone } = initMutation({
+const {
+  mutate,
+  loading,
+  onDone: onDeleteFilesDone,
+} = initMutation({
   document: gql`
     mutation DeleteFiles($paths: [String!]!) {
       deleteFiles(paths: $paths)
@@ -41,7 +45,7 @@ function doDelete() {
   mutate({ paths: props.files.map((it) => it.path) })
 }
 
-onDone(() => {
+onDeleteFilesDone(() => {
   props.onDone(props.files)
   popModal()
 })

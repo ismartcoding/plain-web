@@ -12,7 +12,8 @@
         <div v-for="item in visibleTasks" class="item" :key="item.file.name + item.file.size">
           <div class="title">{{ item.file.name }}</div>
           <div class="subtitle">
-            [{{ $t(`upload_status.${item.status}`) }}] <template v-if="!['created', 'done'].includes(item.status)">{{ formatFileSize(item.uploadedSize) }}({{ item.uploadedSize }}) / </template>{{ formatFileSize(item.file.size) }}
+            [{{ $t(`upload_status.${item.status}`) }}] <template v-if="!['created', 'done'].includes(item.status)">{{ formatFileSize(item.uploadedSize) }}({{ item.uploadedSize }}) / </template
+            >{{ formatFileSize(item.file.size) }}
           </div>
           <div class="body" v-if="item.error">{{ item.error }}</div>
           <button class="btn-icon icon" @click.stop="deleteItem(item)">

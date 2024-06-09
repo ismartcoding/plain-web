@@ -13,14 +13,14 @@
         </button>
       </div>
     </div>
-    <div class="alert-warning" v-if="!isHttps && notifcationPermission !== 'granted'">
+    <div class="alert-warning show" v-if="!isHttps && notifcationPermission !== 'granted'">
       <i-material-symbols:error-outline-rounded />
       <div class="body">{{ $t('desktop_notification_need_https') }}</div>
       <div class="actions">
         <md-filled-button class="btn-sm" @click.stop="useHttpsLink">{{ $t('use_https_link') }}</md-filled-button>
       </div>
     </div>
-    <div class="alert-warning" v-else-if="notifcationPermission !== 'granted'">
+    <div class="alert-warning show" v-else-if="notifcationPermission !== 'granted'">
       <i-material-symbols:error-outline-rounded />
       <div class="body">{{ $t('desktop_notification_permission_not_granted') }}</div>
       <div class="actions">

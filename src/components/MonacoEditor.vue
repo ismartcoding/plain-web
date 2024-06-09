@@ -33,7 +33,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'editorWillMount', 'editorDidMount'])
 
 const { width, height } = toRefs(props)
-const style: any = computed(() => {
+const style = computed(() => {
   const fixedWidth = width.value.toString().includes('%') ? width.value : `${width.value}px`
   const fixedHeight = height.value.toString().includes('%') ? height.value : `${height.value}px`
   return {
@@ -65,7 +65,7 @@ onMounted(() => {
     editor.addAction(action)
   }
   const editor2 = _getEditor()
-  editor2.onDidChangeModelContent((event: any) => {
+  editor2.onDidChangeModelContent(() => {
     const value = editor2.getValue()
     if (props.modelValue !== value) {
       emit('update:modelValue', value)
@@ -76,7 +76,7 @@ onMounted(() => {
 
 watch(
   () => props.options,
-  (current: Object) => {
+  (current: any) => {
     editor.updateOptions(current)
   },
   { deep: true }

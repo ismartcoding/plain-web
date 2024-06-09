@@ -21,6 +21,7 @@ import { initMutation, updateAIChatConfigGQL } from '@/lib/api/mutation'
 import { aiChatConfigGQL, initQuery } from '@/lib/api/query'
 import toast from '@/components/toaster'
 import { useI18n } from 'vue-i18n'
+import type { IAIChatConfig } from '@/lib/interfaces'
 
 const { handleSubmit } = useForm()
 
@@ -45,7 +46,7 @@ if (!inputValue.value) {
 }
 
 initQuery({
-  handle: (data: any, error: string) => {
+  handle: (data: { aiChatConfig: IAIChatConfig }, error: string) => {
     if (error) {
       toast(t(error), 'error')
     } else {

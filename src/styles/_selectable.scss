@@ -1,0 +1,14 @@
+.selectable-card {
+  box-sizing: border-box;
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
+  &.selecting {
+    background: var(--pl-selecting-container-color) !important;
+  }
+  &.selected {
+    background: var(--md-sys-color-surface-container);
+  }
+  &:hover {
+    background: var(--md-sys-color-surface-variant);
+  }
+}

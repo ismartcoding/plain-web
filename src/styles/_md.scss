@@ -1,5 +1,6 @@
 body {
   --md-menu-item-one-line-container-height: 48px;
+  --md-menu-item-selected-container-color: var(--md-sys-color-surface-container-highest);
 }
 
 md-dialog {
@@ -19,7 +20,8 @@ md-menu::part(list) {
   max-height: 50vh;
 }
 
-md-outlined-button.btn-sm, md-filled-button.btn-sm  {
+md-outlined-button.btn-sm,
+md-filled-button.btn-sm {
   --_label-text-size: 0.75rem;
   height: 32px;
   --_container-height: 32px;
@@ -27,10 +29,16 @@ md-outlined-button.btn-sm, md-filled-button.btn-sm  {
   --_trailing-space: 16px;
 }
 
-md-outlined-button.btn-lg, md-filled-button.btn-lg {
+md-outlined-button.btn-lg,
+md-filled-button.btn-lg {
   --_label-text-size: 1rem;
   --_container-height: 56px;
   height: 56px;
   --_leading-space: 24px;
   --_trailing-space: 24px;
+}
+
+
+md-checkbox {
+  border-radius: 4px;
 }

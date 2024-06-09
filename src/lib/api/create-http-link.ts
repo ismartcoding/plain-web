@@ -52,7 +52,7 @@ export const createHttpLink = (linkOptions: HttpOptions = {}) => {
       }
     }
 
-    let controller: any
+    let controller: boolean | AbortController | undefined
     if (!(options as any).signal) {
       const { controller: _controller, signal } = createSignalIfSupported()
       controller = _controller
@@ -79,6 +79,7 @@ export const createHttpLink = (linkOptions: HttpOptions = {}) => {
         Promise.race([fetch(chosenURI, options), new Promise((_, reject) => setTimeout(() => reject(new Error('connection_timeout')), 10000))])
           .then(async (response: any) => {
             if (response.status === 403) {
+              // ignore
             } else if (response.status === 401) {
               localStorage.removeItem('auth_token')
               window.location.reload()

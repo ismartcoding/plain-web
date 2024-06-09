@@ -12,7 +12,7 @@
     <template #body>
       <ul class="nav">
         <li @click.prevent="viewAll" :class="{ active: !selectedTagId }">
-          {{ $t('all') }}
+          <span class="title">{{ $t('all') }}</span>
         </li>
       </ul>
       <tag-filter type="AI_CHAT" :selected="selectedTagId" />

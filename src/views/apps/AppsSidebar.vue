@@ -4,13 +4,16 @@
     <template #body>
       <ul class="nav">
         <li @click.prevent="viewAll" :class="{ active: !type }">
-          {{ $t('all') }}<span class="count" v-if="counter.packages >= 0">{{ counter.packages.toLocaleString() }}</span>
+          <span class="title">{{ $t('all') }}</span>
+          <span class="count" v-if="counter.packages >= 0">{{ counter.packages.toLocaleString() }}</span>
         </li>
         <li @click.prevent="openByType('user')" :class="{ active: 'user' === type }">
-          {{ $t(`app_type.user`) }}<span class="count" v-if="userTypeCount >= 0">{{ userTypeCount.toLocaleString() }}</span>
+          <span class="title">{{ $t(`app_type.user`) }}</span>
+          <span class="count" v-if="userTypeCount >= 0">{{ userTypeCount.toLocaleString() }}</span>
         </li>
         <li @click.prevent="openByType('system')" :class="{ active: 'system' === type }">
-          {{ $t(`app_type.system`) }}<span class="count" v-if="counter.packagesSystem >= 0">{{ counter.packagesSystem.toLocaleString() }}</span>
+          <span class="title">{{ $t(`app_type.system`) }}</span>
+          <span class="count" v-if="counter.packagesSystem >= 0">{{ counter.packagesSystem.toLocaleString() }}</span>
         </li>
       </ul>
     </template>
@@ -39,7 +42,7 @@ const type = ref('')
 const userTypeCount = ref(-1)
 
 const { fetch } = initLazyQuery({
-  handle: (data: any) => {
+  handle: (data: { total: number; system: number }) => {
     if (data) {
       counter.value.packages = data.total
       counter.value.packagesSystem = data.system

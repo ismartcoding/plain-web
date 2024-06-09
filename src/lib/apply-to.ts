@@ -19,7 +19,7 @@ export class ApplyTo {
     }
   }
 
-  getText(t: Function, devices: any, networks: any): string {
+  getText(t: (label: string) => string, devices: any, networks: any): string {
     let r = ''
     switch (this.type) {
       case ApplyToType.ALL:

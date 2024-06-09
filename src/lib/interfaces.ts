@@ -1,12 +1,16 @@
 import type { IFile } from './file'
 
-export interface ITag {
+export interface IData {
+  id: string
+}
+
+export interface ITag extends IData {
   id: string
   name: string
   count: number
 }
 
-export interface IType {
+export interface IType extends IData {
   id: string
   name: string
 }
@@ -16,13 +20,13 @@ export interface IPage {
   sidebar?: boolean
 }
 
-export interface IBucket {
+export interface IBucket extends IData {
   id: string
   name: string
   itemCount: number
 }
 
-export interface IMessage {
+export interface IMessage extends IData {
   id: string
   body: string
   address: string
@@ -32,7 +36,67 @@ export interface IMessage {
   tags: ITag[]
 }
 
-export interface INote {
+export interface IContactContentItem {
+  label: string
+  value: string
+  type: number
+}
+
+export interface IContactPhoneNumber extends IContactContentItem {
+  normalizedNumber: string
+}
+
+export interface IContactSource {
+  name: string
+  type: number
+}
+
+export interface IPackageStatus {
+  id: string
+  exist: boolean
+}
+
+export interface IContact extends IData {
+  id: string
+  suffix: string
+  prefix: string
+  firstName: string
+  middleName: string
+  lastName: string
+  updatedAt: string
+  notes: string
+  source: string
+  thumbnailId: string
+  starred: boolean
+  phoneNumbers: IContactPhoneNumber[]
+  addresses: IContactContentItem[]
+  emails: IContactContentItem[]
+  websites: IContactContentItem[]
+  events: IContactContentItem[]
+  ims: IContactContentItem[]
+  tags: ITag[]
+}
+
+export interface ICallGeo {
+  isp: string
+  city: string
+  province: string
+}
+
+export interface ICall extends IData {
+  id: string
+  name: string
+  number: string
+  duration: number
+  accountId: string
+  startedAt: string
+  photoId: string
+  type: number
+  geo?: ICallGeo
+  tags: ITag[]
+}
+
+export interface INote extends IData {
   id: string
   title: string
   content: string
@@ -42,7 +106,7 @@ export interface INote {
   deletedAt: string
 }
 
-export interface IFeedEntry {
+export interface IFeedEntry extends IData {
   id: string
   title: string
   url: string
@@ -62,17 +126,20 @@ export interface IFeedEntryDetail extends IFeedEntry {
   feed?: IFeed
 }
 
-export interface IMedia {
+export interface IMedia extends IData {
   id: string
   title: string
   path: string
   size: number
   bucketId: string
   tags: ITag[]
+  createdAt: string
+  updatedAt: string
 }
 
 export interface IAudio extends IMedia {
   artist: string
+  albumFileId: string
   duration: number
 }
 
@@ -101,10 +168,6 @@ export interface IFilter {
   trash?: boolean
 }
 
-export interface ISelectable {
-  checked: boolean
-}
-
 export interface IDropdownItem {
   text: string
   click: () => void
@@ -116,7 +179,7 @@ export interface ITagRelationStub {
   size: number
 }
 
-export interface IChatItem {
+export interface IChatItem extends IData {
   id: string
   isMe: boolean
   createdAt: string
@@ -126,29 +189,26 @@ export interface IChatItem {
   data: any
 }
 
-export interface IMediaItem extends IMedia, ISelectable {}
-export interface IAudioItem extends IAudio, IMediaItem {}
-export interface IImageItem extends IImage, IMediaItem {
-  fileId: string
-}
-export interface IVideoItem extends IVideo, IMediaItem {
-  fileId: string
+export interface IFeedCount {
+  id: string
+  count: number
 }
 
-export interface INoteItem extends INote, ISelectable {}
+export interface IImageItem extends IImage {
+  fileId: string
+}
+export interface IVideoItem extends IVideo {
+  fileId: string
+}
 
-export interface IMessageItem extends IMessage, ISelectable {}
-
-export interface IFeedEntryItem extends IFeedEntry, ISelectable {}
-
-export interface IFeed {
+export interface IFeed extends IData {
   id: string
   name: string
   url: string
   fetchContent: boolean
 }
 
-export interface INotification {
+export interface INotification extends IData {
   id: string
   onlyOnce: boolean
   isClearable: boolean
@@ -162,7 +222,7 @@ export interface INotification {
   actions: string[]
 }
 
-export interface IAIChat {
+export interface IAIChat extends IData {
   id: string
   parentId: string
   isMe: boolean
@@ -174,9 +234,11 @@ export interface IAIChat {
   updatedAt: string
 }
 
-export interface IAIChatItem extends IAIChat, ISelectable {}
+export interface IAIChatConfig {
+  chatGPTApiKey: string
+}
 
-export interface IApp {
+export interface IPackage extends IData {
   id: string
   name: string
   type: string
@@ -188,7 +250,7 @@ export interface IApp {
   updatedAt: string
 }
 
-export interface IAppItem extends IApp, ISelectable {
+export interface IPackageItem extends IPackage {
   isUninstalling: boolean
 }
 
@@ -198,7 +260,7 @@ export interface IStorageStatsItem {
 }
 
 export interface IMediaItemDeletedEvent {
-  item: IMediaItem
+  item: IMedia
   type: string
 }
 
@@ -227,4 +289,48 @@ export interface IScreenMirrorQuality {
 export interface IScreenMirrorQualityOption {
   id: string
   data?: IScreenMirrorQuality
+}
+
+export interface IStorageStats {
+  internal: IStorageStatsItem
+  sdcard?: IStorageStatsItem
+  internal: IStorageStatsItem
+  usb: IStorageStatsItem[]
+}
+
+export interface IHomeStats {
+  callCount: number
+  contactCount: number
+  messageCount: number
+  noteCount: number
+  mediaCount: number
+  feedEntryCount: number
+  videoCount: number
+  audioCount: number
+  imageCount: number
+  packageCount: number
+  aiChatCount: number
+  storageStats: IStorageStats
+}
+
+export interface IApp {
+  usbConnected: boolean
+  urlToken: string
+  httpPort: number
+  httpsPort: number
+  externalFilesDir: string
+  deviceName: string
+  battery: number
+  appVersion: string
+  osVersion: string
+  channel: string
+  permissions: string[]
+  audios: IPlaylistAudio[]
+  audioCurrent: string
+  audioMode: string
+  sdcardPath: string
+  usbDiskPaths: string[]
+  internalStoragePath: string
+  downloadsDir: string
+  developerMode: boolean
 }

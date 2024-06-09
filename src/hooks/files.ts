@@ -15,7 +15,7 @@ import { buildQuery, type IFilterField } from '@/lib/search'
 import type { MainState } from '@/stores/main'
 import { findIndex, remove } from 'lodash-es'
 import { getApiBaseUrl } from '@/lib/api/api'
-import type { ISelectable, IStorageStatsItem } from '@/lib/interfaces'
+import type { IStorageStats, IStorageStatsItem } from '@/lib/interfaces'
 import type sjcl from 'sjcl'
 
 export const useCreateDir = (urlTokenKey: Ref<sjcl.BitArray | null>, panels: Ref<FilePanel[]>) => {
@@ -97,7 +97,7 @@ export const useStats = () => {
   const sdcard = ref<IStorageStatsItem | null>(null)
   const usb = ref<IStorageStatsItem[]>([])
   const { refetch } = initQuery({
-    handle: (data: any, error: string) => {
+    handle: (data: { storageStats: IStorageStats }, error: string) => {
       if (!error) {
         internal.value = data.storageStats.internal
         sdcard.value = data.storageStats.sdcard
@@ -473,19 +473,18 @@ export const useChatFilesUpload = () => {
   }
 }
 
-export const useDownloadItems = (urlTokenKey: Ref<sjcl.BitArray | null>, type: string, items: Ref<ISelectable[]>, clearSelection: () => void, fileName: string) => {
+export const useDownloadItems = (urlTokenKey: Ref<sjcl.BitArray | null>, type: string, clearSelection: () => void, fileName: string) => {
   const { t } = useI18n()
 
   return {
-    downloadItems: (realAllChecked: boolean, query: string) => {
+    downloadItems: (realAllChecked: boolean, ids: string[], query: string) => {
       let q = query
       if (!realAllChecked) {
-        const selectedItems = items.value.filter((it: ISelectable) => it.checked)
-        if (selectedItems.length === 0) {
+        if (ids.length === 0) {
           toast(t('select_first'), 'error')
           return
         }
-        q = `ids:${selectedItems.map((it: any) => it.id).join(',')}`
+        q = `ids:${ids.join(',')}`
       }
 
       const id = encryptUrlParams(

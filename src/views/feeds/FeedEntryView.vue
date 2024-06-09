@@ -6,7 +6,7 @@
     <div class="top-app-bar">
       <div class="title" v-if="entry">
         <a v-if="entry.feed" @click.stop.prevent="viewFeed(entry.feed)">{{ entry.feed.name }}</a
-        ><span>&nbsp;&nbsp;·&nbsp;&nbsp;</span>
+        ><span>·</span>
         <time v-tooltip="formatDateTime(entry.publishedAt)">
           {{ formatTimeAgo(entry.publishedAt) }}
         </time>
@@ -26,6 +26,10 @@
             <i-material-symbols:open-in-new-rounded />
           </button>
         </a>
+        <button class="btn-icon sm" v-tooltip="$t('save_to_notes')" @click.prevent="saveToNotes({ query: `ids:${id}` })">
+          <md-ripple />
+          <i-material-symbols:add-notes-outline-rounded />
+        </button>
         <button class="btn-icon sm" v-tooltip="$t('print')" @click.prevent="print">
           <md-ripple />
           <i-material-symbols:print-outline-rounded />
@@ -58,7 +62,7 @@ import { formatDateTime, formatTimeAgo } from '@/lib/format'
 import { openModal } from '@/components/modal'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import emitter from '@/plugins/eventbus'
-import { initMutation, syncFeedContentGQL } from '@/lib/api/mutation'
+import { initMutation, saveFeedEntriesToNotesGQL, syncFeedContentGQL } from '@/lib/api/mutation'
 import { storeToRefs } from 'pinia'
 import { useTempStore } from '@/stores/temp'
 import { useMainStore } from '@/stores/main'
@@ -77,7 +81,7 @@ const { app, urlTokenKey } = storeToRefs(useTempStore())
 
 const { render } = useMarkdown(app, urlTokenKey)
 const { loading, fetch } = initLazyQuery({
-  handle: async (data: any, error: string) => {
+  handle: async (data: { feedEntry: IFeedEntryDetail }, error: string) => {
     if (error) {
       toast(t(error), 'error')
     } else {
@@ -105,8 +109,21 @@ function backToList() {
   }
 }
 
+const {
+  mutate: saveToNotes,
+  loading: saving,
+  onDone: onSaveToNotesDone,
+} = initMutation({
+  document: saveFeedEntriesToNotesGQL,
+  appApi: true,
+})
+
+onSaveToNotesDone((r: any) => {
+  toast(t('saved'))
+})
+
 initQuery({
-  handle: (data: any, error: string) => {
+  handle: (data: { tags: ITag[] }, error: string) => {
     if (error) {
       toast(t(error), 'error')
     } else {
@@ -182,12 +199,9 @@ onDeactivated(() => {
 })
 </script>
 <style lang="scss">
-.main-feed-entry {
-  display: flex;
+.page-content .main-feed-entry {
+  flex-direction: row;
 
-  .sidebar2 {
-    width: 400px;
-  }
   .content {
     flex: 1;
     overflow-y: auto;

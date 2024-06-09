@@ -91,7 +91,15 @@
     <section class="card">
       <h5 class="card-title">{{ $t('call_phone') }}</h5>
       <div class="card-body form-row">
-        <md-outlined-text-field type="tel" :label="$t('phone_number')" class="form-control flex-3" v-model="callNumber" :error="callNumberError" :error-text="$t('valid.required')" @keyup.enter="callPhone">
+        <md-outlined-text-field
+          type="tel"
+          :label="$t('phone_number')"
+          class="form-control flex-3"
+          v-model="callNumber"
+          :error="callNumberError"
+          :error-text="$t('valid.required')"
+          @keyup.enter="callPhone"
+        >
           <button class="btn-icon" slot="trailing-icon" @click.prevent="pastePhoneNumber">
             <md-ripple />
             <i-material-symbols:content-paste-rounded />
@@ -114,7 +122,7 @@ import { useI18n } from 'vue-i18n'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { sumBy } from 'lodash-es'
-import type { IStorageStatsItem } from '@/lib/interfaces'
+import type { IHomeStats, IStorageStatsItem } from '@/lib/interfaces'
 import { useMainStore } from '@/stores/main'
 import { callGQL, initMutation } from '@/lib/api/mutation'
 const { t } = useI18n()
@@ -150,7 +158,7 @@ watch(callNumber, () => {
 })
 
 initQuery({
-  handle: (data: any, error: string) => {
+  handle: (data: IHomeStats, error: string) => {
     if (error) {
       toast(t(error), 'error')
     } else {
@@ -193,7 +201,8 @@ initQuery({
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(564px, 1fr));
   gap: 16px;
-  margin-block: 16px;
+  overflow-y: auto;
+  padding: 16px;
 }
 .card-title {
   .total-bytes {

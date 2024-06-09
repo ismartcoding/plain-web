@@ -58,7 +58,7 @@ export class Target {
     return true
   }
 
-  getText(t: Function, networks: any): string {
+  getText(t: (label: string) => string, networks: any): string {
     if (this.type == TargetType.INTERNET) {
       return t(`target_type.internet`)
     } else if (this.type == TargetType.INTERFACE) {

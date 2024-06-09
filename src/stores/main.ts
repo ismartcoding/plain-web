@@ -8,11 +8,11 @@ export type MainState = {
   quick: string
   quickContentWidth: number
   sidebarWidth: number
+  sidebar2Width: number
   pages: IPage[]
   lightboxInfoVisible: boolean
-  videosTableView: boolean
-  imagesTableView: boolean
-  feedsTableView: boolean
+  videosCardView: boolean
+  imagesCardView: boolean
   fileSortBy: string
   imageSortBy: string
   videoSortBy: string
@@ -31,14 +31,14 @@ export const useMainStore = defineStore({
       quick: 'chat',
       quickContentWidth: 400,
       sidebarWidth: 240,
+      sidebar2Width: 360,
       noteExpand: true,
       pages: [],
       audios: [],
       audioPlaying: null,
       lightboxInfoVisible: false,
-      videosTableView: false,
-      imagesTableView: false,
-      feedsTableView: false,
+      videosCardView: false,
+      imagesCardView: false,
       fileSortBy: 'NAME_ASC',
       imageSortBy: 'DATE_DESC',
       videoSortBy: 'DATE_DESC',

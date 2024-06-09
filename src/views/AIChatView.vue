@@ -31,7 +31,18 @@
       </div>
     </div>
     <div class="chat-input" style="min-height: 80px">
-      <md-outlined-text-field class="textarea" type="textarea" v-model="content" autocomplete="off" :placeholder="$t('chat_input_hint')" @keydown.enter.exact.prevent="send" @keydown.enter.shift.exact.prevent="content += '\n'" @keydown.enter.ctrl.exact.prevent="content += '\n'" @keydown.enter.alt.exact.prevent="content += '\n'" @keydown.enter.meta.exact.prevent="content += '\n'" />
+      <md-outlined-text-field
+        class="textarea"
+        type="textarea"
+        v-model="content"
+        autocomplete="off"
+        :placeholder="$t('chat_input_hint')"
+        @keydown.enter.exact.prevent="send"
+        @keydown.enter.shift.exact.prevent="content += '\n'"
+        @keydown.enter.ctrl.exact.prevent="content += '\n'"
+        @keydown.enter.alt.exact.prevent="content += '\n'"
+        @keydown.enter.meta.exact.prevent="content += '\n'"
+      />
       <div class="btns">
         <button class="btn-icon" @click.stop="send">
           <md-ripple />

@@ -6,19 +6,19 @@
     <template #body>
       <ul class="nav">
         <li @click.prevent="openByType('recent')" :class="{ active: route.path === '/files/recent' }">
-          {{ $t('recents') }}
+          <span class="title">{{ $t('recents') }}</span>
         </li>
         <li @click.prevent="internal" :class="{ active: route.path === '/files' && !navType }">
-          {{ $t('internal_storage') }}
+          <span class="title">{{ $t('internal_storage') }}</span>
         </li>
         <li v-if="app.sdcardPath" @click.prevent="openByType('sdcard')" :class="{ active: navType === 'sdcard' }">
-          {{ $t('sdcard') }}
+          <span class="title">{{ $t('sdcard') }}</span>
         </li>
-        <li v-for="(_, index) in app.usbDiskPaths" @click.prevent="openByType(`usb${index + 1}`)" :class="{ active: navType === `usb${index + 1}` }">
-          {{ $t('usb_storage') + ' ' + (index + 1) }}
+        <li v-for="(_, index) in app.usbDiskPaths" :key="index" @click.prevent="openByType(`usb${index + 1}`)" :class="{ active: navType === `usb${index + 1}` }">
+          <span class="title">{{ $t('usb_storage') + ' ' + (index + 1) }}</span>
         </li>
         <li @click.prevent="openByType('app')" :class="{ active: navType === 'app' }">
-          {{ $t('app_name') }}
+          <span class="title">{{ $t('app_name') }}</span>
         </li>
       </ul>
     </template>

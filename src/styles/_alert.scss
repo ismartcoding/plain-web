@@ -1,11 +1,17 @@
 %alert-common-properties {
   border-radius: 8px;
-  padding: 12px;
+  padding: 0;
   display: grid;
   grid-template-areas:
     'svg body'
     'actions actions';
   grid-template-columns: auto 1fr;
+  max-height: 0;
+  opacity: 0;
+  transition:
+    padding 0.3s ease,
+    max-height 0.3s ease,
+    opacity 0.3s ease;
   svg {
     margin-inline-end: 8px;
     margin-block-start: 2px;
@@ -23,16 +29,14 @@
 
 .alert-danger {
   @extend %alert-common-properties;
-  background-color: var(--md-sys-color-error-container);
-  color: var(--md-sys-color-on-error-container);
+  color: var(--md-sys-color-error);
   svg {
     color: var(--md-sys-color-error);
   }
 }
 
 .alert-info {
-  border-radius: 8px;
-  padding: 12px;
+  @extend %alert-common-properties;
   background-color: var(--md-sys-color-surface-container);
   color: var(--md-sys-color-on-surface);
 }
@@ -45,8 +49,19 @@
   }
 }
 
+.alert-danger.show,
+.alert-info.show,
+.alert-warning.show {
+  padding: 12px;
+  max-height: 100px;
+  opacity: 1;
+}
+
 .alert-all-checked {
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  margin: 0 16px;
+  gap: 8px;
 }
 
 .alert-all-checked + .table-responsive {

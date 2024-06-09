@@ -1,23 +1,22 @@
 <template>
-  <li v-for="item in mediaBuckets" :key="item.id" @click.prevent="view(item)" :class="{ active: selected && item.id === selected }">
-    {{ item.name }}<span class="count">{{ item.itemCount.toLocaleString() }}</span>
+  <li v-for="item in mediaBuckets" :key="item.id" @click.prevent="view(mainStore, item.id)" :class="{ active: selected && item.id === selected }">
+    <span class="title">{{ item.name }}</span><span class="count">{{ item.itemCount.toLocaleString() }}</span>
   </li>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, type PropType } from 'vue'
 import { initQuery, mediaBucketsGQL } from '@/lib/api/query'
-import { replacePath } from '@/plugins/router'
 import type { IBucket, IMediaItemDeletedEvent, IMediaItemsDeletedEvent } from '@/lib/interfaces'
 import { useMainStore } from '@/stores/main'
-import { encodeBase64 } from '@/lib/strutil'
-import { buildQuery } from '@/lib/search'
 import toast from '@/components/toaster'
 import { useI18n } from 'vue-i18n'
 import emitter from '@/plugins/eventbus'
+import { useBuckets } from '@/hooks/media'
+import { DataType } from '@/lib/data'
 
 const props = defineProps({
-  type: { type: String, required: true },
+  type: { type: String as PropType<DataType>, required: true },
   selected: { type: String, required: true },
 })
 
@@ -25,9 +24,10 @@ const { t } = useI18n()
 
 const mainStore = useMainStore()
 const mediaBuckets = ref<IBucket[]>([])
+const { view } = useBuckets(props.type)
 
 const { refetch } = initQuery({
-  handle: (data: any, error: string) => {
+  handle: (data: { mediaBuckets: IBucket[] }, error: string) => {
     if (error) {
       toast(t(error), 'error')
     } else {
@@ -42,22 +42,6 @@ const { refetch } = initQuery({
   },
   appApi: true,
 })
-
-function view(item: IBucket) {
-  const q = buildQuery([
-    {
-      name: 'bucket_id',
-      op: '',
-      value: item.id,
-    },
-  ])
-  const names: Record<string, string> = {
-    AUDIO: 'audios',
-    IMAGE: 'images',
-    VIDEO: 'videos',
-  }
-  replacePath(mainStore, `/${names[props.type]}?q=${encodeBase64(q)}`)
-}
 
 const mediaItemsDeletedHandler = (event: IMediaItemsDeletedEvent) => {
   if (event.type === props.type) {
