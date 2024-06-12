@@ -7,12 +7,12 @@
       <section class="card">
         <h5 class="card-title">{{ $t('device') }}</h5>
         <div class="card-body">
-          <div class="key-value" v-for="item in basicInfos">
+          <div class="key-value" v-for="(item, index) in basicInfos" :key="index">
             <div class="key">{{ $t(item.label) }}</div>
             <div class="value">
               <time v-if="item.isTime" class="time" v-tooltip="formatDateTimeFull(item.value)">{{ formatDateTime(item.value) }} </time>
               <template v-else-if="Array.isArray(item.value)">
-                <div v-for="it in item.value">{{ it }}</div>
+                <div v-for="(it, i) in item.value" :key="i">{{ it }}</div>
               </template>
               <template v-else>
                 {{ item.value }}
@@ -26,12 +26,12 @@
       <section class="card">
         <h5 class="card-title">{{ $t('system') }}</h5>
         <div class="card-body">
-          <div class="key-value" v-for="item in systemInfos">
+          <div class="key-value" v-for="(item, index) in systemInfos" :key="index">
             <div class="key">{{ $t(item.label) }}</div>
             <div class="value">
               <time v-if="item.isTime" class="time" v-tooltip="formatDateTimeFull(item.value)">{{ formatDateTime(item.value) }}</time>
               <template v-else-if="Array.isArray(item.value)">
-                <div v-for="it in item.value">{{ it }}</div>
+                <div v-for="(it, i) in item.value" :key="i">{{ it }}</div>
               </template>
               <template v-else>
                 {{ item.value }}
@@ -45,12 +45,12 @@
       <section class="card">
         <h5 class="card-title">{{ $t('battery') }}</h5>
         <div class="card-body">
-          <div class="key-value" v-for="item in batteryInfos">
+          <div class="key-value" v-for="(item, index) in batteryInfos" :key="index">
             <div class="key">{{ $t(item.label) }}</div>
             <div class="value">
               <time v-if="item.isTime" class="time" v-tooltip="formatDateTimeFull(item.value)">{{ formatDateTime(item.value) }}</time>
               <template v-else-if="Array.isArray(item.value)">
-                <div v-for="it in item.value">{{ it }}</div>
+                <div v-for="(it, i) in item.value" :key="i">{{ it }}</div>
               </template>
               <template v-else>
                 {{ item.value }}

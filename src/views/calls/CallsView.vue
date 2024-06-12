@@ -1,10 +1,11 @@
 <template>
   <div class="top-app-bar">
-    <div class="title">{{ $t('page_title.calls') }} ({{ total.toLocaleString() }})</div>
-    <div class="actions">
-      <search-input :filter="filter" :tags="tags" :types="types" :get-url="getUrl" />
+    <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
+    <div class="title">
+      <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
+      <span v-else>{{ $t('page_title.calls') }} ({{ total.toLocaleString() }})</span>
       <template v-if="checked">
-        <button class="btn-icon" @click.stop="deleteItems(realAllChecked, selectedIds, q)" v-tooltip="$t('delete')">
+        <button class="btn-icon" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)" v-tooltip="$t('delete')">
           <md-ripple />
           <i-material-symbols:delete-forever-outline-rounded />
         </button>
@@ -13,6 +14,10 @@
           <i-material-symbols:label-outline-rounded />
         </button>
       </template>
+    </div>
+
+    <div class="actions">
+      <search-input :filter="filter" :tags="tags" :types="types" :get-url="getUrl" />
     </div>
   </div>
   <all-checked-alert
@@ -23,88 +28,91 @@
     :select-real-all="selectRealAll"
     :clear-selection="clearSelection"
   />
-  <div class="table-responsive">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>
-            <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
-          </th>
-          <th v-if="app.developerMode">ID</th>
-          <th>{{ $t('name') }}</th>
-          <th>{{ $t('phone_number') }}</th>
-          <th>{{ $t('phone_geo') }}</th>
-          <th>{{ $t('duration') }}</th>
-          <th></th>
-          <th>{{ $t('type') }}</th>
-          <th>{{ $t('tags') }}</th>
-          <th>{{ $t('started_at') }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(item, i) in items" :key="item.id" :class="{ selected: selectedIds.includes(item.id) }" @click.stop="toggleRow($event, item, i)">
-          <td><md-checkbox touch-target="wrapper" @change="toggleRow($event, item, i)" :checked="selectedIds.includes(item.id)" /></td>
-          <td v-if="app.developerMode"><field-id :id="item.id" :raw="item" /></td>
-          <td>
-            {{ item.name }}
-          </td>
-          <td>
-            <div class="v-center">
-              {{ item.number }}
+  <div class="scroll-content">
+    <div class="call-list" :class="{ 'select-mode': checked }">
+      <section
+        class="call-item selectable-card"
+        v-for="(item, i) in items"
+        :key="item.id"
+        :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
+        @click.stop="handleItemClick($event, item, i, () => {})"
+        @mouseover="handleMouseOver($event, i)"
+      >
+        <div class="start">
+          <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, i)" :checked="shouldSelect" />
+          <md-checkbox v-else class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, i)" :checked="selectedIds.includes(item.id)" />
+          <span class="number"><field-id :id="i + 1" :raw="item" /></span>
+        </div>
+
+        <div class="title">
+          {{ item.name ? item.name + ' ' + item.number : item.number }}
+        </div>
+        <div class="subtitle">
+          <span>{{ formatSeconds(item.duration) }}</span>
+          <span>{{ $t('call_type.' + item.type) }}</span>
+          <item-tags :tags="item.tags" :type="dataType" :only-links="true" />
+        </div>
+        <div class="actions">
+          <button class="btn-icon sm" @click.stop="deleteItem(item)" v-tooltip="$t('delete')">
+            <md-ripple />
+            <i-material-symbols:delete-forever-outline-rounded />
+          </button>
+          <md-circular-progress indeterminate class="spinner-sm" v-if="callLoading && callId === item.id" />
+          <button class="btn-icon sm" v-else @click.stop="call(item)" v-tooltip="$t('make_a_phone_call')">
+            <md-ripple />
+            <i-material-symbols:call-outline-rounded />
+          </button>
+          <button class="btn-icon sm" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
+            <md-ripple />
+            <i-material-symbols:label-outline-rounded />
+          </button>
+        </div>
+        <div class="geo">
+          {{ getGeoText(item.geo) }}
+        </div>
+        <div class="time">
+          <span v-tooltip="formatDateTime(item.startedAt)">
+            {{ formatTimeAgo(item.startedAt) }}
+          </span>
+        </div>
+      </section>
+      <template v-if="loading && items.length === 0">
+        <section class="call-item selectable-card-skeleton" v-for="i in limit" :key="i">
+          <div class="start">
+            <div class="checkbox">
+              <div class="skeleton-checkbox"></div>
             </div>
-          </td>
-          <td>
-            {{ getGeoText(item.geo) }}
-          </td>
-          <td class="nowrap">
-            {{ formatSeconds(item.duration) }}
-          </td>
-          <td class="nowrap">
-            <div class="action-btns">
-              <button class="btn-icon sm" @click.stop="deleteItem(item)" v-tooltip="$t('delete')">
-                <md-ripple />
-                <i-material-symbols:delete-forever-outline-rounded />
-              </button>
-              <md-circular-progress indeterminate class="spinner-sm" v-if="callLoading && callId === item.id" />
-              <button class="btn-icon sm" v-else @click.stop="call(item)" v-tooltip="$t('make_a_phone_call')">
-                <md-ripple />
-                <i-material-symbols:call-outline-rounded />
-              </button>
-              <button class="btn-icon sm" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
-                <md-ripple />
-                <i-material-symbols:label-outline-rounded />
-              </button>
-            </div>
-          </td>
-          <td class="nowrap">{{ $t('call_type.' + item.type) }}</td>
-          <td>
-            <item-tags :tags="item.tags" :type="dataType" />
-          </td>
-          <td class="nowrap">
-            <time v-tooltip="formatDateTimeFull(item.startedAt)">
-              {{ formatDateTime(item.startedAt) }}
-            </time>
-          </td>
-        </tr>
-      </tbody>
-      <tfoot v-if="!items.length">
-        <tr>
-          <td :colspan="app.developerMode ? 10 : 9">
-            <div class="no-data-placeholder">
-              {{ $t(noDataKey(loading, app.permissions, 'WRITE_CALL_LOG')) }}
-            </div>
-          </td>
-        </tr>
-      </tfoot>
-    </table>
+            <span class="number">{{ i }}</span>
+          </div>
+          <div class="title">
+            <div class="skeleton-text skeleton-title"></div>
+          </div>
+          <div class="subtitle">
+            <div class="skeleton-text skeleton-subtitle"></div>
+          </div>
+          <div class="actions">
+            <div class="skeleton-text skeleton-actions"></div>
+          </div>
+          <div class="geo">
+            <div class="skeleton-text skeleton-geo"></div>
+          </div>
+          <div class="time">
+            <div class="skeleton-text skeleton-time"></div>
+          </div>
+        </section>
+      </template>
+    </div>
+    <div class="no-data-placeholder" v-if="!loading && items.length === 0">
+      {{ $t(noDataKey(loading, app.permissions, 'WRITE_CALL_LOG')) }}
+    </div>
+    <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" />
   </div>
-  <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" />
 </template>
 
 <script setup lang="ts">
 import { onActivated, onDeactivated, reactive, ref } from 'vue'
 import toast from '@/components/toaster'
-import { formatDateTime, formatDateTimeFull, formatSeconds } from '@/lib/format'
+import { formatDateTime, formatSeconds, formatTimeAgo } from '@/lib/format'
 import { callsGQL, initLazyQuery } from '@/lib/api/query'
 import { useRoute } from 'vue-router'
 import { replacePath } from '@/plugins/router'
@@ -150,13 +158,29 @@ const { deleteItems } = useDelete(deleteCallsGQL, () => {
   emitter.emit('refetch_tags', dataType)
 })
 
-const { selectedIds, allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleRow, total, checked, selectAll } = useSelectable(items)
+const {
+  selectedIds,
+  allChecked,
+  realAllChecked,
+  selectRealAll,
+  allCheckedAlertVisible,
+  clearSelection,
+  toggleAllChecked,
+  toggleSelect,
+  total,
+  checked,
+  shiftEffectingIds,
+  handleItemClick,
+  handleMouseOver,
+  selectAll,
+  shouldSelect,
+} = useSelectable(items)
 const gotoPage = (page: number) => {
   const q = route.query.q
   replacePath(mainStore, q ? `/calls?page=${page}&q=${q}` : `/calls?page=${page}`)
 }
 const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(total, limit, page, selectAll, clearSelection, gotoPage, () => {
-  deleteItems(realAllChecked.value, selectedIds.value, q.value)
+  deleteItems(selectedIds.value, realAllChecked.value, total.value, q.value)
 })
 const { loading, fetch } = initLazyQuery({
   handle: (data: { calls: ICall[]; callCount: number }, error: string) => {
@@ -243,7 +267,7 @@ function call(item: ICall) {
 function deleteItem(item: ICall) {
   openModal(DeleteConfirm, {
     id: item.id,
-    name: item.id,
+    name: item.number,
     gql: gql`
       mutation DeleteCall($query: String!) {
         deleteCalls(query: $query)
@@ -281,3 +305,96 @@ onDeactivated(() => {
   window.removeEventListener('keyup', pageKeyUp)
 })
 </script>
+<style scoped lang="scss">
+.call-item {
+  display: grid;
+  border-radius: 8px;
+  grid-template-areas:
+    'start title actions geo time'
+    'start subtitle actions geo time';
+  grid-template-columns: 48px 2fr 1fr minmax(64px, 1fr) minmax(64px, 1fr);
+  .start {
+    grid-area: start;
+  }
+  .number {
+    font-size: 0.75rem;
+    display: flex;
+    justify-content: center;
+    padding-block-end: 12px;
+  }
+  .title {
+    grid-area: title;
+    font-weight: 500;
+    margin-inline-end: 16px;
+    padding-block-start: 12px;
+  }
+  .subtitle {
+    grid-area: subtitle;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 0.875rem;
+    margin-inline-end: 16px;
+  }
+
+  .actions {
+    grid-area: actions;
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    align-items: center;
+    visibility: visible;
+    padding-inline: 16px;
+  }
+  .geo {
+    grid-area: geo;
+    display: flex;
+    align-items: center;
+  }
+  .time {
+    grid-area: time;
+    display: flex;
+    align-items: center;
+    padding-inline: 16px;
+    justify-content: end;
+  }
+}
+.call-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.call-list.select-mode {
+  .call-item {
+    cursor: pointer;
+    .actions {
+      visibility: hidden;
+    }
+  }
+}
+
+.call-list {
+  .call-item {
+    .skeleton-title {
+      width: 160px;
+      height: 24px;
+    }
+    .skeleton-subtitle {
+      width: 80px;
+      height: 20px;
+    }
+    .skeleton-actions {
+      width: 120px;
+      height: 20px;
+    }
+    .skeleton-geo {
+      width: 100px;
+      height: 20px;
+    }
+    .skeleton-time {
+      width: 60px;
+      height: 20px;
+    }
+  }
+}
+</style>

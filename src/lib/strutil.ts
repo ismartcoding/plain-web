@@ -71,12 +71,12 @@ export function decodeBase64(str: string): string {
 }
 
 function anyBase(srcAlphabet: string, dstAlphabet: string, number: string) {
+  const numberMap = []
+  const fromBase = srcAlphabet.length
+  const toBase = dstAlphabet.length
   let i,
     divide,
     newlen,
-    numberMap = [],
-    fromBase = srcAlphabet.length,
-    toBase = dstAlphabet.length,
     length = number.length,
     result = ''
 

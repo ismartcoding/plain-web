@@ -13,6 +13,7 @@ export type MainState = {
   lightboxInfoVisible: boolean
   videosCardView: boolean
   imagesCardView: boolean
+  appSortBy: string
   fileSortBy: string
   imageSortBy: string
   videoSortBy: string
@@ -39,6 +40,7 @@ export const useMainStore = defineStore({
       lightboxInfoVisible: false,
       videosCardView: false,
       imagesCardView: false,
+      appSortBy: 'NAME_ASC',
       fileSortBy: 'NAME_ASC',
       imageSortBy: 'DATE_DESC',
       videoSortBy: 'DATE_DESC',

@@ -1,14 +1,19 @@
 <template>
   <div class="top-app-bar">
-    <div class="title">{{ $t('page_title.messages') }} ({{ total.toLocaleString() }})</div>
-    <div class="actions">
-      <search-input :filter="filter" :tags="tags" :types="types" :get-url="getUrl" />
+    <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
+    <div class="title">
+      <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
+      <span v-else>{{ $t('page_title.messages') }} ({{ total.toLocaleString() }})</span>
       <template v-if="checked">
         <button class="btn-icon" @click.stop="addToTags(selectedIds, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
           <md-ripple />
           <i-material-symbols:label-outline-rounded />
         </button>
       </template>
+    </div>
+
+    <div class="actions">
+      <search-input :filter="filter" :tags="tags" :types="types" :get-url="getUrl" />
     </div>
   </div>
   <all-checked-alert
@@ -19,75 +24,84 @@
     :select-real-all="selectRealAll"
     :clear-selection="clearSelection"
   />
-  <div class="table-responsive">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>
-            <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
-          </th>
-          <th v-if="app.developerMode">ID</th>
-          <th>{{ $t('content') }}</th>
-          <th></th>
-          <th>{{ $t('sms_address') }}</th>
-          <th>{{ $t('type') }}</th>
-          <th>{{ $t('tags') }}</th>
-          <th>{{ $t('time') }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(item, i) in items" :key="item.id" :class="{ selected: selectedIds.includes(item.id) }" @click.stop="toggleRow($event, item, i)">
-          <td><md-checkbox touch-target="wrapper" @change="toggleRow($event, item, i)" :checked="selectedIds.includes(item.id)" /></td>
-          <td v-if="app.developerMode">
-            <field-id :id="item.id" :raw="item" />
-          </td>
-          <td v-html="addLinksToURLs(item.body)"></td>
-          <td class="nowrap">
-            <div class="action-btns">
-              <button class="btn-icon sm" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
-                <md-ripple />
-                <i-material-symbols:label-outline-rounded />
-              </button>
+  <div class="scroll-content">
+    <div class="sms-list" :class="{ 'select-mode': checked }">
+      <section
+        class="sms-item selectable-card"
+        v-for="(item, i) in items"
+        :key="item.id"
+        :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
+        @click.stop="handleItemClick($event, item, i, () => {})"
+        @mouseover="handleMouseOver($event, i)"
+      >
+        <div class="start">
+          <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, i)" :checked="shouldSelect" />
+          <md-checkbox v-else class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, i)" :checked="selectedIds.includes(item.id)" />
+          <span class="number"><field-id :id="i + 1" :raw="item" /></span>
+        </div>
+        <div class="title">
+          {{ item.address }}
+        </div>
+        <div class="subtitle" v-html="addLinksToURLs(item.body)"></div>
+        <div class="actions">
+          <button class="btn-icon sm" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
+            <md-ripple />
+            <i-material-symbols:label-outline-rounded />
+          </button>
+          <md-circular-progress indeterminate class="spinner-sm" v-if="callLoading && callId === item.id" />
+          <button class="btn-icon sm" v-else @click.stop="call(item)" v-tooltip="$t('make_a_phone_call')">
+            <md-ripple />
+            <i-material-symbols:call-outline-rounded />
+          </button>
+        </div>
+        <div class="info">
+          <span>{{ $t(`message_type.${item.type}`) }}</span>
+          <item-tags :tags="item.tags" :type="dataType" :only-links="true" />
+        </div>
+        <div class="time">
+          <span v-tooltip="formatDateTime(item.date)">
+            {{ formatTimeAgo(item.date) }}
+          </span>
+        </div>
+      </section>
+      <template v-if="loading && items.length === 0">
+        <section class="sms-item selectable-card-skeleton" v-for="i in limit" :key="i">
+          <div class="start">
+            <div class="checkbox">
+              <div class="skeleton-checkbox"></div>
             </div>
-          </td>
-          <td class="nowrap">
-            <div class="phone-number">
-              {{ item.address }} <md-circular-progress indeterminate class="spinner-sm" v-if="callLoading && callId === item.id" />
-              <button class="btn-icon sm" v-else @click.stop="call(item)" v-tooltip="$t('make_a_phone_call')">
-                <md-ripple />
-                <i-material-symbols:call-outline-rounded />
-              </button>
-            </div>
-          </td>
-          <td class="nowrap">{{ $t(`message_type.${item.type}`) }}</td>
-          <td>
-            <item-tags :tags="item.tags" :type="dataType" />
-          </td>
-          <td class="nowrap">
-            <time v-tooltip="formatDateTimeFull(item.date)">
-              {{ formatDateTime(item.date) }}
-            </time>
-          </td>
-        </tr>
-      </tbody>
-      <tfoot v-if="!items.length">
-        <tr>
-          <td :colspan="app.developerMode ? 8 : 7">
-            <div class="no-data-placeholder">
-              {{ $t(noDataKey(loading, app.permissions, 'READ_SMS')) }}
-            </div>
-          </td>
-        </tr>
-      </tfoot>
-    </table>
+            <span class="number">{{ i }}</span>
+          </div>
+          <div class="title">
+            <div class="skeleton-text skeleton-title"></div>
+          </div>
+          <div class="subtitle">
+            <div class="skeleton-text skeleton-subtitle"></div>
+            <div class="skeleton-text skeleton-subtitle"></div>
+          </div>
+          <div class="actions">
+            <div class="skeleton-text skeleton-actions"></div>
+          </div>
+          <div class="info">
+            <div class="skeleton-text skeleton-info"></div>
+          </div>
+          <div class="time">
+            <div class="skeleton-text skeleton-time"></div>
+          </div>
+        </section>
+      </template>
+    </div>
+    <div class="no-data-placeholder" v-if="!loading && items.length === 0">
+      {{ $t(noDataKey(loading, app.permissions, 'READ_SMS')) }}
+    </div>
+    <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" />
   </div>
-  <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" />
 </template>
 
 <script setup lang="ts">
 import { onActivated, onDeactivated, reactive, ref } from 'vue'
 import toast from '@/components/toaster'
-import { formatDateTime, formatDateTimeFull } from '@/lib/format'
+import { formatDateTime, formatTimeAgo } from '@/lib/format'
 import { initLazyQuery, messagesGQL } from '@/lib/api/query'
 import { useRoute } from 'vue-router'
 import { replacePath } from '@/plugins/router'
@@ -126,7 +140,23 @@ const limit = 50
 const q = ref('')
 const { tags, fetch: fetchTags } = useTags(dataType)
 const { addToTags } = useAddToTags(dataType, tags)
-const { selectedIds, allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleRow, total, checked, selectAll } = useSelectable(items)
+const {
+  selectedIds,
+  allChecked,
+  realAllChecked,
+  selectRealAll,
+  allCheckedAlertVisible,
+  clearSelection,
+  toggleAllChecked,
+  toggleSelect,
+  total,
+  checked,
+  shiftEffectingIds,
+  handleItemClick,
+  handleMouseOver,
+  selectAll,
+  shouldSelect,
+} = useSelectable(items)
 const gotoPage = (page: number) => {
   const q = route.query.q
   replacePath(mainStore, q ? `/messages?page=${page}&q=${q}` : `/messages?page=${page}`)
@@ -213,3 +243,102 @@ onDeactivated(() => {
   window.removeEventListener('keyup', pageKeyUp)
 })
 </script>
+<style scoped lang="scss">
+.sms-item {
+  display: grid;
+  border-radius: 8px;
+  padding-block-end: 12px;
+  grid-template-areas:
+    'start title actions info time'
+    'start subtitle actions info time';
+  grid-template-columns: 48px 3fr 100px minmax(64px, 1fr) minmax(64px, 1fr);
+  .start {
+    grid-area: start;
+  }
+  .number {
+    font-size: 0.75rem;
+    display: flex;
+    justify-content: center;
+  }
+  .title {
+    grid-area: title;
+    font-weight: 500;
+    margin-inline-end: 16px;
+    padding-block-start: 12px;
+    padding-block-end: 8px;
+  }
+  .subtitle {
+    grid-area: subtitle;
+    font-size: 0.875rem;
+    margin-inline-end: 16px;
+  }
+
+  .actions {
+    grid-area: actions;
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    align-items: center;
+    visibility: visible;
+    padding-inline: 16px;
+  }
+  .info {
+    grid-area: info;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.875rem;
+  }
+  .time {
+    grid-area: time;
+    display: flex;
+    align-items: center;
+    padding-inline: 16px;
+    justify-content: end;
+  }
+}
+.sms-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sms-list.select-mode {
+  .sms-item {
+    cursor: pointer;
+    .actions {
+      visibility: hidden;
+    }
+  }
+}
+
+.sms-list {
+  .sms-item {
+    .skeleton-title {
+      width: 120px;
+      height: 24px;
+    }
+    .skeleton-subtitle {
+      width: 80%;
+      height: 20px;
+      &:nth-child(2) {
+        margin-block-start: 8px;
+      }
+    }
+    .skeleton-actions {
+      width: 140px;
+      height: 20px;
+    }
+    .skeleton-info {
+      width: 60px;
+      height: 20px;
+    }
+    .skeleton-time {
+      width: 60px;
+      height: 20px;
+    }
+  }
+}
+</style>

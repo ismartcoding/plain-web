@@ -84,7 +84,6 @@ import { useMainStore } from '@/stores/main'
 
 const { copyFilter, buildQ } = useSearch()
 const mainStore = useMainStore()
-const emit = defineEmits(['show'])
 const searchFilter: IFilter = reactive({
   tagIds: [],
 })
@@ -99,19 +98,19 @@ const props = defineProps({
   },
   tags: {
     type: Array as PropType<ITag[]>,
-    default: [],
+    default: () => [],
   },
   feeds: {
     type: Array as PropType<IFeed[]>,
-    default: [],
+    default: () => [],
   },
   buckets: {
     type: Array as PropType<IBucket[]>,
-    default: [],
+    default: () => [],
   },
   types: {
     type: Array as PropType<IType[]>,
-    default: [],
+    default: () => [],
   },
   showChips: {
     type: Boolean,

@@ -10,7 +10,6 @@ export interface IFile extends IData {
   path: string
   name: string
   isDir: boolean
-  checked: boolean
   updatedAt: string
   size: number
   panel?: FilePanel
@@ -160,4 +159,9 @@ export async function getImageData(file: File): Promise<{ src: string; width: nu
       resolve({ src, width: 0, height: 0 })
     }
   })
+}
+
+export function getDirFromPath(path: string) {
+  const index = path.lastIndexOf('/')
+  return index === -1 ? '' : path.substring(0, index)
 }

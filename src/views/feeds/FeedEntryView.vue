@@ -1,53 +1,73 @@
 <template>
-  <div v-if="loading" class="content-loading">
-    <md-circular-progress indeterminate />
-  </div>
-  <article v-else class="content">
-    <div class="top-app-bar">
-      <div class="title" v-if="entry">
-        <a v-if="entry.feed" @click.stop.prevent="viewFeed(entry.feed)">{{ entry.feed.name }}</a
-        ><span>·</span>
-        <time v-tooltip="formatDateTime(entry.publishedAt)">
-          {{ formatTimeAgo(entry.publishedAt) }}
-        </time>
-        <item-tags :tags="entry?.tags" :type="dataType" />
-        <button class="btn-icon sm" v-tooltip="$t('add_to_tags')" @click.prevent="addToTags" style="margin-inline-start: 16px">
-          <md-ripple />
-          <i-material-symbols:label-outline-rounded />
-        </button>
-        <md-circular-progress indeterminate class="spinner-sm" v-if="syncContentLoading" />
-        <button class="btn-icon sm" v-else :disabled="syncContentLoading" v-tooltip="$t('sync_content')" @click.prevent="syncContent">
-          <md-ripple />
-          <i-material-symbols:sync-rounded />
-        </button>
-        <a :href="entry?.url" class="btn-icon" target="_blank" v-tooltip="$t('view_original_article')">
-          <button class="btn-icon sm">
+  <div class="content">
+    <article v-if="loading && !entry">
+      <div class="top-app-bar">
+        <div class="title">
+          <div class="skeleton-text skeleton-app-bar"></div>
+        </div>
+        <div class="actions">
+          <div class="skeleton-image skeleton-icon"></div>
+        </div>
+      </div>
+      <div class="article-title">
+        <div class="skeleton-text skeleton-title"></div>
+      </div>
+      <div class="md-container">
+        <div class="skeleton-text skeleton-content" style="width: 100%"></div>
+        <div class="skeleton-text skeleton-content" style="width: 90%"></div>
+        <div class="skeleton-text skeleton-content" style="width: 75%"></div>
+        <div class="skeleton-text skeleton-content" style="width: 85%"></div>
+        <div class="skeleton-text skeleton-content" style="width: 60%"></div>
+        <div class="skeleton-text skeleton-content" style="width: 80%"></div>
+        <div class="skeleton-text skeleton-content" style="width: 70%"></div>
+        <div class="skeleton-text skeleton-content" style="width: 65%"></div>
+      </div>
+    </article>
+    <article v-else-if="entry">
+      <div class="top-app-bar">
+        <div class="title">
+          <a v-if="entry.feed" @click.stop.prevent="viewFeed(entry.feed)">{{ entry.feed.name }}</a>
+          <time v-if="entry" v-tooltip="formatDateTime(entry.publishedAt)">
+            {{ formatTimeAgo(entry.publishedAt) }}
+          </time>
+          <item-tags :tags="entry?.tags" :type="dataType" />
+          <button class="btn-icon sm" v-tooltip="$t('add_to_tags')" @click.prevent="addToTags" style="margin-inline-start: 16px">
             <md-ripple />
-            <i-material-symbols:open-in-new-rounded />
+            <i-material-symbols:label-outline-rounded />
           </button>
-        </a>
-        <button class="btn-icon sm" v-tooltip="$t('save_to_notes')" @click.prevent="saveToNotes({ query: `ids:${id}` })">
-          <md-ripple />
-          <i-material-symbols:add-notes-outline-rounded />
-        </button>
-        <button class="btn-icon sm" v-tooltip="$t('print')" @click.prevent="print">
-          <md-ripple />
-          <i-material-symbols:print-outline-rounded />
-        </button>
+          <md-circular-progress indeterminate class="spinner-sm" v-if="syncContentLoading" />
+          <button class="btn-icon sm" v-else :disabled="syncContentLoading" v-tooltip="$t('sync_content')" @click.prevent="syncContent">
+            <md-ripple />
+            <i-material-symbols:sync-rounded />
+          </button>
+          <a :href="entry?.url" class="btn-icon" target="_blank" v-tooltip="$t('view_original_article')">
+            <button class="btn-icon sm">
+              <md-ripple />
+              <i-material-symbols:open-in-new-rounded />
+            </button>
+          </a>
+          <button class="btn-icon sm" v-tooltip="$t('save_to_notes')" @click.prevent="saveToNotes({ query: `ids:${id}` })">
+            <md-ripple />
+            <i-material-symbols:add-notes-outline-rounded />
+          </button>
+          <button class="btn-icon sm" v-tooltip="$t('print')" @click.prevent="print">
+            <md-ripple />
+            <i-material-symbols:print-outline-rounded />
+          </button>
+        </div>
+        <div class="actions">
+          <button class="btn-icon" v-tooltip="$t('close')" @click.prevent="backToList">
+            <md-ripple />
+            <i-material-symbols:close-rounded />
+          </button>
+        </div>
       </div>
-
-      <div class="actions">
-        <button class="btn-icon" v-tooltip="$t('close')" @click.prevent="backToList">
-          <md-ripple />
-          <i-material-symbols:close-rounded />
-        </button>
+      <div class="article-title">
+        {{ entry?.title }}
       </div>
-    </div>
-    <div class="article-title">
-      {{ entry?.title }}
-    </div>
-    <div class="md-container" v-html="markdown"></div>
-  </article>
+      <div class="md-container" v-html="markdown"></div>
+    </article>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -86,7 +106,11 @@ const { loading, fetch } = initLazyQuery({
       toast(t(error), 'error')
     } else {
       entry.value = data.feedEntry
-      markdown.value = await render(data.feedEntry.content || data.feedEntry.description)
+      if (entry.value) {
+        markdown.value = await render(data.feedEntry.content || data.feedEntry.description)
+      } else {
+        markdown.value = ''
+      }
     }
   },
   document: feedEntryGQL,
@@ -118,7 +142,7 @@ const {
   appApi: true,
 })
 
-onSaveToNotesDone((r: any) => {
+onSaveToNotesDone(() => {
   toast(t('saved'))
 })
 
@@ -215,6 +239,26 @@ onDeactivated(() => {
 }
 </style>
 <style lang="scss" scoped>
+.skeleton-app-bar {
+  width: 40%;
+  height: 24px;
+}
+
+.skeleton-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.skeleton-title {
+  width: 60%;
+  height: 36px;
+}
+
+.skeleton-content {
+  height: 20px;
+  margin-block-end: 8px;
+}
+
 .top-app-bar .title {
   align-items: center;
   font-weight: normal;

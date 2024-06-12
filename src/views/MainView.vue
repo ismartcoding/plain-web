@@ -54,6 +54,10 @@
         </main>
       </div>
       <div class="quick">
+        <button class="btn-icon q-action" v-show="hasTasks" v-tooltip="$t('header_actions.tasks')" @click="toggleQuick('task')" toggle :class="{ selected: store.quick === 'task' }">
+          <md-ripple />
+          <i-material-symbols:format-list-numbered-rounded />
+        </button>
         <button
           class="btn-icon q-action"
           v-if="app.channel !== 'GOOGLE'"
@@ -65,17 +69,13 @@
           <md-ripple />
           <i-material-symbols:notifications-outline-rounded />
         </button>
-        <button v-if="hasTasks" class="btn-icon q-action" v-tooltip="$t('header_actions.tasks')" @click="toggleQuick('task')" toggle :class="{ selected: store.quick === 'task' }">
-          <md-ripple />
-          <i-material-symbols:format-list-numbered-rounded />
-        </button>
         <button id="quick-audio" class="btn-icon q-action" v-tooltip="$t('playlist')" @click="toggleQuick('audio')" toggle :class="{ selected: store.quick === 'audio' }">
           <md-ripple />
           <i-material-symbols:queue-music-rounded />
         </button>
         <button class="btn-icon q-action" v-tooltip="$t('my_phone')" @click="toggleQuick('chat')" toggle :class="{ selected: store.quick === 'chat' }">
           <md-ripple />
-          <i-material-symbols:chat-outline-rounded />
+          <i-material-symbols:smartphone-outline />
         </button>
 
         <div class="drag-indicator" v-show="store.quick" @mousedown="initResize">
@@ -84,10 +84,10 @@
       </div>
       <transition name="width">
         <div class="quick-content" v-show="store.quick" :style="{ width: store.quickContentWidth + 'px' }">
+          <task-list v-show="store.quick === 'task'" />
           <p-chat v-show="store.quick === 'chat'" />
           <audio-player v-show="store.quick === 'audio'" />
-          <task-list v-show="store.quick === 'task'" />
-          <notifications v-show="store.quick === 'notification'" />
+          <p-notifications v-show="store.quick === 'notification'" />
         </div>
       </transition>
       <lightbox />

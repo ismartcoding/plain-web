@@ -24,6 +24,7 @@ export interface IBucket extends IData {
   id: string
   name: string
   itemCount: number
+  topItems: string[]
 }
 
 export interface IMessage extends IData {

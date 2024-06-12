@@ -532,8 +532,8 @@ export const aiChatConfigGQL = gql`
 `
 
 export const packagesGQL = gql`
-  query packages($offset: Int!, $limit: Int!, $query: String!) {
-    packages(offset: $offset, limit: $limit, query: $query) {
+  query packages($offset: Int!, $limit: Int!, $query: String!, $sortBy: FileSortBy!) {
+    packages(offset: $offset, limit: $limit, query: $query, sortBy: $sortBy) {
       ...PackageFragment
     }
     packageCount(query: $query)

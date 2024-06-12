@@ -1,7 +1,7 @@
 <template>
   <Teleport to="body">
-    <transition name="fade" v-if="tempStore.lightbox.visible">
-      <div @touchmove="preventDefault" class="lightbox" @wheel="onWheel">
+    <transition name="fade">
+      <div v-if="tempStore.lightbox.visible" @touchmove="preventDefault" class="lightbox" @wheel="onWheel">
         <transition mode="out-in">
           <div class="layout">
             <header class="toolbar" v-if="current">

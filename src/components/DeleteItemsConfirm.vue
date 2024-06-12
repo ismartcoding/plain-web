@@ -1,7 +1,7 @@
 <template>
   <md-dialog>
     <form id="form" slot="content" method="dialog">
-      {{ $t('confirm_to_delete') }}
+      {{ $t('confirm_to_delete', { count }) }}
     </form>
     <div slot="actions">
       <md-outlined-button form="form" value="cancel">{{ $t('cancel') }}</md-outlined-button>
@@ -17,6 +17,7 @@ import type { DocumentNode } from 'graphql'
 
 const props = defineProps({
   gql: { type: Object as PropType<DocumentNode>, required: true },
+  count: { type: Number, required: true },
   done: {
     type: Function as PropType<() => void>,
     required: true,

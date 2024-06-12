@@ -3,7 +3,7 @@
     <li class="page-item" :class="{ disabled: !isPrevActive }">
       <a class="page-link" href="#" @click.prevent="prev">&laquo;</a>
     </li>
-    <li v-for="page in pagination" class="page-item" :class="{ disabled: page === null, active: page === props.page }">
+    <li v-for="(page, i) in pagination" class="page-item" :key="i" :class="{ disabled: page === null, active: page === props.page }">
       <span class="page-link" v-if="page === null">···</span>
       <a v-else class="page-link" href="#" @click.prevent="go(page)">
         {{ page }}
@@ -45,7 +45,6 @@ const pages = computed(() => {
   return Math.ceil(props.total / props.limit)
 })
 
-const emit = defineEmits(['update:modelValue'])
 const pagination = computed((): (number | null)[] => {
   const res = []
   const minPaginationElems = 5 + props.rangeSize * 2

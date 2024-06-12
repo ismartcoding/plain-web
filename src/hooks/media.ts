@@ -2,7 +2,6 @@ import DeleteItemsConfirm from '@/components/DeleteItemsConfirm.vue'
 import { openModal } from '@/components/modal'
 import { useI18n } from 'vue-i18n'
 import toast from '@/components/toaster'
-import type { IBucket, IMedia } from '@/lib/interfaces'
 import { deleteMediaItemsGQL } from '@/lib/api/mutation'
 import emitter from '@/plugins/eventbus'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
@@ -10,7 +9,7 @@ import type { DataType } from '@/lib/data'
 import { encodeBase64 } from '@/lib/strutil'
 import type { MainState } from '@/stores/main'
 import { buildQuery } from '@/lib/search'
-import router, { replacePath } from '@/plugins/router'
+import { replacePath } from '@/plugins/router'
 
 export const useDeleteItems = () => {
   const { t } = useI18n()
@@ -20,7 +19,7 @@ export const useDeleteItems = () => {
   typeNameMap.set('IMAGE', 'Image')
 
   return {
-    deleteItems: (type: string, ids: string[], realAllChecked: boolean, query: string) => {
+    deleteItems: (type: string, ids: string[], realAllChecked: boolean, total: number, query: string) => {
       let q = query
       if (!realAllChecked) {
         if (ids.length === 0) {
@@ -32,6 +31,7 @@ export const useDeleteItems = () => {
 
       openModal(DeleteItemsConfirm, {
         gql: deleteMediaItemsGQL,
+        count: realAllChecked ? total : ids.length,
         variables: () => ({ type: type, query: q }),
         done: () => {
           emitter.emit('media_items_deleted', { type: type })
@@ -39,10 +39,11 @@ export const useDeleteItems = () => {
       })
     },
 
-    deleteItem: (type: string, item: IMedia) => {
+    deleteItem: (type: string, item: IImageItem | IVideoItem | IAudio) => {
       openModal(DeleteConfirm, {
         id: item.id,
         name: item.title,
+        image: type === 'AUDIO' ? item.albumFileId : item.fileId,
         gql: deleteMediaItemsGQL,
         variables: () => ({ type: type, query: `ids:${item.id}` }),
         appApi: true,

@@ -1,7 +1,7 @@
 .media-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(156px, 1fr));
-  gap: 4px;
+  gap: 8px;
   margin-block-end: 24px;
 
   .media-item {
@@ -12,48 +12,66 @@
     align-items: center;
     position: relative;
     transition: padding 0.3s ease-in-out;
+    svg.image {
+      width: 60%;
+      height: 60%;
+      max-width: 60%;
+    }
+    .btn-zoom {
+      position: absolute;
+      display: none;
+      top: 0;
+      right: 0;
+      z-index: 2;
+      margin: 4px;
+      background: rgba(0, 0, 0, 0.4);
+      color: #fff;
+    }
     .actions {
+      display: none;
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      padding: 4px;
+      background: var(--md-sys-color-surface-container-highest);
+      z-index: 2;
+      border-radius: 8px 0 8px 0;
+      transition: display 0.3s;
+      .btn-icon {
+        color: var(--md-sys-color-on-surface-container);
+      }
+    }
+    &:hover {
+      .actions, .btn-checkbox, .btn-zoom {
+        display: flex;
+      }
+    }
+    &:hover .btn-checkbox, &.selected .btn-checkbox, &.selecting .btn-checkbox {
+      display: flex;
+    }
+    .btn-checkbox {
       display: none;
       position: absolute;
       left: 0;
       top: 0;
-      right: 0;
-      padding: 4px;
-      background: var(--md-sys-color-secondary-container);
       z-index: 1;
-      border-radius: 8px 8px 0 0;
-      transition: display 0.3s;
-      .btn-icon {
-        color: var(--md-sys-color-on-secondary-container);
-      }
-    }
-    &:hover {
-      .actions {
-        display: flex;
+      color: var(--md-sys-color-primary);
+      /* Add white background to the svg icon */
+      &::before {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        background: var(--md-sys-color-surface);
+        z-index: -1;
       }
     }
     &.selected {
       padding: 16px;
-      .btn-checkbox {
-        color: var(--md-sys-color-primary);
-        position: absolute;
-        left: 0;
-        top: 0;
-        z-index: 1;
-        /* Add white background to the svg icon */
-        &::before {
-          content: '';
-          position: absolute;
-          width: 20px;
-          height: 20px;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          border-radius: 50%;
-          background: #fff;
-          z-index: -1;
-        }
-      }
     }
     &.selecting::before {
       content: '';
@@ -69,10 +87,6 @@
     &.selecting {
       .btn-checkbox {
         color: var(--md-sys-color-primary);
-        position: absolute;
-        left: 0;
-        top: 0;
-        z-index: 1;
       }
     }
   }
@@ -96,101 +110,131 @@
     padding: 4px 8px;
     position: absolute;
     bottom: 0;
-    left: 0;
     right: 0;
     background: rgba(0, 0, 0, 0.4);
     z-index: 1;
-    border-radius: 0 0 8px 8px;
+    border-radius: 8px 0 8px 0;
     align-items: center;
     justify-content: end;
     .tags {
       width: 0;
       flex: 1;
-      a {
-        color: #fff;
-        font-size: 12px;
-      }
     }
+    .tags a,
     .right {
       color: #fff;
       font-size: 12px;
+    }
+    &.has-tags {
+      left: 0;
+      border-radius: 0 0 8px 8px;
     }
   }
 }
 
 .media-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 8px;
   .media-item {
     display: grid;
     border-radius: 8px;
     grid-template-areas:
-      'checkbox image right actions'
-      'number image right actions';
-    grid-template-columns: auto 64px 1fr 48px;
+      'start image title actions time'
+      'start image subtitle  actions time';
+    grid-template-columns: 48px 50px 1fr 140px minmax(140px, auto);
     &:hover {
       cursor: pointer;
     }
-    .checkbox {
-      grid-area: checkbox;
+    .start {
+      grid-area: start;
     }
     .number {
-      grid-area: number;
-      margin-block-end: 8px;
       font-size: 0.75rem;
-      justify-content: center;
       display: flex;
-      align-items: end;
+      justify-content: center;
     }
     .image {
-      width: 64px;
-      height: 64px;
+      width: 50px;
+      height: 50px;
       grid-area: image;
       object-fit: cover;
       border-radius: 8px;
       margin-block: 12px;
     }
-    .right {
-      grid-area: right;
-      padding: 12px 0 8px 0;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+    .title {
+      grid-area: title;
+      font-weight: 500;
+      margin-inline: 16px;
+      padding-block-start: 12px;
       word-break: break-all;
     }
-    .title,
-    .info {
-      margin-inline: 16px;
-    }
-    .info {
+    .subtitle {
+      grid-area: subtitle;
       display: flex;
-      gap: 4px;
+      gap: 8px;
       flex-wrap: wrap;
       font-size: 0.875rem;
+      margin-inline: 16px;
+      margin-block-start: 8px;
+      margin-block-end: 12px;
     }
     .actions {
-      display: flex;
       grid-area: actions;
-      flex-direction: column;
+      display: flex;
+      flex-direction: row;
+      gap: 4px;
       align-items: center;
-      justify-content: center;
-      gap: 2px;
-      visibility: hidden;
+      visibility: visible;
+      padding-inline: 16px;
     }
-    &:hover {
+    .time {
+      grid-area: time;
+      display: flex;
+      align-items: center;
+      padding-inline: 16px;
+      justify-content: end;
+    }
+  }
+  &.select-mode {
+    .media-item {
       .actions {
-        visibility: visible;
+        visibility: hidden;
       }
     }
   }
 }
 
 .no-hover {
-  .media-grid .media-item .actions {
+  .media-grid .media-item .btn-checkbox {
     display: flex;
   }
   .media-list .media-item .actions {
     visibility: visible;
+  }
+}
+
+.media-list {
+  .media-item {
+    .skeleton-image {
+      width: 50px;
+      height: 50px;
+    }
+    .skeleton-title {
+      width: 60%;
+      height: 24px;
+    }
+    .skeleton-subtitle {
+      width: 60%;
+      height: 20px;
+    }
+    .skeleton-actions {
+      width: 100px;
+      height: 20px;
+    }
+    .skeleton-time {
+      width: 60px;
+      height: 20px;
+    }
   }
 }
