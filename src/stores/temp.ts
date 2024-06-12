@@ -5,6 +5,7 @@ import type sjcl from 'sjcl'
 import type { IApp } from '@/lib/interfaces'
 
 export interface IUploadItem {
+  id: string
   dir: string
   fileName: string
   file: File
@@ -46,6 +47,7 @@ export type TempState = {
   audioPlaying: boolean
   lightbox: ILightBox
   counter: IDataCounter
+  feedsSyncing: boolean
 }
 
 export const useTempStore = defineStore({
@@ -74,5 +76,6 @@ export const useTempStore = defineStore({
         total: -1,
         free: -1,
       },
+      feedsSyncing: false,
     }) as TempState,
 })

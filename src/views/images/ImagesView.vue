@@ -5,7 +5,7 @@
       <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
       <span v-else>{{ $t('page_title.images') }} ({{ total.toLocaleString() }})</span>
       <template v-if="checked">
-        <button class="btn-icon" @click.stop="deleteItems(dataType, selectedIds, realAllChecked, q)" v-tooltip="$t('delete')">
+        <button class="btn-icon" @click.stop="deleteItems(dataType, selectedIds, realAllChecked, total, q)" v-tooltip="$t('delete')">
           <md-ripple />
           <i-material-symbols:delete-forever-outline-rounded />
         </button>
@@ -22,10 +22,20 @@
 
     <div class="actions">
       <search-input :filter="filter" :tags="tags" :buckets="buckets" :get-url="getUrl" />
-      <button class="btn-icon" @click.prevent="upload" v-tooltip="$t('upload')">
-        <md-ripple />
-        <i-material-symbols:upload-rounded />
-      </button>
+      <popper>
+        <button class="btn-icon" v-tooltip="$t('upload')">
+          <md-ripple />
+          <i-material-symbols:upload-rounded />
+        </button>
+        <template #content="slotProps">
+          <md-menu-item @click.stop="uploadFilesClick(slotProps)">
+            <div slot="headline">{{ $t('upload_files') }}</div>
+          </md-menu-item>
+          <md-menu-item @click.stop="uploadDirClick(slotProps)">
+            <div slot="headline">{{ $t('upload_folder') }}</div>
+          </md-menu-item>
+        </template>
+      </popper>
       <popper>
         <button class="btn-icon btn-sort" v-tooltip="$t('sort')">
           <md-ripple />
@@ -54,17 +64,18 @@
     :select-real-all="selectRealAll"
     :clear-selection="clearSelection"
   />
-  <div class="scroll-content">
+  <div class="scroll-content" @dragover.stop.prevent="fileDragEnter">
+    <div class="drag-mask" v-show="dropping" @drop.stop.prevent="dropFiles2" @dragleave.stop.prevent="fileDragLeave">{{ $t('release_to_send_files') }}</div>
     <div class="media-grid" v-if="!mainStore.imagesCardView" :class="{ 'select-mode': checked }">
       <section
         class="media-item"
         v-for="(item, i) in items"
         :key="item.id"
         :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
-        @click.stop="handleMouseDown($event, item, i, view)"
+        @click.stop="handleItemClick($event, item, i, view)"
         @mouseover="handleMouseOver($event, i)"
       >
-        <img class="image" :src="getFileUrl(item.fileId, '&w=200&h=200')" onerror="this.src='/broken-image.png'" />
+        <img class="image-thumb image" :src="getFileUrl(item.fileId, '&w=200&h=200')" onerror="this.src='/broken-image.png'" />
         <button v-if="shiftEffectingIds.includes(item.id)" class="btn-icon btn-checkbox" @click.stop="toggleSelect($event, item, i)">
           <md-ripple />
           <i-material-symbols:check-circle-rounded v-if="shouldSelect" />
@@ -75,39 +86,40 @@
           <i-material-symbols:check-circle-rounded />
         </button>
         <template v-else>
-          <div class="actions" @mousedown.stop="() => {}">
-            <button class="btn-icon sm btn-checkbox" @click.stop="toggleSelect($event, item, i)">
+          <button class="btn-icon btn-checkbox" @click.stop="toggleSelect($event, item, i)">
+            <md-ripple />
+            <i-material-symbols:check-circle-rounded v-if="selectedIds.includes(item.id)" />
+            <i-material-symbols:check-circle-outline-rounded v-else />
+          </button>
+          <template v-if="checked">
+            <button class="btn-icon btn-zoom sm" @click.stop="view(i)" v-tooltip="$t('open')">
               <md-ripple />
-              <i-material-symbols:check-circle-rounded v-if="selectedIds.includes(item.id)" />
-              <i-material-symbols:check-circle-outline-rounded v-else />
+              <i-material-symbols:zoom-in-rounded />
             </button>
-            <template v-if="checked">
-              <button class="btn-icon sm" @click.stop="view(i)" v-tooltip="$t('open')">
-                <md-ripple />
-                <i-material-symbols:zoom-in-rounded />
-              </button>
-            </template>
-            <template v-else>
-              <button class="btn-icon sm" @click.stop="deleteItem(dataType, item)" v-tooltip="$t('delete')">
-                <md-ripple />
-                <i-material-symbols:delete-forever-outline-rounded />
-              </button>
-              <button class="btn-icon sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))" v-tooltip="$t('download')">
-                <md-ripple />
-                <i-material-symbols:download-rounded />
-              </button>
-              <button class="btn-icon sm" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
-                <md-ripple />
-                <i-material-symbols:label-outline-rounded />
-              </button>
-            </template>
+          </template>
+          <div v-else class="actions">
+            <button class="btn-icon sm" @click.stop="deleteItem(dataType, item)" v-tooltip="$t('delete')">
+              <md-ripple />
+              <i-material-symbols:delete-forever-outline-rounded />
+            </button>
+            <button class="btn-icon sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))" v-tooltip="$t('download')">
+              <md-ripple />
+              <i-material-symbols:download-rounded />
+            </button>
+            <button class="btn-icon sm" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
+              <md-ripple />
+              <i-material-symbols:label-outline-rounded />
+            </button>
           </div>
-          <div class="info" @mousedown.stop="() => {}">
+          <div class="info" :class="{ 'has-tags': item.tags.length > 0 }">
             <item-tags :tags="item.tags" :type="dataType" />
             <span class="right">{{ formatFileSize(item.size) }}</span>
           </div>
         </template>
       </section>
+      <template v-if="loading && items.length === 0">
+        <section class="skeleton-image media-item" v-for="i in limit" :key="i"></section>
+      </template>
     </div>
     <div v-else class="media-list" :class="{ 'select-mode': checked }">
       <section
@@ -115,28 +127,22 @@
         v-for="(item, i) in items"
         :key="item.id"
         :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
-        @click.stop="handleMouseDown($event, item, i, view)"
+        @click.stop="handleItemClick($event, item, i, view)"
         @mouseover="handleMouseOver($event, i)"
       >
-        <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, i)" :checked="shouldSelect" />
-        <md-checkbox v-else class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, i)" :checked="selectedIds.includes(item.id)" />
-        <span class="number"><field-id :id="i + 1" :raw="item" /></span>
-        <img class="image" :src="getFileUrl(item.fileId, '&w=200&h=200')" @click.stop="view(i)" style="cursor: pointer" onerror="this.src='/broken-image.png'" />
-        <div class="right">
-          <div class="title">{{ getFileName(item.path) }}</div>
-          <div class="info">
-            <span>{{ formatFileSize(item.size) }}</span>
-            <span>·</span>
-            <span class="time" v-tooltip="formatDateTime(item.createdAt)">
-              {{ formatTimeAgo(item.createdAt) }}
-            </span>
-          </div>
-          <div class="info">
-            <a @click.stop.prevent="viewBucket(mainStore, item.bucketId)">{{ bucketsMap[item.bucketId]?.name }}</a
-            ><span v-if="item.tags.length">·</span><item-tags :tags="item.tags" :type="dataType" only-links="true" />
-          </div>
+        <div class="start">
+          <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, i)" :checked="shouldSelect" />
+          <md-checkbox v-else class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, i)" :checked="selectedIds.includes(item.id)" />
+          <span class="number"><field-id :id="i + 1" :raw="item" /></span>
         </div>
-        <div v-if="!checked" class="actions">
+        <img class="image" :src="getFileUrl(item.fileId, '&w=200&h=200')" onerror="this.src='/broken-image.png'" />
+        <div class="title">{{ getFileName(item.path) }}</div>
+        <div class="subtitle">
+          <span>{{ formatFileSize(item.size) }}</span>
+          <a @click.stop.prevent="viewBucket(mainStore, item.bucketId)">{{ bucketsMap[item.bucketId]?.name }}</a>
+          <item-tags :tags="item.tags" :type="dataType" :only-links="true" />
+        </div>
+        <div class="actions">
           <button class="btn-icon sm" @click.stop="deleteItem(dataType, item)" v-tooltip="$t('delete')">
             <md-ripple />
             <i-material-symbols:delete-forever-outline-rounded />
@@ -150,12 +156,20 @@
             <i-material-symbols:label-outline-rounded />
           </button>
         </div>
+        <div class="time">
+          <span v-tooltip="formatDateTime(item.createdAt)">
+            {{ formatTimeAgo(item.createdAt) }}
+          </span>
+        </div>
       </section>
+      <image-video-list-skeleton v-if="loading && items.length === 0" :limit="limit" />
     </div>
-    <div class="no-data-placeholder" v-if="!mainStore.imagesCardView && items.length === 0">
+    <div class="no-data-placeholder" v-if="!loading && items.length === 0">
       {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
     </div>
     <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" />
+    <input ref="fileInput" style="display: none" type="file" accept="image/*" multiple @change="uploadChanged" />
+    <input ref="dirFileInput" style="display: none" type="file" accept="image/*" multiple webkitdirectory mozdirectory directory @change="dirUploadChanged" />
   </div>
 </template>
 
@@ -164,7 +178,7 @@ import { onActivated, onDeactivated, reactive, ref } from 'vue'
 import toast from '@/components/toaster'
 import { computed } from 'vue'
 import { bucketsTagsGQL, imagesGQL, initLazyQuery } from '@/lib/api/query'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useI18n } from 'vue-i18n'
@@ -179,20 +193,18 @@ import { getFileName } from '@/lib/api/file'
 import { useSelectable } from '@/hooks/list'
 import { useBuckets, useDeleteItems } from '@/hooks/media'
 import { useDownload, useDownloadItems } from '@/hooks/files'
+import { useDragDropUpload, useFileUpload } from '@/hooks/upload'
 import emitter from '@/plugins/eventbus'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
-import { pushModal } from '@/components/modal'
-import ConfirmModal from '@/components/ConfirmModal.vue'
 import type { ISource } from '@/components/lightbox/types'
 import { openModal } from '@/components/modal'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { DataType } from '@/lib/data'
-import { getSortItems } from '@/lib/file'
+import { getDirFromPath, getSortItems } from '@/lib/file'
 import { useKeyEvents } from '@/hooks/key-events'
 import { formatDateTime, formatTimeAgo } from '@/lib/format'
 
-const router = useRouter()
 const mainStore = useMainStore()
 const { imageSortBy } = storeToRefs(mainStore)
 const items = ref<IImageItem[]>([])
@@ -202,7 +214,11 @@ const filter = reactive<IFilter>({
   tagIds: [],
 })
 const tempStore = useTempStore()
-const { app, urlTokenKey } = storeToRefs(tempStore)
+const { app, urlTokenKey, uploads } = storeToRefs(tempStore)
+
+const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload(uploads)
+const { input: dirFileInput, upload: uploadDir, uploadChanged: dirUploadChanged } = useFileUpload(uploads)
+const { dropping, fileDragEnter, fileDragLeave, dropFiles } = useDragDropUpload(uploads)
 
 const dataType = DataType.IMAGE
 const route = useRoute()
@@ -234,7 +250,7 @@ const {
   total,
   checked,
   shiftEffectingIds,
-  handleMouseDown,
+  handleItemClick,
   handleMouseOver,
   selectAll,
   shouldSelect,
@@ -246,7 +262,7 @@ const gotoPage = (page: number) => {
   replacePath(mainStore, q ? `/images?page=${page}&q=${q}` : `/images?page=${page}`)
 }
 const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(total, limit, page, selectAll, clearSelection, gotoPage, () => {
-  deleteItems(dataType, selectedIds.value, realAllChecked.value, q.value)
+  deleteItems(dataType, selectedIds.value, realAllChecked.value, total.value, q.value)
 })
 const sortItems = getSortItems()
 
@@ -340,11 +356,27 @@ function changeViewType() {
   mainStore.imagesCardView = !mainStore.imagesCardView
 }
 
-function upload() {
-  router.push(`/files`)
-  pushModal(ConfirmModal, {
-    message: t('upload_images'),
-  })
+function getUploadDir() {
+  const bucket = buckets.value.find((it) => it.id === filter.bucketId)
+  if (bucket) {
+    return getDirFromPath(bucket.topItems[0])
+  }
+
+  return `${app.value.internalStoragePath}/Pictures`
+}
+
+function uploadFilesClick(slotProps: { close: () => void }) {
+  uploadFiles(getUploadDir())
+  slotProps.close()
+}
+
+function uploadDirClick(slotProps: { close: () => void }) {
+  uploadDir(getUploadDir())
+  slotProps.close()
+}
+
+function dropFiles2(e: DragEvent) {
+  dropFiles(e, getUploadDir(), 'image')
 }
 
 const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
@@ -393,3 +425,4 @@ onDeactivated(() => {
   window.removeEventListener('keyup', pageKeyUp)
 })
 </script>
+<style scoped lang="scss"></style>

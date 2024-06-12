@@ -6,7 +6,7 @@
         <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
         <span v-else>{{ $t('page_title.feeds') }} ({{ total.toLocaleString() }})</span>
         <template v-if="checked">
-          <button class="btn-icon" @click.stop="deleteItems(realAllChecked, selectedIds, q)" v-tooltip="$t('delete')">
+          <button class="btn-icon" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)" v-tooltip="$t('delete')">
             <md-ripple />
             <i-material-symbols:delete-forever-outline-rounded />
           </button>
@@ -14,13 +14,18 @@
             <md-ripple />
             <i-material-symbols:label-outline-rounded />
           </button>
+          <md-circular-progress indeterminate class="spinner-sm" v-if="savingNotes" />
+          <button v-else class="btn-icon sm" v-tooltip="$t('save_to_notes')" @click.prevent="saveFeedsToNotes">
+            <md-ripple />
+            <i-material-symbols:add-notes-outline-rounded />
+          </button>
         </template>
       </div>
 
       <div class="actions">
         <search-input :filter="filter" :tags="tags" :feeds="feeds" :show-chips="!isDetail" :get-url="getUrl" :show-today="true" />
-        <md-circular-progress indeterminate class="spinner-sm" v-if="syncing" />
-        <button class="btn-icon" v-else :disabled="syncing" v-tooltip="$t('sync_feeds')" @click.prevent="syncFeeds">
+        <md-circular-progress indeterminate class="spinner-sm" v-if="feedsSyncing" />
+        <button class="btn-icon" v-else :disabled="feedsSyncing" v-tooltip="$t('sync_feeds')" @click.prevent="syncFeeds">
           <md-ripple />
           <i-material-symbols:sync-rounded />
         </button>
@@ -35,14 +40,33 @@
       :select-real-all="selectRealAll"
       :clear-selection="clearSelection"
     />
-    <VirtualList class="scroller" :data-key="'id'" :data-sources="listItems" :estimate-size="100" @tobottom="loadMore">
+    <div v-if="listLoading && items.length === 0" class="scroller">
+      <section class="feed-item selectable-card-skeleton" v-for="i in limit" :key="i">
+        <div class="title">
+          <div class="checkbox">
+            <div class="skeleton-checkbox"></div>
+          </div>
+          <div class="text"><div class="skeleton-text skeleton-title"></div></div>
+        </div>
+        <div class="subtitle">
+          <span class="number">{{ i }}</span>
+          <div class="info">
+            <div class="skeleton-text skeleton-info"></div>
+          </div>
+        </div>
+        <div class="image">
+          <div class="skeleton-image"></div>
+        </div>
+      </section>
+    </div>
+    <VirtualList v-if="items.length > 0" class="scroller" :data-key="'id'" :data-sources="items" :estimate-size="100" @tobottom="loadMore">
       <template #item="{ index, item }">
-        <a class="item-link" :key="item.id" :href="viewUrl(item)">
+        <a class="item-link" :href="viewUrl(item)">
           <article
-            class="feed-item"
+            class="feed-item selectable-card"
             :class="{ selected: selectedIds.includes(item.id) || item.id == $route.params['id'], selecting: shiftEffectingIds.includes(item.id) }"
             @click.stop.prevent="
-              handleMouseDown($event, item, index, () => {
+              handleItemClick($event, item, index, () => {
                 view(item)
               })
             "
@@ -51,7 +75,7 @@
             <div class="title">
               <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, index)" :checked="shouldSelect" />
               <md-checkbox v-else class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, index)" :checked="selectedIds.includes(item.id)" />
-              <span>{{ item.title || $t('no_content') }}</span>
+              <div class="text">{{ item.title || $t('no_content') }}</div>
             </div>
             <div class="subtitle">
               <span class="number"><field-id :id="index + 1" :raw="item" /></span>
@@ -76,8 +100,9 @@
         <md-circular-progress v-if="!noMore" indeterminate class="spinner-sm" />
       </template>
     </VirtualList>
-    <div class="no-data-placeholder" v-if="listItems.length === 0">
-      {{ $t(noDataKey(loading)) }}
+
+    <div class="no-data-placeholder" v-if="!listLoading && items.length === 0">
+      {{ $t(noDataKey(listLoading)) }}
     </div>
     <div class="sidebar-drag-indicator" @mousedown="resizeWidth"></div>
   </aside>
@@ -98,7 +123,7 @@ import { useFeeds } from '@/hooks/feeds'
 import { useDelete, useSelectable } from '@/hooks/list'
 import emitter from '@/plugins/eventbus'
 import { useAddToTags } from '@/hooks/tags'
-import { deleteFeedEntriesGQL, initMutation, syncFeedsGQL } from '@/lib/api/mutation'
+import { deleteFeedEntriesGQL, initMutation, saveFeedEntriesToNotesGQL, syncFeedsGQL } from '@/lib/api/mutation'
 import { openModal } from '@/components/modal'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
@@ -106,13 +131,16 @@ import gql from 'graphql-tag'
 import { getFileUrl } from '@/lib/api/file'
 import VirtualList from '@/components/virtualscroll'
 import { DataType } from '@/lib/data'
-import { useList, useTable } from '@/hooks/feed-entries'
+import { useList } from '@/hooks/feed-entries'
 import { useSearch } from '@/hooks/search'
 import { decodeBase64 } from '@/lib/strutil'
 import { useKeyEvents } from '@/hooks/key-events'
 import { useLeftSidebarResize } from '@/hooks/sidebar'
+import { useTempStore } from '@/stores/temp'
+import { storeToRefs } from 'pinia'
 
 const mainStore = useMainStore()
+const { feedsSyncing } = storeToRefs(useTempStore())
 const { t } = useI18n()
 const filter = reactive<IFilter>({
   tagIds: [],
@@ -132,8 +160,7 @@ const feedsMap = computed(() => {
   })
   return map
 })
-const listItems = ref<IFeedEntry[]>([])
-const tableItems = ref<IFeedEntry[]>([])
+const items = ref<IFeedEntry[]>([])
 const q = ref('')
 const {
   selectedIds,
@@ -147,21 +174,20 @@ const {
   total,
   checked,
   shiftEffectingIds,
-  handleMouseDown,
+  handleItemClick,
   handleMouseOver,
   selectAll,
   shouldSelect,
-} = useSelectable(listItems)
+} = useSelectable(items)
 const gotoPage = (value: number) => {
   page.value = value
   const q = route.query.q
   replacePath(mainStore, q ? `/feeds?page=${value}&q=${q}` : `/feeds?page=${value}`)
 }
 const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(total, limit, page, selectAll, clearSelection, gotoPage, () => {
-  deleteItems(realAllChecked.value, selectedIds.value, q.value)
+  deleteItems(selectedIds.value, realAllChecked.value, total.value, q.value)
 })
-const { page: listPage, loadMore, fetch: fetchList, noMore } = useList(listItems, q, total)
-const { loading, fetch: fetchTable } = useTable(tableItems, q, total, page, limit)
+const { page: listPage, loading: listLoading, loadMore, fetch: fetchList, noMore } = useList(items, q, total)
 const { addToTags } = useAddToTags(dataType, tags)
 const fetch = () => {
   listPage.value = 1
@@ -169,13 +195,12 @@ const fetch = () => {
 }
 const { deleteItems } = useDelete(deleteFeedEntriesGQL, () => {
   clearSelection()
-  fetchTable()
-  if (tableItems.value.some((it) => it.tags.length)) {
+  fetch()
+  if (items.value.some((it) => it.tags.length)) {
     emitter.emit('refetch_tags', dataType)
   }
 })
 
-const syncing = ref(false)
 const isDetail = computed(() => {
   const path = router.currentRoute.value.path
   return path !== '/feeds'
@@ -214,6 +239,31 @@ function deleteItem(item: IFeedEntry) {
     },
   })
 }
+
+const {
+  mutate: saveToNotes,
+  loading: savingNotes,
+  onDone: onSaveToNotesDone,
+} = initMutation({
+  document: saveFeedEntriesToNotesGQL,
+  appApi: true,
+})
+
+function saveFeedsToNotes() {
+  if (!realAllChecked) {
+    if (selectedIds.value.length === 0) {
+      toast(t('select_first'), 'error')
+      return
+    }
+    saveToNotes({ query: `ids:${selectedIds.value.join(',')}` })
+  } else {
+    saveToNotes({ query: q.value })
+  }
+}
+
+onSaveToNotesDone(() => {
+  toast(t('saved'))
+})
 
 function backToList() {
   const q = route.query.q
@@ -280,25 +330,30 @@ const { mutate: doSyncFeeds } = initMutation({
 })
 
 function syncFeeds() {
-  syncing.value = true
+  feedsSyncing.value = true
   doSyncFeeds({ id: '' })
 }
 
 const feedsFetchedHandler = (data: any) => {
-  syncing.value = false
-  toast(data.error || t('feeds_synced'))
+  feedsSyncing.value = false
+  fetch()
+  if (data.error) {
+    toast(data.error, 'error')
+  } else {
+    toast(t('feeds_synced'))
+  }
 }
 
 const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
   if (event.type === dataType) {
     clearSelection()
-    fetchTable()
+    fetch()
   }
 }
 
 const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
   if (event.type === dataType) {
-    fetchTable()
+    fetch()
   }
 }
 
@@ -332,13 +387,10 @@ onDeactivated(() => {
 .sidebar2 {
   position: relative;
 }
-.scroll-content {
-  height: calc(100vh - 135px);
-}
 .scroller {
   overflow-y: auto;
   overflow-x: hidden;
-  height: calc(100vh - 122px);
+  height: calc(100vh - 112px);
   .item-link {
     text-decoration: none;
     display: block;
@@ -349,28 +401,22 @@ onDeactivated(() => {
   margin: 0 16px 8px 16px;
   display: grid;
   box-sizing: border-box;
-  background: var(--md-sys-color-surface-container);
-  color: var(--md-sys-color-on-surface);
   border-radius: 8px;
   grid-template-areas:
     'title image'
     'subtitle image';
   grid-template-columns: 1fr auto;
-  &.selected {
-    background: var(--md-sys-color-surface-container-highest);
-  }
   &:hover {
-    background: var(--md-sys-color-surface-variant);
     cursor: pointer;
   }
   .title {
-    font-weight: 500;
     grid-area: title;
     display: flex;
-    span {
+    .text {
+      font-weight: 500;
       flex: 1;
       width: 0;
-      margin-block-start: 12px;
+      margin-block: 12px;
       margin-inline-end: 12px;
     }
   }
@@ -380,9 +426,8 @@ onDeactivated(() => {
     grid-area: subtitle;
     display: flex;
     flex-direction: row;
-    gap: 4px;
+    gap: 8px;
     align-items: end;
-    margin-block-start: 8px;
     margin-block-end: 12px;
     margin-inline-end: 16px;
     .number {
@@ -406,9 +451,6 @@ onDeactivated(() => {
     margin-block: 12px;
     margin-inline-end: 12px;
   }
-  &.selecting {
-    background: var(--pl-selecting-container-color);
-  }
 }
 .drag-indicator {
   position: absolute;
@@ -417,5 +459,26 @@ onDeactivated(() => {
   bottom: 0;
   width: 16px;
   cursor: col-resize;
+}
+
+.scroller {
+  .feed-item {
+    .skeleton-image {
+      width: 50px;
+      height: 50px;
+    }
+    .skeleton-title {
+      width: 50%;
+      height: 24px;
+    }
+    .skeleton-info {
+      width: 30%;
+      height: 20px;
+    }
+    .skeleton-time {
+      width: 60px;
+      height: 20px;
+    }
+  }
 }
 </style>

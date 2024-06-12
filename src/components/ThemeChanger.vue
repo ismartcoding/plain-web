@@ -11,14 +11,14 @@
         </span>
       </label>
     </div>
-    <md-outlined-segmented-button-set @segmented-button-set-selection="onColorModeSelection">
-      <md-outlined-segmented-button data-value="dark" :selected="selectedColorMode === 'dark'">
+    <md-outlined-segmented-button-set>
+      <md-outlined-segmented-button data-value="dark" :selected="selectedColorMode === 'dark'" @click="selectColrMode('dark')">
         <i-material-symbols:dark-mode-outline-rounded slot="icon" />
       </md-outlined-segmented-button>
-      <md-outlined-segmented-button data-value="auto" :selected="selectedColorMode === 'auto'">
+      <md-outlined-segmented-button data-value="auto" :selected="selectedColorMode === 'auto'" @click="selectColrMode('auto')">
         <i-material-symbols:brightness-6-outline-rounded slot="icon" />
       </md-outlined-segmented-button>
-      <md-outlined-segmented-button data-value="light" :selected="selectedColorMode === 'light'">
+      <md-outlined-segmented-button data-value="light" :selected="selectedColorMode === 'light'" @click="selectColrMode('light')">
         <i-material-symbols:sunny-outline-rounded slot="icon" />
       </md-outlined-segmented-button>
     </md-outlined-segmented-button-set>
@@ -34,15 +34,7 @@ import '@material/web/labs/segmentedbutton/outlined-segmented-button.js'
 
 const hexColor = ref(getCurrentSeedColor())
 const selectedColorMode = ref(getCurrentMode())
-function onColorModeSelection(
-  e: CustomEvent<{
-    button: MdOutlinedSegmentedButton
-    selected: boolean
-    index: number
-  }>
-) {
-  const { button } = e.detail
-  const value = button.dataset.value as ColorMode
+function selectColrMode(value: ColorMode) {
   selectedColorMode.value = value
   changeColorMode(value)
 }

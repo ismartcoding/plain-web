@@ -26,28 +26,20 @@ export const useSelectable = (items: Ref<IData[]>) => {
     }
   }
 
-  const toggleTableShiftSelection = (item: IData, index: number) => {
+  const getShiftEffectingIds = (index: number) => {
     const start = Math.min(lastCheckedIndex.value, index)
     const end = Math.max(lastCheckedIndex.value, index)
-    const effectIds = items.value.slice(start, end + 1).map((it) => it.id)
-    if (lastCheckedIndex.value !== null && lastCheckedIndex.value !== index && effectIds.length > 0) {
-      if (shouldSelect.value) {
-        for (const id of effectIds) {
-          if (!selectedIds.value.includes(id)) {
-            selectedIds.value.push(id)
-          }
-        }
-      } else {
-        selectedIds.value = selectedIds.value.filter((it) => !effectIds.includes(it))
-      }
-      lastCheckedIndex.value = index
-      shouldSelect.value = selectedIds.value.includes(item.id)
-    } else {
-      checkItem(!selectedIds.value.includes(item.id), item, index)
-    }
+    const lastIndexId = items.value[lastCheckedIndex.value].id
+    return items.value
+      .slice(start, end + 1)
+      .map((it) => it.id)
+      .filter((it) => it !== lastIndexId)
   }
 
-  const toggleGridShiftSelection = (item: IData, index: number) => {
+  const toggleShiftSelection = (item: IData, index: number) => {
+    // if (shiftEffectingIds.value.length === 0) {
+    //   shiftEffectingIds.value = getShiftEffectingIds(index)
+    // }
     if (lastCheckedIndex.value !== null && lastCheckedIndex.value !== index && shiftEffectingIds.value.length > 0) {
       if (shouldSelect.value) {
         for (const id of shiftEffectingIds.value) {
@@ -96,22 +88,6 @@ export const useSelectable = (items: Ref<IData[]>) => {
       }
     },
     selectAll,
-    toggleRow: (event: Event, item: IData, index: number) => {
-      if (event.target.nodeName === 'MD-CHECKBOX') {
-        const checked = (event.target as MdCheckbox).checked
-        if (event.shiftKey) {
-          toggleTableShiftSelection(item, index)
-        } else {
-          checkItem(checked, item, index)
-        }
-      } else {
-        if (event.shiftKey) {
-          toggleTableShiftSelection(item, index)
-        } else {
-          checkItem(!selectedIds.value.includes(item.id), item, index)
-        }
-      }
-    },
     allCheckedAlertVisible: computed<boolean>(() => {
       return allChecked.value && !realAllChecked.value && selectedIds.value.length < total.value
     }),
@@ -136,12 +112,12 @@ export const useSelectable = (items: Ref<IData[]>) => {
     shiftEffectingIds,
     toggleSelect: (event: Event, item: IData, index: number) => {
       if (event.shiftKey) {
-        toggleGridShiftSelection(item, index)
+        toggleShiftSelection(item, index)
       } else {
         checkItem(!selectedIds.value.includes(item.id), item, index)
       }
     },
-    handleMouseDown(event: Event, item: IData, index: number, view: (i: number) => void = () => {}) {
+    handleItemClick(event: Event, item: IData, index: number, view: (i: number) => void = () => {}) {
       if (event.target.nodeName === 'MD-CHECKBOX') {
         return
       }
@@ -156,7 +132,7 @@ export const useSelectable = (items: Ref<IData[]>) => {
         return
       }
       if (event.shiftKey) {
-        toggleGridShiftSelection(item, index)
+        toggleShiftSelection(item, index)
       } else {
         checkItem(!selectedIds.value.includes(item.id), item, index)
       }
@@ -164,10 +140,7 @@ export const useSelectable = (items: Ref<IData[]>) => {
     handleMouseOver(event: Event, index: number) {
       if (event.shiftKey) {
         if (lastCheckedIndex.value !== null && lastCheckedIndex.value !== index) {
-          const start = Math.min(lastCheckedIndex.value, index)
-          const end = Math.max(lastCheckedIndex.value, index)
-          const lastIndexId = items.value[lastCheckedIndex.value].id
-          shiftEffectingIds.value = items.value.slice(start, end + 1).map((it) => it.id).filter((it) => it !== lastIndexId)
+          shiftEffectingIds.value = getShiftEffectingIds(index)
         }
       } else {
         shiftEffectingIds.value = []
@@ -180,7 +153,7 @@ export const useDelete = (gql: DocumentNode, done: () => void) => {
   const { t } = useI18n()
 
   return {
-    deleteItems: (realAllChecked: boolean, selectedIds: string[], query: string) => {
+    deleteItems: (selectedIds: string[], realAllChecked: boolean, total: number, query: string) => {
       let q = query
       if (!realAllChecked) {
         if (selectedIds.length === 0) {
@@ -192,6 +165,7 @@ export const useDelete = (gql: DocumentNode, done: () => void) => {
 
       openModal(DeleteItemsConfirm, {
         gql: gql,
+        count: realAllChecked ? total : selectedIds.length,
         variables: () => ({ query: q }),
         done: done,
       })

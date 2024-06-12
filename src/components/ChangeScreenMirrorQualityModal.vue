@@ -13,15 +13,17 @@
         <label class="form-label">
           {{ $t('compress_quality') }}
         </label>
-        <md-outlined-select menu-positioning="fixed" v-model.number="quality" :disabled="qualityId !== 'custom'">
+        <md-outlined-select class="flex-2" menu-positioning="fixed" v-model.number="quality" :disabled="qualityId !== 'custom'">
           <md-select-option v-for="o of qualityOptions" :key="o" :value="o">
             <div slot="headline">{{ getCompressOptionText(o) }}</div>
           </md-select-option>
         </md-outlined-select>
+      </div>
+      <div class="form-row">
         <label class="form-label">
           {{ $t('resolution') }}
         </label>
-        <md-outlined-select menu-positioning="fixed" v-model.number="resolution" :disabled="qualityId !== 'custom'">
+        <md-outlined-select class="flex-2" menu-positioning="fixed" v-model.number="resolution" :disabled="qualityId !== 'custom'">
           <md-select-option v-for="o of resolutionOptions" :key="o" :value="o">
             <div slot="headline">{{ o }}p</div>
           </md-select-option>
@@ -125,7 +127,7 @@ const doAction = () => {
 </script>
 <style lang="scss" scoped>
 md-outlined-select {
-  min-width: 110px;
+  min-width: 120px;
 }
 md-dialog {
   min-width: 540px;

@@ -19,7 +19,7 @@ import { names } from '@/lib/tag'
 const props = defineProps({
   type: { type: String },
   onlyLinks: { type: Boolean, default: false },
-  tags: { type: Array as PropType<ITag[]>, default: [], required: true },
+  tags: { type: Array as PropType<ITag[]>, default: () => [], required: true },
 })
 const mainStore = useMainStore()
 

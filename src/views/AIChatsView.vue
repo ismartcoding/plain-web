@@ -4,7 +4,7 @@
     <div class="actions">
       <search-input :filter="filter" :tags="tags" :get-url="getUrl" />
       <template v-if="checked">
-        <button class="btn-icon" @click.stop="deleteItems(realAllChecked, selectedIds, q)" v-tooltip="$t('delete')">
+        <button class="btn-icon" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)" v-tooltip="$t('delete')">
           <md-ripple />
           <i-material-symbols:delete-forever-outline-rounded />
         </button>
@@ -40,8 +40,8 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(item, i) in items" :key="item.id" :class="{ selected: selectedIds.includes(item.id) }" @click.stop="toggleRow($event, item, i)">
-          <td><md-checkbox touch-target="wrapper" @change="toggleRow($event, item, i)" :checked="selectedIds.includes(item.id)" /></td>
+        <tr v-for="(item, i) in items" :key="item.id" :class="{ selected: selectedIds.includes(item.id) }" @click.stop="toggleSelect($event, item, i)">
+          <td><md-checkbox touch-target="wrapper" @change="toggleSelect($event, item, i)" :checked="selectedIds.includes(item.id)" /></td>
           <td v-if="app.developerMode"><field-id :id="item.id" :raw="item" /></td>
           <td>
             <a href="#" @click.prevent="view(item)">{{ truncate(item.content, { length: 200, omission: '' }) }}</a>
@@ -134,7 +134,7 @@ const { addToTags } = useAddToTags(dataType, tags)
 const { deleteItems } = useDelete(deleteAIChatsGQL, () => {
   fetch()
 })
-const { selectedIds, allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleRow, total, checked, selectAll } = useSelectable(items)
+const { selectedIds, allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleSelect, total, checked, selectAll } = useSelectable(items)
 
 const gotoPage = (page: number) => {
   const q = route.query.q

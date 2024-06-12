@@ -4,9 +4,7 @@
       <md-ripple />
       <i-material-symbols:arrow-back-rounded />
     </button>
-    <div class="title">
-      {{ id ? t('edit') : t('create') }} <span class="state-point" v-show="notSaved">*</span> <field-id class="time" v-if="note?.updatedAt" :id="getTime()" :raw="note" />
-    </div>
+    <div class="title">{{ id ? t('edit') : t('create') }} <span class="state-point" v-show="notSaved">*</span> <field-id class="time" v-if="note?.updatedAt" :id="getTime()" :raw="note" /></div>
     <div class="actions">
       <item-tags :tags="note?.tags" :type="dataType" :only-links="true" />
       <template v-if="id">
@@ -29,7 +27,7 @@
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { onActivated, onDeactivated, onMounted, onUnmounted, ref, watch } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { useI18n } from 'vue-i18n'
 import { initLazyQuery, initQuery, noteGQL, tagsGQL } from '@/lib/api/query'
@@ -76,7 +74,7 @@ const saveContent = debounce(() => {
     id: id.value,
     input: {
       content: content.value,
-      title: truncate(content.value, { length: 100, omission: '' }),
+      title: truncate(content.value, { length: 250, omission: '' }),
     },
   })
 }, 500)

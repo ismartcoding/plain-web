@@ -5,23 +5,30 @@
         <md-ripple />
         <i-material-symbols:right-panel-close-outline />
       </button>
-      <div class="title">{{ $t('header_actions.tasks') }} ({{ visibleTasks.length }})</div>
+      <div class="title">{{ $t('header_actions.tasks') }} ({{ tempStore.uploads.length }})</div>
+      <div class="actions">
+        <md-outlined-segmented-button-set>
+          <md-outlined-segmented-button v-for="type in types" no-checkmark :key="type" :data-value="type" :label="getLabel(type)" :selected="filterType === type" @click="chooseFilterType(type)" />
+        </md-outlined-segmented-button-set>
+      </div>
     </div>
     <div class="quick-content-body">
-      <section class="list-items">
-        <div v-for="item in visibleTasks" class="item" :key="item.file.name + item.file.size">
-          <div class="title">{{ item.file.name }}</div>
-          <div class="subtitle">
-            [{{ $t(`upload_status.${item.status}`) }}] <template v-if="!['created', 'done'].includes(item.status)">{{ formatFileSize(item.uploadedSize) }}({{ item.uploadedSize }}) / </template
-            >{{ formatFileSize(item.file.size) }}
-          </div>
-          <div class="body" v-if="item.error">{{ item.error }}</div>
-          <button class="btn-icon icon" @click.stop="deleteItem(item)">
-            <md-ripple />
-            <i-material-symbols:close-rounded />
-          </button>
-        </div>
-      </section>
+      <VirtualList ref="listItemsRef" class="list-items" :data-key="'id'" :data-sources="visibleTasks" :estimate-size="64">
+        <template #item="{ item }">
+          <section class="item">
+            <div class="title">{{ item.file.name }}</div>
+            <div class="subtitle">
+              [{{ $t(`upload_status.${item.status}`) }}] <template v-if="!['created', 'done'].includes(item.status)">{{ formatFileSize(item.uploadedSize) }}({{ item.uploadedSize }}) / </template
+              >{{ formatFileSize(item.file.size) }}
+            </div>
+            <div class="body" v-if="item.error">{{ item.error }}</div>
+            <button class="btn-icon icon" @click.stop="deleteItem(item)">
+              <md-ripple />
+              <i-material-symbols:close-rounded />
+            </button>
+          </section>
+        </template>
+      </VirtualList>
       <span class="no-data" v-if="!visibleTasks.length">{{ $t('no_task') }}</span>
     </div>
   </div>
@@ -30,24 +37,58 @@
 import { formatFileSize } from '@/lib/format'
 import { upload } from '@/lib/api/file'
 import { useTempStore, type IUploadItem } from '@/stores/temp'
-import { computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import emitter from '@/plugins/eventbus'
 import { useMainStore } from '@/stores/main'
 import '@material/web/labs/badge/badge.js'
 import { sortBy } from 'lodash-es'
+import VirtualList from '@/components/virtualscroll'
+import type { MdOutlinedSegmentedButton } from '@material/web/labs/segmentedbutton/outlined-segmented-button'
+import { useI18n } from 'vue-i18n'
 
 const tempStore = useTempStore()
 const store = useMainStore()
 
+const filterType = ref('in_progress')
+const types = ['in_progress', 'completed']
+const { t } = useI18n()
+const listItemsRef = ref<HTMLDivElement>()
+
+function chooseFilterType(value: string) {
+  filterType.value = value
+  const scroller = listItemsRef.value
+  if (scroller) {
+    scroller.scrollTop = 0
+  }
+}
+
 const visibleTasks = computed(() => {
+  return filterType.value === 'in_progress' ? inProgressTasks() : completedTasks()
+})
+
+const inProgressTasks = () => {
   const sortKeys: Map<string, number> = new Map()
   sortKeys.set('saving', 0)
   sortKeys.set('pending', 1)
-  sortKeys.set('error', 2)
-  sortKeys.set('created', 3)
-  sortKeys.set('done', 4)
-  return sortBy(tempStore.uploads, (it) => sortKeys.get(it.status) ?? 0)
+  sortKeys.set('created', 2)
+  return sortBy(
+    tempStore.uploads.filter((it) => !['error', 'done'].includes(it.status)),
+    (it) => sortKeys.get(it.status) ?? 0
+  )
+}
+
+const completedTasks = () => {
+  return tempStore.uploads.filter((it) => ['error', 'done'].includes(it.status))
+}
+
+const completedCount = computed(() => {
+  return completedTasks().length
 })
+
+function getLabel(type: string) {
+  const count = completedCount.value
+  return t(type) + (type === 'completed' ? ` (${count})` : ` (${tempStore.uploads.length - count})`)
+}
 
 function deleteItem(item: IUploadItem) {
   tempStore.uploads.splice(tempStore.uploads.indexOf(item), 1)
@@ -87,4 +128,10 @@ async function doUpload() {
   doUpload()
 }
 </script>
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.list-items {
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: calc(100vh - 56px);
+}
+</style>

@@ -100,7 +100,8 @@ import { type FilePanel, type IFile, isImage, isVideo, canOpenInBrowser, canView
 import { getFileUrl, getFileUrlByPath } from '@/lib/api/file'
 import { noDataKey } from '@/lib/list'
 import emitter from '@/plugins/eventbus'
-import { useFiles, useCreateDir, useDeleteFiles, useRename, useStats, useDownload, useView, useFileUpload, useSingleSelect, useCopyPaste } from '@/hooks/files'
+import { useFiles, useCreateDir, useDeleteFiles, useRename, useStats, useDownload, useView, useSingleSelect, useCopyPaste } from '@/hooks/files'
+import { useFileUpload } from '@/hooks/upload'
 import { useTempStore, type IUploadItem } from '@/stores/temp'
 import { openModal } from '@/components/modal'
 import DeleteFileConfirm from '@/components/DeleteFileConfirm.vue'
@@ -140,7 +141,7 @@ const mainStore = useMainStore()
 const { fileShowHidden, fileSortBy } = storeToRefs(mainStore)
 
 const tempStore = useTempStore()
-const { app, urlTokenKey, selectedFiles } = storeToRefs(tempStore)
+const { app, urlTokenKey, selectedFiles, uploads } = storeToRefs(tempStore)
 let rootDir = app.value.internalStoragePath
 if (filesType) {
   if (filesType === 'sdcard') {
@@ -167,8 +168,8 @@ const { view } = useView(sources, (s: ISource[], index: number) => {
 })
 const { selectedItem, select } = useSingleSelect(currentDir, filesType, q, mainStore)
 const { canPaste, copy, cut, paste } = useCopyPaste(selectedFiles, refetchFiles, refetchStats)
-const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload()
-const { input: dirFileInput, upload: uploadDir, uploadChanged: dirUploadChanged } = useFileUpload()
+const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload(uploads)
+const { input: dirFileInput, upload: uploadDir, uploadChanged: dirUploadChanged } = useFileUpload(uploads)
 
 const { mutate: setTempValue, onDone: setTempValueDone } = initMutation({
   document: setTempValueGQL,

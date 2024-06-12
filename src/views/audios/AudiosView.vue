@@ -5,7 +5,7 @@
       <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
       <span v-else>{{ $t('page_title.audios') }} ({{ total.toLocaleString() }})</span>
       <template v-if="checked">
-        <button class="btn-icon" @click.stop="deleteItems(dataType, selectedIds, realAllChecked, q)" v-tooltip="$t('delete')">
+        <button class="btn-icon" @click.stop="deleteItems(dataType, selectedIds, realAllChecked, total, q)" v-tooltip="$t('delete')">
           <md-ripple />
           <i-material-symbols:delete-forever-outline-rounded />
         </button>
@@ -26,10 +26,20 @@
 
     <div class="actions">
       <search-input :filter="filter" :tags="tags" :buckets="buckets" :get-url="getUrl" />
-      <button class="btn-icon" @click.stop="upload" v-tooltip="$t('upload')">
-        <md-ripple />
-        <i-material-symbols:upload-rounded />
-      </button>
+      <popper>
+        <button class="btn-icon" v-tooltip="$t('upload')">
+          <md-ripple />
+          <i-material-symbols:upload-rounded />
+        </button>
+        <template #content="slotProps">
+          <md-menu-item @click.stop="uploadFilesClick(slotProps)">
+            <div slot="headline">{{ $t('upload_files') }}</div>
+          </md-menu-item>
+          <md-menu-item @click.stop="uploadDirClick(slotProps)">
+            <div slot="headline">{{ $t('upload_folder') }}</div>
+          </md-menu-item>
+        </template>
+      </popper>
       <popper>
         <button class="btn-icon btn-sort" v-tooltip="$t('sort')">
           <md-ripple />
@@ -54,7 +64,8 @@
     :clear-selection="clearSelection"
   />
 
-  <div class="scroll-content">
+  <div class="scroll-content" @dragover.stop.prevent="fileDragEnter">
+    <div class="drag-mask" v-show="dropping" @drop.stop.prevent="dropFiles2" @dragleave.stop.prevent="fileDragLeave">{{ $t('release_to_send_files') }}</div>
     <div class="audio-list" :class="{ 'select-mode': checked }">
       <section
         class="media-item selectable-card"
@@ -62,26 +73,27 @@
         :key="item.id"
         :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
         @click.stop="
-          handleMouseDown($event, item, i, () => {
+          handleItemClick($event, item, i, () => {
             play(item)
           })
         "
         @mouseover="handleMouseOver($event, i)"
       >
-        <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, i)" :checked="shouldSelect" />
-        <md-checkbox v-else class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, i)" :checked="selectedIds.includes(item.id)" />
-        <span class="number"><field-id :id="i + 1" :raw="item" /></span>
+        <div class="start">
+          <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, i)" :checked="shouldSelect" />
+          <md-checkbox v-else class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, i)" :checked="selectedIds.includes(item.id)" />
+          <span class="number"><field-id :id="i + 1" :raw="item" /></span>
+        </div>
         <i-material-symbols:library-music-outline-rounded v-if="imageErrorIds.includes(item.id)" class="image" />
         <img v-else class="image" :src="getFileUrl(item.albumFileId, '&w=200&h=200')" @error="onImageError(item.id)" />
         <div class="title">{{ item.title }}</div>
         <div class="subtitle">
           <span>{{ formatFileSize(item.size) }}</span>
-          <span>·</span>
           <span class="duration">
             {{ formatSeconds(item.duration) }}
           </span>
           <a @click.stop.prevent="viewBucket(mainStore, item.bucketId)">{{ bucketsMap[item.bucketId]?.name }}</a>
-          <template v-if="item.tags.length"> <span>·</span><item-tags :tags="item.tags" :type="dataType" :only-links="true" /> </template>
+          <item-tags :tags="item.tags" :type="dataType" :only-links="true" />
         </div>
         <div class="actions">
           <button class="btn-icon sm" @click.stop="deleteItem(dataType, item)" v-tooltip="$t('delete')">
@@ -92,7 +104,7 @@
             <md-ripple />
             <i-material-symbols:download-rounded />
           </button>
-          <button class="btn-icon sm" @click.stop="addToPlaylist($event, item)" v-tooltip="$t('add_to_playlist')">
+          <button class="btn-icon sm" @click.stop.prevent="addToPlaylist($event, item)" v-tooltip="$t('add_to_playlist')">
             <md-ripple />
             <i-material-symbols:playlist-add />
           </button>
@@ -107,15 +119,47 @@
           </button>
         </div>
         <div class="artist">{{ item.artist }}</div>
-        <div class="time" v-tooltip="formatDateTime(item.createdAt)">
-          {{ formatTimeAgo(item.createdAt) }}
+        <div class="time">
+          <span v-tooltip="formatDateTime(item.createdAt)">
+            {{ formatTimeAgo(item.createdAt) }}
+          </span>
         </div>
       </section>
+      <template v-if="loading && items.length === 0">
+        <section class="media-item selectable-card-skeleton" v-for="i in limit" :key="i">
+          <div class="start">
+            <div class="checkbox">
+              <div class="skeleton-checkbox"></div>
+            </div>
+            <span class="number">{{ i }}</span>
+          </div>
+          <div class="image">
+            <div class="skeleton-image"></div>
+          </div>
+          <div class="title">
+            <div class="skeleton-text skeleton-title"></div>
+          </div>
+          <div class="subtitle">
+            <div class="skeleton-text skeleton-subtitle"></div>
+          </div>
+          <div class="actions">
+            <div class="skeleton-text skeleton-actions"></div>
+          </div>
+          <div class="artist">
+            <div class="skeleton-text skeleton-artist"></div>
+          </div>
+          <div class="time">
+            <div class="skeleton-text skeleton-time"></div>
+          </div>
+        </section>
+      </template>
     </div>
-    <div class="no-data-placeholder" v-if="items.length === 0">
+    <div class="no-data-placeholder" v-if="!loading && items.length === 0">
       {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
     </div>
     <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" />
+    <input ref="fileInput" style="display: none" type="file" accept="audio/*" multiple @change="uploadChanged" />
+    <input ref="dirFileInput" style="display: none" type="file" accept="audio/*" multiple webkitdirectory mozdirectory directory @change="dirUploadChanged" />
   </div>
 </template>
 
@@ -124,7 +168,7 @@ import { computed, onActivated, onDeactivated, reactive, ref } from 'vue'
 import toast from '@/components/toaster'
 import { formatSeconds } from '@/lib/format'
 import { audiosGQL, bucketsTagsGQL, initLazyQuery } from '@/lib/api/query'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
@@ -142,14 +186,14 @@ import emitter from '@/plugins/eventbus'
 import { useAddToTags } from '@/hooks/tags'
 import { useBuckets, useDeleteItems } from '@/hooks/media'
 import { useDownload, useDownloadItems } from '@/hooks/files'
-import { openModal, pushModal } from '@/components/modal'
-import ConfirmModal from '@/components/ConfirmModal.vue'
+import { openModal } from '@/components/modal'
 import { getFileName } from '@/lib/api/file'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { DataType } from '@/lib/data'
-import { getSortItems } from '@/lib/file'
+import { getDirFromPath, getSortItems } from '@/lib/file'
 import { useKeyEvents } from '@/hooks/key-events'
 import { formatDateTime, formatTimeAgo } from '@/lib/format'
+import { useDragDropUpload, useFileUpload } from '@/hooks/upload'
 
 const mainStore = useMainStore()
 const { audioSortBy } = storeToRefs(mainStore)
@@ -159,10 +203,13 @@ const { parseQ } = useSearch()
 const filter = reactive<IFilter>({
   tagIds: [],
 })
-const { app, urlTokenKey, audioPlaying } = storeToRefs(useTempStore())
+const { app, urlTokenKey, audioPlaying, uploads } = storeToRefs(useTempStore())
 const isAudioPlaying = (item: IAudio) => {
   return audioPlaying.value && app.value?.audioCurrent === item.path
 }
+const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload(uploads)
+const { input: dirFileInput, upload: uploadDir, uploadChanged: dirUploadChanged } = useFileUpload(uploads)
+const { dropping, fileDragEnter, fileDragLeave, dropFiles } = useDragDropUpload(uploads)
 
 const dataType = DataType.AUDIO
 const route = useRoute()
@@ -194,7 +241,7 @@ const {
   total,
   checked,
   shiftEffectingIds,
-  handleMouseDown,
+  handleItemClick,
   handleMouseOver,
   selectAll,
   shouldSelect,
@@ -206,13 +253,11 @@ const gotoPage = (page: number) => {
   replacePath(mainStore, q ? `/audios?page=${page}&q=${q}` : `/audios?page=${page}`)
 }
 const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(total, limit, page, selectAll, clearSelection, gotoPage, () => {
-  deleteItems(dataType, selectedIds.value, realAllChecked.value, q.value)
+  deleteItems(dataType, selectedIds.value, realAllChecked.value, total.value, q.value)
 })
 const { addItemsToPlaylist, addToPlaylist } = useAddToPlaylist(items, clearSelection)
 const sortItems = getSortItems()
 const imageErrorIds = ref<string[]>([])
-
-const router = useRouter()
 
 const { play, playPath, loading: playLoading, pause } = useAudioPlayer()
 
@@ -263,16 +308,32 @@ function getUrl(q: string) {
   return q ? `/audios?q=${q}` : `/audios`
 }
 
-function upload() {
-  router.push(`/files`)
-  pushModal(ConfirmModal, {
-    message: t('upload_audios'),
-  })
-}
-
 function sort(slotProps: { close: () => void }, sort: string) {
   audioSortBy.value = sort
   slotProps.close()
+}
+
+function getUploadDir() {
+  const bucket = buckets.value.find((it) => it.id === filter.bucketId)
+  if (bucket) {
+    return getDirFromPath(bucket.topItems[0])
+  }
+
+  return `${app.value.internalStoragePath}/Music`
+}
+
+function uploadFilesClick(slotProps: { close: () => void }) {
+  uploadFiles(getUploadDir())
+  slotProps.close()
+}
+
+function uploadDirClick(slotProps: { close: () => void }) {
+  uploadDir(getUploadDir())
+  slotProps.close()
+}
+
+function dropFiles2(e: DragEvent) {
+  dropFiles(e, getUploadDir(), 'audio')
 }
 
 const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
@@ -340,9 +401,20 @@ onDeactivated(() => {
   display: grid;
   border-radius: 8px;
   grid-template-areas:
-    'checkbox image title actions artist time'
-    'number image subtitle  actions artist time';
-  grid-template-columns: 48px 50px 2fr 1fr minmax(64px, 1fr) auto;
+    'start image title actions artist time'
+    'start image subtitle  actions artist time';
+  grid-template-columns: 48px 50px 2fr 210px minmax(64px, 1fr) minmax(140px, auto);
+  &:hover {
+    cursor: pointer;
+  }
+  .start {
+    grid-area: start;
+  }
+  .number {
+    font-size: 0.75rem;
+    display: flex;
+    justify-content: center;
+  }
   .image {
     width: 50px;
     height: 50px;
@@ -356,25 +428,22 @@ onDeactivated(() => {
     font-weight: 500;
     margin-inline: 16px;
     padding-block-start: 12px;
+    word-break: break-all;
   }
   .subtitle {
     grid-area: subtitle;
     display: flex;
-    gap: 4px;
+    gap: 8px;
     flex-wrap: wrap;
     font-size: 0.875rem;
     margin-inline: 16px;
+    margin-block-start: 8px;
+    margin-block-end: 12px;
   }
   .artist {
     grid-area: artist;
     display: flex;
     align-items: center;
-  }
-  .time {
-    grid-area: time;
-    display: flex;
-    align-items: center;
-    padding-inline: 16px;
   }
   .actions {
     grid-area: actions;
@@ -384,23 +453,13 @@ onDeactivated(() => {
     align-items: center;
     visibility: visible;
     padding-inline: 16px;
-    width: 180px;
   }
-
-  .checkbox {
-    grid-area: checkbox;
-  }
-  .number {
-    grid-area: number;
-    margin-block-end: 8px;
-    font-size: 0.75rem;
-    justify-content: center;
+  .time {
+    grid-area: time;
     display: flex;
-    align-items: end;
-  }
-
-  &:hover {
-    cursor: pointer;
+    align-items: center;
+    padding-inline: 16px;
+    justify-content: end;
   }
 }
 .audio-list {
@@ -412,6 +471,35 @@ onDeactivated(() => {
   .media-item {
     .actions {
       visibility: hidden;
+    }
+  }
+}
+
+.audio-list {
+  .media-item {
+    .skeleton-image {
+      width: 50px;
+      height: 50px;
+    }
+    .skeleton-title {
+      width: 50%;
+      height: 24px;
+    }
+    .skeleton-subtitle {
+      width: 40%;
+      height: 20px;
+    }
+    .skeleton-actions {
+      width: 140px;
+      height: 20px;
+    }
+    .skeleton-artist {
+      width: 60px;
+      height: 20px;
+    }
+    .skeleton-time {
+      width: 60px;
+      height: 20px;
     }
   }
 }

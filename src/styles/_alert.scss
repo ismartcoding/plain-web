@@ -41,6 +41,12 @@
   color: var(--md-sys-color-on-surface);
 }
 
+.dark {
+  .alert-info {
+    background-color: var(--md-sys-color-surface-container-highest);
+  }
+}
+
 .alert-warning {
   @extend %alert-common-properties;
   background-color: var(--md-sys-color-surface);

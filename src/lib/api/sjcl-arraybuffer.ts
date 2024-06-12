@@ -38,14 +38,13 @@ export function arrayBufferFromBits(arr: sjcl.BitArray): ArrayBuffer {
 }
 
 export function arrayBuffertoBits(buffer: ArrayBuffer) {
-  const out = []
-  let inView, tmp
-
   if (buffer.byteLength === 0) {
     return []
   }
 
-  inView = new DataView(buffer)
+  const out = []
+  let tmp
+  const inView = new DataView(buffer)
   const len = inView.byteLength - (inView.byteLength % 4)
 
   for (let i = 0; i < len; i += 4) {

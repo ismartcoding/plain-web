@@ -35,7 +35,7 @@
     </div>
     <div class="chat-input">
       <div class="textarea-wrapper">
-        <div class="drag-mask" v-show="displayDragMask">{{ $t('release_to_send_file') }}</div>
+        <div class="drag-mask" v-show="displayDragMask">{{ $t('release_to_send_files') }}</div>
         <md-outlined-text-field
           type="textarea"
           rows="2"
@@ -92,7 +92,7 @@ import ChatFiles from './chat/ChatFiles.vue'
 import { useApolloClient } from '@vue/apollo-composable'
 import emitter from '@/plugins/eventbus'
 import { chatItemFragment } from '@/lib/api/fragments'
-import { useChatFilesUpload } from '@/hooks/files'
+import { useChatFilesUpload } from '@/hooks/upload'
 import { shortUUID } from '@/lib/strutil'
 import { getVideoData, getImageData } from '@/lib/file'
 import { useTasks } from '@/hooks/chat'
@@ -431,22 +431,6 @@ onMounted(() => {
       display: block;
     }
   }
-}
-
-.drag-mask {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  color: white;
-  font-size: 1.2rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 4px;
-  border: 2px dashed var(--md-sys-color-primary);
 }
 
 .chat-content {

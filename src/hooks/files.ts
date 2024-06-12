@@ -7,8 +7,6 @@ import { useI18n } from 'vue-i18n'
 import toast from '@/components/toaster'
 import { download, encryptUrlParams, getFileId, getFileName, getFileUrlByPath } from '@/lib/api/file'
 import type { ISource } from '@/components/lightbox/types'
-import { storeToRefs } from 'pinia'
-import { useTempStore, type IUploadItem } from '@/stores/temp'
 import { encodeBase64 } from '@/lib/strutil'
 import { replacePathNoReload } from '@/plugins/router'
 import { buildQuery, type IFilterField } from '@/lib/search'
@@ -209,38 +207,6 @@ export const useFiles = (urlTokenKey: Ref<sjcl.BitArray | null>, rootDir: string
   }
 }
 
-export const useRecentFiles = (urlTokenKey: Ref<sjcl.BitArray | null>) => {
-  const { t } = useI18n()
-  const files = ref<IFile[]>([])
-
-  const { loading } = initQuery({
-    handle: async (data: any, error: string) => {
-      if (error) {
-        toast(t(error), 'error')
-      } else {
-        const items = data.recentFiles
-        for (const item of items) {
-          const tmp = { ...item, name: getFileName(item.path) }
-          if (isVideo(tmp.name) || isImage(tmp.name)) {
-            tmp.fileId = getFileId(urlTokenKey.value, item.path)
-          }
-          files.value.push(tmp)
-        }
-      }
-    },
-    document: recentFilesGQL,
-    options: {
-      fetchPolicy: 'no-cache',
-    },
-    appApi: true,
-  })
-
-  return {
-    files,
-    loading,
-  }
-}
-
 export const useDownload = (urlTokenKey: Ref<sjcl.BitArray | null>) => {
   return {
     async downloadFile(path: string, fileName?: string) {
@@ -407,40 +373,6 @@ export const useCopyPaste = (selectedFiles: Ref<IFile[]>, refetchFiles: (path: s
   }
 }
 
-export const useFileUpload = () => {
-  const { uploads } = storeToRefs(useTempStore())
-
-  const _dir = ref('')
-  const input = ref<HTMLInputElement>()
-  return {
-    input,
-    upload(dir: string) {
-      _dir.value = dir
-      input.value!.value = ''
-      input.value!.click()
-    },
-    uploadChanged(e: Event) {
-      const files = (e.target as HTMLInputElement).files
-      if (!files) {
-        return
-      }
-      const items = []
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i]
-        items.push({
-          dir: _dir.value,
-          fileName: '',
-          file,
-          status: 'created',
-          uploadedSize: 0,
-          error: '',
-        })
-      }
-      uploads.value = [...uploads.value, ...items]
-    },
-  }
-}
-
 export function getFileDir(fileName: string) {
   let dir = 'Documents'
   if (isImage(fileName)) {
@@ -451,26 +383,6 @@ export function getFileDir(fileName: string) {
     dir = 'Music'
   }
   return dir
-}
-
-export const useChatFilesUpload = () => {
-  return {
-    getUploads(baseDir: string, files: File[]): IUploadItem[] {
-      const items = []
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i]
-        items.push({
-          dir: baseDir + '/' + getFileDir(file.name),
-          fileName: file.name,
-          file,
-          status: 'created',
-          uploadedSize: 0,
-          error: '',
-        })
-      }
-      return items
-    },
-  }
 }
 
 export const useDownloadItems = (urlTokenKey: Ref<sjcl.BitArray | null>, type: string, clearSelection: () => void, fileName: string) => {
