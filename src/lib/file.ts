@@ -11,6 +11,8 @@ export interface IFile extends IData {
   name: string
   isDir: boolean
   updatedAt: string
+  createdAt: string
+  extension: string
   size: number
   panel?: FilePanel
 }

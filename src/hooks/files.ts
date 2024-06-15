@@ -13,7 +13,7 @@ import { buildQuery, type IFilterField } from '@/lib/search'
 import type { MainState } from '@/stores/main'
 import { findIndex, remove } from 'lodash-es'
 import { getApiBaseUrl } from '@/lib/api/api'
-import type { IStorageStats, IStorageStatsItem } from '@/lib/interfaces'
+import type { IApp, IStorageStats, IStorageStatsItem } from '@/lib/interfaces'
 import type sjcl from 'sjcl'
 
 export const useCreateDir = (urlTokenKey: Ref<sjcl.BitArray | null>, panels: Ref<FilePanel[]>) => {
@@ -411,4 +411,18 @@ export const useDownloadItems = (urlTokenKey: Ref<sjcl.BitArray | null>, type: s
       clearSelection()
     },
   }
+}
+
+export const getRootDir = (filesType: string, app: IApp) => {
+  let rootDir = app.internalStoragePath
+  if (filesType) {
+    if (filesType === 'sdcard') {
+      rootDir = app.sdcardPath
+    } else if (filesType.startsWith('usb')) {
+      rootDir = app.usbDiskPaths[parseInt(filesType.substring(3)) - 1]
+    } else if (filesType === 'app') {
+      rootDir = app.externalFilesDir
+    }
+  }
+  return rootDir
 }

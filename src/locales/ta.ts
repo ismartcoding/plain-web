@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'ஆடியோ பிளேயர்',
+  export_notes: 'குறிப்புகளை ஏற்றுமதி செய்ய',
   in_progress: 'செயலாக்கப்படுகின்றது',
   completed: 'முடிந்தது',
   types: 'வகைகள்',

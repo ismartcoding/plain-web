@@ -84,8 +84,10 @@
           <md-checkbox v-else class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, i)" :checked="selectedIds.includes(item.id)" />
           <span class="number"><field-id :id="i + 1" :raw="item" /></span>
         </div>
-        <i-material-symbols:library-music-outline-rounded v-if="imageErrorIds.includes(item.id)" class="image" />
-        <img v-else class="image" :src="getFileUrl(item.albumFileId, '&w=200&h=200')" @error="onImageError(item.id)" />
+        <div class="image">
+          <img v-if="imageErrorIds.includes(item.id)" :src="`/ficons/${getFileExtension(item.path)}.svg`" class="svg" />
+          <img v-else class="image-thumb" :src="getFileUrl(item.albumFileId, '&w=200&h=200')" @error="onImageError(item.id)" />
+        </div>
         <div class="title">{{ item.title }}</div>
         <div class="subtitle">
           <span>{{ formatFileSize(item.size) }}</span>
@@ -173,7 +175,7 @@ import { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
 import { useI18n } from 'vue-i18n'
-import { getFileUrl } from '@/lib/api/file'
+import { getFileUrl, getFileExtension } from '@/lib/api/file'
 import { formatFileSize } from '@/lib/format'
 import type { IAudio, IBucket, IFilter, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IMediaItemsDeletedEvent, ITag } from '@/lib/interfaces'
 import { storeToRefs } from 'pinia'
@@ -419,9 +421,12 @@ onDeactivated(() => {
     width: 50px;
     height: 50px;
     grid-area: image;
-    object-fit: cover;
-    border-radius: 8px;
     margin-block: 12px;
+    text-align: center;
+    .svg {
+      max-width: 50px;
+      max-height: 50px;
+    }
   }
   .title {
     grid-area: title;

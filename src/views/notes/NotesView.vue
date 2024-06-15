@@ -26,6 +26,10 @@
             <md-ripple />
             <i-material-symbols:label-outline-rounded />
           </button>
+          <button class="btn-icon" @click.stop="exportNotes2" v-tooltip="$t('export_notes')">
+            <md-ripple />
+            <i-material-symbols:export-notes-outline-rounded />
+          </button>
         </template>
       </template>
     </div>
@@ -140,7 +144,7 @@ import { noDataKey } from '@/lib/list'
 import { useDelete, useSelectable } from '@/hooks/list'
 import emitter from '@/plugins/eventbus'
 import { useAddToTags, useTags } from '@/hooks/tags'
-import { deleteNotesGQL, initMutation, trashNotesGQL, untrashNotesGQL } from '@/lib/api/mutation'
+import { deleteNotesGQL, exportNotesGQL, initMutation, trashNotesGQL, untrashNotesGQL } from '@/lib/api/mutation'
 import { openModal } from '@/components/modal'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
@@ -151,6 +155,7 @@ import { useSearch } from '@/hooks/search'
 import { truncate } from 'lodash-es'
 import { useKeyEvents } from '@/hooks/key-events'
 import VirtualList from '@/components/virtualscroll'
+import { downloadFromString } from '@/lib/api/file'
 
 const mainStore = useMainStore()
 const items = ref<INote[]>([])
@@ -230,17 +235,34 @@ function getUrl(q: string) {
   return q ? `/notes?q=${q}` : `/notes`
 }
 
+const { mutate: exportNotes, onDone: onExpored } = initMutation({
+  document: exportNotesGQL,
+  appApi: true,
+})
+
+const exportNotes2 = () => {
+  exportNotes({ query: getQuery() })
+}
+
+const getQuery = () => {
+  let query = q.value
+  if (!realAllChecked.value) {
+    query = `ids:${selectedIds.value.join(',')}`
+  }
+  return query
+}
+
+onExpored((r: any) => {
+  downloadFromString(r.data.exportNotes, 'application/json', 'notes.json')
+})
+
 const { mutate: trashNotes, onDone: onTrash } = initMutation({
   document: trashNotesGQL,
   appApi: true,
 })
 
 function moveToTrash() {
-  if (selectedIds.value.length === 0) {
-    toast(t('select_first'), 'error')
-    return
-  }
-  trashNotes({ query: `ids:${selectedIds.value.join(',')}` })
+  trashNotes({ query: getQuery() })
 }
 
 const { deleteItems } = useDelete(deleteNotesGQL, () => {
@@ -262,11 +284,7 @@ const { mutate: untrashNotes, onDone: onRestored } = initMutation({
 })
 
 function untrash() {
-  if (selectedIds.value.length === 0) {
-    toast(t('select_first'), 'error')
-    return
-  }
-  untrashNotes({ query: `ids:${selectedIds.value.join(',')}` })
+  untrashNotes({ query: getQuery() })
 }
 
 onRestored(() => {

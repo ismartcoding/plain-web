@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'Müzik ç',
+  export_notes: 'Notları dışa aktar',
   in_progress: 'Devam ediyor',
   completed: 'Tamamlandı',
   types: 'Türler',

@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'Audio player',
+  export_notes: 'Export notes',
   in_progress: 'In progress',
   completed: 'Completed',
   types: 'Types',

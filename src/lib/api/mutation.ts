@@ -234,6 +234,14 @@ export const exportFeedsGQL = gql`
   }
 `
 
+
+export const exportNotesGQL = gql`
+  mutation exportNotes($query: String!) {
+    exportNotes(query: $query)
+  }
+`
+
+
 export const relaunchAppGQL = gql`
   mutation relaunchApp {
     relaunchApp

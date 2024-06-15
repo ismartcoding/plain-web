@@ -13,6 +13,13 @@ export const useKeyEvents = (total: Ref<number>, limit: number, page: Ref<number
         content?.style.removeProperty('user-select')
       }
 
+      const content2 = document.getElementsByClassName('scroller')?.[0]
+      if (e.shiftKey) {
+        content2?.style.setProperty('user-select', 'none')
+      } else {
+        content2?.style.removeProperty('user-select')
+      }
+
       if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
         e.preventDefault()
         selectAll()
@@ -55,6 +62,13 @@ export const useFilesKeyEvents = (total: Ref<number>, selectAll: () => void, cle
         content?.style.removeProperty('user-select')
       }
 
+      const content2 = document.getElementsByClassName('scroller')?.[0]
+      if (e.shiftKey) {
+        content2?.style.setProperty('user-select', 'none')
+      } else {
+        content2?.style.removeProperty('user-select')
+      }
+      
       if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
         e.preventDefault()
         selectAll()

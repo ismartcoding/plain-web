@@ -115,7 +115,7 @@ const router = createRouter({
             default: () => import('@/views/files/FilesView.vue'),
             LeftSidebar: () => import('@/views/files/FilesSidebar.vue'),
           },
-          meta: { group: 'files' },
+          meta: { group: 'files', className: 'files' },
         },
         {
           path: 'files/recent',
@@ -123,7 +123,7 @@ const router = createRouter({
             default: () => import('@/views/files/FilesRecentView.vue'),
             LeftSidebar: () => import('@/views/files/FilesSidebar.vue'),
           },
-          meta: { group: 'files' },
+          meta: { group: 'files', className: 'files' },
         },
         {
           path: 'json-viewer',

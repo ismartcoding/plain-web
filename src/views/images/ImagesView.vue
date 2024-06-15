@@ -331,7 +331,7 @@ const { loading, fetch } = initLazyQuery({
       if (data) {
         const list = []
         for (const item of data.images) {
-          list.push({ ...item, fileId: getFileId(urlTokenKey.value, item.path) })
+          list.push({ ...item, fileId: getFileId(urlTokenKey.value, item.path, item.id) })
         }
         items.value = list
         total.value = data.imageCount

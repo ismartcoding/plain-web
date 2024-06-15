@@ -78,7 +78,7 @@
           <i-material-symbols:smartphone-outline />
         </button>
 
-        <div class="drag-indicator" v-show="store.quick" @mousedown="initResize">
+        <div class="drag-indicator" v-show="store.quick" @mousedown="resizeWidth">
           <i-material-symbols:drag-indicator />
         </div>
       </div>
@@ -109,6 +109,7 @@ import type { IApp, IMediaItemDeletedEvent, IMediaItemsDeletedEvent, IPage } fro
 import { contextmenu } from '@/components/contextmenu'
 import { useI18n } from 'vue-i18n'
 import { remove } from 'lodash-es'
+import { useRightSidebarResize } from '@/hooks/sidebar'
 
 const store = useMainStore()
 const router = useRouter()
@@ -163,29 +164,16 @@ const { refetch: refetchApp } = initQuery({
   appApi: true,
 })
 
-function initResize(e: MouseEvent) {
-  const startX = e.clientX
-  const startWidth = store.quickContentWidth
-  const appElement = document.getElementById('app')
-  if (appElement) {
-    appElement.style.userSelect = 'none'
-  }
-  const move = (e: MouseEvent) => {
-    const width = startWidth + startX - e.clientX
-    if (width < 300) {
-      store.quickContentWidth = 300
-      return
-    }
+
+const { resizeWidth } = useRightSidebarResize(
+  300,
+  () => {
+    return store.quickContentWidth
+  },
+  (width: number) => {
     store.quickContentWidth = width
   }
-  const up = () => {
-    appElement?.style.removeProperty('user-select')
-    window.removeEventListener('mousemove', move)
-    window.removeEventListener('mouseup', up)
-  }
-  window.addEventListener('mousemove', move)
-  window.addEventListener('mouseup', up)
-}
+)
 
 function itemCtxMenu(e: MouseEvent, path: string) {
   e.preventDefault()

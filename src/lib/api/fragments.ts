@@ -216,8 +216,10 @@ export const fileFragment = gql`
   fragment FileFragment on File {
     path
     isDir
+    createdAt
     updatedAt
     size
+    mediaId
   }
 `
 

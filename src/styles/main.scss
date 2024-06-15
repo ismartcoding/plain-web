@@ -9,6 +9,7 @@
 @import 'pagination';
 @import 'markdown';
 @import 'form';
+@import 'files';
 @import 'chat';
 @import 'media';
 @import 'mobile';
@@ -517,4 +518,21 @@
 .scroll-content .drag-mask {
   border-radius: 8px;
   margin-inline: 16px;
+}
+
+.key-value {
+  display: flex;
+  flex-direction: row;
+  padding-block-end: 8px;
+
+  .key {
+    font-weight: bold;
+    margin-inline-end: 8px;
+    width: 120px;
+  }
+
+  .value {
+    flex: 1;
+    word-break: break-all;
+  }
 }

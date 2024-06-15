@@ -231,7 +231,7 @@ onDeactivated(() => {
     overflow-y: auto;
     overflow-x: hidden;
     width: 0px; // fix flexbox overflow
-    padding: 0 16px;
+    padding: 0 16px 0 8px;
     .top-app-bar {
       padding-inline: 0;
     }
