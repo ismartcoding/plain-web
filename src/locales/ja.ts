@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'オーディオプレーヤー',
+  export_notes: 'ノートをエクスポート',
   in_progress: '進行中',
   completed: '完了',
   types: 'タイプ',

@@ -81,7 +81,7 @@ export function getFinalPath(externalFilesDir: string, path: string) {
   return path
 }
 
-export function getFileId(key: sjcl.BitArray | null, path: string) {
+export function getFileId(key: sjcl.BitArray | null, path: string, mediaId: string = '') {
   if (!path || !key) {
     return ''
   }
@@ -96,7 +96,7 @@ export function getFileId(key: sjcl.BitArray | null, path: string) {
     return fileIdMap.get(path) ?? ''
   }
 
-  const enc = aesEncrypt(key, path)
+  const enc = aesEncrypt(key, mediaId ? JSON.stringify({ path, mediaId }) : path)
   const id = bitArrayToBase64(enc)
   fileIdMap.set(path, id)
   return id
@@ -202,4 +202,18 @@ export async function upload(upload: IUploadItem, replace: boolean) {
     upload.status = 'error'
     upload.error = error
   }
+}
+
+export function getFileExtension(filePath: string) {
+  const lastDotIndex = filePath.lastIndexOf('.')
+  if (lastDotIndex === -1) {
+    return ''
+  }
+  // fix hidden file extension
+  const lastSlashIndex = filePath.lastIndexOf('/')
+  if (lastSlashIndex > lastDotIndex) {
+    return ''
+  }
+
+  return filePath.substring(lastDotIndex + 1).toLowerCase()
 }

@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'Trình phát âm thanh',
+  export_notes: 'Xuất ghi chú',
   in_progress: 'Đang tiến hành',
   completed: 'Đã hoàn thành',
   types: 'Loại',

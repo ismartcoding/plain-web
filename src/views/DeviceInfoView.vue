@@ -208,26 +208,10 @@ const { refetch } = initQuery({
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
   gap: 16px;
+  flex: none !important;
 }
 
 .card {
   height: 100%;
-}
-
-.key-value {
-  display: flex;
-  flex-direction: row;
-  padding-block-end: 8px;
-
-  .key {
-    font-weight: bold;
-    margin-right: 5px;
-    width: 30%;
-  }
-
-  .value {
-    width: 70%;
-    word-break: break-all;
-  }
 }
 </style>

@@ -1,6 +1,7 @@
 export default {
   app_name: '简朴',
   audio_player: '音频播放器',
+  export_notes: '导出笔记',
   in_progress: '进行中',
   completed: '已完成',
   types: '类型',

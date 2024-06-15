@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'অডিও প্ল',
+  export_notes: 'নোটস নির্যাতন',
   in_progress: 'অগ্রগতি হচ্ছে',
   completed: 'সম্পন্ন',
   types: 'ধরণ',

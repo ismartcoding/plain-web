@@ -75,8 +75,8 @@
         @click.stop="handleItemClick($event, item, i, view)"
         @mouseover="handleMouseOver($event, i)"
       >
-        <i-material-symbols:video-library-outline-rounded v-if="imageErrorIds.includes(item.id)" class="image-thumb image" />
-        <img v-else class="image-thumb image" :src="getFileUrl(item.fileId, '&w=200&h=200')" @error="onImageError(item.id)" />
+        <img v-if="imageErrorIds.includes(item.id)" :src="`/ficons/${getFileExtension(item.path)}.svg`" class="image svg" />
+        <img v-else class="image image-thumb" :src="getFileUrl(item.fileId, '&w=200&h=200')" @error="onImageError(item.id)" />
         <button v-if="shiftEffectingIds.includes(item.id)" class="btn-icon btn-checkbox" @click.stop="toggleSelect($event, item, i)">
           <md-ripple />
           <i-material-symbols:check-circle-rounded v-if="shouldSelect" />
@@ -138,8 +138,10 @@
           <md-checkbox v-else class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, i)" :checked="selectedIds.includes(item.id)" />
           <span class="number"><field-id :id="i + 1" :raw="item" /></span>
         </div>
-        <i-material-symbols:video-library-outline-rounded v-if="imageErrorIds.includes(item.id)" class="image" @click.stop="view(i)" />
-        <img v-else class="image" :src="getFileUrl(item.fileId, '&w=200&h=200')" @error="onImageError(item.id)" />
+        <div class="image">
+          <img v-if="imageErrorIds.includes(item.id)" :src="`/ficons/${getFileExtension(item.path)}.svg`" class="svg" />
+          <img v-else class="image-thumb" :src="getFileUrl(item.fileId, '&w=200&h=200')" @error="onImageError(item.id)" />
+        </div>
         <div class="title">{{ getFileName(item.path) }}</div>
         <div class="subtitle">
           <span>{{ formatFileSize(item.size) }}</span>
@@ -169,12 +171,12 @@
       </section>
       <image-video-list-skeleton v-if="loading && items.length === 0" :limit="limit" />
     </div>
-    <div class="no-data-placeholder" v-if="!loading && sources.length === 0">
+    <div class="no-data-placeholder" v-if="!loading && items.length === 0">
       {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
     </div>
     <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" />
-      <input ref="fileInput" style="display: none" type="file" accept="video/*" multiple @change="uploadChanged" />
-      <input ref="dirFileInput" style="display: none" type="file" accept="video/*" multiple webkitdirectory mozdirectory directory @change="dirUploadChanged" />
+    <input ref="fileInput" style="display: none" type="file" accept="video/*" multiple @change="uploadChanged" />
+    <input ref="dirFileInput" style="display: none" type="file" accept="video/*" multiple webkitdirectory mozdirectory directory @change="dirUploadChanged" />
   </div>
 </template>
 
@@ -188,7 +190,7 @@ import { useRoute } from 'vue-router'
 import { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useI18n } from 'vue-i18n'
-import { getFileId, getFileUrl } from '@/lib/api/file'
+import { getFileId, getFileUrl, getFileExtension } from '@/lib/api/file'
 import { formatFileSize } from '@/lib/format'
 import type { IBucket, IFilter, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IMediaItemsDeletedEvent, ITag, IVideo, IVideoItem } from '@/lib/interfaces'
 import { decodeBase64 } from '@/lib/strutil'
@@ -225,7 +227,6 @@ const { app, urlTokenKey, uploads } = storeToRefs(tempStore)
 const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload(uploads)
 const { input: dirFileInput, upload: uploadDir, uploadChanged: dirUploadChanged } = useFileUpload(uploads)
 const { dropping, fileDragEnter, fileDragLeave, dropFiles } = useDragDropUpload(uploads)
-
 
 const dataType = DataType.VIDEO
 const route = useRoute()
@@ -298,7 +299,7 @@ const { loading, fetch } = initLazyQuery({
       if (data) {
         const list: IVideoItem[] = []
         for (const item of data.videos) {
-          list.push({ ...item, fileId: getFileId(urlTokenKey.value, item.path) })
+          list.push({ ...item, fileId: getFileId(urlTokenKey.value, item.path, item.id) })
         }
         items.value = list
         total.value = data.videoCount
