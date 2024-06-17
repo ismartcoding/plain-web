@@ -49,11 +49,14 @@
           </div>
         </template>
       </popper>
-      <button class="btn-icon" @click.prevent="changeViewType" v-tooltip="$t(mainStore.videosCardView ? 'grid_view' : 'card_view')">
-        <md-ripple />
-        <i-material-symbols:grid-view-outline-rounded v-if="mainStore.videosCardView" />
-        <i-material-symbols:splitscreen-outline v-else />
-      </button>
+      <md-outlined-segmented-button-set class="sm">
+        <md-outlined-segmented-button data-value="grid" no-checkmark :selected="!mainStore.videosCardView" @click="mainStore.videosCardView = false">
+          <i-material-symbols:grid-view-outline-rounded slot="icon" />
+        </md-outlined-segmented-button>
+        <md-outlined-segmented-button data-value="card" no-checkmark :selected="mainStore.videosCardView" @click="mainStore.videosCardView = true">
+          <i-material-symbols:splitscreen-outline slot="icon" />
+        </md-outlined-segmented-button>
+      </md-outlined-segmented-button-set>
     </div>
   </div>
   <all-checked-alert
@@ -362,10 +365,6 @@ function addItemToTags(item: IVideoItem) {
     },
     selected: tags.value.filter((it) => item.tags.some((t) => t.id === it.id)),
   })
-}
-
-function changeViewType() {
-  mainStore.videosCardView = !mainStore.videosCardView
 }
 
 function getUploadDir() {

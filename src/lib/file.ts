@@ -1,3 +1,4 @@
+import { getFileId, getFileName, getFileExtension } from './api/file'
 import type { IData } from './interfaces'
 
 const photoExtensions = ['.jpg', '.png', '.jpeg', '.bmp', '.webp', '.heic', '.heif', '.apng', '.avif', '.gif', '.tiff', '.tif', '.svg']
@@ -14,7 +15,6 @@ export interface IFile extends IData {
   createdAt: string
   extension: string
   size: number
-  panel?: FilePanel
 }
 
 export function isImage(name: string) {
@@ -48,46 +48,6 @@ export function canView(name: string) {
 
 export function canOpenInBrowser(name: string) {
   return ['.txt', '.pdf', '.md'].some((it) => name.endsWith(it))
-}
-
-export class FilePanel {
-  dir!: string
-  items: IFile[] = []
-
-  constructor(dir: string, items: IFile[]) {
-    this.dir = dir
-    this.items = items
-  }
-
-  deleteItem(path: string) {
-    const index = this.items.findIndex((it) => this.inPath(it.path, path))
-    if (index !== -1) {
-      this.items.splice(index, 1)
-    }
-  }
-
-  inPath(srcPath: string, path: string) {
-    return (srcPath + '/').startsWith(path + '/')
-  }
-
-  rename(path: string, oldName: string, newName: string) {
-    const f = this.items.find((it) => this.inPath(it.path, path))
-    if (f) {
-      if (f.path === path) {
-        f.path = f.path.replace('/' + oldName, '/' + newName)
-        f.name = newName
-      } else {
-        f.path = f.path.replace('/' + oldName + '/', '/' + newName + '/')
-      }
-    }
-    if (this.inPath(this.dir, path)) {
-      if (this.dir === path) {
-        this.dir = this.dir.replace('/' + oldName, '/' + newName)
-      } else {
-        this.dir = this.dir.replace('/' + oldName + '/', '/' + newName + '/')
-      }
-    }
-  }
 }
 
 export function getSortItems() {
@@ -166,4 +126,17 @@ export async function getImageData(file: File): Promise<{ src: string; width: nu
 export function getDirFromPath(path: string) {
   const index = path.lastIndexOf('/')
   return index === -1 ? '' : path.substring(0, index)
+}
+
+export function enrichFile(item: IFile, urlTokenKey: sjcl.BitArray | null) {
+  const name = getFileName(item.path)
+  const extension = item.isDir ? '' : getFileExtension(name)
+  const hasFileId = !item.isDir && (isImage(name) || isVideo(name))
+  return {
+    ...item,
+    id: item.path,
+    name,
+    fileId: hasFileId ? getFileId(urlTokenKey, item.path) : '',
+    extension,
+  }
 }

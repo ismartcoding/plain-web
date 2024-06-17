@@ -378,9 +378,10 @@
 }
 
 .spinner-sm {
-  --md-circular-progress-size: 32px;
-  --md-circular-progress-active-indicator-width: 14;
+  --md-circular-progress-size: 24px;
+  --md-circular-progress-active-indicator-width: 16;
 }
+
 
 .v-center {
   display: flex;
@@ -524,6 +525,13 @@
   display: flex;
   flex-direction: row;
   padding-block-end: 8px;
+
+  &.vertical {
+    flex-direction: column;
+    .key {
+      margin-block-end: 8px;
+    }
+  }
 
   .key {
     font-weight: bold;

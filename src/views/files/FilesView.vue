@@ -1,82 +1,116 @@
 <template>
-  <aside class="sidebar2">
-    <div class="top-app-bar">
-      <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
-      <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
-      <div v-else class="breadcrumb">
-        <template v-for="item of breadcrumbPaths" :key="item.path">
-          <span v-if="item.path === currentDir">{{ item.name }}</span>
-          <a v-else href="#" @click.stop.prevent="currentDir = item.path">{{ item.name }}</a>
+  <div class="top-app-bar">
+    <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
+    <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
+    <div v-else class="breadcrumb">
+      <template v-for="(item, index) in breadcrumbPaths" :key="item.path">
+        <template v-if="index === 0">
+          <span v-if="item.path === currentDir" v-tooltip="getPageStats()">{{ item.name }} ({{ total }})</span>
+          <a v-else href="#" @click.stop.prevent="navigateToDir(item.path)" v-tooltip="getPageStats()">{{ item.name }}</a>
         </template>
-      </div>
-      <template v-if="checked">
-        <button class="btn-icon" @click.stop="() => copy(selectedIds)" v-tooltip="$t('copy')">
-          <md-ripple />
-          <i-material-symbols:content-copy-outline-rounded />
-        </button>
-        <button class="btn-icon" @click.stop="() => cut(selectedIds)" v-tooltip="$t('cut')">
-          <md-ripple />
-          <i-material-symbols:content-cut-rounded />
-        </button>
-        <button class="btn-icon" @click.stop="deleteItems" v-tooltip="$t('delete')">
-          <md-ripple />
-          <i-material-symbols:delete-forever-outline-rounded />
-        </button>
-        <button class="btn-icon" @click.stop="downloadItems" v-tooltip="$t('download')">
-          <md-ripple />
-          <i-material-symbols:download-rounded />
-        </button>
+        <template v-else>
+          <span v-if="item.path === currentDir">{{ item.name }} ({{ total }})</span>
+          <a v-else href="#" @click.stop.prevent="navigateToDir(item.path)">{{ item.name }}</a>
+        </template>
       </template>
-      <div class="actions">
-        <div class="form-check">
-          <label class="form-check-label"><md-checkbox touch-target="wrapper" @change="toggleShowHiddenChecked" :checked="fileShowHidden" />{{ $t('show_hidden') }}</label>
-        </div>
-        <button class="btn-icon btn-refresh" v-tooltip="$t('refresh')" @click="refreshCurrentDir">
-          <md-ripple />
-          <i-material-symbols:refresh-rounded />
-        </button>
-        <popper>
-          <button class="btn-icon btn-sort" v-tooltip="$t('sort')">
-            <md-ripple />
-            <i-material-symbols:sort-rounded />
-          </button>
-          <template #content="slotProps">
-            <div class="menu-items">
-              <md-menu-item v-for="item in sortItems" @click="sort(slotProps, item.value)" :key="item.value" :selected="item.value === fileSortBy">
-                <div slot="headline">{{ $t(item.label) }}</div>
-              </md-menu-item>
-            </div>
-          </template>
-        </popper>
+    </div>
+    <template v-if="checked">
+      <button class="btn-icon" @click.stop="copyItems" v-tooltip="$t('copy')">
+        <md-ripple />
+        <i-material-symbols:content-copy-outline-rounded />
+      </button>
+      <button class="btn-icon" @click.stop="cutItems" v-tooltip="$t('cut')">
+        <md-ripple />
+        <i-material-symbols:content-cut-rounded />
+      </button>
+      <button class="btn-icon" @click.stop="deleteItems" v-tooltip="$t('delete')">
+        <md-ripple />
+        <i-material-symbols:delete-forever-outline-rounded />
+      </button>
+      <button class="btn-icon" @click.stop="downloadItems" v-tooltip="$t('download')">
+        <md-ripple />
+        <md-circular-progress indeterminate v-if="downloadLoading" />
+        <i-material-symbols:download-rounded v-else />
+      </button>
+    </template>
+    <div class="actions">
+      <div class="form-check">
+        <label class="form-check-label"><md-checkbox touch-target="wrapper" @change="toggleShowHiddenChecked" :checked="fileShowHidden" />{{ $t('show_hidden') }}</label>
       </div>
-    </div>
-
-    <div v-if="loading && items.length === 0" class="scroller">
-      <section class="file-item selectable-card-skeleton" v-for="i in 50" :key="i">
-        <div class="start">
-          <div class="checkbox">
-            <div class="skeleton-checkbox"></div>
+      <button class="btn-icon" v-tooltip="$t('create_folder')" @click="createDir">
+        <md-ripple />
+        <i-material-symbols:create-new-folder-outline-rounded />
+      </button>
+      <popper>
+        <button class="btn-icon" v-tooltip="$t('upload')">
+          <md-ripple />
+          <i-material-symbols:upload-rounded />
+        </button>
+        <template #content="slotProps">
+          <md-menu-item @click.stop="uploadFilesClick(slotProps, currentDir)">
+            <div slot="headline">{{ $t('upload_files') }}</div>
+          </md-menu-item>
+          <md-menu-item @click.stop="uploadDirClick(slotProps, currentDir)">
+            <div slot="headline">{{ $t('upload_folder') }}</div>
+          </md-menu-item>
+        </template>
+      </popper>
+      <button v-if="canPaste()" :disabled="pasting" class="btn-icon" v-tooltip="$t('paste')" @click="pasteDir">
+        <md-ripple />
+        <md-circular-progress indeterminate v-if="pasting" />
+        <i-material-symbols:content-paste-rounded v-else />
+      </button>
+      <button class="btn-icon" :disabled="refreshing" v-tooltip="$t('refresh')" @click="refreshCurrentDir">
+        <md-ripple />
+        <md-circular-progress indeterminate v-if="refreshing" />
+        <i-material-symbols:refresh-rounded v-else />
+      </button>
+      <popper>
+        <button class="btn-icon" :disabled="sorting" v-tooltip="$t('sort')">
+          <md-ripple />
+          <md-circular-progress indeterminate v-if="sorting" />
+          <i-material-symbols:sort-rounded v-else />
+        </button>
+        <template #content="slotProps">
+          <div class="menu-items">
+            <md-menu-item v-for="item in sortItems" @click="sort(slotProps, item.value)" :key="item.value" :selected="item.value === fileSortBy">
+              <div slot="headline">{{ $t(item.label) }}</div>
+            </md-menu-item>
           </div>
-          <span class="number">{{ i }}</span>
-        </div>
-        <div class="image">
-          <div class="skeleton-image"></div>
-        </div>
-        <div class="title">
-          <div class="skeleton-text skeleton-title"></div>
-        </div>
-        <div class="subtitle">
-          <div class="skeleton-text skeleton-subtitle"></div>
-        </div>
-      </section>
+        </template>
+      </popper>
     </div>
-    <div class="scroller">
-      <div class="file-items" v-for="(item, index) in items" :key="item.id">
+  </div>
+  <div v-if="loading && firstInit" class="scroller">
+    <section class="file-item selectable-card-skeleton" v-for="i in 20" :key="i">
+      <div class="start">
+        <div class="checkbox">
+          <div class="skeleton-checkbox"></div>
+        </div>
+        <span class="number">{{ i }}</span>
+      </div>
+      <div class="image">
+        <div class="skeleton-image"></div>
+      </div>
+      <div class="title">
+        <div class="skeleton-text skeleton-title"></div>
+      </div>
+      <div class="subtitle">
+        <div class="skeleton-text skeleton-subtitle"></div>
+      </div>
+      <div class="actions">
+        <div class="skeleton-text skeleton-actions"></div>
+      </div>
+    </section>
+  </div>
+  <div class="scroller-wrapper" @dragover.stop.prevent="fileDragEnter">
+    <div class="drag-mask" v-show="dropping" @drop.stop.prevent="dropFiles2" @dragleave.stop.prevent="fileDragLeave">{{ $t('release_to_send_files') }}</div>
+    <VirtualList v-if="items.length > 0" class="scroller" :data-key="'id'" :data-sources="items" :estimate-size="80">
+      <template #item="{ index, item }">
         <section
           v-if="!item.name.startsWith('.') || fileShowHidden"
           class="file-item selectable-card"
-          @dblclick.prevent="dbclickItem(item)"
-          :class="{ selected: selectedIds.includes(item.id) || selectedItem?.id === item.id, selecting: shiftEffectingIds.includes(item.id) }"
+          :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
           @click.stop="
             handleItemClick($event, item, index, () => {
               clickItem(item)
@@ -90,7 +124,7 @@
             <span class="number"><field-id :id="index + 1" :raw="item" /></span>
           </div>
 
-          <div class="image">
+          <div class="image" @click="viewItem($event, item)">
             <img v-if="item.isDir" :src="`/ficons/folder.svg`" class="svg" />
             <template v-else>
               <img v-if="extensionImageErrorIds.includes(item.id)" class="svg" src="/ficons/default.svg" />
@@ -103,102 +137,143 @@
             {{ item.name }}
           </div>
           <div class="subtitle">
-            <span v-if="!item.isDir">{{ formatFileSize(item.size) }}</span>
+            <span v-if="item.isDir">{{ $t('x_items', item.children) }}</span>
+            <span v-else>{{ formatFileSize(item.size) }}</span>
             <span v-tooltip="formatDateTime(item.updatedAt)">{{ formatTimeAgo(item.updatedAt) }}</span>
           </div>
+          <div class="actions">
+            <template v-if="item.isDir">
+              <button class="btn-icon sm" @click.stop="downloadDir(item.path)" v-tooltip="$t('download')">
+                <md-ripple />
+                <i-material-symbols:download-rounded />
+              </button>
+              <popper>
+                <button class="btn-icon sm" v-tooltip="$t('upload')">
+                  <md-ripple />
+                  <i-material-symbols:upload-rounded />
+                </button>
+                <template #content="slotProps">
+                  <md-menu-item @click.stop="uploadFilesClick(slotProps, item.path)">
+                    <div slot="headline">{{ $t('upload_files') }}</div>
+                  </md-menu-item>
+                  <md-menu-item @click.stop="uploadDirClick(slotProps, item.path)">
+                    <div slot="headline">{{ $t('upload_folder') }}</div>
+                  </md-menu-item>
+                </template>
+              </popper>
+            </template>
+            <template v-else>
+              <button class="btn-icon sm" @click.stop="downloadFile(item.path)" v-tooltip="$t('download')">
+                <md-ripple />
+                <i-material-symbols:download-rounded />
+              </button>
+            </template>
+
+            <button class="btn-icon sm" @click.stop="deleteItem(item)" v-tooltip="$t('delete')">
+              <md-ripple />
+              <i-material-symbols:delete-forever-outline-rounded />
+            </button>
+            <popper>
+              <button class="btn-icon sm" v-tooltip="$t('info')">
+                <md-ripple />
+                <i-material-symbols:info-outline-rounded />
+              </button>
+              <template #content>
+                <section class="card card-info">
+                  <div class="key-value vertical">
+                    <div class="key">{{ $t('path') }}</div>
+                    <div class="value">
+                      {{ item.path }}
+                    </div>
+                  </div>
+                </section>
+              </template>
+            </popper>
+
+            <popper>
+              <button class="btn-icon sm" v-tooltip="$t('actions')">
+                <md-ripple />
+                <i-material-symbols:more-vert />
+              </button>
+              <template #content="slotProps">
+                <md-menu-item @click.stop="duplicateItem(slotProps, item)">
+                  <div slot="headline">{{ $t('duplicate') }}</div>
+                </md-menu-item>
+                <md-menu-item @click.stop="cutItem(slotProps, item)">
+                  <div slot="headline">{{ $t('cut') }}</div>
+                </md-menu-item>
+                <md-menu-item @click.stop="copyItem(slotProps, item)">
+                  <div slot="headline">{{ $t('copy') }}</div>
+                </md-menu-item>
+                <md-menu-item v-if="item.isDir && canPaste()" @click.stop="pasteItme(slotProps, item)">
+                  <div slot="headline">{{ $t('paste') }}</div>
+                </md-menu-item>
+                <md-menu-item @click.stop="renameItemClick(slotProps, item)">
+                  <div slot="headline">{{ $t('rename') }}</div>
+                </md-menu-item>
+              </template>
+            </popper>
+          </div>
         </section>
-      </div>
-    </div>
+      </template>
+    </VirtualList>
     <div class="no-data-placeholder" v-if="!loading && items.length === 0">
       {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
     </div>
     <input ref="fileInput" style="display: none" type="file" multiple @change="uploadChanged" />
     <input ref="dirFileInput" style="display: none" type="file" multiple webkitdirectory mozdirectory directory @change="dirUploadChanged" />
-  </aside>
-
-  <div class="content" v-if="selectedItem" :style="{ width: mainStore.sidebarFileInfoWidth + 'px' }">
-    <div class="sidebar-drag-indicator" @mousedown="resizeWidth"></div>
-    <div class="top-app-bar">
-      <div class="title">
-        <span>{{ selectedItem.name }}</span>
-        <button class="btn-icon sm" @click.stop="downloadFile(selectedItem.path)" v-tooltip="$t('download')">
-          <md-ripple />
-          <i-material-symbols:download-rounded />
-        </button>
-        <button v-if="canOpenInBrowser(selectedItem.name) || canView(selectedItem.name)" class="btn-icon sm" @click.stop="viewItem(selectedItem)" v-tooltip="$t('view')">
-          <md-ripple />
-          <i-material-symbols:preview-outline />
-        </button>
-      </div>
-    </div>
-    <section class="card">
-      <div class="key-value">
-        <div class="key">{{ $t('path') }}</div>
-        <div class="value">
-          {{ selectedItem.path }}
-        </div>
-      </div>
-      <div class="key-value" v-if="selectedItem.createdAt">
-        <div class="key">{{ $t('created_at') }}</div>
-        <div class="value">
-          <span v-tooltip="formatDateTime(selectedItem.createdAt)">{{ formatTimeAgo(selectedItem.createdAt) }}</span>
-        </div>
-      </div>
-      <div class="key-value">
-        <div class="key">{{ $t('updated_at') }}</div>
-        <div class="value">
-          <span v-tooltip="formatDateTime(selectedItem.updatedAt)">{{ formatTimeAgo(selectedItem.updatedAt) }}</span>
-        </div>
-      </div>
-    </section>
   </div>
 </template>
 
 <script setup lang="ts">
-import { contextmenu } from '@/components/contextmenu'
-import { computed, onActivated, onDeactivated, ref, watch } from 'vue'
+import { computed, onActivated, onDeactivated, reactive, ref } from 'vue'
 import { formatDateTime, formatFileSize, formatTimeAgo } from '@/lib/format'
 import { useI18n } from 'vue-i18n'
 import { useMainStore } from '@/stores/main'
 import { storeToRefs } from 'pinia'
-import { type FilePanel, type IFile, isImage, isVideo, canOpenInBrowser, canView, getSortItems } from '@/lib/file'
-import { getFileExtension, getFileId, getFileName, getFileUrl, getFileUrlByPath } from '@/lib/api/file'
+import { type IFile, canOpenInBrowser, canView, getSortItems, enrichFile } from '@/lib/file'
+import { getFileName, getFileUrl, getFileUrlByPath } from '@/lib/api/file'
 import { noDataKey } from '@/lib/list'
 import emitter from '@/plugins/eventbus'
-import { useFiles, useCreateDir, useDeleteFiles, useRename, useStats, useDownload, useView, useSingleSelect, useCopyPaste, getRootDir } from '@/hooks/files'
-import { useFileUpload } from '@/hooks/upload'
+import { useCreateDir, useRename, useStats, useDownload, useView, useCopyPaste, getRootDir, useSearch } from '@/hooks/files'
+import { useDragDropUpload, useFileUpload } from '@/hooks/upload'
 import { useTempStore, type IUploadItem } from '@/stores/temp'
 import { openModal } from '@/components/modal'
 import DeleteFileConfirm from '@/components/DeleteFileConfirm.vue'
 import EditValueModal from '@/components/EditValueModal.vue'
 import { useRoute } from 'vue-router'
 import { decodeBase64, shortUUID } from '@/lib/strutil'
-import { parseQuery } from '@/lib/search'
 import { initMutation, setTempValueGQL } from '@/lib/api/mutation'
 import type { ISource } from '@/components/lightbox/types'
 import type { MdCheckbox } from '@material/web/checkbox/checkbox'
-import type { IFileDeletedEvent } from '@/lib/interfaces'
+import type { IFileDeletedEvent, IFileFilter, IBreadcrumbItem } from '@/lib/interfaces'
 import { useSelectable } from '@/hooks/list'
-import { useRightSidebarResize } from '@/hooks/sidebar'
 import { useFilesKeyEvents } from '@/hooks/key-events'
 import { filesGQL, initLazyQuery } from '@/lib/api/query'
 import toast from '@/components/toaster'
+import VirtualList from '@/components/virtualscroll'
+import { replacePath } from '@/plugins/router'
+import { remove } from 'lodash-es'
+import { useFilesStore } from '@/stores/files'
 
 const { t } = useI18n()
 const sources = ref([])
+const { parseQ, buildQ } = useSearch()
+const filter = reactive<IFileFilter>({
+  text: '',
+  dir: '',
+})
 
 const route = useRoute()
 const query = route.query
 const filesType = route.params['type'] as string
-const q = ref(decodeBase64(query.q?.toString() ?? ''))
-const fields = parseQuery(q.value as string)
-const initPath = ref(fields.find((it) => it.name === 'path')?.value ?? '')
-
+const q = ref('')
 const items = ref<IFile[]>([])
-const selectedItem = ref<IFile | null>(null)
 const { selectedIds, allChecked, realAllChecked, clearSelection, toggleAllChecked, toggleSelect, total, checked, shiftEffectingIds, handleItemClick, handleMouseOver, selectAll, shouldSelect } =
   useSelectable(items)
 const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useFilesKeyEvents(total, selectAll, clearSelection, () => {})
+const refreshing = ref(false)
+const sorting = ref(false)
 
 const imageErrorIds = ref<string[]>([])
 const extensionImageErrorIds = ref<string[]>([])
@@ -209,44 +284,22 @@ const onExtensionImageError = (id: string) => {
   extensionImageErrorIds.value.push(id)
 }
 
-const clickItem = (item: IFile) => {
-  selectedItem.value = item
-}
-
-const { resizeWidth } = useRightSidebarResize(
-  300,
-  () => {
-    return mainStore.sidebarFileInfoWidth
-  },
-  (width: number) => {
-    mainStore.sidebarFileInfoWidth = width
-  }
-)
-
-let dirTmp = fields.find((it) => it.name === 'dir')?.value ?? ''
-if (!dirTmp) {
-  const isDir = fields.find((it) => it.name === 'isDir')?.value === '1'
-  if (isDir) {
-    dirTmp = initPath.value
-  } else {
-    dirTmp = initPath.value.substring(0, initPath.value.lastIndexOf('/'))
-  }
-}
-
 const sortItems = getSortItems()
 
 const mainStore = useMainStore()
 const { fileShowHidden, fileSortBy } = storeToRefs(mainStore)
 
 const tempStore = useTempStore()
-const { app, urlTokenKey, selectedFiles, uploads } = storeToRefs(tempStore)
-let rootDir = getRootDir(filesType, app.value)
-const currentDir = ref(dirTmp || rootDir)
-const panels = ref<FilePanel[]>([])
-const { createPath, createVariables, createMutation } = useCreateDir(urlTokenKey, panels)
-const { renameValue, renamePath, renameDone, renameMutation, renameVariables } = useRename(panels)
+const { app, urlTokenKey, uploads } = storeToRefs(tempStore)
+const { selectedFiles, isCut } = storeToRefs(useFilesStore())
+const { dropping, fileDragEnter, fileDragLeave, dropFiles } = useDragDropUpload(uploads)
+const rootDir = getRootDir(filesType, app.value)
+const currentDir = computed(() => filter.dir || rootDir)
+const { createPath, createVariables, createMutation } = useCreateDir(urlTokenKey, items)
+const { renameItem, renameDone, renameMutation, renameVariables } = useRename(() => {
+  fetch()
+})
 const { internal, sdcard, usb, refetch: refetchStats } = useStats()
-const { onDeleted } = useDeleteFiles(panels, currentDir, refetchStats)
 const { downloadFile, downloadDir, downloadFiles } = useDownload(urlTokenKey)
 const { view } = useView(sources, (s: ISource[], index: number) => {
   tempStore.lightbox = {
@@ -255,11 +308,6 @@ const { view } = useView(sources, (s: ISource[], index: number) => {
     visible: true,
   }
 })
-
-interface IBreadcrumbItem {
-  path: string
-  name: string
-}
 
 const breadcrumbPaths = computed(() => {
   const paths: IBreadcrumbItem[] = []
@@ -276,17 +324,22 @@ const breadcrumbPaths = computed(() => {
   return paths
 })
 
+const firstInit = ref(true)
 const { loading, fetch } = initLazyQuery({
   handle: async (data: any, error: string) => {
+    firstInit.value = false
+    refreshing.value = false
+    sorting.value = false
     if (error) {
       toast(t(error), 'error')
     } else {
       const r = data.files
       const list: IFile[] = []
       for (const item of r.items) {
-        list.push({ ...item, id: item.path, name: getFileName(item.path), fileId: getFileId(urlTokenKey.value, item.path), extension: getFileExtension(item.path) })
+        list.push(enrichFile(item, urlTokenKey.value))
       }
       items.value = list
+      total.value = list.length
     }
   },
   document: filesGQL,
@@ -295,13 +348,20 @@ const { loading, fetch } = initLazyQuery({
     showHidden: true,
     sortBy: fileSortBy.value,
   }),
+  options: {
+    fetchPolicy: 'cache-and-network',
+  },
   appApi: true,
 })
-const { canPaste, copy, cut, paste } = useCopyPaste(selectedFiles, fetch, refetchStats)
+const { loading: pasting, canPaste, copy, cut, paste } = useCopyPaste(items, isCut, selectedFiles, fetch, refetchStats)
 const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload(uploads)
 const { input: dirFileInput, upload: uploadDir, uploadChanged: dirUploadChanged } = useFileUpload(uploads)
 
-const { mutate: setTempValue, onDone: setTempValueDone } = initMutation({
+const {
+  loading: downloadLoading,
+  mutate: setTempValue,
+  onDone: setTempValueDone,
+} = initMutation({
   document: setTempValueGQL,
   appApi: true,
 })
@@ -326,42 +386,70 @@ const downloadItems = () => {
   })
 }
 
+const onDeleted = (files: IFile[]) => {
+  files.forEach((f) => {
+    remove(items.value, (it: IFile) => it.id === f.id)
+  })
+  clearSelection()
+  refetchStats()
+}
+
 const deleteItems = () => {
   openModal(DeleteFileConfirm, {
-    files: JSON.stringify(
-      selectedIds.value.map((it: string) => ({
-        path: it,
-      }))
-    ),
-    onDone: onDeleted,
+    files: items.value.filter((it) => selectedIds.value.includes(it.id)),
+    onDone: (files: IFile[]) => {
+      onDeleted(files)
+    },
   })
 }
 
 function getPageTitle() {
   if (filesType) {
     if (filesType === 'sdcard') {
-      return `${t('sdcard')} (${t('storage_free_total', {
+      return t('sdcard')
+    } else if (filesType === 'app') {
+      return t('app_name')
+    } else if (filesType.startsWith('usb')) {
+      const num = parseInt(filesType.substring(3))
+      return `${t('usb_storage')} ${num}`
+    }
+  }
+
+  return t('internal_storage')
+}
+
+function getPageStats() {
+  if (filesType) {
+    if (filesType === 'sdcard') {
+      return `${t('storage_free_total', {
         free: formatFileSize(sdcard.value?.freeBytes ?? 0),
         total: formatFileSize(sdcard.value?.totalBytes ?? 0),
-      })})`
+      })}`
     } else if (filesType === 'app') {
       return t('app_name')
     } else if (filesType.startsWith('usb')) {
       const num = parseInt(filesType.substring(3))
       const u = usb.value[num - 1]
-      return `${t('usb_storage')} ${num} (${t('storage_free_total', {
+      return `${t('storage_free_total', {
         free: formatFileSize(u?.freeBytes ?? 0),
         total: formatFileSize(u?.totalBytes ?? 0),
-      })})`
+      })}`
     }
   }
 
-  return `${t('internal_storage')} (${formatFileSize(internal.value?.freeBytes ?? 0)} / ${formatFileSize(internal.value?.totalBytes ?? 0, true, 0)})`
+  return `${formatFileSize(internal.value?.freeBytes ?? 0)} / ${formatFileSize(internal.value?.totalBytes ?? 0, true, 0)}`
 }
 
-function dbclickItem(item: IFile) {
+function navigateToDir(dir: string) {
+  clearSelection()
+  filter.dir = dir
+  const q = buildQ(filter)
+  replacePath(mainStore, filesType ? `/files/${filesType}?q=${q}` : `/files?q=${q}`)
+}
+
+function clickItem(item: IFile) {
   if (item.isDir) {
-    currentDir.value = item.path
+    navigateToDir(item.path)
     return
   }
   if (canOpenInBrowser(item.name)) {
@@ -373,193 +461,105 @@ function dbclickItem(item: IFile) {
   }
 }
 
-function viewItem(item: IFile) {
-  if (canView(item.name)) {
+function viewItem(event: Event, item: IFile) {
+  if (item.isDir) {
+    return
+  }
+
+  event.stopPropagation()
+  if (canOpenInBrowser(item.name)) {
+    window.open(getFileUrlByPath(urlTokenKey.value, item.path), '_blank')
+  } else if (canView(item.name)) {
     view(items.value, item)
   } else {
-    window.open(getFileUrlByPath(urlTokenKey.value, item.path), '_blank')
+    downloadFile(item.path)
   }
 }
 
 function sort(slotProps: { close: () => void }, sort: string) {
   // only sort the last column
+  sorting.value = true
   fileSortBy.value = sort
   slotProps.close()
 }
 
 function refreshCurrentDir() {
+  refreshing.value = true
   fetch()
 }
 
-// function dbclickItem(panel: FilePanel, item: IFile) {
-//   if (!item.isDir) {
-//     if (canOpenInBrowser(item.name)) {
-//       window.open(getFileUrlByPath(urlTokenKey.value, item.path), '_blank')
-//     } else if (canView(item.name)) {
-//       if (fileShowHidden) {
-//         view(panel.items, item)
-//       } else {
-//         view(
-//           panel.items.filter((it: IFile) => !it.name.startsWith('.')),
-//           item
-//         )
-//       }
-//     } else {
-//       downloadFile(item.path)
-//     }
-//   }
-// }
-
-function emptyCtxMenu(e: MouseEvent, dir: string) {
-  e.preventDefault()
-  const items = [
-    {
-      label: t('create_folder'),
-      onClick: () => {
-        createPath.value = dir
-        openModal(EditValueModal, {
-          title: t('name'),
-          placeholder: t('name'),
-          mutation: createMutation,
-          getVariables: createVariables,
-        })
-      },
-    },
-    {
-      label: t('upload_files'),
-      onClick: () => {
-        uploadFiles(dir)
-      },
-    },
-    {
-      label: t('upload_folder'),
-      onClick: () => {
-        uploadDir(dir)
-      },
-    },
-  ]
-  if (canPaste()) {
-    items.push({
-      label: t('paste'),
-      onClick: () => {
-        paste(dir)
-      },
-    })
-  }
-  contextmenu({
-    x: e.x,
-    y: e.y,
-    items,
+const createDir = () => {
+  createPath.value = currentDir.value
+  openModal(EditValueModal, {
+    title: t('name'),
+    placeholder: t('name'),
+    mutation: createMutation,
+    getVariables: createVariables,
   })
 }
 
-function itemCtxMenu(e: MouseEvent, panel: FilePanel, f: IFile) {
-  e.preventDefault()
-  let items
-  if (f.isDir) {
-    items = [
-      {
-        label: t('upload_files'),
-        onClick: () => {
-          uploadFiles(f.path)
-        },
-      },
-      {
-        label: t('upload_folder'),
-        onClick: () => {
-          uploadDir(f.path)
-        },
-      },
-      {
-        label: t('download'),
-        onClick: () => {
-          downloadDir(f.path)
-        },
-      },
-    ]
-  } else {
-    items = []
-    if (canOpenInBrowser(f.name) || canView(f.name)) {
-      items.push({
-        label: t('open'),
-        onClick: () => {
-          if (canView(f.name)) {
-            view(panel.items, f)
-          } else {
-            window.open(getFileUrlByPath(urlTokenKey.value, f.path), '_blank')
-          }
-        },
-      })
-    }
-    items.push({
-      label: t('download'),
-      onClick: () => {
-        downloadFile(f.path)
-      },
-    })
-  }
-  items.push({
-    label: t('duplicate'),
-    onClick: () => {
-      copy([f])
-      paste(panel.dir)
-    },
-  })
-  items.push({
-    label: t('cut'),
-    onClick: () => {
-      f.panel = panel
-      cut([f])
-    },
-  })
-  items.push({
-    label: t('copy'),
-    onClick: () => {
-      copy([f])
-    },
-  })
+function uploadFilesClick(slotProps: { close: () => void }, dir: string) {
+  uploadFiles(dir)
+  slotProps.close()
+}
 
-  if (f.isDir && canPaste()) {
-    items.push({
-      label: t('paste'),
-      onClick: () => {
-        paste(f.path)
-      },
-    })
-  }
+function uploadDirClick(slotProps: { close: () => void }, dir: string) {
+  uploadDir(dir)
+  slotProps.close()
+}
 
-  items = [
-    ...items,
-    {
-      label: t('rename'),
-      onClick: () => {
-        renameValue.value = f.name
-        renamePath.value = f.path
-        openModal(EditValueModal, {
-          title: t('rename'),
-          placeholder: t('name'),
-          value: f.name,
-          mutation: renameMutation,
-          getVariables: renameVariables,
-          done: renameDone,
-        })
-      },
-    },
-    {
-      label: t('delete'),
-      onClick: () => {
-        openModal(DeleteFileConfirm, {
-          files: [f],
-          onDone: onDeleted,
-        })
-      },
-    },
-  ]
+function copyItems() {
+  copy(selectedIds.value)
+  clearSelection()
+}
 
-  contextmenu({
-    x: e.x,
-    y: e.y,
-    items,
+function cutItems() {
+  cut(selectedIds.value)
+  clearSelection()
+}
+
+function pasteDir() {
+  paste(currentDir.value)
+}
+
+function duplicateItem(slotProps: { close: () => void }, item: IFile) {
+  copy([item.id])
+  paste(currentDir.value)
+  slotProps.close()
+}
+
+function cutItem(slotProps: { close: () => void }, item: IFile) {
+  cut([item.id])
+  slotProps.close()
+}
+
+function copyItem(slotProps: { close: () => void }, item: IFile) {
+  copy([item.id])
+  slotProps.close()
+}
+
+function pasteItme(slotProps: { close: () => void }, item: IFile) {
+  paste(item.path)
+  slotProps.close()
+}
+
+function renameItemClick(slotProps: { close: () => void }, item: IFile) {
+  renameItem.value = item
+  openModal(EditValueModal, {
+    title: t('rename'),
+    placeholder: t('name'),
+    value: item.name,
+    mutation: renameMutation,
+    getVariables: renameVariables,
+    done: renameDone,
+  })
+  slotProps.close()
+}
+
+function deleteItem(item: IFile) {
+  openModal(DeleteFileConfirm, {
+    files: [item],
+    onDone: onDeleted,
   })
 }
 
@@ -577,7 +577,13 @@ const fileDeletedHanlder = (event: IFileDeletedEvent) => {
   onDeleted([event.item])
 }
 
+function dropFiles2(e: DragEvent) {
+  dropFiles(e, currentDir.value)
+}
+
 onActivated(() => {
+  q.value = decodeBase64(query.q?.toString() ?? '')
+  parseQ(filter, q.value)
   fetch()
   emitter.on('upload_task_done', uploadTaskDoneHandler)
   emitter.on('file_deleted', fileDeletedHanlder)
@@ -603,7 +609,16 @@ onDeactivated(() => {
     }
   }
 }
-.scroller {
-  height: calc(100vh - 112px);
+.main-files {
+  .file-item {
+    grid-template-columns: 48px 50px auto 200px;
+  }
+  .scroller-wrapper {
+    position: relative;
+    .drag-mask {
+      left: 16px;
+      right: 16px;
+    }
+  }
 }
 </style>

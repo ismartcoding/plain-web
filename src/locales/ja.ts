@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'オーディオプレーヤー',
+  x_items: '{count} アイテム | {count} アイテム',
   export_notes: 'ノートをエクスポート',
   in_progress: '進行中',
   completed: '完了',

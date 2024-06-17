@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'Аудиоплеер',
+  x_items: '{count} предмет | {count} предметов',
   export_notes: 'Экспорт заметок',
   in_progress: 'В процессе',
   completed: 'Завершено',

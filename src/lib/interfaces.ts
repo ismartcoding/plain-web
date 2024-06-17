@@ -169,6 +169,11 @@ export interface IFilter {
   trash?: boolean
 }
 
+export interface IFileFilter {
+  text: string
+  dir: string
+}
+
 export interface IDropdownItem {
   text: string
   click: () => void
@@ -334,4 +339,9 @@ export interface IApp {
   internalStoragePath: string
   downloadsDir: string
   developerMode: boolean
+}
+
+export interface IBreadcrumbItem {
+  path: string
+  name: string
 }

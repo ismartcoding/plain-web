@@ -9,7 +9,6 @@ export type MainState = {
   quickContentWidth: number
   sidebarWidth: number
   sidebar2Width: number
-  sidebarFileInfoWidth: number
   pages: IPage[]
   lightboxInfoVisible: boolean
   videosCardView: boolean
@@ -34,7 +33,6 @@ export const useMainStore = defineStore({
       quickContentWidth: 400,
       sidebarWidth: 240,
       sidebar2Width: 360,
-      sidebarFileInfoWidth: 400,
       noteExpand: true,
       pages: [],
       audios: [],

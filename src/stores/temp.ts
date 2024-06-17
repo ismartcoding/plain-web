@@ -57,7 +57,6 @@ export const useTempStore = defineStore({
       app: {},
       urlTokenKey: null,
       uploads: [],
-      selectedFiles: [],
       audioPlaying: false,
       lightbox: { sources: [], visible: false, index: -1 },
       counter: {

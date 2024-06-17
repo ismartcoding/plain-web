@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'ஆடியோ பிளேயர்',
+  x_items: '{count} உருப்படி | {count} உருப்படிகள்',
   export_notes: 'குறிப்புகளை ஏற்றுமதி செய்ய',
   in_progress: 'செயலாக்கப்படுகின்றது',
   completed: 'முடிந்தது',

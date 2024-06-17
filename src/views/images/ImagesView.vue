@@ -49,11 +49,14 @@
           </div>
         </template>
       </popper>
-      <button class="btn-icon" @click.stop="changeViewType" v-tooltip="$t(mainStore.imagesCardView ? 'grid_view' : 'card_view')">
-        <md-ripple />
-        <i-material-symbols:grid-view-outline-rounded v-if="mainStore.imagesCardView" />
-        <i-material-symbols:splitscreen-outline v-else />
-      </button>
+      <md-outlined-segmented-button-set class="sm">
+        <md-outlined-segmented-button data-value="grid" no-checkmark :selected="!mainStore.imagesCardView" @click="mainStore.imagesCardView = false">
+          <i-material-symbols:grid-view-outline-rounded slot="icon" />
+        </md-outlined-segmented-button>
+        <md-outlined-segmented-button data-value="card" no-checkmark :selected="mainStore.imagesCardView" @click="mainStore.imagesCardView = true">
+          <i-material-symbols:splitscreen-outline slot="icon" />
+        </md-outlined-segmented-button>
+      </md-outlined-segmented-button-set>
     </div>
   </div>
   <all-checked-alert
@@ -350,10 +353,6 @@ const { loading, fetch } = initLazyQuery({
 
 function getUrl(q: string) {
   return q ? `/images?q=${q}` : `/images`
-}
-
-function changeViewType() {
-  mainStore.imagesCardView = !mainStore.imagesCardView
 }
 
 function getUploadDir() {

@@ -7,7 +7,7 @@
       </button>
       <div class="title">{{ $t('header_actions.tasks') }} ({{ tempStore.uploads.length }})</div>
       <div class="actions">
-        <md-outlined-segmented-button-set>
+        <md-outlined-segmented-button-set class="sm">
           <md-outlined-segmented-button v-for="type in types" no-checkmark :key="type" :data-value="type" :label="getLabel(type)" :selected="filterType === type" @click="chooseFilterType(type)" />
         </md-outlined-segmented-button-set>
       </div>

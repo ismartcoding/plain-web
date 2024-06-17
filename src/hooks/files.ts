@@ -1,22 +1,22 @@
 import { ref, type Ref } from 'vue'
 import type { ApolloCache, ApolloError } from '@apollo/client/core'
 import { copyFileGQL, createDirGQL, initMutation, moveFileGQL, renameFileGQL } from '@/lib/api/mutation'
-import { FilePanel, isAudio, isImage, isVideo, type IFile } from '@/lib/file'
+import { enrichFile, isAudio, isImage, isVideo, type IFile } from '@/lib/file'
 import { filesGQL, initQuery, recentFilesGQL, storageStatsGQL } from '@/lib/api/query'
 import { useI18n } from 'vue-i18n'
 import toast from '@/components/toaster'
-import { download, encryptUrlParams, getFileId, getFileName, getFileUrlByPath } from '@/lib/api/file'
+import { download, encryptUrlParams, getFileId, getFileName, getFileUrl, getFileUrlByPath } from '@/lib/api/file'
 import type { ISource } from '@/components/lightbox/types'
 import { encodeBase64 } from '@/lib/strutil'
 import { replacePathNoReload } from '@/plugins/router'
-import { buildQuery, type IFilterField } from '@/lib/search'
+import { buildQuery, parseQuery, type IFilterField } from '@/lib/search'
 import type { MainState } from '@/stores/main'
 import { findIndex, remove } from 'lodash-es'
 import { getApiBaseUrl } from '@/lib/api/api'
 import type { IApp, IStorageStats, IStorageStatsItem } from '@/lib/interfaces'
 import type sjcl from 'sjcl'
 
-export const useCreateDir = (urlTokenKey: Ref<sjcl.BitArray | null>, panels: Ref<FilePanel[]>) => {
+export const useCreateDir = (urlTokenKey: Ref<sjcl.BitArray | null>, items: Ref<IFile[]>) => {
   const createPath = ref('')
 
   return {
@@ -29,13 +29,9 @@ export const useCreateDir = (urlTokenKey: Ref<sjcl.BitArray | null>, panels: Ref
         document: createDirGQL,
         options: {
           update: async (_: ApolloCache<any>, data: any) => {
-            // TODO: check created failed or not?
-            for (const panel of panels.value) {
-              if (panel.dir === createPath.value) {
-                const d = data.data.createDir
-                panel.items.push({ ...d, name: getFileName(d.path), fileId: getFileId(urlTokenKey.value, d.path) })
-              }
-            }
+            const d = data.data.createDir
+            remove(items.value, (it: IFile) => it.path === d.path)
+            items.value.unshift(enrichFile(d, urlTokenKey.value))
           },
         },
         appApi: true,
@@ -44,18 +40,12 @@ export const useCreateDir = (urlTokenKey: Ref<sjcl.BitArray | null>, panels: Ref
   }
 }
 
-export const useRename = (panels: Ref<FilePanel[]>) => {
-  const renameValue = ref('')
-  const renamePath = ref('')
+export const useRename = (fetch: () => voide) => {
+  const renameItem = ref<IFile>()
   return {
-    renameValue,
-    renamePath,
+    renameItem,
     renameDone(newName: string) {
-      const path = renamePath.value
-      const oldName = renameValue.value
-      for (const panel of panels.value) {
-        panel.rename(path, oldName, newName)
-      }
+      fetch()
     },
     renameMutation() {
       return initMutation({
@@ -64,28 +54,7 @@ export const useRename = (panels: Ref<FilePanel[]>) => {
       })
     },
     renameVariables(value: string) {
-      return { path: renamePath.value, name: value }
-    },
-  }
-}
-
-export const useDeleteFiles = (panels: Ref<FilePanel[]>, currentDir: Ref<string>, refetchStats: () => void) => {
-  return {
-    onDeleted(files: IFile[]) {
-      for (const panel of panels.value) {
-        files.forEach((f) => {
-          panel.deleteItem(f.path)
-        })
-      }
-
-      files.forEach((f) => {
-        if (currentDir.value.startsWith(f.path)) {
-          const index = f.path.lastIndexOf('/')
-          currentDir.value = f.path.substring(0, index) // jump the path to parent
-        }
-      })
-
-      refetchStats()
+      return { path: renameItem.value?.path, name: value }
     },
   }
 }
@@ -107,104 +76,6 @@ export const useStats = () => {
   })
 
   return { internal, sdcard, usb, refetch }
-}
-
-export const useFiles = (urlTokenKey: Ref<sjcl.BitArray | null>, rootDir: string, initDir: string, sortBy: Ref<string>) => {
-  const currentDir = ref(rootDir)
-  const _refetchDir = ref('')
-
-  const panels = ref<FilePanel[]>([])
-  const { t } = useI18n()
-  let initDirIndex = 0
-  let inited = false
-
-  const { loading } = initQuery({
-    handle: async (data: any, error: string) => {
-      if (error) {
-        toast(t(error), 'error')
-      } else {
-        const { dir, items } = data.files
-        const files: IFile[] = []
-        for (const item of items) {
-          const tmp = { ...item, name: getFileName(item.path) }
-          if (isVideo(tmp.name) || isImage(tmp.name)) {
-            tmp.fileId = getFileId(urlTokenKey.value, item.path)
-          }
-          files.push(tmp)
-        }
-
-        const panelCount = dir.replace(rootDir, '').split('/').length
-        while (panels.value.length >= panelCount) {
-          panels.value.pop()
-        }
-        panels.value.push(new FilePanel(dir, files))
-        if (initDir && !inited) {
-          const dirs = initDir.replace(rootDir + '/', '').split('/')
-          if (files.length === 0) {
-            inited = true
-          } else {
-            if (initDirIndex < dirs.length) {
-              currentDir.value = rootDir + '/' + dirs.slice(0, initDirIndex + 1).join('/')
-              initDirIndex++
-            } else {
-              inited = true
-            }
-          }
-        }
-      }
-    },
-    document: filesGQL,
-    variables: () => ({
-      dir: currentDir.value,
-      showHidden: true,
-      sortBy: sortBy.value,
-    }),
-    options: {
-      fetchPolicy: 'no-cache',
-    },
-    appApi: true,
-  })
-
-  const { refetch } = initQuery({
-    handle: async (data: any, error: string) => {
-      if (error) {
-        toast(t(error), 'error')
-      } else {
-        const { dir, items } = data.files
-        const list: IFile[] = []
-        for (const item of items) {
-          list.push({ ...item, name: getFileName(item.path), fileId: getFileId(urlTokenKey.value, item.path) })
-        }
-        panels.value.forEach((panel: FilePanel) => {
-          if (panel.dir === dir) {
-            panel.items = list
-          }
-        })
-      }
-      _refetchDir.value = ''
-    },
-    document: filesGQL,
-    variables: () => ({
-      dir: _refetchDir.value,
-      showHidden: true,
-      sortBy: sortBy.value,
-    }),
-    options: () => ({
-      fetchPolicy: 'no-cache',
-      enabled: !!_refetchDir.value,
-    }),
-    appApi: true,
-  })
-
-  return {
-    loading,
-    panels,
-    refetch(dir: string) {
-      _refetchDir.value = dir
-      refetch()
-    },
-    currentDir,
-  }
 }
 
 export const useDownload = (urlTokenKey: Ref<sjcl.BitArray | null>) => {
@@ -248,7 +119,7 @@ export const useView = (sources: Ref<ISource[]>, ivView: (sources: ISource[], i:
         .filter((it) => isImage(it.name) || isVideo(it.name) || isAudio(it.name))
         .map((it) => ({
           path: it.path,
-          src: '',
+          src: it.fileId ? getFileUrl(it.fileId) : '',
           name: getFileName(it.path),
           size: it.size,
           duration: 0,
@@ -260,40 +131,7 @@ export const useView = (sources: Ref<ISource[]>, ivView: (sources: ISource[], i:
   }
 }
 
-export const useSingleSelect = (currentDir: Ref<string>, filesType: string, q: Ref<string>, mainStore: MainState) => {
-  const selectedItem = ref<IFile | null>(null)
-
-  return {
-    selectedItem,
-    select(panel: FilePanel, item: IFile) {
-      if (item.isDir) {
-        currentDir.value = item.path
-      } else {
-        if (panel.items.some((it) => it.path === currentDir.value) && panel.items.some((it) => it.path === item.path)) {
-          currentDir.value = panel.dir
-        }
-      }
-      const fileds: IFilterField[] = []
-      fileds.push({
-        name: 'path',
-        op: '',
-        value: item.path,
-      })
-      fileds.push({
-        name: 'isDir',
-        op: '',
-        value: currentDir.value === item.path ? '1' : '0',
-      })
-      q.value = buildQuery(fileds)
-      selectedItem.value = item
-
-      replacePathNoReload(mainStore, filesType ? `/files/${filesType}?q=${encodeBase64(q.value)}` : `/files?q=${encodeBase64(q.value)}`)
-    },
-  }
-}
-
-export const useCopyPaste = (selectedFiles: Ref<IFile[]>, refetchFiles: (path: string) => void, refetchStats: () => void) => {
-  const isCut = ref(false)
+export const useCopyPaste = (items: Ref<IFile[]>, isCut: Ref<Boolean>, selectedFiles: Ref<IFile[]>, refetchFiles: () => void, refetchStats: () => void) => {
   const dstDir = ref<string>()
 
   const {
@@ -328,13 +166,15 @@ export const useCopyPaste = (selectedFiles: Ref<IFile[]>, refetchFiles: (path: s
   const onDone = () => {
     if (isCut.value) {
       for (const file of selectedFiles.value) {
-        remove(file.panel?.items ?? [], (it: IFile) => it.path === file.path)
+        remove(items.value, (it: IFile) => it.path === file.path)
       }
     }
 
+    selectedFiles.value = []
+
     // have to delay 1s to make sure the api return latest data.
     setTimeout(() => {
-      refetchFiles(dstDir.value!)
+      refetchFiles()
       refetchStats()
     }, 500)
   }
@@ -347,12 +187,12 @@ export const useCopyPaste = (selectedFiles: Ref<IFile[]>, refetchFiles: (path: s
     canPaste() {
       return selectedFiles.value.length > 0
     },
-    copy(items: IFile[]) {
-      selectedFiles.value = items
+    copy(ids: string[]) {
+      selectedFiles.value = items.value.filter((it) => ids.includes(it.id))
       isCut.value = false
     },
-    cut(items: IFile[]) {
-      selectedFiles.value = items
+    cut(ids: string[]) {
+      selectedFiles.value = items.value.filter((it) => ids.includes(it.id))
       isCut.value = true
     },
     paste(dir: string) {
@@ -425,4 +265,45 @@ export const getRootDir = (filesType: string, app: IApp) => {
     }
   }
   return rootDir
+}
+
+export const useSearch = () => {
+  return {
+    copyFilter: (from: IFileFilter, to: IFileFilter) => {
+      to.text = from.text
+      to.dir = from.dir
+    },
+    parseQ: (filter: IFileFilter, q: string) => {
+      const fields = parseQuery(q)
+      filter.text = ''
+      filter.dir = ''
+      fields.forEach((it) => {
+        if (it.name === 'text') {
+          filter.text = it.value
+        } else if (it.name === 'dir') {
+          filter.dir = it.value
+        }
+      })
+    },
+    buildQ: (filter: IFileFilter): string => {
+      const fields: IFilterField[] = []
+      if (filter.dir) {
+        fields.push({
+          name: 'dir',
+          op: '',
+          value: filter.dir,
+        })
+      }
+
+      if (filter.text) {
+        fields.push({
+          name: 'text',
+          op: '',
+          value: filter.text,
+        })
+      }
+
+      return encodeBase64(buildQuery(fields))
+    },
+  }
 }
