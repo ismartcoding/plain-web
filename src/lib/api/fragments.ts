@@ -219,6 +219,7 @@ export const fileFragment = gql`
     createdAt
     updatedAt
     size
+    children
     mediaId
   }
 `

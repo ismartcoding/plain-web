@@ -47,7 +47,7 @@
     :clear-selection="clearSelection"
   />
   <div v-if="loading && items.length === 0" class="scroller">
-    <article class="note-item selectable-card-skeleton" v-for="i in limit" :key="i">
+    <article class="note-item selectable-card-skeleton" v-for="i in 20" :key="i">
       <div class="start">
         <div class="checkbox">
           <div class="skeleton-checkbox"></div>

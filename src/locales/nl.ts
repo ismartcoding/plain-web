@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'Audio-speler',
+  x_items: '{count} item | {count} items',
   export_notes: 'Notities exporteren',
   in_progress: 'Bezig...',
   completed: 'Voltooid',

@@ -128,7 +128,7 @@
         </div>
       </section>
       <template v-if="loading && items.length === 0">
-        <section class="media-item selectable-card-skeleton" v-for="i in limit" :key="i">
+        <section class="media-item selectable-card-skeleton" v-for="i in 20" :key="i">
           <div class="start">
             <div class="checkbox">
               <div class="skeleton-checkbox"></div>

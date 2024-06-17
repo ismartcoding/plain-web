@@ -42,3 +42,26 @@ md-checkbox {
   border-radius: 4px;
 }
 
+md-outlined-segmented-button-set.sm {
+  --_container-height: 32px;
+  md-outlined-segmented-button {
+    --_label-text-size: 0.75rem;
+  }
+}
+
+
+.btn-icon {
+  md-circular-progress {
+    --md-circular-progress-size: 26px;
+    --md-circular-progress-active-indicator-width: 16;
+  }
+}
+
+
+md-filled-button {
+  md-circular-progress {
+    --md-circular-progress-size: 18px;
+    --md-circular-progress-active-indicator-width: 16;
+    --_active-indicator-color: var(--md-sys-color-on-primary);
+  }
+}

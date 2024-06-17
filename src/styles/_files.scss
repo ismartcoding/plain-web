@@ -1,29 +1,18 @@
-.page-content .main-files {
-  &:has(> .content) {
-    flex-direction: row;
-  }
-}
 .main-files {
-  .sidebar2 {
-    flex: 1;
-  }
   .scroller {
     overflow-y: auto;
     overflow-x: hidden;
     height: calc(100vh - 112px);
-    .item-link {
-      text-decoration: none;
-      display: block;
-    }
   }
+
   .file-item {
     margin: 0 16px 8px 16px;
     display: grid;
     border-radius: 8px;
     grid-template-areas:
-      'start image title'
-      'start image subtitle';
-    grid-template-columns: 48px 50px auto;
+      'start image title actions'
+      'start image subtitle actions';
+    grid-template-columns: 48px 50px auto 100px;
     &:hover {
       cursor: pointer;
     }
@@ -64,19 +53,15 @@
       margin-block: 8px;
       user-select: none;
     }
-  }
-
-  .sidebar2 + .content {
-    overflow-y: auto;
-    position: relative;
-    overflow-x: hidden;
-    .sidebar-drag-indicator {
-      left: 0;
-      right: auto;
-    }
-    padding: 0 16px 0 8px;
-    .top-app-bar {
-      padding-inline: 0;
+    .actions {
+      grid-area: actions;
+      display: flex;
+      flex-direction: row;
+      gap: 4px;
+      align-items: center;
+      visibility: visible;
+      padding-inline: 16px;
+      justify-content: end;
     }
   }
 
@@ -94,6 +79,10 @@
         width: 30%;
         height: 20px;
       }
+      .skeleton-actions {
+        width: 100px;
+        height: 20px;
+      }
     }
   }
 
@@ -102,5 +91,12 @@
     justify-content: center;
     display: flex;
     width: 100%;
+  }
+
+  .card-info {
+    max-width: 400px;
+    .key-value .key {
+      width: 80px;
+    }
   }
 }
