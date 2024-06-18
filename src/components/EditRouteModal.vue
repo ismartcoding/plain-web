@@ -68,7 +68,7 @@
     <div slot="actions">
       <md-outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</md-outlined-button>
       <md-filled-button value="save" :disabled="createLoading || editLoading" @click="doAction" autofocus>
-        {{ $t('save') }}
+        <md-circular-progress indeterminate v-if="createLoading || editLoading" slot="icon" /> {{ $t('save') }}
       </md-filled-button>
     </div>
   </md-dialog>

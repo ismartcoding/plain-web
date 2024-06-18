@@ -110,7 +110,7 @@ const router = createRouter({
           meta: { group: 'aichats' },
         },
         {
-          path: 'files/:type?',
+          path: 'files',
           components: {
             default: () => import('@/views/files/FilesView.vue'),
             LeftSidebar: () => import('@/views/files/FilesSidebar.vue'),
@@ -221,6 +221,15 @@ router.beforeEach(async (to, from) => {
       query: { redirect: to.fullPath },
     }
   }
+
+  // clean up tooltip
+  clearTimeout(window.showTooltipTimeout)
+  setTimeout(() => {
+    const tooltips = document.getElementsByClassName('tooltip')
+    for (let tooltip of tooltips) {
+      document.body.removeChild(tooltip)
+    }
+  }, 100)
 })
 
 router.afterEach((to, from) => {

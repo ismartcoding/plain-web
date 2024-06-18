@@ -12,7 +12,7 @@ export const VirtualProps = {
   },
   keeps: {
     type: Number,
-    default: 30,
+    default: 100,
   },
   estimateSize: {
     type: Number,

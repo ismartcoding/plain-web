@@ -170,8 +170,10 @@ export interface IFilter {
 }
 
 export interface IFileFilter {
+  showHidden: boolean
+  linkName: string
   text: string
-  dir: string
+  parent: string
 }
 
 export interface IDropdownItem {

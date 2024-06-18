@@ -6,6 +6,12 @@
         <i-material-symbols:right-panel-close-outline />
       </button>
       <div class="title">{{ app?.deviceName ?? $t('my_phone') }}{{ app?.battery ? ' (' + $t('battery_left', { percentage: app?.battery }) + ')' : '' }}</div>
+      <div class="actions">
+        <button class="btn-icon" @click.prevent="openFolder" v-tooltip="$t('files')">
+          <md-ripple />
+          <i-material-symbols:folder-open-outline-rounded />
+        </button>
+      </div>
     </div>
     <div class="quick-content-body" ref="scrollContainer">
       <div v-for="(chatItem, index) of chatItems" :key="chatItem.id" class="chat-item">
@@ -93,10 +99,12 @@ import { useApolloClient } from '@vue/apollo-composable'
 import emitter from '@/plugins/eventbus'
 import { chatItemFragment } from '@/lib/api/fragments'
 import { useChatFilesUpload } from '@/hooks/upload'
-import { shortUUID } from '@/lib/strutil'
+import { encodeBase64, shortUUID } from '@/lib/strutil'
 import { getVideoData, getImageData } from '@/lib/file'
 import { useTasks } from '@/hooks/chat'
 import { addLinksToURLs } from '@/lib/strutil'
+import { buildQuery } from '@/lib/search'
+import { replacePath } from '@/plugins/router'
 
 const { getUploads } = useChatFilesUpload()
 const { resolveClient } = useApolloClient()
@@ -105,6 +113,7 @@ const fileInput = ref<HTMLInputElement>()
 const imageInput = ref<HTMLInputElement>()
 const chatItems = ref<IChatItem[]>([])
 const { enqueue: enqueueTask } = useTasks()
+
 
 const { app } = storeToRefs(useTempStore())
 const { externalFilesDir } = app.value
@@ -310,6 +319,22 @@ function deleteMessage(id: string) {
 function sendImages() {
   imageInput.value!.value = ''
   imageInput.value!.click()
+}
+
+function openFolder() {
+  const q = buildQuery([
+    {
+      name: 'parent',
+      op: '',
+      value: app.value.externalFilesDir,
+    },
+    {
+      name: 'link_name',
+      op: '',
+      value: "app"
+    },
+  ])
+  replacePath(store, `/files?q=${encodeBase64(q)}`)
 }
 
 function sendFiles() {

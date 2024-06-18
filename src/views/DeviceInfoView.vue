@@ -2,63 +2,65 @@
   <div class="top-app-bar">
     <div class="title">{{ $t('device_info') }}</div>
   </div>
-  <div class="grids scroll-content">
-    <div>
-      <section class="card">
-        <h5 class="card-title">{{ $t('device') }}</h5>
-        <div class="card-body">
-          <div class="key-value" v-for="(item, index) in basicInfos" :key="index">
-            <div class="key">{{ $t(item.label) }}</div>
-            <div class="value">
-              <time v-if="item.isTime" class="time" v-tooltip="formatDateTimeFull(item.value)">{{ formatDateTime(item.value) }} </time>
-              <template v-else-if="Array.isArray(item.value)">
-                <div v-for="(it, i) in item.value" :key="i">{{ it }}</div>
-              </template>
-              <template v-else>
-                {{ item.value }}
-              </template>
+  <div class="scroll-content">
+    <div class="grids">
+      <div>
+        <section class="card">
+          <h5 class="card-title">{{ $t('device') }}</h5>
+          <div class="card-body">
+            <div class="key-value" v-for="(item, index) in basicInfos" :key="index">
+              <div class="key">{{ $t(item.label) }}</div>
+              <div class="value">
+                <time v-if="item.isTime" class="time" v-tooltip="formatDateTimeFull(item.value)">{{ formatDateTime(item.value) }} </time>
+                <template v-else-if="Array.isArray(item.value)">
+                  <div v-for="(it, i) in item.value" :key="i">{{ it }}</div>
+                </template>
+                <template v-else>
+                  {{ item.value }}
+                </template>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
-    </div>
-    <div>
-      <section class="card">
-        <h5 class="card-title">{{ $t('system') }}</h5>
-        <div class="card-body">
-          <div class="key-value" v-for="(item, index) in systemInfos" :key="index">
-            <div class="key">{{ $t(item.label) }}</div>
-            <div class="value">
-              <time v-if="item.isTime" class="time" v-tooltip="formatDateTimeFull(item.value)">{{ formatDateTime(item.value) }}</time>
-              <template v-else-if="Array.isArray(item.value)">
-                <div v-for="(it, i) in item.value" :key="i">{{ it }}</div>
-              </template>
-              <template v-else>
-                {{ item.value }}
-              </template>
+        </section>
+      </div>
+      <div>
+        <section class="card">
+          <h5 class="card-title">{{ $t('system') }}</h5>
+          <div class="card-body">
+            <div class="key-value" v-for="(item, index) in systemInfos" :key="index">
+              <div class="key">{{ $t(item.label) }}</div>
+              <div class="value">
+                <time v-if="item.isTime" class="time" v-tooltip="formatDateTimeFull(item.value)">{{ formatDateTime(item.value) }}</time>
+                <template v-else-if="Array.isArray(item.value)">
+                  <div v-for="(it, i) in item.value" :key="i">{{ it }}</div>
+                </template>
+                <template v-else>
+                  {{ item.value }}
+                </template>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
-    </div>
-    <div>
-      <section class="card">
-        <h5 class="card-title">{{ $t('battery') }}</h5>
-        <div class="card-body">
-          <div class="key-value" v-for="(item, index) in batteryInfos" :key="index">
-            <div class="key">{{ $t(item.label) }}</div>
-            <div class="value">
-              <time v-if="item.isTime" class="time" v-tooltip="formatDateTimeFull(item.value)">{{ formatDateTime(item.value) }}</time>
-              <template v-else-if="Array.isArray(item.value)">
-                <div v-for="(it, i) in item.value" :key="i">{{ it }}</div>
-              </template>
-              <template v-else>
-                {{ item.value }}
-              </template>
+        </section>
+      </div>
+      <div>
+        <section class="card">
+          <h5 class="card-title">{{ $t('battery') }}</h5>
+          <div class="card-body">
+            <div class="key-value" v-for="(item, index) in batteryInfos" :key="index">
+              <div class="key">{{ $t(item.label) }}</div>
+              <div class="value">
+                <time v-if="item.isTime" class="time" v-tooltip="formatDateTimeFull(item.value)">{{ formatDateTime(item.value) }}</time>
+                <template v-else-if="Array.isArray(item.value)">
+                  <div v-for="(it, i) in item.value" :key="i">{{ it }}</div>
+                </template>
+                <template v-else>
+                  {{ item.value }}
+                </template>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
   </div>
 </template>

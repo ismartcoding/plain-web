@@ -21,9 +21,7 @@
     </div>
     <div slot="actions">
       <md-outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</md-outlined-button>
-      <md-filled-button value="save" :disabled="adding || removing" @click="doAction" autofocus>
-        {{ $t('save') }}
-      </md-filled-button>
+      <md-filled-button value="save" :disabled="adding || removing" @click="doAction" autofocus> <md-circular-progress indeterminate v-if="adding || removing" slot="icon" /> {{ $t('save') }} </md-filled-button>
     </div>
   </md-dialog>
 </template>

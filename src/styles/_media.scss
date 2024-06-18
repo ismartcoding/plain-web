@@ -32,12 +32,12 @@
     .actions {
       display: none;
       position: absolute;
-      bottom: 0;
+      top: 0;
       right: 0;
       padding: 4px;
       background: var(--md-sys-color-surface-container-highest);
       z-index: 2;
-      border-radius: 8px 0 8px 0;
+      border-radius: 0 0 0 8px;
       transition: display 0.3s;
       .btn-icon {
         color: var(--md-sys-color-on-surface-container);

@@ -271,35 +271,59 @@ export const useSearch = () => {
   return {
     copyFilter: (from: IFileFilter, to: IFileFilter) => {
       to.text = from.text
-      to.dir = from.dir
+      to.parent = from.parent
+      to.linkName = from.linkName
+      to.showHidden = from.showHidden
     },
     parseQ: (filter: IFileFilter, q: string) => {
       const fields = parseQuery(q)
+      filter.showHidden = false
       filter.text = ''
-      filter.dir = ''
+      filter.parent = ''
+      filter.linkName = ''
       fields.forEach((it) => {
         if (it.name === 'text') {
           filter.text = it.value
-        } else if (it.name === 'dir') {
-          filter.dir = it.value
+        } else if (it.name === 'parent') {
+          filter.parent = it.value
+        } else if (it.name === 'link_name') {
+          filter.linkName = it.value
+        } else if (it.name === 'show_hidden') {
+          filter.showHidden = it.value === 'true'
         }
       })
     },
     buildQ: (filter: IFileFilter): string => {
       const fields: IFilterField[] = []
-      if (filter.dir) {
+      if (filter.parent !== '') {
         fields.push({
-          name: 'dir',
+          name: 'parent',
           op: '',
-          value: filter.dir,
+          value: filter.parent,
         })
       }
 
-      if (filter.text) {
+      if (filter.linkName !== '') {
+        fields.push({
+          name: 'link_name',
+          op: '',
+          value: filter.linkName,
+        })
+      }
+
+      if (filter.text !== '') {
         fields.push({
           name: 'text',
           op: '',
           value: filter.text,
+        })
+      }
+
+      if (filter.showHidden) {
+        fields.push({
+          name: 'show_hidden',
+          op: '',
+          value: filter.showHidden ? 'true' : 'false',
         })
       }
 

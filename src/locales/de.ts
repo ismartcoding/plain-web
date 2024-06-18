@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'Audio-Player',
+  current_folder: 'Aktueller Ordner',
   x_items: '{count} Artikel | {count} Artikel',
   export_notes: 'Notizen exportieren',
   in_progress: 'In Bearbeitung',
