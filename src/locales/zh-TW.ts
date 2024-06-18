@@ -1,6 +1,7 @@
 export default {
   app_name: '簡樸',
   audio_player: '音頻播放器',
+  current_folder: '當前目錄',
   export_notes: '導出筆記',
   in_progress: '進行中',
   completed: '已完成',

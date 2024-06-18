@@ -12,7 +12,6 @@ const directive: Directive = {
     el.tooltipText = binding.value
   },
   mounted: (el, binding) => {
-    let showTimeout: number | undefined
     let tooltipElement: HTMLDivElement | null = null
 
     function createTooltip() {
@@ -48,13 +47,13 @@ const directive: Directive = {
     }
 
     el.mouseenterFunc = () => {
-      showTimeout = setTimeout(showTooltip, 600)
+      window.showTooltipTimeout = setTimeout(showTooltip, 600)
     }
 
     el.addEventListener('mouseenter', el.mouseenterFunc)
 
     el.mouseleaveFunc = () => {
-      clearTimeout(showTimeout)
+      clearTimeout(window.showTooltipTimeout)
       if (tooltipElement) {
         if (tooltipElement.parentNode) {
           tooltipElement.parentNode.removeChild(tooltipElement)

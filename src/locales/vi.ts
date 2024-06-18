@@ -1,5 +1,6 @@
 export default {
   app_name: 'PlainApp',
+  current_folder: 'Thư mục hiện tại',
   audio_player: 'Trình phát âm thanh',
   x_items: '{count} mục | {count} mục',
   export_notes: 'Xuất ghi chú',

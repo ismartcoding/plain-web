@@ -91,7 +91,7 @@ export const useSearch = () => {
         })
       }
 
-      if (filter.text) {
+      if (filter.text !== undefined) {
         fields.push({
           name: 'text',
           op: '',

@@ -255,12 +255,9 @@ export const audiosGQL = gql`
 `
 
 export const filesGQL = gql`
-  query files($dir: String!, $showHidden: Boolean!, $sortBy: FileSortBy!) {
-    files(dir: $dir, showHidden: $showHidden, sortBy: $sortBy) {
-      dir
-      items {
-        ...FileFragment
-      }
+  query files($offset: Int!, $limit: Int!, $query: String!, $sortBy: FileSortBy!) {
+    files(offset: $offset, limit: $limit, query: $query, sortBy: $sortBy) {
+      ...FileFragment
     }
   }
   ${fileFragment}

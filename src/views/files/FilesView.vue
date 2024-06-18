@@ -5,11 +5,11 @@
     <div v-else class="breadcrumb">
       <template v-for="(item, index) in breadcrumbPaths" :key="item.path">
         <template v-if="index === 0">
-          <span v-if="item.path === currentDir" v-tooltip="getPageStats()">{{ item.name }} ({{ total }})</span>
+          <span v-if="item.path === filter.parent" v-tooltip="getPageStats()">{{ item.name }} ({{ total }})</span>
           <a v-else href="#" @click.stop.prevent="navigateToDir(item.path)" v-tooltip="getPageStats()">{{ item.name }}</a>
         </template>
         <template v-else>
-          <span v-if="item.path === currentDir">{{ item.name }} ({{ total }})</span>
+          <span v-if="item.path === filter.parent">{{ item.name }} ({{ total }})</span>
           <a v-else href="#" @click.stop.prevent="navigateToDir(item.path)">{{ item.name }}</a>
         </template>
       </template>
@@ -34,9 +34,7 @@
       </button>
     </template>
     <div class="actions">
-      <div class="form-check">
-        <label class="form-check-label"><md-checkbox touch-target="wrapper" @change="toggleShowHiddenChecked" :checked="fileShowHidden" />{{ $t('show_hidden') }}</label>
-      </div>
+      <file-search-input v-if="filter.linkName !== 'app'" :filter="filter" :parent="rootDir" :get-url="getUrl" />
       <button class="btn-icon" v-tooltip="$t('create_folder')" @click="createDir">
         <md-ripple />
         <i-material-symbols:create-new-folder-outline-rounded />
@@ -47,10 +45,10 @@
           <i-material-symbols:upload-rounded />
         </button>
         <template #content="slotProps">
-          <md-menu-item @click.stop="uploadFilesClick(slotProps, currentDir)">
+          <md-menu-item @click.stop="uploadFilesClick(slotProps, filter.parent)">
             <div slot="headline">{{ $t('upload_files') }}</div>
           </md-menu-item>
-          <md-menu-item @click.stop="uploadDirClick(slotProps, currentDir)">
+          <md-menu-item @click.stop="uploadDirClick(slotProps, filter.parent)">
             <div slot="headline">{{ $t('upload_folder') }}</div>
           </md-menu-item>
         </template>
@@ -108,7 +106,6 @@
     <VirtualList v-if="items.length > 0" class="scroller" :data-key="'id'" :data-sources="items" :estimate-size="80">
       <template #item="{ index, item }">
         <section
-          v-if="!item.name.startsWith('.') || fileShowHidden"
           class="file-item selectable-card"
           :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
           @click.stop="
@@ -260,13 +257,14 @@ const { t } = useI18n()
 const sources = ref([])
 const { parseQ, buildQ } = useSearch()
 const filter = reactive<IFileFilter>({
+  linkName: '',
+  showHidden: false,
   text: '',
-  dir: '',
+  parent: '',
 })
 
 const route = useRoute()
 const query = route.query
-const filesType = route.params['type'] as string
 const q = ref('')
 const items = ref<IFile[]>([])
 const { selectedIds, allChecked, realAllChecked, clearSelection, toggleAllChecked, toggleSelect, total, checked, shiftEffectingIds, handleItemClick, handleMouseOver, selectAll, shouldSelect } =
@@ -287,14 +285,13 @@ const onExtensionImageError = (id: string) => {
 const sortItems = getSortItems()
 
 const mainStore = useMainStore()
-const { fileShowHidden, fileSortBy } = storeToRefs(mainStore)
+const { fileSortBy } = storeToRefs(mainStore)
 
 const tempStore = useTempStore()
 const { app, urlTokenKey, uploads } = storeToRefs(tempStore)
 const { selectedFiles, isCut } = storeToRefs(useFilesStore())
 const { dropping, fileDragEnter, fileDragLeave, dropFiles } = useDragDropUpload(uploads)
-const rootDir = getRootDir(filesType, app.value)
-const currentDir = computed(() => filter.dir || rootDir)
+const rootDir = computed(() => getRootDir(filter.linkName, app.value))
 const { createPath, createVariables, createMutation } = useCreateDir(urlTokenKey, items)
 const { renameItem, renameDone, renameMutation, renameVariables } = useRename(() => {
   fetch()
@@ -309,17 +306,20 @@ const { view } = useView(sources, (s: ISource[], index: number) => {
   }
 })
 
+const page = ref(parseInt(query.page?.toString() ?? '1'))
+const limit = 10000 // not paging for now
+
 const breadcrumbPaths = computed(() => {
   const paths: IBreadcrumbItem[] = []
-  let p = currentDir.value
+  let p = filter.parent
   while (p) {
-    if (p === rootDir) {
+    if (p === rootDir.value) {
       break
     }
     paths.unshift({ path: p, name: getFileName(p) })
     p = p.substring(0, p.lastIndexOf('/'))
   }
-  paths.unshift({ path: rootDir, name: getPageTitle() })
+  paths.unshift({ path: rootDir.value, name: getPageTitle() })
 
   return paths
 })
@@ -333,9 +333,8 @@ const { loading, fetch } = initLazyQuery({
     if (error) {
       toast(t(error), 'error')
     } else {
-      const r = data.files
       const list: IFile[] = []
-      for (const item of r.items) {
+      for (const item of data.files) {
         list.push(enrichFile(item, urlTokenKey.value))
       }
       items.value = list
@@ -344,8 +343,9 @@ const { loading, fetch } = initLazyQuery({
   },
   document: filesGQL,
   variables: () => ({
-    dir: currentDir.value,
-    showHidden: true,
+    offset: (page.value - 1) * limit,
+    limit,
+    query: q.value ? q.value : `parent:${rootDir}`,
     sortBy: fileSortBy.value,
   }),
   options: {
@@ -370,10 +370,6 @@ setTempValueDone((r: any) => {
   downloadFiles(r.data.setTempValue.key)
   clearSelection()
 })
-
-function toggleShowHiddenChecked(e: Event) {
-  fileShowHidden.value = (e.target as MdCheckbox).checked
-}
 
 const downloadItems = () => {
   setTempValue({
@@ -404,37 +400,33 @@ const deleteItems = () => {
 }
 
 function getPageTitle() {
-  if (filesType) {
-    if (filesType === 'sdcard') {
-      return t('sdcard')
-    } else if (filesType === 'app') {
-      return t('app_name')
-    } else if (filesType.startsWith('usb')) {
-      const num = parseInt(filesType.substring(3))
-      return `${t('usb_storage')} ${num}`
-    }
+  if (filter.linkName === 'sdcard') {
+    return t('sdcard')
+  } else if (filter.linkName === 'app') {
+    return t('app_name')
+  } else if (filter.linkName.startsWith('usb')) {
+    const num = parseInt(filter.linkName.substring(3))
+    return `${t('usb_storage')} ${num}`
   }
 
   return t('internal_storage')
 }
 
 function getPageStats() {
-  if (filesType) {
-    if (filesType === 'sdcard') {
-      return `${t('storage_free_total', {
-        free: formatFileSize(sdcard.value?.freeBytes ?? 0),
-        total: formatFileSize(sdcard.value?.totalBytes ?? 0),
-      })}`
-    } else if (filesType === 'app') {
-      return t('app_name')
-    } else if (filesType.startsWith('usb')) {
-      const num = parseInt(filesType.substring(3))
-      const u = usb.value[num - 1]
-      return `${t('storage_free_total', {
-        free: formatFileSize(u?.freeBytes ?? 0),
-        total: formatFileSize(u?.totalBytes ?? 0),
-      })}`
-    }
+  if (filter.linkName === 'sdcard') {
+    return `${t('storage_free_total', {
+      free: formatFileSize(sdcard.value?.freeBytes ?? 0),
+      total: formatFileSize(sdcard.value?.totalBytes ?? 0),
+    })}`
+  } else if (filter.linkName === 'app') {
+    return t('app_name')
+  } else if (filter.linkName.startsWith('usb')) {
+    const num = parseInt(filter.linkName.substring(3))
+    const u = usb.value[num - 1]
+    return `${t('storage_free_total', {
+      free: formatFileSize(u?.freeBytes ?? 0),
+      total: formatFileSize(u?.totalBytes ?? 0),
+    })}`
   }
 
   return `${formatFileSize(internal.value?.freeBytes ?? 0)} / ${formatFileSize(internal.value?.totalBytes ?? 0, true, 0)}`
@@ -442,9 +434,13 @@ function getPageStats() {
 
 function navigateToDir(dir: string) {
   clearSelection()
-  filter.dir = dir
+  filter.parent = dir
   const q = buildQ(filter)
-  replacePath(mainStore, filesType ? `/files/${filesType}?q=${q}` : `/files?q=${q}`)
+  replacePath(mainStore, getUrl(q))
+}
+
+function getUrl(q: string) {
+  return `/files?q=${q}`
 }
 
 function clickItem(item: IFile) {
@@ -489,7 +485,7 @@ function refreshCurrentDir() {
 }
 
 const createDir = () => {
-  createPath.value = currentDir.value
+  createPath.value = filter.parent
   openModal(EditValueModal, {
     title: t('name'),
     placeholder: t('name'),
@@ -519,12 +515,12 @@ function cutItems() {
 }
 
 function pasteDir() {
-  paste(currentDir.value)
+  paste(filter.parent)
 }
 
 function duplicateItem(slotProps: { close: () => void }, item: IFile) {
   copy([item.id])
-  paste(currentDir.value)
+  paste(filter.parent)
   slotProps.close()
 }
 
@@ -578,7 +574,7 @@ const fileDeletedHanlder = (event: IFileDeletedEvent) => {
 }
 
 function dropFiles2(e: DragEvent) {
-  dropFiles(e, currentDir.value)
+  dropFiles(e, filter.parent)
 }
 
 onActivated(() => {
@@ -615,6 +611,7 @@ onDeactivated(() => {
   }
   .scroller-wrapper {
     position: relative;
+    height: 100%;
     .drag-mask {
       left: 16px;
       right: 16px;

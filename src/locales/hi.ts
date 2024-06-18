@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'ऑडियो प्लेयर',
+  current_folder: 'करंट फोल्डर',
   x_items: '{count} आइटम | {count} आइटम्स',
   export_notes: 'नोट्स एक्सपोर्ट करें',
   in_progress: 'प्रगति में',
