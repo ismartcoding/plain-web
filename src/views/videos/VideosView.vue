@@ -37,9 +37,10 @@
         </template>
       </popper>
       <popper>
-        <button class="btn-icon btn-sort" v-tooltip="$t('sort')">
+        <button class="btn-icon btn-sort" :disabled="sorting" v-tooltip="$t('sort')">
           <md-ripple />
-          <i-material-symbols:sort-rounded />
+          <md-circular-progress indeterminate v-if="sorting" />
+          <i-material-symbols:sort-rounded v-else />
         </button>
         <template #content="slotProps">
           <div class="menu-items">
@@ -230,6 +231,7 @@ const { app, urlTokenKey, uploads } = storeToRefs(tempStore)
 const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload(uploads)
 const { input: dirFileInput, upload: uploadDir, uploadChanged: dirUploadChanged } = useFileUpload(uploads)
 const { dropping, fileDragEnter, fileDragLeave, dropFiles } = useDragDropUpload(uploads)
+const sorting = ref(false)
 
 const dataType = DataType.VIDEO
 const route = useRoute()
@@ -296,6 +298,8 @@ const onImageError = (id: string) => {
 
 const { loading, fetch } = initLazyQuery({
   handle: async (data: { videos: IVideo[]; videoCount: number }, error: string) => {
+    sorting.value = false
+
     if (error) {
       toast(t(error), 'error')
     } else {
@@ -346,6 +350,7 @@ const { fetch: fetchBucketsTags } = initLazyQuery({
 })
 
 function sort(slotProps: { close: () => void }, sort: string) {
+  sorting.value = true
   videoSortBy.value = sort
   slotProps.close()
 }

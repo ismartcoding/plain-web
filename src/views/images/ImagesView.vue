@@ -9,6 +9,10 @@
           <md-ripple />
           <i-material-symbols:delete-forever-outline-rounded />
         </button>
+        <button class="btn-icon" @click.stop="trashItems(q)" v-tooltip="$t('trash')">
+          <md-ripple />
+          <i-material-symbols:delete-outline-rounded />
+        </button>
         <button class="btn-icon" @click.stop="downloadItems(realAllChecked, selectedIds, q)" v-tooltip="$t('download')">
           <md-ripple />
           <i-material-symbols:download-rounded />
@@ -37,9 +41,10 @@
         </template>
       </popper>
       <popper>
-        <button class="btn-icon btn-sort" v-tooltip="$t('sort')">
+        <button class="btn-icon btn-sort" :disabled="sorting" v-tooltip="$t('sort')">
           <md-ripple />
-          <i-material-symbols:sort-rounded />
+          <md-circular-progress indeterminate v-if="sorting" />
+          <i-material-symbols:sort-rounded v-else />
         </button>
         <template #content="slotProps">
           <div class="menu-items">
@@ -207,6 +212,7 @@ import { DataType } from '@/lib/data'
 import { getDirFromPath, getSortItems } from '@/lib/file'
 import { useKeyEvents } from '@/hooks/key-events'
 import { formatDateTime, formatTimeAgo } from '@/lib/format'
+import { initMutation, trashMediaItemsGQL } from '@/lib/api/mutation'
 
 const mainStore = useMainStore()
 const { imageSortBy } = storeToRefs(mainStore)
@@ -222,6 +228,7 @@ const { app, urlTokenKey, uploads } = storeToRefs(tempStore)
 const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload(uploads)
 const { input: dirFileInput, upload: uploadDir, uploadChanged: dirUploadChanged } = useFileUpload(uploads)
 const { dropping, fileDragEnter, fileDragLeave, dropFiles } = useDragDropUpload(uploads)
+const sorting = ref(false)
 
 const dataType = DataType.IMAGE
 const route = useRoute()
@@ -307,6 +314,32 @@ const { fetch: fetchBucketsTags } = initLazyQuery({
   appApi: true,
 })
 
+const {
+  mutate: trash,
+  loading: trashLoading,
+  onDone: trashDone,
+  onError: trashError,
+} = initMutation({
+  document: trashMediaItemsGQL,
+  appApi: true,
+})
+
+function trashItems(query: string) {
+  let q = query
+  if (!realAllChecked.value) {
+    if (selectedIds.value.length === 0) {
+      toast(t('select_first'), 'error')
+      return
+    }
+    q = `ids:${selectedIds.value.join(',')}`
+  }
+
+  trash({
+    query: q,
+    type: dataType,
+  })
+}
+
 function addItemToTags(item: IImageItem) {
   openModal(UpdateTagRelationsModal, {
     type: dataType,
@@ -322,12 +355,14 @@ function addItemToTags(item: IImageItem) {
 
 function sort(slotProps: { close: () => void }, sort: string) {
   // only sort the last column
+  sorting.value = true
   imageSortBy.value = sort
   slotProps.close()
 }
 
 const { loading, fetch } = initLazyQuery({
   handle: async (data: { images: IImage[]; imageCount: number }, error: string) => {
+    sorting.value = false
     if (error) {
       toast(t(error), 'error')
     } else {

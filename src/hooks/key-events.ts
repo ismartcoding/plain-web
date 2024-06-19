@@ -1,26 +1,35 @@
 import { type Ref } from 'vue'
 
+function isInputFocused() {
+  const activeElement = document.activeElement;
+  return activeElement && (activeElement.tagName === 'INPUT' || 
+                           activeElement.tagName === 'TEXTAREA' || 
+                           activeElement.tagName === 'SELECT' || 
+                           activeElement.tagName === 'MD-OUTLINED-TEXT-FIELD')
+}
+
+
 export const useKeyEvents = (total: Ref<number>, limit: number, page: Ref<number>, selectAll: () => void, clearSelection: () => void, gotoPage: (page: number) => void, deleteItems: () => void) => {
   return {
     keyDown: (e: KeyboardEvent) => {
       if (document.querySelector('md-dialog[open]')) {
         return
       }
-      const content = document.getElementsByClassName('scroll-content')?.[0]
+      const content = document.getElementsByClassName('scroll-content')?.[0] as HTMLDivElement
       if (e.shiftKey) {
         content?.style.setProperty('user-select', 'none')
       } else {
         content?.style.removeProperty('user-select')
       }
 
-      const content2 = document.getElementsByClassName('scroller')?.[0]
+      const content2 = document.getElementsByClassName('scroller')?.[0] as HTMLDivElement
       if (e.shiftKey) {
         content2?.style.setProperty('user-select', 'none')
       } else {
         content2?.style.removeProperty('user-select')
       }
 
-      if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'a' && !isInputFocused()) {
         e.preventDefault()
         selectAll()
         return
@@ -43,7 +52,7 @@ export const useKeyEvents = (total: Ref<number>, limit: number, page: Ref<number
       }
     },
     keyUp: (e: KeyboardEvent) => {
-      const content = document.getElementsByClassName('scroll-content')?.[0]
+      const content = document.getElementsByClassName('scroll-content')?.[0] as HTMLDivElement
       content?.style.removeProperty('user-select')
     },
   }
@@ -55,21 +64,21 @@ export const useFilesKeyEvents = (total: Ref<number>, selectAll: () => void, cle
       if (document.querySelector('md-dialog[open]')) {
         return
       }
-      const content = document.getElementsByClassName('scroll-content')?.[0]
+      const content = document.getElementsByClassName('scroll-content')?.[0] as HTMLDivElement
       if (e.shiftKey) {
         content?.style.setProperty('user-select', 'none')
       } else {
         content?.style.removeProperty('user-select')
       }
 
-      const content2 = document.getElementsByClassName('scroller')?.[0]
+      const content2 = document.getElementsByClassName('scroller')?.[0] as HTMLDivElement
       if (e.shiftKey) {
         content2?.style.setProperty('user-select', 'none')
       } else {
         content2?.style.removeProperty('user-select')
       }
       
-      if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'a' && !isInputFocused()) {
         e.preventDefault()
         selectAll()
         return
@@ -83,7 +92,7 @@ export const useFilesKeyEvents = (total: Ref<number>, selectAll: () => void, cle
       }
     },
     keyUp: (e: KeyboardEvent) => {
-      const content = document.getElementsByClassName('scroll-content')?.[0]
+      const content = document.getElementsByClassName('scroll-content')?.[0] as HTMLDivElement
       content?.style.removeProperty('user-select')
     },
   }

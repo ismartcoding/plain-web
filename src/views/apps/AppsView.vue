@@ -18,9 +18,10 @@
         {{ $t('install') }}
       </button>
       <popper>
-        <button class="btn-icon btn-sort" v-tooltip="$t('sort')">
+        <button class="btn-icon btn-sort" :disabled="sorting" v-tooltip="$t('sort')">
           <md-ripple />
-          <i-material-symbols:sort-rounded />
+          <md-circular-progress indeterminate v-if="sorting" />
+          <i-material-symbols:sort-rounded v-else />
         </button>
         <template #content="slotProps">
           <div class="menu-items">
@@ -155,6 +156,7 @@ const filter = reactive<IFilter>({
   tagIds: [],
 })
 const sortItems = getSortItems()
+const sorting = ref(false)
 
 const route = useRoute()
 const query = route.query
@@ -199,6 +201,7 @@ const cancelUninstall = (item: IPackageItem) => {
 
 const { loading, fetch } = initLazyQuery({
   handle: (data: { packages: IPackage[]; packageCount: number }, error: string) => {
+    sorting.value = false
     if (error) {
       toast(t(error), 'error')
     } else {
@@ -227,7 +230,9 @@ function getUrl(q: string) {
 }
 
 function sort(slotProps: { close: () => void }, sort: string) {
+  sorting.value = true
   appSortBy.value = sort
+  gotoPage(1)
   slotProps.close()
 }
 
@@ -293,7 +298,7 @@ onDeactivated(() => {
   grid-template-areas:
     'start image title actions time'
     'start image subtitle  actions time';
-  grid-template-columns: 48px 50px 2fr 1fr minmax(140px, auto);
+  grid-template-columns: 48px 50px 2fr 1fr minmax(200px, auto);
   .start {
     grid-area: start;
   }
@@ -315,6 +320,7 @@ onDeactivated(() => {
     font-weight: 500;
     margin-inline: 16px;
     padding-block-start: 12px;
+    word-break: break-all;
   }
   .subtitle {
     grid-area: subtitle;
@@ -337,7 +343,6 @@ onDeactivated(() => {
     grid-area: time;
     display: flex;
     flex-direction: column;
-    align-items: center;
     padding-inline: 16px;
     justify-content: center;
     align-items: end;

@@ -1,151 +1,147 @@
 <template>
   <Teleport to="body">
-    <transition name="fade">
-      <div v-if="tempStore.lightbox.visible" @touchmove="preventDefault" class="lightbox" @wheel="onWheel">
-        <transition mode="out-in">
-          <div class="layout">
-            <header class="toolbar" v-if="current">
-              <div v-if="current.name" class="source-name v-center">
-                <button class="btn-icon" @click="closeDialog" v-tooltip="$t('close')">
-                  <md-ripple />
-                  <i-material-symbols:close-rounded />
-                </button>
-                <span>{{ current.name }}</span>
-              </div>
-
-              <template v-if="isImage(current.name)">
-                <button class="btn-icon" v-if="!current.viewOriginImage" @click="viewOrigin" v-tooltip="$t('view_origin_image')">
-                  <md-ripple />
-                  <i-material-symbols:image-outline-rounded />
-                </button>
-
-                <button class="btn-icon" @click="zoomIn" v-tooltip="$t('zoom_in')">
-                  <md-ripple />
-                  <i-material-symbols:zoom-in-rounded />
-                </button>
-
-                <button class="btn-icon" @click="zoomOut" v-tooltip="$t('zoom_out')">
-                  <md-ripple />
-                  <i-material-symbols:zoom-out-rounded />
-                </button>
-
-                <button class="btn-icon" @click="resize" v-tooltip="$t('resize')">
-                  <md-ripple />
-                  <i-material-symbols:aspect-ratio-outline-rounded />
-                </button>
-
-                <button class="btn-icon" @click="rotateLeft" v-tooltip="$t('rotate_left')">
-                  <md-ripple />
-                  <i-material-symbols:rotate-left-rounded />
-                </button>
-
-                <button class="btn-icon" @click="rotateRight" v-tooltip="$t('rotate_right')">
-                  <md-ripple />
-                  <i-material-symbols:rotate-right-rounded />
-                </button>
-              </template>
-              <button class="btn-icon" @click="lightboxInfoVisible = !lightboxInfoVisible" v-tooltip="$t('info')">
-                <md-ripple />
-                <i-material-symbols:info-outline-rounded />
-              </button>
-            </header>
-            <section class="content" @click.self="closeDialog">
-              <div v-if="tempStore.lightbox.sources.length > 1 && (loop || imgIndex > 0)" class="btn-prev" @click="onPrev">
-                <i-material-symbols:chevron-left-rounded />
-              </div>
-              <div v-if="tempStore.lightbox.sources.length > 1 && (loop || imgIndex < tempStore.lightbox.sources.length - 1)" class="btn-next" @click="onNext">
-                <i-material-symbols:chevron-right-rounded />
-              </div>
-              <div v-if="status.loading" class="loading">
-                <md-circular-progress indeterminate />
-              </div>
-              <div v-else-if="status.loadError" class="v-on-error">
-                {{ $t('load_failed', { name: current?.name }) }}
-              </div>
-              <div v-if="current && isVideo(current.name)" v-show="!status.loading && !status.loadError" class="v-video-wrapper" @click.self="closeDialog">
-                <video ref="video" controls autoplay="true" :src="current.src" @error="onError" @canplay="onLoad" @playing="onPlaying" @pause="onPause" />
-              </div>
-              <div v-else-if="current && isAudio(current.name)" v-show="!status.loading && !status.loadError" class="v-audio-wrapper" @click.self="closeDialog">
-                <div style="padding: 50px">
-                  <audio controls autoplay="true" :src="current.src" @error="onError" @canplay="onLoad" />
-                </div>
-              </div>
-              <div v-else-if="current && isImage(current.name)" v-show="!status.loading && !status.loadError" class="v-img-wrapper" :style="imgWrapperStyle">
-                <img
-                  ref="imgRef"
-                  draggable="false"
-                  class="v-img"
-                  :style="isSvg(current.name) ? 'min-width: ' + imgState.width + 'px;' : ''"
-                  :src="current?.src + (current?.viewOriginImage ? '' : '&w=1024&h=1024&cc=false')"
-                  @mousedown="onMouseDown"
-                  @mouseup="onMouseUp"
-                  @mousemove="onMouseMove"
-                  @touchstart="onTouchStart"
-                  @touchmove="onTouchMove"
-                  @touchend="onTouchEnd"
-                  @load="onLoad"
-                  @error="onError"
-                  @dblclick="onDblclick"
-                  @dragstart="
-                    (e) => {
-                      e.preventDefault()
-                    }
-                  "
-                />
-              </div>
-            </section>
-            <section class="info" v-if="lightboxInfoVisible">
-              <div class="top-app-bar">
-                <field-id :id="$t('info')" :raw="fileInfo" />
-                <div class="actions">
-                  <button class="btn-icon" @click.stop="deleteFile" v-tooltip="$t('delete')" v-if="current?.data">
-                    <md-ripple />
-                    <i-material-symbols:delete-forever-outline-rounded />
-                  </button>
-                  <button class="btn-icon" @click.stop="downloadFile(current?.path ?? '', getFileName(current?.path ?? '').replace(' ', '-'))" v-tooltip="$t('download')">
-                    <md-ripple />
-                    <i-material-symbols:download-rounded />
-                  </button>
-                </div>
-              </div>
-              <section class="list-items">
-                <div class="item">
-                  <div class="title">{{ $t('file_size') }}</div>
-                  <div class="subtitle">
-                    {{ formatFileSize(current?.size ?? 0) }}
-                    <span v-if="fileInfo?.data?.width && fileInfo?.data?.height">{{ getResolution() }}</span>
-                  </div>
-                </div>
-                <div class="item" v-if="fileInfo?.updatedAt">
-                  <div class="title">{{ $t('updated_at') }}</div>
-                  <div class="subtitle">
-                    <time v-tooltip="formatDateTimeFull(fileInfo.updatedAt)">{{ formatDateTime(fileInfo.updatedAt) }}</time>
-                  </div>
-                </div>
-                <div class="item" v-if="current && (isAudio(current?.name) || isVideo(current?.name))">
-                  <div class="title">{{ $t('duration') }}</div>
-                  <div class="subtitle">{{ formatSeconds(fileInfo?.data?.duration ?? current?.duration) }}</div>
-                </div>
-                <div class="item" v-if="current?.type">
-                  <div class="title">
-                    {{ $t('tags') }}
-                    <button class="btn-icon sm" v-tooltip="$t('add_to_tags')" @click.prevent="addToTags">
-                      <md-ripple />
-                      <i-material-symbols:label-outline-rounded />
-                    </button>
-                  </div>
-                  <div class="subtitle"><item-tags :tags="fileInfo?.tags" /></div>
-                </div>
-                <div class="item" v-if="current?.path">
-                  <div class="title">{{ $t('path') }}</div>
-                  <div class="subtitle">{{ getFinalPath(app.externalFilesDir, current?.path) }}</div>
-                </div>
-              </section>
-            </section>
+    <div v-if="tempStore.lightbox.visible" @touchmove="preventDefault" class="lightbox" @wheel="onWheel">
+      <div class="layout">
+        <header class="toolbar" v-if="current">
+          <div v-if="current.name" class="source-name v-center">
+            <button class="btn-icon" @click="closeDialog" v-tooltip="$t('close')">
+              <md-ripple />
+              <i-material-symbols:close-rounded />
+            </button>
+            <span>{{ current.name }}</span>
           </div>
-        </transition>
+
+          <template v-if="isImage(current.name)">
+            <button class="btn-icon" v-if="!current.viewOriginImage" @click="viewOrigin" v-tooltip="$t('view_origin_image')">
+              <md-ripple />
+              <i-material-symbols:image-outline-rounded />
+            </button>
+
+            <button class="btn-icon" @click="zoomIn" v-tooltip="$t('zoom_in')">
+              <md-ripple />
+              <i-material-symbols:zoom-in-rounded />
+            </button>
+
+            <button class="btn-icon" @click="zoomOut" v-tooltip="$t('zoom_out')">
+              <md-ripple />
+              <i-material-symbols:zoom-out-rounded />
+            </button>
+
+            <button class="btn-icon" @click="resize" v-tooltip="$t('resize')">
+              <md-ripple />
+              <i-material-symbols:aspect-ratio-outline-rounded />
+            </button>
+
+            <button class="btn-icon" @click="rotateLeft" v-tooltip="$t('rotate_left')">
+              <md-ripple />
+              <i-material-symbols:rotate-left-rounded />
+            </button>
+
+            <button class="btn-icon" @click="rotateRight" v-tooltip="$t('rotate_right')">
+              <md-ripple />
+              <i-material-symbols:rotate-right-rounded />
+            </button>
+          </template>
+          <button class="btn-icon" @click="lightboxInfoVisible = !lightboxInfoVisible" v-tooltip="$t('info')">
+            <md-ripple />
+            <i-material-symbols:info-outline-rounded />
+          </button>
+        </header>
+        <section class="content" @click.self="closeDialog">
+          <div v-if="tempStore.lightbox.sources.length > 1 && (loop || imgIndex > 0)" class="btn-prev" @click="onPrev">
+            <i-material-symbols:chevron-left-rounded />
+          </div>
+          <div v-if="tempStore.lightbox.sources.length > 1 && (loop || imgIndex < tempStore.lightbox.sources.length - 1)" class="btn-next" @click="onNext">
+            <i-material-symbols:chevron-right-rounded />
+          </div>
+          <div v-if="status.loading" class="loading">
+            <md-circular-progress indeterminate />
+          </div>
+          <div v-else-if="status.loadError" class="v-on-error">
+            {{ $t('load_failed', { name: current?.name }) }}
+          </div>
+          <div v-if="current && isVideo(current.name)" v-show="!status.loading && !status.loadError" class="v-video-wrapper" @click.self="closeDialog">
+            <video ref="video" controls autoplay="true" :src="current.src" @error="onError" @canplay="onLoad" @playing="onPlaying" @pause="onPause" @volumechange="onVolumeChange"/>
+          </div>
+          <div v-else-if="current && isAudio(current.name)" v-show="!status.loading && !status.loadError" class="v-audio-wrapper" @click.self="closeDialog">
+            <div style="padding: 50px">
+              <audio controls autoplay="true" :src="current.src" @error="onError" @canplay="onLoad" />
+            </div>
+          </div>
+          <div v-else-if="current && isImage(current.name)" v-show="!status.loading && !status.loadError" class="v-img-wrapper" :style="imgWrapperStyle">
+            <img
+              ref="imgRef"
+              draggable="false"
+              class="v-img"
+              :style="isSvg(current.name) ? 'min-width: ' + imgState.width + 'px;' : ''"
+              :src="current?.src + (current?.viewOriginImage ? '' : '&w=1024&h=1024&cc=false')"
+              @mousedown="onMouseDown"
+              @mouseup="onMouseUp"
+              @mousemove="onMouseMove"
+              @touchstart="onTouchStart"
+              @touchmove="onTouchMove"
+              @touchend="onTouchEnd"
+              @load="onLoad"
+              @error="onError"
+              @dblclick="onDblclick"
+              @dragstart="
+                (e) => {
+                  e.preventDefault()
+                }
+              "
+            />
+          </div>
+        </section>
+        <section class="info" v-if="lightboxInfoVisible">
+          <div class="top-app-bar">
+            <field-id :id="$t('info')" :raw="fileInfo" />
+            <div class="actions">
+              <button class="btn-icon" @click.stop="deleteFile" v-tooltip="$t('delete')" v-if="current?.data">
+                <md-ripple />
+                <i-material-symbols:delete-forever-outline-rounded />
+              </button>
+              <button class="btn-icon" @click.stop="downloadFile(current?.path ?? '', getFileName(current?.path ?? '').replace(' ', '-'))" v-tooltip="$t('download')">
+                <md-ripple />
+                <i-material-symbols:download-rounded />
+              </button>
+            </div>
+          </div>
+          <section class="list-items">
+            <div class="item">
+              <div class="title">{{ $t('file_size') }}</div>
+              <div class="subtitle">
+                {{ formatFileSize(current?.size ?? 0) }}
+                <span v-if="fileInfo?.data?.width && fileInfo?.data?.height">{{ getResolution() }}</span>
+              </div>
+            </div>
+            <div class="item" v-if="fileInfo?.updatedAt">
+              <div class="title">{{ $t('updated_at') }}</div>
+              <div class="subtitle">
+                <time v-tooltip="formatDateTimeFull(fileInfo.updatedAt)">{{ formatDateTime(fileInfo.updatedAt) }}</time>
+              </div>
+            </div>
+            <div class="item" v-if="current && (isAudio(current?.name) || isVideo(current?.name))">
+              <div class="title">{{ $t('duration') }}</div>
+              <div class="subtitle">{{ formatSeconds(fileInfo?.data?.duration ?? current?.duration) }}</div>
+            </div>
+            <div class="item" v-if="current?.type">
+              <div class="title">
+                {{ $t('tags') }}
+                <button class="btn-icon sm" v-tooltip="$t('add_to_tags')" @click.prevent="addToTags">
+                  <md-ripple />
+                  <i-material-symbols:label-outline-rounded />
+                </button>
+              </div>
+              <div class="subtitle"><item-tags :tags="fileInfo?.tags" /></div>
+            </div>
+            <div class="item" v-if="current?.path">
+              <div class="title">{{ $t('path') }}</div>
+              <div class="subtitle">{{ getFinalPath(app.externalFilesDir, current?.path) }}</div>
+            </div>
+          </section>
+        </section>
       </div>
-    </transition>
+    </div>
   </Teleport>
 </template>
 <script setup lang="ts">
@@ -474,9 +470,15 @@ const onWheel = (e: WheelEvent) => {
 let isVideoPlaying = true
 const onPlaying = () => {
   isVideoPlaying = true
+  video.value?.blur() // make sure the keyboard event not eat up
 }
 const onPause = () => {
   isVideoPlaying = false
+  video.value?.blur() // make sure the keyboard event not eat up
+}
+
+const onVolumeChange = () => {
+  video.value?.blur() // make sure the keyboard event not eat up
 }
 
 // key press events handler
@@ -597,7 +599,7 @@ const fileDeletedHandler = (event: IFileDeletedEvent) => {
 }
 
 onMounted(() => {
-  on(document, 'keydown', onKeyPress)
+  on(window, 'keydown', onKeyPress)
   on(window, 'resize', onWindowResize)
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
   emitter.on('media_item_deleted', mediaItemDeletedHandler)
@@ -605,7 +607,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  off(document, 'keydown', onKeyPress)
+  off(window, 'keydown', onKeyPress)
   off(window, 'resize', onWindowResize)
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('media_item_deleted', mediaItemDeletedHandler)

@@ -301,8 +301,7 @@ export interface IScreenMirrorQualityOption {
 
 export interface IStorageStats {
   internal: IStorageStatsItem
-  sdcard?: IStorageStatsItem
-  internal: IStorageStatsItem
+  sdcard: IStorageStatsItem
   usb: IStorageStatsItem[]
 }
 

@@ -2,18 +2,16 @@ import { ref, type Ref } from 'vue'
 import type { ApolloCache, ApolloError } from '@apollo/client/core'
 import { copyFileGQL, createDirGQL, initMutation, moveFileGQL, renameFileGQL } from '@/lib/api/mutation'
 import { enrichFile, isAudio, isImage, isVideo, type IFile } from '@/lib/file'
-import { filesGQL, initQuery, recentFilesGQL, storageStatsGQL } from '@/lib/api/query'
+import { initQuery, storageStatsGQL } from '@/lib/api/query'
 import { useI18n } from 'vue-i18n'
 import toast from '@/components/toaster'
 import { download, encryptUrlParams, getFileId, getFileName, getFileUrl, getFileUrlByPath } from '@/lib/api/file'
 import type { ISource } from '@/components/lightbox/types'
 import { encodeBase64 } from '@/lib/strutil'
-import { replacePathNoReload } from '@/plugins/router'
 import { buildQuery, parseQuery, type IFilterField } from '@/lib/search'
-import type { MainState } from '@/stores/main'
 import { findIndex, remove } from 'lodash-es'
 import { getApiBaseUrl } from '@/lib/api/api'
-import type { IApp, IStorageStats, IStorageStatsItem } from '@/lib/interfaces'
+import type { IApp, IFileFilter, IStorageStats, IStorageStatsItem } from '@/lib/interfaces'
 import type sjcl from 'sjcl'
 
 export const useCreateDir = (urlTokenKey: Ref<sjcl.BitArray | null>, items: Ref<IFile[]>) => {
@@ -40,7 +38,7 @@ export const useCreateDir = (urlTokenKey: Ref<sjcl.BitArray | null>, items: Ref<
   }
 }
 
-export const useRename = (fetch: () => voide) => {
+export const useRename = (fetch: () => void) => {
   const renameItem = ref<IFile>()
   return {
     renameItem,

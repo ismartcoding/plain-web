@@ -126,6 +126,12 @@ export const deleteMediaItemsGQL = gql`
   }
 `
 
+export const trashMediaItemsGQL = gql`
+  mutation trashMediaItems($type: DataType!, $query: String!) {
+    trashMediaItems(type: $type, query: $query)
+  }
+`
+
 export const removeFromTagsGQL = gql`
   mutation removeFromTags($type: DataType!, $tagIds: [ID!]!, $query: String!) {
     removeFromTags(type: $type, tagIds: $tagIds, query: $query)
