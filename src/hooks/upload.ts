@@ -1,6 +1,7 @@
 import { ref, type Ref } from 'vue'
 import { type IUploadItem } from '@/stores/temp'
 import { shortUUID } from '@/lib/strutil'
+import { getFileDir } from './files'
 
 function createUploadItem(file: File, dir: string): IUploadItem {
   return {

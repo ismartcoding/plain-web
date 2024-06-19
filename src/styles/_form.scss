@@ -72,4 +72,10 @@
     &.no-click {
         cursor: default;
     }
+    &:disabled {
+        cursor: default;
+        md-ripple {
+            display: none;
+        }
+    }
 }

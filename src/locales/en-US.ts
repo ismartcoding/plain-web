@@ -130,7 +130,7 @@ export default {
   chat_input_hint: 'What is in your mind?',
   release_to_send_files: 'Release to send the files',
   confirm_to_delete_name: 'Confirm to delete "{name}"?',
-  confirm_to_delete: 'Are you sure you want to delete these {count} items? This action cannot be undone.?',
+  confirm_to_delete: 'Are you sure you want to delete these {count} items? This action cannot be undone.',
   valid: {
     string_min: 'At least {min} characters',
     required: 'This field is required',

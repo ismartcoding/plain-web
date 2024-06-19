@@ -41,9 +41,10 @@
         </template>
       </popper>
       <popper>
-        <button class="btn-icon btn-sort" v-tooltip="$t('sort')">
+        <button class="btn-icon btn-sort" :disabled="sorting" v-tooltip="$t('sort')">
           <md-ripple />
-          <i-material-symbols:sort-rounded />
+          <md-circular-progress indeterminate v-if="sorting" />
+          <i-material-symbols:sort-rounded v-else />
         </button>
         <template #content="slotProps">
           <div class="menu-items">
@@ -212,6 +213,7 @@ const isAudioPlaying = (item: IAudio) => {
 const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload(uploads)
 const { input: dirFileInput, upload: uploadDir, uploadChanged: dirUploadChanged } = useFileUpload(uploads)
 const { dropping, fileDragEnter, fileDragLeave, dropFiles } = useDragDropUpload(uploads)
+const sorting = ref(false)
 
 const dataType = DataType.AUDIO
 const route = useRoute()
@@ -287,6 +289,7 @@ const onImageError = (id: string) => {
 
 const { loading, fetch } = initLazyQuery({
   handle: (data: { items: IAudio[]; total: number }, error: string) => {
+    sorting.value = false
     if (error) {
       toast(t(error), 'error')
     } else {
@@ -311,6 +314,7 @@ function getUrl(q: string) {
 }
 
 function sort(slotProps: { close: () => void }, sort: string) {
+  sorting.value = true
   audioSortBy.value = sort
   slotProps.close()
 }

@@ -1,18 +1,18 @@
 <template>
-  <ul class="pagination">
-    <li class="page-item" :class="{ disabled: !isPrevActive }">
-      <a class="page-link" href="#" @click.prevent="prev">&laquo;</a>
-    </li>
-    <li v-for="(page, i) in pagination" class="page-item" :key="i" :class="{ disabled: page === null, active: page === props.page }">
+  <div class="pagination">
+    <button class="btn-icon" :disabled="!isPrevActive" @click.prevent="prev">
+      <i-material-symbols:skip-previous-outline-rounded />
+    </button>
+    <template v-for="(page, i) in pagination" class="page-item" :key="i">
       <span class="page-link" v-if="page === null">···</span>
-      <a v-else class="page-link" href="#" @click.prevent="go(page)">
+      <button v-else class="btn-icon" @click.prevent="go(page)" :class="{ active: page === props.page }">
         {{ page }}
-      </a>
-    </li>
-    <li class="page-item" :class="{ disabled: !isNextActive }">
-      <a class="page-link" href="#" @click.prevent="next">&raquo;</a>
-    </li>
-  </ul>
+      </button>
+    </template>
+    <button class="btn-icon" :disabled="!isNextActive" @click.prevent="next">
+      <i-material-symbols:skip-next-outline-rounded />
+    </button>
+  </div>
 </template>
 
 <script setup lang="ts">
