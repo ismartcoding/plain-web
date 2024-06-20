@@ -8,7 +8,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, type PropType } from 'vue'
 import { initQuery, mediaBucketsGQL } from '@/lib/api/query'
-import type { IBucket, IMediaItemDeletedEvent, IMediaItemsDeletedEvent } from '@/lib/interfaces'
+import type { IBucket, IMediaItemsActionedEvent } from '@/lib/interfaces'
 import { useMainStore } from '@/stores/main'
 import toast from '@/components/toaster'
 import { useI18n } from 'vue-i18n'
@@ -44,25 +44,17 @@ const { refetch } = initQuery({
   appApi: true,
 })
 
-const mediaItemsDeletedHandler = (event: IMediaItemsDeletedEvent) => {
+const mediaItemsActionedHandler = (event: IMediaItemsActionedEvent) => {
   if (event.type === props.type) {
     refetch()
   }
 }
 
-const mediaItemDeletedHandler = (event: IMediaItemDeletedEvent) => {
-  if (event.item.bucketId && event.type === props.type) {
-    refetch()
-  }
-}
-
 onMounted(() => {
-  emitter.on('media_items_deleted', mediaItemsDeletedHandler)
-  emitter.on('media_item_deleted', mediaItemDeletedHandler)
+  emitter.on('media_items_actioned', mediaItemsActionedHandler)
 })
 
 onUnmounted(() => {
-  emitter.off('media_items_deleted', mediaItemsDeletedHandler)
-  emitter.off('media_item_deleted', mediaItemDeletedHandler)
+  emitter.off('media_items_actioned', mediaItemsActionedHandler)
 })
 </script>

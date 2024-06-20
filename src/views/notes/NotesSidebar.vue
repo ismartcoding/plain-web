@@ -23,13 +23,14 @@
 import router, { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useSearch } from '@/hooks/search'
-import { reactive, ref, watch } from 'vue'
+import { onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { decodeBase64, encodeBase64 } from '@/lib/strutil'
 import type { IFilter } from '@/lib/interfaces'
 import { buildQuery } from '@/lib/search'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { initLazyQuery, noteCountGQL } from '@/lib/api/query'
+import emitter from '@/plugins/eventbus'
 
 const mainStore = useMainStore()
 const { counter } = storeToRefs(useTempStore())
@@ -88,4 +89,16 @@ function viewTrash() {
 function viewAll() {
   replacePath(mainStore, '/notes')
 }
+
+const notesActionedHandler = () => {
+  fetch()
+}
+
+onMounted(() => {
+  emitter.on('notes_actioned', notesActionedHandler)
+})
+
+onUnmounted(() => {
+  emitter.off('notes_actioned', notesActionedHandler)
+})
 </script>

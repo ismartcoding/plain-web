@@ -150,7 +150,7 @@ const dataType = DataType.FEED_ENTRY
 const route = useRoute()
 const query = route.query
 const page = ref(parseInt(query.page?.toString() ?? '1'))
-const limit = 50
+const limit = 100
 const tags = ref<ITag[]>([])
 const feeds = ref<IFeed[]>([])
 const feedsMap = computed(() => {
@@ -199,6 +199,7 @@ const { deleteItems } = useDelete(deleteFeedEntriesGQL, () => {
   if (items.value.some((it) => it.tags.length)) {
     emitter.emit('refetch_tags', dataType)
   }
+  emitter.emit('feed_entries_deleted')
 })
 
 const isDetail = computed(() => {

@@ -105,7 +105,7 @@ import { storeToRefs } from 'pinia'
 import { appGQL, initQuery } from '@/lib/api/query'
 import emitter from '@/plugins/eventbus'
 import { tokenToKey } from '@/lib/api/file'
-import type { IApp, IMediaItemDeletedEvent, IMediaItemsDeletedEvent, IPage } from '@/lib/interfaces'
+import type { IApp, IMediaItemsActionedEvent, IPage } from '@/lib/interfaces'
 import { contextmenu } from '@/components/contextmenu'
 import { useI18n } from 'vue-i18n'
 import { remove } from 'lodash-es'
@@ -163,7 +163,6 @@ const { refetch: refetchApp } = initQuery({
   document: appGQL,
   appApi: true,
 })
-
 
 const { resizeWidth } = useRightSidebarResize(
   300,
@@ -230,13 +229,7 @@ const playAudioHandler = () => {
   refetchApp()
 }
 
-const mediaItemsDeletedHandler = (event: IMediaItemsDeletedEvent) => {
-  if (event.type === 'AUDIO') {
-    refetchApp()
-  }
-}
-
-const mediaItemDeletedHanlder = (event: IMediaItemDeletedEvent) => {
+const mediaItemsActionedHandler = (event: IMediaItemsActionedEvent) => {
   if (event.type === 'AUDIO') {
     refetchApp()
   }
@@ -245,15 +238,13 @@ const mediaItemDeletedHanlder = (event: IMediaItemDeletedEvent) => {
 onMounted(() => {
   emitter.on('refetch_app', refetchAppHandler)
   emitter.on('play_audio', playAudioHandler)
-  emitter.on('media_items_deleted', mediaItemsDeletedHandler)
-  emitter.on('media_item_deleted', mediaItemDeletedHanlder)
+  emitter.on('media_items_actioned', mediaItemsActionedHandler)
 })
 
 onUnmounted(() => {
   emitter.off('refetch_app', refetchAppHandler)
   emitter.off('play_audio', playAudioHandler)
-  emitter.off('media_items_deleted', mediaItemsDeletedHandler)
-  emitter.off('media_item_deleted', mediaItemDeletedHanlder)
+  emitter.off('media_items_actioned', mediaItemsActionedHandler)
 })
 
 function selectTab(fullPath: string) {

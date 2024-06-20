@@ -5,9 +5,13 @@
     </template>
     <template #body>
       <ul class="nav">
-        <li @click.prevent="all" :class="{ active: !selectedTagId && !selectedBucketId }">
+        <li @click.prevent="viewAll" :class="{ active: !selectedTagId && !selectedBucketId && !trash }">
           <span class="title">{{ $t('all') }}</span>
           <span class="count" v-if="total >= 0">{{ total.toLocaleString() }}</span>
+        </li>
+        <li v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)" @click.prevent="viewTrash" :class="{ active: trash }">
+          <span class="title">{{ $t('trash') }}</span>
+          <span class="count" v-if="totalTrash >= 0">{{ totalTrash.toLocaleString() }}</span>
         </li>
         <bucket-filter :type="props.type" :selected="selectedBucketId" />
       </ul>
@@ -19,16 +23,21 @@
 <script setup lang="ts">
 import router, { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
-import { computed, reactive, ref, watch, type PropType } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref, watch, type PropType } from 'vue'
 import { useSearch } from '@/hooks/search'
-import { decodeBase64 } from '@/lib/strutil'
-import type { IFilter } from '@/lib/interfaces'
+import { decodeBase64, encodeBase64 } from '@/lib/strutil'
+import type { IFilter, IMediaItemsActionedEvent } from '@/lib/interfaces'
 import { storeToRefs } from 'pinia'
 import { useTempStore } from '@/stores/temp'
-import { DataType } from '@/lib/data'
+import { DataType, FEATURE } from '@/lib/data'
 import type { DocumentNode } from 'graphql'
 import { initLazyQuery } from '@/lib/api/query'
+import { buildQuery } from '@/lib/search'
+import emitter from '@/plugins/eventbus'
+import { hasFeature } from '@/lib/feature'
 
+const tempStore = useTempStore()
+const { app } = storeToRefs(tempStore)
 const props = defineProps({
   type: {
     type: String as PropType<DataType>,
@@ -44,6 +53,7 @@ const filter = reactive<IFilter>({
   tagIds: [],
 })
 const group = ref('')
+const trash = ref(false)
 const selectedTagId = ref('')
 const selectedBucketId = ref('')
 const total = computed(() => {
@@ -58,15 +68,30 @@ const total = computed(() => {
   return -1
 })
 
+const totalTrash = computed(() => {
+  if (props.type === DataType.IMAGE) {
+    return counter.value?.imagesTrash ?? -1
+  } else if (props.type === DataType.VIDEO) {
+    return counter.value?.videosTrash ?? -1
+  } else if (props.type === DataType.AUDIO) {
+    return counter.value?.audiosTrash ?? -1
+  }
+
+  return -1
+})
+
 const { fetch } = initLazyQuery({
-  handle: (data: { total: number }) => {
+  handle: (data: { total: number; trash: number }) => {
     if (data) {
       if (props.type === DataType.IMAGE) {
         counter.value.images = data.total
+        counter.value.imagesTrash = data.trash
       } else if (props.type === DataType.VIDEO) {
         counter.value.videos = data.total
+        counter.value.videosTrash = data.trash
       } else if (props.type === DataType.AUDIO) {
         counter.value.audios = data.total
+        counter.value.audiosTrash = data.trash
       }
     }
   },
@@ -82,8 +107,13 @@ function updateActive() {
   const q = decodeBase64(route.query.q?.toString() ?? '')
   parseQ(filter, q)
   selectedTagId.value = filter.tagIds.length === 1 ? filter.tagIds[0] : ''
+  trash.value = filter.trash ?? false
   selectedBucketId.value = filter.bucketId ?? ''
   if (selectedTagId.value && selectedBucketId.value) {
+    selectedTagId.value = ''
+  }
+  if (trash.value) {
+    selectedBucketId.value = ''
     selectedTagId.value = ''
   }
 }
@@ -97,7 +127,32 @@ watch(
   }
 )
 
-function all() {
+function viewTrash() {
+  const q = buildQuery([
+    {
+      name: 'trash',
+      op: '',
+      value: 'true',
+    },
+  ])
+  replacePath(mainStore, `/${group.value}?q=${encodeBase64(q)}`)
+}
+
+function viewAll() {
   replacePath(mainStore, `/${group.value}`)
 }
+
+const mediaItemsActionedHandler = (event: IMediaItemsActionedEvent) => {
+  if (event.type === props.type) {
+    fetch()
+  }
+}
+
+onMounted(() => {
+  emitter.on('media_items_actioned', mediaItemsActionedHandler)
+})
+
+onUnmounted(() => {
+  emitter.off('media_items_actioned', mediaItemsActionedHandler)
+})
 </script>

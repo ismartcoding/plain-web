@@ -61,7 +61,7 @@
             {{ $t('load_failed', { name: current?.name }) }}
           </div>
           <div v-if="current && isVideo(current.name)" v-show="!status.loading && !status.loadError" class="v-video-wrapper" @click.self="closeDialog">
-            <video ref="video" controls autoplay="true" :src="current.src" @error="onError" @canplay="onLoad" @playing="onPlaying" @pause="onPause" @volumechange="onVolumeChange"/>
+            <video ref="video" controls autoplay="true" :src="current.src" @error="onError" @canplay="onLoad" @playing="onPlaying" @pause="onPause" @volumechange="onVolumeChange" />
           </div>
           <div v-else-if="current && isAudio(current.name)" v-show="!status.loading && !status.loadError" class="v-audio-wrapper" @click.self="closeDialog">
             <div style="padding: 50px">
@@ -160,7 +160,7 @@ import { fileInfoGQL, initLazyQuery, tagsGQL } from '@/lib/api/query'
 import { formatDateTime, formatDateTimeFull } from '@/lib/format'
 import { openModal } from '@/components/modal'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
-import type { IItemTagsUpdatedEvent, IMediaItemDeletedEvent, IFileDeletedEvent, ITag } from '@/lib/interfaces'
+import type { IItemTagsUpdatedEvent, IFileDeletedEvent, ITag, IMediaItemsActionedEvent } from '@/lib/interfaces'
 import emitter from '@/plugins/eventbus'
 import { useDownload } from '@/hooks/files'
 import { getFileName, getFinalPath } from '@/lib/api/file'
@@ -576,9 +576,9 @@ const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
   }
 }
 
-const mediaItemDeletedHandler = (event: IMediaItemDeletedEvent) => {
-  if (event.item.id === current.value?.data?.id) {
-    remove(tempStore.lightbox.sources, (it: ISource) => it.data?.id === event.item.id)
+const mediaItemsActionedHandler = (event: IMediaItemsActionedEvent) => {
+  if (event.action === 'delete' && event.id === current.value?.data?.id) {
+    remove(tempStore.lightbox.sources, (it: ISource) => it.data?.id === event.id)
     if (tempStore.lightbox.sources.length) {
       onNext()
     } else {
@@ -602,7 +602,7 @@ onMounted(() => {
   on(window, 'keydown', onKeyPress)
   on(window, 'resize', onWindowResize)
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
-  emitter.on('media_item_deleted', mediaItemDeletedHandler)
+  emitter.on('media_items_actioned', mediaItemsActionedHandler)
   emitter.on('file_deleted', fileDeletedHandler)
 })
 
@@ -610,7 +610,7 @@ onBeforeUnmount(() => {
   off(window, 'keydown', onKeyPress)
   off(window, 'resize', onWindowResize)
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
-  emitter.off('media_item_deleted', mediaItemDeletedHandler)
+  emitter.off('media_items_actioned', mediaItemsActionedHandler)
   emitter.off('file_deleted', fileDeletedHandler)
 })
 </script>

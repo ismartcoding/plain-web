@@ -8,10 +8,10 @@ export const useList = (items: Ref<IFeedEntry[]>, q: Ref<string>, total: Ref<num
   const { t } = useI18n()
 
   const page = ref(1)
-  const limit = 50
+  const limit = 100
   const noMore = ref(false)
   const { loading, fetch } = initLazyQuery({
-    handle: (data: { items: IFeedEntry[]; count: number }, error: string) => {
+    handle: (data: { items: IFeedEntry[]; total: number }, error: string) => {
       if (error) {
         toast(t(error), 'error')
       } else {
@@ -52,32 +52,3 @@ export const useList = (items: Ref<IFeedEntry[]>, q: Ref<string>, total: Ref<num
   }
 }
 
-export const useTable = (items: Ref<IFeedEntry[]>, q: Ref<string>, total: Ref<number>, page: Ref<number>, limit: number) => {
-  const { t } = useI18n()
-
-  const { loading, fetch } = initLazyQuery({
-    handle: (data: { items: IFeedEntry[]; total: number }, error: string) => {
-      if (error) {
-        toast(t(error), 'error')
-      } else {
-        if (data) {
-          items.value = data.items
-          total.value = data.total
-        }
-      }
-    },
-    document: feedEntriesGQL,
-    variables: () => ({
-      offset: (page.value - 1) * limit,
-      limit,
-      query: q.value,
-    }),
-    appApi: true,
-  })
-
-  return {
-    page,
-    loading,
-    fetch,
-  }
-}

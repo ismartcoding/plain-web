@@ -129,7 +129,7 @@ export const useView = (sources: Ref<ISource[]>, ivView: (sources: ISource[], i:
   }
 }
 
-export const useCopyPaste = (items: Ref<IFile[]>, isCut: Ref<Boolean>, selectedFiles: Ref<IFile[]>, refetchFiles: () => void, refetchStats: () => void) => {
+export const useCopyPaste = (items: Ref<IFile[]>, isCut: Ref<boolean>, selectedFiles: Ref<IFile[]>, refetchFiles: () => void, refetchStats: () => void) => {
   const dstDir = ref<string>()
 
   const {

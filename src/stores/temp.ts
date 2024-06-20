@@ -26,8 +26,11 @@ export interface IDataCounter {
   contacts: number
   calls: number
   videos: number
+  videosTrash: number
   images: number
+  imagesTrash: number
   audios: number
+  audiosTrash: number
   packages: number
   packagesSystem: number
   notes: number
@@ -54,9 +57,10 @@ export const useTempStore = defineStore({
   id: 'temp',
   state: () =>
     ({
-      app: {},
+      app: {} as IApp,
       urlTokenKey: null,
       uploads: [],
+      selectedFiles: [],
       audioPlaying: false,
       lightbox: { sources: [], visible: false, index: -1 },
       counter: {
@@ -64,8 +68,11 @@ export const useTempStore = defineStore({
         contacts: -1,
         calls: -1,
         videos: -1,
+        videosTrash: -1,
         images: -1,
+        imagesTrash: -1,
         audios: -1,
+        audiosTrash: -1,
         packages: -1,
         packagesSystem: -1,
         notes: -1,

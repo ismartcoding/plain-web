@@ -15,35 +15,40 @@
       </template>
     </div>
     <template v-if="checked">
-      <button class="btn-icon" @click.stop="copyItems" v-tooltip="$t('copy')">
-        <md-ripple />
-        <i-material-symbols:content-copy-outline-rounded />
-      </button>
-      <button class="btn-icon" @click.stop="cutItems" v-tooltip="$t('cut')">
-        <md-ripple />
-        <i-material-symbols:content-cut-rounded />
-      </button>
-      <button class="btn-icon" @click.stop="deleteItems" v-tooltip="$t('delete')">
-        <md-ripple />
-        <i-material-symbols:delete-forever-outline-rounded />
-      </button>
-      <button class="btn-icon" @click.stop="downloadItems" v-tooltip="$t('download')">
-        <md-ripple />
-        <md-circular-progress indeterminate v-if="downloadLoading" />
-        <i-material-symbols:download-rounded v-else />
-      </button>
+      <icon-button @click.stop="copyItems" v-tooltip="$t('copy')">
+        <template #icon>
+          <i-material-symbols:content-copy-outline-rounded />
+        </template>
+      </icon-button>
+      <icon-button @click.stop="cutItems" v-tooltip="$t('cut')">
+        <template #icon>
+          <i-material-symbols:content-cut-rounded />
+        </template>
+      </icon-button>
+      <icon-button @click.stop="deleteItems" v-tooltip="$t('delete')">
+        <template #icon>
+          <i-material-symbols:delete-forever-outline-rounded />
+        </template>
+      </icon-button>
+      <icon-button :loading="downloadLoading" @click.stop="downloadItems" v-tooltip="$t('download')">
+        <template #icon>
+          <i-material-symbols:download-rounded />
+        </template>
+      </icon-button>
     </template>
     <div class="actions">
-      <file-search-input v-if="filter.linkName !== 'app'" :filter="filter" :parent="rootDir" :get-url="getUrl" />
-      <button class="btn-icon" v-tooltip="$t('create_folder')" @click="createDir">
-        <md-ripple />
-        <i-material-symbols:create-new-folder-outline-rounded />
-      </button>
+      <file-search-input :filter="filter" :parent="rootDir" :get-url="getUrl" />
+      <icon-button v-tooltip="$t('create_folder')" @click="createDir">
+        <template #icon>
+          <i-material-symbols:create-new-folder-outline-rounded />
+        </template>
+      </icon-button>
       <popper>
-        <button class="btn-icon" v-tooltip="$t('upload')">
-          <md-ripple />
-          <i-material-symbols:upload-rounded />
-        </button>
+        <icon-button v-tooltip="$t('upload')">
+          <template #icon>
+            <i-material-symbols:upload-rounded />
+          </template>
+        </icon-button>
         <template #content="slotProps">
           <md-menu-item @click.stop="uploadFilesClick(slotProps, filter.parent)">
             <div slot="headline">{{ $t('upload_files') }}</div>
@@ -53,22 +58,22 @@
           </md-menu-item>
         </template>
       </popper>
-      <button v-if="canPaste()" :disabled="pasting" class="btn-icon" v-tooltip="$t('paste')" @click="pasteDir">
-        <md-ripple />
-        <md-circular-progress indeterminate v-if="pasting" />
-        <i-material-symbols:content-paste-rounded v-else />
-      </button>
-      <button class="btn-icon" :disabled="refreshing" v-tooltip="$t('refresh')" @click="refreshCurrentDir">
-        <md-ripple />
-        <md-circular-progress indeterminate v-if="refreshing" />
-        <i-material-symbols:refresh-rounded v-else />
-      </button>
+      <icon-button v-if="canPaste()" :loading="pasting" v-tooltip="$t('paste')" @click="pasteDir">
+        <template #icon>
+          <i-material-symbols:content-paste-rounded />
+        </template>
+      </icon-button>
+      <icon-button :loading="refreshing" v-tooltip="$t('refresh')" @click="refreshCurrentDir">
+        <template #icon>
+          <i-material-symbols:refresh-rounded />
+        </template>
+      </icon-button>
       <popper>
-        <button class="btn-icon" :disabled="sorting" v-tooltip="$t('sort')">
-          <md-ripple />
-          <md-circular-progress indeterminate v-if="sorting" />
-          <i-material-symbols:sort-rounded v-else />
-        </button>
+        <icon-button :loading="sorting" v-tooltip="$t('sort')">
+          <template #icon>
+            <i-material-symbols:sort-rounded />
+          </template>
+        </icon-button>
         <template #content="slotProps">
           <div class="menu-items">
             <md-menu-item v-for="item in sortItems" @click="sort(slotProps, item.value)" :key="item.value" :selected="item.value === fileSortBy">
@@ -140,15 +145,17 @@
           </div>
           <div class="actions">
             <template v-if="item.isDir">
-              <button class="btn-icon sm" @click.stop="downloadDir(item.path)" v-tooltip="$t('download')">
-                <md-ripple />
-                <i-material-symbols:download-rounded />
-              </button>
+              <icon-button class="sm" @click.stop="downloadDir(item.path)" v-tooltip="$t('download')">
+                <template #icon>
+                  <i-material-symbols:download-rounded />
+                </template>
+              </icon-button>
               <popper>
-                <button class="btn-icon sm" v-tooltip="$t('upload')">
-                  <md-ripple />
-                  <i-material-symbols:upload-rounded />
-                </button>
+                <icon-button class="sm" v-tooltip="$t('upload')">
+                  <template #icon>
+                    <i-material-symbols:upload-rounded />
+                  </template>
+                </icon-button>
                 <template #content="slotProps">
                   <md-menu-item @click.stop="uploadFilesClick(slotProps, item.path)">
                     <div slot="headline">{{ $t('upload_files') }}</div>
@@ -160,21 +167,24 @@
               </popper>
             </template>
             <template v-else>
-              <button class="btn-icon sm" @click.stop="downloadFile(item.path)" v-tooltip="$t('download')">
-                <md-ripple />
-                <i-material-symbols:download-rounded />
-              </button>
+              <icon-button class="sm" @click.stop="downloadFile(item.path)" v-tooltip="$t('download')">
+                <template #icon>
+                  <i-material-symbols:download-rounded />
+                </template>
+              </icon-button>
             </template>
 
-            <button class="btn-icon sm" @click.stop="deleteItem(item)" v-tooltip="$t('delete')">
-              <md-ripple />
-              <i-material-symbols:delete-forever-outline-rounded />
-            </button>
+            <icon-button class="sm" @click.stop="deleteItem(item)" v-tooltip="$t('delete')">
+              <template #icon>
+                <i-material-symbols:delete-forever-outline-rounded />
+              </template>
+            </icon-button>
             <popper>
-              <button class="btn-icon sm" v-tooltip="$t('info')">
-                <md-ripple />
-                <i-material-symbols:info-outline-rounded />
-              </button>
+              <icon-button class="sm" v-tooltip="$t('info')">
+                <template #icon>
+                  <i-material-symbols:info-outline-rounded />
+                </template>
+              </icon-button>
               <template #content>
                 <section class="card card-info">
                   <div class="key-value vertical">
@@ -188,10 +198,11 @@
             </popper>
 
             <popper>
-              <button class="btn-icon sm" v-tooltip="$t('actions')">
-                <md-ripple />
-                <i-material-symbols:more-vert />
-              </button>
+              <icon-button class="sm" v-tooltip="$t('actions')">
+                <template #icon>
+                  <i-material-symbols:more-vert />
+                </template>
+              </icon-button>
               <template #content="slotProps">
                 <md-menu-item @click.stop="duplicateItem(slotProps, item)">
                   <div slot="headline">{{ $t('duplicate') }}</div>
@@ -343,9 +354,10 @@ const { loading, fetch } = initLazyQuery({
   },
   document: filesGQL,
   variables: () => ({
+    root: rootDir.value,
     offset: (page.value - 1) * limit,
     limit,
-    query: q.value ? q.value : `parent:${rootDir}`,
+    query: q.value,
     sortBy: fileSortBy.value,
   }),
   options: {

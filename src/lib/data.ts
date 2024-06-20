@@ -11,3 +11,7 @@ export enum DataType {
   BOOK = 'BOOK',
   FEED_ENTRY = 'FEED_ENTRY',
 }
+
+export enum FEATURE {
+  MEDIA_TRASH,
+}

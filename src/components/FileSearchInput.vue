@@ -3,11 +3,6 @@
     <div v-if="props.filter.text" key="filter-text">
       <md-input-chip :label="props.filter.text" remove-only @remove="removeText" />
     </div>
-    <div v-if="props.filter.parent" key="filter-parent">
-      <md-input-chip :label="$t('current_folder')" remove-only @remove="removeParent">
-        <i-material-symbols:folder-outline-rounded slot="icon" />
-      </md-input-chip>
-    </div>
     <div v-if="props.filter.showHidden" key="filter-show-hidden">
       <md-input-chip :label="$t('show_hidden')" remove-only @remove="removeShowHidden">
         <i-material-symbols:hide-source-outline-rounded slot="icon" />
@@ -24,7 +19,6 @@
         <md-outlined-text-field :label="$t('keywords')" v-model="searchFilter.text" @keyup.enter="applyAndDoSearch" />
       </div>
       <md-chip-set>
-        <md-filter-chip key="chip-parent" :label="$t('current_folder')" :selected="searchFilter.parent !== ''" @click="toggleParent" />
         <md-filter-chip key="chip-show-hidden" :label="$t('show_hidden')" :selected="searchFilter.showHidden" @click="toggleShowHidden" />
       </md-chip-set>
       <div class="buttons">
@@ -90,15 +84,6 @@ function show() {
 
 function hide() {
   searchPanelVisible.value = false
-}
-
-function toggleParent() {
-  searchFilter.parent = searchFilter.parent ? '' : props.parent
-}
-
-function removeParent() {
-  props.filter.parent = ''
-  doSearch()
 }
 
 function removeShowHidden() {

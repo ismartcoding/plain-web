@@ -1,4 +1,4 @@
-import type { IMediaItemDeletedEvent, IMediaItemsDeletedEvent, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IFileDeletedEvent } from '@/lib/interfaces'
+import type { IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IFileDeletedEvent, IMediaItemsActionedEvent, INotesActionedEvent } from '@/lib/interfaces'
 import type { IUploadItem } from '@/stores/temp'
 import mitt, { type Emitter } from 'mitt'
 
@@ -12,8 +12,9 @@ type Events = {
   item_tags_updated: IItemTagsUpdatedEvent
   items_tags_updated: IItemsTagsUpdatedEvent
   refetch_tags: string
-  media_item_deleted: IMediaItemDeletedEvent
-  media_items_deleted: IMediaItemsDeletedEvent
+  media_items_actioned: IMediaItemsActionedEvent
+  feed_entries_deleted: undefined
+  notes_actioned: INotesActionedEvent
   file_deleted: IFileDeletedEvent
   toast: string
   tap_phone: string

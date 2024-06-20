@@ -267,13 +267,16 @@ export interface IStorageStatsItem {
   freeBytes: number
 }
 
-export interface IMediaItemDeletedEvent {
-  item: IMedia
+// deleted, trashed, restored
+export interface IMediaItemsActionedEvent {
   type: string
+  action: string
+  id?: string
 }
-
-export interface IMediaItemsDeletedEvent {
-  type: string
+// deleted, trashed, restored
+export interface INotesActionedEvent {
+  action: string
+  id?: string
 }
 
 export interface IFileDeletedEvent {
@@ -329,7 +332,7 @@ export interface IApp {
   deviceName: string
   battery: number
   appVersion: string
-  osVersion: string
+  osVersion: number
   channel: string
   permissions: string[]
   audios: IPlaylistAudio[]
