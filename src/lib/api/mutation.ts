@@ -132,6 +132,12 @@ export const trashMediaItemsGQL = gql`
   }
 `
 
+export const restoreMediaItemsGQL = gql`
+  mutation restoreMediaItems($type: DataType!, $query: String!) {
+    restoreMediaItems(type: $type, query: $query)
+  }
+`
+
 export const removeFromTagsGQL = gql`
   mutation removeFromTags($type: DataType!, $tagIds: [ID!]!, $query: String!) {
     removeFromTags(type: $type, tagIds: $tagIds, query: $query)
@@ -195,9 +201,9 @@ export const trashNotesGQL = gql`
   }
 `
 
-export const untrashNotesGQL = gql`
-  mutation untrashNotes($query: String!) {
-    untrashNotes(query: $query)
+export const restoreNotesGQL = gql`
+  mutation restoreNotes($query: String!) {
+    restoreNotes(query: $query)
   }
 `
 
@@ -240,13 +246,11 @@ export const exportFeedsGQL = gql`
   }
 `
 
-
 export const exportNotesGQL = gql`
   mutation exportNotes($query: String!) {
     exportNotes(query: $query)
   }
 `
-
 
 export const relaunchAppGQL = gql`
   mutation relaunchApp {

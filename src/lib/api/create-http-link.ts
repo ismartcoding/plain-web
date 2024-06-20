@@ -76,7 +76,7 @@ export const createHttpLink = (linkOptions: HttpOptions = {}) => {
         const key = tokenToKey(token)
         ;(options as any).body = bitArrayToUint8Array(aesEncrypt(key, json))
         const encryptTime = performance.now()
-        Promise.race([fetch(chosenURI, options), new Promise((_, reject) => setTimeout(() => reject(new Error('connection_timeout')), 10000))])
+        Promise.race([fetch(chosenURI, options), new Promise((_, reject) => setTimeout(() => reject(new Error('connection_timeout')), 30000))])
           .then(async (response: any) => {
             if (response.status === 403) {
               // ignore

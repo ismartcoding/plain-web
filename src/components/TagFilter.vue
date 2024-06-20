@@ -35,7 +35,7 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import { initQuery, tagsGQL } from '@/lib/api/query'
 import { replacePath } from '@/plugins/router'
-import type { IMediaItemDeletedEvent, IMediaItemsDeletedEvent, ITag } from '@/lib/interfaces'
+import type { IMediaItemsActionedEvent, ITag } from '@/lib/interfaces'
 import { openModal } from '@/components/modal'
 import { useMainStore } from '@/stores/main'
 import { encodeBase64 } from '@/lib/strutil'
@@ -148,27 +148,19 @@ const refetchTagsHandler = (type: string) => {
   }
 }
 
-const mediaItemsDeletedHandler = (event: IMediaItemsDeletedEvent) => {
+const mediaItemsActionedHandler = (event: IMediaItemsActionedEvent) => {
   if (event.type === props.type) {
-    refetch()
-  }
-}
-
-const mediaItemDeletedHandler = (event: IMediaItemDeletedEvent) => {
-  if (event.item.tags.length && event.type === props.type) {
     refetch()
   }
 }
 
 onMounted(() => {
   emitter.on('refetch_tags', refetchTagsHandler)
-  emitter.on('media_items_deleted', mediaItemsDeletedHandler)
-  emitter.on('media_item_deleted', mediaItemDeletedHandler)
+  emitter.on('media_items_actioned', mediaItemsActionedHandler)
 })
 
 onUnmounted(() => {
   emitter.off('refetch_tags', refetchTagsHandler)
-  emitter.off('media_items_deleted', mediaItemsDeletedHandler)
-  emitter.off('media_item_deleted', mediaItemDeletedHandler)
+  emitter.off('media_items_actioned', mediaItemsActionedHandler)
 })
 </script>

@@ -31,7 +31,7 @@
         </button>
       </div>
       <section class="list-items">
-        <div v-for="item in audios" class="item" :key="item.path" @click.stop="playItem(item)" :class="{ selected: item.path === current?.path }">
+        <div v-for="item in audios" class="item" :key="item.path" @click.stop="playItem(item)" @mousedown="fixUserSelect" :class="{ selected: item.path === current?.path }">
           <div class="title">{{ item.title }}</div>
           <div class="subtitle">{{ item.artist }} {{ formatSeconds(item.duration) }}</div>
           <button class="btn-icon icon" @click.stop="deleteItem(item)">
@@ -55,6 +55,7 @@ import { initMutation, playAudioGQL, updateAudioPlayModeGQL, deletePlaylistAudio
 import { sample, remove } from 'lodash-es'
 import emitter from '@/plugins/eventbus'
 import { useMainStore } from '@/stores/main'
+import { fixUserSelect } from '@/hooks/text-selection'
 
 const { app, urlTokenKey, audioPlaying } = storeToRefs(useTempStore())
 const store = useMainStore()

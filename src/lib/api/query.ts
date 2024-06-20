@@ -186,7 +186,7 @@ export const homeStatsGQL = gql`
     audioCount(query: "")
     videoCount(query: "")
     packageCount(query: "")
-    noteCount(query: "trash:false")
+    noteCount(query: "")
     feedEntryCount(query: "")
     storageStats {
       internal {
@@ -255,8 +255,8 @@ export const audiosGQL = gql`
 `
 
 export const filesGQL = gql`
-  query files($offset: Int!, $limit: Int!, $query: String!, $sortBy: FileSortBy!) {
-    files(offset: $offset, limit: $limit, query: $query, sortBy: $sortBy) {
+  query files($root: String!, $offset: Int!, $limit: Int!, $query: String!, $sortBy: FileSortBy!) {
+    files(root: $root, offset: $offset, limit: $limit, query: $query, sortBy: $sortBy) {
       ...FileFragment
     }
   }
@@ -443,18 +443,21 @@ export const aichatsGQL = gql`
 export const imageCountGQL = gql`
   query {
     total: imageCount(query: "")
+    trash: imageCount(query: "trash:true")
   }
 `
 
 export const audioCountGQL = gql`
   query {
     total: audioCount(query: "")
+    trash: audioCount(query: "trash:true")
   }
 `
 
 export const videoCountGQL = gql`
   query {
     total: videoCount(query: "")
+    trash: videoCount(query: "trash:true")
   }
 `
 
@@ -502,7 +505,7 @@ export const smsCountGQL = gql`
 
 export const noteCountGQL = gql`
   query {
-    total: noteCount(query: "trash:false")
+    total: noteCount(query: "")
     trash: noteCount(query: "trash:true")
   }
 `

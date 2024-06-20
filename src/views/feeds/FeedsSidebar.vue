@@ -58,7 +58,7 @@
 import router, { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import type { IDropdownItem, IFeed, IFeedCount, IFilter } from '@/lib/interfaces'
-import { reactive, ref, watch } from 'vue'
+import { onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import AddFeedModal from '@/components/AddFeedModal.vue'
 import { deleteFeedGQL, exportFeedsGQL, importFeedsGQL, initMutation } from '@/lib/api/mutation'
 import { downloadFromString } from '@/lib/api/file'
@@ -73,6 +73,7 @@ import { decodeBase64 } from '@/lib/strutil'
 import { useSearch } from '@/hooks/search'
 import { storeToRefs } from 'pinia'
 import { useTempStore } from '@/stores/temp'
+import emitter from '@/plugins/eventbus'
 
 const { t } = useI18n()
 const mainStore = useMainStore()
@@ -231,4 +232,22 @@ function deleteFeed(item: IFeed) {
     },
   })
 }
+
+const feedEntriesDeletedHandler = () => {
+  fetch()
+}
+
+const feedsFetchedHandler = () => {
+  fetch()
+}
+
+onMounted(() => {
+  emitter.on('feed_entries_deleted', feedEntriesDeletedHandler)
+  emitter.on('feeds_fetched', feedsFetchedHandler)
+})
+
+onUnmounted(() => {
+  emitter.off('feed_entries_deleted', feedEntriesDeletedHandler)
+  emitter.off('feeds_fetched', feedsFetchedHandler)
+})
 </script>

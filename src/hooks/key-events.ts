@@ -1,13 +1,9 @@
 import { type Ref } from 'vue'
 
 function isInputFocused() {
-  const activeElement = document.activeElement;
-  return activeElement && (activeElement.tagName === 'INPUT' || 
-                           activeElement.tagName === 'TEXTAREA' || 
-                           activeElement.tagName === 'SELECT' || 
-                           activeElement.tagName === 'MD-OUTLINED-TEXT-FIELD')
+  const activeElement = document.activeElement
+  return activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'SELECT' || activeElement.tagName === 'MD-OUTLINED-TEXT-FIELD')
 }
-
 
 export const useKeyEvents = (total: Ref<number>, limit: number, page: Ref<number>, selectAll: () => void, clearSelection: () => void, gotoPage: (page: number) => void, deleteItems: () => void) => {
   return {
@@ -77,7 +73,7 @@ export const useFilesKeyEvents = (total: Ref<number>, selectAll: () => void, cle
       } else {
         content2?.style.removeProperty('user-select')
       }
-      
+
       if ((e.ctrlKey || e.metaKey) && e.key === 'a' && !isInputFocused()) {
         e.preventDefault()
         selectAll()

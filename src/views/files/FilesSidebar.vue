@@ -9,7 +9,7 @@
           <span class="title">{{ $t('recents') }}</span>
         </li>
         <li v-for="item in links" @click.prevent="openLink(item)" :class="{ active: route.path === '/files' && item.name === filter.linkName }">
-          <span class="title">{{ $t(item.label) }}</span>
+          <span class="title">{{ item.label }}</span>
         </li>
       </ul>
     </template>
@@ -27,13 +27,16 @@ import { buildQuery } from '@/lib/search'
 import type { IFileFilter } from '@/lib/interfaces'
 import { useSearch } from '@/hooks/files'
 import { decodeBase64, encodeBase64 } from '@/lib/strutil'
+import { useI18n } from 'vue-i18n'
 
 const route = useRoute()
 const mainStore = useMainStore()
 const { app } = storeToRefs(useTempStore())
+const { t } = useI18n()
 
 const { parseQ } = useSearch()
 const filter = reactive<IFileFilter>({
+  showHidden: false,
   linkName: '',
   text: '',
   parent: '',
@@ -53,30 +56,32 @@ interface LinkItem {
 }
 
 const links = computed(() => {
-  const links: LinkItem[] = [{
-    name: 'internal',
-    label: 'internal_storage',
-    path: app.value.internalStoragePath
-  }]
+  const links: LinkItem[] = [
+    {
+      name: 'internal',
+      label: t('internal_storage'),
+      path: app.value.internalStoragePath,
+    },
+  ]
   if (app.value.sdcardPath) {
     links.push({
       name: 'sdcard',
-      label: 'sdcard',
-      path: app.value.sdcardPath
+      label: t('sdcard'),
+      path: app.value.sdcardPath,
     })
   }
   app.value.usbDiskPaths.forEach((path, index) => {
     links.push({
       name: `usb${index + 1}`,
-      label: `usb_storage ${index + 1}`,
-      path
+      label: `${t('usb_storage')} ${index + 1}`,
+      path,
     })
   })
 
   links.push({
     name: 'app',
-    label: 'app_name',
-    path: app.value.externalFilesDir
+    label: t('app_name'),
+    path: app.value.externalFilesDir,
   })
 
   return links
@@ -87,12 +92,12 @@ function openLink(link: LinkItem) {
     {
       name: 'parent',
       op: '',
-      value: link.path
+      value: link.path,
     },
     {
       name: 'link_name',
       op: '',
-      value: link.name
+      value: link.name,
     },
   ])
   replacePath(mainStore, `/files?q=${encodeBase64(q)}`)

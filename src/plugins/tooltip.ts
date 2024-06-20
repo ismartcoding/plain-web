@@ -38,6 +38,10 @@ const directive: Directive = {
       }
 
       const rect = el.getBoundingClientRect()
+      if (rect.x === 0 && rect.y === 0) {
+        // invalid
+        return
+      }
       if (tooltipElement) {
         const tooltipRect = tooltipElement.getBoundingClientRect()
         tooltipElement.style.top = rect.bottom + 8 + 'px'
@@ -47,19 +51,18 @@ const directive: Directive = {
     }
 
     el.mouseenterFunc = () => {
-      window.showTooltipTimeout = setTimeout(showTooltip, 600)
+      globalThis.showTooltipTimeout = setTimeout(showTooltip, 600)
     }
 
     el.addEventListener('mouseenter', el.mouseenterFunc)
 
     el.mouseleaveFunc = () => {
-      clearTimeout(window.showTooltipTimeout)
-      if (tooltipElement) {
-        if (tooltipElement.parentNode) {
-          tooltipElement.parentNode.removeChild(tooltipElement)
-        }
-        tooltipElement = null
+      clearTimeout(globalThis.showTooltipTimeout)
+      const tooltips = document.getElementsByClassName('tooltip')
+      for (const tooltip of tooltips) {
+        document.body.removeChild(tooltip)
       }
+      tooltipElement = null
     }
 
     if (el.tagName === 'BUTTON') {

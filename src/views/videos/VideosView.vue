@@ -5,28 +5,55 @@
       <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
       <span v-else>{{ $t('page_title.videos') }} ({{ total.toLocaleString() }})</span>
       <template v-if="checked">
-        <button class="btn-icon" @click.stop="deleteItems(dataType, selectedIds, realAllChecked, total, q)" v-tooltip="$t('delete')">
-          <md-ripple />
-          <i-material-symbols:delete-forever-outline-rounded />
-        </button>
-        <button class="btn-icon" @click.stop="downloadItems(realAllChecked, selectedIds, q)" v-tooltip="$t('download')">
-          <md-ripple />
-          <i-material-symbols:download-rounded />
-        </button>
-        <button class="btn-icon" @click.stop="addToTags(selectedIds, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
-          <md-ripple />
-          <i-material-symbols:label-outline-rounded />
-        </button>
+        <template v-if="filter.trash">
+          <icon-button @click.stop="deleteItems(dataType, selectedIds, realAllChecked, total, q)" v-tooltip="$t('delete')">
+            <template #icon>
+              <i-material-symbols:delete-forever-outline-rounded />
+            </template>
+          </icon-button>
+          <icon-button @click.stop="restore(getQuery())" v-tooltip="$t('restore')" :loading="restoreLoading(getQuery())">
+            <template #icon>
+              <i-material-symbols:restore-from-trash-outline-rounded />
+            </template>
+          </icon-button>
+          <icon-button @click.stop="downloadItems(realAllChecked, selectedIds, q)" v-tooltip="$t('download')">
+            <template #icon>
+              <i-material-symbols:download-rounded />
+            </template>
+          </icon-button>
+        </template>
+        <template v-else>
+          <icon-button v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)" @click.stop="trash(getQuery())" v-tooltip="$t('move_to_trash')" :loading="trashLoading(getQuery())">
+            <template #icon>
+              <i-material-symbols:delete-outline-rounded />
+            </template>
+          </icon-button>
+          <icon-button v-else @click.stop="deleteItems(dataType, selectedIds, realAllChecked, total, q)" v-tooltip="$t('delete')">
+            <template #icon>
+              <i-material-symbols:delete-forever-outline-rounded />
+            </template>
+          </icon-button>
+          <icon-button @click.stop="downloadItems(realAllChecked, selectedIds, q)" v-tooltip="$t('download')">
+            <template #icon>
+              <i-material-symbols:download-rounded />
+            </template>
+          </icon-button>
+          <icon-button @click.stop="addToTags(selectedIds, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
+            <template #icon>
+              <i-material-symbols:label-outline-rounded />
+            </template>
+          </icon-button>
+        </template>
       </template>
     </div>
-
     <div class="actions">
       <search-input :filter="filter" :tags="tags" :buckets="buckets" :get-url="getUrl" />
-      <popper>
-        <button class="btn-icon" v-tooltip="$t('upload')">
-          <md-ripple />
-          <i-material-symbols:upload-rounded />
-        </button>
+      <popper v-if="!filter.trash">
+        <icon-button v-tooltip="$t('upload')">
+          <template #icon>
+            <i-material-symbols:upload-rounded />
+          </template>
+        </icon-button>
         <template #content="slotProps">
           <md-menu-item @click.stop="uploadFilesClick(slotProps)">
             <div slot="headline">{{ $t('upload_files') }}</div>
@@ -37,11 +64,11 @@
         </template>
       </popper>
       <popper>
-        <button class="btn-icon btn-sort" :disabled="sorting" v-tooltip="$t('sort')">
-          <md-ripple />
-          <md-circular-progress indeterminate v-if="sorting" />
-          <i-material-symbols:sort-rounded v-else />
-        </button>
+        <icon-button v-tooltip="$t('sort')" :loading="sorting">
+          <template #icon>
+            <i-material-symbols:sort-rounded />
+          </template>
+        </icon-button>
         <template #content="slotProps">
           <div class="menu-items">
             <md-menu-item v-for="item in sortItems" :key="item.value" @click="sort(slotProps, item.value)" :selected="item.value === videoSortBy">
@@ -81,41 +108,74 @@
       >
         <img v-if="imageErrorIds.includes(item.id)" :src="`/ficons/${getFileExtension(item.path)}.svg`" class="image svg" />
         <img v-else class="image image-thumb" :src="getFileUrl(item.fileId, '&w=200&h=200')" @error="onImageError(item.id)" />
-        <button v-if="shiftEffectingIds.includes(item.id)" class="btn-icon btn-checkbox" @click.stop="toggleSelect($event, item, i)">
-          <md-ripple />
-          <i-material-symbols:check-circle-rounded v-if="shouldSelect" />
-          <i-material-symbols:check-circle-outline-rounded v-else />
-        </button>
-        <button v-else-if="selectedIds.includes(item.id)" class="btn-icon btn-checkbox" @click.stop="toggleSelect($event, item, i)">
-          <md-ripple />
-          <i-material-symbols:check-circle-rounded />
-        </button>
-        <template v-else>
-          <button class="btn-icon btn-checkbox" @click.stop="toggleSelect($event, item, i)">
-            <md-ripple />
-            <i-material-symbols:check-circle-rounded v-if="selectedIds.includes(item.id)" />
+        <icon-button v-if="shiftEffectingIds.includes(item.id)" class="btn-checkbox" @click.stop="toggleSelect($event, item, i)">
+          <template #icon>
+            <i-material-symbols:check-circle-rounded v-if="shouldSelect" />
             <i-material-symbols:check-circle-outline-rounded v-else />
-          </button>
-          <div class="actions">
-            <template v-if="checked">
-              <button class="btn-icon sm" @click.stop="view(i)" v-tooltip="$t('open')">
-                <md-ripple />
-                <i-material-symbols:zoom-in-rounded />
-              </button>
+          </template>
+        </icon-button>
+        <icon-button v-else-if="selectedIds.includes(item.id)" class="btn-checkbox" @click.stop="toggleSelect($event, item, i)">
+          <template #icon>
+            <i-material-symbols:check-circle-rounded />
+          </template>
+        </icon-button>
+        <template v-else>
+          <icon-button class="btn-checkbox" @click.stop="toggleSelect($event, item, i)">
+            <template #icon>
+              <i-material-symbols:check-circle-rounded v-if="selectedIds.includes(item.id)" />
+              <i-material-symbols:check-circle-outline-rounded v-else />
+            </template>
+          </icon-button>
+          <icon-button v-if="checked" class="btn-zoom sm" @click.stop="view(i)" v-tooltip="$t('open')">
+            <template #icon>
+              <i-material-symbols:zoom-in-rounded />
+            </template>
+          </icon-button>
+          <div v-else class="actions">
+            <template v-if="filter.trash">
+              <icon-button class="sm" @click.stop="deleteItem(dataType, item)" v-tooltip="$t('delete')">
+                <template #icon>
+                  <i-material-symbols:delete-forever-outline-rounded />
+                </template>
+              </icon-button>
+              <icon-button class="sm" @click.stop="restore(`ids:${item.id}`)" v-tooltip="$t('restore')" :loading="restoreLoading(`ids:${item.id}`)">
+                <template #icon>
+                  <i-material-symbols:restore-from-trash-outline-rounded />
+                </template>
+              </icon-button>
+              <icon-button class="sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))" v-tooltip="$t('download')">
+                <template #icon>
+                  <i-material-symbols:download-rounded />
+                </template>
+              </icon-button>
             </template>
             <template v-else>
-              <button class="btn-icon sm" @click.stop="deleteItem(dataType, item)" v-tooltip="$t('delete')">
-                <md-ripple />
-                <i-material-symbols:delete-forever-outline-rounded />
-              </button>
-              <button class="btn-icon sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))" v-tooltip="$t('download')">
-                <md-ripple />
-                <i-material-symbols:download-rounded />
-              </button>
-              <button class="btn-icon sm" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
-                <md-ripple />
-                <i-material-symbols:label-outline-rounded />
-              </button>
+              <icon-button
+                v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)"
+                class="sm"
+                @click.stop="trash(`ids:${item.id}`)"
+                v-tooltip="$t('move_to_trash')"
+                :loading="trashLoading(`ids:${item.id}`)"
+              >
+                <template #icon>
+                  <i-material-symbols:delete-outline-rounded />
+                </template>
+              </icon-button>
+              <icon-button v-else class="sm" @click.stop="deleteItem(dataType, item)" v-tooltip="$t('delete')">
+                <template #icon>
+                  <i-material-symbols:delete-forever-outline-rounded />
+                </template>
+              </icon-button>
+              <icon-button class="sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))" v-tooltip="$t('download')">
+                <template #icon>
+                  <i-material-symbols:download-rounded />
+                </template>
+              </icon-button>
+              <icon-button class="sm" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
+                <template #icon>
+                  <i-material-symbols:label-outline-rounded />
+                </template>
+              </icon-button>
             </template>
           </div>
           <div class="info" :class="{ 'has-tags': item.tags.length > 0 }">
@@ -154,18 +214,51 @@
           <item-tags :tags="item.tags" :type="dataType" :only-links="true" />
         </div>
         <div class="actions">
-          <button class="btn-icon sm" @click.stop="deleteItem(dataType, item)" v-tooltip="$t('delete')">
-            <md-ripple />
-            <i-material-symbols:delete-forever-outline-rounded />
-          </button>
-          <button class="btn-icon sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))" v-tooltip="$t('download')">
-            <md-ripple />
-            <i-material-symbols:download-rounded />
-          </button>
-          <button class="btn-icon sm" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
-            <md-ripple />
-            <i-material-symbols:label-outline-rounded />
-          </button>
+          <template v-if="filter.trash">
+            <icon-button class="sm" @click.stop="deleteItem(dataType, item)" v-tooltip="$t('delete')">
+              <template #icon>
+                <i-material-symbols:delete-forever-outline-rounded />
+              </template>
+            </icon-button>
+            <icon-button class="sm" @click.stop="restore(`ids:${item.id}`)" v-tooltip="$t('restore')" :loading="restoreLoading(`ids:${item.id}`)">
+              <template #icon>
+                <i-material-symbols:restore-from-trash-outline-rounded />
+              </template>
+            </icon-button>
+            <icon-button class="sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))" v-tooltip="$t('download')">
+              <template #icon>
+                <i-material-symbols:download-rounded />
+              </template>
+            </icon-button>
+          </template>
+          <template v-else>
+            <icon-button
+              v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)"
+              class="sm"
+              @click.stop="trash(`ids:${item.id}`)"
+              v-tooltip="$t('move_to_trash')"
+              :loading="trashLoading(`ids:${item.id}`)"
+            >
+              <template #icon>
+                <i-material-symbols:delete-outline-rounded />
+              </template>
+            </icon-button>
+            <icon-button v-else class="sm" @click.stop="deleteItem(dataType, item)" v-tooltip="$t('delete')">
+              <template #icon>
+                <i-material-symbols:delete-forever-outline-rounded />
+              </template>
+            </icon-button>
+            <icon-button class="sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))" v-tooltip="$t('download')">
+              <template #icon>
+                <i-material-symbols:download-rounded />
+              </template>
+            </icon-button>
+            <icon-button class="sm" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
+              <template #icon>
+                <i-material-symbols:label-outline-rounded />
+              </template>
+            </icon-button>
+          </template>
         </div>
         <div class="time">
           <span v-tooltip="formatDateTime(item.createdAt)">
@@ -189,20 +282,20 @@ import { onActivated, onDeactivated, reactive, ref } from 'vue'
 import toast from '@/components/toaster'
 import { formatSeconds } from '@/lib/format'
 import { computed } from 'vue'
-import { videosGQL, initLazyQuery, bucketsTagsGQL } from '@/lib/api/query'
+import { videosGQL, initLazyQuery } from '@/lib/api/query'
 import { useRoute } from 'vue-router'
 import { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useI18n } from 'vue-i18n'
 import { getFileId, getFileUrl, getFileExtension } from '@/lib/api/file'
 import { formatFileSize } from '@/lib/format'
-import type { IBucket, IFilter, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IMediaItemsDeletedEvent, ITag, IVideo, IVideoItem } from '@/lib/interfaces'
+import type { IBucket, IFilter, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IMediaItemsActionedEvent, IVideo, IVideoItem } from '@/lib/interfaces'
 import { decodeBase64 } from '@/lib/strutil'
 import { noDataKey } from '@/lib/list'
 import { useAddToTags } from '@/hooks/tags'
 import { getFileName } from '@/lib/api/file'
 import { useSelectable } from '@/hooks/list'
-import { useBuckets, useDeleteItems } from '@/hooks/media'
+import { useBuckets, useBucketsTags, useDeleteItems } from '@/hooks/media'
 import emitter from '@/plugins/eventbus'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
@@ -210,12 +303,14 @@ import { useDownload, useDownloadItems } from '@/hooks/files'
 import type { ISource } from '@/components/lightbox/types'
 import { openModal } from '@/components/modal'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
-import { DataType } from '@/lib/data'
+import { DataType, FEATURE } from '@/lib/data'
 import { getDirFromPath, getSortItems } from '@/lib/file'
 import { useSearch } from '@/hooks/search'
 import { useKeyEvents } from '@/hooks/key-events'
 import { formatDateTime, formatTimeAgo } from '@/lib/format'
 import { useDragDropUpload, useFileUpload } from '@/hooks/upload'
+import { useMediaRestore, useMediaTrash } from '@/hooks/media-trash'
+import { hasFeature } from '@/lib/feature'
 
 const mainStore = useMainStore()
 const { videoSortBy } = storeToRefs(mainStore)
@@ -238,8 +333,7 @@ const route = useRoute()
 const query = route.query
 const page = ref(parseInt(query.page?.toString() ?? '1'))
 const limit = 55
-const tags = ref<ITag[]>([])
-const buckets = ref<IBucket[]>([])
+const { tags, buckets, fetch: fetchBucketsTags } = useBucketsTags(dataType)
 const bucketsMap = computed(() => {
   const map: Record<string, IBucket> = {}
   buckets.value.forEach((it) => {
@@ -323,6 +417,9 @@ const { loading, fetch } = initLazyQuery({
   appApi: true,
 })
 
+const { trashLoading, trash } = useMediaTrash(dataType, clearSelection, fetch)
+const { restoreLoading, restore } = useMediaRestore(dataType, clearSelection, fetch)
+
 function view(index: number) {
   tempStore.lightbox = {
     sources: sources.value,
@@ -331,23 +428,14 @@ function view(index: number) {
   }
 }
 
-const { fetch: fetchBucketsTags } = initLazyQuery({
-  handle: async (data: { tags: ITag[]; mediaBuckets: IBucket[] }, error: string) => {
-    if (error) {
-      toast(t(error), 'error')
-    } else {
-      if (data) {
-        tags.value = data.tags
-        buckets.value = data.mediaBuckets
-      }
-    }
-  },
-  document: bucketsTagsGQL,
-  variables: {
-    type: dataType,
-  },
-  appApi: true,
-})
+const getQuery = () => {
+  let query = q.value
+  if (!realAllChecked.value) {
+    query = `ids:${selectedIds.value.join(',')}`
+  }
+
+  return query
+}
 
 function sort(slotProps: { close: () => void }, sort: string) {
   sorting.value = true
@@ -408,15 +496,11 @@ const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
   }
 }
 
-const mediaItemsDeletedHandler = (event: IMediaItemsDeletedEvent) => {
+const mediaItemsActionedHandler = (event: IMediaItemsActionedEvent) => {
   if (event.type === dataType) {
     clearSelection()
     fetch()
   }
-}
-
-const mediaItemDeletedHandler = () => {
-  total.value--
 }
 
 onActivated(() => {
@@ -426,8 +510,7 @@ onActivated(() => {
   fetch()
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
   emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
-  emitter.on('media_item_deleted', mediaItemDeletedHandler)
-  emitter.on('media_items_deleted', mediaItemsDeletedHandler)
+  emitter.on('media_items_actioned', mediaItemsActionedHandler)
   window.addEventListener('keydown', pageKeyDown)
   window.addEventListener('keyup', pageKeyUp)
 })
@@ -435,8 +518,7 @@ onActivated(() => {
 onDeactivated(() => {
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
-  emitter.off('media_item_deleted', mediaItemDeletedHandler)
-  emitter.off('media_items_deleted', mediaItemsDeletedHandler)
+  emitter.off('media_items_actioned', mediaItemsActionedHandler)
   window.removeEventListener('keydown', pageKeyDown)
   window.removeEventListener('keyup', pageKeyUp)
 })

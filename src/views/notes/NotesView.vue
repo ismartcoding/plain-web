@@ -4,32 +4,35 @@
     <div class="title">
       <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
       <span v-else>{{ $t('page_title.notes') }} ({{ total.toLocaleString() }})</span>
-      <template v-if="filter.trash">
-        <template v-if="checked">
-          <button class="btn-icon" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)" v-tooltip="$t('delete')">
-            <md-ripple />
-            <i-material-symbols:delete-forever-outline-rounded />
-          </button>
-          <button class="btn-icon" @click.stop="untrash" v-tooltip="$t('restore')">
-            <md-ripple />
-            <i-material-symbols:restore-from-trash-outline-rounded />
-          </button>
+      <template v-if="checked">
+        <template v-if="filter.trash">
+          <icon-button @click.stop="deleteItems(selectedIds, realAllChecked, total, q)" v-tooltip="$t('delete')">
+            <template #icon>
+              <i-material-symbols:delete-forever-outline-rounded />
+            </template>
+          </icon-button>
+          <icon-button @click.stop="restore(getQuery())" v-tooltip="$t('restore')" :loading="restoreLoading(getQuery())">
+            <template #icon>
+              <i-material-symbols:restore-from-trash-outline-rounded />
+            </template>
+          </icon-button>
         </template>
-      </template>
-      <template v-else>
-        <template v-if="checked">
-          <button class="btn-icon" @click.stop="moveToTrash" v-tooltip="$t('move_to_trash')">
-            <md-ripple />
-            <i-material-symbols:delete-outline-rounded />
-          </button>
-          <button class="btn-icon" @click.stop="addToTags(selectedIds, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
-            <md-ripple />
-            <i-material-symbols:label-outline-rounded />
-          </button>
-          <button class="btn-icon" @click.stop="exportNotes2" v-tooltip="$t('export_notes')">
-            <md-ripple />
-            <i-material-symbols:export-notes-outline-rounded />
-          </button>
+        <template v-else>
+          <icon-button @click.stop="trash(getQuery())" v-tooltip="$t('move_to_trash')">
+            <template #icon>
+              <i-material-symbols:delete-outline-rounded />
+            </template>
+          </icon-button>
+          <icon-button @click.stop="addToTags(selectedIds, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
+            <template #icon>
+              <i-material-symbols:label-outline-rounded />
+            </template>
+          </icon-button>
+          <icon-button @click.stop="exportNotes2" v-tooltip="$t('export_notes')">
+            <template #icon>
+              <i-material-symbols:export-notes-outline-rounded />
+            </template>
+          </icon-button>
         </template>
       </template>
     </div>
@@ -92,24 +95,28 @@
           </div>
           <div class="actions">
             <template v-if="filter.trash">
-              <button class="btn-icon sm" @click.stop.prevent="deleteItem(item)" v-tooltip="$t('delete')">
-                <md-ripple />
-                <i-material-symbols:delete-forever-outline-rounded />
-              </button>
-              <button class="btn-icon sm" @click.stop.prevent="untrashNotes({ query: `ids:${item.id}` })" v-tooltip="$t('restore')">
-                <md-ripple />
-                <i-material-symbols:restore-from-trash-outline-rounded />
-              </button>
+              <icon-button class="sm" @click.stop.prevent="deleteItem(item)" v-tooltip="$t('delete')">
+                <template #icon>
+                  <i-material-symbols:delete-forever-outline-rounded />
+                </template>
+              </icon-button>
+              <icon-button class="sm" @click.stop.prevent="restore(`ids:${item.id}`)" v-tooltip="$t('restore')" :loading="restoreLoading(`ids:${item.id}`)">
+                <template #icon>
+                  <i-material-symbols:restore-from-trash-outline-rounded />
+                </template>
+              </icon-button>
             </template>
             <template v-else>
-              <button class="btn-icon sm" @click.stop.prevent="trashNotes({ query: `ids:${item.id}` })" v-tooltip="$t('move_to_trash')">
-                <md-ripple />
-                <i-material-symbols:delete-outline-rounded />
-              </button>
-              <button class="btn-icon sm" @click.stop.prevent="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
-                <md-ripple />
-                <i-material-symbols:label-outline-rounded />
-              </button>
+              <icon-button class="sm" @click.stop.prevent="trash(`ids:${item.id}`)" v-tooltip="$t('move_to_trash')" :loading="trashLoading(`ids:${item.id}`)">
+                <template #icon>
+                  <i-material-symbols:delete-outline-rounded />
+                </template>
+              </icon-button>
+              <icon-button class="sm" @click.stop.prevent="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
+                <template #icon>
+                  <i-material-symbols:label-outline-rounded />
+                </template>
+              </icon-button>
             </template>
           </div>
           <div class="time">
@@ -144,7 +151,7 @@ import { noDataKey } from '@/lib/list'
 import { useDelete, useSelectable } from '@/hooks/list'
 import emitter from '@/plugins/eventbus'
 import { useAddToTags, useTags } from '@/hooks/tags'
-import { deleteNotesGQL, exportNotesGQL, initMutation, trashNotesGQL, untrashNotesGQL } from '@/lib/api/mutation'
+import { deleteNotesGQL, exportNotesGQL, initMutation } from '@/lib/api/mutation'
 import { openModal } from '@/components/modal'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
@@ -156,6 +163,7 @@ import { truncate } from 'lodash-es'
 import { useKeyEvents } from '@/hooks/key-events'
 import VirtualList from '@/components/virtualscroll'
 import { downloadFromString } from '@/lib/api/file'
+import { useNotesRestore, useNotesTrash } from '@/hooks/notes'
 
 const mainStore = useMainStore()
 const items = ref<INote[]>([])
@@ -213,7 +221,7 @@ const { loading, fetch } = initLazyQuery({
   variables: () => ({
     offset: (page.value - 1) * limit,
     limit,
-    query: q.value ? q.value : 'trash:false',
+    query: q.value,
   }),
   appApi: true,
 })
@@ -256,38 +264,7 @@ onExpored((r: any) => {
   downloadFromString(r.data.exportNotes, 'application/json', 'notes.json')
 })
 
-const { mutate: trashNotes, onDone: onTrash } = initMutation({
-  document: trashNotesGQL,
-  appApi: true,
-})
-
-function moveToTrash() {
-  trashNotes({ query: getQuery() })
-}
-
 const { deleteItems } = useDelete(deleteNotesGQL, () => {
-  clearSelection()
-  fetch()
-})
-
-onTrash(() => {
-  clearSelection()
-  fetch()
-  if (items.value.some((it) => it.tags.length)) {
-    emitter.emit('refetch_tags', dataType)
-  }
-})
-
-const { mutate: untrashNotes, onDone: onRestored } = initMutation({
-  document: untrashNotesGQL,
-  appApi: true,
-})
-
-function untrash() {
-  untrashNotes({ query: getQuery() })
-}
-
-onRestored(() => {
   clearSelection()
   fetch()
 })
@@ -312,6 +289,9 @@ function deleteItem(item: INote) {
     typeName: 'Note',
   })
 }
+
+const { trashLoading, trash } = useNotesTrash(clearSelection, fetch)
+const { restoreLoading, restore } = useNotesRestore(clearSelection, fetch)
 
 function view(item: INote) {
   replacePath(mainStore, viewUrl(item))

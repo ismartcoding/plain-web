@@ -2,7 +2,6 @@ import type { IFile } from '@/lib/file'
 import { defineStore } from 'pinia'
 import type sjcl from 'sjcl'
 
-
 export type FilesState = {
   selectedFiles: IFile[]
   isCut: boolean

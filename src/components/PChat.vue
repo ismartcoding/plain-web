@@ -114,7 +114,6 @@ const imageInput = ref<HTMLInputElement>()
 const chatItems = ref<IChatItem[]>([])
 const { enqueue: enqueueTask } = useTasks()
 
-
 const { app } = storeToRefs(useTempStore())
 const { externalFilesDir } = app.value
 
@@ -331,7 +330,7 @@ function openFolder() {
     {
       name: 'link_name',
       op: '',
-      value: "app"
+      value: 'app',
     },
   ])
   replacePath(store, `/files?q=${encodeBase64(q)}`)

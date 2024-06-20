@@ -28,7 +28,7 @@
         </feature-button>
         <feature-button name="files" path="/files/recent">
           <template #icon>
-            <i-material-symbols:file-present-outline-rounded />
+            <i-material-symbols:storage-rounded />
           </template>
         </feature-button>
       </div>
