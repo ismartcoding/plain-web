@@ -14,6 +14,7 @@ type Events = {
   refetch_tags: string
   media_items_actioned: IMediaItemsActionedEvent
   feed_entries_deleted: undefined
+  calls_deleted: undefined
   notes_actioned: INotesActionedEvent
   file_deleted: IFileDeletedEvent
   toast: string

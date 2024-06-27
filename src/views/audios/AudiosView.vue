@@ -322,7 +322,11 @@ const gotoPage = (page: number) => {
   replacePath(mainStore, q ? `/audios?page=${page}&q=${q}` : `/audios?page=${page}`)
 }
 const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(total, limit, page, selectAll, clearSelection, gotoPage, () => {
-  deleteItems(dataType, selectedIds.value, realAllChecked.value, total.value, q.value)
+  if (hasFeature(FEATURE.MEDIA_TRASH, app.value.osVersion)) {
+    trash(getQuery())
+  } else {
+    deleteItems(dataType, selectedIds.value, realAllChecked.value, total.value, q.value)
+  }
 })
 const { addItemsToPlaylist, addToPlaylist } = useAddToPlaylist(items, clearSelection)
 const sortItems = getSortItems()

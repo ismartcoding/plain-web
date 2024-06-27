@@ -369,7 +369,11 @@ const gotoPage = (page: number) => {
   replacePath(mainStore, q ? `/videos?page=${page}&q=${q}` : `/videos?page=${page}`)
 }
 const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(total, limit, page, selectAll, clearSelection, gotoPage, () => {
-  deleteItems(dataType, selectedIds.value, realAllChecked.value, total.value, q.value)
+  if (hasFeature(FEATURE.MEDIA_TRASH, app.value.osVersion)) {
+    trash(getQuery())
+  } else {
+    deleteItems(dataType, selectedIds.value, realAllChecked.value, total.value, q.value)
+  }
 })
 const imageErrorIds = ref<string[]>([])
 const sortItems = getSortItems()
