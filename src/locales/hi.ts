@@ -2,6 +2,7 @@ export default {
   app_name: 'PlainApp',
   audio_player: 'ऑडियो प्लेयर',
   current_folder: 'करंट फोल्डर',
+  trash_tips: 'ट्रैश किए गए आइटम 30 दिनों के बाद स्वचालित रूप से हटा दिए जाएंगे।',
   x_items: '{count} आइटम | {count} आइटम्स',
   export_notes: 'नोट्स एक्सपोर्ट करें',
   in_progress: 'प्रगति में',

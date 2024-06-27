@@ -75,6 +75,7 @@ declare module 'vue' {
     'IMaterialSymbols:fullscreenExitRounded': typeof import('~icons/material-symbols/fullscreen-exit-rounded')['default']
     'IMaterialSymbols:fullscreenRounded': typeof import('~icons/material-symbols/fullscreen-rounded')['default']
     'IMaterialSymbols:gridViewOutlineRounded': typeof import('~icons/material-symbols/grid-view-outline-rounded')['default']
+    'IMaterialSymbols:helpOutlineRounded': typeof import('~icons/material-symbols/help-outline-rounded')['default']
     'IMaterialSymbols:hideSourceOutlineRounded': typeof import('~icons/material-symbols/hide-source-outline-rounded')['default']
     'IMaterialSymbols:imageOutlineRounded': typeof import('~icons/material-symbols/image-outline-rounded')['default']
     'IMaterialSymbols:infoOutlineRounded': typeof import('~icons/material-symbols/info-outline-rounded')['default']

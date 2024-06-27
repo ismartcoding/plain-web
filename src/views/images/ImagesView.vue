@@ -11,7 +11,7 @@
               <i-material-symbols:delete-forever-outline-rounded />
             </template>
           </icon-button>
-          <icon-button @click.stop="restore(getQuery())" v-tooltip="$t('restore')" :loading="restoreLoading(getQuery())">
+          <icon-button @click.stop="restore(dataType, getQuery())" v-tooltip="$t('restore')" :loading="restoreLoading(getQuery())">
             <template #icon>
               <i-material-symbols:restore-from-trash-outline-rounded />
             </template>
@@ -23,7 +23,7 @@
           </icon-button>
         </template>
         <template v-else>
-          <icon-button v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)" @click.stop="trash(getQuery())" v-tooltip="$t('move_to_trash')" :loading="trashLoading(getQuery())">
+          <icon-button v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)" @click.stop="trash(dataType, getQuery())" v-tooltip="$t('move_to_trash')" :loading="trashLoading(getQuery())">
             <template #icon>
               <i-material-symbols:delete-outline-rounded />
             </template>
@@ -137,7 +137,7 @@
                   <i-material-symbols:delete-forever-outline-rounded />
                 </template>
               </icon-button>
-              <icon-button class="sm" @click.stop="restore(`ids:${item.id}`)" v-tooltip="$t('restore')" :loading="restoreLoading(`ids:${item.id}`)">
+              <icon-button class="sm" @click.stop="restore(dataType, `ids:${item.id}`)" v-tooltip="$t('restore')" :loading="restoreLoading(`ids:${item.id}`)">
                 <template #icon>
                   <i-material-symbols:restore-from-trash-outline-rounded />
                 </template>
@@ -152,7 +152,7 @@
               <icon-button
                 v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)"
                 class="sm"
-                @click.stop="trash(`ids:${item.id}`)"
+                @click.stop="trash(dataType, `ids:${item.id}`)"
                 v-tooltip="$t('move_to_trash')"
                 :loading="trashLoading(`ids:${item.id}`)"
               >
@@ -215,7 +215,7 @@
                 <i-material-symbols:delete-forever-outline-rounded />
               </template>
             </icon-button>
-            <icon-button class="sm" @click.stop="restore(`ids:${item.id}`)" v-tooltip="$t('restore')" :loading="restoreLoading(`ids:${item.id}`)">
+            <icon-button class="sm" @click.stop="restore(dataType, `ids:${item.id}`)" v-tooltip="$t('restore')" :loading="restoreLoading(`ids:${item.id}`)">
               <template #icon>
                 <i-material-symbols:restore-from-trash-outline-rounded />
               </template>
@@ -230,7 +230,7 @@
             <icon-button
               v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)"
               class="sm"
-              @click.stop="trash(`ids:${item.id}`)"
+              @click.stop="trash(dataType, `ids:${item.id}`)"
               v-tooltip="$t('move_to_trash')"
               :loading="trashLoading(`ids:${item.id}`)"
             >
@@ -365,7 +365,7 @@ const gotoPage = (page: number) => {
 }
 const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(total, limit, page, selectAll, clearSelection, gotoPage, () => {
   if (hasFeature(FEATURE.MEDIA_TRASH, app.value.osVersion)) {
-    trash(getQuery())
+    trash(dataType, getQuery())
   } else {
     deleteItems(dataType, selectedIds.value, realAllChecked.value, total.value, q.value)
   }
@@ -447,8 +447,8 @@ const { loading, fetch } = initLazyQuery({
   appApi: true,
 })
 
-const { trashLoading, trash } = useMediaTrash(dataType, clearSelection, fetch)
-const { restoreLoading, restore } = useMediaRestore(dataType, clearSelection, fetch)
+const { trashLoading, trash } = useMediaTrash()
+const { restoreLoading, restore } = useMediaRestore()
 
 function getUrl(q: string) {
   return q ? `/images?q=${q}` : `/images`

@@ -2,6 +2,7 @@ export default {
   app_name: 'PlainApp',
   audio_player: 'Müzik ç',
   current_folder: 'Geçerli klasör',
+  trash_tips: 'Silinen öğeler 30 gün sonra otomatik olarak silinecektir.',
   x_items: '{count} öğe | {count} öğe',
   export_notes: 'Notları dışa aktar',
   in_progress: 'Devam ediyor',

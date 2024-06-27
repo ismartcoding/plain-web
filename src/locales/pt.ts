@@ -2,6 +2,7 @@ export default {
   app_name: 'PlainApp',
   audio_player: 'Reprodutor de áudio',
   current_folder: 'Pasta atual',
+  trash_tips: 'Os itens excluídos serão automaticamente apagados após 30 dias.',
   x_items: '{count} item | {count} itens',
   export_notes: 'Exportar notas',
   in_progress: 'Em andamento',

@@ -2,6 +2,7 @@ export default {
   app_name: 'PlainApp',
   audio_player: 'Audio-Player',
   current_folder: 'Aktueller Ordner',
+  trash_tips: 'Die gelöschten Elemente werden nach 30 Tagen automatisch gelöscht.',
   x_items: '{count} Artikel | {count} Artikel',
   export_notes: 'Notizen exportieren',
   in_progress: 'In Bearbeitung',

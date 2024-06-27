@@ -5,19 +5,21 @@
     </div>
     <div class="title">{{ $t('tags') }}</div>
     <div class="actions">
-      <button class="btn-icon" @click.prevent="add" v-tooltip="$t('add_tag')">
-        <md-ripple />
-        <i-material-symbols:add-rounded />
-      </button>
+      <icon-button @click.prevent="add" v-tooltip="$t('add_tag')">
+        <template #icon>
+          <i-material-symbols:add-rounded />
+        </template>
+      </icon-button>
     </div>
   </div>
   <ul class="nav">
     <li v-for="item in tags" @click.prevent="view(item)" :key="item.id" :class="{ active: item.id === selected }">
       <span class="title">{{ item.name }}</span>
-      <button :id="'tag-' + item.id" class="btn-icon sm" @click.prevent.stop="showMenu(item)" v-tooltip="$t('actions')">
-        <md-ripple />
-        <i-material-symbols:more-vert />
-      </button>
+      <icon-button :id="'tag-' + item.id" class="sm" @click.prevent.stop="showMenu(item)" v-tooltip="$t('actions')">
+        <template #icon>
+          <i-material-symbols:more-vert />
+        </template>
+      </icon-button>
       <span class="count">{{ item.count.toLocaleString() }}</span>
     </li>
   </ul>

@@ -4,7 +4,7 @@ import emitter from '@/plugins/eventbus'
 import type { FetchResult } from '@apollo/client'
 import { reactive } from 'vue'
 
-export const useMediaTrash = (dataType: DataType, clearSelection: () => void, fetch: () => void) => {
+export const useMediaTrash = () => {
   const { mutate, onDone: onTrashed } = initMutation({
     document: trashMediaItemsGQL,
     appApi: true,
@@ -13,25 +13,24 @@ export const useMediaTrash = (dataType: DataType, clearSelection: () => void, fe
   const loading = reactive(new Map())
 
   onTrashed((r: FetchResult<any, Record<string, any>, Record<string, any>>) => {
-    loading.delete(r.data.trashMediaItems)
-    clearSelection()
-    fetch()
-    emitter.emit('refetch_tags', dataType)
-    emitter.emit('media_items_actioned', { type: dataType, action: 'trash' })
+    const { type, query } = r.data.trashMediaItems
+    loading.delete(query)
+    emitter.emit('refetch_tags', type)
+    emitter.emit('media_items_actioned', { type, action: 'trash', query })
   })
 
   return {
     trashLoading(query: string) {
       return loading.get(query) ?? false
     },
-    trash(query: string) {
+    trash(type: DataType, query: string) {
       loading.set(query, true)
-      mutate({ query, type: dataType })
+      mutate({ query, type })
     },
   }
 }
 
-export const useMediaRestore = (dataType: DataType, clearSelection: () => void, fetch: () => void) => {
+export const useMediaRestore = () => {
   const { mutate, onDone: onRestored } = initMutation({
     document: restoreMediaItemsGQL,
     appApi: true,
@@ -40,20 +39,19 @@ export const useMediaRestore = (dataType: DataType, clearSelection: () => void, 
   const loading = reactive(new Map())
 
   onRestored((r: FetchResult<any, Record<string, any>, Record<string, any>>) => {
-    loading.delete(r.data.restoreMediaItems)
-    clearSelection()
-    fetch()
-    emitter.emit('refetch_tags', dataType)
-    emitter.emit('media_items_actioned', { type: dataType, action: 'restore' })
+    const { type, query } = r.data.restoreMediaItems
+    loading.delete(query)
+    emitter.emit('refetch_tags', type)
+    emitter.emit('media_items_actioned', { type, action: 'restore', query })
   })
 
   return {
     restoreLoading(query: string) {
       return loading.get(query) ?? false
     },
-    restore(query: string) {
+    restore(type: DataType, query: string) {
       loading.set(query, true)
-      mutate({ query, type: dataType })
+      mutate({ query, type })
     },
   }
 }

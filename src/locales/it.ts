@@ -2,6 +2,7 @@ export default {
   app_name: 'PlainApp',
   audio_player: 'Lettore audio',
   current_folder: 'Cartella corrente',
+  trash_tips: 'Gli elementi eliminati verranno cancellati automaticamente dopo 30 giorni.',
   x_items: '{count} articolo | {count} articoli',
   export_notes: 'Esporta note',
   in_progress: 'In corso',

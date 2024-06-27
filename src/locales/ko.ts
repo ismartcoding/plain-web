@@ -2,6 +2,7 @@ export default {
   app_name: 'PlainApp',
   audio_player: '오디오 플레이어',
   current_folder: '현재 폴더',
+  trash_tips: '삭제된 항목은 30일 후에 자동으로 삭제됩니다.',
   x_items: '{count} 항목 | {count} 항목',
   export_notes: '노트 내보내기',
   in_progress: '진행 중',

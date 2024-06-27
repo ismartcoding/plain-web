@@ -65,7 +65,7 @@ const directive: Directive = {
       tooltipElement = null
     }
 
-    if (el.tagName === 'BUTTON') {
+    if (el.tagName === 'BUTTON' && !el.className.includes('btn-help')) {
       el.addEventListener('click', el.mouseleaveFunc)
     }
     el.addEventListener('mouseleave', el.mouseleaveFunc)
