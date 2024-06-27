@@ -156,6 +156,7 @@ const { deleteItems } = useDelete(deleteCallsGQL, () => {
   clearSelection()
   fetch()
   emitter.emit('refetch_tags', dataType)
+  emitter.emit('calls_deleted')
 })
 
 const {
@@ -283,6 +284,7 @@ function deleteItem(item: ICall) {
       if (item.tags.length) {
         emitter.emit('refetch_tags', dataType)
       }
+      emitter.emit('calls_deleted')
     },
   })
 }

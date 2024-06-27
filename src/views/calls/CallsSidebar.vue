@@ -20,7 +20,7 @@
 <script setup lang="ts">
 import router, { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
-import { reactive, ref, watch } from 'vue'
+import { onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useSearch } from '@/hooks/search'
 import type { IFilter } from '@/lib/interfaces'
 import { decodeBase64, encodeBase64 } from '@/lib/strutil'
@@ -28,6 +28,7 @@ import { buildQuery } from '@/lib/search'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { callCountGQL, initLazyQuery } from '@/lib/api/query'
+import emitter from '@/plugins/eventbus'
 
 const mainStore = useMainStore()
 const { counter } = storeToRefs(useTempStore())
@@ -93,4 +94,16 @@ function openByType(type: string) {
 function viewAll() {
   replacePath(mainStore, '/calls')
 }
+
+const callsDeletedHandler = () => {
+  fetch()
+}
+
+onMounted(() => {
+  emitter.on('calls_deleted', callsDeletedHandler)
+})
+
+onUnmounted(() => {
+  emitter.off('calls_deleted', callsDeletedHandler)
+})
 </script>

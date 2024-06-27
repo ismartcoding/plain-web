@@ -47,14 +47,14 @@ export const useKeyEvents = (total: Ref<number>, limit: number, page: Ref<number
         deleteItems()
       }
     },
-    keyUp: (e: KeyboardEvent) => {
+    keyUp: () => {
       const content = document.getElementsByClassName('scroll-content')?.[0] as HTMLDivElement
       content?.style.removeProperty('user-select')
     },
   }
 }
 
-export const useFilesKeyEvents = (total: Ref<number>, selectAll: () => void, clearSelection: () => void, deleteItems: () => void) => {
+export const useFilesKeyEvents = (selectAll: () => void, clearSelection: () => void, deleteItems: () => void) => {
   return {
     keyDown: (e: KeyboardEvent) => {
       if (document.querySelector('md-dialog[open]')) {
@@ -87,7 +87,7 @@ export const useFilesKeyEvents = (total: Ref<number>, selectAll: () => void, cle
         deleteItems()
       }
     },
-    keyUp: (e: KeyboardEvent) => {
+    keyUp: () => {
       const content = document.getElementsByClassName('scroll-content')?.[0] as HTMLDivElement
       content?.style.removeProperty('user-select')
     },

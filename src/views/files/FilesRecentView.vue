@@ -134,7 +134,7 @@ const { view } = useView(sources, (s: ISource[], index: number) => {
     visible: true,
   }
 })
-const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useFilesKeyEvents(total, selectAll, clearSelection, () => {})
+const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useFilesKeyEvents(selectAll, clearSelection, () => {})
 
 const imageErrorIds = ref<string[]>([])
 const extensionImageErrorIds = ref<string[]>([])

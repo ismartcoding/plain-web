@@ -84,27 +84,29 @@
       </popper>
     </div>
   </div>
-  <div v-if="loading && firstInit" class="scroller">
-    <section class="file-item selectable-card-skeleton" v-for="i in 20" :key="i">
-      <div class="start">
-        <div class="checkbox">
-          <div class="skeleton-checkbox"></div>
+  <div v-if="loading && firstInit" class="scroller-wrapper">
+    <div class="scroller">
+      <section class="file-item selectable-card-skeleton" v-for="i in 20" :key="i">
+        <div class="start">
+          <div class="checkbox">
+            <div class="skeleton-checkbox"></div>
+          </div>
+          <span class="number">{{ i }}</span>
         </div>
-        <span class="number">{{ i }}</span>
-      </div>
-      <div class="image">
-        <div class="skeleton-image"></div>
-      </div>
-      <div class="title">
-        <div class="skeleton-text skeleton-title"></div>
-      </div>
-      <div class="subtitle">
-        <div class="skeleton-text skeleton-subtitle"></div>
-      </div>
-      <div class="actions">
-        <div class="skeleton-text skeleton-actions"></div>
-      </div>
-    </section>
+        <div class="image">
+          <div class="skeleton-image"></div>
+        </div>
+        <div class="title">
+          <div class="skeleton-text skeleton-title"></div>
+        </div>
+        <div class="subtitle">
+          <div class="skeleton-text skeleton-subtitle"></div>
+        </div>
+        <div class="actions">
+          <div class="skeleton-text skeleton-actions"></div>
+        </div>
+      </section>
+    </div>
   </div>
   <div class="scroller-wrapper" @dragover.stop.prevent="fileDragEnter">
     <div class="drag-mask" v-show="dropping" @drop.stop.prevent="dropFiles2" @dragleave.stop.prevent="fileDragLeave">{{ $t('release_to_send_files') }}</div>
@@ -280,7 +282,9 @@ const q = ref('')
 const items = ref<IFile[]>([])
 const { selectedIds, allChecked, realAllChecked, clearSelection, toggleAllChecked, toggleSelect, total, checked, shiftEffectingIds, handleItemClick, handleMouseOver, selectAll, shouldSelect } =
   useSelectable(items)
-const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useFilesKeyEvents(total, selectAll, clearSelection, () => {})
+const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useFilesKeyEvents(selectAll, clearSelection, () => {
+  deleteItems()
+})
 const refreshing = ref(false)
 const sorting = ref(false)
 
