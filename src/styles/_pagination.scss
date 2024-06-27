@@ -10,4 +10,8 @@
     background-color: var(--md-sys-color-primary);
     color: var(--md-sys-color-on-primary);
   }
+  .page-link {
+    display: flex;
+    align-items: center;
+  }
 }

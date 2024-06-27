@@ -2,6 +2,7 @@ export default {
   app_name: 'PlainApp',
   audio_player: 'অডিও প্ল',
   current_folder: 'বর্তমান ফোল্ডার',
+  trash_tips: 'ফেলে দেওয়া আইটেমগুলি ৩০ দিনের পরে স্বয়ংক্রিয়ভাবে মুছে ফেলা হবে।',
   x_items: '{count} আইটেম | {count} আইটেমগুলি',
   export_notes: 'নোটস নির্যাতন',
   in_progress: 'অগ্রগতি হচ্ছে',

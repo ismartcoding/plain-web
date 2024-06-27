@@ -2,6 +2,7 @@ export default {
   app_name: '簡樸',
   audio_player: '音頻播放器',
   current_folder: '當前目錄',
+  trash_tips: '回收站中的文件將在30天後自動刪除。',
   export_notes: '導出筆記',
   in_progress: '進行中',
   completed: '已完成',

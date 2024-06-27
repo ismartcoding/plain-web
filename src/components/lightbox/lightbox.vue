@@ -96,14 +96,35 @@
           <div class="top-app-bar">
             <field-id :id="$t('info')" :raw="fileInfo" />
             <div class="actions">
-              <button class="btn-icon" @click.stop="deleteFile" v-tooltip="$t('delete')" v-if="current?.data">
-                <md-ripple />
-                <i-material-symbols:delete-forever-outline-rounded />
-              </button>
-              <button class="btn-icon" @click.stop="downloadFile(current?.path ?? '', getFileName(current?.path ?? '').replace(' ', '-'))" v-tooltip="$t('download')">
-                <md-ripple />
-                <i-material-symbols:download-rounded />
-              </button>
+              <template v-if="canTrash">
+                <template v-if="isTrashed">
+                  <icon-button @click.stop="deleteMediaItem" v-tooltip="$t('delete')">
+                    <template #icon>
+                      <i-material-symbols:delete-forever-outline-rounded />
+                    </template>
+                  </icon-button>
+                  <icon-button class="sm" @click.stop="restoreItem" v-tooltip="$t('restore')" :loading="restoreLoading(`ids:${current?.data?.id}`)">
+                    <template #icon>
+                      <i-material-symbols:restore-from-trash-outline-rounded />
+                    </template>
+                  </icon-button>
+                </template>
+                <icon-button v-else @click.stop="trashMediaItem" v-tooltip="$t('move_to_trash')" :loading="trashLoading(`ids:${current?.data?.id}`)">
+                  <template #icon>
+                    <i-material-symbols:delete-outline-rounded />
+                  </template>
+                </icon-button>
+              </template>
+              <icon-button v-else @click.stop="deleteFile" v-tooltip="$t('delete')">
+                <template #icon>
+                  <i-material-symbols:delete-forever-outline-rounded />
+                </template>
+              </icon-button>
+              <icon-button @click.stop="downloadFile(current?.path ?? '', getFileName(current?.path ?? '').replace(' ', '-'))" v-tooltip="$t('download')">
+                <template #icon>
+                  <i-material-symbols:download-rounded />
+                </template>
+              </icon-button>
             </div>
           </div>
           <section class="list-items">
@@ -127,10 +148,11 @@
             <div class="item" v-if="current?.type">
               <div class="title">
                 {{ $t('tags') }}
-                <button class="btn-icon sm" v-tooltip="$t('add_to_tags')" @click.prevent="addToTags">
-                  <md-ripple />
-                  <i-material-symbols:label-outline-rounded />
-                </button>
+                <icon-button class="sm" v-tooltip="$t('add_to_tags')" @click.prevent="addToTags">
+                  <template #icon>
+                    <i-material-symbols:label-outline-rounded />
+                  </template>
+                </icon-button>
               </div>
               <div class="subtitle"><item-tags :tags="fileInfo?.tags" /></div>
             </div>
@@ -166,8 +188,10 @@ import { useDownload } from '@/hooks/files'
 import { getFileName, getFinalPath } from '@/lib/api/file'
 import { useDeleteItems } from '@/hooks/media'
 import { remove } from 'lodash-es'
-import { DataType } from '@/lib/data'
+import { DataType, FEATURE } from '@/lib/data'
 import DeleteFileConfirm from '@/components/DeleteFileConfirm.vue'
+import { hasFeature } from '@/lib/feature'
+import { useMediaRestore, useMediaTrash } from '@/hooks/media-trash'
 
 const props = defineProps({
   loop: {
@@ -449,6 +473,33 @@ const onDblclick = () => {
   }
 }
 
+const isTrashed = computed(() => {
+  return current.value?.path?.includes('.trashed-') === true
+})
+
+const canTrash = computed(() => {
+  const mediaTypes = [DataType.VIDEO, DataType.AUDIO, DataType.IMAGE]
+  const type = current.value?.type
+  return type && mediaTypes.includes(type) && hasFeature(FEATURE.MEDIA_TRASH, app.value.osVersion)
+})
+
+function deleteMediaItem() {
+  deleteItem(current.value?.type!, current.value?.data!)
+}
+
+const { trash, trashLoading } = useMediaTrash()
+function trashMediaItem() {
+  const type = current.value?.type as DataType
+  trash(type, `ids:${current.value?.data?.id}`)
+}
+
+
+const { restore, restoreLoading } = useMediaRestore()
+function restoreItem() {
+  const type = current.value?.type as DataType
+  restore(type, `ids:${current.value?.data?.id}`)
+}
+
 const onWheel = (e: WheelEvent) => {
   if (status.loadError || status.gesturing || status.loading || status.dragging || status.wheeling) {
     return
@@ -577,8 +628,9 @@ const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
 }
 
 const mediaItemsActionedHandler = (event: IMediaItemsActionedEvent) => {
-  if (event.action === 'delete' && event.id === current.value?.data?.id) {
-    remove(tempStore.lightbox.sources, (it: ISource) => it.data?.id === event.id)
+  const query = `ids:${current.value?.data?.id}`
+  if (['delete', 'trash', 'restore'].includes(event.action) && event.query === query) {
+    remove(tempStore.lightbox.sources, (it: ISource) => `ids:${it.data?.id}` === event.query)
     if (tempStore.lightbox.sources.length) {
       onNext()
     } else {

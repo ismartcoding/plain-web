@@ -2,6 +2,7 @@ export default {
   app_name: 'PlainApp',
   audio_player: 'Аудиоплеер',
   current_folder: 'Текущая папка',
+  trash_tips: 'Удаленные элементы будут автоматически удалены через 30 дней.',
   x_items: '{count} предмет | {count} предметов',
   export_notes: 'Экспорт заметок',
   in_progress: 'В процессе',

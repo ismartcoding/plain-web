@@ -2,6 +2,7 @@ export default {
   app_name: 'PlainApp',
   audio_player: 'Reproductor de audio',
   current_folder: 'Carpeta actual',
+  trash_tips: 'Los elementos eliminados se eliminarán automáticamente después de 30 días.',
   x_items: '{count} artículo | {count} artículos',
   export_notes: 'Exportar notas',
   in_progress: 'En progreso',

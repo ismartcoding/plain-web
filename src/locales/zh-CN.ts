@@ -2,6 +2,7 @@ export default {
   app_name: '简朴',
   audio_player: '音频播放器',
   current_folder: '当前目录',
+  trash_tips: '回收站的项目将在30天后永久删除。',
   x_items: '{count} 项目 | {count} 项目',
   export_notes: '导出笔记',
   in_progress: '进行中',

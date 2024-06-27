@@ -8,7 +8,7 @@ function isInputFocused() {
 export const useKeyEvents = (total: Ref<number>, limit: number, page: Ref<number>, selectAll: () => void, clearSelection: () => void, gotoPage: (page: number) => void, deleteItems: () => void) => {
   return {
     keyDown: (e: KeyboardEvent) => {
-      if (document.querySelector('md-dialog[open]')) {
+      if (document.querySelector('md-dialog[open]') || document.getElementsByClassName('lightbox').length > 0) {
         return
       }
       const content = document.getElementsByClassName('scroll-content')?.[0] as HTMLDivElement

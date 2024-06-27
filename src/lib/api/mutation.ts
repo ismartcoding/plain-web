@@ -122,19 +122,28 @@ export const clearAudioPlaylistGQL = gql`
 
 export const deleteMediaItemsGQL = gql`
   mutation deleteMediaItems($type: DataType!, $query: String!) {
-    deleteMediaItems(type: $type, query: $query)
+    deleteMediaItems(type: $type, query: $query) {
+      type
+      query
+    }
   }
 `
 
 export const trashMediaItemsGQL = gql`
   mutation trashMediaItems($type: DataType!, $query: String!) {
-    trashMediaItems(type: $type, query: $query)
+    trashMediaItems(type: $type, query: $query) {
+      type
+      query
+    }
   }
 `
 
 export const restoreMediaItemsGQL = gql`
   mutation restoreMediaItems($type: DataType!, $query: String!) {
-    restoreMediaItems(type: $type, query: $query)
+    restoreMediaItems(type: $type, query: $query)  {
+      type
+      query
+    }
   }
 `
 

@@ -37,7 +37,7 @@ export const useDeleteItems = () => {
         count: realAllChecked ? total : ids.length,
         variables: () => ({ type: type, query: q }),
         done: () => {
-          emitter.emit('media_items_actioned', { type: type, action: 'delete' })
+          emitter.emit('media_items_actioned', { type: type, action: 'delete', query: q })
         },
       })
     },
@@ -52,7 +52,7 @@ export const useDeleteItems = () => {
         appApi: true,
         typeName: typeNameMap.get(type) ?? '',
         done: () => {
-          emitter.emit('media_items_actioned', { type: type, action: 'delete', id: item.id })
+          emitter.emit('media_items_actioned', { type: type, action: 'delete', id: item.id, query: `ids:${item.id}` })
         },
       })
     },

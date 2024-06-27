@@ -271,6 +271,7 @@ export interface IStorageStatsItem {
 export interface IMediaItemsActionedEvent {
   type: string
   action: string
+  query: string
   id?: string
 }
 // deleted, trashed, restored
