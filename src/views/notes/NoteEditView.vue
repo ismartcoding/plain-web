@@ -125,6 +125,9 @@ const { fetch } = initLazyQuery({
   variables: () => ({
     id: id.value,
   }),
+  options: {
+    fetchPolicy: 'no-cache',
+  },
   appApi: true,
 })
 

@@ -68,7 +68,6 @@ declare module 'vue' {
     'IMaterialSymbols:errorOutlineRounded': typeof import('~icons/material-symbols/error-outline-rounded')['default']
     'IMaterialSymbols:expandMoreRounded': typeof import('~icons/material-symbols/expand-more-rounded')['default']
     'IMaterialSymbols:exportNotesOutlineRounded': typeof import('~icons/material-symbols/export-notes-outline-rounded')['default']
-    'IMaterialSymbols:filePresentOutlineRounded': typeof import('~icons/material-symbols/file-present-outline-rounded')['default']
     'IMaterialSymbols:folderOpenOutlineRounded': typeof import('~icons/material-symbols/folder-open-outline-rounded')['default']
     'IMaterialSymbols:folderOutlineRounded': typeof import('~icons/material-symbols/folder-outline-rounded')['default']
     'IMaterialSymbols:formatListNumberedRounded': typeof import('~icons/material-symbols/format-list-numbered-rounded')['default']
