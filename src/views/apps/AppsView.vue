@@ -230,6 +230,10 @@ function getUrl(q: string) {
 }
 
 function sort(slotProps: { close: () => void }, sort: string) {
+  if (appSortBy.value === sort) {
+    slotProps.close()
+    return
+  }
   sorting.value = true
   appSortBy.value = sort
   gotoPage(1)

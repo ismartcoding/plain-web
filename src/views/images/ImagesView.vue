@@ -415,6 +415,10 @@ function addItemToTags(item: IImageItem) {
 }
 
 function sort(slotProps: { close: () => void }, sort: string) {
+  if (imageSortBy.value === sort) {
+    slotProps.close()
+    return
+  }
   // only sort the last column
   sorting.value = true
   imageSortBy.value = sort

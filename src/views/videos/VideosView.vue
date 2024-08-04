@@ -442,6 +442,10 @@ const getQuery = () => {
 }
 
 function sort(slotProps: { close: () => void }, sort: string) {
+  if (videoSortBy.value === sort) {
+    slotProps.close()
+    return
+  }
   sorting.value = true
   videoSortBy.value = sort
   slotProps.close()
