@@ -368,6 +368,10 @@ function getUrl(q: string) {
 }
 
 function sort(slotProps: { close: () => void }, sort: string) {
+  if (audioSortBy.value === sort) {
+    slotProps.close()
+    return
+  }
   sorting.value = true
   audioSortBy.value = sort
   slotProps.close()

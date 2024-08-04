@@ -489,6 +489,11 @@ function viewItem(event: Event, item: IFile) {
 }
 
 function sort(slotProps: { close: () => void }, sort: string) {
+  if (fileSortBy.value === sort) {
+    sorting.value = false
+    slotProps.close()
+    return
+  }
   // only sort the last column
   sorting.value = true
   fileSortBy.value = sort
