@@ -1,31 +1,31 @@
 <template>
   <div class="quick-content-main">
     <div class="top-app-bar">
-      <button class="btn-icon" @click.prevent="store.quick = ''" v-tooltip="$t('close')">
+      <button v-tooltip="$t('close')" class="btn-icon" @click.prevent="store.quick = ''">
         <md-ripple />
         <i-material-symbols:right-panel-close-outline />
       </button>
       <div class="title">{{ app?.deviceName ?? $t('my_phone') }}{{ app?.battery ? ' (' + $t('battery_left', { percentage: app?.battery }) + ')' : '' }}</div>
       <div class="actions">
-        <button class="btn-icon" @click.prevent="openFolder" v-tooltip="$t('files')">
+        <button v-tooltip="$t('files')" class="btn-icon" @click.prevent="openFolder">
           <md-ripple />
           <i-material-symbols:folder-open-outline-rounded />
         </button>
       </div>
     </div>
-    <div class="quick-content-body" ref="scrollContainer">
+    <div ref="scrollContainer" class="quick-content-body">
       <div v-for="(chatItem, index) of chatItems" :key="chatItem.id" class="chat-item">
-        <div class="date" v-if="dateVisible(chatItem, index)">{{ formatDate(chatItem.createdAt) }}</div>
+        <div v-if="dateVisible(chatItem, index)" class="date">{{ formatDate(chatItem.createdAt) }}</div>
         <popper>
           <div class="chat-title">
             <span class="name">{{ $t(chatItem.isMe ? 'me' : 'app_name') }}</span>
-            <time class="time" v-tooltip="formatDateTimeFull(chatItem.createdAt)">{{ formatTime(chatItem.createdAt) }}</time>
-            <span class="sending" v-if="chatItem.id.startsWith('new_')">{{ $t('sending') }}</span>
+            <time v-tooltip="formatDateTimeFull(chatItem.createdAt)" class="time">{{ formatTime(chatItem.createdAt) }}</time>
+            <span v-if="chatItem.id.startsWith('new_')" class="sending">{{ $t('sending') }}</span>
             <i-material-symbols:expand-more-rounded class="bi bi-more" />
           </div>
           <template #content>
             <div class="menu-items">
-              <md-menu-item @click="deleteMessage(chatItem.id)" :disabled="deleteLoading">
+              <md-menu-item :disabled="deleteLoading" @click="deleteMessage(chatItem.id)">
                 <div slot="headline">{{ $t('delete_message') }}</div>
               </md-menu-item>
             </div>
@@ -35,31 +35,31 @@
           <div v-if="chatItem._content.type === 'text'">
             <pre v-html="addLinksToURLs(chatItem._content.value.text)"></pre>
           </div>
-          <component v-else :is="getComponent(chatItem._content.type)" :data="chatItem"></component>
+          <component :is="getComponent(chatItem._content.type)" v-else :data="chatItem"></component>
         </div>
       </div>
     </div>
     <div class="chat-input">
       <div class="textarea-wrapper">
-        <div class="drag-mask" v-show="displayDragMask">{{ $t('release_to_send_files') }}</div>
+        <div v-show="displayDragMask" class="drag-mask">{{ $t('release_to_send_files') }}</div>
         <md-outlined-text-field
+          v-model="chatText"
           type="textarea"
           rows="2"
-          v-model="chatText"
           autocomplete="off"
+          class="textarea"
+          :placeholder="$t('chat_input_hint')"
           @paste="pasteFiles"
           @drop.prevent="dropFiles"
           @dragenter.prevent="fileDragEnter"
           @dragleave.prevent="fileDragLeave"
-          class="textarea"
-          :placeholder="$t('chat_input_hint')"
           @keydown.enter.exact.prevent="send"
           @keydown.enter.shift.exact.prevent="chatText += '\n'"
           @keydown.enter.ctrl.exact.prevent="chatText += '\n'"
           @keydown.enter.alt.exact.prevent="chatText += '\n'"
           @keydown.enter.meta.exact.prevent="chatText += '\n'"
         >
-          <div class="leading-icons" slot="leading-icon">
+          <div slot="leading-icon" class="leading-icons">
             <button class="btn-icon" @click="sendImages">
               <md-ripple />
               <i-material-symbols:image-outline-rounded />
@@ -69,7 +69,7 @@
               <i-material-symbols:folder-outline-rounded />
             </button>
           </div>
-          <button class="btn-icon btn-send" @click="send" :disable="createLoading" slot="trailing-icon">
+          <button slot="trailing-icon" class="btn-icon btn-send" :disable="createLoading" @click="send">
             <md-ripple />
             <i-material-symbols:send-outline-rounded />
           </button>
@@ -150,7 +150,6 @@ initQuery({
     }
   },
   document: chatItemsGQL,
-  appApi: true,
 })
 
 function getComponent(type: string) {
@@ -174,7 +173,6 @@ const {
       insertCache(cache, data.data.createChatItem, chatItemsGQL)
     },
   },
-  appApi: true,
 })
 
 function uploadFilesChanged(e: Event) {
@@ -307,7 +305,6 @@ const { mutate: deleteItem, loading: deleteLoading } = initMutation({
       cache.evict({ id: cache.identify({ __typename: 'ChatItem', id: deleteId.value }) })
     },
   },
-  appApi: true,
 })
 
 function deleteMessage(id: string) {

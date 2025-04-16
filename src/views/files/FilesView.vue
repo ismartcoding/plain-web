@@ -1,12 +1,12 @@
 <template>
   <div class="top-app-bar">
-    <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
+    <md-checkbox touch-target="wrapper" :checked="allChecked" :indeterminate="!allChecked && checked" @change="toggleAllChecked" />
     <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
     <div v-else class="breadcrumb">
       <template v-for="(item, index) in breadcrumbPaths" :key="item.path">
         <template v-if="index === 0">
           <span v-if="item.path === filter.parent" v-tooltip="getPageStats()">{{ item.name }} ({{ total }})</span>
-          <a v-else href="#" @click.stop.prevent="navigateToDir(item.path)" v-tooltip="getPageStats()">{{ item.name }}</a>
+          <a v-else v-tooltip="getPageStats()" href="#" @click.stop.prevent="navigateToDir(item.path)">{{ item.name }}</a>
         </template>
         <template v-else>
           <span v-if="item.path === filter.parent">{{ item.name }} ({{ total }})</span>
@@ -15,22 +15,22 @@
       </template>
     </div>
     <template v-if="checked">
-      <icon-button @click.stop="copyItems" v-tooltip="$t('copy')">
+      <icon-button v-tooltip="$t('copy')" @click.stop="copyItems">
         <template #icon>
           <i-material-symbols:content-copy-outline-rounded />
         </template>
       </icon-button>
-      <icon-button @click.stop="cutItems" v-tooltip="$t('cut')">
+      <icon-button v-tooltip="$t('cut')" @click.stop="cutItems">
         <template #icon>
           <i-material-symbols:content-cut-rounded />
         </template>
       </icon-button>
-      <icon-button @click.stop="deleteItems" v-tooltip="$t('delete')">
+      <icon-button v-tooltip="$t('delete')" @click.stop="deleteItems">
         <template #icon>
           <i-material-symbols:delete-forever-outline-rounded />
         </template>
       </icon-button>
-      <icon-button :loading="downloadLoading" @click.stop="downloadItems" v-tooltip="$t('download')">
+      <icon-button v-tooltip="$t('download')" :loading="downloadLoading" @click.stop="downloadItems">
         <template #icon>
           <i-material-symbols:download-rounded />
         </template>
@@ -58,25 +58,25 @@
           </md-menu-item>
         </template>
       </popper>
-      <icon-button v-if="canPaste()" :loading="pasting" v-tooltip="$t('paste')" @click="pasteDir">
+      <icon-button v-if="canPaste()" v-tooltip="$t('paste')" :loading="pasting" @click="pasteDir">
         <template #icon>
           <i-material-symbols:content-paste-rounded />
         </template>
       </icon-button>
-      <icon-button :loading="refreshing" v-tooltip="$t('refresh')" @click="refreshCurrentDir">
+      <icon-button v-tooltip="$t('refresh')" :loading="refreshing" @click="refreshCurrentDir">
         <template #icon>
           <i-material-symbols:refresh-rounded />
         </template>
       </icon-button>
       <popper>
-        <icon-button :loading="sorting" v-tooltip="$t('sort')">
+        <icon-button v-tooltip="$t('sort')" :loading="sorting">
           <template #icon>
             <i-material-symbols:sort-rounded />
           </template>
         </icon-button>
         <template #content="slotProps">
           <div class="menu-items">
-            <md-menu-item v-for="item in sortItems" @click="sort(slotProps, item.value)" :key="item.value" :selected="item.value === fileSortBy">
+            <md-menu-item v-for="item in sortItems" :key="item.value" :selected="item.value === fileSortBy" @click="sort(slotProps, item.value)">
               <div slot="headline">{{ $t(item.label) }}</div>
             </md-menu-item>
           </div>
@@ -86,7 +86,7 @@
   </div>
   <div v-if="loading && firstInit" class="scroller-wrapper">
     <div class="scroller">
-      <section class="file-item selectable-card-skeleton" v-for="i in 20" :key="i">
+      <section v-for="i in 20" :key="i" class="file-item selectable-card-skeleton">
         <div class="start">
           <div class="checkbox">
             <div class="skeleton-checkbox"></div>
@@ -109,7 +109,7 @@
     </div>
   </div>
   <div class="scroller-wrapper" @dragover.stop.prevent="fileDragEnter">
-    <div class="drag-mask" v-show="dropping" @drop.stop.prevent="dropFiles2" @dragleave.stop.prevent="fileDragLeave">{{ $t('release_to_send_files') }}</div>
+    <div v-show="dropping" class="drag-mask" @drop.stop.prevent="dropFiles2" @dragleave.stop.prevent="fileDragLeave">{{ $t('release_to_send_files') }}</div>
     <VirtualList v-if="items.length > 0" class="scroller" :data-key="'id'" :data-sources="items" :estimate-size="80">
       <template #item="{ index, item }">
         <section
@@ -123,8 +123,8 @@
           @mouseover="handleMouseOver($event, index)"
         >
           <div class="start">
-            <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, index)" :checked="shouldSelect" />
-            <md-checkbox v-else class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, index)" :checked="selectedIds.includes(item.id)" />
+            <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, index)" />
+            <md-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, index)" />
             <span class="number"><field-id :id="index + 1" :raw="item" /></span>
           </div>
 
@@ -147,13 +147,13 @@
           </div>
           <div class="actions">
             <template v-if="item.isDir">
-              <icon-button class="sm" @click.stop="downloadDir(item.path)" v-tooltip="$t('download')">
+              <icon-button v-tooltip="$t('download')" class="sm" @click.stop="downloadDir(item.path)">
                 <template #icon>
                   <i-material-symbols:download-rounded />
                 </template>
               </icon-button>
               <popper>
-                <icon-button class="sm" v-tooltip="$t('upload')">
+                <icon-button v-tooltip="$t('upload')" class="sm">
                   <template #icon>
                     <i-material-symbols:upload-rounded />
                   </template>
@@ -169,20 +169,20 @@
               </popper>
             </template>
             <template v-else>
-              <icon-button class="sm" @click.stop="downloadFile(item.path)" v-tooltip="$t('download')">
+              <icon-button v-tooltip="$t('download')" class="sm" @click.stop="downloadFile(item.path)">
                 <template #icon>
                   <i-material-symbols:download-rounded />
                 </template>
               </icon-button>
             </template>
 
-            <icon-button class="sm" @click.stop="deleteItem(item)" v-tooltip="$t('delete')">
+            <icon-button v-tooltip="$t('delete')" class="sm" @click.stop="deleteItem(item)">
               <template #icon>
                 <i-material-symbols:delete-forever-outline-rounded />
               </template>
             </icon-button>
             <popper>
-              <icon-button class="sm" v-tooltip="$t('info')">
+              <icon-button v-tooltip="$t('info')" class="sm">
                 <template #icon>
                   <i-material-symbols:info-outline-rounded />
                 </template>
@@ -200,7 +200,7 @@
             </popper>
 
             <popper>
-              <icon-button class="sm" v-tooltip="$t('actions')">
+              <icon-button v-tooltip="$t('actions')" class="sm">
                 <template #icon>
                   <i-material-symbols:more-vert />
                 </template>
@@ -227,7 +227,7 @@
         </section>
       </template>
     </VirtualList>
-    <div class="no-data-placeholder" v-if="!loading && items.length === 0">
+    <div v-if="!loading && items.length === 0" class="no-data-placeholder">
       {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
     </div>
     <input ref="fileInput" style="display: none" type="file" multiple @change="uploadChanged" />
@@ -367,7 +367,6 @@ const { loading, fetch } = initLazyQuery({
   options: {
     fetchPolicy: 'cache-and-network',
   },
-  appApi: true,
 })
 const { loading: pasting, canPaste, copy, cut, paste } = useCopyPaste(items, isCut, selectedFiles, fetch, refetchStats)
 const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload(uploads)
@@ -379,7 +378,6 @@ const {
   onDone: setTempValueDone,
 } = initMutation({
   document: setTempValueGQL,
-  appApi: true,
 })
 
 setTempValueDone((r: any) => {
@@ -402,6 +400,7 @@ const onDeleted = (files: IFile[]) => {
   files.forEach((f) => {
     remove(items.value, (it: IFile) => it.id === f.id)
   })
+  total.value = items.value.length
   clearSelection()
   refetchStats()
 }
@@ -508,7 +507,7 @@ function refreshCurrentDir() {
 const createDir = () => {
   createPath.value = filter.parent
   openModal(EditValueModal, {
-    title: t('name'),
+    title: t('create_folder'),
     placeholder: t('name'),
     mutation: createMutation,
     getVariables: createVariables,

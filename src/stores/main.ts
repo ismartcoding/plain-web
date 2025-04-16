@@ -23,8 +23,7 @@ export type MainState = {
   callNumber: string
 }
 
-export const useMainStore = defineStore({
-  id: 'main',
+export const useMainStore = defineStore('main', {
   state: () =>
     ({
       fileShowHidden: false,

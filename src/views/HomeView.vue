@@ -1,115 +1,191 @@
 <template>
   <div class="grids">
-    <section class="card">
-      <h5 class="card-title">
-        <span>{{ $t('storage') }}</span>
-        <span class="total-bytes" v-if="counter.total >= 0">{{ $t('storage_free_total', { free: formatFileSize(counter.free), total: formatFileSize(counter.total) }) }}</span>
-      </h5>
-      <div class="card-body">
-        <feature-button name="images" :count="counter.images" path="/images">
-          <template #icon>
-            <i-material-symbols:image-outline-rounded />
-          </template>
-        </feature-button>
-        <feature-button name="audios" :count="counter.audios" path="/audios">
-          <template #icon>
-            <i-material-symbols:audio-file-outline-rounded />
-          </template>
-        </feature-button>
-        <feature-button name="videos" :count="counter.videos" path="/videos">
-          <template #icon>
-            <i-material-symbols:video-file-outline-rounded />
-          </template>
-        </feature-button>
-        <feature-button v-if="app.channel !== 'GOOGLE'" name="apps" :count="counter.packages" path="/apps">
-          <template #icon>
-            <i-material-symbols:apps />
-          </template>
-        </feature-button>
-        <feature-button name="files" path="/files/recent">
-          <template #icon>
-            <i-material-symbols:storage-rounded />
-          </template>
-        </feature-button>
+    <!-- Storage Section Cards -->
+    <div class="card feature-card" @click="openTab('/images')">
+      <div class="card-icon">
+        <i-material-symbols:image-outline-rounded />
       </div>
-    </section>
-    <section class="card">
-      <h5 class="card-title">{{ $t('work') }}</h5>
-      <div class="card-body">
-        <feature-button name="page_title.notes" :count="counter.notes" path="/notes">
-          <template #icon>
-            <i-material-symbols:notes-rounded />
-          </template>
-        </feature-button>
-        <feature-button name="page_title.feeds" :count="counter.feedEntries" path="/feeds">
-          <template #icon>
-            <i-material-symbols:rss-feed-rounded />
-          </template>
-        </feature-button>
-        <feature-button v-if="app.channel !== 'GOOGLE'" name="messages" :count="counter.messages" path="/messages">
-          <template #icon>
-            <i-material-symbols:sms-outline-rounded />
-          </template>
-        </feature-button>
-        <feature-button v-if="app.channel !== 'GOOGLE'" name="calls" :count="counter.calls" path="/calls">
-          <template #icon>
-            <i-material-symbols:call-log-outline-rounded />
-          </template>
-        </feature-button>
-        <feature-button name="contacts" :count="counter.contacts" path="/contacts">
-          <template #icon>
-            <i-material-symbols:contact-page-outline-rounded />
-          </template>
-        </feature-button>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span v-if="counter.images !== undefined && counter.images >= 0" class="count">{{ counter.images.toLocaleString() }}</span>
+          <span class="title">{{ $t('images') }}</span>
+        </div>
       </div>
-    </section>
-    <section class="card">
-      <h5 class="card-title">{{ $t('tools') }}</h5>
-      <div class="card-body">
-        <feature-button name="screen_mirror" path="/screen-mirror">
-          <template #icon>
-            <i-material-symbols:screen-record-rounded />
-          </template>
-        </feature-button>
-        <feature-button name="device_info" path="/device-info">
-          <template #icon>
-            <i-material-symbols:perm-device-information-outline-rounded />
-          </template>
-        </feature-button>
-        <feature-button name="qrcode_generator" path="/qrcode-generator">
-          <template #icon>
-            <i-material-symbols:qr-code-rounded />
-          </template>
-        </feature-button>
-        <feature-button name="json_viewer" path="/json-viewer">
-          <template #icon>
-            <i-material-symbols:code-blocks-outline-rounded />
-          </template>
-        </feature-button>
+    </div>
+
+    <div class="card feature-card" @click="openTab('/audios')">
+      <div class="card-icon">
+        <i-material-symbols:audio-file-outline-rounded />
       </div>
-    </section>
-    <section class="card">
-      <h5 class="card-title">{{ $t('call_phone') }}</h5>
-      <div class="card-body form-row">
-        <md-outlined-text-field
-          type="tel"
-          :label="$t('phone_number')"
-          class="form-control flex-3"
-          v-model="callNumber"
-          :error="callNumberError"
-          :error-text="$t('valid.required')"
-          @keyup.enter="callPhone"
-        >
-          <button class="btn-icon" slot="trailing-icon" @click.prevent="pastePhoneNumber">
-            <md-ripple />
-            <i-material-symbols:content-paste-rounded />
-          </button>
-        </md-outlined-text-field>
-        <md-filled-button class="btn-lg" @click.prevent="callPhone" :disabled="callLoading">
-          {{ $t('call') }}
-        </md-filled-button>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span v-if="counter.audios !== undefined && counter.audios >= 0" class="count">{{ counter.audios.toLocaleString() }}</span>
+          <span class="title">{{ $t('audios') }}</span>
+        </div>
       </div>
-    </section>
+    </div>
+
+    <div class="card feature-card" @click="openTab('/videos')">
+      <div class="card-icon">
+        <i-material-symbols:video-file-outline-rounded />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span v-if="counter.videos !== undefined && counter.videos >= 0" class="count">{{ counter.videos.toLocaleString() }}</span>
+          <span class="title">{{ $t('videos') }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="app.channel !== 'GOOGLE'" class="card feature-card" @click="openTab('/apps')">
+      <div class="card-icon">
+        <i-material-symbols:apps />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span v-if="counter.packages !== undefined && counter.packages >= 0" class="count">{{ counter.packages.toLocaleString() }}</span>
+          <span class="title">{{ $t('apps') }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card feature-card" @click="openTab('/files/recent')">
+      <div class="card-icon">
+        <i-material-symbols:storage-rounded />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span class="title">{{ $t('files') }}</span>
+        </div>
+        <div v-if="counter.total >= 0" class="storage-info">
+          {{ $t('storage_free_total', { free: formatFileSize(counter.free), total: formatFileSize(counter.total) }) }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Work Section Cards -->
+    <div class="card feature-card" @click="openTab('/notes')">
+      <div class="card-icon">
+        <i-material-symbols:notes-rounded />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span v-if="counter.notes !== undefined && counter.notes >= 0" class="count">{{ counter.notes.toLocaleString() }}</span>
+          <span class="title">{{ $t('page_title.notes') }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card feature-card" @click="openTab('/feeds')">
+      <div class="card-icon">
+        <i-material-symbols:rss-feed-rounded />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span v-if="counter.feedEntries !== undefined && counter.feedEntries >= 0" class="count">{{ counter.feedEntries.toLocaleString() }}</span>
+          <span class="title">{{ $t('page_title.feeds') }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="app.channel !== 'GOOGLE'" class="card feature-card" @click="openTab('/messages')">
+      <div class="card-icon">
+        <i-material-symbols:sms-outline-rounded />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span v-if="counter.messages !== undefined && counter.messages >= 0" class="count">{{ counter.messages.toLocaleString() }}</span>
+          <span class="title">{{ $t('messages') }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="app.channel !== 'GOOGLE'" class="card feature-card" @click="openTab('/calls')">
+      <div class="card-icon">
+        <i-material-symbols:call-log-outline-rounded />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span v-if="counter.calls !== undefined && counter.calls >= 0" class="count">{{ counter.calls.toLocaleString() }}</span>
+          <span class="title">{{ $t('calls') }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card feature-card" @click="openTab('/contacts')">
+      <div class="card-icon">
+        <i-material-symbols:contact-page-outline-rounded />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span v-if="counter.contacts !== undefined && counter.contacts >= 0" class="count">{{ counter.contacts.toLocaleString() }}</span>
+          <span class="title">{{ $t('contacts') }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tools Section Cards -->
+    <div class="card feature-card" @click="openTab('/screen-mirror')">
+      <div class="card-icon">
+        <i-material-symbols:screen-record-rounded />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span class="title">{{ $t('screen_mirror') }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card feature-card" @click="openTab('/device-info')">
+      <div class="card-icon">
+        <i-material-symbols:perm-device-information-outline-rounded />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span class="title">{{ $t('device_info') }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card feature-card" @click="openTab('/qrcode-generator')">
+      <div class="card-icon">
+        <i-material-symbols:qr-code-rounded />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span class="title">{{ $t('qrcode_generator') }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card feature-card" @click="openTab('/json-viewer')">
+      <div class="card-icon">
+        <i-material-symbols:code-blocks-outline-rounded />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span class="title">{{ $t('json_viewer') }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phone Call Card -->
+    <div class="card phone-card">
+      <div class="card-content">
+        <h5 class="card-title">{{ $t('call_phone') }}</h5>
+        <div class="phone-input-row">
+          <md-outlined-text-field v-model="callNumber" type="tel" :label="$t('phone_number')" class="phone-input" :error="callNumberError" :error-text="$t('valid.required')" @keyup.enter="callPhone">
+            <button slot="trailing-icon" class="btn-icon" @click.prevent="pastePhoneNumber">
+              <md-ripple />
+              <i-material-symbols:content-paste-rounded />
+            </button>
+          </md-outlined-text-field>
+          <md-filled-button class="call-btn" :disabled="callLoading" @click.prevent="callPhone">
+            {{ $t('call') }}
+          </md-filled-button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -122,9 +198,11 @@ import { useI18n } from 'vue-i18n'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { sumBy } from 'lodash-es'
-import type { IHomeStats, IStorageStatsItem } from '@/lib/interfaces'
 import { useMainStore } from '@/stores/main'
 import { callGQL, initMutation } from '@/lib/api/mutation'
+import { replacePath } from '@/plugins/router'
+import type { IHomeStats, IStorageStatsItem } from '@/lib/interfaces'
+
 const { t } = useI18n()
 
 const mainStore = useMainStore()
@@ -134,6 +212,10 @@ const callNumberError = ref(false)
 
 const { app, counter } = storeToRefs(useTempStore())
 
+function openTab(fullPath: string) {
+  replacePath(mainStore, fullPath)
+}
+
 function pastePhoneNumber() {
   navigator.clipboard.readText().then((text) => {
     callNumber.value = text
@@ -142,7 +224,6 @@ function pastePhoneNumber() {
 
 const { mutate: mutateCall, loading: callLoading } = initMutation({
   document: callGQL,
-  appApi: true,
 })
 
 const callPhone = () => {
@@ -192,40 +273,146 @@ initQuery({
   },
   document: homeStatsGQL,
   variables: null,
-  appApi: true,
 })
 </script>
 
 <style lang="scss" scoped>
 .grids {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(564px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 16px;
   overflow-y: auto;
   padding: 16px;
 }
-.card-title {
-  .total-bytes {
-    font-weight: normal;
-    margin-inline-start: 8px;
-    text-transform: none;
+
+.feature-card {
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .card-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 8px;
+
+    svg {
+      width: 32px;
+      height: 32px;
+      color: var(--md-sys-color-primary);
+    }
+  }
+
+  .card-content {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .card-title-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin: 0;
+
+      .count {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--md-sys-color-primary);
+      }
+
+      .title {
+        font-size: 0.875rem;
+        font-weight: 400;
+        text-transform: capitalize;
+        color: var(--md-sys-color-on-surface);
+      }
+    }
+
+    .storage-info {
+      font-size: 0.75rem;
+      color: var(--md-sys-color-on-surface-variant);
+      margin-top: 4px;
+      line-height: 1.2;
+    }
+
+    .count {
+      font-size: 0.875rem;
+      color: var(--md-sys-color-on-surface-variant);
+      font-weight: 400;
+    }
   }
 }
-.card-body {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+
+.phone-card {
+  grid-column: span 2;
+  min-height: 120px;
+  .card-title {
+    text-align: left;
+  }
+  .card-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 12px;
+
+    svg {
+      width: 32px;
+      height: 32px;
+      color: var(--md-sys-color-primary);
+    }
+  }
+
+  .card-content {
+    text-align: left;
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 500;
+      margin: 0 0 16px 0;
+      text-transform: none;
+      color: var(--md-sys-color-on-surface);
+    }
+
+    .phone-input-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+
+      .phone-input {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .call-btn {
+        margin-top: 8px;
+        min-width: 80px;
+      }
+    }
+  }
 }
 
-.total-bytes {
-  font-size: 0.875rem;
-  font-weight: normal;
-  margin-left: 8px;
-}
-.form-control {
-  height: 56px;
-}
-.card-body.form-row {
-  padding-block-start: 16px;
+@media (max-width: 768px) {
+  .grids {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .phone-card {
+    grid-column: span 2;
+  }
 }
 </style>

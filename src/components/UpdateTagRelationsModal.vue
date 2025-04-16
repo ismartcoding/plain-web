@@ -10,7 +10,7 @@
     </div>
     <div slot="actions">
       <md-outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</md-outlined-button>
-      <md-filled-button value="save" :disabled="loading" @click="doAction" autofocus> <md-circular-progress indeterminate v-if="loading" slot="icon" /> {{ $t('save') }} </md-filled-button>
+      <md-filled-button value="save" :disabled="loading" autofocus @click="doAction"> <md-circular-progress v-if="loading" slot="icon" indeterminate /> {{ $t('save') }} </md-filled-button>
     </div>
   </md-dialog>
 </template>
@@ -33,7 +33,6 @@ const props = defineProps({
 const selectedTags = ref<ITag[]>([...props.selected])
 const { mutate, loading, onDone } = initMutation({
   document: updateTagRelationsGQL,
-  appApi: true,
 })
 
 onDone(() => {

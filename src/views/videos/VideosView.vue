@@ -1,44 +1,44 @@
 <template>
   <div class="top-app-bar">
-    <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
+    <md-checkbox touch-target="wrapper" :checked="allChecked" :indeterminate="!allChecked && checked" @change="toggleAllChecked" />
     <div class="title">
       <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
       <span v-else>{{ $t('page_title.videos') }} ({{ total.toLocaleString() }})</span>
       <template v-if="checked">
         <template v-if="filter.trash">
-          <icon-button @click.stop="deleteItems(dataType, selectedIds, realAllChecked, total, q)" v-tooltip="$t('delete')">
+          <icon-button v-tooltip="$t('delete')" @click.stop="deleteItems(dataType, selectedIds, realAllChecked, total, q)">
             <template #icon>
               <i-material-symbols:delete-forever-outline-rounded />
             </template>
           </icon-button>
-          <icon-button @click.stop="restore(dataType, getQuery())" v-tooltip="$t('restore')" :loading="restoreLoading(getQuery())">
+          <icon-button v-tooltip="$t('restore')" :loading="restoreLoading(getQuery())" @click.stop="restore(dataType, getQuery())">
             <template #icon>
               <i-material-symbols:restore-from-trash-outline-rounded />
             </template>
           </icon-button>
-          <icon-button @click.stop="downloadItems(realAllChecked, selectedIds, q)" v-tooltip="$t('download')">
+          <icon-button v-tooltip="$t('download')" @click.stop="downloadItems(realAllChecked, selectedIds, q)">
             <template #icon>
               <i-material-symbols:download-rounded />
             </template>
           </icon-button>
         </template>
         <template v-else>
-          <icon-button v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)" @click.stop="trash(dataType, getQuery())" v-tooltip="$t('move_to_trash')" :loading="trashLoading(getQuery())">
+          <icon-button v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)" v-tooltip="$t('move_to_trash')" :loading="trashLoading(getQuery())" @click.stop="trash(dataType, getQuery())">
             <template #icon>
               <i-material-symbols:delete-outline-rounded />
             </template>
           </icon-button>
-          <icon-button v-else @click.stop="deleteItems(dataType, selectedIds, realAllChecked, total, q)" v-tooltip="$t('delete')">
+          <icon-button v-else v-tooltip="$t('delete')" @click.stop="deleteItems(dataType, selectedIds, realAllChecked, total, q)">
             <template #icon>
               <i-material-symbols:delete-forever-outline-rounded />
             </template>
           </icon-button>
-          <icon-button @click.stop="downloadItems(realAllChecked, selectedIds, q)" v-tooltip="$t('download')">
+          <icon-button v-tooltip="$t('download')" @click.stop="downloadItems(realAllChecked, selectedIds, q)">
             <template #icon>
               <i-material-symbols:download-rounded />
             </template>
           </icon-button>
-          <icon-button @click.stop="addToTags(selectedIds, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
+          <icon-button v-tooltip="$t('add_to_tags')" @click.stop="addToTags(selectedIds, realAllChecked, q)">
             <template #icon>
               <i-material-symbols:label-outline-rounded />
             </template>
@@ -71,7 +71,7 @@
         </icon-button>
         <template #content="slotProps">
           <div class="menu-items">
-            <md-menu-item v-for="item in sortItems" :key="item.value" @click="sort(slotProps, item.value)" :selected="item.value === videoSortBy">
+            <md-menu-item v-for="item in sortItems" :key="item.value" :selected="item.value === videoSortBy" @click="sort(slotProps, item.value)">
               <div slot="headline">{{ $t(item.label) }}</div>
             </md-menu-item>
           </div>
@@ -96,12 +96,12 @@
     :clear-selection="clearSelection"
   />
   <div class="scroll-content" @dragover.stop.prevent="fileDragEnter">
-    <div class="drag-mask" v-show="dropping" @drop.stop.prevent="dropFiles2" @dragleave.stop.prevent="fileDragLeave">{{ $t('release_to_send_files') }}</div>
-    <div class="media-grid" v-if="!mainStore.videosCardView" :class="{ 'select-mode': checked }">
+    <div v-show="dropping" class="drag-mask" @drop.stop.prevent="dropFiles2" @dragleave.stop.prevent="fileDragLeave">{{ $t('release_to_send_files') }}</div>
+    <div v-if="!mainStore.videosCardView" class="media-grid" :class="{ 'select-mode': checked }">
       <section
-        class="media-item"
         v-for="(item, i) in items"
         :key="item.id"
+        class="media-item"
         :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
         @click.stop="handleItemClick($event, item, i, view)"
         @mouseover="handleMouseOver($event, i)"
@@ -126,24 +126,24 @@
               <i-material-symbols:check-circle-outline-rounded v-else />
             </template>
           </icon-button>
-          <icon-button v-if="checked" class="btn-zoom sm" @click.stop="view(i)" v-tooltip="$t('open')">
+          <icon-button v-if="checked" v-tooltip="$t('open')" class="btn-zoom sm" @click.stop="view(i)">
             <template #icon>
               <i-material-symbols:zoom-in-rounded />
             </template>
           </icon-button>
           <div v-else class="actions">
             <template v-if="filter.trash">
-              <icon-button class="sm" @click.stop="deleteItem(dataType, item)" v-tooltip="$t('delete')">
+              <icon-button v-tooltip="$t('delete')" class="sm" @click.stop="deleteItem(dataType, item)">
                 <template #icon>
                   <i-material-symbols:delete-forever-outline-rounded />
                 </template>
               </icon-button>
-              <icon-button class="sm" @click.stop="restore(dataType, `ids:${item.id}`)" v-tooltip="$t('restore')" :loading="restoreLoading(`ids:${item.id}`)">
+              <icon-button v-tooltip="$t('restore')" class="sm" :loading="restoreLoading(`ids:${item.id}`)" @click.stop="restore(dataType, `ids:${item.id}`)">
                 <template #icon>
                   <i-material-symbols:restore-from-trash-outline-rounded />
                 </template>
               </icon-button>
-              <icon-button class="sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))" v-tooltip="$t('download')">
+              <icon-button v-tooltip="$t('download')" class="sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))">
                 <template #icon>
                   <i-material-symbols:download-rounded />
                 </template>
@@ -152,26 +152,26 @@
             <template v-else>
               <icon-button
                 v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)"
-                class="sm"
-                @click.stop="trash(dataType, `ids:${item.id}`)"
                 v-tooltip="$t('move_to_trash')"
+                class="sm"
                 :loading="trashLoading(`ids:${item.id}`)"
+                @click.stop="trash(dataType, `ids:${item.id}`)"
               >
                 <template #icon>
                   <i-material-symbols:delete-outline-rounded />
                 </template>
               </icon-button>
-              <icon-button v-else class="sm" @click.stop="deleteItem(dataType, item)" v-tooltip="$t('delete')">
+              <icon-button v-else v-tooltip="$t('delete')" class="sm" @click.stop="deleteItem(dataType, item)">
                 <template #icon>
                   <i-material-symbols:delete-forever-outline-rounded />
                 </template>
               </icon-button>
-              <icon-button class="sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))" v-tooltip="$t('download')">
+              <icon-button v-tooltip="$t('download')" class="sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))">
                 <template #icon>
                   <i-material-symbols:download-rounded />
                 </template>
               </icon-button>
-              <icon-button class="sm" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
+              <icon-button v-tooltip="$t('add_to_tags')" class="sm" @click.stop="addItemToTags(item)">
                 <template #icon>
                   <i-material-symbols:label-outline-rounded />
                 </template>
@@ -185,21 +185,21 @@
         </template>
       </section>
       <template v-if="loading && items.length === 0">
-        <section class="skeleton-image media-item" v-for="i in limit" :key="i"></section>
+        <section v-for="i in limit" :key="i" class="skeleton-image media-item"></section>
       </template>
     </div>
     <div v-else class="media-list" :class="{ 'select-mode': checked }">
       <section
-        class="media-item selectable-card"
         v-for="(item, i) in items"
         :key="item.id"
+        class="media-item selectable-card"
         :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
         @click.stop="handleItemClick($event, item, i, view)"
         @mouseover="handleMouseOver($event, i)"
       >
         <div class="start">
-          <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, i)" :checked="shouldSelect" />
-          <md-checkbox v-else class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, i)" :checked="selectedIds.includes(item.id)" />
+          <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, i)" />
+          <md-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, i)" />
           <span class="number"><field-id :id="i + 1" :raw="item" /></span>
         </div>
         <div class="image">
@@ -215,17 +215,17 @@
         </div>
         <div class="actions">
           <template v-if="filter.trash">
-            <icon-button class="sm" @click.stop="deleteItem(dataType, item)" v-tooltip="$t('delete')">
+            <icon-button v-tooltip="$t('delete')" class="sm" @click.stop="deleteItem(dataType, item)">
               <template #icon>
                 <i-material-symbols:delete-forever-outline-rounded />
               </template>
             </icon-button>
-            <icon-button class="sm" @click.stop="restore(dataType, `ids:${item.id}`)" v-tooltip="$t('restore')" :loading="restoreLoading(`ids:${item.id}`)">
+            <icon-button v-tooltip="$t('restore')" class="sm" :loading="restoreLoading(`ids:${item.id}`)" @click.stop="restore(dataType, `ids:${item.id}`)">
               <template #icon>
                 <i-material-symbols:restore-from-trash-outline-rounded />
               </template>
             </icon-button>
-            <icon-button class="sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))" v-tooltip="$t('download')">
+            <icon-button v-tooltip="$t('download')" class="sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))">
               <template #icon>
                 <i-material-symbols:download-rounded />
               </template>
@@ -234,26 +234,26 @@
           <template v-else>
             <icon-button
               v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)"
-              class="sm"
-              @click.stop="trash(dataType, `ids:${item.id}`)"
               v-tooltip="$t('move_to_trash')"
+              class="sm"
               :loading="trashLoading(`ids:${item.id}`)"
+              @click.stop="trash(dataType, `ids:${item.id}`)"
             >
               <template #icon>
                 <i-material-symbols:delete-outline-rounded />
               </template>
             </icon-button>
-            <icon-button v-else class="sm" @click.stop="deleteItem(dataType, item)" v-tooltip="$t('delete')">
+            <icon-button v-else v-tooltip="$t('delete')" class="sm" @click.stop="deleteItem(dataType, item)">
               <template #icon>
                 <i-material-symbols:delete-forever-outline-rounded />
               </template>
             </icon-button>
-            <icon-button class="sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))" v-tooltip="$t('download')">
+            <icon-button v-tooltip="$t('download')" class="sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))">
               <template #icon>
                 <i-material-symbols:download-rounded />
               </template>
             </icon-button>
-            <icon-button class="sm" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
+            <icon-button v-tooltip="$t('add_to_tags')" class="sm" @click.stop="addItemToTags(item)">
               <template #icon>
                 <i-material-symbols:label-outline-rounded />
               </template>
@@ -268,7 +268,7 @@
       </section>
       <image-video-list-skeleton v-if="loading && items.length === 0" :limit="limit" />
     </div>
-    <div class="no-data-placeholder" v-if="!loading && items.length === 0">
+    <div v-if="!loading && items.length === 0" class="no-data-placeholder">
       {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
     </div>
     <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" />
@@ -290,6 +290,7 @@ import { useI18n } from 'vue-i18n'
 import { getFileId, getFileUrl, getFileExtension } from '@/lib/api/file'
 import { formatFileSize } from '@/lib/format'
 import type { IBucket, IFilter, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IMediaItemsActionedEvent, IVideo, IVideoItem } from '@/lib/interfaces'
+import type { IUploadItem } from '@/stores/temp'
 import { decodeBase64 } from '@/lib/strutil'
 import { noDataKey } from '@/lib/list'
 import { useAddToTags } from '@/hooks/tags'
@@ -304,7 +305,7 @@ import type { ISource } from '@/components/lightbox/types'
 import { openModal } from '@/components/modal'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { DataType, FEATURE } from '@/lib/data'
-import { getDirFromPath, getSortItems } from '@/lib/file'
+import { getDirFromPath, getSortItems, isVideo } from '@/lib/file'
 import { useSearch } from '@/hooks/search'
 import { useKeyEvents } from '@/hooks/key-events'
 import { formatDateTime, formatTimeAgo } from '@/lib/format'
@@ -319,6 +320,7 @@ const { t } = useI18n()
 const { parseQ } = useSearch()
 const filter = reactive<IFilter>({
   tagIds: [],
+  bucketId: undefined,
 })
 const tempStore = useTempStore()
 const { app, urlTokenKey, uploads } = storeToRefs(tempStore)
@@ -418,7 +420,6 @@ const { loading, fetch } = initLazyQuery({
     query: q.value,
     sortBy: videoSortBy.value,
   }),
-  appApi: true,
 })
 
 const { trashLoading, trash } = useMediaTrash()
@@ -511,6 +512,23 @@ const mediaItemsActionedHandler = (event: IMediaItemsActionedEvent) => {
   }
 }
 
+const uploadTaskDoneHandler = (r: IUploadItem) => {
+  if (r.status === 'done') {
+    // Check if uploaded file is a video
+    if (isVideo(r.fileName)) {
+      // Check if the uploaded file matches current bucket filter or show all
+      const shouldRefresh = !filter.bucketId || buckets.value.some((bucket) => bucket.id === filter.bucketId && bucket.topItems.some((topItem) => r.dir.startsWith(getDirFromPath(topItem))))
+
+      if (shouldRefresh) {
+        // Delay to ensure the API returns latest data
+        setTimeout(() => {
+          fetch()
+        }, 1000)
+      }
+    }
+  }
+}
+
 onActivated(() => {
   q.value = decodeBase64(query.q?.toString() ?? '')
   parseQ(filter, q.value)
@@ -519,6 +537,7 @@ onActivated(() => {
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
   emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
   emitter.on('media_items_actioned', mediaItemsActionedHandler)
+  emitter.on('upload_task_done', uploadTaskDoneHandler)
   window.addEventListener('keydown', pageKeyDown)
   window.addEventListener('keyup', pageKeyUp)
 })
@@ -527,6 +546,7 @@ onDeactivated(() => {
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
   emitter.off('media_items_actioned', mediaItemsActionedHandler)
+  emitter.off('upload_task_done', uploadTaskDoneHandler)
   window.removeEventListener('keydown', pageKeyDown)
   window.removeEventListener('keyup', pageKeyUp)
 })

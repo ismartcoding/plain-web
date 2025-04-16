@@ -230,22 +230,6 @@ export interface INotification extends IData {
   actions: string[]
 }
 
-export interface IAIChat extends IData {
-  id: string
-  parentId: string
-  isMe: boolean
-  content: string
-  md: string
-  type: number
-  tags: ITag[]
-  createdAt: string
-  updatedAt: string
-}
-
-export interface IAIChatConfig {
-  chatGPTApiKey: string
-}
-
 export interface IPackage extends IData {
   id: string
   name: string
@@ -320,7 +304,6 @@ export interface IHomeStats {
   audioCount: number
   imageCount: number
   packageCount: number
-  aiChatCount: number
   storageStats: IStorageStats
 }
 

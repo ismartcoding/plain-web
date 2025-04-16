@@ -1,7 +1,7 @@
 <template>
   <div class="top-app-bar">
     <ul class="v-tabs">
-      <li v-for="(item, index) in tabs" :key="index" @click="swtichTab(index)" :class="{ active: currentTab === index }">
+      <li v-for="(item, index) in tabs" :key="index" :class="{ active: currentTab === index }" @click="swtichTab(index)">
         {{ item.startsWith('t:') ? $t(item.slice(2)) : item }}
       </li>
     </ul>

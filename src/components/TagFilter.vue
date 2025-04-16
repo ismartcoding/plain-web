@@ -5,7 +5,7 @@
     </div>
     <div class="title">{{ $t('tags') }}</div>
     <div class="actions">
-      <icon-button @click.prevent="add" v-tooltip="$t('add_tag')">
+      <icon-button v-tooltip="$t('add_tag')" @click.prevent="add">
         <template #icon>
           <i-material-symbols:add-rounded />
         </template>
@@ -13,9 +13,9 @@
     </div>
   </div>
   <ul class="nav">
-    <li v-for="item in tags" @click.prevent="view(item)" :key="item.id" :class="{ active: item.id === selected }">
+    <li v-for="item in tags" :key="item.id" :class="{ active: item.id === selected }" @click.prevent="view(item)">
       <span class="title">{{ item.name }}</span>
-      <icon-button :id="'tag-' + item.id" class="sm" @click.prevent.stop="showMenu(item)" v-tooltip="$t('actions')">
+      <icon-button :id="'tag-' + item.id" v-tooltip="$t('actions')" class="sm" @click.prevent.stop="showMenu(item)">
         <template #icon>
           <i-material-symbols:more-vert />
         </template>
@@ -75,7 +75,6 @@ const { refetch } = initQuery({
   variables: {
     type: props.type,
   },
-  appApi: true,
 })
 
 function showMenu(item: ITag) {
@@ -91,7 +90,6 @@ function renameTag(item: ITag) {
     mutation: () =>
       initMutation({
         document: updateTagGQL,
-        appApi: true,
       }),
     getVariables: (value: string) => {
       return { id: item.id, name: value }
@@ -107,7 +105,6 @@ function deleteTag(item: ITag) {
     id: item.id,
     name: item.name,
     gql: deleteTagGQL,
-    appApi: true,
     typeName: 'Tag',
   })
 }
@@ -124,7 +121,6 @@ function add() {
             refetch()
           },
         },
-        appApi: true,
       })
     },
     getVariables: (value: string) => {

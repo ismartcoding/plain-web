@@ -1,6 +1,6 @@
 <template>
   <div class="h-action" style="position: relative">
-    <button class="btn-icon" id="lang-ref" @click="() => (langMenuVisible = true)" v-tooltip="t('header_actions.language')">
+    <button id="lang-ref" v-tooltip="t('header_actions.language')" class="btn-icon" @click="() => (langMenuVisible = true)">
       <md-ripple />
       <i-material-symbols:translate-rounded />
     </button>
@@ -12,16 +12,16 @@
   </div>
 
   <div class="h-action" style="position: relative">
-    <button class="btn-icon" id="theme-ref" @click="() => (themeMenuVisible = true)" v-tooltip="t('header_actions.theme')">
+    <button id="theme-ref" v-tooltip="t('header_actions.theme')" class="btn-icon" @click="() => (themeMenuVisible = true)">
       <md-ripple />
-      <i-material-symbols:palette-outline />
+      <i-material-symbols:sunny-outline-rounded />
     </button>
     <md-menu anchor="theme-ref" stay-open-on-focusout quick :open="themeMenuVisible" @closed="() => (themeMenuVisible = false)">
       <theme-changer />
     </md-menu>
   </div>
 
-  <button class="btn-icon h-action" style="margin-inline-end: 8px" @click="logout" v-if="props.loggedIn" v-tooltip="$t('header_actions.logout')">
+  <button v-if="props.loggedIn" v-tooltip="$t('header_actions.logout')" class="btn-icon h-action" style="margin-inline-end: 8px" @click="logout">
     <md-ripple />
     <i-material-symbols:logout-rounded />
   </button>

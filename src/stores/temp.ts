@@ -12,7 +12,14 @@ export interface IUploadItem {
   uploadedSize: number
   status: string
   error: string
+  pausing?: boolean
   xhr?: XMLHttpRequest
+  fileId?: string
+  isChunked?: boolean
+  uploadedChunks?: number[]
+  uploadSpeed?: number // bytes per second
+  lastUploadedSize?: number
+  lastUpdateTime?: number
 }
 
 export interface ILightBox {
@@ -53,8 +60,7 @@ export type TempState = {
   feedsSyncing: boolean
 }
 
-export const useTempStore = defineStore({
-  id: 'temp',
+export const useTempStore = defineStore('temp', {
   state: () =>
     ({
       app: {} as IApp,

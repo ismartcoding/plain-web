@@ -10,16 +10,16 @@
       <header id="header">
         <section class="start">
           <div class="tab-items">
-            <div class="tab-item" @click="selectTab('/')" key="/" :class="{ active: currentPath === '/' }" @contextmenu="itemCtxMenu($event, '/')">
+            <div key="/" class="tab-item" :class="{ active: currentPath === '/' }" @click="selectTab('/')" @contextmenu="itemCtxMenu($event, '/')">
               <span>{{ $t('page_title.home') }}</span>
             </div>
             <div
               v-for="item of store.pages"
               :key="item.path"
-              @click="selectTab(item.path)"
               class="tab-item"
-              @contextmenu="itemCtxMenu($event, item.path)"
               :class="{ active: currentPath === item.path }"
+              @click="selectTab(item.path)"
+              @contextmenu="itemCtxMenu($event, item.path)"
             >
               <span>{{ $t(`page_title.${getRouteName(item.path)}`) }}</span>
               <button class="btn-icon sm tab-icon" @click.stop="closeTab(item.path)">
@@ -35,13 +35,13 @@
       </header>
       <div class="page-content">
         <!-- The cache key $route.meta.group is mainly used for MediaSidebar, otherwise the component will be cached totally. -->
-        <router-view name="LeftSidebar" v-slot="{ Component }">
+        <router-view v-slot="{ Component }" name="LeftSidebar">
           <keep-alive>
             <component :is="Component" :key="$route.meta.group" />
           </keep-alive>
         </router-view>
         <main class="main" :class="'main-' + ($route.meta.className || 'default')">
-          <router-view name="LeftSidebar2" v-slot="{ Component }">
+          <router-view v-slot="{ Component }" name="LeftSidebar2">
             <keep-alive>
               <component :is="Component" :key="getSidebar2CacheKey()" />
             </keep-alive>
@@ -54,36 +54,43 @@
         </main>
       </div>
       <div class="quick">
-        <button class="btn-icon q-action" v-show="hasTasks" v-tooltip="$t('header_actions.tasks')" @click="toggleQuick('task')" toggle :class="{ selected: store.quick === 'task' }">
+        <button
+          v-if="hasTasks || store.quick === 'task'"
+          v-tooltip="$t('header_actions.tasks')"
+          class="btn-icon q-action"
+          toggle
+          :class="{ selected: store.quick === 'task' }"
+          @click="toggleQuick('task')"
+        >
           <md-ripple />
           <i-material-symbols:format-list-numbered-rounded />
         </button>
         <button
-          class="btn-icon q-action"
           v-if="app.channel !== 'GOOGLE'"
           v-tooltip="$t('header_actions.notifications')"
-          @click="toggleQuick('notification')"
+          class="btn-icon q-action"
           toggle
           :class="{ selected: store.quick === 'notification' }"
+          @click="toggleQuick('notification')"
         >
           <md-ripple />
           <i-material-symbols:notifications-outline-rounded />
         </button>
-        <button id="quick-audio" class="btn-icon q-action" v-tooltip="$t('playlist')" @click="toggleQuick('audio')" toggle :class="{ selected: store.quick === 'audio' }">
+        <button id="quick-audio" v-tooltip="$t('playlist')" class="btn-icon q-action" toggle :class="{ selected: store.quick === 'audio' }" @click="toggleQuick('audio')">
           <md-ripple />
           <i-material-symbols:queue-music-rounded />
         </button>
-        <button class="btn-icon q-action" v-tooltip="$t('my_phone')" @click="toggleQuick('chat')" toggle :class="{ selected: store.quick === 'chat' }">
+        <button v-tooltip="$t('my_phone')" class="btn-icon q-action" toggle :class="{ selected: store.quick === 'chat' }" @click="toggleQuick('chat')">
           <md-ripple />
           <i-material-symbols:smartphone-outline />
         </button>
 
-        <div class="drag-indicator" v-show="store.quick" @mousedown="resizeWidth">
+        <div v-show="store.quick" class="drag-indicator" @mousedown="resizeWidth">
           <i-material-symbols:drag-indicator />
         </div>
       </div>
       <transition name="width">
-        <div class="quick-content" v-show="store.quick" :style="{ width: store.quickContentWidth + 'px' }">
+        <div v-show="store.quick" class="quick-content" :style="{ width: store.quickContentWidth + 'px' }">
           <task-list v-show="store.quick === 'task'" />
           <p-chat v-show="store.quick === 'chat'" />
           <audio-player v-show="store.quick === 'audio'" />
@@ -161,7 +168,6 @@ const { refetch: refetchApp } = initQuery({
     }
   },
   document: appGQL,
-  appApi: true,
 })
 
 const { resizeWidth } = useRightSidebarResize(

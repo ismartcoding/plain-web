@@ -1,11 +1,11 @@
 <template>
   <div class="top-app-bar">
-    <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
+    <md-checkbox touch-target="wrapper" :checked="allChecked" :indeterminate="!allChecked && checked" @change="toggleAllChecked" />
     <div class="title">
       <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
       <span v-else>{{ $t('page_title.apps') }} ({{ total.toLocaleString() }})</span>
       <template v-if="checked">
-        <button class="btn-icon" @click.stop="downloadItems(realAllChecked, selectedIds, q)" v-tooltip="$t('download')">
+        <button v-tooltip="$t('download')" class="btn-icon" @click.stop="downloadItems(realAllChecked, selectedIds, q)">
           <md-ripple />
           <i-material-symbols:download-rounded />
         </button>
@@ -13,19 +13,19 @@
     </div>
     <div class="actions">
       <search-input :filter="filter" :types="types" :get-url="getUrl" />
-      <button class="btn-icon" @click.stop="install" style="display: none">
+      <button class="btn-icon" style="display: none" @click.stop="install">
         <md-ripple />
         {{ $t('install') }}
       </button>
       <popper>
-        <button class="btn-icon btn-sort" :disabled="sorting" v-tooltip="$t('sort')">
+        <button v-tooltip="$t('sort')" class="btn-icon btn-sort" :disabled="sorting">
           <md-ripple />
-          <md-circular-progress indeterminate v-if="sorting" />
+          <md-circular-progress v-if="sorting" indeterminate />
           <i-material-symbols:sort-rounded v-else />
         </button>
         <template #content="slotProps">
           <div class="menu-items">
-            <md-menu-item v-for="item in sortItems" @click="sort(slotProps, item.value)" :key="item.value" :selected="item.value === appSortBy">
+            <md-menu-item v-for="item in sortItems" :key="item.value" :selected="item.value === appSortBy" @click="sort(slotProps, item.value)">
               <div slot="headline">{{ $t(item.label) }}</div>
             </md-menu-item>
           </div>
@@ -44,16 +44,16 @@
   <div class="scroll-content">
     <div class="app-list" :class="{ 'select-mode': checked }">
       <section
-        class="app-item selectable-card"
         v-for="(item, i) in items"
         :key="item.id"
+        class="app-item selectable-card"
         :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
         @click.stop="handleItemClick($event, item, i, () => {})"
         @mouseover="handleMouseOver($event, i)"
       >
         <div class="start">
-          <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, i)" :checked="shouldSelect" />
-          <md-checkbox v-else class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, i)" :checked="selectedIds.includes(item.id)" />
+          <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, i)" />
+          <md-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, i)" />
           <span class="number"><field-id :id="i + 1" :raw="item" /></span>
         </div>
         <img class="image" width="50" height="50" :src="item.icon" />
@@ -65,14 +65,14 @@
         </div>
         <div class="actions">
           <template v-if="item.isUninstalling">
-            <md-circular-progress indeterminate class="spinner-sm" v-tooltip="$t('uninstalling')" />
+            <md-circular-progress v-tooltip="$t('uninstalling')" indeterminate class="spinner-sm" />
             &nbsp;<md-outlined-button class="btn-sm" @click.stop="cancelUninstall(item)">{{ $t('cancel') }}</md-outlined-button>
           </template>
-          <button class="btn-icon sm" v-else @click.stop="uninstall(item)" v-tooltip="$t('uninstall')">
+          <button v-else v-tooltip="$t('uninstall')" class="btn-icon sm" @click.stop="uninstall(item)">
             <md-ripple />
             <i-material-symbols:delete-forever-outline-rounded />
           </button>
-          <button class="btn-icon sm" @click.stop="downloadFile(item.path, `${item.name.replace(' ', '')}-${item.id}.apk`)" v-tooltip="$t('download')">
+          <button v-tooltip="$t('download')" class="btn-icon sm" @click.stop="downloadFile(item.path, `${item.name.replace(' ', '')}-${item.id}.apk`)">
             <md-ripple />
             <i-material-symbols:download-rounded />
           </button>
@@ -83,7 +83,7 @@
         </div>
       </section>
       <template v-if="loading && items.length === 0">
-        <section class="app-item selectable-card-skeleton" v-for="i in 20" :key="i">
+        <section v-for="i in 20" :key="i" class="app-item selectable-card-skeleton">
           <div class="start">
             <div class="checkbox">
               <div class="skeleton-checkbox"></div>
@@ -109,7 +109,7 @@
         </section>
       </template>
     </div>
-    <div class="no-data-placeholder" v-if="!loading && items.length === 0">
+    <div v-if="!loading && items.length === 0" class="no-data-placeholder">
       {{ $t(noDataKey(loading)) }}
     </div>
     <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" />
@@ -222,7 +222,6 @@ const { loading, fetch } = initLazyQuery({
     query: q.value,
     sortBy: appSortBy.value,
   }),
-  appApi: true,
 })
 
 function getUrl(q: string) {
@@ -242,7 +241,6 @@ function sort(slotProps: { close: () => void }, sort: string) {
 
 const { mutate: uninstallMutate } = initMutation({
   document: uninstallPackageGQL,
-  appApi: true,
 })
 
 function uninstall(item: IPackageItem) {
@@ -266,7 +264,6 @@ const { loading: fetchPackageStatusLoading, fetch: fetchPackageStatus } = initLa
   variables: () => ({
     ids: items.value.filter((it) => it.isUninstalling).map((it) => it.id),
   }),
-  appApi: true,
 })
 
 const uploadTaskDoneHandler = (r: IUploadItem) => {

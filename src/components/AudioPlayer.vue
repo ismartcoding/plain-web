@@ -1,7 +1,7 @@
 <template>
   <div class="quick-content-main">
     <div class="top-app-bar">
-      <button class="btn-icon" @click.prevent="store.quick = ''" v-tooltip="$t('close')">
+      <button v-tooltip="$t('close')" class="btn-icon" @click.prevent="store.quick = ''">
         <md-ripple />
         <i-material-symbols:right-panel-close-outline />
       </button>
@@ -9,7 +9,7 @@
     </div>
     <div class="quick-content-body">
       <audio ref="audioRef" class="audio" controls :src="src" @ended="onEnded" />
-      <div class="buttons" v-if="audios.length">
+      <div v-if="audios.length" class="buttons">
         <button class="btn-icon" @click.stop="playPrev">
           <md-ripple />
           <i-material-symbols:skip-previous-outline-rounded />
@@ -24,19 +24,19 @@
           <md-ripple />
           <i-material-symbols:skip-next-outline-rounded />
         </button>
-        <md-circular-progress indeterminate v-if="clearLoading" class="spinner-sm" />
-        <button class="btn-icon" v-else @click.prevent="clear" v-tooltip="$t('clear_list')">
+        <md-circular-progress v-if="clearLoading" indeterminate class="spinner-sm" />
+        <button v-else v-tooltip="$t('clear_list')" class="btn-icon" @click.prevent="clear">
           <md-ripple />
           <i-material-symbols:delete-forever-outline-rounded />
         </button>
       </div>
       <section class="list-items">
-        <div v-for="item in audios" class="item" :key="item.path" @click.stop="playItem(item)" @mousedown="fixUserSelect" :class="{ selected: item.path === current?.path }">
+        <div v-for="item in audios" :key="item.path" class="item" :class="{ selected: item.path === current?.path }" @click.stop="playItem(item)" @mousedown="fixUserSelect">
           <div class="title">{{ item.title }}</div>
           <div class="subtitle">{{ item.artist }} {{ formatSeconds(item.duration) }}</div>
-          <button class="btn-icon icon" @click.stop="deleteItem(item)">
+          <button v-tooltip="$t('remove_from_playlist')" class="btn-icon icon" @click.stop="deleteItem(item)">
             <md-ripple />
-            <i-material-symbols:close-rounded />
+            <i-material-symbols:playlist-remove class="playlist-remove-icon" />
           </button>
         </div>
       </section>
@@ -84,7 +84,6 @@ const {
   onError: playError,
 } = initMutation({
   document: playAudioGQL,
-  appApi: true,
 })
 
 const {
@@ -94,7 +93,6 @@ const {
   onError: clearError,
 } = initMutation({
   document: clearAudioPlaylistGQL,
-  appApi: true,
 })
 
 clearDone(() => {
@@ -108,7 +106,6 @@ const {
   onError: updatePlayModeError,
 } = initMutation({
   document: updateAudioPlayModeGQL,
-  appApi: true,
 })
 
 const {
@@ -118,7 +115,6 @@ const {
   onError: deleteAudioError,
 } = initMutation({
   document: deletePlaylistAudioGQL,
-  appApi: true,
 })
 
 const audioRef = ref<HTMLAudioElement>()
@@ -287,5 +283,9 @@ onMounted(() => {
 .audio {
   display: block;
   width: 100%;
+}
+
+.playlist-remove-icon {
+  color: var(--md-sys-color-error) !important;
 }
 </style>

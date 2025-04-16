@@ -1,49 +1,49 @@
 <template>
   <div class="top-app-bar">
-    <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
+    <md-checkbox touch-target="wrapper" :checked="allChecked" :indeterminate="!allChecked && checked" @change="toggleAllChecked" />
     <div class="title">
       <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
       <span v-else>{{ $t('page_title.audios') }} ({{ total.toLocaleString() }})</span>
       <template v-if="checked">
         <template v-if="filter.trash">
-          <icon-button @click.stop="deleteItems(dataType, selectedIds, realAllChecked, total, q)" v-tooltip="$t('delete')">
+          <icon-button v-tooltip="$t('delete')" @click.stop="deleteItems(dataType, selectedIds, realAllChecked, total, q)">
             <template #icon>
               <i-material-symbols:delete-forever-outline-rounded />
             </template>
           </icon-button>
-          <icon-button @click.stop="restore(dataType, getQuery())" v-tooltip="$t('restore')" :loading="restoreLoading(getQuery())">
+          <icon-button v-tooltip="$t('restore')" :loading="restoreLoading(getQuery())" @click.stop="restore(dataType, getQuery())">
             <template #icon>
               <i-material-symbols:restore-from-trash-outline-rounded />
             </template>
           </icon-button>
-          <icon-button @click.stop="downloadItems(realAllChecked, selectedIds, q)" v-tooltip="$t('download')">
+          <icon-button v-tooltip="$t('download')" @click.stop="downloadItems(realAllChecked, selectedIds, q)">
             <template #icon>
               <i-material-symbols:download-rounded />
             </template>
           </icon-button>
         </template>
         <template v-else>
-          <icon-button v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)" @click.stop="trash(dataType, getQuery())" v-tooltip="$t('move_to_trash')" :loading="trashLoading(getQuery())">
+          <icon-button v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)" v-tooltip="$t('move_to_trash')" :loading="trashLoading(getQuery())" @click.stop="trash(dataType, getQuery())">
             <template #icon>
               <i-material-symbols:delete-outline-rounded />
             </template>
           </icon-button>
-          <icon-button v-else @click.stop="deleteItems(dataType, selectedIds, realAllChecked, total, q)" v-tooltip="$t('delete')">
+          <icon-button v-else v-tooltip="$t('delete')" @click.stop="deleteItems(dataType, selectedIds, realAllChecked, total, q)">
             <template #icon>
               <i-material-symbols:delete-forever-outline-rounded />
             </template>
           </icon-button>
-          <icon-button @click.stop="downloadItems(realAllChecked, selectedIds, q)" v-tooltip="$t('download')">
+          <icon-button v-tooltip="$t('download')" @click.stop="downloadItems(realAllChecked, selectedIds, q)">
             <template #icon>
               <i-material-symbols:download-rounded />
             </template>
           </icon-button>
-          <icon-button @click.stop="addItemsToPlaylist($event, selectedIds, realAllChecked, q)" v-tooltip="$t('add_to_playlist')">
+          <icon-button v-tooltip="$t('add_to_playlist')" @click.stop="addItemsToPlaylist($event, selectedIds, realAllChecked, q)">
             <template #icon>
               <i-material-symbols:playlist-add />
             </template>
           </icon-button>
-          <icon-button @click.stop="addToTags(selectedIds, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
+          <icon-button v-tooltip="$t('add_to_tags')" @click.stop="addToTags(selectedIds, realAllChecked, q)">
             <template #icon>
               <i-material-symbols:label-outline-rounded />
             </template>
@@ -77,7 +77,7 @@
         </icon-button>
         <template #content="slotProps">
           <div class="menu-items">
-            <md-menu-item v-for="item in sortItems" :key="item.value" @click="sort(slotProps, item.value)" :selected="item.value === audioSortBy">
+            <md-menu-item v-for="item in sortItems" :key="item.value" :selected="item.value === audioSortBy" @click="sort(slotProps, item.value)">
               <div slot="headline">{{ $t(item.label) }}</div>
             </md-menu-item>
           </div>
@@ -95,12 +95,12 @@
   />
 
   <div class="scroll-content" @dragover.stop.prevent="fileDragEnter">
-    <div class="drag-mask" v-show="dropping" @drop.stop.prevent="dropFiles2" @dragleave.stop.prevent="fileDragLeave">{{ $t('release_to_send_files') }}</div>
+    <div v-show="dropping" class="drag-mask" @drop.stop.prevent="dropFiles2" @dragleave.stop.prevent="fileDragLeave">{{ $t('release_to_send_files') }}</div>
     <div class="audio-list" :class="{ 'select-mode': checked }">
       <section
-        class="media-item selectable-card"
         v-for="(item, i) in items"
         :key="item.id"
+        class="media-item selectable-card"
         :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
         @click.stop="
           handleItemClick($event, item, i, () => {
@@ -110,8 +110,8 @@
         @mouseover="handleMouseOver($event, i)"
       >
         <div class="start">
-          <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, i)" :checked="shouldSelect" />
-          <md-checkbox v-else class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, i)" :checked="selectedIds.includes(item.id)" />
+          <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, i)" />
+          <md-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, i)" />
           <span class="number"><field-id :id="i + 1" :raw="item" /></span>
         </div>
         <div class="image">
@@ -129,17 +129,17 @@
         </div>
         <div class="actions">
           <template v-if="filter.trash">
-            <icon-button class="sm" @click.stop="deleteItem(dataType, item)" v-tooltip="$t('delete')">
+            <icon-button v-tooltip="$t('delete')" class="sm" @click.stop="deleteItem(dataType, item)">
               <template #icon>
                 <i-material-symbols:delete-forever-outline-rounded />
               </template>
             </icon-button>
-            <icon-button class="sm" @click.stop="restore(dataType, `ids:${item.id}`)" v-tooltip="$t('restore')" :loading="restoreLoading(`ids:${item.id}`)">
+            <icon-button v-tooltip="$t('restore')" class="sm" :loading="restoreLoading(`ids:${item.id}`)" @click.stop="restore(dataType, `ids:${item.id}`)">
               <template #icon>
                 <i-material-symbols:restore-from-trash-outline-rounded />
               </template>
             </icon-button>
-            <icon-button class="sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))" v-tooltip="$t('download')">
+            <icon-button v-tooltip="$t('download')" class="sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))">
               <template #icon>
                 <i-material-symbols:download-rounded />
               </template>
@@ -148,38 +148,48 @@
           <template v-else>
             <icon-button
               v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)"
-              class="sm"
-              @click.stop="trash(dataType, `ids:${item.id}`)"
               v-tooltip="$t('move_to_trash')"
+              class="sm"
               :loading="trashLoading(`ids:${item.id}`)"
+              @click.stop="trash(dataType, `ids:${item.id}`)"
             >
               <template #icon>
                 <i-material-symbols:delete-outline-rounded />
               </template>
             </icon-button>
-            <icon-button v-else class="sm" @click.stop="deleteItem(dataType, item)" v-tooltip="$t('delete')">
+            <icon-button v-else v-tooltip="$t('delete')" class="sm" @click.stop="deleteItem(dataType, item)">
               <template #icon>
                 <i-material-symbols:delete-forever-outline-rounded />
               </template>
             </icon-button>
-            <icon-button class="sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))" v-tooltip="$t('download')">
+            <icon-button v-tooltip="$t('download')" class="sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))">
               <template #icon>
                 <i-material-symbols:download-rounded />
               </template>
             </icon-button>
-            <icon-button class="sm" @click.stop.prevent="addToPlaylist($event, item)" v-tooltip="$t('add_to_playlist')">
+            <icon-button v-if="isInPlaylist(item) && !animatingIds.includes(item.id)" v-tooltip="$t('remove_from_playlist')" class="sm" @click.stop.prevent="handleRemoveFromPlaylist($event, item)">
+              <template #icon>
+                <i-material-symbols:playlist-remove class="playlist-remove-icon" />
+              </template>
+            </icon-button>
+            <icon-button v-else-if="animatingIds.includes(item.id)" class="sm" :disabled="true">
+              <template #icon>
+                <i-material-symbols:playlist-remove class="playlist-remove-icon rotating" />
+              </template>
+            </icon-button>
+            <icon-button v-else v-tooltip="$t('add_to_playlist')" class="sm" @click.stop.prevent="addToPlaylist($event, item)">
               <template #icon>
                 <i-material-symbols:playlist-add />
               </template>
             </icon-button>
-            <icon-button class="sm" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
+            <icon-button v-tooltip="$t('add_to_tags')" class="sm" @click.stop="addItemToTags(item)">
               <template #icon>
                 <i-material-symbols:label-outline-rounded />
               </template>
             </icon-button>
           </template>
-          <md-circular-progress indeterminate class="spinner-sm" v-if="playLoading && item.path === playPath" />
-          <icon-button class="sm" v-else-if="isAudioPlaying(item)" @click.stop="pause()" v-tooltip="$t('pause')">
+          <md-circular-progress v-if="playLoading && item.path === playPath" indeterminate class="spinner-sm" />
+          <icon-button v-else-if="isAudioPlaying(item)" v-tooltip="$t('pause')" class="sm" @click.stop="pause()">
             <template #icon>
               <i-material-symbols:pause-circle-outline-rounded />
             </template>
@@ -193,7 +203,7 @@
         </div>
       </section>
       <template v-if="loading && items.length === 0">
-        <section class="media-item selectable-card-skeleton" v-for="i in 20" :key="i">
+        <section v-for="i in 20" :key="i" class="media-item selectable-card-skeleton">
           <div class="start">
             <div class="checkbox">
               <div class="skeleton-checkbox"></div>
@@ -221,7 +231,7 @@
         </section>
       </template>
     </div>
-    <div class="no-data-placeholder" v-if="!loading && items.length === 0">
+    <div v-if="!loading && items.length === 0" class="no-data-placeholder">
       {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
     </div>
     <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" />
@@ -243,6 +253,7 @@ import { useI18n } from 'vue-i18n'
 import { getFileUrl, getFileExtension } from '@/lib/api/file'
 import { formatFileSize } from '@/lib/format'
 import type { IAudio, IBucket, IFilter, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IMediaItemsActionedEvent } from '@/lib/interfaces'
+import type { IUploadItem } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { decodeBase64 } from '@/lib/strutil'
 import { noDataKey } from '@/lib/list'
@@ -257,7 +268,7 @@ import { openModal } from '@/components/modal'
 import { getFileName } from '@/lib/api/file'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { DataType, FEATURE } from '@/lib/data'
-import { getDirFromPath, getSortItems } from '@/lib/file'
+import { getDirFromPath, getSortItems, isAudio } from '@/lib/file'
 import { useKeyEvents } from '@/hooks/key-events'
 import { formatDateTime, formatTimeAgo } from '@/lib/format'
 import { useDragDropUpload, useFileUpload } from '@/hooks/upload'
@@ -271,6 +282,7 @@ const { t } = useI18n()
 const { parseQ } = useSearch()
 const filter = reactive<IFilter>({
   tagIds: [],
+  bucketId: undefined,
 })
 const { app, urlTokenKey, audioPlaying, uploads } = storeToRefs(useTempStore())
 const isAudioPlaying = (item: IAudio) => {
@@ -328,9 +340,10 @@ const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(total, limit, pa
     deleteItems(dataType, selectedIds.value, realAllChecked.value, total.value, q.value)
   }
 })
-const { addItemsToPlaylist, addToPlaylist } = useAddToPlaylist(items, clearSelection)
+const { addItemsToPlaylist, addToPlaylist, removeFromPlaylist, isInPlaylist } = useAddToPlaylist(items, clearSelection)
 const sortItems = getSortItems()
 const imageErrorIds = ref<string[]>([])
+const animatingIds = ref<string[]>([])
 
 const { play, playPath, loading: playLoading, pause } = useAudioPlayer()
 
@@ -357,7 +370,6 @@ const { loading, fetch } = initLazyQuery({
     query: q.value,
     sortBy: audioSortBy.value,
   }),
-  appApi: true,
 })
 
 const { trashLoading, trash } = useMediaTrash()
@@ -429,6 +441,23 @@ const mediaItemsActionedHandler = (event: IMediaItemsActionedEvent) => {
   }
 }
 
+const uploadTaskDoneHandler = (r: IUploadItem) => {
+  if (r.status === 'done') {
+    // Check if uploaded file is an audio
+    if (isAudio(r.fileName)) {
+      // Check if the uploaded file matches current bucket filter or show all
+      const shouldRefresh = !filter.bucketId || buckets.value.some((bucket) => bucket.id === filter.bucketId && bucket.topItems.some((topItem) => r.dir.startsWith(getDirFromPath(topItem))))
+
+      if (shouldRefresh) {
+        // Delay to ensure the API returns latest data
+        setTimeout(() => {
+          fetch()
+        }, 1000)
+      }
+    }
+  }
+}
+
 function addItemToTags(item: IAudio) {
   const tagIds = item.tags.map((t) => t.id)
   openModal(UpdateTagRelationsModal, {
@@ -443,6 +472,16 @@ function addItemToTags(item: IAudio) {
   })
 }
 
+function handleRemoveFromPlaylist(e: MouseEvent, item: IAudio) {
+  animatingIds.value.push(item.id)
+  setTimeout(() => {
+    removeFromPlaylist(e, item)
+    setTimeout(() => {
+      animatingIds.value = animatingIds.value.filter((id) => id !== item.id)
+    }, 300) // 动画完成后移除
+  }, 150) // 旋转到90度后开始移除操作
+}
+
 onActivated(() => {
   q.value = decodeBase64(query.q?.toString() ?? '')
   parseQ(filter, q.value)
@@ -451,6 +490,7 @@ onActivated(() => {
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
   emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
   emitter.on('media_items_actioned', mediaItemsActionedHandler)
+  emitter.on('upload_task_done', uploadTaskDoneHandler)
   window.addEventListener('keydown', pageKeyDown)
   window.addEventListener('keyup', pageKeyUp)
 })
@@ -459,6 +499,7 @@ onDeactivated(() => {
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
   emitter.off('media_items_actioned', mediaItemsActionedHandler)
+  emitter.off('upload_task_done', uploadTaskDoneHandler)
   window.removeEventListener('keydown', pageKeyDown)
   window.removeEventListener('keyup', pageKeyUp)
 })
@@ -470,7 +511,7 @@ onDeactivated(() => {
   grid-template-areas:
     'start image title actions artist time'
     'start image subtitle  actions artist time';
-  grid-template-columns: 48px 50px 2fr 210px minmax(64px, 1fr) minmax(140px, auto);
+  grid-template-columns: 48px 50px 2fr 240px minmax(64px, 1fr) minmax(140px, auto);
   &:hover {
     cursor: pointer;
   }
@@ -571,6 +612,26 @@ onDeactivated(() => {
       width: 60px;
       height: 20px;
     }
+  }
+}
+
+.playlist-remove-icon {
+  color: var(--md-sys-color-error) !important;
+}
+
+.rotating {
+  animation: rotate-icon 300ms ease-in-out;
+}
+
+@keyframes rotate-icon {
+  0% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(90deg);
+  }
+  100% {
+    transform: rotate(0deg);
   }
 }
 </style>

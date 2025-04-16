@@ -1,6 +1,6 @@
 <template>
   <div class="image-container">
-    <div class="media-item" v-for="(item, i) in sources" :key="i" @click="view(i)">
+    <div v-for="(item, i) in sources" :key="i" class="media-item" @click="view(i)">
       <img class="image-thumb" :src="getPreview(item)" onerror="this.src='/broken-image.png'" />
       <span class="duration">{{ isVideo(item.name) ? formatSeconds(item.duration) : formatFileSize(item.size) }}</span>
     </div>

@@ -32,7 +32,6 @@ export const useCreateDir = (urlTokenKey: Ref<sjcl.BitArray | null>, items: Ref<
             items.value.unshift(enrichFile(d, urlTokenKey.value))
           },
         },
-        appApi: true,
       })
     },
   }
@@ -48,7 +47,6 @@ export const useRename = (fetch: () => void) => {
     renameMutation() {
       return initMutation({
         document: renameFileGQL,
-        appApi: true,
       })
     },
     renameVariables(value: string) {
@@ -70,7 +68,6 @@ export const useStats = () => {
       }
     },
     document: storageStatsGQL,
-    appApi: true,
   })
 
   return { internal, sdcard, usb, refetch }
@@ -139,7 +136,6 @@ export const useCopyPaste = (items: Ref<IFile[]>, isCut: Ref<boolean>, selectedF
     onError: copyError,
   } = initMutation({
     document: copyFileGQL,
-    appApi: true,
   })
 
   const {
@@ -149,7 +145,6 @@ export const useCopyPaste = (items: Ref<IFile[]>, isCut: Ref<boolean>, selectedF
     onError: cutError,
   } = initMutation({
     document: moveFileGQL,
-    appApi: true,
   })
 
   const { t } = useI18n()

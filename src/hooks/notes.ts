@@ -7,7 +7,6 @@ import { reactive } from 'vue'
 export const useNotesTrash = (clearSelection: () => void, fetch: () => void) => {
   const { mutate, onDone: onTrashed } = initMutation({
     document: trashNotesGQL,
-    appApi: true,
   })
 
   const loading = reactive(new Map())
@@ -34,7 +33,6 @@ export const useNotesTrash = (clearSelection: () => void, fetch: () => void) => 
 export const useNotesRestore = (clearSelection: () => void, fetch: () => void) => {
   const { mutate, onDone: onRestored } = initMutation({
     document: restoreNotesGQL,
-    appApi: true,
   })
 
   const loading = reactive(new Map())

@@ -1,26 +1,26 @@
 <template>
   <div class="quick-content-main">
     <div class="top-app-bar">
-      <button class="btn-icon" @click.prevent="store.quick = ''" v-tooltip="$t('close')">
+      <button v-tooltip="$t('close')" class="btn-icon" @click.prevent="store.quick = ''">
         <md-ripple />
         <i-material-symbols:right-panel-close-outline />
       </button>
       <div class="title">{{ $t('header_actions.notifications') }} ({{ notifications.length }})</div>
       <div class="actions">
-        <button v-if="notifications.length" class="btn-icon" @click.prevent="clearAll" v-tooltip="$t('clear_list')">
+        <button v-if="notifications.length" v-tooltip="$t('clear_list')" class="btn-icon" @click.prevent="clearAll">
           <md-ripple />
           <i-material-symbols:delete-forever-outline-rounded />
         </button>
       </div>
     </div>
-    <div class="alert-warning show" v-if="!isHttps && notifcationPermission !== 'granted'">
+    <div v-if="!isHttps && notifcationPermission !== 'granted'" class="alert-warning show">
       <i-material-symbols:error-outline-rounded />
       <div class="body">{{ $t('desktop_notification_need_https') }}</div>
       <div class="actions">
         <md-filled-button class="btn-sm" @click.stop="useHttpsLink">{{ $t('use_https_link') }}</md-filled-button>
       </div>
     </div>
-    <div class="alert-warning show" v-else-if="notifcationPermission !== 'granted'">
+    <div v-else-if="notifcationPermission !== 'granted'" class="alert-warning show">
       <i-material-symbols:error-outline-rounded />
       <div class="body">{{ $t('desktop_notification_permission_not_granted') }}</div>
       <div class="actions">
@@ -29,7 +29,7 @@
     </div>
     <div class="quick-content-body">
       <section v-if="notifications.length" class="list-items">
-        <div v-for="item in notifications" class="item" :key="item.id">
+        <div v-for="item in notifications" :key="item.id" class="item">
           <div class="title">
             <popper>
               <img width="20" height="20" :src="item.icon" />
@@ -38,7 +38,7 @@
               </template>
             </popper>
             <span class="name">{{ item.appName }}</span>
-            <time class="time nowrap" v-tooltip="formatDateTimeFull(item.time)">{{ formatDateTime(item.time) }}</time>
+            <time v-tooltip="formatDateTimeFull(item.time)" class="time nowrap">{{ formatDateTime(item.time) }}</time>
           </div>
           <div class="subtitle">{{ item.title }}</div>
           <div class="body">{{ item.body }}</div>
@@ -48,7 +48,7 @@
           </button>
         </div>
       </section>
-      <span class="no-data" v-else>
+      <span v-else class="no-data">
         {{ $t(noDataKey(loading, app.permissions, 'NOTIFICATION_LISTENER')) }}
       </span>
     </div>
@@ -94,14 +94,12 @@ const { loading } = initQuery({
     }
   },
   document: notificationsGQL,
-  appApi: true,
 })
 
 const notifcationPermission = ref(Notification.permission)
 
 const { mutate: cancelNotifications } = initMutation({
   document: cancelNotificationsGQL,
-  appApi: true,
 })
 
 const deleteItem = (item: INotification) => {

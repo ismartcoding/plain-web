@@ -3,17 +3,17 @@
     <template #title>{{ $t('page_title.apps') }}</template>
     <template #body>
       <ul class="nav">
-        <li @click.prevent="viewAll" :class="{ active: !type }">
+        <li :class="{ active: !type }" @click.prevent="viewAll">
           <span class="title">{{ $t('all') }}</span>
-          <span class="count" v-if="counter.packages >= 0">{{ counter.packages.toLocaleString() }}</span>
+          <span v-if="counter.packages >= 0" class="count">{{ counter.packages.toLocaleString() }}</span>
         </li>
-        <li @click.prevent="openByType('user')" :class="{ active: 'user' === type }">
+        <li :class="{ active: 'user' === type }" @click.prevent="openByType('user')">
           <span class="title">{{ $t(`app_type.user`) }}</span>
-          <span class="count" v-if="userTypeCount >= 0">{{ userTypeCount.toLocaleString() }}</span>
+          <span v-if="userTypeCount >= 0" class="count">{{ userTypeCount.toLocaleString() }}</span>
         </li>
-        <li @click.prevent="openByType('system')" :class="{ active: 'system' === type }">
+        <li :class="{ active: 'system' === type }" @click.prevent="openByType('system')">
           <span class="title">{{ $t(`app_type.system`) }}</span>
-          <span class="count" v-if="counter.packagesSystem >= 0">{{ counter.packagesSystem.toLocaleString() }}</span>
+          <span v-if="counter.packagesSystem >= 0" class="count">{{ counter.packagesSystem.toLocaleString() }}</span>
         </li>
       </ul>
     </template>
@@ -51,7 +51,6 @@ const { fetch } = initLazyQuery({
   },
   document: packageCountGQL,
   variables: () => ({}),
-  appApi: true,
 })
 
 function updateActive() {

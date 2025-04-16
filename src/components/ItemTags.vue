@@ -2,7 +2,7 @@
   <template v-if="onlyLinks">
     <a v-for="tag in tags" :key="tag.id" @click.stop.prevent="view(tag)">#{{ tag.name }}</a>
   </template>
-  <div class="tags" v-else-if="tags.length">
+  <div v-else-if="tags.length" class="tags">
     <a v-for="tag in tags" :key="tag.id" @click.stop.prevent="view(tag)">#{{ tag.name }}</a>
   </div>
 </template>

@@ -3,13 +3,13 @@
     <template #title>{{ $t('page_title.calls') }}</template>
     <template #body>
       <ul class="nav">
-        <li @click.prevent="viewAll" :class="{ active: !selectedTagId && !type }">
+        <li :class="{ active: !selectedTagId && !type }" @click.prevent="viewAll">
           <span class="title">{{ $t('all') }}</span>
-          <span class="count" v-if="counter.calls >= 0">{{ counter.calls.toLocaleString() }}</span>
+          <span v-if="counter.calls >= 0" class="count">{{ counter.calls.toLocaleString() }}</span>
         </li>
-        <li v-for="t in ['1', '2', '3']" :key="t" @click.prevent="openByType(t)" :class="{ active: t === type }">
+        <li v-for="t in ['1', '2', '3']" :key="t" :class="{ active: t === type }" @click.prevent="openByType(t)">
           <span class="title">{{ $t(`call_type.${t}`) }}</span>
-          <span class="count" v-if="getTypeCount(t) >= 0">{{ getTypeCount(t).toLocaleString() }}</span>
+          <span v-if="getTypeCount(t) >= 0" class="count">{{ getTypeCount(t).toLocaleString() }}</span>
         </li>
       </ul>
       <tag-filter type="CALL" :selected="selectedTagId" />
@@ -52,7 +52,6 @@ const { fetch } = initLazyQuery({
   },
   document: callCountGQL,
   variables: () => ({}),
-  appApi: true,
 })
 
 function getTypeCount(id: string) {

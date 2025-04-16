@@ -6,7 +6,7 @@
     </form>
     <div slot="actions">
       <md-outlined-button form="form" value="cancel">{{ $t('cancel') }}</md-outlined-button>
-      <md-filled-button form="form" value="delete" :disabled="loading" @click="doDelete" autofocus>{{ $t('delete') }}</md-filled-button>
+      <md-filled-button form="form" value="delete" :disabled="loading" autofocus @click="doDelete">{{ $t('delete') }}</md-filled-button>
     </div>
   </md-dialog>
 </template>
@@ -24,7 +24,6 @@ const props = defineProps({
   image: { type: String },
   gql: { type: Object as PropType<DocumentNode>, required: true },
   typeName: { type: String, required: true },
-  appApi: { type: Boolean, default: false },
   done: {
     type: Function as PropType<() => void>,
   },
@@ -42,7 +41,6 @@ const { mutate, loading, onDone } = initMutation({
       }
     },
   },
-  appApi: props.appApi,
 })
 
 function doDelete() {

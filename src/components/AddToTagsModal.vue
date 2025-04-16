@@ -15,14 +15,14 @@
       <md-chip-set>
         <md-filter-chip v-for="item in tags" :key="item.id" :label="item.name" :selected="selectedTags.includes(item)" @click="onTagSelect(item)" />
       </md-chip-set>
-      <div class="invalid-feedback" v-show="errorMessage">
+      <div v-show="errorMessage" class="invalid-feedback">
         {{ errorMessage ? $t(errorMessage) : '' }}
       </div>
     </div>
     <div slot="actions">
       <md-outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</md-outlined-button>
-      <md-filled-button value="save" :disabled="adding || removing" @click="doAction" autofocus>
-        <md-circular-progress indeterminate v-if="adding || removing" slot="icon" /> {{ $t('save') }}
+      <md-filled-button value="save" :disabled="adding || removing" autofocus @click="doAction">
+        <md-circular-progress v-if="adding || removing" slot="icon" indeterminate /> {{ $t('save') }}
       </md-filled-button>
     </div>
   </md-dialog>
@@ -73,7 +73,6 @@ const {
   onDone: onRemoved,
 } = initMutation({
   document: removeFromTagsGQL,
-  appApi: true,
 })
 
 const {
@@ -82,7 +81,6 @@ const {
   onDone: onAdded,
 } = initMutation({
   document: addToTagsGQL,
-  appApi: true,
 })
 
 const onDone = () => {

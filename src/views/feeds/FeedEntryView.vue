@@ -31,32 +31,32 @@
             {{ formatTimeAgo(entry.publishedAt) }}
           </time>
           <item-tags :tags="entry?.tags" :type="dataType" />
-          <button class="btn-icon sm" v-tooltip="$t('add_to_tags')" @click.prevent="addToTags" style="margin-inline-start: 16px">
+          <button v-tooltip="$t('add_to_tags')" class="btn-icon sm" style="margin-inline-start: 16px" @click.prevent="addToTags">
             <md-ripple />
             <i-material-symbols:label-outline-rounded />
           </button>
-          <md-circular-progress indeterminate class="spinner-sm" v-if="syncContentLoading" />
-          <button class="btn-icon sm" v-else :disabled="syncContentLoading" v-tooltip="$t('sync_content')" @click.prevent="syncContent">
+          <md-circular-progress v-if="syncContentLoading" indeterminate class="spinner-sm" />
+          <button v-else v-tooltip="$t('sync_content')" class="btn-icon sm" :disabled="syncContentLoading" @click.prevent="syncContent">
             <md-ripple />
             <i-material-symbols:sync-rounded />
           </button>
-          <a :href="entry?.url" class="btn-icon" target="_blank" v-tooltip="$t('view_original_article')">
+          <a v-tooltip="$t('view_original_article')" :href="entry?.url" class="btn-icon" target="_blank">
             <button class="btn-icon sm">
               <md-ripple />
               <i-material-symbols:open-in-new-rounded />
             </button>
           </a>
-          <button class="btn-icon sm" v-tooltip="$t('save_to_notes')" @click.prevent="saveToNotes({ query: `ids:${id}` })">
+          <button v-tooltip="$t('save_to_notes')" class="btn-icon sm" @click.prevent="saveToNotes({ query: `ids:${id}` })">
             <md-ripple />
             <i-material-symbols:add-notes-outline-rounded />
           </button>
-          <button class="btn-icon sm" v-tooltip="$t('print')" @click.prevent="print">
+          <button v-tooltip="$t('print')" class="btn-icon sm" @click.prevent="print">
             <md-ripple />
             <i-material-symbols:print-outline-rounded />
           </button>
         </div>
         <div class="actions">
-          <button class="btn-icon" v-tooltip="$t('close')" @click.prevent="backToList">
+          <button v-tooltip="$t('close')" class="btn-icon" @click.prevent="backToList">
             <md-ripple />
             <i-material-symbols:close-rounded />
           </button>
@@ -117,7 +117,6 @@ const { loading, fetch } = initLazyQuery({
   variables: () => ({
     id: id.value,
   }),
-  appApi: true,
 })
 
 const mainStore = useMainStore()
@@ -139,7 +138,6 @@ const {
   onDone: onSaveToNotesDone,
 } = initMutation({
   document: saveFeedEntriesToNotesGQL,
-  appApi: true,
 })
 
 onSaveToNotesDone(() => {
@@ -160,7 +158,6 @@ initQuery({
   variables: {
     type: dataType,
   },
-  appApi: true,
 })
 
 const print = () => {
@@ -186,7 +183,6 @@ const {
   onDone: syncContentDone,
 } = initMutation({
   document: syncFeedContentGQL,
-  appApi: true,
 })
 
 syncContentDone(async (r: any) => {

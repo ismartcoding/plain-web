@@ -1,5 +1,5 @@
 <template>
-  <li v-for="item in mediaBuckets" :key="item.id" @click.prevent="view(mainStore, item.id)" :class="{ active: selected && item.id === selected }">
+  <li v-for="item in mediaBuckets" :key="item.id" :class="{ active: selected && item.id === selected }" @click.prevent="view(mainStore, item.id)">
     <span class="title">{{ item.name }}</span
     ><span class="count">{{ item.itemCount.toLocaleString() }}</span>
   </li>
@@ -41,7 +41,6 @@ const { refetch } = initQuery({
   variables: {
     type: props.type,
   },
-  appApi: true,
 })
 
 const mediaItemsActionedHandler = (event: IMediaItemsActionedEvent) => {

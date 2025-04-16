@@ -8,11 +8,10 @@ import emitter from '@/plugins/eventbus'
 export class InitMutationParams {
   document!: DocumentNode
   options?: any = {}
-  appApi?: boolean = false
 }
 export function initMutation(params: InitMutationParams, handleError = true) {
   const r = useMutation(params.document, {
-    clientId: params.appApi ? 'a' : 'b',
+    clientId: 'a',
     ...params.options,
   })
 
@@ -140,7 +139,7 @@ export const trashMediaItemsGQL = gql`
 
 export const restoreMediaItemsGQL = gql`
   mutation restoreMediaItems($type: DataType!, $query: String!) {
-    restoreMediaItems(type: $type, query: $query)  {
+    restoreMediaItems(type: $type, query: $query) {
       type
       query
     }
@@ -307,34 +306,6 @@ export const callGQL = gql`
   }
 `
 
-export const createAIChatGQL = gql`
-  mutation createAIChat($id: ID!, $message: String!, $isMe: Boolean!) {
-    createAIChat(id: $id, message: $message, isMe: $isMe) {
-      id
-      parentId
-      isMe
-      content
-      type
-      createdAt
-      updatedAt
-    }
-  }
-`
-
-export const deleteAIChatsGQL = gql`
-  mutation deleteAIChats($query: String!) {
-    deleteAIChats(query: $query)
-  }
-`
-
-export const updateAIChatConfigGQL = gql`
-  mutation updateAIChatConfig($chatGPTApiKey: String!) {
-    updateAIChatConfig(chatGPTApiKey: $chatGPTApiKey) {
-      chatGPTApiKey
-    }
-  }
-`
-
 export const uninstallPackagesGQL = gql`
   mutation uninstallPackages($ids: [ID!]!) {
     uninstallPackages(ids: $ids)
@@ -387,4 +358,9 @@ export const saveFeedEntriesToNotesGQL = gql`
     }
   }
   ${noteFragment}
+`
+export const mergeChunksGQL = gql`
+  mutation mergeChunks($fileId: String!, $totalChunks: Int!, $path: String!, $replace: Boolean!) {
+    mergeChunks(fileId: $fileId, totalChunks: $totalChunks, path: $path, replace: $replace)
+  }
 `

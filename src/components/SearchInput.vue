@@ -26,14 +26,14 @@
       <i-material-symbols:label-outline-rounded slot="icon" />
     </md-input-chip>
   </md-chip-set>
-  <button id="btn-search" class="btn-icon" @click.prevent="show" v-tooltip="$t('search')">
+  <button id="btn-search" v-tooltip="$t('search')" class="btn-icon" @click.prevent="show">
     <md-ripple />
     <i-material-symbols:search-rounded />
   </button>
   <md-menu positioning="popover" anchor="btn-search" menu-corner="start-end" anchor-corner="end-end" stay-open-on-focusout quick :open="searchPanelVisible" @closed="hide">
     <div class="filters">
       <div class="form-row">
-        <md-outlined-text-field :label="$t('keywords')" v-model="searchFilter.text" @keyup.enter="applyAndDoSearch" />
+        <md-outlined-text-field v-model="searchFilter.text" :label="$t('keywords')" @keyup.enter="applyAndDoSearch" />
       </div>
       <md-chip-set v-if="props.showToday">
         <md-filter-chip key="chip-today" :label="$t('today')" :selected="searchFilter.today" @click="searchFilter.today = !searchFilter.today" />

@@ -1,34 +1,34 @@
 <template>
   <div class="top-app-bar">
-    <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
+    <md-checkbox touch-target="wrapper" :checked="allChecked" :indeterminate="!allChecked && checked" @change="toggleAllChecked" />
     <div class="title">
       <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
       <span v-else>{{ $t('page_title.notes') }} ({{ total.toLocaleString() }})</span>
       <template v-if="checked">
         <template v-if="filter.trash">
-          <icon-button @click.stop="deleteItems(selectedIds, realAllChecked, total, q)" v-tooltip="$t('delete')">
+          <icon-button v-tooltip="$t('delete')" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)">
             <template #icon>
               <i-material-symbols:delete-forever-outline-rounded />
             </template>
           </icon-button>
-          <icon-button @click.stop="restore(getQuery())" v-tooltip="$t('restore')" :loading="restoreLoading(getQuery())">
+          <icon-button v-tooltip="$t('restore')" :loading="restoreLoading(getQuery())" @click.stop="restore(getQuery())">
             <template #icon>
               <i-material-symbols:restore-from-trash-outline-rounded />
             </template>
           </icon-button>
         </template>
         <template v-else>
-          <icon-button @click.stop="trash(getQuery())" v-tooltip="$t('move_to_trash')">
+          <icon-button v-tooltip="$t('move_to_trash')" @click.stop="trash(getQuery())">
             <template #icon>
               <i-material-symbols:delete-outline-rounded />
             </template>
           </icon-button>
-          <icon-button @click.stop="addToTags(selectedIds, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
+          <icon-button v-tooltip="$t('add_to_tags')" @click.stop="addToTags(selectedIds, realAllChecked, q)">
             <template #icon>
               <i-material-symbols:label-outline-rounded />
             </template>
           </icon-button>
-          <icon-button @click.stop="exportNotes2" v-tooltip="$t('export_notes')">
+          <icon-button v-tooltip="$t('export_notes')" @click.stop="exportNotes2">
             <template #icon>
               <i-material-symbols:export-notes-outline-rounded />
             </template>
@@ -50,7 +50,7 @@
     :clear-selection="clearSelection"
   />
   <div v-if="loading && items.length === 0" class="scroller">
-    <article class="note-item selectable-card-skeleton" v-for="i in 20" :key="i">
+    <article v-for="i in 20" :key="i" class="note-item selectable-card-skeleton">
       <div class="start">
         <div class="checkbox">
           <div class="skeleton-checkbox"></div>
@@ -73,7 +73,7 @@
   </div>
   <VirtualList v-if="items.length" class="scroller" :data-key="'id'" :data-sources="items" :estimate-size="100" :class="{ 'select-mode': checked }">
     <template #item="{ index, item }">
-      <a class="item-link" :key="item.id" :href="viewUrl(item)">
+      <a :key="item.id" class="item-link" :href="viewUrl(item)">
         <article
           class="note-item selectable-card"
           :class="{ selected: selectedIds.includes(item.id) || item.id == $route.params['id'], selecting: shiftEffectingIds.includes(item.id) }"
@@ -85,8 +85,8 @@
           @mouseover="handleMouseOver($event, index)"
         >
           <div class="start">
-            <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, index)" :checked="shouldSelect" />
-            <md-checkbox v-else class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, index)" :checked="selectedIds.includes(item.id)" />
+            <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, index)" />
+            <md-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, index)" />
             <span class="number"><field-id :id="index + 1" :raw="item" /></span>
           </div>
           <div class="title">{{ getSummary(item.title.split('\n')[0].trimStart()) || $t('meta_no_title') }}</div>
@@ -95,24 +95,24 @@
           </div>
           <div class="actions">
             <template v-if="filter.trash">
-              <icon-button class="sm" @click.stop.prevent="deleteItem(item)" v-tooltip="$t('delete')">
+              <icon-button v-tooltip="$t('delete')" class="sm" @click.stop.prevent="deleteItem(item)">
                 <template #icon>
                   <i-material-symbols:delete-forever-outline-rounded />
                 </template>
               </icon-button>
-              <icon-button class="sm" @click.stop.prevent="restore(`ids:${item.id}`)" v-tooltip="$t('restore')" :loading="restoreLoading(`ids:${item.id}`)">
+              <icon-button v-tooltip="$t('restore')" class="sm" :loading="restoreLoading(`ids:${item.id}`)" @click.stop.prevent="restore(`ids:${item.id}`)">
                 <template #icon>
                   <i-material-symbols:restore-from-trash-outline-rounded />
                 </template>
               </icon-button>
             </template>
             <template v-else>
-              <icon-button class="sm" @click.stop.prevent="trash(`ids:${item.id}`)" v-tooltip="$t('move_to_trash')" :loading="trashLoading(`ids:${item.id}`)">
+              <icon-button v-tooltip="$t('move_to_trash')" class="sm" :loading="trashLoading(`ids:${item.id}`)" @click.stop.prevent="trash(`ids:${item.id}`)">
                 <template #icon>
                   <i-material-symbols:delete-outline-rounded />
                 </template>
               </icon-button>
-              <icon-button class="sm" @click.stop.prevent="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
+              <icon-button v-tooltip="$t('add_to_tags')" class="sm" @click.stop.prevent="addItemToTags(item)">
                 <template #icon>
                   <i-material-symbols:label-outline-rounded />
                 </template>
@@ -223,7 +223,6 @@ const { loading, fetch } = initLazyQuery({
     limit,
     query: q.value,
   }),
-  appApi: true,
 })
 
 function addItemToTags(item: INote) {
@@ -245,7 +244,6 @@ function getUrl(q: string) {
 
 const { mutate: exportNotes, onDone: onExpored } = initMutation({
   document: exportNotesGQL,
-  appApi: true,
 })
 
 const exportNotes2 = () => {
@@ -285,7 +283,6 @@ function deleteItem(item: INote) {
       clearSelection()
       total.value--
     },
-    appApi: true,
     typeName: 'Note',
   })
 }

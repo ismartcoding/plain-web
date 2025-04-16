@@ -1,11 +1,11 @@
 <template>
-  <div class="top-error" v-if="wsStatus">
+  <div v-if="wsStatus" class="top-error">
     {{ $t('fix_disconnect_tips') }}
   </div>
   <router-view />
   <Teleport to="body">
     <modal-container />
-    <div class="tap-phone-container" v-click-away="closeTapPhone" v-if="tapPhoneMessage" @click="closeTapPhone">
+    <div v-if="tapPhoneMessage" v-click-away="closeTapPhone" class="tap-phone-container" @click="closeTapPhone">
       <div>
         {{ tapPhoneMessage }}
       </div>
@@ -44,7 +44,6 @@ const EventType: { [key: number]: string } = {
   3: 'message_updated',
   4: 'feeds_fetched',
   5: 'screen_mirroring',
-  6: 'ai_chat_replied',
   7: 'notification_created',
   8: 'notification_updated',
   9: 'notification_deleted',

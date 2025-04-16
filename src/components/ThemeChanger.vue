@@ -1,16 +1,5 @@
 <template>
   <div class="theme-changer">
-    <div>
-      <label id="hex">
-        <span class="label">{{ $t('color') }}</span>
-        <span class="input-wrapper">
-          <div class="overflow">
-            <input id="color-input" @input="onHexPickerInput" type="color" :value="hexColor" />
-          </div>
-          <md-focus-ring for="color-input"></md-focus-ring>
-        </span>
-      </label>
-    </div>
     <md-outlined-segmented-button-set>
       <md-outlined-segmented-button data-value="dark" :selected="selectedColorMode === 'dark'" @click="selectColrMode('dark')">
         <i-material-symbols:dark-mode-outline-rounded slot="icon" />
@@ -25,23 +14,17 @@
   </div>
 </template>
 <script setup lang="ts">
-import { changeColor, changeColorMode, getCurrentMode, getCurrentSeedColor } from '@/lib/theme/theme.js'
+import { changeColorMode, getCurrentMode } from '@/lib/theme/theme.js'
 import type { ColorMode } from '@/lib/theme/theme.js'
 import { ref } from 'vue'
 import type { MdOutlinedSegmentedButton } from '@material/web/labs/segmentedbutton/outlined-segmented-button.js'
 import '@material/web/labs/segmentedbuttonset/outlined-segmented-button-set.js'
 import '@material/web/labs/segmentedbutton/outlined-segmented-button.js'
 
-const hexColor = ref(getCurrentSeedColor())
 const selectedColorMode = ref(getCurrentMode())
 function selectColrMode(value: ColorMode) {
   selectedColorMode.value = value
   changeColorMode(value)
-}
-
-function onHexPickerInput(e: Event) {
-  hexColor.value = (e.target as HTMLInputElement).value
-  changeColor(hexColor.value)
 }
 </script>
 

@@ -1,11 +1,11 @@
 <template>
   <div class="top-app-bar">
-    <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
+    <md-checkbox touch-target="wrapper" :checked="allChecked" :indeterminate="!allChecked && checked" @change="toggleAllChecked" />
     <div class="title">
       <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
       <span v-else>{{ $t('page_title.messages') }} ({{ total.toLocaleString() }})</span>
       <template v-if="checked">
-        <button class="btn-icon" @click.stop="addToTags(selectedIds, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
+        <button v-tooltip="$t('add_to_tags')" class="btn-icon" @click.stop="addToTags(selectedIds, realAllChecked, q)">
           <md-ripple />
           <i-material-symbols:label-outline-rounded />
         </button>
@@ -27,16 +27,16 @@
   <div class="scroll-content">
     <div class="sms-list" :class="{ 'select-mode': checked }">
       <section
-        class="sms-item selectable-card"
         v-for="(item, i) in items"
         :key="item.id"
+        class="sms-item selectable-card"
         :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
         @click.stop="handleItemClick($event, item, i, () => {})"
         @mouseover="handleMouseOver($event, i)"
       >
         <div class="start">
-          <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, i)" :checked="shouldSelect" />
-          <md-checkbox v-else class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, i)" :checked="selectedIds.includes(item.id)" />
+          <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, i)" />
+          <md-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, i)" />
           <span class="number"><field-id :id="i + 1" :raw="item" /></span>
         </div>
         <div class="title">
@@ -44,12 +44,12 @@
         </div>
         <div class="subtitle" v-html="addLinksToURLs(item.body)"></div>
         <div class="actions">
-          <button class="btn-icon sm" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
+          <button v-tooltip="$t('add_to_tags')" class="btn-icon sm" @click.stop="addItemToTags(item)">
             <md-ripple />
             <i-material-symbols:label-outline-rounded />
           </button>
-          <md-circular-progress indeterminate class="spinner-sm" v-if="callLoading && callId === item.id" />
-          <button class="btn-icon sm" v-else @click.stop="call(item)" v-tooltip="$t('make_a_phone_call')">
+          <md-circular-progress v-if="callLoading && callId === item.id" indeterminate class="spinner-sm" />
+          <button v-else v-tooltip="$t('make_a_phone_call')" class="btn-icon sm" @click.stop="call(item)">
             <md-ripple />
             <i-material-symbols:call-outline-rounded />
           </button>
@@ -65,7 +65,7 @@
         </div>
       </section>
       <template v-if="loading && items.length === 0">
-        <section class="sms-item selectable-card-skeleton" v-for="i in 20" :key="i">
+        <section v-for="i in 20" :key="i" class="sms-item selectable-card-skeleton">
           <div class="start">
             <div class="checkbox">
               <div class="skeleton-checkbox"></div>
@@ -91,7 +91,7 @@
         </section>
       </template>
     </div>
-    <div class="no-data-placeholder" v-if="!loading && items.length === 0">
+    <div v-if="!loading && items.length === 0" class="no-data-placeholder">
       {{ $t(noDataKey(loading, app.permissions, 'READ_SMS')) }}
     </div>
     <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" />
@@ -179,7 +179,6 @@ const { loading, fetch } = initLazyQuery({
     limit,
     query: q.value,
   }),
-  appApi: true,
 })
 
 const types = ['1', '2', '3'].map((it) => ({ id: it, name: t('message_type.' + it) }))
@@ -200,7 +199,6 @@ function addItemToTags(item: IMessage) {
 const callId = ref('')
 const { mutate: mutateCall, loading: callLoading } = initMutation({
   document: callGQL,
-  appApi: true,
 })
 
 function call(item: IMessage) {
