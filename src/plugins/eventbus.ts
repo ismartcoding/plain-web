@@ -4,7 +4,6 @@ import mitt, { type Emitter } from 'mitt'
 
 type Events = {
   upload_task_done: IUploadItem
-  upload_task_created: boolean
   refetch_app: undefined
   play_audio: undefined
   do_play_audio: undefined
@@ -20,7 +19,6 @@ type Events = {
   toast: string
   tap_phone: string
   feeds_fetched: any
-  ai_chat_replied: any
   screen_mirroring: Blob
   message_created: any
   message_updated: any

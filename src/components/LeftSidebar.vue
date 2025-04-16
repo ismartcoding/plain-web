@@ -1,7 +1,7 @@
 <template>
   <aside class="sidebar" :class="{ mini: miniSidebar }" :style="{ width: mainStore.sidebarWidth + 'px' }">
     <div class="top-app-bar">
-      <button class="btn-icon" v-tooltip="$t(miniSidebar ? 'open' : 'close')" @click.prevent="toggleSidebar">
+      <button v-tooltip="$t(miniSidebar ? 'open' : 'close')" class="btn-icon" @click.prevent="toggleSidebar">
         <md-ripple />
         <i-material-symbols:left-panel-open-outline-rounded v-if="miniSidebar" />
         <i-material-symbols:left-panel-close-outline-rounded v-else />
@@ -16,7 +16,7 @@
     <div class="sidebar-body">
       <slot name="body" />
     </div>
-    <div class="sidebar-drag-indicator" v-show="!miniSidebar" @mousedown="resizeWidth"></div>
+    <div v-show="!miniSidebar" class="sidebar-drag-indicator" @mousedown="resizeWidth"></div>
   </aside>
 </template>
 

@@ -20,7 +20,14 @@ function sanitizeFileName(name: string): string {
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  css: { preprocessorOptions: { scss: { charset: false } } },
+  css: { 
+    preprocessorOptions: { 
+      scss: { 
+        charset: false,
+        api: 'modern-compiler' // 修复 legacy JS API 警告
+      } 
+    } 
+  },
   server: {
     host: '0.0.0.0',
     port: 3000,

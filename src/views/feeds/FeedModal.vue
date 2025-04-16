@@ -10,24 +10,24 @@
       <div class="form-row">
         <md-outlined-text-field
           ref="inputRef"
+          v-model="inputValue"
           class="form-control"
           :label="$t('name')"
           :error="valueError"
           :error-text="valueError ? $t(valueError) : ''"
-          v-model="inputValue"
           @keyup.enter="doAction"
         />
       </div>
       <div class="form-row">
         <label class="form-check-label">
-          <md-checkbox touch-target="wrapper" @change="toggleFetchContent" :checked="fetchContent" />
+          <md-checkbox touch-target="wrapper" :checked="fetchContent" @change="toggleFetchContent" />
           {{ $t('fetch_content_automatically') }}
         </label>
       </div>
     </div>
     <div slot="actions">
       <md-outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</md-outlined-button>
-      <md-filled-button value="save" :disabled="loading" @click="doAction" autofocus> <md-circular-progress indeterminate v-if="loading" slot="icon" /> {{ $t('save') }} </md-filled-button>
+      <md-filled-button value="save" :disabled="loading" autofocus @click="doAction"> <md-circular-progress v-if="loading" slot="icon" indeterminate /> {{ $t('save') }} </md-filled-button>
     </div>
   </md-dialog>
 </template>
@@ -55,7 +55,6 @@ const props = defineProps({
 
 const { mutate, loading, onDone } = initMutation({
   document: updateFeedGQL,
-  appApi: true,
 })
 const { value: inputValue, errorMessage: valueError } = useField('inputValue', string().required())
 inputValue.value = props.data?.name ?? ''

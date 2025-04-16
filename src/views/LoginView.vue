@@ -4,8 +4,8 @@
   </header>
   <h1>{{ $t('app_name') }}</h1>
   <div class="login-block">
-    <form @submit.prevent="onSubmit" v-show="!showConfirm">
-      <div class="alert alert-danger show" role="alert" v-show="showError">
+    <form v-show="!showConfirm" @submit.prevent="onSubmit">
+      <div v-show="showError" class="alert alert-danger show" role="alert">
         <i-material-symbols:error-outline-rounded />
         <div class="body">
           {{ error ? $t(error) : '' }}
@@ -13,14 +13,14 @@
       </div>
       <md-outlined-text-field
         v-if="showPasswordInput"
-        :label="t('password')"
         v-model="password"
-        @keydown.enter="onSubmit"
+        :label="t('password')"
         type="password"
         class="form-control"
         :error="passwordError"
         autocomplete="current-password"
         :error-text="passwordError ? $t(passwordError) : ''"
+        @keydown.enter="onSubmit"
       />
       <md-filled-button v-if="!webAccessDisabled" :disabled="isSubmitting">
         {{ $t(isSubmitting ? 'logging_in' : 'log_in') }}
@@ -38,7 +38,7 @@
       </md-outlined-button>
     </div>
   </div>
-  <div class="tips" v-if="showWarning">{{ $t('browser_warning') }}</div>
+  <div v-if="showWarning" class="tips">{{ $t('browser_warning') }}</div>
 </template>
 <script setup lang="ts">
 import { ref } from 'vue'

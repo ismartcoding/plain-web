@@ -97,19 +97,6 @@ const router = createRouter({
           meta: { group: 'notes' },
         },
         {
-          path: 'aichats/:id',
-          component: () => import('@/views/AIChatView.vue'),
-          meta: { group: 'aichats' },
-        },
-        {
-          path: 'aichats',
-          components: {
-            default: () => import('@/views/AIChatsView.vue'),
-            LeftSidebar: () => import('../components/AIChatsSidebar.vue'),
-          },
-          meta: { group: 'aichats' },
-        },
-        {
           path: 'files',
           components: {
             default: () => import('@/views/files/FilesView.vue'),
@@ -144,41 +131,6 @@ const router = createRouter({
           path: 'device-info',
           component: () => import('@/views/DeviceInfoView.vue'),
           meta: { group: 'device_info' },
-        },
-        {
-          path: 'network',
-          component: () => import('@/views/NetworkView.vue'),
-          meta: { group: 'network' },
-        },
-        {
-          path: 'wifi',
-          component: () => import('@/views/WiFiView.vue'),
-          meta: { group: 'wifi' },
-        },
-        {
-          path: 'wireguard',
-          component: () => import('@/views/WireGuardView.vue'),
-          meta: { group: 'wireguard' },
-        },
-        {
-          path: 'wireguard/:id',
-          component: () => import('@/views/WireGuardEditView.vue'),
-          meta: { group: 'wireguard' },
-        },
-        {
-          path: 'rules',
-          component: () => import('@/views/RulesView.vue'),
-          meta: { group: 'rules' },
-        },
-        {
-          path: 'routes',
-          component: () => import('@/views/RoutesView.vue'),
-          meta: { group: 'routes' },
-        },
-        {
-          path: 'devices',
-          component: () => import('@/views/DevicesView.vue'),
-          meta: { group: 'devices' },
         },
         {
           path: 'feeds',

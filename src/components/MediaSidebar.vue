@@ -5,18 +5,18 @@
     </template>
     <template #body>
       <ul class="nav">
-        <li @click.prevent="viewAll" :class="{ active: !selectedTagId && !selectedBucketId && !trash }">
+        <li :class="{ active: !selectedTagId && !selectedBucketId && !trash }" @click.prevent="viewAll">
           <span class="title">{{ $t('all') }}</span>
-          <span class="count" v-if="total >= 0">{{ total.toLocaleString() }}</span>
+          <span v-if="total >= 0" class="count">{{ total.toLocaleString() }}</span>
         </li>
-        <li v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)" @click.prevent="viewTrash" :class="{ active: trash }">
+        <li v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)" :class="{ active: trash }" @click.prevent="viewTrash">
           <span class="title">{{ $t('trash') }}</span>
-          <icon-button class="btn-help sm" v-tooltip="$t('trash_tips')">
+          <icon-button v-tooltip="$t('trash_tips')" class="btn-help sm">
             <template #icon>
               <i-material-symbols:help-outline-rounded />
             </template>
           </icon-button>
-          <span class="count" v-if="totalTrash >= 0">{{ totalTrash.toLocaleString() }}</span>
+          <span v-if="totalTrash >= 0" class="count">{{ totalTrash.toLocaleString() }}</span>
         </li>
         <bucket-filter :type="props.type" :selected="selectedBucketId" />
       </ul>
@@ -102,7 +102,6 @@ const { fetch } = initLazyQuery({
   },
   document: props.gql,
   variables: () => ({}),
-  appApi: true,
 })
 
 function updateActive() {

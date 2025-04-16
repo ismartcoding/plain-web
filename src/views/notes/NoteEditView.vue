@@ -1,18 +1,18 @@
 <template>
   <div class="top-app-bar">
-    <button class="btn-icon" v-tooltip="$t('back')" @click.prevent="backToList">
+    <button v-tooltip="$t('back')" class="btn-icon" @click.prevent="backToList">
       <md-ripple />
       <i-material-symbols:arrow-back-rounded />
     </button>
-    <div class="title">{{ id ? t('edit') : t('create') }} <span class="state-point" v-show="notSaved">*</span> <field-id class="time" v-if="note?.updatedAt" :id="getTime()" :raw="note" /></div>
+    <div class="title">{{ id ? t('edit') : t('create') }} <span v-show="notSaved" class="state-point">*</span> <field-id v-if="note?.updatedAt" :id="getTime()" class="time" :raw="note" /></div>
     <div class="actions">
       <item-tags :tags="note?.tags" :type="dataType" :only-links="true" />
       <template v-if="id">
-        <button class="btn-icon" v-tooltip="$t('add_to_tags')" @click.prevent="addToTags">
+        <button v-tooltip="$t('add_to_tags')" class="btn-icon" @click.prevent="addToTags">
           <md-ripple />
           <i-material-symbols:label-outline-rounded />
         </button>
-        <button class="btn-icon" v-tooltip="$t('print')" @click.prevent="print">
+        <button v-tooltip="$t('print')" class="btn-icon" @click.prevent="print">
           <md-ripple />
           <i-material-symbols:print-outline-rounded />
         </button>
@@ -20,7 +20,7 @@
     </div>
   </div>
   <div class="panel-container">
-    <monaco-editor language="html" v-model="content" />
+    <monaco-editor v-model="content" language="html" />
     <div class="md-container" v-html="markdown"></div>
   </div>
 </template>
@@ -107,7 +107,6 @@ initQuery({
   variables: {
     type: dataType,
   },
-  appApi: true,
 })
 
 const { fetch } = initLazyQuery({
@@ -128,12 +127,10 @@ const { fetch } = initLazyQuery({
   options: {
     fetchPolicy: 'no-cache',
   },
-  appApi: true,
 })
 
 const { mutate: save, onDone: saveDone } = initMutation({
   document: saveNoteGQL,
-  appApi: true,
 })
 
 saveDone((r: any) => {

@@ -2,16 +2,16 @@
   <ContextSubMenu
     v-if="show"
     :items="options.items"
-    :parentItem="{
+    :parent-item="{
       maxWidth: options.maxWidth || MenuConstOptions.defaultMaxWidth,
       minWidth: options.minWidth || MenuConstOptions.defaultMinWidth,
     }"
     :options="options"
     :z-index="options.zIndex || MenuConstOptions.defaultStartZindex"
-    :globalData="globalData"
+    :global-data="globalData"
     :position="currentShowPos"
     :on-close="onChildrenClose"
-    @preUpdatePos="onChildrenUpdatePos"
+    @pre-update-pos="onChildrenUpdatePos"
   />
 </template>
 <script lang="ts" setup>

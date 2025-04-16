@@ -5,10 +5,10 @@
     </template>
     <template #body>
       <ul class="nav">
-        <li @click.prevent="openRecent" :class="{ active: route.path === '/files/recent' }">
+        <li :class="{ active: route.path === '/files/recent' }" @click.prevent="openRecent">
           <span class="title">{{ $t('recents') }}</span>
         </li>
-        <li v-for="item in links" @click.prevent="openLink(item)" :class="{ active: route.path === '/files' && item.name === filter.linkName }">
+        <li v-for="item in links" :class="{ active: route.path === '/files' && item.name === filter.linkName }" @click.prevent="openLink(item)">
           <span class="title">{{ item.label }}</span>
         </li>
       </ul>

@@ -35,7 +35,6 @@ export const useList = (items: Ref<IFeedEntry[]>, q: Ref<string>, total: Ref<num
       limit,
       query: q.value,
     }),
-    appApi: true,
   })
 
   return {
@@ -51,4 +50,3 @@ export const useList = (items: Ref<IFeedEntry[]>, q: Ref<string>, total: Ref<num
     },
   }
 }
-

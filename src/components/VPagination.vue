@@ -3,9 +3,9 @@
     <button class="btn-icon" :disabled="!isPrevActive" @click.prevent="prev">
       <i-material-symbols:skip-previous-outline-rounded />
     </button>
-    <template v-for="(page, i) in pagination" class="page-item" :key="i">
-      <span class="page-link" v-if="page === null">···</span>
-      <button v-else class="btn-icon" @click.prevent="go(page)" :class="{ active: page === props.page }">
+    <template v-for="(page, i) in pagination" :key="i" class="page-item">
+      <span v-if="page === null" class="page-link">···</span>
+      <button v-else class="btn-icon" :class="{ active: page === props.page }" @click.prevent="go(page)">
         {{ page }}
       </button>
     </template>

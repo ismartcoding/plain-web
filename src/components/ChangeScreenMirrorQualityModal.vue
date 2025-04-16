@@ -13,7 +13,7 @@
         <label class="form-label">
           {{ $t('compress_quality') }}
         </label>
-        <md-outlined-select class="flex-2" menu-positioning="fixed" v-model.number="quality" :disabled="qualityId !== 'custom'">
+        <md-outlined-select v-model.number="quality" class="flex-2" menu-positioning="fixed" :disabled="qualityId !== 'custom'">
           <md-select-option v-for="o of qualityOptions" :key="o" :value="o">
             <div slot="headline">{{ getCompressOptionText(o) }}</div>
           </md-select-option>
@@ -23,7 +23,7 @@
         <label class="form-label">
           {{ $t('resolution') }}
         </label>
-        <md-outlined-select class="flex-2" menu-positioning="fixed" v-model.number="resolution" :disabled="qualityId !== 'custom'">
+        <md-outlined-select v-model.number="resolution" class="flex-2" menu-positioning="fixed" :disabled="qualityId !== 'custom'">
           <md-select-option v-for="o of resolutionOptions" :key="o" :value="o">
             <div slot="headline">{{ o }}p</div>
           </md-select-option>
@@ -35,7 +35,7 @@
     </div>
     <div slot="actions">
       <md-outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</md-outlined-button>
-      <md-filled-button value="save" :disabled="saving" @click="doAction" autofocus> <md-circular-progress indeterminate v-if="saving" slot="icon" /> {{ $t('save') }} </md-filled-button>
+      <md-filled-button value="save" :disabled="saving" autofocus @click="doAction"> <md-circular-progress v-if="saving" slot="icon" indeterminate /> {{ $t('save') }} </md-filled-button>
     </div>
   </md-dialog>
 </template>
@@ -75,7 +75,6 @@ initQuery({
     }
   },
   document: screenMirrorQualityGQL,
-  appApi: true,
 })
 
 function getCompressOptionText(value: number) {
@@ -112,7 +111,6 @@ const {
   onDone: onDone,
 } = initMutation({
   document: updateScreenMirrorQualityGQL,
-  appApi: true,
 })
 
 onDone(() => {

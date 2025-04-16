@@ -1,10 +1,10 @@
 <template>
   <Teleport to="body">
-    <div v-if="tempStore.lightbox.visible" @touchmove="preventDefault" class="lightbox" @wheel="onWheel">
+    <div v-if="tempStore.lightbox.visible" class="lightbox" @touchmove="preventDefault" @wheel="onWheel">
       <div class="layout">
-        <header class="toolbar" v-if="current">
+        <header v-if="current" class="toolbar">
           <div v-if="current.name" class="source-name v-center">
-            <button class="btn-icon" @click="closeDialog" v-tooltip="$t('close')">
+            <button v-tooltip="$t('close')" class="btn-icon" @click="closeDialog">
               <md-ripple />
               <i-material-symbols:close-rounded />
             </button>
@@ -12,37 +12,37 @@
           </div>
 
           <template v-if="isImage(current.name)">
-            <button class="btn-icon" v-if="!current.viewOriginImage" @click="viewOrigin" v-tooltip="$t('view_origin_image')">
+            <button v-if="!current.viewOriginImage" v-tooltip="$t('view_origin_image')" class="btn-icon" @click="viewOrigin">
               <md-ripple />
               <i-material-symbols:image-outline-rounded />
             </button>
 
-            <button class="btn-icon" @click="zoomIn" v-tooltip="$t('zoom_in')">
+            <button v-tooltip="$t('zoom_in')" class="btn-icon" @click="zoomIn">
               <md-ripple />
               <i-material-symbols:zoom-in-rounded />
             </button>
 
-            <button class="btn-icon" @click="zoomOut" v-tooltip="$t('zoom_out')">
+            <button v-tooltip="$t('zoom_out')" class="btn-icon" @click="zoomOut">
               <md-ripple />
               <i-material-symbols:zoom-out-rounded />
             </button>
 
-            <button class="btn-icon" @click="resize" v-tooltip="$t('resize')">
+            <button v-tooltip="$t('resize')" class="btn-icon" @click="resize">
               <md-ripple />
               <i-material-symbols:aspect-ratio-outline-rounded />
             </button>
 
-            <button class="btn-icon" @click="rotateLeft" v-tooltip="$t('rotate_left')">
+            <button v-tooltip="$t('rotate_left')" class="btn-icon" @click="rotateLeft">
               <md-ripple />
               <i-material-symbols:rotate-left-rounded />
             </button>
 
-            <button class="btn-icon" @click="rotateRight" v-tooltip="$t('rotate_right')">
+            <button v-tooltip="$t('rotate_right')" class="btn-icon" @click="rotateRight">
               <md-ripple />
               <i-material-symbols:rotate-right-rounded />
             </button>
           </template>
-          <button class="btn-icon" @click="lightboxInfoVisible = !lightboxInfoVisible" v-tooltip="$t('info')">
+          <button v-tooltip="$t('info')" class="btn-icon" @click="lightboxInfoVisible = !lightboxInfoVisible">
             <md-ripple />
             <i-material-symbols:info-outline-rounded />
           </button>
@@ -92,35 +92,35 @@
             />
           </div>
         </section>
-        <section class="info" v-if="lightboxInfoVisible">
+        <section v-if="lightboxInfoVisible" class="info">
           <div class="top-app-bar">
             <field-id :id="$t('info')" :raw="fileInfo" />
             <div class="actions">
               <template v-if="canTrash">
                 <template v-if="isTrashed">
-                  <icon-button @click.stop="deleteMediaItem" v-tooltip="$t('delete')">
+                  <icon-button v-tooltip="$t('delete')" @click.stop="deleteMediaItem">
                     <template #icon>
                       <i-material-symbols:delete-forever-outline-rounded />
                     </template>
                   </icon-button>
-                  <icon-button class="sm" @click.stop="restoreItem" v-tooltip="$t('restore')" :loading="restoreLoading(`ids:${current?.data?.id}`)">
+                  <icon-button v-tooltip="$t('restore')" class="sm" :loading="restoreLoading(`ids:${current?.data?.id}`)" @click.stop="restoreItem">
                     <template #icon>
                       <i-material-symbols:restore-from-trash-outline-rounded />
                     </template>
                   </icon-button>
                 </template>
-                <icon-button v-else @click.stop="trashMediaItem" v-tooltip="$t('move_to_trash')" :loading="trashLoading(`ids:${current?.data?.id}`)">
+                <icon-button v-else v-tooltip="$t('move_to_trash')" :loading="trashLoading(`ids:${current?.data?.id}`)" @click.stop="trashMediaItem">
                   <template #icon>
                     <i-material-symbols:delete-outline-rounded />
                   </template>
                 </icon-button>
               </template>
-              <icon-button v-else @click.stop="deleteFile" v-tooltip="$t('delete')">
+              <icon-button v-else v-tooltip="$t('delete')" @click.stop="deleteFile">
                 <template #icon>
                   <i-material-symbols:delete-forever-outline-rounded />
                 </template>
               </icon-button>
-              <icon-button @click.stop="downloadFile(current?.path ?? '', getFileName(current?.path ?? '').replace(' ', '-'))" v-tooltip="$t('download')">
+              <icon-button v-tooltip="$t('download')" @click.stop="downloadFile(current?.path ?? '', getFileName(current?.path ?? '').replace(' ', '-'))">
                 <template #icon>
                   <i-material-symbols:download-rounded />
                 </template>
@@ -135,20 +135,20 @@
                 <span v-if="fileInfo?.data?.width && fileInfo?.data?.height">{{ getResolution() }}</span>
               </div>
             </div>
-            <div class="item" v-if="fileInfo?.updatedAt">
+            <div v-if="fileInfo?.updatedAt" class="item">
               <div class="title">{{ $t('updated_at') }}</div>
               <div class="subtitle">
                 <time v-tooltip="formatDateTimeFull(fileInfo.updatedAt)">{{ formatDateTime(fileInfo.updatedAt) }}</time>
               </div>
             </div>
-            <div class="item" v-if="current && (isAudio(current?.name) || isVideo(current?.name))">
+            <div v-if="current && (isAudio(current?.name) || isVideo(current?.name))" class="item">
               <div class="title">{{ $t('duration') }}</div>
               <div class="subtitle">{{ formatSeconds(fileInfo?.data?.duration ?? current?.duration) }}</div>
             </div>
-            <div class="item" v-if="current?.type">
+            <div v-if="current?.type" class="item">
               <div class="title">
                 {{ $t('tags') }}
-                <icon-button class="sm" v-tooltip="$t('add_to_tags')" @click.prevent="addToTags">
+                <icon-button v-tooltip="$t('add_to_tags')" class="sm" @click.prevent="addToTags">
                   <template #icon>
                     <i-material-symbols:label-outline-rounded />
                   </template>
@@ -156,7 +156,7 @@
               </div>
               <div class="subtitle"><item-tags :tags="fileInfo?.tags" /></div>
             </div>
-            <div class="item" v-if="current?.path">
+            <div v-if="current?.path" class="item">
               <div class="title">{{ $t('path') }}</div>
               <div class="subtitle">{{ getFinalPath(app.externalFilesDir, current?.path) }}</div>
             </div>
@@ -286,7 +286,6 @@ const {
     id: current.value?.data?.id ?? '',
     path: current.value?.path ?? '',
   }),
-  appApi: true,
 })
 
 function updateViewOriginImageState() {
@@ -313,7 +312,6 @@ const { loading: tagsLoading, load: loadTags } = initLazyQuery({
   variables: () => ({
     type: current.value?.type ?? '',
   }),
-  appApi: true,
 })
 
 const imgWrapperStyle = computed(() => {
@@ -492,7 +490,6 @@ function trashMediaItem() {
   const type = current.value?.type as DataType
   trash(type, `ids:${current.value?.data?.id}`)
 }
-
 
 const { restore, restoreLoading } = useMediaRestore()
 function restoreItem() {

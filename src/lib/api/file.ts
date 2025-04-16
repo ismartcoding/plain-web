@@ -1,8 +1,13 @@
-import type { IUploadItem } from '@/stores/temp'
 import { arrayBufferToHex } from '../strutil'
 import { getApiBaseUrl } from './api'
-import { aesEncrypt, bitArrayToBase64, bitArrayToUint8Array } from './crypto'
+import { aesEncrypt, bitArrayToBase64 } from './crypto'
 import * as sjcl from 'sjcl'
+
+declare global {
+  interface Window {
+    fileIdMap: Map<string, string>
+  }
+}
 
 export function notId(id: string) {
   const l = id.toLowerCase()
@@ -22,10 +27,6 @@ export function getFileUrlByPath(key: sjcl.BitArray | null, path: string) {
     return ''
   }
   return getFileUrl(getFileId(key, path))
-}
-
-export function getUploadUrl() {
-  return `${getApiBaseUrl()}/upload`
 }
 
 export function download(url: string, name: string) {
@@ -100,108 +101,6 @@ export function getFileId(key: sjcl.BitArray | null, path: string, mediaId: stri
   const id = bitArrayToBase64(enc)
   fileIdMap.set(path, id)
   return id
-}
-
-export async function upload(upload: IUploadItem, replace: boolean) {
-  const token = localStorage.getItem('auth_token') ?? ''
-  const key = sjcl.codec.base64.toBits(token)
-
-  const chunkSize = 1000 * 1000 * 512 // 512MB chunks
-
-  async function sendChunk(offset: number, index: number, total: number) {
-    const chunkEnd = Math.min(offset + chunkSize, upload.file.size)
-    const uploadingFileSize = chunkEnd - offset
-    const data = new FormData()
-    const v = bitArrayToUint8Array(aesEncrypt(key, JSON.stringify({ dir: upload.dir, replace, index, size: uploadingFileSize, total: total })))
-    data.append('info', new Blob([v]))
-    const slice = upload.file.slice(offset, chunkEnd)
-    data.append('file', new File([slice], offset > 0 ? upload.fileName : upload.file.name))
-
-    return new Promise((resolve) => {
-      const xhr = new XMLHttpRequest()
-
-      let excludeSize = 0
-      xhr.upload.addEventListener(
-        'progress',
-        function (e) {
-          if (e.lengthComputable) {
-            if (excludeSize === 0) {
-              excludeSize = e.total - uploadingFileSize
-            }
-            if (e.loaded > excludeSize) {
-              upload.uploadedSize = offset + e.loaded - excludeSize
-            }
-          }
-        },
-        false
-      )
-
-      xhr.upload.addEventListener(
-        'load',
-        function () {
-          if (index === total - 1) {
-            upload.uploadedSize = upload.file.size
-            upload.status = 'saving'
-          }
-        },
-        false
-      )
-
-      xhr.onreadystatechange = function () {
-        console.log(xhr)
-        if (xhr.readyState === 4) {
-          if (xhr.status === 201) {
-            resolve({ fileName: xhr.responseText })
-          } else {
-            resolve({ error: xhr.responseText })
-          }
-        }
-      }
-
-      try {
-        xhr.open('POST', getUploadUrl(), true)
-        xhr.setRequestHeader('c-id', localStorage.getItem('client_id') ?? '')
-        xhr.send(data)
-        upload.xhr = xhr
-      } catch (ex: any) {
-        resolve({ error: ex.message })
-      }
-    })
-  }
-
-  try {
-    let offset = 0
-    const offsets = []
-    while (offset < upload.file.size) {
-      offsets.push(offset)
-      offset += chunkSize
-    }
-
-    let retry = 3
-    for (let i = 0; i < offsets.length; i++) {
-      do {
-        const r: any = await sendChunk(offsets[i], i, offsets.length)
-        if (upload.status === 'canceled') {
-          break
-        }
-        if (r.error) {
-          if (retry === 0) {
-            upload.status = 'error'
-            upload.error = r.error
-          }
-          retry--
-        } else {
-          upload.fileName = r.fileName
-          break
-        }
-      } while (retry >= 0)
-    }
-
-    upload.status = 'done'
-  } catch (error: any) {
-    upload.status = 'error'
-    upload.error = error
-  }
 }
 
 export function getFileExtension(filePath: string) {

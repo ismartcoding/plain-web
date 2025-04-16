@@ -1,5 +1,5 @@
 <template>
-  <section class="media-item selectable-card-skeleton" v-for="i in props.limit" :key="i">
+  <section v-for="i in props.limit" :key="i" class="media-item selectable-card-skeleton">
     <div class="start">
       <div class="checkbox">
         <div class="skeleton-checkbox"></div>

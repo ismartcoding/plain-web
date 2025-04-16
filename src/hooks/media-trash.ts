@@ -7,7 +7,6 @@ import { reactive } from 'vue'
 export const useMediaTrash = () => {
   const { mutate, onDone: onTrashed } = initMutation({
     document: trashMediaItemsGQL,
-    appApi: true,
   })
 
   const loading = reactive(new Map())
@@ -33,7 +32,6 @@ export const useMediaTrash = () => {
 export const useMediaRestore = () => {
   const { mutate, onDone: onRestored } = initMutation({
     document: restoreMediaItemsGQL,
-    appApi: true,
   })
 
   const loading = reactive(new Map())

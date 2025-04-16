@@ -12,6 +12,7 @@ function createUploadItem(file: File, dir: string): IUploadItem {
     status: 'created',
     uploadedSize: 0,
     error: '',
+    pausing: false,
   }
 }
 
@@ -83,6 +84,7 @@ export const useChatFilesUpload = () => {
           status: 'created',
           uploadedSize: 0,
           error: '',
+          pausing: false,
         })
       }
       return items

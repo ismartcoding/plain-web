@@ -4,11 +4,11 @@
       {{ title }}
     </div>
     <div slot="content">
-      <md-outlined-text-field ref="inputRef" :placeholder="placeholder" v-model="name" @keyup.enter="doAction" :error="errors.name" :error-text="errors.name ? $t(errors.name) : ''" />
+      <md-outlined-text-field ref="inputRef" v-model="name" :placeholder="placeholder" :error="errors.name" :error-text="errors.name ? $t(errors.name) : ''" @keyup.enter="doAction" />
     </div>
     <div slot="actions">
       <md-outlined-button value="cancel" @click="cancel">{{ $t('cancel') }}</md-outlined-button>
-      <md-filled-button value="save" :disabled="loading" @click="doAction" autofocus><md-circular-progress indeterminate v-if="loading" slot="icon" />{{ $t('save') }} </md-filled-button>
+      <md-filled-button value="save" :disabled="loading" autofocus @click="doAction"><md-circular-progress v-if="loading" slot="icon" indeterminate />{{ $t('save') }} </md-filled-button>
     </div>
   </md-dialog>
 </template>

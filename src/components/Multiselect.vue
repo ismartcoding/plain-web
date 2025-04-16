@@ -1,15 +1,15 @@
 <template>
   <div v-click-away="deactivate" :class="{ active: isOpen && filteredOptions.length }" class="multiselect">
-    <div @click.stop="toggle()" class="toggle"></div>
+    <div class="toggle" @click.stop="toggle()"></div>
     <div class="tags" @click="toggle">
       <span v-for="(option, index) in props.modelValue" :track-by="index" class="tag">
         <span v-text="getOptionLabel(option)"></span>
-        <i aria-hidden="true" tabindex="1" @click.stop="removeElement(option)" class="tag-icon"> </i>
+        <i aria-hidden="true" tabindex="1" class="tag-icon" @click.stop="removeElement(option)"> </i>
       </span>
     </div>
-    <ul transition="multiselect" v-show="isOpen" class="content">
+    <ul v-show="isOpen" transition="multiselect" class="content">
       <li v-for="option in filteredOptions">
-        <span @click.prevent="select(option)" class="option" v-text="getOptionLabel(option)"> </span>
+        <span class="option" @click.prevent="select(option)" v-text="getOptionLabel(option)"> </span>
       </li>
     </ul>
   </div>

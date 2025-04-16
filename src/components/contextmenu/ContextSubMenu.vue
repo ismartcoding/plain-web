@@ -19,8 +19,8 @@
       <span class="right-arrow" />
     </div>
     <div
-      class="context-menu-items"
       ref="menu"
+      class="context-menu-items"
       :style="{
         maxHeight: maxHeight > 0 ? `${maxHeight}px` : '',
       }"
@@ -39,17 +39,17 @@
       </md-menu-item>
     </div>
     <ContextSubMenu
-      ref="childMenu"
       v-if="activeItem && activeItem.children"
-      :zIndex="zIndex + 1"
+      ref="childMenu"
+      :z-index="zIndex + 1"
       :items="activeItem.children"
-      :parentItem="activeItem"
+      :parent-item="activeItem"
       :options="options"
-      :globalData="childGlobalData"
+      :global-data="childGlobalData"
       :position="childPosition"
       @close="onChildrenClose"
-      @keepOpen="onChildrenKeepOpen"
-      @preUpdatePos="onChildrenUpdatePos"
+      @keep-open="onChildrenKeepOpen"
+      @pre-update-pos="onChildrenUpdatePos"
     ></ContextSubMenu>
   </div>
 </template>

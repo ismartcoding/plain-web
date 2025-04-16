@@ -5,9 +5,9 @@
     </template>
     <template #body>
       <ul class="nav">
-        <li @click.prevent="viewAll" :class="{ active: !selectedTagId }">
+        <li :class="{ active: !selectedTagId }" @click.prevent="viewAll">
           <span class="title">{{ $t('all') }}</span>
-          <span class="count" v-if="counter.contacts >= 0">{{ counter.contacts.toLocaleString() }}</span>
+          <span v-if="counter.contacts >= 0" class="count">{{ counter.contacts.toLocaleString() }}</span>
         </li>
       </ul>
       <tag-filter type="CONTACT" :selected="selectedTagId" />
@@ -43,7 +43,6 @@ const { fetch } = initLazyQuery({
   },
   document: contactCountGQL,
   variables: () => ({}),
-  appApi: true,
 })
 
 function updateActive() {

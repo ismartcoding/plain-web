@@ -1,17 +1,17 @@
 <template>
   <div class="top-app-bar">
-    <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
+    <md-checkbox touch-target="wrapper" :checked="allChecked" :indeterminate="!allChecked && checked" @change="toggleAllChecked" />
     <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
     <span v-else>{{ $t('recent_files') }} ({{ total.toLocaleString() }})</span>
     <template v-if="checked">
-      <button class="btn-icon" @click.stop="downloadItems" v-tooltip="$t('download')">
+      <button v-tooltip="$t('download')" class="btn-icon" @click.stop="downloadItems">
         <md-ripple />
         <i-material-symbols:download-rounded />
       </button>
     </template>
   </div>
   <div v-if="loading && items.length === 0" class="scroller">
-    <section class="file-item selectable-card-skeleton" v-for="i in 20" :key="i">
+    <section v-for="i in 20" :key="i" class="file-item selectable-card-skeleton">
       <div class="start">
         <div class="checkbox">
           <div class="skeleton-checkbox"></div>
@@ -35,8 +35,8 @@
   <VirtualList v-if="items.length > 0" class="scroller" :data-key="'id'" :data-sources="items" :estimate-size="80">
     <template #item="{ index, item }">
       <section
-        class="file-item selectable-card"
         :key="item.id"
+        class="file-item selectable-card"
         :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
         @click.stop="
           handleItemClick($event, item, index, () => {
@@ -46,8 +46,8 @@
         @mouseover="handleMouseOver($event, index)"
       >
         <div class="start">
-          <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, index)" :checked="shouldSelect" />
-          <md-checkbox v-else class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, index)" :checked="selectedIds.includes(item.id)" />
+          <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, index)" />
+          <md-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, index)" />
           <span class="number"><field-id :id="index + 1" :raw="item" /></span>
         </div>
         <div class="image" @click.stop="clickItem(item)">
@@ -64,13 +64,13 @@
           <span v-tooltip="formatDateTime(item.updatedAt)">{{ formatTimeAgo(item.updatedAt) }}</span>
         </div>
         <div class="actions">
-          <button class="btn-icon sm" @click.stop="downloadFile(item.path)" v-tooltip="$t('download')">
+          <button v-tooltip="$t('download')" class="btn-icon sm" @click.stop="downloadFile(item.path)">
             <md-ripple />
             <i-material-symbols:download-rounded />
           </button>
 
           <popper>
-            <button class="btn-icon sm" v-tooltip="$t('info')">
+            <button v-tooltip="$t('info')" class="btn-icon sm">
               <md-ripple />
               <i-material-symbols:info-outline-rounded />
             </button>
@@ -89,7 +89,7 @@
       </section>
     </template>
   </VirtualList>
-  <div class="no-data-placeholder" v-if="!loading && items.length === 0">
+  <div v-if="!loading && items.length === 0" class="no-data-placeholder">
     {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
   </div>
 </template>
@@ -147,7 +147,6 @@ const onExtensionImageError = (id: string) => {
 
 const { mutate: setTempValue, onDone: setTempValueDone } = initMutation({
   document: setTempValueGQL,
-  appApi: true,
 })
 
 setTempValueDone((r: any) => {
@@ -179,7 +178,6 @@ const { loading, fetch } = initLazyQuery({
     }
   },
   document: recentFilesGQL,
-  appApi: true,
 })
 
 const downloadItems = () => {

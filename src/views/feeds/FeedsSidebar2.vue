@@ -1,21 +1,21 @@
 <template>
   <aside class="sidebar2" :style="{ width: route.params.id ? mainStore.sidebar2Width + 'px' : 'auto' }">
     <div class="top-app-bar">
-      <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
+      <md-checkbox touch-target="wrapper" :checked="allChecked" :indeterminate="!allChecked && checked" @change="toggleAllChecked" />
       <div class="title">
         <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
         <span v-else>{{ $t('page_title.feeds') }} ({{ total.toLocaleString() }})</span>
         <template v-if="checked">
-          <button class="btn-icon" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)" v-tooltip="$t('delete')">
+          <button v-tooltip="$t('delete')" class="btn-icon" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)">
             <md-ripple />
             <i-material-symbols:delete-forever-outline-rounded />
           </button>
-          <button class="btn-icon" @click.stop="addToTags(selectedIds, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
+          <button v-tooltip="$t('add_to_tags')" class="btn-icon" @click.stop="addToTags(selectedIds, realAllChecked, q)">
             <md-ripple />
             <i-material-symbols:label-outline-rounded />
           </button>
-          <md-circular-progress indeterminate class="spinner-sm" v-if="savingNotes" />
-          <button v-else class="btn-icon sm" v-tooltip="$t('save_to_notes')" @click.prevent="saveFeedsToNotes">
+          <md-circular-progress v-if="savingNotes" indeterminate class="spinner-sm" />
+          <button v-else v-tooltip="$t('save_to_notes')" class="btn-icon sm" @click.prevent="saveFeedsToNotes">
             <md-ripple />
             <i-material-symbols:add-notes-outline-rounded />
           </button>
@@ -24,8 +24,8 @@
 
       <div class="actions">
         <search-input :filter="filter" :tags="tags" :feeds="feeds" :show-chips="!isDetail" :get-url="getUrl" :show-today="true" />
-        <md-circular-progress indeterminate class="spinner-sm" v-if="feedsSyncing" />
-        <button class="btn-icon" v-else :disabled="feedsSyncing" v-tooltip="$t('sync_feeds')" @click.prevent="syncFeeds">
+        <md-circular-progress v-if="feedsSyncing" indeterminate class="spinner-sm" />
+        <button v-else v-tooltip="$t('sync_feeds')" class="btn-icon" :disabled="feedsSyncing" @click.prevent="syncFeeds">
           <md-ripple />
           <i-material-symbols:sync-rounded />
         </button>
@@ -41,7 +41,7 @@
       :clear-selection="clearSelection"
     />
     <div v-if="listLoading && items.length === 0" class="scroller">
-      <section class="feed-item selectable-card-skeleton" v-for="i in 20" :key="i">
+      <section v-for="i in 20" :key="i" class="feed-item selectable-card-skeleton">
         <div class="title">
           <div class="checkbox">
             <div class="skeleton-checkbox"></div>
@@ -73,8 +73,8 @@
             @mouseover="handleMouseOver($event, index)"
           >
             <div class="title">
-              <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, index)" :checked="shouldSelect" />
-              <md-checkbox v-else class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, index)" :checked="selectedIds.includes(item.id)" />
+              <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, index)" />
+              <md-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, index)" />
               <div class="text">{{ item.title || $t('no_content') }}</div>
             </div>
             <div class="subtitle">
@@ -82,13 +82,13 @@
               <div class="info">
                 <a @click.stop.prevent="viewFeed(feedsMap[item.feedId])">{{ feedsMap[item.feedId]?.name }}</a>
                 <span>·</span>
-                <span class="time" v-tooltip="formatDateTime(item.publishedAt)">
+                <span v-tooltip="formatDateTime(item.publishedAt)" class="time">
                   {{ formatTimeAgo(item.publishedAt) }}
                 </span>
                 <item-tags :tags="item.tags" :type="dataType" :only-links="true" />
               </div>
             </div>
-            <button class="btn-icon sm" v-tooltip="$t('actions')" style="display: none">
+            <button v-tooltip="$t('actions')" class="btn-icon sm" style="display: none">
               <md-ripple />
               <i-material-symbols:more-vert />
             </button>
@@ -101,7 +101,7 @@
       </template>
     </VirtualList>
 
-    <div class="no-data-placeholder" v-if="!listLoading && items.length === 0">
+    <div v-if="!listLoading && items.length === 0" class="no-data-placeholder">
       {{ $t(noDataKey(listLoading)) }}
     </div>
     <div class="sidebar-drag-indicator" @mousedown="resizeWidth"></div>
@@ -229,7 +229,6 @@ function deleteItem(item: IFeedEntry) {
     variables: () => ({
       query: `ids:${item.id}`,
     }),
-    appApi: true,
     typeName: 'FeedEntry',
     done: () => {
       clearSelection()
@@ -247,7 +246,6 @@ const {
   onDone: onSaveToNotesDone,
 } = initMutation({
   document: saveFeedEntriesToNotesGQL,
-  appApi: true,
 })
 
 function saveFeedsToNotes() {
@@ -294,7 +292,6 @@ const { fetch: fetchFeedsTags } = initLazyQuery({
   variables: {
     type: dataType,
   },
-  appApi: true,
 })
 
 function addItemToTags(item: IFeedEntry) {
@@ -327,7 +324,6 @@ const { viewFeed } = useFeeds(mainStore)
 
 const { mutate: doSyncFeeds } = initMutation({
   document: syncFeedsGQL,
-  appApi: true,
 })
 
 function syncFeeds() {

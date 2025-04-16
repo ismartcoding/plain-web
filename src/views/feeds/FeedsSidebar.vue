@@ -4,7 +4,7 @@
       {{ $t('page_title.feeds') }}
     </template>
     <template #actions>
-      <button class="btn-icon" id="add-feed-ref" @click="() => (addMenuVisible = true)" v-tooltip="t('add_subscription')">
+      <button id="add-feed-ref" v-tooltip="t('add_subscription')" class="btn-icon" @click="() => (addMenuVisible = true)">
         <md-ripple />
         <i-material-symbols:add-rounded />
       </button>
@@ -16,28 +16,28 @@
     </template>
     <template #body>
       <ul class="nav">
-        <li @click.prevent="viewAll" :class="{ active: !today && !selectedTagId && !selectedFeedId }">
+        <li :class="{ active: !today && !selectedTagId && !selectedFeedId }" @click.prevent="viewAll">
           <span class="title">{{ $t('all') }}</span>
-          <span class="count" v-if="counter.feedEntries >= 0">{{ counter.feedEntries.toLocaleString() }}</span>
+          <span v-if="counter.feedEntries >= 0" class="count">{{ counter.feedEntries.toLocaleString() }}</span>
         </li>
-        <li @click.prevent="viewToday" :class="{ active: today }">
+        <li :class="{ active: today }" @click.prevent="viewToday">
           <span class="title">{{ $t('today') }}</span>
-          <span class="count" v-if="counter.feedEntriesToday >= 0">{{ counter.feedEntriesToday.toLocaleString() }}</span>
+          <span v-if="counter.feedEntriesToday >= 0" class="count">{{ counter.feedEntriesToday.toLocaleString() }}</span>
         </li>
         <li
           v-for="item in feeds"
           :key="item.id"
-          @click.stop.prevent="viewFeed(item)"
           :class="{
             active: selectedFeedId && item.id === selectedFeedId,
           }"
+          @click.stop.prevent="viewFeed(item)"
         >
           <span class="title">{{ item.name }}</span>
-          <button :id="'feed-' + item.id" class="btn-icon sm" @click.prevent.stop="showFeedMenu(item)" v-tooltip="$t('actions')">
+          <button :id="'feed-' + item.id" v-tooltip="$t('actions')" class="btn-icon sm" @click.prevent.stop="showFeedMenu(item)">
             <md-ripple />
             <i-material-symbols:more-vert />
           </button>
-          <span class="count" v-if="getFeedCount(item.id) >= 0">{{ getFeedCount(item.id).toLocaleString() }}</span>
+          <span v-if="getFeedCount(item.id) >= 0" class="count">{{ getFeedCount(item.id).toLocaleString() }}</span>
         </li>
       </ul>
       <md-menu positioning="popover" :anchor="'feed-' + selectedFeed?.id" stay-open-on-focusout quick :open="feedMenuVisible" @closed="feedMenuVisible = false">
@@ -109,7 +109,6 @@ const { fetch } = initLazyQuery({
   },
   document: feedEntryCountGQL,
   variables: () => ({}),
-  appApi: true,
 })
 
 function getFeedCount(id: string) {
@@ -154,7 +153,6 @@ const { refetch } = initQuery({
     }
   },
   document: feedsGQL,
-  appApi: true,
 })
 
 function uploadChanged(e: Event) {
@@ -183,7 +181,6 @@ function add() {
 
 const { mutate: exportOPML, onDone: onExpored } = initMutation({
   document: exportFeedsGQL,
-  appApi: true,
 })
 
 onExpored((r: any) => {
@@ -192,7 +189,6 @@ onExpored((r: any) => {
 
 const { mutate: importOPML, onDone: onImported } = initMutation({
   document: importFeedsGQL,
-  appApi: true,
 })
 
 onImported(() => {
@@ -225,7 +221,6 @@ function deleteFeed(item: IFeed) {
     id: item.id,
     name: item.name,
     gql: deleteFeedGQL,
-    appApi: true,
     typeName: 'Feed',
     done: () => {
       replacePath(mainStore, `/feeds`)

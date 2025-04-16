@@ -1,19 +1,19 @@
-@import 'base';
-@import 'katex';
-@import 'animation';
-@import 'card';
-@import 'alert';
-@import 'md';
-@import 'selectable';
-@import 'audio';
-@import 'pagination';
-@import 'markdown';
-@import 'form';
-@import 'files';
-@import 'chat';
-@import 'media';
-@import 'mobile';
-@import 'print';
+@use 'base';
+@use 'katex';
+@use 'animation';
+@use 'card';
+@use 'alert';
+@use 'md';
+@use 'selectable';
+@use 'audio';
+@use 'pagination';
+@use 'markdown';
+@use 'form';
+@use 'files';
+@use 'chat';
+@use 'media';
+@use 'mobile';
+@use 'print';
 
 #app:has(~ .lightbox) {
   display: none;

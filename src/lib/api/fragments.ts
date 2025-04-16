@@ -50,69 +50,6 @@ export const appFragment = gql`
   }
   ${playlistAudioFragment}
 `
-export const wgFragment = gql`
-  fragment WireGuardFragment on WireGuard {
-    isActive
-    isEnabled
-    id
-    config
-    listeningPort
-    peers {
-      publicKey
-      latestHandshake
-      txBytes
-      rxBytes
-      endpoint
-    }
-  }
-`
-
-export const networkConfigFragment = gql`
-  fragment NetworkConfigFragment on NetworkConfig {
-    netplan
-    netmix
-  }
-`
-export const hostapdFragment = gql`
-  fragment HostapdFragment on Hostapd {
-    isActive
-    isEnabled
-    config
-  }
-`
-
-export const deviceFragment = gql`
-  fragment DeviceFragment on Device {
-    id
-    name
-    mac
-    ip4
-    macVendor
-    isOnline
-    createdAt
-    updatedAt
-    activeAt
-  }
-`
-
-export const configFragment = gql`
-  fragment ConfigFragment on Config {
-    id
-    group
-    value
-    createdAt
-    updatedAt
-  }
-`
-
-export const networkFragment = gql`
-  fragment NetworkFragment on Network {
-    name
-    ifName
-    type
-  }
-`
-
 export const chatItemFragment = gql`
   fragment ChatItemFragment on ChatItem {
     id
@@ -314,22 +251,6 @@ export const feedEntryFragment = gql`
     feedId
     rawId
     publishedAt
-    createdAt
-    updatedAt
-    tags {
-      ...TagSubFragment
-    }
-  }
-  ${tagSubFragment}
-`
-
-export const aiChatFragment = gql`
-  fragment AIChatFragment on AIChat {
-    id
-    parentId
-    isMe
-    content
-    type
     createdAt
     updatedAt
     tags {

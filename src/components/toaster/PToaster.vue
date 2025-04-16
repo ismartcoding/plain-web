@@ -1,6 +1,6 @@
 <template>
   <Teleport to="body">
-    <div v-if="isActive" :class="['v-toast', type]" @mouseover="toggleTimer(true)" @mouseleave="toggleTimer(false)" @click="click" role="alert">
+    <div v-if="isActive" :class="['v-toast', type]" role="alert" @mouseover="toggleTimer(true)" @mouseleave="toggleTimer(false)" @click="click">
       {{ message }}
     </div>
   </Teleport>

@@ -49,7 +49,6 @@ export const useDeleteItems = () => {
         image: isIAudio(item) ? '' : item.fileId,
         gql: deleteMediaItemsGQL,
         variables: () => ({ type: type, query: `ids:${item.id}` }),
-        appApi: true,
         typeName: typeNameMap.get(type) ?? '',
         done: () => {
           emitter.emit('media_items_actioned', { type: type, action: 'delete', id: item.id, query: `ids:${item.id}` })
@@ -102,7 +101,6 @@ export const useBucketsTags = (type: DataType) => {
     variables: {
       type,
     },
-    appApi: true,
   })
 
   return {

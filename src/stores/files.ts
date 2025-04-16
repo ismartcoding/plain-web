@@ -7,8 +7,7 @@ export type FilesState = {
   isCut: boolean
 }
 
-export const useFilesStore = defineStore({
-  id: 'files',
+export const useFilesStore = defineStore('files', {
   state: () =>
     ({
       selectedFiles: [],

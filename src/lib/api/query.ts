@@ -15,7 +15,6 @@ import {
   noteFragment,
   feedFragment,
   feedEntryFragment,
-  aiChatFragment,
   packageFragment,
   tagSubFragment,
   notificationFragment,
@@ -28,12 +27,11 @@ export class InitQueryParams<TResult> {
   document!: DocumentParameter<TResult, undefined>
   variables?: any = null
   options?: OptionsParameter<TResult, null> = {}
-  appApi?: boolean = false
 }
 
 export function initQuery<TResult = any>(params: InitQueryParams<TResult>) {
   const { result, onResult, refetch, loading, variables } = useQuery(params.document, params.variables, () => ({
-    clientId: params.appApi ? 'a' : 'b',
+    clientId: 'a',
     ...(typeof params.options === 'function' ? params.options() : params.options),
   }))
 
@@ -64,7 +62,7 @@ export function initQuery<TResult = any>(params: InitQueryParams<TResult>) {
 
 export function initLazyQuery<TResult = any>(params: InitQueryParams<TResult>) {
   const { result, onResult, load, loading, variables, refetch } = useLazyQuery(params.document, params.variables, () => ({
-    clientId: params.appApi ? 'a' : 'b',
+    clientId: 'a',
     ...(typeof params.options === 'function' ? params.options() : params.options),
   }))
 
@@ -418,28 +416,6 @@ export const feedEntryGQL = gql`
   ${feedEntryFragment}
 `
 
-export const latestExchangeRatesGQL = gql`
-  query latestExchangeRates($live: Boolean!) {
-    latestExchangeRates(live: $live) {
-      date
-      rates {
-        k
-        v
-      }
-    }
-  }
-`
-
-export const aichatsGQL = gql`
-  query aiChats($offset: Int!, $limit: Int!, $query: String!) {
-    aiChats(offset: $offset, limit: $limit, query: $query) {
-      ...AIChatFragment
-    }
-    aiChatCount(query: $query)
-  }
-  ${aiChatFragment}
-`
-
 export const imageCountGQL = gql`
   query {
     total: imageCount(query: "")
@@ -510,27 +486,6 @@ export const noteCountGQL = gql`
   }
 `
 
-export const aichatDetailGQL = gql`
-  query aiChats($id: ID!, $query: String!) {
-    aiChat(id: $id) {
-      ...AIChatFragment
-    }
-    aiChats(offset: 0, limit: 1000, query: $query) {
-      ...AIChatFragment
-    }
-    aiChatCount(query: $query)
-  }
-  ${aiChatFragment}
-`
-
-export const aiChatConfigGQL = gql`
-  query {
-    aiChatConfig {
-      chatGPTApiKey
-    }
-  }
-`
-
 export const packagesGQL = gql`
   query packages($offset: Int!, $limit: Int!, $query: String!, $sortBy: FileSortBy!) {
     packages(offset: $offset, limit: $limit, query: $query, sortBy: $sortBy) {
@@ -595,4 +550,10 @@ export const deviceInfoGQL = gql`
     }
   }
   ${deviceInfoFragment}
+`
+
+export const uploadedChunksGQL = gql`
+  query uploadedChunks($fileId: String!) {
+    uploadedChunks(fileId: $fileId)
+  }
 `

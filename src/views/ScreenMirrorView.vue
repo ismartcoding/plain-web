@@ -4,19 +4,19 @@
       <div class="title">{{ $t('screen_mirror') }}</div>
       <div class="actions">
         <template v-if="state">
-          <button class="btn-icon" @click="() => refetch()" v-tooltip="$t('refresh')">
+          <button v-tooltip="$t('refresh')" class="btn-icon" @click="() => refetch()">
             <md-ripple />
             <i-material-symbols:refresh-rounded />
           </button>
-          <md-outlined-button @click="changeQuality" class="btn-sm" v-tooltip="$t('change_quality')">{{ $t('mirror_quality') }}</md-outlined-button>
-          <md-outlined-button @click="takeScreenshot" class="btn-sm" v-tooltip="$t('screenshot')">{{ $t('screenshot') }}</md-outlined-button>
-          <md-outlined-button @click="togglePause" class="btn-sm" v-tooltip="$t(paused ? 'resume' : 'pause')">{{ $t(paused ? 'resume' : 'pause') }}</md-outlined-button>
-          <md-outlined-button :disabled="stopServiceLoading" @click="stopService" v-tooltip="$t('stop_mirror')" class="btn-sm btn-stop">{{ $t('stop_mirror') }}</md-outlined-button>
-          <button class="btn-icon btn-enter-fullscreen" @click="requestFullscreen" v-tooltip="$t('fullscreen')">
+          <md-outlined-button v-tooltip="$t('change_quality')" class="btn-sm" @click="changeQuality">{{ $t('mirror_quality') }}</md-outlined-button>
+          <md-outlined-button v-tooltip="$t('screenshot')" class="btn-sm" @click="takeScreenshot">{{ $t('screenshot') }}</md-outlined-button>
+          <md-outlined-button v-tooltip="$t(paused ? 'resume' : 'pause')" class="btn-sm" @click="togglePause">{{ $t(paused ? 'resume' : 'pause') }}</md-outlined-button>
+          <md-outlined-button v-tooltip="$t('stop_mirror')" :disabled="stopServiceLoading" class="btn-sm btn-stop" @click="stopService">{{ $t('stop_mirror') }}</md-outlined-button>
+          <button v-tooltip="$t('fullscreen')" class="btn-icon btn-enter-fullscreen" @click="requestFullscreen">
             <md-ripple />
             <i-material-symbols:fullscreen-rounded />
           </button>
-          <button class="btn-icon btn-exit-fullscreen" @click="exitFullscreen" v-tooltip="$t('exit_fullscreen')">
+          <button v-tooltip="$t('exit_fullscreen')" class="btn-icon btn-exit-fullscreen" @click="exitFullscreen">
             <md-ripple />
             <i-material-symbols:fullscreen-exit-rounded />
           </button>
@@ -81,7 +81,6 @@ let relaunchAppLoading = false
 
 const { mutate: doRelaunchApp } = initMutation({
   document: relaunchAppGQL,
-  appApi: true,
 })
 
 const togglePause = () => {
@@ -158,7 +157,6 @@ const {
   onError: startServiceError,
 } = initMutation({
   document: startScreenMirrorGQL,
-  appApi: true,
 })
 
 const { loading: fetchImageLoading, refetch } = initQuery({
@@ -180,7 +178,6 @@ const { loading: fetchImageLoading, refetch } = initQuery({
     fetchPolicy: 'no-cache',
   },
   document: screenMirrorStateGQL,
-  appApi: true,
 })
 
 const requestFullscreen = () => {
@@ -220,7 +217,6 @@ const {
   onError: stopServiceError,
 } = initMutation({
   document: stopScreenMirrorGQL,
-  appApi: true,
 })
 
 stopServiceError((error: ApolloError) => {

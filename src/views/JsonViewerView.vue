@@ -7,8 +7,8 @@
     </div>
   </div>
   <div class="scroll-content">
-    <monaco-editor language="json" v-model="json" />
-    <json-viewer v-if="jsonData" :value="jsonData" :expand-depth="expandDepth" :key="updateKey" />
+    <monaco-editor v-model="json" language="json" />
+    <json-viewer v-if="jsonData" :key="updateKey" :value="jsonData" :expand-depth="expandDepth" />
   </div>
 </template>
 

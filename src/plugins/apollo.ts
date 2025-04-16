@@ -27,29 +27,7 @@ const appApolloClient = new ApolloClient({
   },
 })
 
-const boxApolloClient = new ApolloClient({
-  link: createHttpLink({
-    headers: {
-      'x-box-api': true,
-    },
-  }),
-  cache: new InMemoryCache({
-    typePolicies: {
-      WireGuardPeer: {
-        keyFields: ['publicKey'],
-      },
-    },
-  }),
-  defaultOptions: {
-    watchQuery: {
-      errorPolicy: 'all',
-      fetchPolicy: 'network-only',
-    },
-  },
-})
-
 export default {
   a: appApolloClient,
-  b: boxApolloClient,
   default: appApolloClient,
 }

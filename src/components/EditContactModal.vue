@@ -8,19 +8,19 @@
         {{ $t('name') }}
       </label>
       <div class="form-row">
-        <md-outlined-text-field :label="$t('first_name')" v-model="editItem.firstName" />
-        <md-outlined-text-field v-if="complexName" :label="$t('middle_name')" v-model="editItem.middleName" />
-        <md-outlined-text-field :label="$t('last_name')" v-model="editItem.lastName" />
-        <div class="v-center" v-if="!complexName">
+        <md-outlined-text-field v-model="editItem.firstName" :label="$t('first_name')" />
+        <md-outlined-text-field v-if="complexName" v-model="editItem.middleName" :label="$t('middle_name')" />
+        <md-outlined-text-field v-model="editItem.lastName" :label="$t('last_name')" />
+        <div v-if="!complexName" class="v-center">
           <button class="btn-icon" @click="complexName = true">
             <md-ripple />
             <i-material-symbols:keyboard-double-arrow-down-rounded />
           </button>
         </div>
       </div>
-      <div class="form-row" v-if="complexName">
-        <md-outlined-text-field :label="$t('prefix')" v-model="editItem.prefix" />
-        <md-outlined-text-field :label="$t('suffix')" v-model="editItem.suffix" />
+      <div v-if="complexName" class="form-row">
+        <md-outlined-text-field v-model="editItem.prefix" :label="$t('prefix')" />
+        <md-outlined-text-field v-model="editItem.suffix" :label="$t('suffix')" />
         <div class="v-center">
           <button class="btn-icon" @click="complexName = false">
             <md-ripple />
@@ -31,30 +31,30 @@
       <label class="form-label">
         {{ $t('phone_number') }}
       </label>
-      <div class="form-row" v-for="(item, index) in editItem.phoneNumbers" :key="index">
-        <md-outlined-select class="flex-2" menu-positioning="fixed" v-model.number="item.type" @change="onTypeChanged(item)">
+      <div v-for="(item, index) in editItem.phoneNumbers" :key="index" class="form-row">
+        <md-outlined-select v-model.number="item.type" class="flex-2" menu-positioning="fixed" @change="onTypeChanged(item)">
           <md-select-option v-for="type of types.phoneNumberTypes" :key="type" :value="type">
             <div slot="headline">{{ getTypeLabel(item, type, 'phone_number_type') }}</div>
           </md-select-option>
         </md-outlined-select>
-        <md-outlined-text-field :placeholder="$t('telephone')" v-model="item.value" class="flex-3" />
+        <md-outlined-text-field v-model="item.value" :placeholder="$t('telephone')" class="flex-3" />
         <div class="v-center">
-          <button class="btn-icon" @click="deleteField(editItem.phoneNumbers, index)" v-if="editItem.phoneNumbers.length > 1">
+          <button v-if="editItem.phoneNumbers.length > 1" class="btn-icon" @click="deleteField(editItem.phoneNumbers, index)">
             <md-ripple />
             <i-material-symbols:delete-forever-outline-rounded />
           </button>
         </div>
       </div>
-      <label class="form-label" v-if="editItem.emails.length">
+      <label v-if="editItem.emails.length" class="form-label">
         {{ $t('email') }}
       </label>
-      <div class="form-row" v-for="(item, index) in editItem.emails" :key="index">
-        <md-outlined-select class="flex-2" menu-positioning="fixed" v-model.number="item.type" @change="onTypeChanged(item)">
+      <div v-for="(item, index) in editItem.emails" :key="index" class="form-row">
+        <md-outlined-select v-model.number="item.type" class="flex-2" menu-positioning="fixed" @change="onTypeChanged(item)">
           <md-select-option v-for="type of types.emailTypes" :key="type" :value="type">
             <div slot="headline">{{ getTypeLabel(item, type, 'email_type') }}</div>
           </md-select-option>
         </md-outlined-select>
-        <md-outlined-text-field :label="$t('email')" v-model="item.value" class="flex-3" />
+        <md-outlined-text-field v-model="item.value" :label="$t('email')" class="flex-3" />
         <div class="v-center">
           <button class="btn-icon" @click="deleteField(editItem.emails, index)">
             <md-ripple />
@@ -62,16 +62,16 @@
           </button>
         </div>
       </div>
-      <label class="form-label" v-if="editItem.addresses.length">
+      <label v-if="editItem.addresses.length" class="form-label">
         {{ $t('address') }}
       </label>
-      <div class="form-row" v-for="(item, index) in editItem.addresses" :key="index">
-        <md-outlined-select class="flex-2" menu-positioning="fixed" v-model.number="item.type" @change="onTypeChanged(item)">
+      <div v-for="(item, index) in editItem.addresses" :key="index" class="form-row">
+        <md-outlined-select v-model.number="item.type" class="flex-2" menu-positioning="fixed" @change="onTypeChanged(item)">
           <md-select-option v-for="type of types.addressTypes" :key="type" :value="type">
             <div slot="headline">{{ getTypeLabel(item, type, 'address_type') }}</div>
           </md-select-option>
         </md-outlined-select>
-        <md-outlined-text-field :label="$t('address')" v-model="item.value" class="flex-3" />
+        <md-outlined-text-field v-model="item.value" :label="$t('address')" class="flex-3" />
         <div class="v-center">
           <button class="btn-icon" @click="deleteField(editItem.addresses, index)">
             <md-ripple />
@@ -79,16 +79,16 @@
           </button>
         </div>
       </div>
-      <label class="form-label" v-if="editItem.websites.length">
+      <label v-if="editItem.websites.length" class="form-label">
         {{ $t('website') }}
       </label>
-      <div class="form-row" v-for="(item, index) in editItem.websites" :key="index">
-        <md-outlined-select class="flex-2" menu-positioning="fixed" v-model.number="item.type" @change="onTypeChanged(item)">
+      <div v-for="(item, index) in editItem.websites" :key="index" class="form-row">
+        <md-outlined-select v-model.number="item.type" class="flex-2" menu-positioning="fixed" @change="onTypeChanged(item)">
           <md-select-option v-for="type of types.websiteTypes" :key="type" :value="type">
             <div slot="headline">{{ getTypeLabel(item, type, 'website_type') }}</div>
           </md-select-option>
         </md-outlined-select>
-        <md-outlined-text-field :placeholder="$t('website')" v-model="item.value" class="flex-3" />
+        <md-outlined-text-field v-model="item.value" :placeholder="$t('website')" class="flex-3" />
         <div class="v-center">
           <button class="btn-icon" @click="deleteField(editItem.websites, index)">
             <md-ripple />
@@ -96,16 +96,16 @@
           </button>
         </div>
       </div>
-      <label class="form-label" v-if="editItem.ims.length">
+      <label v-if="editItem.ims.length" class="form-label">
         {{ $t('im') }}
       </label>
-      <div class="form-row" v-for="(item, index) in editItem.ims" :key="index">
-        <md-outlined-select class="flex-2" menu-positioning="fixed" v-model.number="item.type" @change="onTypeChanged(item)">
+      <div v-for="(item, index) in editItem.ims" :key="index" class="form-row">
+        <md-outlined-select v-model.number="item.type" class="flex-2" menu-positioning="fixed" @change="onTypeChanged(item)">
           <md-select-option v-for="type of types.imTypes" :key="type" :value="type">
             <div slot="headline">{{ getTypeLabel(item, type, 'im_type') }}</div>
           </md-select-option>
         </md-outlined-select>
-        <md-outlined-text-field :placeholder="$t('im')" v-model="item.value" class="flex-3" />
+        <md-outlined-text-field v-model="item.value" :placeholder="$t('im')" class="flex-3" />
         <div class="v-center">
           <button class="btn-icon" @click="deleteField(editItem.ims, index)">
             <md-ripple />
@@ -140,13 +140,13 @@
         </popper>
       </div>
       <div class="form-row">
-        <md-outlined-text-field type="textarea" :label="$t('notes')" v-model="editItem.notes" rows="3" />
+        <md-outlined-text-field v-model="editItem.notes" type="textarea" :label="$t('notes')" rows="3" />
       </div>
     </div>
     <div slot="actions">
       <md-outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</md-outlined-button>
-      <md-filled-button value="save" :disabled="createLoading || editLoading" @click="doAction" autofocus>
-        <md-circular-progress indeterminate v-if="createLoading || editLoading" slot="icon" /> {{ $t('save') }}
+      <md-filled-button value="save" :disabled="createLoading || editLoading" autofocus @click="doAction">
+        <md-circular-progress v-if="createLoading || editLoading" slot="icon" indeterminate /> {{ $t('save') }}
       </md-filled-button>
     </div>
   </md-dialog>
@@ -216,7 +216,6 @@ const {
       props.done()
     },
   },
-  appApi: true,
 })
 const {
   mutate: edit,
@@ -236,7 +235,6 @@ const {
       props.done()
     },
   },
-  appApi: true,
 })
 
 const {

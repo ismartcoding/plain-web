@@ -5,13 +5,13 @@
     </template>
     <template #body>
       <ul class="nav">
-        <li @click.prevent="viewAll" :class="{ active: !selectedTagId && !trash }">
+        <li :class="{ active: !selectedTagId && !trash }" @click.prevent="viewAll">
           <span class="title">{{ $t('all') }}</span>
-          <span class="count" v-if="counter.notes >= 0">{{ counter.notes.toLocaleString() }}</span>
+          <span v-if="counter.notes >= 0" class="count">{{ counter.notes.toLocaleString() }}</span>
         </li>
-        <li @click.prevent="viewTrash" :class="{ active: trash }">
+        <li :class="{ active: trash }" @click.prevent="viewTrash">
           <span class="title">{{ $t('trash') }}</span>
-          <span class="count" v-if="counter.notesTrash >= 0">{{ counter.notesTrash.toLocaleString() }}</span>
+          <span v-if="counter.notesTrash >= 0" class="count">{{ counter.notesTrash.toLocaleString() }}</span>
         </li>
       </ul>
       <tag-filter type="NOTE" :selected="selectedTagId" />
@@ -51,7 +51,6 @@ const { fetch } = initLazyQuery({
   },
   document: noteCountGQL,
   variables: () => ({}),
-  appApi: true,
 })
 
 function updateActive() {

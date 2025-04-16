@@ -1,19 +1,19 @@
 <template>
   <div class="top-app-bar">
-    <md-checkbox touch-target="wrapper" @change="toggleAllChecked" :checked="allChecked" :indeterminate="!allChecked && checked" />
+    <md-checkbox touch-target="wrapper" :checked="allChecked" :indeterminate="!allChecked && checked" @change="toggleAllChecked" />
     <div class="title">
       <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
       <span v-else>{{ $t('page_title.contacts') }} ({{ total.toLocaleString() }})</span>
       <template v-if="checked">
-        <button class="btn-icon" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)" v-tooltip="$t('delete')">
+        <button v-tooltip="$t('delete')" class="btn-icon" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)">
           <md-ripple />
           <i-material-symbols:delete-forever-outline-rounded />
         </button>
-        <button class="btn-icon" v-tooltip="$t('download')" style="display: none">
+        <button v-tooltip="$t('download')" class="btn-icon" style="display: none">
           <md-ripple />
           <i-material-symbols:download-rounded />
         </button>
-        <button class="btn-icon" @click.stop="addToTags(selectedIds, realAllChecked, q)" v-tooltip="$t('add_to_tags')">
+        <button v-tooltip="$t('add_to_tags')" class="btn-icon" @click.stop="addToTags(selectedIds, realAllChecked, q)">
           <md-ripple />
           <i-material-symbols:label-outline-rounded />
         </button>
@@ -37,19 +37,19 @@
   <div class="scroll-content">
     <div class="contact-list" :class="{ 'select-mode': checked }">
       <section
-        class="contact-item selectable-card"
         v-for="(item, i) in items"
         :key="item.id"
+        class="contact-item selectable-card"
         :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
         @click.stop="handleItemClick($event, item, i, () => {})"
         @mouseover="handleMouseOver($event, i)"
       >
         <div class="start">
-          <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, i)" :checked="shouldSelect" />
-          <md-checkbox v-else class="checkbox" touch-target="wrapper" @click.stop="toggleSelect($event, item, i)" :checked="selectedIds.includes(item.id)" />
+          <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, i)" />
+          <md-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, i)" />
           <span class="number"><field-id :id="i + 1" :raw="item" /></span>
         </div>
-        <img class="image" v-if="item.thumbnailId" :src="getFileUrl(item.thumbnailId)" width="50" />
+        <img v-if="item.thumbnailId" class="image" :src="getFileUrl(item.thumbnailId)" width="50" />
         <i-material-symbols:contact-page-outline-rounded v-else class="image" />
         <div class="title">{{ fullName(item) }}</div>
         <div class="subtitle">
@@ -58,11 +58,11 @@
         </div>
         <div class="info">
           <ul class="list-unstyled">
-            <li class="phone-number" v-for="(it, index) in item.phoneNumbers" :key="index">
+            <li v-for="(it, index) in item.phoneNumbers" :key="index" class="phone-number">
               {{ it.type > 0 ? $t(`contact.phone_number_type.${it.type}`) : it.label }}
               {{ it.normalizedNumber || it.value }}
-              <md-circular-progress indeterminate class="spinner-sm" v-if="callLoading && callId === item.id && callIndex === index" />
-              <button class="btn-icon sm" v-else @click.stop="call(item.id, it.normalizedNumber || it.value, index)" v-tooltip="$t('make_a_phone_call')">
+              <md-circular-progress v-if="callLoading && callId === item.id && callIndex === index" indeterminate class="spinner-sm" />
+              <button v-else v-tooltip="$t('make_a_phone_call')" class="btn-icon sm" @click.stop="call(item.id, it.normalizedNumber || it.value, index)">
                 <md-ripple />
                 <i-material-symbols:call-outline-rounded />
               </button>
@@ -75,15 +75,15 @@
           </ul>
         </div>
         <div class="actions">
-          <button class="btn-icon sm" @click.stop="deleteItem(item)" v-tooltip="$t('delete')">
+          <button v-tooltip="$t('delete')" class="btn-icon sm" @click.stop="deleteItem(item)">
             <md-ripple />
             <i-material-symbols:delete-forever-outline-rounded />
           </button>
-          <button class="btn-icon sm" @click.stop="edit(item)" v-tooltip="$t('edit')">
+          <button v-tooltip="$t('edit')" class="btn-icon sm" @click.stop="edit(item)">
             <md-ripple />
             <i-material-symbols:edit />
           </button>
-          <button class="btn-icon sm" @click.stop="addItemToTags(item)" v-tooltip="$t('add_to_tags')">
+          <button v-tooltip="$t('add_to_tags')" class="btn-icon sm" @click.stop="addItemToTags(item)">
             <md-ripple />
             <i-material-symbols:label-outline-rounded />
           </button>
@@ -95,7 +95,7 @@
         </div>
       </section>
       <template v-if="loading && items.length === 0">
-        <section class="contact-item selectable-card-skeleton" v-for="i in 20" :key="i">
+        <section v-for="i in 20" :key="i" class="contact-item selectable-card-skeleton">
           <div class="start">
             <div class="checkbox">
               <div class="skeleton-checkbox"></div>
@@ -123,7 +123,7 @@
         </section>
       </template>
     </div>
-    <div class="no-data-placeholder" v-if="!loading && items.length === 0">
+    <div v-if="!loading && items.length === 0" class="no-data-placeholder">
       {{ $t(noDataKey(loading, app.permissions, 'WRITE_CONTACTS')) }}
     </div>
     <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" />
@@ -200,7 +200,7 @@ const {
 } = useSelectable(items)
 const gotoPage = (page: number) => {
   const q = route.query.q
-  replacePath(mainStore, q ? `/calls?page=${page}&q=${q}` : `/calls?page=${page}`)
+  replacePath(mainStore, q ? `/contacts?page=${page}&q=${q}` : `/contacts?page=${page}`)
 }
 const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(total, limit, page, selectAll, clearSelection, gotoPage, () => {
   deleteItems(selectedIds.value, realAllChecked.value, total.value, q.value)
@@ -222,7 +222,6 @@ const { loading, fetch } = initLazyQuery({
     limit,
     query: q.value,
   }),
-  appApi: true,
 })
 
 initQuery({
@@ -237,7 +236,6 @@ initQuery({
   },
   document: contactSourcesGQL,
   variables: null,
-  appApi: true,
 })
 
 const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
@@ -299,7 +297,6 @@ function deleteItem(item: IContact) {
     variables: () => ({
       query: `ids:${item.id}`,
     }),
-    appApi: true,
     typeName: 'Contact',
     done: () => {
       total.value--
@@ -334,7 +331,6 @@ const callId = ref('')
 const callIndex = ref(0)
 const { mutate: mutateCall, loading: callLoading } = initMutation({
   document: callGQL,
-  appApi: true,
 })
 
 function call(id: string, number: string, index: number) {

@@ -79,7 +79,7 @@ export function saveColorMode(mode: ColorMode) {
  * @return The current seed color.
  */
 export function getCurrentSeedColor(): string | null {
-  return localStorage.getItem('seed-color')
+  return '#0000FF'
 }
 
 /**

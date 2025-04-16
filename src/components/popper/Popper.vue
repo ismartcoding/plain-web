@@ -1,11 +1,11 @@
 <template>
-  <div class="inline-block" @mouseleave="hover && closePopper()" ref="popperContainerNode" v-click-away="closePopper">
+  <div ref="popperContainerNode" v-click-away="closePopper" class="inline-block" @mouseleave="hover && closePopper()">
     <div ref="triggerNode" @mouseover="hover && openPopper()" @click.stop.prevent="togglePopper" @focus="openPopper" @keyup.esc="closePopper">
       <slot />
     </div>
     <transition name="fade">
-      <div v-show="shouldShowPopper" class="popper" ref="popperNode" @click.stop="() => {}">
-        <slot name="content" :close="close" :isOpen="modifiedIsOpen">
+      <div v-show="shouldShowPopper" ref="popperNode" class="popper" @click.stop="() => {}">
+        <slot name="content" :close="close" :is-open="modifiedIsOpen">
           {{ content }}
         </slot>
       </div>

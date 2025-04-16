@@ -1,6 +1,6 @@
 <template>
   <div ref="containerRef" style="position: relative; z-index: 2">
-    <component :is="modal?.component" v-bind="modal?.props.value" :modalId="`_modal_${id}`" ref="modalRef" v-on="modal?.events" />
+    <component :is="modal?.component" v-bind="modal?.props.value" ref="modalRef" :modal-id="`_modal_${id}`" v-on="modal?.events" />
   </div>
 </template>
 <script setup lang="ts">

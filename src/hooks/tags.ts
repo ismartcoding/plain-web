@@ -48,7 +48,6 @@ export const useTags = (type: string, onLoad: () => void = () => {}) => {
     variables: {
       type: type,
     },
-    appApi: true,
   })
   return {
     tags,

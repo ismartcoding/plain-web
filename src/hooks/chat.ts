@@ -1,4 +1,4 @@
-import { upload } from '@/lib/api/file'
+import { upload } from '@/lib/upload/upload'
 import { createChatItemGQL, initMutation, insertCache } from '@/lib/api/mutation'
 import type { IChatItem } from '@/lib/interfaces'
 import type { IUploadItem } from '@/stores/temp'
@@ -25,7 +25,6 @@ export const useTasks = () => {
         signalEnd()
       },
     },
-    appApi: true,
   })
 
   const signalEnd = () => {
