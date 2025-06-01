@@ -442,6 +442,7 @@ export default {
   select_all_items: '모든 {count} 항목 선택',
   clear_selection: '선택 지우기',
   remove_from_playlist: '재생 목록에서 제거',
+  app_data: '앱 데이터',
   screen_mirror_request_permission_failed: 'PlainApp에 스크린샷 권한이 부여되지 않았습니다.',
   screen_mirror_request_permission: '전화에서 "지금 시작"을 탭하세요. \n권한 창이 표시되지 않으면 PlainApp을 다시 시작하세요. \n{seconds} 초 후에 다시 시도하세요',
 }

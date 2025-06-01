@@ -445,6 +445,7 @@ export default {
   select_all_items: 'Sélectionner tous les {count} éléments',
   clear_selection: 'Effacer la sélection',
   remove_from_playlist: 'Supprimer de la liste de lecture',
+  app_data: 'Données de l\'application',
   screen_mirror_request_permission_failed: "Vous n'avez pas accordé la permission à PlainApp pour prendre des captures d'écran.",
   screen_mirror_request_permission:
     'Veuillez appuyer sur "Commencer maintenant" sur votre téléphone. \nSi la fenêtre de permission n\'apparaît pas, rouvrez PlainApp. \nRéessayez dans {seconds} secondes.',

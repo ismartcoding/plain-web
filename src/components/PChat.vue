@@ -9,7 +9,7 @@
       <div class="actions">
         <button v-tooltip="$t('files')" class="btn-icon" @click.prevent="openFolder">
           <md-ripple />
-          <i-material-symbols:folder-open-outline-rounded />
+          <i-lucide:folder />
         </button>
       </div>
     </div>

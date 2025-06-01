@@ -443,6 +443,7 @@ export default {
   select_all_items: 'Selecteer alle {count} items',
   clear_selection: 'Selectie wissen',
   remove_from_playlist: 'Verwijderen van afspeellijst',
+  app_data: 'App-gegevens',
   screen_mirror_request_permission_failed: 'Je hebt PlainApp geen toestemming gegeven om schermafbeeldingen te maken.',
   screen_mirror_request_permission:
     'Tik op "Nu starten" op je telefoon. \nAls het toestemmingsvenster niet wordt weergegeven, start je PlainApp opnieuw. \nProbeer het over {seconds} seconden opnieuw',

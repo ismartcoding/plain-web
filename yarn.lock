@@ -649,6 +649,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@iconify-json/lucide@npm:^1.2.45":
+  version: 1.2.45
+  resolution: "@iconify-json/lucide@npm:1.2.45"
+  dependencies:
+    "@iconify/types": "npm:*"
+  checksum: 10/532e6b961a479f3c0585215024023a4e07190c02df585520268f81ceb75a9b3da1548f9fa1663f5d643dc487cea8480e55b1dae9b12387e462a2ad81eace9a86
+  languageName: node
+  linkType: hard
+
 "@iconify-json/material-symbols@npm:^1.2.23":
   version: 1.2.23
   resolution: "@iconify-json/material-symbols@npm:1.2.23"
@@ -3863,6 +3872,7 @@ __metadata:
   resolution: "plain@workspace:."
   dependencies:
     "@apollo/client": "npm:^3.10.4"
+    "@iconify-json/lucide": "npm:^1.2.45"
     "@iconify-json/material-symbols": "npm:^1.2.23"
     "@material/material-color-utilities": "npm:^0.2.7"
     "@material/web": "npm:^1.5.0"

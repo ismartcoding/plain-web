@@ -255,7 +255,6 @@ import { useRoute } from 'vue-router'
 import { decodeBase64, shortUUID } from '@/lib/strutil'
 import { initMutation, setTempValueGQL } from '@/lib/api/mutation'
 import type { ISource } from '@/components/lightbox/types'
-import type { MdCheckbox } from '@material/web/checkbox/checkbox'
 import type { IFileDeletedEvent, IFileFilter, IBreadcrumbItem } from '@/lib/interfaces'
 import { useSelectable } from '@/hooks/list'
 import { useFilesKeyEvents } from '@/hooks/key-events'
@@ -418,7 +417,7 @@ function getPageTitle() {
   if (filter.linkName === 'sdcard') {
     return t('sdcard')
   } else if (filter.linkName === 'app') {
-    return t('app_name')
+    return t('app_data')
   } else if (filter.linkName.startsWith('usb')) {
     const num = parseInt(filter.linkName.substring(3))
     return `${t('usb_storage')} ${num}`
@@ -434,7 +433,7 @@ function getPageStats() {
       total: formatFileSize(sdcard.value?.totalBytes ?? 0),
     })}`
   } else if (filter.linkName === 'app') {
-    return t('app_name')
+    return t('app_data')
   } else if (filter.linkName.startsWith('usb')) {
     const num = parseInt(filter.linkName.substring(3))
     const u = usb.value[num - 1]

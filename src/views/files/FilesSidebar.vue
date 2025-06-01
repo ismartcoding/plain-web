@@ -80,7 +80,7 @@ const links = computed(() => {
 
   links.push({
     name: 'app',
-    label: t('app_name'),
+    label: t('app_data'),
     path: app.value.externalFilesDir,
   })
 

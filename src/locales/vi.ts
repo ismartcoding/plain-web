@@ -442,6 +442,7 @@ export default {
   select_all_items: 'Chọn tất cả {count} mục',
   clear_selection: 'Xóa lựa chọn',
   remove_from_playlist: 'Xóa khỏi danh sách phát',
+  app_data: 'Dữ liệu ứng dụng',
   screen_mirror_request_permission_failed: 'Bạn chưa cấp quyền cho PlainApp để chụp màn hình.',
   screen_mirror_request_permission: 'Vui lòng nhấn "Bắt đầu ngay bây giờ" trên điện thoại. \nNếu cửa sổ quyền không hiển thị, vui lòng khởi động lại PlainApp. \nThử lại sau {seconds} giây',
 }

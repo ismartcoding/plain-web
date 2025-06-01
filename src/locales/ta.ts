@@ -445,6 +445,7 @@ export default {
   select_all_items: 'அனைத்து {count} பொருட்களையும் தேர்ந்தெடு',
   clear_selection: 'தேர்ந்தெடுப்பை அகற்று',
   remove_from_playlist: 'பிளேலிஸ்டுக்கு இல்லை செய்ய',
+  app_data: 'பயன்பாட்டு தரவு',
   screen_mirror_request_permission_failed: 'நீங்கள் காட்சிகள் எடுப்பதிகரித்த அனுமதியை PlainApp-க்கு அளித்திருக்கவில்லை.',
   screen_mirror_request_permission:
     'தயவுசெய்து ஃபோனில் "இப்போ தொடக்க" ஐ தட்டவும். \nஅனுமதி சாளரம் காட்சியாகாதால், தயவுசெய்து PlainApp-ஐ மீண்டும் தொடக்கவும். \n{விநாடிகள்} விநாடிகளில் மீண்டும் முயற்சிக்க.',

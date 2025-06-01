@@ -443,6 +443,7 @@ export default {
   select_all_items: 'Tüm {count} öğeleri seç',
   clear_selection: 'Seçimi temizle',
   remove_from_playlist: 'Oynatma listesinden kaldır',
+  app_data: 'Uygulama verileri',
   screen_mirror_request_permission_failed: "Ekran görüntüsü alma iznini PlainApp'e vermediniz.",
   screen_mirror_request_permission: 'Lütfen telefonda "Şimdi Başlat"ı dokunun. \nİzin penceresi görüntülenmiyorsa, lütfen PlainApp\'i yeniden başlatın. \n{seconds} saniye içinde tekrar deneyin',
 }
