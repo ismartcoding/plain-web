@@ -3,7 +3,7 @@
     <!-- Storage Section Cards -->
     <div class="card feature-card" @click="openTab('/images')">
       <div class="card-icon">
-        <i-material-symbols:image-outline-rounded />
+        <i-lucide:image />
       </div>
       <div class="card-content">
         <div class="card-title-row">
@@ -15,7 +15,7 @@
 
     <div class="card feature-card" @click="openTab('/audios')">
       <div class="card-icon">
-        <i-material-symbols:audio-file-outline-rounded />
+        <i-lucide:music />
       </div>
       <div class="card-content">
         <div class="card-title-row">
@@ -27,7 +27,7 @@
 
     <div class="card feature-card" @click="openTab('/videos')">
       <div class="card-icon">
-        <i-material-symbols:video-file-outline-rounded />
+        <i-lucide:video />
       </div>
       <div class="card-content">
         <div class="card-title-row">
@@ -39,7 +39,7 @@
 
     <div v-if="app.channel !== 'GOOGLE'" class="card feature-card" @click="openTab('/apps')">
       <div class="card-icon">
-        <i-material-symbols:apps />
+        <i-lucide:layout-grid />
       </div>
       <div class="card-content">
         <div class="card-title-row">
@@ -49,9 +49,9 @@
       </div>
     </div>
 
-    <div class="card feature-card" @click="openTab('/files/recent')">
+    <div class="card feature-card" @click="openFilesInternalStorage">
       <div class="card-icon">
-        <i-material-symbols:storage-rounded />
+        <i-lucide:folder />
       </div>
       <div class="card-content">
         <div class="card-title-row">
@@ -62,11 +62,9 @@
         </div>
       </div>
     </div>
-
-    <!-- Work Section Cards -->
     <div class="card feature-card" @click="openTab('/notes')">
       <div class="card-icon">
-        <i-material-symbols:notes-rounded />
+        <i-lucide:notebook-pen />
       </div>
       <div class="card-content">
         <div class="card-title-row">
@@ -78,7 +76,7 @@
 
     <div class="card feature-card" @click="openTab('/feeds')">
       <div class="card-icon">
-        <i-material-symbols:rss-feed-rounded />
+        <i-lucide:rss />
       </div>
       <div class="card-content">
         <div class="card-title-row">
@@ -90,7 +88,7 @@
 
     <div v-if="app.channel !== 'GOOGLE'" class="card feature-card" @click="openTab('/messages')">
       <div class="card-icon">
-        <i-material-symbols:sms-outline-rounded />
+        <i-lucide:message-square-text />
       </div>
       <div class="card-content">
         <div class="card-title-row">
@@ -114,7 +112,7 @@
 
     <div class="card feature-card" @click="openTab('/contacts')">
       <div class="card-icon">
-        <i-material-symbols:contact-page-outline-rounded />
+        <i-lucide:contact-round />
       </div>
       <div class="card-content">
         <div class="card-title-row">
@@ -138,7 +136,7 @@
 
     <div class="card feature-card" @click="openTab('/device-info')">
       <div class="card-icon">
-        <i-material-symbols:perm-device-information-outline-rounded />
+        <i-lucide:smartphone />
       </div>
       <div class="card-content">
         <div class="card-title-row">
@@ -202,6 +200,8 @@ import { useMainStore } from '@/stores/main'
 import { callGQL, initMutation } from '@/lib/api/mutation'
 import { replacePath } from '@/plugins/router'
 import type { IHomeStats, IStorageStatsItem } from '@/lib/interfaces'
+import { buildQuery } from '@/lib/search'
+import { encodeBase64 } from '@/lib/strutil'
 
 const { t } = useI18n()
 
@@ -214,6 +214,22 @@ const { app, counter } = storeToRefs(useTempStore())
 
 function openTab(fullPath: string) {
   replacePath(mainStore, fullPath)
+}
+
+function openFilesInternalStorage() {
+  const q = buildQuery([
+    {
+      name: 'parent',
+      op: '',
+      value: app.value.internalStoragePath,
+    },
+    {
+      name: 'link_name',
+      op: '',
+      value: 'internal',
+    },
+  ])
+  replacePath(mainStore, `/files?q=${encodeBase64(q)}`)
 }
 
 function pastePhoneNumber() {

@@ -447,6 +447,7 @@ export default {
   select_all_items: 'সমস্ত {count} আইটেম নির্বাচন করুন',
   clear_selection: 'নির্বাচন সরান',
   remove_from_playlist: 'প্লেলিস্ট থেকে সরান',
+  app_data: 'অ্যাপ ডেটা',
   screen_mirror_request_permission_failed: 'আপনি PlainApp এ স্ক্রীনশট নেওয়ার অনুমতি দেননি।',
   screen_mirror_request_permission:
     'দয়া করে ফোনে এ "এখন শুরু করুন" ট্যাপ করুন। \nযদি অনুমতি উইন্ডো প্রদর্শিত না হয়, তাহলে দয়া করে PlainApp পুনরায় আরম্ভ করুন। \n{সেকেন্ড} সেকেন্ডে আবার চেষ্টা করুন',

@@ -442,6 +442,7 @@ export default {
   select_all_items: '{count}個のアイテムをすべて選択',
   clear_selection: '選択を解除',
   remove_from_playlist: 'プレイリストから削除',
+  app_data: 'アプリデータ',
   screen_mirror_request_permission_failed: 'PlainAppにスクリーンショットの許可がありません。',
   screen_mirror_request_permission: '電話で[開始]をタップしてください。 \n許可ウィンドウが表示されない場合は、PlainAppを再起動してください。 \n{seconds}秒後に再試行します',
 }

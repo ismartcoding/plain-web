@@ -443,6 +443,7 @@ export default {
   select_all_items: 'Selecionar todos os {count} itens',
   clear_selection: 'Limpar seleção',
   remove_from_playlist: 'Remover da lista de reprodução',
+  app_data: 'Dados do aplicativo',
   screen_mirror_request_permission_failed: 'Você não concedeu permissão ao PlainApp para capturar capturas de tela.',
   screen_mirror_request_permission: 'Por favor, toque em "Iniciar agora" no telefone. \nSe a janela de permissão não for exibida, reinicie o PlainApp. \nTente novamente em {seconds} segundos',
 }

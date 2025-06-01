@@ -89,6 +89,7 @@ function getLabel(type: string) {
 watch(
   () => tempStore.uploads,
   (newUploads, _) => {
+    store.quick = 'task'
     const newItems = newUploads.filter((item) => item.status === 'created')
     newItems.forEach((item) => {
       addUploadTask(item, true)

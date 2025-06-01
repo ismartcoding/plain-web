@@ -448,6 +448,7 @@ export default {
   select_all_items: 'Выбрать все {count} элементов',
   clear_selection: 'Снять выделение',
   remove_from_playlist: 'Убрать из плейлиста',
+  app_data: 'Данные приложения',
   screen_mirror_request_permission_failed: 'Вы не предоставили приложению PlainApp разрешение на снятие скриншотов.',
   screen_mirror_request_permission:
     'Пожалуйста, нажмите кнопку "Начать сейчас" на телефоне. \nЕсли окно запроса разрешения не отображается, перезапустите приложение PlainApp. \nПопробуйте снова через {seconds} секунд',

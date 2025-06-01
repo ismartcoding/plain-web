@@ -447,6 +447,7 @@ export default {
   select_all_items: '选择所有{count}项',
   clear_selection: '清除选择',
   remove_from_playlist: '从播放列表中移除',
+  app_data: '应用数据',
   screen_mirror_request_permission_failed: '您还没有授权简朴截屏的权限。',
   screen_mirror_request_permission: '请在手机上点击"现在开始"按钮。\n如果权限窗口未显示，请重新启动简朴。\n请在{seconds}秒后再试。',
 }

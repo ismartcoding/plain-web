@@ -48,6 +48,7 @@
     "yup": "^0.32.11"
   },
   "devDependencies": {
+    "@iconify-json/lucide": "^1.2.45",
     "@iconify-json/material-symbols": "^1.2.23",
     "@rushstack/eslint-patch": "^1.11.0",
     "@types/lodash-es": "^4.17.12",

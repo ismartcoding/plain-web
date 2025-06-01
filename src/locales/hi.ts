@@ -443,6 +443,7 @@ export default {
   select_all_items: 'सभी {count} आइटम चुनें',
   clear_selection: 'चयन साफ़ करें',
   remove_from_playlist: 'प्लेलिस्ट से हटाएं',
+  app_data: 'ऐप डेटा',
   screen_mirror_request_permission_failed: 'आपने प्लेनएप को स्क्रीनशॉट लेने की परमिशन नहीं दी है.',
   screen_mirror_request_permission: 'कृपया फ़ोन पर "स्टार्ट नाउ" पर टैप करें. \nयदि परमिशन विंडो डिस्प्लै नहीं होती है, तो प्लेनएप को फिर से लॉन्च करें. \nफिर से कोशिश करें {seconds} सेकण्ड्स',
 }
