@@ -1,4 +1,4 @@
-import type { IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IFileDeletedEvent, IMediaItemsActionedEvent, INotesActionedEvent } from '@/lib/interfaces'
+import type { IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IFileDeletedEvent, IFileRenamedEvent, IMediaItemsActionedEvent, INotesActionedEvent } from '@/lib/interfaces'
 import type { IUploadItem } from '@/stores/temp'
 import mitt, { type Emitter } from 'mitt'
 
@@ -16,6 +16,7 @@ type Events = {
   calls_deleted: undefined
   notes_actioned: INotesActionedEvent
   file_deleted: IFileDeletedEvent
+  file_renamed: IFileRenamedEvent
   toast: string
   tap_phone: string
   feeds_fetched: any

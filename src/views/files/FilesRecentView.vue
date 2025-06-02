@@ -114,7 +114,7 @@ import { useFilesKeyEvents } from '@/hooks/key-events'
 import { initLazyQuery, recentFilesGQL } from '@/lib/api/query'
 import VirtualList from '@/components/virtualscroll'
 import emitter from '@/plugins/eventbus'
-import type { IFileDeletedEvent } from '@/lib/interfaces'
+import type { IFileDeletedEvent, IFileRenamedEvent } from '@/lib/interfaces'
 import { remove } from 'lodash-es'
 
 const { t } = useI18n()
@@ -211,10 +211,16 @@ const fileDeletedHanlder = (event: IFileDeletedEvent) => {
   onDeleted([event.item])
 }
 
+const fileRenamedHandler = (event: IFileRenamedEvent) => {
+  // Refresh recent files list to show new filename
+  fetch()
+}
+
 onActivated(() => {
   fetch()
   emitter.on('upload_task_done', uploadTaskDoneHandler)
   emitter.on('file_deleted', fileDeletedHanlder)
+  emitter.on('file_renamed', fileRenamedHandler)
   window.addEventListener('keydown', pageKeyDown)
   window.addEventListener('keyup', pageKeyUp)
 })
@@ -222,6 +228,7 @@ onActivated(() => {
 onDeactivated(() => {
   emitter.off('upload_task_done', uploadTaskDoneHandler)
   emitter.off('file_deleted', fileDeletedHanlder)
+  emitter.off('file_renamed', fileRenamedHandler)
   window.removeEventListener('keydown', pageKeyDown)
   window.removeEventListener('keyup', pageKeyUp)
 })

@@ -120,6 +120,11 @@
                   <i-material-symbols:delete-forever-outline-rounded />
                 </template>
               </icon-button>
+              <icon-button v-tooltip="$t('rename')" @click.stop="renameFile">
+                <template #icon>
+                  <i-material-symbols:edit-outline-rounded />
+                </template>
+              </icon-button>
               <icon-button v-tooltip="$t('download')" @click.stop="downloadFile(current?.path ?? '', getFileName(current?.path ?? '').replace(' ', '-'))">
                 <template #icon>
                   <i-material-symbols:download-rounded />
@@ -181,15 +186,17 @@ import { useMainStore } from '@/stores/main'
 import { fileInfoGQL, initLazyQuery, tagsGQL } from '@/lib/api/query'
 import { formatDateTime, formatDateTimeFull } from '@/lib/format'
 import { openModal } from '@/components/modal'
+import { useI18n } from 'vue-i18n'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
-import type { IItemTagsUpdatedEvent, IFileDeletedEvent, ITag, IMediaItemsActionedEvent } from '@/lib/interfaces'
+import type { IItemTagsUpdatedEvent, IFileDeletedEvent, IFileRenamedEvent, ITag, IMediaItemsActionedEvent } from '@/lib/interfaces'
 import emitter from '@/plugins/eventbus'
-import { useDownload } from '@/hooks/files'
+import { useDownload, useRename } from '@/hooks/files'
 import { getFileName, getFinalPath } from '@/lib/api/file'
 import { useDeleteItems } from '@/hooks/media'
 import { remove } from 'lodash-es'
 import { DataType, FEATURE } from '@/lib/data'
 import DeleteFileConfirm from '@/components/DeleteFileConfirm.vue'
+import EditValueModal from '@/components/EditValueModal.vue'
 import { hasFeature } from '@/lib/feature'
 import { useMediaRestore, useMediaTrash } from '@/hooks/media-trash'
 
@@ -201,6 +208,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['on-error', 'on-prev', 'on-next', 'on-prev-click', 'on-next-click', 'on-index-change'])
+
+const { t } = useI18n()
 
 const viewOrigin = () => {
   const c = current.value
@@ -217,6 +226,10 @@ const imgIndex = ref(0)
 const { lightboxInfoVisible } = storeToRefs(useMainStore())
 const { downloadFile } = useDownload(urlTokenKey)
 const { deleteItem } = useDeleteItems()
+const { renameItem, renameDone, renameMutation, renameVariables } = useRename(() => {
+  // 重命名完成后刷新文件信息
+  refetchInfo()
+})
 
 const imgWrapperState = reactive<IImgWrapperState>({
   scale: 1,
@@ -264,6 +277,53 @@ function deleteFile() {
       },
     })
   }
+}
+
+function renameFile() {
+  const item = current.value?.data
+  if (!item || !current.value?.path) return
+  
+  renameItem.value = {
+    id: item.id,
+    path: current.value.path,
+    name: getFileName(current.value.path),
+    size: current.value.size || 0,
+    isDir: false,
+    extension: '',
+    fileId: '',
+    updatedAt: '',
+    createdAt: ''
+  }
+  
+  openModal(EditValueModal, {
+    title: t('rename'),
+    placeholder: t('name'),
+    value: getFileName(current.value.path),
+    mutation: renameMutation,
+    getVariables: renameVariables,
+    done: (newName: string) => {
+      renameDone(newName)
+      // 更新当前文件的名称
+      if (current.value) {
+        const oldPath = current.value.path
+        const newPath = oldPath.substring(0, oldPath.lastIndexOf('/') + 1) + newName
+        
+        // 发出文件重命名事件，通知其他组件刷新数据
+        emitter.emit('file_renamed', {
+          oldPath,
+          newPath,
+          item: {
+            ...current.value.data,
+            path: newPath,
+            name: newName
+          }
+        })
+        
+        current.value.path = newPath
+        current.value.name = newName
+      }
+    },
+  })
 }
 
 const {
@@ -647,12 +707,37 @@ const fileDeletedHandler = (event: IFileDeletedEvent) => {
   }
 }
 
+const fileRenamedHandler = (event: IFileRenamedEvent) => {
+  // 更新 lightbox 中的文件信息
+  tempStore.lightbox.sources.forEach((source: ISource) => {
+    if (source.path === event.oldPath) {
+      source.path = event.newPath
+      source.name = getFileName(event.newPath)
+      if (source.data) {
+        source.data.path = event.newPath
+        source.data.name = getFileName(event.newPath)
+      }
+    }
+  })
+  
+  // 如果当前显示的文件被重命名了，更新显示
+  if (current.value && current.value.path === event.oldPath) {
+    current.value.path = event.newPath
+    current.value.name = getFileName(event.newPath)
+    if (current.value.data) {
+      current.value.data.path = event.newPath
+      current.value.data.name = getFileName(event.newPath)
+    }
+  }
+}
+
 onMounted(() => {
   on(window, 'keydown', onKeyPress)
   on(window, 'resize', onWindowResize)
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
   emitter.on('media_items_actioned', mediaItemsActionedHandler)
   emitter.on('file_deleted', fileDeletedHandler)
+  emitter.on('file_renamed', fileRenamedHandler)
 })
 
 onBeforeUnmount(() => {
@@ -661,6 +746,7 @@ onBeforeUnmount(() => {
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('media_items_actioned', mediaItemsActionedHandler)
   emitter.off('file_deleted', fileDeletedHandler)
+  emitter.off('file_renamed', fileRenamedHandler)
 })
 </script>
 <style lang="scss" scoped>

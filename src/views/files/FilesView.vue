@@ -255,7 +255,7 @@ import { useRoute } from 'vue-router'
 import { decodeBase64, shortUUID } from '@/lib/strutil'
 import { initMutation, setTempValueGQL } from '@/lib/api/mutation'
 import type { ISource } from '@/components/lightbox/types'
-import type { IFileDeletedEvent, IFileFilter, IBreadcrumbItem } from '@/lib/interfaces'
+import type { IFileDeletedEvent, IFileRenamedEvent, IFileFilter, IBreadcrumbItem } from '@/lib/interfaces'
 import { useSelectable } from '@/hooks/list'
 import { useFilesKeyEvents } from '@/hooks/key-events'
 import { filesGQL, initLazyQuery } from '@/lib/api/query'
@@ -592,6 +592,11 @@ const fileDeletedHanlder = (event: IFileDeletedEvent) => {
   onDeleted([event.item])
 }
 
+const fileRenamedHandler = (event: IFileRenamedEvent) => {
+  // Refresh file list to show new filename
+  fetch()
+}
+
 function dropFiles2(e: DragEvent) {
   dropFiles(e, filter.parent)
 }
@@ -602,6 +607,7 @@ onActivated(() => {
   fetch()
   emitter.on('upload_task_done', uploadTaskDoneHandler)
   emitter.on('file_deleted', fileDeletedHanlder)
+  emitter.on('file_renamed', fileRenamedHandler)
   window.addEventListener('keydown', pageKeyDown)
   window.addEventListener('keyup', pageKeyUp)
 })
@@ -609,6 +615,7 @@ onActivated(() => {
 onDeactivated(() => {
   emitter.off('upload_task_done', uploadTaskDoneHandler)
   emitter.off('file_deleted', fileDeletedHanlder)
+  emitter.off('file_renamed', fileRenamedHandler)
   window.removeEventListener('keydown', pageKeyDown)
   window.removeEventListener('keyup', pageKeyUp)
 })
