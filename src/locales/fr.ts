@@ -449,4 +449,11 @@ export default {
   screen_mirror_request_permission_failed: "Vous n'avez pas accordé la permission à PlainApp pour prendre des captures d'écran.",
   screen_mirror_request_permission:
     'Veuillez appuyer sur "Commencer maintenant" sur votre téléphone. \nSi la fenêtre de permission n\'apparaît pas, rouvrez PlainApp. \nRéessayez dans {seconds} secondes.',
+  file_not_found: 'Fichier non trouvé',
+  access_denied: 'Accès refusé',
+  failed_to_load_file: 'Échec du chargement du fichier',
+  invalid_file_id: 'ID de fichier non valide',
+  invalid_json_format: 'Format JSON non valide',
+  raw_text: 'Texte brut',
+  formatted_view: 'Vue formatée',
 }

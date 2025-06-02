@@ -451,4 +451,11 @@ export default {
   screen_mirror_request_permission_failed: 'আপনি PlainApp এ স্ক্রীনশট নেওয়ার অনুমতি দেননি।',
   screen_mirror_request_permission:
     'দয়া করে ফোনে এ "এখন শুরু করুন" ট্যাপ করুন। \nযদি অনুমতি উইন্ডো প্রদর্শিত না হয়, তাহলে দয়া করে PlainApp পুনরায় আরম্ভ করুন। \n{সেকেন্ড} সেকেন্ডে আবার চেষ্টা করুন',
+  file_not_found: 'ফাইল পাওয়া যায়নি',
+  access_denied: 'অনুমতি প্রাপ্ত হয়নি',
+  failed_to_load_file: 'ফাইল লোড করতে ব্যর্থ হয়েছে',
+  invalid_file_id: 'অবৈধ ফাইল আইডি',
+  invalid_json_format: 'অবৈধ JSON ফরম্যাট',
+  raw_text: 'মূল পাঠ',
+  formatted_view: 'ফর্ম্যাটড দেখান',
 }

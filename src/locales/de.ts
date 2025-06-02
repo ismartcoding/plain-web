@@ -448,4 +448,11 @@ export default {
   screen_mirror_request_permission_failed: 'Sie haben PlainApp nicht die Erlaubnis zum Aufnehmen von Bildschirmfotos erteilt.',
   screen_mirror_request_permission:
     'Bitte tippen Sie auf "Jetzt starten" auf dem Telefon. \nWenn das Berechtigungsfenster nicht angezeigt wird, starten Sie PlainApp neu. \nVersuchen Sie es in {seconds} Sekunden erneut',
+  file_not_found: 'Datei nicht gefunden',
+  access_denied: 'Zugriff verweigert',
+  failed_to_load_file: 'Datei laden fehlgeschlagen',
+  invalid_file_id: 'Ungültige Datei-ID',
+  invalid_json_format: 'Ungültiges JSON-Format',
+  raw_text: 'Raw-Text',
+  formatted_view: 'Formatiert anzeigen',
 }

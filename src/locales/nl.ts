@@ -447,4 +447,11 @@ export default {
   screen_mirror_request_permission_failed: 'Je hebt PlainApp geen toestemming gegeven om schermafbeeldingen te maken.',
   screen_mirror_request_permission:
     'Tik op "Nu starten" op je telefoon. \nAls het toestemmingsvenster niet wordt weergegeven, start je PlainApp opnieuw. \nProbeer het over {seconds} seconden opnieuw',
+  file_not_found: 'Bestand niet gevonden',
+  access_denied: 'Toegang geweigerd',
+  failed_to_load_file: 'Laden van bestand mislukt',
+  invalid_file_id: 'Ongeldige bestands-ID',
+  invalid_json_format: 'Ongeldig JSON-formaat',
+  raw_text: 'Ruwe tekst',
+  formatted_view: 'Gevormde weergave',
 }

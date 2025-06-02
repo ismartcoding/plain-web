@@ -450,4 +450,11 @@ export default {
     app_data: '應用程式資料',
     screen_mirror_request_permission_failed: '您尚未授予PlainApp截圖權限。',
     screen_mirror_request_permission: '請在手機上點擊「立即開始」。\n如果未顯示權限視窗，請重新啟動PlainApp。\n{seconds}秒後重試',
+    file_not_found: '檔案不存在',
+    access_denied: '存取被拒絕',
+    failed_to_load_file: '載入檔案失敗',
+    invalid_file_id: '無效的檔案ID',
+    invalid_json_format: '無效的JSON格式',
+    raw_text: '原始文本',
+    formatted_view: '格式化視圖',
   }

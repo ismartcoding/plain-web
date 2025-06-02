@@ -445,4 +445,11 @@ export default {
   app_data: 'Dữ liệu ứng dụng',
   screen_mirror_request_permission_failed: 'Bạn chưa cấp quyền cho PlainApp để chụp màn hình.',
   screen_mirror_request_permission: 'Vui lòng nhấn "Bắt đầu ngay bây giờ" trên điện thoại. \nNếu cửa sổ quyền không hiển thị, vui lòng khởi động lại PlainApp. \nThử lại sau {seconds} giây',
+  file_not_found: 'Tệp không tồn tại',
+  access_denied: 'Truy cập bị từ chối',
+  failed_to_load_file: 'Không thể tải tệp',
+  invalid_file_id: 'ID tệp không hợp lệ',
+  invalid_json_format: 'Định dạng JSON không hợp lệ',
+  raw_text: 'Văn bản thô',
+  formatted_view: 'Xem định dạng',
 }

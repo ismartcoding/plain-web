@@ -446,4 +446,11 @@ export default {
   app_data: 'Uygulama verileri',
   screen_mirror_request_permission_failed: "Ekran görüntüsü alma iznini PlainApp'e vermediniz.",
   screen_mirror_request_permission: 'Lütfen telefonda "Şimdi Başlat"ı dokunun. \nİzin penceresi görüntülenmiyorsa, lütfen PlainApp\'i yeniden başlatın. \n{seconds} saniye içinde tekrar deneyin',
+  file_not_found: 'Dosya bulunamadı',
+  access_denied: 'Erişim reddedildi',
+  failed_to_load_file: 'Dosya yüklenemedi',
+  invalid_file_id: 'Geçersiz dosya ID',
+  invalid_json_format: 'Geçersiz JSON formatı',
+  raw_text: 'Ham metin',
+  formatted_view: 'Biçimlendirilmiş görünüm',
 }
