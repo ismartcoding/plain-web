@@ -1,18 +1,5 @@
 <template>
   <div class="grids">
-    <!-- Storage Section Cards -->
-    <div class="card feature-card" @click="openTab('/images')">
-      <div class="card-icon">
-        <i-lucide:image />
-      </div>
-      <div class="card-content">
-        <div class="card-title-row">
-          <span v-if="counter.images !== undefined && counter.images >= 0" class="count">{{ counter.images.toLocaleString() }}</span>
-          <span class="title">{{ $t('images') }}</span>
-        </div>
-      </div>
-    </div>
-
     <div class="card feature-card" @click="openTab('/audios')">
       <div class="card-icon">
         <i-lucide:music />
@@ -24,7 +11,17 @@
         </div>
       </div>
     </div>
-
+    <div class="card feature-card" @click="openTab('/images')">
+      <div class="card-icon">
+        <i-lucide:image />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span v-if="counter.images !== undefined && counter.images >= 0" class="count">{{ counter.images.toLocaleString() }}</span>
+          <span class="title">{{ $t('images') }}</span>
+        </div>
+      </div>
+    </div>
     <div class="card feature-card" @click="openTab('/videos')">
       <div class="card-icon">
         <i-lucide:video />
@@ -33,18 +30,6 @@
         <div class="card-title-row">
           <span v-if="counter.videos !== undefined && counter.videos >= 0" class="count">{{ counter.videos.toLocaleString() }}</span>
           <span class="title">{{ $t('videos') }}</span>
-        </div>
-      </div>
-    </div>
-
-    <div v-if="app.channel !== 'GOOGLE'" class="card feature-card" @click="openTab('/apps')">
-      <div class="card-icon">
-        <i-lucide:layout-grid />
-      </div>
-      <div class="card-content">
-        <div class="card-title-row">
-          <span v-if="counter.packages !== undefined && counter.packages >= 0" class="count">{{ counter.packages.toLocaleString() }}</span>
-          <span class="title">{{ $t('apps') }}</span>
         </div>
       </div>
     </div>
@@ -62,6 +47,19 @@
         </div>
       </div>
     </div>
+
+    <div v-if="app.channel !== 'GOOGLE'" class="card feature-card" @click="openTab('/apps')">
+      <div class="card-icon">
+        <i-lucide:layout-grid />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span v-if="counter.packages !== undefined && counter.packages >= 0" class="count">{{ counter.packages.toLocaleString() }}</span>
+          <span class="title">{{ $t('apps') }}</span>
+        </div>
+      </div>
+    </div>
+
     <div class="card feature-card" @click="openTab('/notes')">
       <div class="card-icon">
         <i-lucide:notebook-pen />

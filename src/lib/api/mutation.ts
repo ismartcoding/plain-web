@@ -119,6 +119,12 @@ export const clearAudioPlaylistGQL = gql`
   }
 `
 
+export const reorderPlaylistAudiosGQL = gql`
+  mutation reorderPlaylistAudios($paths: [String!]!) {
+    reorderPlaylistAudios(paths: $paths)
+  }
+`
+
 export const deleteMediaItemsGQL = gql`
   mutation deleteMediaItems($type: DataType!, $query: String!) {
     deleteMediaItems(type: $type, query: $query) {
