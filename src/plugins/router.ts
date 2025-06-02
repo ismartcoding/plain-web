@@ -157,6 +157,12 @@ const router = createRouter({
       component: () => import('@/views/LoginView.vue'),
       meta: { requiresAuth: false },
     },
+    {
+      name: 'text-file',
+      path: '/text-file',
+      component: () => import('@/views/TextFileView.vue'),
+      meta: { requiresAuth: false },
+    },
   ],
 })
 

@@ -446,4 +446,11 @@ export default {
   app_data: 'ऐप डेटा',
   screen_mirror_request_permission_failed: 'आपने प्लेनएप को स्क्रीनशॉट लेने की परमिशन नहीं दी है.',
   screen_mirror_request_permission: 'कृपया फ़ोन पर "स्टार्ट नाउ" पर टैप करें. \nयदि परमिशन विंडो डिस्प्लै नहीं होती है, तो प्लेनएप को फिर से लॉन्च करें. \nफिर से कोशिश करें {seconds} सेकण्ड्स',
+  file_not_found: 'फाइल नहीं मिली',  
+  access_denied: 'अभिमुख अनुमति नहीं है',
+  failed_to_load_file: 'फाइल लोड हो रहा है',
+  invalid_file_id: 'अमान्य फाइल आईडी',
+  invalid_json_format: 'अमान्य JSON फॉर्मेट',
+  raw_text: 'अपरिष्कृत टेक्स्ट',
+  formatted_view: 'सुधारित दृश्य',
 }

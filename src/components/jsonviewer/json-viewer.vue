@@ -58,7 +58,6 @@ onUnmounted(() => {
 
   .jv-code {
     overflow: hidden;
-    padding: 16px;
   }
 
   .jv-item.jv-string {
@@ -83,7 +82,6 @@ onUnmounted(() => {
 }
 
 .jv-container.light {
-  background: #fff;
   color: #525252;
 
   .jv-ellipsis {
@@ -97,7 +95,6 @@ onUnmounted(() => {
 }
 
 .jv-container.dark {
-  background: #282c34;
   color: #fff;
 
   .jv-ellipsis {

@@ -17,6 +17,11 @@ export interface IFile extends IData {
   size: number
 }
 
+export function isTextFile(name: string) {
+  const v = name.toLowerCase()
+  return ['.txt', '.md', '.markdown', '.json', '.xml', '.css', '.js', '.ts', '.html', '.yml', '.yaml', '.ini', '.conf', '.log'].some((it) => v.endsWith(it))
+}
+
 export function isImage(name: string) {
   const v = name.toLowerCase()
   return photoExtensions.some((it) => v.endsWith(it))

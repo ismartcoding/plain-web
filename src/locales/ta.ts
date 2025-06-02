@@ -449,4 +449,11 @@ export default {
   screen_mirror_request_permission_failed: 'நீங்கள் காட்சிகள் எடுப்பதிகரித்த அனுமதியை PlainApp-க்கு அளித்திருக்கவில்லை.',
   screen_mirror_request_permission:
     'தயவுசெய்து ஃபோனில் "இப்போ தொடக்க" ஐ தட்டவும். \nஅனுமதி சாளரம் காட்சியாகாதால், தயவுசெய்து PlainApp-ஐ மீண்டும் தொடக்கவும். \n{விநாடிகள்} விநாடிகளில் மீண்டும் முயற்சிக்க.',
+  file_not_found: 'கோப்பு காணப்படவில்லை',
+  access_denied: 'அணுகல் மறைக்கப்பட்டது',
+  failed_to_load_file: 'கோப்பை ஏற்றுமதி செய்ய முடியவில்லை',
+  invalid_file_id: 'செல்லாத கோப்பு ID',
+  invalid_json_format: 'செல்லாத JSON வடிவம்',
+  raw_text: 'சுருக்கமான உரை',
+  formatted_view: 'வடிவமைக்கப்பட்ட காட்சி',
 }

@@ -445,4 +445,11 @@ export default {
   app_data: '앱 데이터',
   screen_mirror_request_permission_failed: 'PlainApp에 스크린샷 권한이 부여되지 않았습니다.',
   screen_mirror_request_permission: '전화에서 "지금 시작"을 탭하세요. \n권한 창이 표시되지 않으면 PlainApp을 다시 시작하세요. \n{seconds} 초 후에 다시 시도하세요',
+  file_not_found: '파일을 찾을 수 없습니다.',
+  access_denied: '접근이 거부되었습니다.',
+  failed_to_load_file: '파일 로드에 실패했습니다.',
+  invalid_file_id: '잘못된 파일 ID',
+  invalid_json_format: '잘못된 JSON 형식',
+  raw_text: '원시 텍스트',
+  formatted_view: '서식이 지정된 보기',
 }

@@ -241,8 +241,8 @@ import { formatDateTime, formatFileSize, formatTimeAgo } from '@/lib/format'
 import { useI18n } from 'vue-i18n'
 import { useMainStore } from '@/stores/main'
 import { storeToRefs } from 'pinia'
-import { type IFile, canOpenInBrowser, canView, getSortItems, enrichFile } from '@/lib/file'
-import { getFileName, getFileUrl, getFileUrlByPath } from '@/lib/api/file'
+import { type IFile, canOpenInBrowser, canView, getSortItems, enrichFile, isTextFile } from '@/lib/file'
+import { getFileName, getFileUrl, getFileUrlByPath, getFileId } from '@/lib/api/file'
 import { noDataKey } from '@/lib/list'
 import emitter from '@/plugins/eventbus'
 import { useCreateDir, useRename, useStats, useDownload, useView, useCopyPaste, getRootDir, useSearch } from '@/hooks/files'
@@ -457,12 +457,17 @@ function getUrl(q: string) {
   return `/files?q=${q}`
 }
 
+
 function clickItem(item: IFile) {
   if (item.isDir) {
     navigateToDir(item.path)
     return
   }
-  if (canOpenInBrowser(item.name)) {
+  if (isTextFile(item.name)) {
+    // Open text files in new window with custom viewer
+    const fileId = getFileId(urlTokenKey.value, item.path)
+    window.open(`/text-file?id=${encodeURIComponent(fileId)}`, '_blank')
+  } else if (canOpenInBrowser(item.name)) {
     window.open(getFileUrlByPath(urlTokenKey.value, item.path), '_blank')
   } else if (canView(item.name)) {
     view(items.value, item)
@@ -477,7 +482,11 @@ function viewItem(event: Event, item: IFile) {
   }
 
   event.stopPropagation()
-  if (canOpenInBrowser(item.name)) {
+  if (isTextFile(item.name)) {
+    // Open text files in new window with custom viewer
+    const fileId = getFileId(urlTokenKey.value, item.path)
+    window.open(`/text-file?id=${encodeURIComponent(fileId)}`, '_blank')
+  } else if (canOpenInBrowser(item.name)) {
     window.open(getFileUrlByPath(urlTokenKey.value, item.path), '_blank')
   } else if (canView(item.name)) {
     view(items.value, item)

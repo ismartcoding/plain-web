@@ -50,4 +50,7 @@ function toggle(expand: boolean) {
   height: calc(100vh - 132px);
   grid-template-columns: 50% 50%;
 }
+.jv-container {
+  padding: 0 24px;
+}
 </style>

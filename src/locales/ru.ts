@@ -452,4 +452,11 @@ export default {
   screen_mirror_request_permission_failed: 'Вы не предоставили приложению PlainApp разрешение на снятие скриншотов.',
   screen_mirror_request_permission:
     'Пожалуйста, нажмите кнопку "Начать сейчас" на телефоне. \nЕсли окно запроса разрешения не отображается, перезапустите приложение PlainApp. \nПопробуйте снова через {seconds} секунд',
+  file_not_found: 'Файл не найден',
+  access_denied: 'Доступ запрещен',
+  failed_to_load_file: 'Не удалось загрузить файл',
+  invalid_file_id: 'Неверный ID файла',
+  invalid_json_format: 'Неверный формат JSON',
+  raw_text: 'Сырой текст',
+  formatted_view: 'Форматированный вид',
 }

@@ -445,4 +445,11 @@ export default {
   app_data: 'アプリデータ',
   screen_mirror_request_permission_failed: 'PlainAppにスクリーンショットの許可がありません。',
   screen_mirror_request_permission: '電話で[開始]をタップしてください。 \n許可ウィンドウが表示されない場合は、PlainAppを再起動してください。 \n{seconds}秒後に再試行します',
+  file_not_found: 'ファイルが見つかりません',
+  access_denied: 'アクセスが拒否されました',
+  failed_to_load_file: 'ファイルの読み込みに失敗しました',
+  invalid_file_id: '無効なファイルID',
+  invalid_json_format: '無効なJSON形式',
+  raw_text: '生テキスト',
+  formatted_view: 'フォーマットされた表示',
 }

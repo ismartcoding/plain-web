@@ -450,4 +450,11 @@ export default {
   app_data: 'App data',
   screen_mirror_request_permission_failed: "You haven't grant PlainApp the permission to take screenshots.",
   screen_mirror_request_permission: 'Please tap "Start now" on the phone. \nIf the permission window is not displayed, please relaunch PlainApp. \nTry again in {seconds} seconds',
+  file_not_found: 'File not found',
+  access_denied: 'Access denied',
+  failed_to_load_file: 'Failed to load file',
+  invalid_file_id: 'Invalid file ID',
+  invalid_json_format: 'Invalid JSON format',
+  raw_text: 'Raw text',
+  formatted_view: 'Formatted view',
 }
