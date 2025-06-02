@@ -68,6 +68,7 @@ declare module 'vue' {
     'IMaterialSymbols:downloadRounded': typeof import('~icons/material-symbols/download-rounded')['default']
     'IMaterialSymbols:dragIndicator': typeof import('~icons/material-symbols/drag-indicator')['default']
     'IMaterialSymbols:edit': typeof import('~icons/material-symbols/edit')['default']
+    'IMaterialSymbols:editOutlineRounded': typeof import('~icons/material-symbols/edit-outline-rounded')['default']
     'IMaterialSymbols:errorOutlineRounded': typeof import('~icons/material-symbols/error-outline-rounded')['default']
     'IMaterialSymbols:expandMoreRounded': typeof import('~icons/material-symbols/expand-more-rounded')['default']
     'IMaterialSymbols:exportNotesOutlineRounded': typeof import('~icons/material-symbols/export-notes-outline-rounded')['default']

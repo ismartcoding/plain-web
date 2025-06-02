@@ -268,6 +268,12 @@ export interface IFileDeletedEvent {
   item: IFile
 }
 
+export interface IFileRenamedEvent {
+  oldPath: string
+  newPath: string
+  item: IFile
+}
+
 export interface IItemTagsUpdatedEvent {
   item: ITagRelationStub
   type: string
