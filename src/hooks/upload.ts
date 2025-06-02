@@ -45,8 +45,10 @@ export const useDragDropUpload = (uploads: Ref<IUploadItem[]>) => {
 
   return {
     dropping,
-    fileDragEnter() {
-      dropping.value = true
+    fileDragEnter(e: DragEvent) {
+      if (e.dataTransfer?.types.includes('Files')) {
+        dropping.value = true
+      }
     },
     fileDragLeave() {
       dropping.value = false

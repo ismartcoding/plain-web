@@ -31,14 +31,31 @@
         </button>
       </div>
       <section class="list-items">
-        <div v-for="item in audios" :key="item.path" class="item" :class="{ selected: item.path === current?.path }" @click.stop="playItem(item)" @mousedown="fixUserSelect">
-          <div class="title">{{ item.title }}</div>
-          <div class="subtitle">{{ item.artist }} {{ formatSeconds(item.duration) }}</div>
-          <button v-tooltip="$t('remove_from_playlist')" class="btn-icon icon" @click.stop="deleteItem(item)">
-            <md-ripple />
-            <i-material-symbols:playlist-remove class="playlist-remove-icon" />
-          </button>
-        </div>
+        <VueDraggable 
+          v-model="playlistAudios" 
+          handle=".item-number"
+          :set-data="setDragData"
+          @end="onDragEnd"
+        >
+          <div 
+            v-for="(item, index) in playlistAudios" 
+            :key="item.path"
+            class="item" 
+            :class="{ selected: item.path === current?.path }" 
+            @click.stop="playItem(item)" 
+            @mousedown="fixUserSelect"
+          >
+            <div class="item-number">{{ index + 1 }}</div>
+            <div class="content">
+              <div class="title">{{ item.title }}</div>
+              <div class="subtitle">{{ item.artist }} {{ formatSeconds(item.duration) }}</div>
+            </div>
+            <button v-tooltip="$t('remove_from_playlist')" class="btn-icon icon" @click.stop="deleteItem(item)">
+              <md-ripple />
+              <i-material-symbols:playlist-remove class="playlist-remove-icon" />
+            </button>
+          </div>
+        </VueDraggable>
       </section>
     </div>
   </div>
@@ -51,17 +68,27 @@ import { storeToRefs } from 'pinia'
 import type { IPlaylistAudio } from '@/lib/interfaces'
 import { getFileUrlByPath } from '@/lib/api/file'
 import { formatSeconds } from '@/lib/format'
-import { initMutation, playAudioGQL, updateAudioPlayModeGQL, deletePlaylistAudioGQL, clearAudioPlaylistGQL } from '@/lib/api/mutation'
+import { initMutation, playAudioGQL, updateAudioPlayModeGQL, deletePlaylistAudioGQL, clearAudioPlaylistGQL, reorderPlaylistAudiosGQL } from '@/lib/api/mutation'
 import { sample, remove } from 'lodash-es'
 import emitter from '@/plugins/eventbus'
 import { useMainStore } from '@/stores/main'
 import { fixUserSelect } from '@/hooks/text-selection'
+import { VueDraggable } from 'vue-draggable-plus'
 
 const { app, urlTokenKey, audioPlaying } = storeToRefs(useTempStore())
 const store = useMainStore()
 
 const audios = computed<IPlaylistAudio[]>(() => {
   return app.value?.audios ?? []
+})
+
+const playlistAudios = computed<IPlaylistAudio[]>({
+  get() {
+    return audios.value
+  },
+  set(value) {
+    app.value = { ...app.value, audios: value }
+  }
 })
 
 const current = ref<IPlaylistAudio | undefined>()
@@ -108,6 +135,16 @@ const {
   document: updateAudioPlayModeGQL,
 })
 
+
+const {
+  mutate: reorderPlaylistAudios,
+  loading: reorderLoading,
+  onDone: reorderDone,
+  onError: reorderError,
+} = initMutation({
+  document: reorderPlaylistAudiosGQL,
+})
+
 const {
   mutate: deleteAudio,
   loading: deleteAudioLoading,
@@ -136,6 +173,8 @@ async function onEnded() {
 
 function playRandom() {
   const c = sample(app.value.audios)
+  if (!c) return
+  
   play({
     path: c.path,
   })
@@ -238,6 +277,20 @@ function deleteItem(item: IPlaylistAudio) {
   app.value = { ...app.value, audios: items }
 }
 
+function setDragData(dataTransfer: DataTransfer, dragEl: HTMLElement) {
+  // 设置拖拽数据类型为 playlist-item，而不是 Files
+  dataTransfer.setData('text/plain', 'playlist-item')
+  dataTransfer.effectAllowed = 'move'
+}
+
+function onDragEnd() {
+  // Call reorderPlaylistAudios to update the order on the server
+  const paths = playlistAudios.value.map(item => item.path)
+  reorderPlaylistAudios({
+    paths: paths
+  })
+}
+
 onMounted(() => {
   emitter.on('do_play_audio', () => {
     setTimeout(_play, 500)
@@ -260,6 +313,35 @@ onMounted(() => {
 <style lang="scss" scoped>
 .list-items .item {
   cursor: pointer;
+  display: grid;
+  grid-template-areas: 'number content icon';
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 16px;
+}
+
+.list-items .item .item-number {
+  grid-area: number;
+}
+
+.list-items .item .content {
+  grid-area: content;
+  user-select: none;
+}
+
+.list-items .item .title {
+  margin: 0;
+}
+
+.list-items .item .subtitle {
+  margin-top: 4px;
+  font-size: 0.875rem;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.list-items .item .icon {
+  grid-area: icon;
 }
 
 .play-title {
@@ -287,5 +369,39 @@ onMounted(() => {
 
 .playlist-remove-icon {
   color: var(--md-sys-color-error) !important;
+}
+
+.item-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
+  border-radius: 28px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: move;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.item-number:hover {
+  background: var(--md-sys-color-surface-container-high);
+  transform: scale(1.05);
+}
+
+.item-number:active {
+  cursor: move;
+  transform: scale(0.95);
+}
+
+.sortable-drag {
+  opacity: 0.8;
+}
+
+.sortable-ghost {
+  opacity: 0.3;
 }
 </style>

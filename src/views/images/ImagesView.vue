@@ -515,6 +515,9 @@ const uploadTaskDoneHandler = (r: IUploadItem) => {
           fetch()
         }, 1000)
       }
+      
+      // Emit event to update sidebar count
+      emitter.emit('media_items_actioned', { type: dataType, action: 'upload', query: '' })
     }
   }
 }
