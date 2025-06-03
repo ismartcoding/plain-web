@@ -34,6 +34,10 @@
         <div class="chat-content">
           <div v-if="chatItem._content.type === 'text'">
             <pre v-html="addLinksToURLs(chatItem._content.value.text)"></pre>
+            <div v-if="chatItem.isMe && chatItem.id.startsWith('new_')" class="chat-loading-dots">
+              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            </div>
+            <ChatLinkPreviews v-if="chatItem._content.value.linkPreviews && chatItem._content.value.linkPreviews.length" :data="chatItem" />
           </div>
           <component :is="getComponent(chatItem._content.type)" v-else :data="chatItem"></component>
         </div>
@@ -85,6 +89,7 @@
 import { useMainStore } from '@/stores/main'
 import { formatTime, formatDateTimeFull, formatDate } from '@/lib/format'
 import ChatImages from './chat/ChatImages.vue'
+import ChatLinkPreviews from './chat/ChatLinkPreviews.vue'
 import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
 import { createChatItemGQL, deleteChatItemGQL, initMutation, insertCache } from '@/lib/api/mutation'
@@ -156,6 +161,7 @@ function getComponent(type: string) {
   return {
     images: ChatImages,
     files: ChatFiles,
+    linkPreviews: ChatLinkPreviews,
   }[type]
 }
 const store = useMainStore()
@@ -281,7 +287,21 @@ function send() {
   if (!chatText.value) {
     return
   }
-  create({ content: JSON.stringify({ type: 'text', value: { text: chatText.value } }) })
+  const tempId = 'new_' + shortUUID();
+  const tempItem = {
+    id: tempId,
+    isMe: true,
+    createdAt: new Date().toISOString(),
+    content: JSON.stringify({ type: 'text', value: { text: chatText.value } }),
+    _content: { type: 'text', value: { text: chatText.value } },
+    __typename: 'ChatItem',
+  };
+  chatItems.value = [...chatItems.value, tempItem];
+  scrollBottom();
+
+  create({ content: tempItem.content }).then(() => {
+    chatItems.value = chatItems.value.filter(item => item.id !== tempId);
+  });
 }
 
 function scrollBottom() {
@@ -457,5 +477,26 @@ onMounted(() => {
 .chat-content {
   margin-top: 8px;
   max-width: 800px;
+}
+
+.chat-loading-dots {
+  display: flex;
+  align-items: center;
+  margin-top: 4px;
+  .dot {
+    width: 7px;
+    height: 7px;
+    margin: 0 2px;
+    border-radius: 50%;
+    background: #bbb;
+    animation: chat-dot-bounce 1.2s infinite both;
+    &:nth-child(2) { animation-delay: 0.2s; }
+    &:nth-child(3) { animation-delay: 0.4s; }
+  }
+}
+
+@keyframes chat-dot-bounce {
+  0%, 80%, 100% { transform: scale(1); opacity: 0.7; }
+  40% { transform: scale(1.5); opacity: 1; }
 }
 </style>

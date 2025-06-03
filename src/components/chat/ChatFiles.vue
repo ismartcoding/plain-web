@@ -1,18 +1,38 @@
 <template>
-  <div class="chat-section">
-    <a v-for="(item, i) in items" :key="i" class="file-item" target="_blank" :href="item.src" @click.prevent="clickItem(item)">
-      <span class="left">
-        <span>{{ item.name }}</span>
-        <span class="info">{{ formatFileSize(item.size) }}{{ isVideo(item.name) ? ' / ' + formatSeconds(item.duration) : '' }}</span>
-      </span>
-      <img v-if="isImage(item.name) || isVideo(item.name)" :src="getPreview(item)" onerror="this.src='/broken-image.png'" />
-    </a>
+  <div class="file-container">
+    <div v-for="(item, i) in items" :key="i" class="file-item" @click="clickItem(item)">
+      <div class="file-content">
+        <div class="file-name">{{ item.name }}</div>
+        <div class="file-info">{{ formatFileSize(item.size) }}{{ isVideo(item.name) ? ' / ' + formatSeconds(item.duration) : '' }}</div>
+      </div>
+      <template v-if="isImage(item.name) || isVideo(item.name)">
+        <img :src="getPreview(item)" class="file-thumbnail" />
+      </template>
+      <template v-else>
+        <img
+          v-if="extensionImageErrorIds.includes(item.name)"
+          class="file-thumbnail file-icon"
+          src="/ficons/default.svg"
+        />
+        <img
+          v-else-if="item.extension"
+          class="file-thumbnail file-icon"
+          :src="`/ficons/${item.extension}.svg`"
+          @error="onExtensionImageError(item.name)"
+        />
+        <img
+          v-else
+          class="file-thumbnail file-icon"
+          src="/ficons/default.svg"
+        />
+      </template>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { getFileName, getFileUrl, notId } from '@/lib/api/file'
+import { getFileName, getFileUrl, notId, getFileExtension } from '@/lib/api/file'
 import type { ISource } from '../lightbox/types'
 import { isVideo, isImage, canView } from '@/lib/file'
 import { formatSeconds, formatFileSize } from '@/lib/format'
@@ -21,6 +41,7 @@ import { useTempStore } from '@/stores/temp'
 const tempStore = useTempStore()
 
 const sources = ref<ISource[]>([])
+const extensionImageErrorIds = ref<string[]>([])
 
 const props = defineProps({
   data: { type: Object },
@@ -51,10 +72,17 @@ const items = computed<ISource[]>(() => {
       duration: file.duration,
       size: file.size,
       thumbnail: file.thumbnail,
+      extension: getFileExtension(file.uri),
     })
   })
   return items
 })
+
+function onExtensionImageError(name: string) {
+  if (!extensionImageErrorIds.value.includes(name)) {
+    extensionImageErrorIds.value.push(name)
+  }
+}
 
 function clickItem(item: ISource) {
   if (canView(item.name)) {
@@ -72,35 +100,88 @@ function clickItem(item: ISource) {
 </script>
 
 <style lang="scss" scoped>
-.file-item {
-  padding: 0px 8px 8px 8px;
-  flex-flow: row;
-  display: flex;
-  justify-content: space-between;
-  text-decoration: none;
+.file-container {
+  margin-top: 6px;
+}
 
-  &:first-child {
-    padding-top: 8px;
+.file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  margin-bottom: 6px;
+  background-color: var(--md-sys-color-surface-container);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  max-width: 400px;
+
+  &:hover {
+    background-color: var(--md-sys-color-surface-container-high);
   }
 
-  .left {
-    display: flex;
-    flex-flow: column;
-    word-break: break-all;
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
 
-    .info {
-      margin-top: 4px;
-      color: var(--md-sys-color-secondary);
-      font-size: 0.75rem;
+.file-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface);
+  word-break: break-all;
+  line-height: 1.3;
+  margin-bottom: 2px;
+}
+
+.file-info {
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface-variant);
+  opacity: 0.8;
+}
+
+.file-thumbnail {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  margin-left: 12px;
+  flex-shrink: 0;
+}
+
+.file-icon {
+  object-fit: contain;
+  border-radius: 0;
+  background: none;
+}
+
+@media (max-width: 768px) {
+  .file-item {
+    max-width: 100%;
+    padding: 10px 12px;
+    
+    .file-name {
+      font-size: 14px;
+    }
+    
+    .file-info {
+      font-size: 12px;
+    }
+    
+    .file-thumbnail {
+      width: 40px;
+      height: 40px;
+      margin-left: 8px;
     }
   }
-
-  img {
-    display: flex;
-    width: 50px;
-    height: 50px;
-    margin-inline-start: 4px;
-    border-radius: 8px;
+  .file-icon {
+    width: 40px;
+    height: 40px;
   }
 }
 </style>

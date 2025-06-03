@@ -64,6 +64,9 @@ export const chatItemFragment = gql`
       ... on MessageFiles {
         ids
       }
+      ... on MessageText {
+        ids
+      }
     }
   }
 `
