@@ -34,9 +34,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { getFileUrl } from '@/lib/api/file'
-import { useI18n } from 'vue-i18n'
-
-const { t } = useI18n()
 
 const props = defineProps({
   data: { type: Object },
@@ -46,7 +43,6 @@ const linkPreviews = computed(() => {
   const data = props.data
   const previews = data?._content?.value?.linkPreviews ?? []
   const ids = data?.data?.ids ?? []
-  
     return previews.map((preview: any, index: number) => {
     const fileId = ids[index] || ''
     return {

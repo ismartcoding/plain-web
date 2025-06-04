@@ -295,6 +295,10 @@ function send() {
     content: JSON.stringify({ type: 'text', value: { text: chatText.value } }),
     _content: { type: 'text', value: { text: chatText.value } },
     __typename: 'ChatItem',
+    data: {
+      __typename: 'MessageText',
+      ids: []
+    }
   };
   chatItems.value = [...chatItems.value, tempItem];
   scrollBottom();
@@ -433,23 +437,28 @@ onMounted(() => {
     }
   })
 
-  emitter.on('message_updated', async (data: any[]) => {
+  emitter.on('message_updated', async (items: any[]) => {
     const client = resolveClient('a')
     const cache = client.cache
-    for (const item of data) {
+    for (const item of items) {
+      let data = null
+      if (item.data) {
+        data = item.data
+        data.__typename = item.data.type.split('.').pop()
+      }
       const id = item.id
       const cacheId = cache.identify({ __typename: 'ChatItem', id: id })
       const fragment = chatItemFragment
-      const data = cache.readFragment({ id: cacheId, fragment })
-      if (data) {
+      const f = cache.readFragment({ id: cacheId, fragment })
+      if (f) {
         cache.writeFragment({
           id: cacheId,
           fragment,
           data: {
-            ...data,
-            ...item,
+            ...item, data: data,
           },
         })
+        scrollBottom()
       }
     }
   })
