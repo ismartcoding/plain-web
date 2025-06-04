@@ -1,6 +1,8 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'Audio-speler',
+  unwrap: 'Uitpakken',
+  wrap: 'Pakken',
   current_folder: 'Huidige map',
   trash_tips: 'De verwijderde items worden na 30 dagen automatisch verwijderd.',
   x_items: '{count} item | {count} items',

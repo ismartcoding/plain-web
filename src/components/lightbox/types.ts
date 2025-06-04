@@ -38,7 +38,10 @@ export interface ISource {
   size: number
   duration: number
   type?: DataType
+  fileId?: string
+  extension?: string
   thumbnail?: string // video thumbnail
+  summary?: string   // text file summary
   data?: any // video, audio, image item
 }
 

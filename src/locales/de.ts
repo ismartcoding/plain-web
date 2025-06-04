@@ -1,6 +1,8 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'Audio-Player',
+  unwrap: 'Entwrappen',
+  wrap: 'Wrappen',
   current_folder: 'Aktueller Ordner',
   trash_tips: 'Die gelöschten Elemente werden nach 30 Tagen automatisch gelöscht.',
   x_items: '{count} Artikel | {count} Artikel',

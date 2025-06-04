@@ -1,6 +1,8 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'Lecteur audio',
+  unwrap: 'Déplier',
+  wrap: 'Replier',
   current_folder: 'Dossier actuel',
   trash_tips: 'Les éléments supprimés seront automatiquement supprimés après 30 jours.',
   x_items: '{count} article | {count} articles',

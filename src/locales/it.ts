@@ -1,6 +1,8 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'Lettore audio',
+  unwrap: 'Srotola',
+  wrap: 'Avvolgi',
   current_folder: 'Cartella corrente',
   trash_tips: 'Gli elementi eliminati verranno cancellati automaticamente dopo 30 giorni.',
   x_items: '{count} articolo | {count} articoli',

@@ -1,6 +1,8 @@
 export default {
     app_name: 'PlainApp',
     audio_player: '音訊播放器',
+    unwrap: '不換行',
+    wrap: '換行',
     current_folder: '當前資料夾',
     trash_tips: '已刪除的項目將在30天後自動刪除。',
     x_items: '{count} 個項目',

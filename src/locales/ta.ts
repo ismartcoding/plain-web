@@ -1,6 +1,8 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'ஆடியோ பிளேயர்',
+  unwrap: 'அலுப்பு',
+  wrap: 'அலுப்பு',
   current_folder: 'தற்போதைய கோப்பு',
   trash_tips: 'குப்பை அனுப்பப்பட்ட உருப்படிகள் 30 நாட்களுக்கு பின் தானாகவே நீக்கப்படும்.',
   x_items: '{count} உருப்படி | {count} உருப்படிகள்',
