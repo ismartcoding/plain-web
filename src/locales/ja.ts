@@ -1,6 +1,8 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'オーディオプレーヤー',
+  unwrap: 'アンワップ',
+  wrap: 'ワップ',
   current_folder: '現在のフォルダ',
   trash_tips: '削除されたアイテムは30日後に自動的に削除されます。',
   x_items: '{count} アイテム | {count} アイテム',

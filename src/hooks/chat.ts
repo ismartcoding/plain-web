@@ -60,6 +60,7 @@ export const useTasks = () => {
           duration: it.duration,
           width: it.width,
           height: it.height,
+          summary: it.summary,
         })
       })
       mutate({ content: JSON.stringify({ type: c.type, value: { items } }) })

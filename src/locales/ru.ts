@@ -1,6 +1,8 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'Аудиоплеер',
+  unwrap: 'Развернуть',
+  wrap: 'Свернуть',
   current_folder: 'Текущая папка',
   trash_tips: 'Удаленные элементы будут автоматически удалены через 30 дней.',
   x_items: '{count} предмет | {count} предметов',

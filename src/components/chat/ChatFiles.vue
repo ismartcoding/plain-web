@@ -4,6 +4,7 @@
       <div class="file-content">
         <div class="file-name">{{ item.name }}</div>
         <div class="file-info">{{ formatFileSize(item.size) }}{{ isVideo(item.name) ? ' / ' + formatSeconds(item.duration) : '' }}</div>
+        <div v-if="item.summary" class="file-summary">{{ item.summary }}</div>
       </div>
       <template v-if="isImage(item.name) || isVideo(item.name)">
         <img :src="getPreview(item)" class="file-thumbnail" />
@@ -34,7 +35,7 @@
 import { computed, ref } from 'vue'
 import { getFileName, getFileUrl, notId, getFileExtension } from '@/lib/api/file'
 import type { ISource } from '../lightbox/types'
-import { isVideo, isImage, canView } from '@/lib/file'
+import { isVideo, isImage, canView, isTextFile, canOpenInBrowser } from '@/lib/file'
 import { formatSeconds, formatFileSize } from '@/lib/format'
 import { useTempStore } from '@/stores/temp'
 
@@ -44,7 +45,7 @@ const sources = ref<ISource[]>([])
 const extensionImageErrorIds = ref<string[]>([])
 
 const props = defineProps({
-  data: { type: Object },
+  data: { type: Object, default: () => ({}) },
 })
 
 function getPreview(source: ISource) {
@@ -71,8 +72,10 @@ const items = computed<ISource[]>(() => {
       name: getFileName(file.uri),
       duration: file.duration,
       size: file.size,
+      fileId: id,
       thumbnail: file.thumbnail,
       extension: getFileExtension(file.uri),
+      summary: file.summary || undefined
     })
   })
   return items
@@ -85,7 +88,11 @@ function onExtensionImageError(name: string) {
 }
 
 function clickItem(item: ISource) {
-  if (canView(item.name)) {
+  if (isTextFile(item.name) && item.fileId) {
+    window.open(`/text-file?id=${encodeURIComponent(item.fileId)}`, '_blank')
+  } else if (canOpenInBrowser(item.name)) {
+    window.open(item.src, '_blank')
+  } else if (canView(item.name)) {
     sources.value = items.value.filter((it) => canView(it.name))
     const idx = sources.value.findIndex((it) => it.src === item.src)
     tempStore.lightbox = {
@@ -145,6 +152,19 @@ function clickItem(item: ISource) {
   opacity: 0.8;
 }
 
+.file-summary {
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface-variant);
+  margin-top: 4px;
+  line-height: 1.3;
+  max-height: 2.6em; /* Limit to 2 lines */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
 .file-thumbnail {
   width: 48px;
   height: 48px;
@@ -169,7 +189,8 @@ function clickItem(item: ISource) {
       font-size: 14px;
     }
     
-    .file-info {
+    .file-info,
+    .file-summary {
       font-size: 12px;
     }
     

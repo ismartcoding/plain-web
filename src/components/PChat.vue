@@ -194,76 +194,63 @@ async function doUploadFiles(files: File[]) {
   if (!files.length) {
     return
   }
-  const uploads = getUploads(externalFilesDir, files)
-  const items = []
-  const valueItems: any[] = []
-  for (const upload of uploads) {
-    if (upload.file.type.startsWith('video')) {
-      const v = await getVideoData(upload.file)
-      valueItems.push({ uri: upload.fileName, size: upload.file.size, duration: v.duration, thumbnail: v.thumbnail, width: v.width, height: v.height })
-    } else if (upload.file.type.startsWith('image')) {
-      const v = await getImageData(upload.file)
-      valueItems.push({ uri: upload.fileName, size: upload.file.size, duration: 0, width: v.width, height: v.height })
-    } else {
-      valueItems.push({ uri: upload.fileName, size: upload.file.size, duration: 0, width: 0, height: 0 })
-    }
-  }
-  const _content = {
-    type: 'files',
-    value: {
-      items: valueItems,
-    },
-  }
-  const item: IChatItem = {
-    id: 'new_' + shortUUID(),
-    isMe: true,
-    createdAt: new Date().toISOString(),
-    content: JSON.stringify(_content),
-    _content,
-    __typename: 'ChatItem',
-    data: {
-      __typename: 'MessageFiles',
-      ids: uploads.map((it) => URL.createObjectURL(it.file)),
-    },
-  }
-  items.push(item)
-  enqueueTask(item, uploads)
-  const client = resolveClient('a')
-  insertCache(client.cache, items, chatItemsGQL)
-  scrollBottom()
-}
-
-function uploadImagesChanged(e: Event) {
-  const files = (e.target as HTMLInputElement).files as FileList
-  const items: File[] = []
-  for (const item of files) {
-    items.push(item)
-  }
-  doUploadImages(items)
+  
+  // Use the generic upload function with type 'files'
+  await handleContentUpload(files, 'files');
 }
 
 async function doUploadImages(files: File[]) {
   if (!files.length) {
     return
   }
-  const uploads = getUploads(externalFilesDir, files)
-  const items = []
-  const valueItems: any[] = []
+  
+  // Use the generic upload function with type 'images'
+  await handleContentUpload(files, 'images');
+}
+
+// Generic function for handling uploads of different content types
+async function handleContentUpload(files: File[], contentType: string, options: { summary?: string } = {}) {
+  const uploads = getUploads(externalFilesDir, files);
+  const items = [];
+  const valueItems: any[] = [];
+  
+  // Process each upload and prepare valueItems
   for (const upload of uploads) {
+    // Base item properties
+    const itemProps: any = { 
+      uri: upload.fileName, 
+      size: upload.file.size, 
+      duration: 0, 
+      width: 0, 
+      height: 0,
+      summary: options.summary
+    };
+    
+    // Handle image/video specific properties
     if (upload.file.type.startsWith('video')) {
-      const v = await getVideoData(upload.file)
-      valueItems.push({ uri: upload.fileName, size: upload.file.size, duration: v.duration, thumbnail: v.thumbnail, width: v.width, height: v.height })
-    } else {
-      const v = await getImageData(upload.file)
-      valueItems.push({ uri: upload.fileName, size: upload.file.size, duration: 0, width: v.width, height: v.height })
+      const v = await getVideoData(upload.file);
+      itemProps.duration = v.duration;
+      itemProps.thumbnail = v.thumbnail;
+      itemProps.width = v.width;
+      itemProps.height = v.height;
+    } else if (upload.file.type.startsWith('image')) {
+      const v = await getImageData(upload.file);
+      itemProps.width = v.width;
+      itemProps.height = v.height;
     }
+    
+    valueItems.push(itemProps);
   }
+  
+  // Create content object
   const _content = {
-    type: 'images',
+    type: contentType,
     value: {
       items: valueItems,
     },
-  }
+  };
+  
+  // Create ChatItem
   const item: IChatItem = {
     id: 'new_' + shortUUID(),
     isMe: true,
@@ -272,40 +259,73 @@ async function doUploadImages(files: File[]) {
     _content,
     __typename: 'ChatItem',
     data: {
-      __typename: 'MessageImages',
+      __typename: contentType === 'images' ? 'MessageImages' : 'MessageFiles',
       ids: uploads.map((it) => URL.createObjectURL(it.file)),
     },
-  }
-  items.push(item)
-  enqueueTask(item, uploads)
-  const client = resolveClient('a')
-  insertCache(client.cache, items, chatItemsGQL)
-  scrollBottom()
+  };
+  
+  items.push(item);
+  enqueueTask(item, uploads);
+  const client = resolveClient('a');
+  insertCache(client.cache, items, chatItemsGQL);
+  scrollBottom();
 }
 
 function send() {
   if (!chatText.value) {
     return
   }
-  const tempId = 'new_' + shortUUID();
-  const tempItem = {
-    id: tempId,
-    isMe: true,
-    createdAt: new Date().toISOString(),
-    content: JSON.stringify({ type: 'text', value: { text: chatText.value } }),
-    _content: { type: 'text', value: { text: chatText.value } },
-    __typename: 'ChatItem',
-    data: {
-      __typename: 'MessageText',
-      ids: []
-    }
-  };
-  chatItems.value = [...chatItems.value, tempItem];
-  scrollBottom();
+  
+  // Check if the message is longer than 2048 characters
+  if (chatText.value.length > 2048) {
+    // Convert long message to text file and send as a file
+    sendLongMessageAsFile(chatText.value);
+  } else {
+    // Send as normal text message
+    const tempId = 'new_' + shortUUID();
+    const tempItem = {
+      id: tempId,
+      isMe: true,
+      createdAt: new Date().toISOString(),
+      content: JSON.stringify({ type: 'text', value: { text: chatText.value } }),
+      _content: { type: 'text', value: { text: chatText.value } },
+      __typename: 'ChatItem',
+      data: {
+        __typename: 'MessageText',
+        ids: []
+      }
+    };
+    chatItems.value = [...chatItems.value, tempItem];
+    scrollBottom();
 
-  create({ content: tempItem.content }).then(() => {
-    chatItems.value = chatItems.value.filter(item => item.id !== tempId);
-  });
+    create({ content: tempItem.content }).then(() => {
+      chatItems.value = chatItems.value.filter(item => item.id !== tempId);
+    });
+  }
+}
+
+// Function to send long message as a text file
+async function sendLongMessageAsFile(message: string) {
+  // Create a file from the message content
+  const timestamp = Date.now();
+  const fileName = `message-${timestamp}.txt`;
+  const file = new File([message], fileName, { type: 'text/plain' });
+  
+  // Create a summary from the first ~250 characters (approximately 3 lines)
+  // Trim whitespace and make sure it ends at a word boundary
+  const summaryText = message.substring(0, 250).trim();
+  const summary = summaryText.lastIndexOf(' ') > 230 
+    ? summaryText.substring(0, summaryText.lastIndexOf(' ')) + '...' 
+    : summaryText + '...';
+  
+  // Create a file array and use the existing file upload mechanism
+  const files: File[] = [file];
+  
+  // Use the generic upload function with the summary option
+  await handleContentUpload(files, 'files', { summary });
+  
+  // Clear the message input after sending
+  chatText.value = '';
 }
 
 function scrollBottom() {
@@ -411,6 +431,15 @@ function pasteFiles(e: ClipboardEvent) {
       doUploadFiles(files)
     }
   }
+}
+
+function uploadImagesChanged(e: Event) {
+  const files = (e.target as HTMLInputElement).files as FileList
+  const items: File[] = []
+  for (const item of files) {
+    items.push(item)
+  }
+  doUploadImages(items)
 }
 
 onMounted(() => {

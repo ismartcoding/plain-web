@@ -1,6 +1,8 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'Audio player',
+  unwrap: 'Unwrap',
+  wrap: 'Wrap',
   current_folder: 'Current folder',
   trash_tips: 'The trashed items will be automatically deleted after 30 days.',
   x_items: '{count} item | {count} items',

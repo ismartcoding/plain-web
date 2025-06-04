@@ -1,6 +1,8 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'Reprodutor de áudio',
+  unwrap: 'Desembrulhar',
+  wrap: 'Embalar',
   current_folder: 'Pasta atual',
   trash_tips: 'Os itens excluídos serão automaticamente apagados após 30 dias.',
   x_items: '{count} item | {count} itens',

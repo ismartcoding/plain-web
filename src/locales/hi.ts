@@ -1,6 +1,8 @@
 export default {
   app_name: 'PlainApp',
   audio_player: 'ऑडियो प्लेयर',
+  unwrap: 'आनपैक',
+  wrap: 'आनपैक',
   current_folder: 'करंट फोल्डर',
   trash_tips: 'ट्रैश किए गए आइटम 30 दिनों के बाद स्वचालित रूप से हटा दिए जाएंगे।',
   x_items: '{count} आइटम | {count} आइटम्स',

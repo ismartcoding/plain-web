@@ -46,6 +46,7 @@ declare module 'vue' {
     ILucideCode: typeof import('~icons/lucide/code')['default']
     ILucideDownload: typeof import('~icons/lucide/download')['default']
     ILucideEye: typeof import('~icons/lucide/eye')['default']
+    ILucideWrapText: typeof import('~icons/lucide/wrap-text')['default']
     ImageVideoListSkeleton: typeof import('./src/components/ImageVideoListSkeleton.vue')['default']
     'IMaterialSymbols:addNotesOutlineRounded': typeof import('~icons/material-symbols/add-notes-outline-rounded')['default']
     'IMaterialSymbols:addRounded': typeof import('~icons/material-symbols/add-rounded')['default']

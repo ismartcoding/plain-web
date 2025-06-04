@@ -23,32 +23,40 @@
       <header class="file-header">
         <div class="file-info">
           <h1 class="file-name">{{ fileName }}</h1>
-          <div class="file-meta" v-if="fileSize || lastModified">
+          <div v-if="fileSize || lastModified" class="file-meta">
             <span v-if="fileSize">{{ formatFileSize(fileSize) }}</span>
             <span v-if="lastModified">{{ formatDateTime(lastModified) }}</span>
           </div>
         </div>
         
         <div class="file-actions">
-          <md-outlined-button @click="downloadFile" class="action-btn">
+          <md-outlined-button class="action-btn" @click="downloadFile">
             <i-lucide-download slot="icon" />
             {{ $t('download') }}
           </md-outlined-button>
           <md-outlined-button 
             v-if="canToggleView" 
-            @click="toggleViewMode" 
-            class="action-btn"
+            class="action-btn" 
+            @click="toggleViewMode"
           >
             <i-lucide-eye v-if="showRawText" slot="icon" />
             <i-lucide-code v-else slot="icon" />
             {{ showRawText ? $t('formatted_view') : $t('raw_text') }}
+          </md-outlined-button>
+          <md-outlined-button 
+            v-if="showRawText || (!isJsonFile && !isMarkdownFile)" 
+            class="action-btn" 
+            @click="toggleTextWrap"
+          >
+            <i-lucide-wrap-text slot="icon" />
+            {{ textWrap ? $t('unwrap') : $t('wrap') }}
           </md-outlined-button>
         </div>
       </header>
       
       <!-- Content Display -->
       <section class="content-display">
-        <pre v-if="showRawText || (!isJsonFile && !isMarkdownFile)" class="text-view">{{ content }}</pre>
+        <pre v-if="showRawText || (!isJsonFile && !isMarkdownFile)" class="text-view" :class="{ 'text-wrap': textWrap }">{{ content }}</pre>
         <json-viewer v-else-if="isJsonFile" :value="jsonData" :expand-depth="2" />
         <div v-else-if="isMarkdownFile" class="md-container" v-html="renderedMarkdown"></div>
       </section>
@@ -82,6 +90,7 @@ const lastModified = ref('')
 const jsonData = ref<any>(null)
 const renderedMarkdown = ref('')
 const showRawText = ref(false)
+const textWrap = ref(true)
 
 const { render } = useMarkdown(app, urlTokenKey)
 
@@ -182,6 +191,10 @@ const downloadFile = () => {
 
 const toggleViewMode = () => {
   showRawText.value = !showRawText.value
+}
+
+const toggleTextWrap = () => {
+  textWrap.value = !textWrap.value
 }
 
 // Lifecycle and watchers
@@ -300,10 +313,15 @@ watch(fileName, () => {
   font-size: 0.875rem;
   line-height: 1.6;
   color: var(--md-sys-color-on-surface);
-  white-space: pre-wrap;
-  word-wrap: break-word;
+  white-space: pre;
+  word-wrap: normal;
   margin: 0;
   overflow-x: auto;
+}
+
+.text-view.text-wrap {
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 @keyframes fadeIn {
