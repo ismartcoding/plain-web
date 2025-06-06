@@ -92,81 +92,20 @@
             />
           </div>
         </section>
-        <section v-if="lightboxInfoVisible" class="info">
-          <div class="top-app-bar">
-            <field-id :id="$t('info')" :raw="fileInfo" />
-            <div class="actions">
-              <template v-if="canTrash">
-                <template v-if="isTrashed">
-                  <icon-button v-tooltip="$t('delete')" @click.stop="deleteMediaItem">
-                    <template #icon>
-                      <i-material-symbols:delete-forever-outline-rounded />
-                    </template>
-                  </icon-button>
-                  <icon-button v-tooltip="$t('restore')" class="sm" :loading="restoreLoading(`ids:${current?.data?.id}`)" @click.stop="restoreItem">
-                    <template #icon>
-                      <i-material-symbols:restore-from-trash-outline-rounded />
-                    </template>
-                  </icon-button>
-                </template>
-                <icon-button v-else v-tooltip="$t('move_to_trash')" :loading="trashLoading(`ids:${current?.data?.id}`)" @click.stop="trashMediaItem">
-                  <template #icon>
-                    <i-material-symbols:delete-outline-rounded />
-                  </template>
-                </icon-button>
-              </template>
-              <icon-button v-else v-tooltip="$t('delete')" @click.stop="deleteFile">
-                <template #icon>
-                  <i-material-symbols:delete-forever-outline-rounded />
-                </template>
-              </icon-button>
-              <icon-button v-tooltip="$t('rename')" @click.stop="renameFile">
-                <template #icon>
-                  <i-material-symbols:edit-outline-rounded />
-                </template>
-              </icon-button>
-              <icon-button v-tooltip="$t('download')" @click.stop="downloadFile(current?.path ?? '', getFileName(current?.path ?? '').replace(' ', '-'))">
-                <template #icon>
-                  <i-material-symbols:download-rounded />
-                </template>
-              </icon-button>
-            </div>
-          </div>
-          <section class="list-items">
-            <div class="item">
-              <div class="title">{{ $t('file_size') }}</div>
-              <div class="subtitle">
-                {{ formatFileSize(current?.size ?? 0) }}
-                <span v-if="fileInfo?.data?.width && fileInfo?.data?.height">{{ getResolution() }}</span>
-              </div>
-            </div>
-            <div v-if="fileInfo?.updatedAt" class="item">
-              <div class="title">{{ $t('updated_at') }}</div>
-              <div class="subtitle">
-                <time v-tooltip="formatDateTimeFull(fileInfo.updatedAt)">{{ formatDateTime(fileInfo.updatedAt) }}</time>
-              </div>
-            </div>
-            <div v-if="current && (isAudio(current?.name) || isVideo(current?.name))" class="item">
-              <div class="title">{{ $t('duration') }}</div>
-              <div class="subtitle">{{ formatSeconds(fileInfo?.data?.duration ?? current?.duration) }}</div>
-            </div>
-            <div v-if="current?.type" class="item">
-              <div class="title">
-                {{ $t('tags') }}
-                <icon-button v-tooltip="$t('add_to_tags')" class="sm" @click.prevent="addToTags">
-                  <template #icon>
-                    <i-material-symbols:label-outline-rounded />
-                  </template>
-                </icon-button>
-              </div>
-              <div class="subtitle"><item-tags :tags="fileInfo?.tags" /></div>
-            </div>
-            <div v-if="current?.path" class="item">
-              <div class="title">{{ $t('path') }}</div>
-              <div class="subtitle">{{ getFinalPath(app.externalFilesDir, current?.path) }}</div>
-            </div>
-          </section>
-        </section>
+        <LightboxInfo 
+          v-if="lightboxInfoVisible" 
+          :current="current" 
+          :file-info="fileInfo" 
+          :url-token-key="urlTokenKey ? urlTokenKey.toString() : ''" 
+          :external-files-dir="app.externalFilesDir" 
+          :tags-map="tagsMap" 
+          :os-version="app.osVersion"
+          :download-file="downloadFile"
+          @rename-file="renameFile"
+          @delete-file="deleteFile"
+          @add-to-tags="addToTags"
+          @refetch-info="refetchInfo"
+        />
       </div>
     </div>
   </Teleport>
@@ -181,17 +120,15 @@ import { isVideo, isImage, isAudio, isSvg } from '@/lib/file'
 import { getFileUrlByPath } from '@/lib/api/file'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
-import { formatFileSize, formatSeconds } from '@/lib/format'
 import { useMainStore } from '@/stores/main'
 import { fileInfoGQL, initLazyQuery, tagsGQL } from '@/lib/api/query'
-import { formatDateTime, formatDateTimeFull } from '@/lib/format'
 import { openModal } from '@/components/modal'
 import { useI18n } from 'vue-i18n'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import type { IItemTagsUpdatedEvent, IFileDeletedEvent, IFileRenamedEvent, ITag, IMediaItemsActionedEvent } from '@/lib/interfaces'
 import emitter from '@/plugins/eventbus'
 import { useDownload, useRename } from '@/hooks/files'
-import { getFileName, getFinalPath } from '@/lib/api/file'
+import { getFileName } from '@/lib/api/file'
 import { useDeleteItems } from '@/hooks/media'
 import { remove } from 'lodash-es'
 import { DataType, FEATURE } from '@/lib/data'
@@ -199,6 +136,7 @@ import DeleteFileConfirm from '@/components/DeleteFileConfirm.vue'
 import EditValueModal from '@/components/EditValueModal.vue'
 import { hasFeature } from '@/lib/feature'
 import { useMediaRestore, useMediaTrash } from '@/hooks/media-trash'
+import LightboxInfo from './LightboxInfo.vue'
 
 const props = defineProps({
   loop: {
@@ -390,20 +328,6 @@ const closeDialog = () => {
   imgIndex.value = 0
 }
 
-function getResolution() {
-  const width = fileInfo.value?.data?.width ?? 0
-  const height = fileInfo.value?.data?.height ?? 0
-  let r = `  ${width} x ${height}`
-  if (isImage(current.value?.name ?? '')) {
-    const mp = Math.round((width * height) / 1000000)
-    if (mp > 1) {
-      r += `  ${mp} MP`
-    }
-  }
-
-  return r
-}
-
 const reset = () => {
   imgWrapperState.scale = 1
   imgWrapperState.lastScale = 1
@@ -529,32 +453,6 @@ const onDblclick = () => {
   } else {
     imgWrapperState.scale = imgWrapperState.lastScale
   }
-}
-
-const isTrashed = computed(() => {
-  return current.value?.path?.includes('.trashed-') === true
-})
-
-const canTrash = computed(() => {
-  const mediaTypes = [DataType.VIDEO, DataType.AUDIO, DataType.IMAGE]
-  const type = current.value?.type
-  return type && mediaTypes.includes(type) && hasFeature(FEATURE.MEDIA_TRASH, app.value.osVersion)
-})
-
-function deleteMediaItem() {
-  deleteItem(current.value?.type!, current.value?.data!)
-}
-
-const { trash, trashLoading } = useMediaTrash()
-function trashMediaItem() {
-  const type = current.value?.type as DataType
-  trash(type, `ids:${current.value?.data?.id}`)
-}
-
-const { restore, restoreLoading } = useMediaRestore()
-function restoreItem() {
-  const type = current.value?.type as DataType
-  restore(type, `ids:${current.value?.data?.id}`)
 }
 
 const onWheel = (e: WheelEvent) => {
@@ -794,16 +692,6 @@ onBeforeUnmount(() => {
   grid-area: content;
   position: relative;
   height: calc(100vh - 56px);
-}
-
-.info {
-  grid-area: info;
-  width: 280px;
-  height: 100vh;
-  box-sizing: border-box;
-  background: var(--md-sys-color-surface-container);
-  overflow-y: auto;
-  z-index: 1;
 }
 
 .lightbox {

@@ -142,6 +142,7 @@ declare module 'vue' {
     JsonViewer: typeof import('./src/components/jsonviewer/json-viewer.vue')['default']
     LeftSidebar: typeof import('./src/components/LeftSidebar.vue')['default']
     Lightbox: typeof import('./src/components/lightbox/lightbox.vue')['default']
+    LightboxInfo: typeof import('./src/components/lightbox/LightboxInfo.vue')['default']
     MediaSidebar: typeof import('./src/components/MediaSidebar.vue')['default']
     ModalContainer: typeof import('./src/components/modal/ModalContainer.vue')['default']
     ModalContainerItem: typeof import('./src/components/modal/ModalContainerItem.vue')['default']

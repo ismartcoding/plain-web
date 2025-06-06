@@ -138,26 +138,21 @@ function clickItem(item: ISource) {
 }
 
 .file-name {
-  font-size: 15px;
   font-weight: 500;
   color: var(--md-sys-color-on-surface);
   word-break: break-all;
-  line-height: 1.3;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
 .file-info {
-  font-size: 13px;
+  font-size: 0.875rem;
   color: var(--md-sys-color-on-surface-variant);
   opacity: 0.8;
 }
 
 .file-summary {
-  font-size: 13px;
   color: var(--md-sys-color-on-surface-variant);
   margin-top: 4px;
-  line-height: 1.3;
-  max-height: 2.6em; /* Limit to 2 lines */
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -184,15 +179,6 @@ function clickItem(item: ISource) {
   .file-item {
     max-width: 100%;
     padding: 10px 12px;
-    
-    .file-name {
-      font-size: 14px;
-    }
-    
-    .file-info,
-    .file-summary {
-      font-size: 12px;
-    }
     
     .file-thumbnail {
       width: 40px;
