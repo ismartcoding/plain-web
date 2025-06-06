@@ -454,4 +454,9 @@ export default {
   invalid_json_format: '無効なJSON形式',
   raw_text: '生テキスト',
   formatted_view: 'フォーマットされた表示',
+  install_app: 'APKをインストール',
+  app_installation_failed: 'アプリのインストールに失敗しました',
+  app_installation_completed: 'アプリのインストールが完了しました',
+  app_upgrade_completed: 'アプリのアップグレードが完了しました',
+  confirm_installation_on_phone: '電話でインストールを確認してください。',
 }

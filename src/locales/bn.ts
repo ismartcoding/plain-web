@@ -460,4 +460,9 @@ export default {
   invalid_json_format: 'অবৈধ JSON ফরম্যাট',
   raw_text: 'মূল পাঠ',
   formatted_view: 'ফর্ম্যাটড দেখান',
+  install_app: 'APK ইনস্টল করুন',
+  app_installation_failed: 'অ্যাপ ইনস্টল করতে ব্যর্থ হয়েছে',
+  app_upgrade_completed: 'অ্যাপ আপগ্রেড সম্পন্ন হয়েছে',
+  app_installation_completed: 'অ্যাপ ইনস্টল সম্পন্ন হয়েছে',
+  confirm_installation_on_phone: 'দয়া করে ফোনে এ "এখন শুরু করুন" ট্যাপ করুন। \nযদি অনুমতি উইন্ডো প্রদর্শিত না হয়, তাহলে দয়া করে PlainApp পুনরায় আরম্ভ করুন। \n{সেকেন্ড} সেকেন্ডে আবার চেষ্টা করুন',
 }

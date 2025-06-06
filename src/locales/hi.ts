@@ -455,4 +455,9 @@ export default {
   invalid_json_format: 'अमान्य JSON फॉर्मेट',
   raw_text: 'अपरिष्कृत टेक्स्ट',
   formatted_view: 'सुधारित दृश्य',
+  install_app: 'APK इंस्टॉल करें',
+  app_installation_failed: 'ऐप इंस्टॉल फेल्ड',
+  app_installation_completed: 'ऐप इंस्टॉल संपन्न हो गया',
+  app_upgrade_completed: 'ऐप अपग्रेड संपन्न हो गया',
+  confirm_installation_on_phone: 'कृपया अपने फ़ोन पर स्थापना को सत्यापित करें।',
 }

@@ -324,6 +324,16 @@ export const uninstallPackageGQL = gql`
   }
 `
 
+export const installPackageGQL = gql`
+  mutation installPackage($path: String!) {
+    installPackage(path: $path) {
+      packageName
+      updatedAt
+      isNew
+    }
+  }
+`
+
 export const startScreenMirrorGQL = gql`
   mutation startScreenMirror {
     startScreenMirror

@@ -455,4 +455,9 @@ export default {
   invalid_json_format: 'Geçersiz JSON formatı',
   raw_text: 'Ham metin',
   formatted_view: 'Biçimlendirilmiş görünüm',
+  install_app: 'APK yükle',
+  app_installation_failed: 'Uygulama yüklenemedi',
+  app_installation_completed: 'Uygulama yüklendi',
+  app_upgrade_completed: 'Uygulama güncellendi',
+  confirm_installation_on_phone: 'Lütfen telefonunuzda yüklemeyi onaylayın.',
 }

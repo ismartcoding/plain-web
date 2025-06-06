@@ -458,4 +458,9 @@ export default {
   invalid_json_format: 'செல்லாத JSON வடிவம்',
   raw_text: 'சுருக்கமான உரை',
   formatted_view: 'வடிவமைக்கப்பட்ட காட்சி',
+  install_app: 'APK நிறுவு',
+  app_installation_failed: 'பயன்பாட்டை நிறுவ முடியவில்லை',
+  app_installation_completed: 'பயன்பாட்டை நிறுவப்பட்டது',
+  app_upgrade_completed: 'பயன்பாட்டை மேம்படுத்தப்பட்டது',
+  confirm_installation_on_phone: 'தயவுசெய்து தொலைபேசியில் நிறுவலை உறுதிப்படுத்தவும்.',  
 }

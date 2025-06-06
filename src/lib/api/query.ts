@@ -501,6 +501,7 @@ export const packageStatusesGQL = gql`
     packageStatuses(ids: $ids) {
       id
       exist
+      updatedAt
     }
   }
 `

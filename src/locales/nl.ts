@@ -456,4 +456,9 @@ export default {
   invalid_json_format: 'Ongeldig JSON-formaat',
   raw_text: 'Ruwe tekst',
   formatted_view: 'Gevormde weergave',
+  install_app: 'APK installeren',
+  app_installation_failed: 'App-installatie mislukt',
+  app_installation_completed: 'App-installatie voltooid',
+  app_upgrade_completed: 'App-upgrade voltooid',
+  confirm_installation_on_phone: 'Bevestig de installatie op je telefoon.',
 }

@@ -454,4 +454,9 @@ export default {
   invalid_json_format: '잘못된 JSON 형식',
   raw_text: '원시 텍스트',
   formatted_view: '서식이 지정된 보기',
+  install_app: 'APK 설치',
+  app_installation_failed: '앱 설치 실패',
+  app_installation_completed: '앱 설치 완료',
+  app_upgrade_completed: '앱 업그레이드 완료',
+  confirm_installation_on_phone: '전화에서 설치를 확인하세요.',
 }

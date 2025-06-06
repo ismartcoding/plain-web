@@ -459,4 +459,9 @@ export default {
   invalid_json_format: '无效的JSON格式',
   raw_text: '原始文本',
   formatted_view: '格式化视图',
+  install_app: '安装APK',
+  app_installation_failed: '安装应用失败',
+  app_installation_completed: '安装应用成功',
+  app_upgrade_completed: '应用升级成功',
+  confirm_installation_on_phone: '请在您的手机上确认安装。',
 }
