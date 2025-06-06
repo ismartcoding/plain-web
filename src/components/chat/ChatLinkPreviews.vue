@@ -134,9 +134,7 @@ function openLink(url: string) {
   
   .preview-title {
     margin: 0 0 4px 0;
-    font-size: 16px;
     font-weight: 600;
-    line-height: 1.25;
     color: var(--md-sys-color-on-surface);
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -146,8 +144,7 @@ function openLink(url: string) {
   
   .preview-description {
     margin: 0 0 8px 0;
-    font-size: 14px;
-    line-height: 1.3;
+    font-size: 0.875rem;
     color: var(--md-sys-color-on-surface-variant);
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -170,7 +167,7 @@ function openLink(url: string) {
   }
   
   .preview-site {
-    font-size: 12px;
+    font-size: 0.875rem;
     color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 80%, transparent);
     overflow: hidden;
     text-overflow: ellipsis;

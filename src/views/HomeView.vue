@@ -359,7 +359,6 @@ initQuery({
       font-size: 0.75rem;
       color: var(--md-sys-color-on-surface-variant);
       margin-top: 4px;
-      line-height: 1.2;
     }
 
     .count {

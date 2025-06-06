@@ -38,15 +38,16 @@
   height: 24px;
 
   .name {
-    font-weight: 500;
+    font-weight: bold;
     margin-right: 4px;
-    font-size: 0.75rem;
+    font-size: 0.875rem;
+    text-transform: uppercase;
   }
 
   .time,
   .sending {
     color: var(--md-sys-color-secondary);
-    font-size: 0.75rem;
+    font-size: 0.875rem;
   }
 
   &:hover {
