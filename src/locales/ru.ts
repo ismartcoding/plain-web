@@ -461,4 +461,9 @@ export default {
   invalid_json_format: 'Неверный формат JSON',
   raw_text: 'Сырой текст',
   formatted_view: 'Форматированный вид',
+  install_app: 'Установить APK',
+  app_installation_failed: 'Не удалось установить приложение',
+  app_installation_completed: 'Установка приложения завершена',
+  app_upgrade_completed: 'Обновление приложения завершено',
+  confirm_installation_on_phone: 'Пожалуйста, подтвердите установку на вашем телефоне.',
 }

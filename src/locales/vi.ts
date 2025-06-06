@@ -454,4 +454,9 @@ export default {
   invalid_json_format: 'Định dạng JSON không hợp lệ',
   raw_text: 'Văn bản thô',
   formatted_view: 'Xem định dạng',
+  install_app: 'Cài đặt APK',
+  app_installation_failed: 'Cài đặt ứng dụng thất bại',
+  app_installation_completed: 'Cài đặt ứng dụng thành công',
+  app_upgrade_completed: 'Cập nhật ứng dụng thành công',
+  confirm_installation_on_phone: 'Vui lòng xác nhận cài đặt trên điện thoại của bạn.',
 }

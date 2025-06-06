@@ -458,4 +458,9 @@ export default {
   invalid_json_format: 'Format JSON non valide',
   raw_text: 'Texte brut',
   formatted_view: 'Vue formatée',
+  install_app: 'Installer APK',
+  app_installation_failed: 'Échec de l\'installation de l\'application',
+  app_installation_completed: 'Installation de l\'application terminée',
+  app_upgrade_completed: 'Mise à jour de l\'application terminée',
+  confirm_installation_on_phone: 'Veuillez confirmer l\'installation sur votre téléphone.',
 }

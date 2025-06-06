@@ -455,4 +455,9 @@ export default {
   invalid_json_format: 'Formato JSON inválido',
   raw_text: 'Texto bruto',
   formatted_view: 'Visualização formatada',
+  install_app: 'Instalar APK',
+  app_installation_failed: 'Falha na instalação do aplicativo',
+  app_installation_completed: 'Instalação do aplicativo concluída',
+  app_upgrade_completed: 'Atualização do aplicativo concluída',
+  confirm_installation_on_phone: 'Por favor, confirme a instalação no seu telefone.',
 }

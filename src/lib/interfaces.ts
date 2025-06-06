@@ -55,6 +55,7 @@ export interface IContactSource {
 export interface IPackageStatus {
   id: string
   exist: boolean
+  updatedAt: string
 }
 
 export interface IContact extends IData {

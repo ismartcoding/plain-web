@@ -13,9 +13,9 @@
     </div>
     <div class="actions">
       <search-input :filter="filter" :types="types" :get-url="getUrl" />
-      <button class="btn-icon" style="display: none" @click.stop="install">
+      <button v-tooltip="$t('install_app')" class="btn-icon" @click.stop="install">
         <md-ripple />
-        {{ $t('install') }}
+        <i-material-symbols:upload-rounded />
       </button>
       <popper>
         <button v-tooltip="$t('sort')" class="btn-icon btn-sort" :disabled="sorting">
@@ -41,7 +41,8 @@
     :select-real-all="selectRealAll"
     :clear-selection="clearSelection"
   />
-  <div class="scroll-content">
+  <div class="scroll-content" @dragover.stop.prevent="fileDragEnter">
+    <div v-show="dropping" class="drag-mask" @drop.stop.prevent="dropApkFiles" @dragleave.stop.prevent="fileDragLeave">{{ $t('release_to_send_files') }}</div>
     <div class="app-list" :class="{ 'select-mode': checked }">
       <section
         v-for="(item, i) in items"
@@ -131,11 +132,11 @@ import { noDataKey } from '@/lib/list'
 import type { IFilter, IPackageItem, IPackage, IPackageStatus } from '@/lib/interfaces'
 import { decodeBase64 } from '@/lib/strutil'
 import { useSelectable } from '@/hooks/list'
-import { initMutation, uninstallPackageGQL } from '@/lib/api/mutation'
+import { initMutation, uninstallPackageGQL, installPackageGQL } from '@/lib/api/mutation'
 import { useTempStore, type IUploadItem } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { useDownload, useDownloadItems } from '@/hooks/files'
-import { useFileUpload } from '@/hooks/upload'
+import { useFileUpload, useDragDropUpload } from '@/hooks/upload'
 import { deleteById } from '@/lib/array'
 import emitter from '@/plugins/eventbus'
 import { DataType } from '@/lib/data'
@@ -144,8 +145,12 @@ import { useSearch } from '@/hooks/search'
 import { useKeyEvents } from '@/hooks/key-events'
 import { getSortItems } from '@/lib/file'
 
+// Track packages being installed
+const installingPackages = ref<{ id: string; updatedAt: string; isNew: boolean }[]>([])
+
 const { app, urlTokenKey, uploads } = storeToRefs(useTempStore())
 const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload(uploads)
+const { dropping, fileDragEnter, fileDragLeave, dropFiles } = useDragDropUpload(uploads)
 
 const mainStore = useMainStore()
 const items = ref<IPackageItem[]>([])
@@ -192,6 +197,10 @@ const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(total, limit, pa
 const install = () => {
   uploadFiles(app.value.downloadsDir)
 }
+
+const { mutate: installPackageMutate } = initMutation({
+  document: installPackageGQL,
+})
 
 const types = ['user', 'system'].map((it) => ({ id: it, name: t('app_type.' + it) }))
 
@@ -252,8 +261,24 @@ function uninstall(item: IPackageItem) {
 const { loading: fetchPackageStatusLoading, fetch: fetchPackageStatus } = initLazyQuery({
   handle: (data: { packageStatuses: IPackageStatus[] }) => {
     if (data) {
+      // Handle uninstalling packages
       for (const item of data.packageStatuses) {
-        if (!item.exist) {
+        const installingPackage = installingPackages.value.find((it) => it.id === item.id)
+        if (installingPackage) {
+          const isNewInstalled = installingPackage.isNew && item.exist
+          const isUpgraded = !installingPackage.isNew && item.exist && installingPackage.updatedAt < item.updatedAt
+          if (isNewInstalled || isUpgraded) {
+              installingPackages.value = installingPackages.value.filter((it) => it.id !== item.id)
+              tapPhone('')
+              if (isNewInstalled) {
+                toast(t('app_installation_completed'), 'success')
+              } else {
+                toast(t('app_upgrade_completed'), 'success')
+              }
+              fetch()
+          }
+        } else if (!item.exist) {
+          // Package was uninstalled
           deleteById(items.value as any, item.id)
           tapPhone('')
         }
@@ -262,19 +287,47 @@ const { loading: fetchPackageStatusLoading, fetch: fetchPackageStatus } = initLa
   },
   document: packageStatusesGQL,
   variables: () => ({
-    ids: items.value.filter((it) => it.isUninstalling).map((it) => it.id),
+    ids: [...items.value.filter((it) => it.isUninstalling).map((it) => it.id), ...installingPackages.value.map((it) => it.id)],
   }),
 })
 
 const uploadTaskDoneHandler = (r: IUploadItem) => {
   if (r.status === 'done') {
-    // TODO: install app
+    installPackageMutate({ path: r.dir + '/' + r.fileName })
+      .then((result) => {
+        tapPhone(t('confirm_installation_on_phone'))
+
+        if (result && result.data && result.data.installPackage) {
+          const { packageName, updatedAt, isNew } = result.data.installPackage
+
+          if (packageName) {
+            // Add to installing packages
+            installingPackages.value.push({ id: packageName, updatedAt, isNew })
+
+            // Set a timeout to remove the packageId from installing list after 60 seconds
+            setTimeout(() => {
+              if (installingPackages.value.some((it) => it.id === packageName)) {
+                installingPackages.value = installingPackages.value.filter((it) => it.id !== packageName)
+                tapPhone('')
+              }
+            }, 120000)
+          }
+        }
+      })
+      .catch((error) => {
+        tapPhone('')
+        toast(t('app_installation_failed') + ': ' + error.message, 'error')
+      })
   }
+}
+
+function dropApkFiles(e: DragEvent) {
+  dropFiles(e, app.value.downloadsDir, 'application')
 }
 
 onActivated(() => {
   setInterval(() => {
-    if (items.value.some((it) => it.isUninstalling) && !fetchPackageStatusLoading.value) {
+    if ((items.value.some((it) => it.isUninstalling) || installingPackages.value.length > 0) && !fetchPackageStatusLoading.value) {
       fetchPackageStatus()
     }
   }, 1000)
