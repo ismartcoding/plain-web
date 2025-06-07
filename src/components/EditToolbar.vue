@@ -18,7 +18,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const props = defineProps({
   modelValue: { type: Number, default: 0 },
-  save: { type: Function as PropType<(payload: MouseEvent) => void> },
+  save: { type: Function as PropType<(payload: MouseEvent) => void>, required: true },
   loading: { type: Boolean },
   tabs: { type: Array as PropType<Array<string>>, default: () => [] },
 })

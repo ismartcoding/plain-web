@@ -1,7 +1,8 @@
+<!-- eslint-disable vue/no-v-html -->
 <template>
   <div class="top-app-bar">
     <button v-tooltip="$t('back')" class="btn-icon" @click.prevent="backToList">
-      <md-ripple />
+      
       <i-material-symbols:arrow-back-rounded />
     </button>
     <div class="title">{{ id ? t('edit') : t('create') }} <span v-show="notSaved" class="state-point">*</span> <field-id v-if="note?.updatedAt" :id="getTime()" class="time" :raw="note" /></div>
@@ -9,11 +10,11 @@
       <item-tags :tags="note?.tags" :type="dataType" :only-links="true" />
       <template v-if="id">
         <button v-tooltip="$t('add_to_tags')" class="btn-icon" @click.prevent="addToTags">
-          <md-ripple />
+          
           <i-material-symbols:label-outline-rounded />
         </button>
         <button v-tooltip="$t('print')" class="btn-icon" @click.prevent="print">
-          <md-ripple />
+          
           <i-material-symbols:print-outline-rounded />
         </button>
       </template>

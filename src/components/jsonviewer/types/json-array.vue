@@ -23,9 +23,10 @@ export default {
     },
     expand: Boolean,
   },
+emits: ['update:expand'],
   data() {
     return {
-      value: [],
+      value: [] as any[],
     }
   },
   watch: {
@@ -53,7 +54,9 @@ export default {
 
       try {
         this.$el.dispatchEvent(new Event('resized'))
-      } catch (e) {}
+      } catch (e) {
+        console.error(e)
+      }
     },
   },
   render() {

@@ -13,7 +13,7 @@ import type { PropType } from 'vue'
 const store = useMainStore()
 
 const props = defineProps({
-  current: { type: [String, Function] },
+  current: { type: [String, Function], required: true },
   paths: { type: Array as PropType<Array<string>>, default: () => [] },
 })
 

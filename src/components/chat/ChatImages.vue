@@ -17,7 +17,7 @@ import { useTempStore } from '@/stores/temp'
 
 const tempStore = useTempStore()
 const props = defineProps({
-  data: { type: Object },
+  data: { type: Object, required: true },
 })
 
 function getPreview(source: ISource) {

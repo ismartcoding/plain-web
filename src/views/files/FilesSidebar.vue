@@ -8,7 +8,7 @@
         <li :class="{ active: route.path === '/files/recent' }" @click.prevent="openRecent">
           <span class="title">{{ $t('recents') }}</span>
         </li>
-        <li v-for="item in links" :class="{ active: route.path === '/files' && item.name === filter.linkName }" @click.prevent="openLink(item)">
+        <li v-for="item in links" :key="item.path" :class="{ active: route.path === '/files' && item.name === filter.linkName }" @click.prevent="openLink(item)">
           <span class="title">{{ item.label }}</span>
         </li>
       </ul>

@@ -1,44 +1,44 @@
 <template>
   <div class="top-app-bar">
-    <md-checkbox touch-target="wrapper" :checked="allChecked" :indeterminate="!allChecked && checked" @change="toggleAllChecked" />
+    <v-checkbox touch-target="wrapper" :checked="allChecked" :indeterminate="!allChecked && checked" @change="toggleAllChecked" />
     <div class="title">
       <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
       <span v-else>{{ $t('page_title.notes') }} ({{ total.toLocaleString() }})</span>
       <template v-if="checked">
         <template v-if="filter.trash">
-          <icon-button v-tooltip="$t('delete')" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)">
+          <v-icon-button v-tooltip="$t('delete')" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)">
             <template #icon>
               <i-material-symbols:delete-forever-outline-rounded />
             </template>
-          </icon-button>
-          <icon-button v-tooltip="$t('restore')" :loading="restoreLoading(getQuery())" @click.stop="restore(getQuery())">
+          </v-icon-button>
+          <v-icon-button v-tooltip="$t('restore')" :loading="restoreLoading(getQuery())" @click.stop="restore(getQuery())">
             <template #icon>
               <i-material-symbols:restore-from-trash-outline-rounded />
             </template>
-          </icon-button>
+          </v-icon-button>
         </template>
         <template v-else>
-          <icon-button v-tooltip="$t('move_to_trash')" @click.stop="trash(getQuery())">
+          <v-icon-button v-tooltip="$t('move_to_trash')" @click.stop="trash(getQuery())">
             <template #icon>
               <i-material-symbols:delete-outline-rounded />
             </template>
-          </icon-button>
-          <icon-button v-tooltip="$t('add_to_tags')" @click.stop="addToTags(selectedIds, realAllChecked, q)">
+          </v-icon-button>
+          <v-icon-button v-tooltip="$t('add_to_tags')" @click.stop="addToTags(selectedIds, realAllChecked, q)">
             <template #icon>
               <i-material-symbols:label-outline-rounded />
             </template>
-          </icon-button>
-          <icon-button v-tooltip="$t('export_notes')" @click.stop="exportNotes2">
+          </v-icon-button>
+          <v-icon-button v-tooltip="$t('export_notes')" @click.stop="exportNotes2">
             <template #icon>
               <i-material-symbols:export-notes-outline-rounded />
             </template>
-          </icon-button>
+          </v-icon-button>
         </template>
       </template>
     </div>
     <div class="actions">
       <search-input :filter="filter" :tags="tags" :get-url="getUrl" :show-trash="true" />
-      <md-outlined-button v-if="!filter.trash" class="btn-sm" @click.prevent="create">{{ $t('create') }}</md-outlined-button>
+      <v-outlined-button v-if="!filter.trash" class="btn-sm" @click.prevent="create">{{ $t('create') }}</v-outlined-button>
     </div>
   </div>
   <all-checked-alert
@@ -85,8 +85,8 @@
           @mouseover="handleMouseOver($event, index)"
         >
           <div class="start">
-            <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, index)" />
-            <md-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, index)" />
+            <v-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, index)" />
+            <v-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, index)" />
             <span class="number"><field-id :id="index + 1" :raw="item" /></span>
           </div>
           <div class="title">{{ getSummary(item.title.split('\n')[0].trimStart()) || $t('meta_no_title') }}</div>
@@ -95,28 +95,28 @@
           </div>
           <div class="actions">
             <template v-if="filter.trash">
-              <icon-button v-tooltip="$t('delete')" class="sm" @click.stop.prevent="deleteItem(item)">
+              <v-icon-button v-tooltip="$t('delete')" class="sm" @click.stop.prevent="deleteItem(item)">
                 <template #icon>
                   <i-material-symbols:delete-forever-outline-rounded />
                 </template>
-              </icon-button>
-              <icon-button v-tooltip="$t('restore')" class="sm" :loading="restoreLoading(`ids:${item.id}`)" @click.stop.prevent="restore(`ids:${item.id}`)">
+              </v-icon-button>
+              <v-icon-button v-tooltip="$t('restore')" class="sm" :loading="restoreLoading(`ids:${item.id}`)" @click.stop.prevent="restore(`ids:${item.id}`)">
                 <template #icon>
                   <i-material-symbols:restore-from-trash-outline-rounded />
                 </template>
-              </icon-button>
+              </v-icon-button>
             </template>
             <template v-else>
-              <icon-button v-tooltip="$t('move_to_trash')" class="sm" :loading="trashLoading(`ids:${item.id}`)" @click.stop.prevent="trash(`ids:${item.id}`)">
+              <v-icon-button v-tooltip="$t('move_to_trash')" class="sm" :loading="trashLoading(`ids:${item.id}`)" @click.stop.prevent="trash(`ids:${item.id}`)">
                 <template #icon>
                   <i-material-symbols:delete-outline-rounded />
                 </template>
-              </icon-button>
-              <icon-button v-tooltip="$t('add_to_tags')" class="sm" @click.stop.prevent="addItemToTags(item)">
+              </v-icon-button>
+              <v-icon-button v-tooltip="$t('add_to_tags')" class="sm" @click.stop.prevent="addItemToTags(item)">
                 <template #icon>
                   <i-material-symbols:label-outline-rounded />
                 </template>
-              </icon-button>
+              </v-icon-button>
             </template>
           </div>
           <div class="time">

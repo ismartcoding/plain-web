@@ -21,8 +21,7 @@ import toast from '@/components/toaster'
 import { getWebSocketBaseUrl } from './lib/api/api'
 import { aesDecrypt, aesEncrypt, bitArrayToUint8Array } from './lib/api/crypto'
 import { parseWebSocketData } from './lib/api/sjcl-arraybuffer'
-import { applyDarkClass, changeColor, changeColorAndMode, changeColorMode, getCurrentMode, getCurrentSeedColor, getCurrentThemeString, getLastSavedAutoColorMode, isModeDark } from './lib/theme/theme'
-import { applyThemeString } from './lib/theme/apply-theme-string'
+import { applyDarkClass, changeColor, changeColorMode, getCurrentMode, getLastSavedAutoColorMode, isModeDark } from './lib/theme'
 import TouchPhone from '@/assets/touch-phone.svg'
 import { tokenToKey } from './lib/api/file'
 let retryConnectTimeout = 0
@@ -129,20 +128,12 @@ function determinePageNavigationAutoMode() {
   const lastSavedAutoColorMode = getLastSavedAutoColorMode()
 
   if (actualColorMode !== lastSavedAutoColorMode) {
-    // Recalculate auto mode with the same theme color.
     changeColorMode('auto')
   }
 }
 
 function initializeTheme() {
-  const lastThemeString = getCurrentThemeString()
-  if (lastThemeString) {
-    applyThemeString(document, lastThemeString)
-    applyDarkClass(isModeDark(getCurrentMode() || 'auto', false))
-  } else {
-    // Generates a primary color close to GM3 baseline primary color.
-    changeColorAndMode('#0000FF', 'auto')
-  }
+   applyDarkClass(isModeDark(getCurrentMode() || 'auto', false))
 }
 
 onMounted(() => {
@@ -159,7 +150,7 @@ onMounted(() => {
       return
     }
 
-    changeColor(getCurrentSeedColor()!)
+    changeColor()
   })
 
   try {

@@ -22,6 +22,7 @@ export default {
     },
     expand: Boolean,
   },
+  emits: ['update:expand'],
   data() {
     return {
       value: {},
@@ -59,7 +60,9 @@ export default {
     dispatchEvent() {
       try {
         this.$el.dispatchEvent(new Event('resized'))
-      } catch (e) {}
+      } catch (e) {
+        console.error(e)
+      }
     },
   },
   render() {
@@ -101,7 +104,7 @@ export default {
 
     if (this.expand) {
       for (const key in this.ordered) {
-        if (this.ordered.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(this.ordered, key)) {
           const value = this.ordered[key]
 
           elements.push(

@@ -1,36 +1,36 @@
 <template>
   <div class="top-app-bar">
-    <div class="btn-icon no-click">
+    <div class="leading-icon">
       <i-material-symbols:label-outline-rounded />
     </div>
     <div class="title">{{ $t('tags') }}</div>
     <div class="actions">
-      <icon-button v-tooltip="$t('add_tag')" @click.prevent="add">
+      <v-icon-button v-tooltip="$t('add_tag')" @click.prevent="add">
         <template #icon>
           <i-material-symbols:add-rounded />
         </template>
-      </icon-button>
+      </v-icon-button>
     </div>
   </div>
   <ul class="nav">
     <li v-for="item in tags" :key="item.id" :class="{ active: item.id === selected }" @click.prevent="view(item)">
       <span class="title">{{ item.name }}</span>
-      <icon-button :id="'tag-' + item.id" v-tooltip="$t('actions')" class="sm" @click.prevent.stop="showMenu(item)">
+      <v-icon-button :id="'tag-' + item.id" v-tooltip="$t('actions')" class="sm" @click.prevent.stop="showMenu(item)">
         <template #icon>
           <i-material-symbols:more-vert />
         </template>
-      </icon-button>
+      </v-icon-button>
       <span class="count">{{ item.count.toLocaleString() }}</span>
     </li>
   </ul>
-  <md-menu positioning="popover" :anchor="'tag-' + selectedItem?.id" stay-open-on-focusout quick :open="tagMenuVisible" @closed="tagMenuVisible = false">
-    <md-menu-item @click="renameTag(selectedItem!)">
-      <div slot="headline">{{ $t('rename') }}</div>
-    </md-menu-item>
-    <md-menu-item @click="deleteTag(selectedItem!)">
-      <div slot="headline">{{ $t('delete') }}</div>
-    </md-menu-item>
-  </md-menu>
+  <v-dropdown-menu v-model="tagMenuVisible" :anchor="'tag-' + selectedItem?.id">
+    <div class="dropdown-item" @click="renameTag(selectedItem!); tagMenuVisible = false">
+      {{ $t('rename') }}
+    </div>
+    <div class="dropdown-item" @click="deleteTag(selectedItem!); tagMenuVisible = false">
+      {{ $t('delete') }}
+    </div>
+  </v-dropdown-menu>
 </template>
 
 <script setup lang="ts">
@@ -79,6 +79,9 @@ const { refetch } = initQuery({
 
 function showMenu(item: ITag) {
   selectedItem.value = item
+  // Close other dropdowns before opening this one
+  const anchorElement = document.getElementById('tag-' + item.id)
+  document.dispatchEvent(new CustomEvent('dropdown-toggle', { detail: { exclude: anchorElement } }))
   tagMenuVisible.value = true
 }
 
@@ -162,3 +165,13 @@ onUnmounted(() => {
   emitter.off('media_items_actioned', mediaItemsActionedHandler)
 })
 </script>
+
+<style lang="scss" scoped>
+.leading-icon {
+  align-items: center;
+    display: flex;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+</style>

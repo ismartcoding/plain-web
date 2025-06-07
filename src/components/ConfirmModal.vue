@@ -1,24 +1,24 @@
 <template>
-  <md-dialog type="alert">
-    <div slot="headline">
+  <v-modal @close="ok">
+    <template #headline>
       {{ title || $t('confirm') }}
-    </div>
-    <section slot="content" method="dialog">
+    </template>
+    <template #content>
       <pre>{{ message }}</pre>
-    </section>
-    <div slot="actions">
-      <md-filled-button form="form" value="ok" @click="ok">
+    </template>
+    <template #actions>
+      <v-filled-button @click="ok">
         {{ $t('ok') }}
-      </md-filled-button>
-    </div>
-  </md-dialog>
+      </v-filled-button>
+    </template>
+  </v-modal>
 </template>
 <script setup lang="ts">
 import { popModal } from './modal'
 
 defineProps({
-  title: { type: String },
-  message: { type: String },
+  title: { type: String, default: '' },
+  message: { type: String, default: '' },
 })
 
 function ok() {

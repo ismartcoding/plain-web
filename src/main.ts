@@ -3,12 +3,12 @@ import { ApolloClients } from '@vue/apollo-composable'
 import App from './App.vue'
 import './registerServiceWorker'
 import router from './plugins/router'
-import '@material/web/all'
 import '@/styles/main.scss'
 import { createPinia } from 'pinia'
 import apollo from './plugins/apollo'
 import VueClickAway from './plugins/clickaway'
 import VueTooltip from './plugins/tooltip'
+import VueRipple from './plugins/ripple'
 import i18n from './plugins/i18n'
 import { shortUUID } from './lib/strutil'
 
@@ -25,6 +25,7 @@ createApp({
 })
   .use(VueClickAway)
   .use(VueTooltip)
+  .use(VueRipple)
   .use(createPinia())
   .use(router)
   .use(i18n)

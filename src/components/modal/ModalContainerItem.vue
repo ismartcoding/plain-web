@@ -8,13 +8,12 @@ import { saveInstance } from './utils/instances'
 import { ref, watch } from 'vue'
 import { modalQueue } from './utils/state'
 import type Modal from './utils/Modal'
-import type { MdDialog } from '@material/web/dialog/dialog.js'
 
 const modalRef = ref(null)
 const containerRef = ref<HTMLDivElement>()
 
 const props = defineProps({
-  id: Number,
+  id: { type: Number, required: true },
 })
 
 const modal = getModalById(props.id)
@@ -26,11 +25,6 @@ watch(
   () => modalRef.value,
   (newValue) => {
     saveInstance(props.id!, newValue!)
-    setTimeout(() => {
-      if (containerRef.value) {
-        ;(containerRef.value.firstChild as MdDialog).show()
-      }
-    }, 0)
   }
 )
 </script>

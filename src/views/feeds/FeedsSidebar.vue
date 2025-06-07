@@ -5,14 +5,9 @@
     </template>
     <template #actions>
       <button id="add-feed-ref" v-tooltip="t('add_subscription')" class="btn-icon" @click="() => (addMenuVisible = true)">
-        <md-ripple />
+        
         <i-material-symbols:add-rounded />
       </button>
-      <md-menu anchor="add-feed-ref" positioning="fixed" stay-open-on-focusout quick :open="addMenuVisible" @closed="() => (addMenuVisible = false)">
-        <md-menu-item v-for="item in actionItems" :key="item.text" @click="item.click">
-          <div slot="headline">{{ $t(item.text) }}</div>
-        </md-menu-item>
-      </md-menu>
     </template>
     <template #body>
       <ul class="nav">
@@ -34,20 +29,25 @@
         >
           <span class="title">{{ item.name }}</span>
           <button :id="'feed-' + item.id" v-tooltip="$t('actions')" class="btn-icon sm" @click.prevent.stop="showFeedMenu(item)">
-            <md-ripple />
+            
             <i-material-symbols:more-vert />
           </button>
           <span v-if="getFeedCount(item.id) >= 0" class="count">{{ getFeedCount(item.id).toLocaleString() }}</span>
         </li>
       </ul>
-      <md-menu positioning="popover" :anchor="'feed-' + selectedFeed?.id" stay-open-on-focusout quick :open="feedMenuVisible" @closed="feedMenuVisible = false">
-        <md-menu-item @click="editFeed(selectedFeed!)">
-          <div slot="headline">{{ $t('edit') }}</div>
-        </md-menu-item>
-        <md-menu-item @click="deleteFeed(selectedFeed!)">
-          <div slot="headline">{{ $t('delete') }}</div>
-        </md-menu-item>
-      </md-menu>
+      <v-dropdown-menu v-model="addMenuVisible" anchor="add-feed-ref">
+        <div v-for="item in actionItems" :key="item.text" class="dropdown-item" @click="item.click(); addMenuVisible = false">
+          {{ $t(item.text) }}
+        </div>
+      </v-dropdown-menu>
+      <v-dropdown-menu v-model="feedMenuVisible" :anchor="'feed-' + selectedFeed?.id">
+        <div class="dropdown-item" @click="editFeed(selectedFeed!); feedMenuVisible = false">
+          {{ $t('edit') }}
+        </div>
+        <div class="dropdown-item" @click="deleteFeed(selectedFeed!); feedMenuVisible = false">
+          {{ $t('delete') }}
+        </div>
+      </v-dropdown-menu>
       <tag-filter type="FEED_ENTRY" :selected="selectedTagId" />
       <input ref="fileInput" style="display: none" accept=".xml" type="file" @change="uploadChanged" />
     </template>
@@ -207,6 +207,9 @@ function exportFile() {
 
 function showFeedMenu(item: IFeed) {
   selectedFeed.value = item
+  // Close other dropdowns before opening this one
+  const anchorElement = document.getElementById('feed-' + item.id)
+  document.dispatchEvent(new CustomEvent('dropdown-toggle', { detail: { exclude: anchorElement } }))
   feedMenuVisible.value = true
 }
 

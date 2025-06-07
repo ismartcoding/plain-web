@@ -1,90 +1,91 @@
 <template>
-  <md-chip-set v-if="showChips">
-    <div v-if="props.filter.text" key="filter-text">
-      <md-input-chip :label="props.filter.text" remove-only @remove="removeText" />
+  <v-chip-set v-if="showChips">
+    <div v-if="filter.text" key="filter-text">
+      <v-input-chip :label="filter.text" remove-only @remove="removeText" />
     </div>
-    <div v-if="props.filter.today" key="filter-today">
-      <md-input-chip :label="$t('today')" remove-only @remove="removeToday">
+    <div v-if="filter.today" key="filter-today">
+      <v-input-chip :label="$t('today')" remove-only @remove="removeToday">
         <i-material-symbols:today-outline-rounded slot="icon" />
-      </md-input-chip>
+      </v-input-chip>
     </div>
-    <div v-if="props.filter.trash" key="filter-trash">
-      <md-input-chip :label="$t('trash')" remove-only @remove="removeTrash">
+    <div v-if="filter.trash" key="filter-trash">
+      <v-input-chip :label="$t('trash')" remove-only @remove="removeTrash">
         <i-material-symbols:delete-outline-rounded slot="icon" />
-      </md-input-chip>
+      </v-input-chip>
     </div>
-    <md-input-chip v-for="item in filteredBuckets" :key="item.id" :label="item.name" remove-only @remove="removeBucket">
+    <v-input-chip v-for="item in filteredBuckets" :key="item.id" :label="item.name" remove-only @remove="removeBucket">
       <i-material-symbols:folder-outline-rounded slot="icon" />
-    </md-input-chip>
-    <md-input-chip v-for="item in filteredFeeds" :key="item.id" :label="item.name" remove-only @remove="removeFeed">
+    </v-input-chip>
+    <v-input-chip v-for="item in filteredFeeds" :key="item.id" :label="item.name" remove-only @remove="removeFeed">
       <i-material-symbols:rss-feed-rounded slot="icon" />
-    </md-input-chip>
-    <md-input-chip v-for="item in filteredTypes" :key="item.id" :label="item.name" remove-only @remove="removeType">
+    </v-input-chip>
+    <v-input-chip v-for="item in filteredTypes" :key="item.id" :label="item.name" remove-only @remove="removeType">
       <i-material-symbols:category-outline-rounded slot="icon" />
-    </md-input-chip>
-    <md-input-chip v-for="item in filteredTags" :key="item.id" :label="item.name" remove-only @remove="removeTag(item)">
+    </v-input-chip>
+    <v-input-chip v-for="item in filteredTags" :key="item.id" :label="item.name" remove-only @remove="removeTag(item)">
       <i-material-symbols:label-outline-rounded slot="icon" />
-    </md-input-chip>
-  </md-chip-set>
-  <button id="btn-search" v-tooltip="$t('search')" class="btn-icon" @click.prevent="show">
-    <md-ripple />
-    <i-material-symbols:search-rounded />
-  </button>
-  <md-menu positioning="popover" anchor="btn-search" menu-corner="start-end" anchor-corner="end-end" stay-open-on-focusout quick :open="searchPanelVisible" @closed="hide">
+    </v-input-chip>
+  </v-chip-set>
+  <v-dropdown v-model="searchPanelVisible" :max-height="400">
+    <template #trigger>
+      <button v-tooltip="$t('search')" class="btn-icon">
+        <i-material-symbols:search-rounded />
+      </button>
+    </template>
     <div class="filters">
       <div class="form-row">
-        <md-outlined-text-field v-model="searchFilter.text" :label="$t('keywords')" @keyup.enter="applyAndDoSearch" />
+        <v-text-field v-model="localFilter.text" :label="$t('keywords')" @keyup.enter="applySearch" />
       </div>
-      <md-chip-set v-if="props.showToday">
-        <md-filter-chip key="chip-today" :label="$t('today')" :selected="searchFilter.today" @click="searchFilter.today = !searchFilter.today" />
-      </md-chip-set>
-      <md-chip-set v-if="props.showTrash">
-        <md-filter-chip key="chip-today" :label="$t('trash')" :selected="searchFilter.trash" @click="searchFilter.trash = !searchFilter.trash" />
-      </md-chip-set>
-      <template v-if="props.tags.length > 0">
+      <v-chip-set v-if="showToday">
+        <v-filter-chip key="chip-today" :label="$t('today')" :selected="localFilter.today" @click="localFilter.today = !localFilter.today" />
+      </v-chip-set>
+      <v-chip-set v-if="showTrash">
+        <v-filter-chip key="chip-today" :label="$t('trash')" :selected="localFilter.trash" @click="localFilter.trash = !localFilter.trash" />
+      </v-chip-set>
+      <template v-if="tags.length > 0">
         <label class="form-label">{{ $t('tags') }}</label>
-        <md-chip-set>
-          <md-filter-chip v-for="item in tags" :key="item.id" :label="item.name" :selected="searchFilter.tagIds.includes(item.id)" @click="onTagSelect(item)" />
-        </md-chip-set>
+        <v-chip-set>
+          <v-filter-chip v-for="item in tags" :key="item.id" :label="item.name" :selected="localFilter.tagIds.includes(item.id)" @click="onTagSelect(item)" />
+        </v-chip-set>
       </template>
-      <template v-if="props.feeds.length > 0">
+      <template v-if="feeds.length > 0">
         <label class="form-label">{{ $t('page_title.feeds') }}</label>
-        <md-chip-set>
-          <md-filter-chip v-for="item in feeds" :key="item.id" :label="item.name" :selected="searchFilter.feedId === item.id" @click="onFeedSelect(item)" />
-        </md-chip-set>
+        <v-chip-set>
+          <v-filter-chip v-for="item in feeds" :key="item.id" :label="item.name" :selected="localFilter.feedId === item.id" @click="onFeedSelect(item)" />
+        </v-chip-set>
       </template>
-      <template v-if="props.buckets.length > 0">
+      <template v-if="buckets.length > 0">
         <label class="form-label">{{ $t('folders') }}</label>
-        <md-chip-set>
-          <md-filter-chip v-for="item in buckets" :key="item.id" :label="item.name" :selected="searchFilter.bucketId === item.id" @click="onBucketSelect(item)" />
-        </md-chip-set>
+        <v-chip-set>
+          <v-filter-chip v-for="item in buckets" :key="item.id" :label="item.name" :selected="localFilter.bucketId === item.id" @click="onBucketSelect(item)" />
+        </v-chip-set>
       </template>
-      <template v-if="props.types.length > 0">
+      <template v-if="types.length > 0">
         <label class="form-label">{{ $t('types') }}</label>
-        <md-chip-set>
-          <md-filter-chip v-for="item in types" :key="item.id" :label="item.name" :selected="searchFilter.type === item.id" @click="onTypeSelect(item)" />
-        </md-chip-set>
+        <v-chip-set>
+          <v-filter-chip v-for="item in types" :key="item.id" :label="item.name" :selected="localFilter.type === item.id" @click="onTypeSelect(item)" />
+        </v-chip-set>
       </template>
       <div class="buttons">
-        <md-filled-button @click.stop="applyAndDoSearch">
+        <v-filled-button @click.stop="applySearch">
           {{ $t('search') }}
-        </md-filled-button>
+        </v-filled-button>
       </div>
     </div>
-  </md-menu>
+  </v-dropdown>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, type PropType } from 'vue'
+import { computed, reactive, ref, watch, type PropType } from 'vue'
 import type { IBucket, IFeed, IFilter, ITag, IType } from '@/lib/interfaces'
 import { remove } from 'lodash-es'
 import { replacePath } from '@/plugins/router'
 import { useSearch } from '@/hooks/search'
 import { useMainStore } from '@/stores/main'
 
-const { copyFilter, buildQ } = useSearch()
+const { buildQ, copyFilter } = useSearch()
 const mainStore = useMainStore()
-const searchFilter: IFilter = reactive({
+const localFilter: IFilter = reactive({
   tagIds: [],
 })
 const props = defineProps({
@@ -143,93 +144,100 @@ const filteredTypes = computed(() => {
 
 const searchPanelVisible = ref(false)
 
+watch(props.filter, (newValue) => {
+  copyFilter(newValue, localFilter)
+}, { immediate: true, deep: true })
+
+
+watch(searchPanelVisible, (isVisible) => {
+  if (isVisible) {
+    copyFilter(props.filter, localFilter)
+  }
+})
+
+
 function onTagSelect(tag: ITag) {
-  if (searchFilter.tagIds.includes(tag.id)) {
-    remove(searchFilter.tagIds, (it: string) => it === tag.id)
+  if (localFilter.tagIds.includes(tag.id)) {
+    remove(localFilter.tagIds, (it: string) => it === tag.id)
   } else {
-    searchFilter.tagIds.push(tag.id)
+    localFilter.tagIds.push(tag.id)
   }
 }
 
 function onFeedSelect(feed: IFeed) {
-  if (searchFilter.feedId === feed.id) {
-    searchFilter.feedId = undefined
+  if (localFilter.feedId === feed.id) {
+    localFilter.feedId = undefined
   } else {
-    searchFilter.feedId = feed.id
+    localFilter.feedId = feed.id
   }
 }
 
 function onBucketSelect(bucket: IBucket) {
-  if (searchFilter.bucketId === bucket.id) {
-    searchFilter.bucketId = undefined
+  if (localFilter.bucketId === bucket.id) {
+    localFilter.bucketId = undefined
   } else {
-    searchFilter.bucketId = bucket.id
+    localFilter.bucketId = bucket.id
   }
 }
 
 function onTypeSelect(type: IType) {
-  if (searchFilter.type === type.id) {
-    searchFilter.type = undefined
+  if (localFilter.type === type.id) {
+    localFilter.type = undefined
   } else {
-    searchFilter.type = type.id
+    localFilter.type = type.id
   }
 }
 
-function applyAndDoSearch() {
-  copyFilter(searchFilter, props.filter)
+function applySearch() {
   doSearch()
-  hide()
+  searchPanelVisible.value = false
 }
 
 function doSearch() {
+  copyFilter(localFilter, props.filter)
   replacePath(mainStore, props.getUrl(buildQ(props.filter)))
 }
 
 function removeFeed() {
-  props.filter.feedId = undefined
+  localFilter.feedId = undefined
   doSearch()
 }
 
 function removeType() {
-  props.filter.type = undefined
+  localFilter.type = undefined
   doSearch()
 }
 
 function removeBucket() {
-  props.filter.bucketId = undefined
+  localFilter.bucketId = undefined
   doSearch()
 }
 
 function removeTag(tag: ITag) {
-  remove(props.filter.tagIds ?? [], (t) => t === tag.id)
+  remove(localFilter.tagIds ?? [], (t) => t === tag.id)
   doSearch()
 }
 
 function removeToday() {
-  props.filter.today = undefined
+  localFilter.today = undefined
   doSearch()
 }
 
 function removeTrash() {
-  props.filter.trash = false
+  localFilter.trash = false
   doSearch()
 }
 
 function removeText() {
-  props.filter.text = undefined
+  localFilter.text = undefined
   doSearch()
 }
 
-function show() {
-  searchPanelVisible.value = true
-  copyFilter(props.filter, searchFilter)
-}
-
-function hide() {
-  searchPanelVisible.value = false
-}
-
-defineExpose({ dismiss: hide })
+defineExpose({
+  dismiss: () => {
+    searchPanelVisible.value = false
+  },
+})
 </script>
 <style lang="scss" scoped>
 .filters {

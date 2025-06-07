@@ -262,12 +262,6 @@ export const getRootDir = (filesType: string, app: IApp) => {
 
 export const useSearch = () => {
   return {
-    copyFilter: (from: IFileFilter, to: IFileFilter) => {
-      to.text = from.text
-      to.parent = from.parent
-      to.linkName = from.linkName
-      to.showHidden = from.showHidden
-    },
     parseQ: (filter: IFileFilter, q: string) => {
       const fields = parseQuery(q)
       filter.showHidden = false

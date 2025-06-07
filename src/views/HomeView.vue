@@ -170,15 +170,17 @@
       <div class="card-content">
         <h5 class="card-title">{{ $t('call_phone') }}</h5>
         <div class="phone-input-row">
-          <md-outlined-text-field v-model="callNumber" type="tel" :label="$t('phone_number')" class="phone-input" :error="callNumberError" :error-text="$t('valid.required')" @keyup.enter="callPhone">
-            <button slot="trailing-icon" class="btn-icon" @click.prevent="pastePhoneNumber">
-              <md-ripple />
-              <i-material-symbols:content-paste-rounded />
-            </button>
-          </md-outlined-text-field>
-          <md-filled-button class="call-btn" :disabled="callLoading" @click.prevent="callPhone">
+          <v-text-field v-model="callNumber" type="tel" :label="$t('phone_number')" class="phone-input" :error="callNumberError" :error-text="$t('valid.required')" @keyup.enter="callPhone">
+            <template #trailing-icon>
+              <button class="btn-icon" @click.prevent="pastePhoneNumber">
+                
+                <i-material-symbols:content-paste-rounded />
+              </button>
+            </template>
+          </v-text-field>
+          <v-filled-button class="call-btn" :disabled="callLoading" @click.prevent="callPhone">
             {{ $t('call') }}
-          </md-filled-button>
+          </v-filled-button>
         </div>
       </div>
     </div>

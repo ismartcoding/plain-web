@@ -1,5 +1,7 @@
 export default {
   app_name: 'PlainApp',
+  link_copied: '링크가 복사되었습니다.',
+  copy_link: '링크 복사',
   audio_player: '오디오 플레이어',
   unwrap: '언포장',
   wrap: '포장',

@@ -1,22 +1,22 @@
 <template>
-  <md-dialog>
-    <div slot="headline">
+  <v-modal @close="popModal">
+    <template #headline>
       {{ title }}
-    </div>
-    <div slot="content">
-      <md-outlined-text-field ref="inputRef" v-model="inputValue" class="form-control" :error="valueError" :error-text="valueError ? $t(valueError) : ''" @keyup.enter="doAction" />
-    </div>
-    <div slot="actions">
-      <md-outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</md-outlined-button>
-      <md-filled-button value="ok" autofocus @click="doAction">
+    </template>
+    <template #content>
+      <v-text-field ref="inputRef" v-model="inputValue" class="form-control" :error="!!valueError" :error-text="valueError ? $t(valueError) : ''" @keyup.enter="doAction" />
+    </template>
+    <template #actions>
+      <v-outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</v-outlined-button>
+      <v-filled-button value="ok" @click="doAction">
         {{ $t('ok') }}
-      </md-filled-button>
-    </div>
-  </md-dialog>
+      </v-filled-button>
+    </template>
+  </v-modal>
 </template>
 <script setup lang="ts">
 import { useField, useForm } from 'vee-validate'
-import { nextTick, ref, type PropType } from 'vue'
+import { nextTick, ref, type PropType, onMounted } from 'vue'
 import { string } from 'yup'
 import { popModal } from './modal'
 
@@ -30,27 +30,35 @@ const props = defineProps({
     required: true,
   },
   title: { type: String, required: true },
-  value: { type: String },
+  value: { type: String, default: '' },
 })
 
 const { value: inputValue, resetField, errorMessage: valueError } = useField('inputValue', string().required())
 const doAction = handleSubmit(() => {
-  props.do(inputValue.value ?? '')
+  props.do(String(inputValue.value || ''))
   popModal()
 })
 
-inputValue.value = props.value
-if (!props.value) {
+if (props.value) {
+  inputValue.value = props.value
+} else {
   resetField()
 }
 
-;(async () => {
+// Focus management
+onMounted(async () => {
   await nextTick()
-  inputRef.value?.focus()
-})()
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      try {
+        if (document.activeElement && document.activeElement !== document.body) {
+          (document.activeElement as HTMLElement).blur()
+        }
+        inputRef.value?.focus()
+      } catch (error) {
+        console.debug('Focus blocked:', error)
+      }
+    }, 100)
+  })
+})
 </script>
-<style lang="scss" scoped>
-md-dialog {
-  --md-sys-color-surface-container-high: var(--md-sys-color-surface-variant);
-}
-</style>

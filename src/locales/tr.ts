@@ -1,5 +1,7 @@
 export default {
   app_name: 'PlainApp',
+  link_copied: 'Bağlantı kopyalandı',
+  copy_link: 'Bağlantıyı kopyala',
   audio_player: 'Müzik ç',
   unwrap: 'Aç',
   wrap: 'Kapat',

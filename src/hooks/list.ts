@@ -5,7 +5,7 @@ import toast from '@/components/toaster'
 import { openModal } from '@/components/modal'
 import DeleteItemsConfirm from '@/components/DeleteItemsConfirm.vue'
 import type { DocumentNode } from 'graphql'
-import type { MdCheckbox } from '@material/web/checkbox/checkbox'
+
 
 export const useSelectable = (items: Ref<IData[]>) => {
   const allChecked = ref(false)
@@ -79,7 +79,7 @@ export const useSelectable = (items: Ref<IData[]>) => {
     realAllChecked,
     allChecked,
     toggleAllChecked: (event: Event) => {
-      if ((event.target as MdCheckbox).checked) {
+      if ((event.target as HTMLInputElement).checked) {
         selectAll()
       } else {
         allChecked.value = false
@@ -118,7 +118,7 @@ export const useSelectable = (items: Ref<IData[]>) => {
       }
     },
     handleItemClick(event: Event, item: IData, index: number, view: (i: number) => void = () => {}) {
-      if (event.target.nodeName === 'MD-CHECKBOX') {
+      if ((event.target as Element)?.nodeName === 'V-CHECKBOX') {
         return
       }
 

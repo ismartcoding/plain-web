@@ -188,7 +188,6 @@ function restoreItem() {
 
 .info-header {
   padding: 16px;
-  border-bottom: 1px solid var(--md-sys-color-outline-variant);
 }
 
 .info-title {
@@ -260,7 +259,6 @@ function restoreItem() {
 }
 
 .info-resolution {
-  opacity: 0.7;
   margin-left: 4px;
 }
 
@@ -272,10 +270,6 @@ function restoreItem() {
   cursor: pointer;
   display: inline-flex;
   color: var(--md-sys-color-primary);
-  
-  &:hover {
-    opacity: 0.8;
-  }
 }
 
 </style> 

@@ -3,7 +3,7 @@
 @use 'animation';
 @use 'card';
 @use 'alert';
-@use 'md';
+@use 'v';
 @use 'selectable';
 @use 'audio';
 @use 'pagination';
@@ -14,6 +14,8 @@
 @use 'media';
 @use 'mobile';
 @use 'print';
+@use 'buttons';
+@use 'ripple';
 
 #app:has(~ .lightbox) {
   display: none;
@@ -310,7 +312,7 @@
 
     .btn-icon {
       display: none;
-      margin-inline-end: 8px;
+      margin-inline-end: 4px;
     }
 
     &.active {
@@ -377,12 +379,6 @@
   } /* Fade in to full opacity */
 }
 
-.spinner-sm {
-  --md-circular-progress-size: 24px;
-  --md-circular-progress-active-indicator-width: 16;
-}
-
-
 .v-center {
   display: flex;
   align-items: center;
@@ -443,51 +439,6 @@
   100% {
     opacity: 1;
   } /* Fade in to full opacity */
-}
-
-.btn-feature {
-  display: flex;
-  flex-direction: column;
-  padding: 8px;
-  border-radius: 8px;
-  align-items: center;
-  height: 84px;
-  width: 84px;
-  box-sizing: border-box;
-  text-align: center;
-  &:hover {
-    text-decoration: none;
-    background-color: var(--md-sys-color-surface-variant);
-  }
-  svg {
-    width: 24px;
-    height: 24px;
-    color: var(--md-sys-color-primary);
-    margin-block-start: 8px;
-  }
-  .info {
-    flex: 1;
-    height: 0;
-    align-items: center;
-    justify-content: center;
-    margin-block-start: 2px;
-    display: flex;
-    flex-direction: column;
-  }
-  .name {
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    color: var(--md-sys-color-on-surface);
-    font-weight: bold;
-    font-size: 0.75rem;
-    max-height: 40px;
-  }
-  .count {
-    display: block;
-    font-size: 0.75rem;
-    color: var(--md-sys-color-on-surface);
-  }
 }
 
 .sidebar-drag-indicator {

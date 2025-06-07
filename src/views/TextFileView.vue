@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/no-v-html -->
 <template>
   <header class="header">
     <header-actions :logged-in="false" />
@@ -6,7 +7,7 @@
   <main class="main-content">
     <!-- Loading State -->
     <section v-if="loading" class="state-container">
-      <md-circular-progress indeterminate />
+      <v-circular-progress indeterminate />
       <span class="state-text">{{ $t('loading') }}</span>
     </section>
     
@@ -14,7 +15,7 @@
     <section v-else-if="error" class="state-container error">
       <i-material-symbols:error-outline-rounded class="state-icon" />
       <span class="state-text">{{ error }}</span>
-      <md-outlined-button @click="retry">{{ $t('retry') }}</md-outlined-button>
+      <v-outlined-button @click="retry">{{ $t('retry') }}</v-outlined-button>
     </section>
     
     <!-- Content -->
@@ -25,16 +26,16 @@
           <h1 class="file-name">{{ fileName }}</h1>
           <div v-if="fileSize || lastModified" class="file-meta">
             <span v-if="fileSize">{{ formatFileSize(fileSize) }}</span>
-            <span v-if="lastModified">{{ formatDateTime(lastModified) }}</span>
+            <span v-if="lastModified" v-tooltip="formatDateTime(lastModified)">{{ formatTimeAgo(lastModified) }}</span>
           </div>
         </div>
         
         <div class="file-actions">
-          <md-outlined-button class="action-btn" @click="downloadFile">
+          <v-outlined-button class="action-btn" @click="downloadFile">
             <i-lucide-download slot="icon" />
             {{ $t('download') }}
-          </md-outlined-button>
-          <md-outlined-button 
+          </v-outlined-button>
+          <v-outlined-button 
             v-if="canToggleView" 
             class="action-btn" 
             @click="toggleViewMode"
@@ -42,15 +43,15 @@
             <i-lucide-eye v-if="showRawText" slot="icon" />
             <i-lucide-code v-else slot="icon" />
             {{ showRawText ? $t('formatted_view') : $t('raw_text') }}
-          </md-outlined-button>
-          <md-outlined-button 
+          </v-outlined-button>
+          <v-outlined-button 
             v-if="showRawText || (!isJsonFile && !isMarkdownFile)" 
             class="action-btn" 
             @click="toggleTextWrap"
           >
             <i-lucide-wrap-text slot="icon" />
             {{ textWrap ? $t('unwrap') : $t('wrap') }}
-          </md-outlined-button>
+          </v-outlined-button>
         </div>
       </header>
       
@@ -70,7 +71,7 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { getApiBaseUrl } from '@/lib/api/api'
-import { formatFileSize, formatDateTime } from '@/lib/format'
+import { formatDateTime, formatFileSize, formatTimeAgo } from '@/lib/format'
 import { useMarkdown } from '@/hooks/markdown'
 import { useTempStore } from '@/stores/temp'
 import JsonViewer from '@/components/jsonviewer/json-viewer.vue'
@@ -208,7 +209,6 @@ watch(fileName, () => {
 .header {
   display: flex;
   justify-content: end;
-  margin-top: 6px;
   padding-right: 16px;
 }
 
@@ -255,9 +255,8 @@ watch(fileName, () => {
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  margin-bottom: 16px;
+  margin-inline: 16px;
   flex-wrap: wrap;
 }
 
@@ -268,15 +267,15 @@ watch(fileName, () => {
 
 .file-name {
   margin: 0 0 8px 0;
-  font-size: 1.5rem;
-  font-weight: 500;
+  font-size: 1.25rem;
+  font-weight: bold;
   color: var(--md-sys-color-on-surface);
   word-break: break-all;
 }
 
 .file-meta {
   display: flex;
-  gap: 16px;
+  gap: 8px;
   color: var(--md-sys-color-on-surface-variant);
   font-size: 0.875rem;
   flex-wrap: wrap;
@@ -284,7 +283,7 @@ watch(fileName, () => {
 
 .file-meta span:not(:last-child)::after {
   content: '•';
-  margin-left: 16px;
+  margin-left: 8px;
   color: var(--md-sys-color-outline);
 }
 
@@ -309,9 +308,6 @@ watch(fileName, () => {
 }
 
 .text-view {
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: 0.875rem;
-  line-height: 1.6;
   color: var(--md-sys-color-on-surface);
   white-space: pre;
   word-wrap: normal;
@@ -341,16 +337,8 @@ watch(fileName, () => {
     padding: 20px 16px 16px;
   }
   
-  .file-name {
-    font-size: 1.25rem;
-  }
-  
   .content-display {
     padding: 16px;
-  }
-  
-  .text-view {
-    font-size: 0.8rem;
   }
   
   .file-meta {

@@ -1,0 +1,30 @@
+.outlined-button.btn-sm,
+.v-filled-button.btn-sm {
+  --_label-text-size: 0.75rem;
+  height: 32px;
+  --_container-height: 32px;
+  --_leading-space: 16px;
+  --_trailing-space: 16px;
+}
+
+.outlined-button.btn-lg,
+.v-filled-button.btn-lg {
+  --_label-text-size: 1rem;
+  --_container-height: 56px;
+  height: 56px;
+  --_leading-space: 24px;
+  --_trailing-space: 24px;
+}
+
+.btn-icon {
+  .circular-progress {
+    --size: 26px;
+  }
+}
+
+.v-filled-button {
+  .circular-progress {
+    --size: 18px;
+    color: var(--md-sys-color-on-primary);
+  }
+}

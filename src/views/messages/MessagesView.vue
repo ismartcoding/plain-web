@@ -1,12 +1,13 @@
+<!-- eslint-disable vue/no-v-html -->
 <template>
   <div class="top-app-bar">
-    <md-checkbox touch-target="wrapper" :checked="allChecked" :indeterminate="!allChecked && checked" @change="toggleAllChecked" />
+    <v-checkbox touch-target="wrapper" :checked="allChecked" :indeterminate="!allChecked && checked" @change="toggleAllChecked" />
     <div class="title">
       <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
       <span v-else>{{ $t('page_title.messages') }} ({{ total.toLocaleString() }})</span>
       <template v-if="checked">
         <button v-tooltip="$t('add_to_tags')" class="btn-icon" @click.stop="addToTags(selectedIds, realAllChecked, q)">
-          <md-ripple />
+          
           <i-material-symbols:label-outline-rounded />
         </button>
       </template>
@@ -35,8 +36,8 @@
         @mouseover="handleMouseOver($event, i)"
       >
         <div class="start">
-          <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, i)" />
-          <md-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, i)" />
+          <v-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, i)" />
+          <v-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, i)" />
           <span class="number"><field-id :id="i + 1" :raw="item" /></span>
         </div>
         <div class="title">
@@ -45,12 +46,11 @@
         <div class="subtitle" v-html="addLinksToURLs(item.body)"></div>
         <div class="actions">
           <button v-tooltip="$t('add_to_tags')" class="btn-icon sm" @click.stop="addItemToTags(item)">
-            <md-ripple />
+            
             <i-material-symbols:label-outline-rounded />
           </button>
-          <md-circular-progress v-if="callLoading && callId === item.id" indeterminate class="spinner-sm" />
+          <v-circular-progress v-if="callLoading && callId === item.id" indeterminate class="sm" />
           <button v-else v-tooltip="$t('make_a_phone_call')" class="btn-icon sm" @click.stop="call(item)">
-            <md-ripple />
             <i-material-symbols:call-outline-rounded />
           </button>
         </div>

@@ -1,6 +1,6 @@
 <template>
   <div v-if="loading" class="content-loading">
-    <md-circular-progress indeterminate />
+    <v-circular-progress indeterminate />
   </div>
   <div v-else-if="errorMessage" class="alert alert-danger">
     {{ $t(errorMessage) }}
@@ -23,7 +23,7 @@
             >
               <span>{{ $t(`page_title.${getRouteName(item.path)}`) }}</span>
               <button class="btn-icon sm tab-icon" @click.stop="closeTab(item.path)">
-                <md-ripple />
+                
                 <i-material-symbols:close-rounded />
               </button>
             </div>
@@ -62,7 +62,7 @@
           :class="{ selected: store.quick === 'task' }"
           @click="toggleQuick('task')"
         >
-          <md-ripple />
+          
           <i-material-symbols:format-list-numbered-rounded />
         </button>
         <button
@@ -73,15 +73,15 @@
           :class="{ selected: store.quick === 'notification' }"
           @click="toggleQuick('notification')"
         >
-          <md-ripple />
+          
           <i-material-symbols:notifications-outline-rounded />
         </button>
         <button id="quick-audio" v-tooltip="$t('playlist')" class="btn-icon q-action" toggle :class="{ selected: store.quick === 'audio' }" @click="toggleQuick('audio')">
-          <md-ripple />
+          
           <i-material-symbols:queue-music-rounded />
         </button>
         <button v-tooltip="$t('my_phone')" class="btn-icon q-action" toggle :class="{ selected: store.quick === 'chat' }" @click="toggleQuick('chat')">
-          <md-ripple />
+          
           <i-material-symbols:smartphone-outline />
         </button>
 
@@ -326,7 +326,6 @@ router.afterEach((to, from, failure) => {
   grid-template-columns: 1fr auto auto;
   grid-template-rows: auto 1fr;
   height: 100vh;
-  min-width: var(--screen-min-width);
 }
 
 .quick {

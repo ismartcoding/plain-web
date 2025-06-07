@@ -1,5 +1,7 @@
 export default {
   app_name: '简朴',
+  link_copied: '链接已复制',
+  copy_link: '复制链接',
   audio_player: '音频播放器',
   unwrap: '不换行',
   wrap: '换行',

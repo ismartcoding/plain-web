@@ -1,12 +1,12 @@
 <template>
   <div class="top-app-bar">
-    <md-checkbox touch-target="wrapper" :checked="allChecked" :indeterminate="!allChecked && checked" @change="toggleAllChecked" />
+    <v-checkbox touch-target="wrapper" :checked="allChecked" :indeterminate="!allChecked && checked" @change="toggleAllChecked" />
     <div class="title">
       <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
       <span v-else>{{ $t('page_title.apps') }} ({{ total.toLocaleString() }})</span>
       <template v-if="checked">
         <button v-tooltip="$t('download')" class="btn-icon" @click.stop="downloadItems(realAllChecked, selectedIds, q)">
-          <md-ripple />
+          
           <i-material-symbols:download-rounded />
         </button>
       </template>
@@ -14,23 +14,29 @@
     <div class="actions">
       <search-input :filter="filter" :types="types" :get-url="getUrl" />
       <button v-tooltip="$t('install_app')" class="btn-icon" @click.stop="install">
-        <md-ripple />
+        
         <i-material-symbols:upload-rounded />
       </button>
-      <popper>
-        <button v-tooltip="$t('sort')" class="btn-icon btn-sort" :disabled="sorting">
-          <md-ripple />
-          <md-circular-progress v-if="sorting" indeterminate />
+      <v-dropdown v-model="sortMenuVisible">
+        <template #trigger>
+                  <button v-tooltip="$t('sort')" class="btn-icon btn-sort" :disabled="sorting">
+          
+          <v-circular-progress v-if="sorting" indeterminate />
           <i-material-symbols:sort-rounded v-else />
         </button>
-        <template #content="slotProps">
-          <div class="menu-items">
-            <md-menu-item v-for="item in sortItems" :key="item.value" :selected="item.value === appSortBy" @click="sort(slotProps, item.value)">
-              <div slot="headline">{{ $t(item.label) }}</div>
-            </md-menu-item>
-          </div>
         </template>
-      </popper>
+        <div class="menu-items">
+          <div
+            v-for="item in sortItems"
+            :key="item.value"
+            class="dropdown-item"
+            :class="{ selected: item.value === appSortBy }"
+            @click="sort(item.value)"
+          >
+            {{ $t(item.label) }}
+          </div>
+        </div>
+      </v-dropdown>
     </div>
   </div>
   <all-checked-alert
@@ -53,8 +59,8 @@
         @mouseover="handleMouseOver($event, i)"
       >
         <div class="start">
-          <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, i)" />
-          <md-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, i)" />
+          <v-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, i)" />
+          <v-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, i)" />
           <span class="number"><field-id :id="i + 1" :raw="item" /></span>
         </div>
         <img class="image" width="50" height="50" :src="item.icon" />
@@ -66,15 +72,15 @@
         </div>
         <div class="actions">
           <template v-if="item.isUninstalling">
-            <md-circular-progress v-tooltip="$t('uninstalling')" indeterminate class="spinner-sm" />
-            &nbsp;<md-outlined-button class="btn-sm" @click.stop="cancelUninstall(item)">{{ $t('cancel') }}</md-outlined-button>
+            <v-circular-progress v-tooltip="$t('uninstalling')" indeterminate class="sm" />
+            &nbsp;<v-outlined-button class="btn-sm" @click.stop="cancelUninstall(item)">{{ $t('cancel') }}</v-outlined-button>
           </template>
           <button v-else v-tooltip="$t('uninstall')" class="btn-icon sm" @click.stop="uninstall(item)">
-            <md-ripple />
+            
             <i-material-symbols:delete-forever-outline-rounded />
           </button>
           <button v-tooltip="$t('download')" class="btn-icon sm" @click.stop="downloadFile(item.path, `${item.name.replace(' ', '')}-${item.id}.apk`)">
-            <md-ripple />
+            
             <i-material-symbols:download-rounded />
           </button>
         </div>
@@ -144,6 +150,7 @@ import { getFileUrlByPath } from '@/lib/api/file'
 import { useSearch } from '@/hooks/search'
 import { useKeyEvents } from '@/hooks/key-events'
 import { getSortItems } from '@/lib/file'
+import Dropdown from '@/components/base/VDropdown.vue'
 
 // Track packages being installed
 const installingPackages = ref<{ id: string; updatedAt: string; isNew: boolean }[]>([])
@@ -237,15 +244,17 @@ function getUrl(q: string) {
   return q ? `/apps?q=${q}` : `/apps`
 }
 
-function sort(slotProps: { close: () => void }, sort: string) {
-  if (appSortBy.value === sort) {
-    slotProps.close()
+const sortMenuVisible = ref(false)
+
+function sort(value: string) {
+  if (appSortBy.value === value) {
+    sortMenuVisible.value = false
     return
   }
   sorting.value = true
-  appSortBy.value = sort
+  appSortBy.value = value
   gotoPage(1)
-  slotProps.close()
+  sortMenuVisible.value = false
 }
 
 const { mutate: uninstallMutate } = initMutation({

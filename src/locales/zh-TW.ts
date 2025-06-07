@@ -1,5 +1,7 @@
 export default {
     app_name: 'PlainApp',
+    link_copied: '連結已複製',
+    copy_link: '複製連結',
     audio_player: '音訊播放器',
     unwrap: '不換行',
     wrap: '換行',

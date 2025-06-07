@@ -3,10 +3,10 @@
     <button class="btn-icon" :disabled="!isPrevActive" @click.prevent="prev">
       <i-material-symbols:skip-previous-outline-rounded />
     </button>
-    <template v-for="(page, i) in pagination" :key="i" class="page-item">
-      <span v-if="page === null" class="page-link">···</span>
-      <button v-else class="btn-icon" :class="{ active: page === props.page }" @click.prevent="go(page)">
-        {{ page }}
+    <template v-for="(index, i) in pagination" :key="i">
+      <span v-if="index === null" class="page-link">···</span>
+      <button v-else class="btn-icon" :class="{ active: index === props.page }" @click.prevent="go(index)">
+        {{ index }}
       </button>
     </template>
     <button class="btn-icon" :disabled="!isNextActive" @click.prevent="next">

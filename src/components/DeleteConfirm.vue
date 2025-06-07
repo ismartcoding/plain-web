@@ -1,14 +1,14 @@
 <template>
-  <md-dialog>
-    <form id="form" slot="content" method="dialog">
+  <v-modal @close="popModal">
+    <template #content>
       <div class="title">{{ $t('confirm_to_delete_name', { name: name }) }}</div>
       <div class="image"><img v-if="image" :src="getFileUrl(image, '&w=200&h=200')" alt="" class="image-thumb" onerror="this.style.display='none'" /></div>
-    </form>
-    <div slot="actions">
-      <md-outlined-button form="form" value="cancel">{{ $t('cancel') }}</md-outlined-button>
-      <md-filled-button form="form" value="delete" :disabled="loading" autofocus @click="doDelete">{{ $t('delete') }}</md-filled-button>
-    </div>
-  </md-dialog>
+    </template>
+    <template #actions>
+      <v-outlined-button @click="popModal">{{ $t('cancel') }}</v-outlined-button>
+      <v-filled-button :disabled="loading" @click="doDelete">{{ $t('delete') }}</v-filled-button>
+    </template>
+  </v-modal>
 </template>
 <script setup lang="ts">
 import type { PropType } from 'vue'
@@ -19,16 +19,18 @@ import { popModal } from './modal'
 import { getFileUrl } from '@/lib/api/file'
 
 const props = defineProps({
-  id: { type: String, default: '', required: true },
-  name: { type: String },
-  image: { type: String },
+  id: { type: String, required: true },
+  name: { type: String, default: '' },
+  image: { type: String, default: '' },
   gql: { type: Object as PropType<DocumentNode>, required: true },
   typeName: { type: String, required: true },
   done: {
     type: Function as PropType<() => void>,
+    default: () => {},
   },
   variables: {
     type: Function as PropType<() => any>,
+    default: () => ({}),
   },
 })
 

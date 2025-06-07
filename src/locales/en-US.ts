@@ -1,5 +1,7 @@
 export default {
   app_name: 'PlainApp',
+  link_copied: 'Link copied',
+  copy_link: 'Copy link',
   audio_player: 'Audio player',
   unwrap: 'Unwrap',
   wrap: 'Wrap',

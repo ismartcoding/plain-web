@@ -1,11 +1,11 @@
 <template>
   <div class="top-app-bar">
-    <md-checkbox touch-target="wrapper" :checked="allChecked" :indeterminate="!allChecked && checked" @change="toggleAllChecked" />
+    <v-checkbox touch-target="wrapper" :checked="allChecked" :indeterminate="!allChecked && checked" @change="toggleAllChecked" />
     <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
     <span v-else>{{ $t('recent_files') }} ({{ total.toLocaleString() }})</span>
     <template v-if="checked">
       <button v-tooltip="$t('download')" class="btn-icon" @click.stop="downloadItems">
-        <md-ripple />
+        
         <i-material-symbols:download-rounded />
       </button>
     </template>
@@ -46,8 +46,8 @@
         @mouseover="handleMouseOver($event, index)"
       >
         <div class="start">
-          <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, index)" />
-          <md-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, index)" />
+          <v-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, index)" />
+          <v-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, index)" />
           <span class="number"><field-id :id="index + 1" :raw="item" /></span>
         </div>
         <div class="image" @click.stop="clickItem(item)">
@@ -65,16 +65,15 @@
         </div>
         <div class="actions">
           <button v-tooltip="$t('download')" class="btn-icon sm" @click.stop="downloadFile(item.path)">
-            <md-ripple />
+            
             <i-material-symbols:download-rounded />
           </button>
 
           <popper>
             <button v-tooltip="$t('info')" class="btn-icon sm">
-              <md-ripple />
               <i-material-symbols:info-outline-rounded />
             </button>
-            <template #content="slotProps">
+            <template #content>
               <section class="card card-info">
                 <div class="key-value vertical">
                   <div class="key">{{ $t('path') }}</div>
@@ -108,7 +107,7 @@ import { useTempStore, type IUploadItem } from '@/stores/temp'
 import { shortUUID } from '@/lib/strutil'
 import { initMutation, setTempValueGQL } from '@/lib/api/mutation'
 import type { ISource } from '@/components/lightbox/types'
-import type { MdCheckbox } from '@material/web/checkbox/checkbox'
+
 import { useSelectable } from '@/hooks/list'
 import { useFilesKeyEvents } from '@/hooks/key-events'
 import { initLazyQuery, recentFilesGQL } from '@/lib/api/query'

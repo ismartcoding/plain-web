@@ -5,7 +5,7 @@
         <header v-if="current" class="toolbar">
           <div v-if="current.name" class="source-name v-center">
             <button v-tooltip="$t('close')" class="btn-icon" @click="closeDialog">
-              <md-ripple />
+              
               <i-material-symbols:close-rounded />
             </button>
             <span>{{ current.name }}</span>
@@ -13,37 +13,37 @@
 
           <template v-if="isImage(current.name)">
             <button v-if="!current.viewOriginImage" v-tooltip="$t('view_origin_image')" class="btn-icon" @click="viewOrigin">
-              <md-ripple />
+              
               <i-material-symbols:image-outline-rounded />
             </button>
 
             <button v-tooltip="$t('zoom_in')" class="btn-icon" @click="zoomIn">
-              <md-ripple />
+              
               <i-material-symbols:zoom-in-rounded />
             </button>
 
             <button v-tooltip="$t('zoom_out')" class="btn-icon" @click="zoomOut">
-              <md-ripple />
+              
               <i-material-symbols:zoom-out-rounded />
             </button>
 
             <button v-tooltip="$t('resize')" class="btn-icon" @click="resize">
-              <md-ripple />
+              
               <i-material-symbols:aspect-ratio-outline-rounded />
             </button>
 
             <button v-tooltip="$t('rotate_left')" class="btn-icon" @click="rotateLeft">
-              <md-ripple />
+              
               <i-material-symbols:rotate-left-rounded />
             </button>
 
             <button v-tooltip="$t('rotate_right')" class="btn-icon" @click="rotateRight">
-              <md-ripple />
+              
               <i-material-symbols:rotate-right-rounded />
             </button>
           </template>
           <button v-tooltip="$t('info')" class="btn-icon" @click="lightboxInfoVisible = !lightboxInfoVisible">
-            <md-ripple />
+            
             <i-material-symbols:info-outline-rounded />
           </button>
         </header>
@@ -55,7 +55,7 @@
             <i-material-symbols:chevron-right-rounded />
           </div>
           <div v-if="status.loading" class="loading">
-            <md-circular-progress indeterminate />
+            <v-circular-progress indeterminate />
           </div>
           <div v-else-if="status.loadError" class="v-on-error">
             {{ $t('load_failed', { name: current?.name }) }}
@@ -494,8 +494,8 @@ const onKeyPress = (e: Event) => {
   }
   const evt = e as KeyboardEvent
   if (evt.key === 'Escape') {
-    // if has md-dialog tag with attribute open should not close lightbox
-    if (document.querySelector('md-dialog[open]')) {
+    // if has VueModal open should not close lightbox
+    if (document.querySelector('.vue-modal')) {
       return
     }
     evt?.stopPropagation()
@@ -682,7 +682,7 @@ onBeforeUnmount(() => {
     }
   }
 
-  md-outlined-button,
+  .outlined-button,
   .btn-icon {
     margin-inline-end: 16px;
   }
