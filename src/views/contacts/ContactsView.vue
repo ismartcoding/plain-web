@@ -1,29 +1,29 @@
 <template>
   <div class="top-app-bar">
-    <md-checkbox touch-target="wrapper" :checked="allChecked" :indeterminate="!allChecked && checked" @change="toggleAllChecked" />
+    <v-checkbox touch-target="wrapper" :checked="allChecked" :indeterminate="!allChecked && checked" @change="toggleAllChecked" />
     <div class="title">
       <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
       <span v-else>{{ $t('page_title.contacts') }} ({{ total.toLocaleString() }})</span>
       <template v-if="checked">
         <button v-tooltip="$t('delete')" class="btn-icon" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)">
-          <md-ripple />
+          
           <i-material-symbols:delete-forever-outline-rounded />
         </button>
         <button v-tooltip="$t('download')" class="btn-icon" style="display: none">
-          <md-ripple />
+          
           <i-material-symbols:download-rounded />
         </button>
         <button v-tooltip="$t('add_to_tags')" class="btn-icon" @click.stop="addToTags(selectedIds, realAllChecked, q)">
-          <md-ripple />
+          
           <i-material-symbols:label-outline-rounded />
         </button>
       </template>
     </div>
     <div class="actions">
       <search-input :filter="filter" :tags="tags" :get-url="getUrl" />
-      <md-outlined-button class="btn-sm" @click="create">
+      <v-outlined-button class="btn-sm" @click="create">
         {{ $t('create') }}
-      </md-outlined-button>
+      </v-outlined-button>
     </div>
   </div>
   <all-checked-alert
@@ -45,8 +45,8 @@
         @mouseover="handleMouseOver($event, i)"
       >
         <div class="start">
-          <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, i)" />
-          <md-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, i)" />
+          <v-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, i)" />
+          <v-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, i)" />
           <span class="number"><field-id :id="i + 1" :raw="item" /></span>
         </div>
         <img v-if="item.thumbnailId" class="image" :src="getFileUrl(item.thumbnailId)" width="50" />
@@ -61,9 +61,9 @@
             <li v-for="(it, index) in item.phoneNumbers" :key="index" class="phone-number">
               {{ it.type > 0 ? $t(`contact.phone_number_type.${it.type}`) : it.label }}
               {{ it.normalizedNumber || it.value }}
-              <md-circular-progress v-if="callLoading && callId === item.id && callIndex === index" indeterminate class="spinner-sm" />
+              <v-circular-progress v-if="callLoading && callId === item.id && callIndex === index" indeterminate class="sm" />
               <button v-else v-tooltip="$t('make_a_phone_call')" class="btn-icon sm" @click.stop="call(item.id, it.normalizedNumber || it.value, index)">
-                <md-ripple />
+                
                 <i-material-symbols:call-outline-rounded />
               </button>
             </li>
@@ -76,15 +76,15 @@
         </div>
         <div class="actions">
           <button v-tooltip="$t('delete')" class="btn-icon sm" @click.stop="deleteItem(item)">
-            <md-ripple />
+            
             <i-material-symbols:delete-forever-outline-rounded />
           </button>
           <button v-tooltip="$t('edit')" class="btn-icon sm" @click.stop="edit(item)">
-            <md-ripple />
+            
             <i-material-symbols:edit />
           </button>
           <button v-tooltip="$t('add_to_tags')" class="btn-icon sm" @click.stop="addItemToTags(item)">
-            <md-ripple />
+            
             <i-material-symbols:label-outline-rounded />
           </button>
         </div>

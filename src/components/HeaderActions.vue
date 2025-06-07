@@ -1,28 +1,32 @@
 <template>
-  <div class="h-action" style="position: relative">
-    <button id="lang-ref" v-tooltip="t('header_actions.language')" class="btn-icon" @click="() => (langMenuVisible = true)">
-      <md-ripple />
-      <i-material-symbols:translate-rounded />
-    </button>
-    <md-menu anchor="lang-ref" stay-open-on-focusout quick :open="langMenuVisible" @closed="() => (langMenuVisible = false)">
-      <md-menu-item v-for="lang in langs" :key="lang.value" @click="changeLang(lang.value)">
-        <div slot="headline">{{ lang.name }}</div>
-      </md-menu-item>
-    </md-menu>
+  <div class="h-action">
+    <v-dropdown v-model="langMenuVisible">
+      <template #trigger>
+        <button id="lang-ref" v-tooltip="t('header_actions.language')" class="btn-icon">
+          
+          <i-material-symbols:translate-rounded />
+        </button>
+      </template>
+      <div v-for="lang in langs" :key="lang.value" class="dropdown-item" @click="changeLang(lang.value)">
+        {{ lang.name }}
+      </div>
+    </v-dropdown>
   </div>
 
-  <div class="h-action" style="position: relative">
-    <button id="theme-ref" v-tooltip="t('header_actions.theme')" class="btn-icon" @click="() => (themeMenuVisible = true)">
-      <md-ripple />
-      <i-material-symbols:sunny-outline-rounded />
-    </button>
-    <md-menu anchor="theme-ref" stay-open-on-focusout quick :open="themeMenuVisible" @closed="() => (themeMenuVisible = false)">
+  <div class="h-action">
+    <v-dropdown v-model="themeMenuVisible">
+      <template #trigger>
+        <button id="theme-ref" v-tooltip="t('header_actions.theme')" class="btn-icon">
+          
+          <i-material-symbols:sunny-outline-rounded />
+        </button>
+      </template>
       <theme-changer />
-    </md-menu>
+    </v-dropdown>
   </div>
 
   <button v-if="props.loggedIn" v-tooltip="$t('header_actions.logout')" class="btn-icon h-action" style="margin-inline-end: 8px" @click="logout">
-    <md-ripple />
+    
     <i-material-symbols:logout-rounded />
   </button>
 </template>

@@ -1,0 +1,35 @@
+.button-group {
+  display: flex;
+  border-radius: var(--md-shape-corner-full, 9999px);
+  border: 1px solid var(--md-sys-color-outline, #79747e);
+  overflow: hidden;
+  height: 32px;
+
+  button {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    padding: 0 16px;
+    cursor: pointer;
+    color: var(--md-sys-color-on-surface);
+    transition:
+      background-color 0.2s,
+      color 0.2s;
+  }
+
+  button:not(:last-child) {
+    border-right: 1px solid var(--md-sys-color-outline, #79747e);
+  }
+
+  button.selected {
+    background-color: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+  }
+
+  button:hover:not(.selected) {
+    background-color: var(--md-sys-color-surface-variant);
+  }
+}

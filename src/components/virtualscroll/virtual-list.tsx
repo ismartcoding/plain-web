@@ -1,6 +1,7 @@
 import { defineComponent, onActivated, onBeforeMount, onMounted, onUnmounted, ref, watch } from 'vue'
 import Virtual from './virtual'
-import { Item, VSlot } from './item'
+import { Item } from './item'
+import { VSlot } from './slot'
 import { VirtualProps } from './props'
 
 enum EVENT_TYPE {

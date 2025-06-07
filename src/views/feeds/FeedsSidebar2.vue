@@ -1,22 +1,22 @@
 <template>
   <aside class="sidebar2" :style="{ width: route.params.id ? mainStore.sidebar2Width + 'px' : 'auto' }">
     <div class="top-app-bar">
-      <md-checkbox touch-target="wrapper" :checked="allChecked" :indeterminate="!allChecked && checked" @change="toggleAllChecked" />
+      <v-checkbox touch-target="wrapper" :checked="allChecked" :indeterminate="!allChecked && checked" @change="toggleAllChecked" />
       <div class="title">
         <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
         <span v-else>{{ $t('page_title.feeds') }} ({{ total.toLocaleString() }})</span>
         <template v-if="checked">
           <button v-tooltip="$t('delete')" class="btn-icon" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)">
-            <md-ripple />
+            
             <i-material-symbols:delete-forever-outline-rounded />
           </button>
           <button v-tooltip="$t('add_to_tags')" class="btn-icon" @click.stop="addToTags(selectedIds, realAllChecked, q)">
-            <md-ripple />
+            
             <i-material-symbols:label-outline-rounded />
           </button>
-          <md-circular-progress v-if="savingNotes" indeterminate class="spinner-sm" />
+          <v-circular-progress v-if="savingNotes" indeterminate class="sm" />
           <button v-else v-tooltip="$t('save_to_notes')" class="btn-icon sm" @click.prevent="saveFeedsToNotes">
-            <md-ripple />
+            
             <i-material-symbols:add-notes-outline-rounded />
           </button>
         </template>
@@ -24,9 +24,9 @@
 
       <div class="actions">
         <search-input :filter="filter" :tags="tags" :feeds="feeds" :show-chips="!isDetail" :get-url="getUrl" :show-today="true" />
-        <md-circular-progress v-if="feedsSyncing" indeterminate class="spinner-sm" />
+        <v-circular-progress v-if="feedsSyncing" indeterminate class="sm" />
         <button v-else v-tooltip="$t('sync_feeds')" class="btn-icon" :disabled="feedsSyncing" @click.prevent="syncFeeds">
-          <md-ripple />
+          
           <i-material-symbols:sync-rounded />
         </button>
       </div>
@@ -73,8 +73,8 @@
             @mouseover="handleMouseOver($event, index)"
           >
             <div class="title">
-              <md-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, index)" />
-              <md-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, index)" />
+              <v-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, index)" />
+              <v-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, index)" />
               <div class="text">{{ item.title || $t('no_content') }}</div>
             </div>
             <div class="subtitle">
@@ -89,7 +89,7 @@
               </div>
             </div>
             <button v-tooltip="$t('actions')" class="btn-icon sm" style="display: none">
-              <md-ripple />
+              
               <i-material-symbols:more-vert />
             </button>
             <img v-if="item.image" class="image" :src="getFileUrl(item.image, '&w=200&h=200')" />
@@ -97,7 +97,7 @@
         </a>
       </template>
       <template #footer>
-        <md-circular-progress v-if="!noMore" indeterminate class="spinner-sm" />
+        <v-circular-progress v-if="!noMore" indeterminate class="sm" />
       </template>
     </VirtualList>
 

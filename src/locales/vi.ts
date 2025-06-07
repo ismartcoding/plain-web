@@ -1,5 +1,7 @@
 export default {
   app_name: 'PlainApp',
+  link_copied: 'Liên kết đã được sao chép',
+  copy_link: 'Sao chép liên kết',
   unwrap: 'Bỏ gói',
   wrap: 'Gói',
   current_folder: 'Thư mục hiện tại',

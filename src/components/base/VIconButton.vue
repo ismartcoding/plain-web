@@ -1,7 +1,6 @@
 <template>
   <button class="btn-icon" :disabled="loading">
-    <md-ripple />
-    <md-circular-progress v-if="loading" indeterminate />
+    <v-circular-progress v-if="loading" indeterminate class="sm" />
     <slot v-else name="icon" />
   </button>
 </template>

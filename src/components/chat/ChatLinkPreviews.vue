@@ -36,7 +36,7 @@ import { computed } from 'vue'
 import { getFileUrl } from '@/lib/api/file'
 
 const props = defineProps({
-  data: { type: Object },
+  data: { type: Object, required: true },
 })
 
 const linkPreviews = computed(() => {
@@ -81,6 +81,7 @@ function openLink(url: string) {
 <style lang="scss" scoped>
 .link-previews {
   margin-top: 6px;
+  max-width: 600px;
   
   .link-preview-item {
     border-radius: 12px;
@@ -88,7 +89,6 @@ function openLink(url: string) {
     cursor: pointer;
     margin-bottom: 6px;
     background-color: var(--md-sys-color-surface-container);
-    max-width: 400px;
     transition: background-color 0.2s ease;
     
     &:hover {
@@ -102,8 +102,8 @@ function openLink(url: string) {
   
   .preview-image {
     width: 100%;
-    min-height: 120px;
-    max-height: 200px;
+    min-height: 180px;
+    max-height: 300px;
     display: flex;
     align-items: center;
     justify-content: center;

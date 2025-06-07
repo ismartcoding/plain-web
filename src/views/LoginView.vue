@@ -11,7 +11,7 @@
           {{ error ? $t(error) : '' }}
         </div>
       </div>
-      <md-outlined-text-field
+      <v-text-field
         v-if="showPasswordInput"
         v-model="password"
         :label="t('password')"
@@ -22,9 +22,9 @@
         :error-text="passwordError ? $t(passwordError) : ''"
         @keydown.enter="onSubmit"
       />
-      <md-filled-button v-if="!webAccessDisabled" :disabled="isSubmitting">
+      <v-filled-button v-if="!webAccessDisabled" :disabled="isSubmitting" :loading="isSubmitting">
         {{ $t(isSubmitting ? 'logging_in' : 'log_in') }}
-      </md-filled-button>
+      </v-filled-button>
     </form>
     <div v-show="showConfirm">
       <div class="tap-phone">
@@ -33,9 +33,9 @@
       <div class="tap-phone-text">
         {{ $t('login.to_continue') }}
       </div>
-      <md-outlined-button @click="cancel">
+      <v-outlined-button @click="cancel">
         {{ $t('cancel') }}
-      </md-outlined-button>
+      </v-outlined-button>
     </div>
   </div>
   <div v-if="showWarning" class="tips">{{ $t('browser_warning') }}</div>
@@ -152,7 +152,7 @@ function cancel() {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .header {
   display: flex;
   justify-content: end;
@@ -160,8 +160,8 @@ function cancel() {
   padding-right: 16px;
 }
 
-md-filled-button,
-md-outlined-button {
+.v-filled-button,
+.outlined-button {
   margin-top: 24px;
   width: 100%;
 }
@@ -174,6 +174,7 @@ h1 {
 .login-block {
   width: 280px;
   margin: 0 auto;
+  --outlined-field-bg: var(--md-sys-color-surface-variant);
   background-color: var(--md-sys-color-surface-variant);
   border-radius: var(--pl-shape-xl);
   padding-block: var(--pl-spacing-xl);

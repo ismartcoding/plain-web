@@ -1,7 +1,7 @@
 import { computed, defineComponent, onMounted, onUnmounted, onUpdated, ref, type Ref } from 'vue'
-import { ItemProps, SlotProps } from './props'
+import { ItemProps } from './props'
 
-const useResizeChange = (props: any, rootRef: Ref<HTMLElement | null>, emit: any) => {
+export const useResizeChange = (props: any, rootRef: Ref<HTMLElement | null>, emit: any) => {
   let resizeObserver: ResizeObserver | null = null
   const shapeKey = computed(() => (props.horizontal ? 'offsetWidth' : 'offsetHeight'))
 
@@ -50,26 +50,6 @@ export const Item = defineComponent({
       return (
         <div key={uniqueKey} ref={rootRef}>
           {component!({ index, item: source })}
-        </div>
-      )
-    }
-  },
-})
-
-export const VSlot = defineComponent({
-  name: 'VirtualListSlot',
-  props: SlotProps,
-  emits: ['slotResize'],
-  setup(props, { slots, emit }) {
-    const rootRef = ref<HTMLElement | null>(null)
-    useResizeChange(props, rootRef, emit)
-
-    return () => {
-      const { uniqueKey } = props
-
-      return (
-        <div ref={rootRef} key={uniqueKey}>
-          {slots.default?.()}
         </div>
       )
     }

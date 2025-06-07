@@ -17,9 +17,9 @@ import { buildQuery } from '@/lib/search'
 import { names } from '@/lib/tag'
 
 const props = defineProps({
-  type: { type: String },
+  type: { type: String, default: '' },
   onlyLinks: { type: Boolean, default: false },
-  tags: { type: Array as PropType<ITag[]>, default: () => [], required: true },
+  tags: { type: Array as PropType<ITag[]>, default: () => [] },
 })
 const mainStore = useMainStore()
 

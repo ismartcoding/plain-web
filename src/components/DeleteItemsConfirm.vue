@@ -1,13 +1,13 @@
 <template>
-  <md-dialog>
-    <form id="form" slot="content" method="dialog">
+  <v-modal @close="popModal">
+    <template #content>
       {{ $t('confirm_to_delete', { count }) }}
-    </form>
-    <div slot="actions">
-      <md-outlined-button form="form" value="cancel">{{ $t('cancel') }}</md-outlined-button>
-      <md-filled-button form="form" value="delete" :disabled="loading" autofocus @click="doDelete">{{ $t('delete') }}</md-filled-button>
-    </div>
-  </md-dialog>
+    </template>
+    <template #actions>
+      <v-outlined-button @click="popModal">{{ $t('cancel') }}</v-outlined-button>
+      <v-filled-button :disabled="loading" @click="doDelete">{{ $t('delete') }}</v-filled-button>
+    </template>
+  </v-modal>
 </template>
 <script setup lang="ts">
 import { initMutation } from '@/lib/api/mutation'

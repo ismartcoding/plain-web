@@ -11,11 +11,11 @@
         </li>
         <li v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)" :class="{ active: trash }" @click.prevent="viewTrash">
           <span class="title">{{ $t('trash') }}</span>
-          <icon-button v-tooltip="$t('trash_tips')" class="btn-help sm">
+          <v-icon-button v-tooltip="$t('trash_tips')" class="btn-help sm">
             <template #icon>
               <i-material-symbols:help-outline-rounded />
             </template>
-          </icon-button>
+          </v-icon-button>
           <span v-if="totalTrash >= 0" class="count">{{ totalTrash.toLocaleString() }}</span>
         </li>
         <bucket-filter :type="props.type" :selected="selectedBucketId" />

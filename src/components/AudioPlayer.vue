@@ -2,7 +2,6 @@
   <div class="quick-content-main">
     <div class="top-app-bar">
       <button v-tooltip="$t('close')" class="btn-icon" @click.prevent="store.quick = ''">
-        <md-ripple />
         <i-material-symbols:right-panel-close-outline />
       </button>
       <div class="title">{{ current?.title ?? $t('audio_player') }}</div>
@@ -11,22 +10,18 @@
       <audio ref="audioRef" class="audio" controls :src="src" @ended="onEnded" />
       <div v-if="audios.length" class="buttons">
         <button class="btn-icon" @click.stop="playPrev">
-          <md-ripple />
           <i-material-symbols:skip-previous-outline-rounded />
         </button>
         <button class="btn-icon mode" @click.stop="changeMode">
-          <md-ripple />
           <i-material-symbols:shuffle-outline-rounded v-if="app?.audioMode === 'SHUFFLE'" />
           <i-material-symbols:repeat-rounded v-else-if="app?.audioMode === 'REPEAT'" />
           <i-material-symbols:repeat-one-rounded v-else />
         </button>
         <button class="btn-icon" @click.stop="playNext">
-          <md-ripple />
           <i-material-symbols:skip-next-outline-rounded />
         </button>
-        <md-circular-progress v-if="clearLoading" indeterminate class="spinner-sm" />
+        <v-circular-progress v-if="clearLoading" indeterminate class="sm" />
         <button v-else v-tooltip="$t('clear_list')" class="btn-icon" @click.prevent="clear">
-          <md-ripple />
           <i-material-symbols:delete-forever-outline-rounded />
         </button>
       </div>
@@ -51,7 +46,6 @@
               <div class="subtitle">{{ item.artist }} {{ formatSeconds(item.duration) }}</div>
             </div>
             <button v-tooltip="$t('remove_from_playlist')" class="btn-icon icon" @click.stop="deleteItem(item)">
-              <md-ripple />
               <i-material-symbols:playlist-remove class="playlist-remove-icon" />
             </button>
           </div>

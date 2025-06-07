@@ -2,7 +2,7 @@ import { type Ref } from 'vue'
 
 function isInputFocused() {
   const activeElement = document.activeElement
-  return activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'SELECT' || activeElement.tagName === 'MD-OUTLINED-TEXT-FIELD')
+  return activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'SELECT')
 }
 
 export const useKeyEvents = (total: Ref<number>, limit: number, page: Ref<number>, selectAll: () => void, clearSelection: () => void, gotoPage: (page: number) => void, deleteItems: () => void) => {

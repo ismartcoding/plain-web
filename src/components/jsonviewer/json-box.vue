@@ -43,7 +43,9 @@ export default {
 
       try {
         this.$el.dispatchEvent(new Event('resized'))
-      } catch (e) {}
+      } catch (e) {
+        console.error(e)
+      }
     },
   },
   render() {

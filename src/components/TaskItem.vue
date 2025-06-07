@@ -9,31 +9,29 @@
       <div class="icon task-actions">
         <!-- Pause button -->
         <button v-if="canPause(item)" v-tooltip="$t('pause')" class="btn-icon pause-btn" @click="() => pauseTask(props.item)">
-          <md-ripple />
           <i-material-symbols:pause-rounded />
         </button>
 
         <!-- Pausing button -->
         <button v-if="isPausing(item)" v-tooltip="$t('pausing')" class="btn-icon pausing-btn" disabled>
-          <md-ripple />
-          <md-circular-progress indeterminate class="progress-small"></md-circular-progress>
+          <v-circular-progress indeterminate class="sm"/>
         </button>
 
         <!-- Resume button -->
         <button v-if="canResume(item)" v-tooltip="$t('resume')" class="btn-icon resume-btn" @click="() => resumeTask(props.item)">
-          <md-ripple />
+          
           <i-material-symbols:play-arrow-rounded />
         </button>
 
         <!-- Retry button -->
         <button v-if="canRetry(item)" v-tooltip="$t('retry')" class="btn-icon retry-btn" @click="() => retryTask(props.item)">
-          <md-ripple />
+          
           <i-material-symbols:refresh-rounded />
         </button>
 
         <!-- Cancel/Remove button -->
         <button v-tooltip="$t('remove')" class="btn-icon remove-btn" @click="() => removeTask(props.item)">
-          <md-ripple />
+          
           <i-material-symbols:close-rounded />
         </button>
       </div>
@@ -290,9 +288,5 @@ function removeTask(item: IUploadItem) {
   color: var(--md-sys-color-secondary);
   opacity: 0.7;
   cursor: not-allowed;
-
-  .progress-small {
-    --md-circular-progress-size: 24px;
-  }
 }
 </style>

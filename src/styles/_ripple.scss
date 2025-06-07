@@ -1,0 +1,58 @@
+/* Global Ripple Effect */
+.btn-icon,
+.v-filled-button,
+.outlined-button,
+.info-btn,
+button[class*="btn-"] {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-icon .ripple,
+.v-filled-button .ripple,
+.outlined-button .ripple,
+.info-btn .ripple,
+button[class*="btn-"] .ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(0);
+  animation: ripple-animation 600ms linear;
+  pointer-events: none;
+}
+
+.btn-icon .ripple {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.v-filled-button .ripple {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.outlined-button .ripple {
+  background: rgba(103, 80, 164, 0.2);
+}
+
+.info-btn .ripple {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+
+button[class*="btn-"] .ripple {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+@keyframes ripple-animation {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.btn-icon:disabled .ripple,
+.v-filled-button:disabled .ripple,
+.outlined-button:disabled .ripple,
+.info-btn:disabled .ripple,
+button[class*="btn-"]:disabled .ripple {
+  display: none;
+} 

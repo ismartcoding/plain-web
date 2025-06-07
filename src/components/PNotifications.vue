@@ -2,13 +2,11 @@
   <div class="quick-content-main">
     <div class="top-app-bar">
       <button v-tooltip="$t('close')" class="btn-icon" @click.prevent="store.quick = ''">
-        <md-ripple />
         <i-material-symbols:right-panel-close-outline />
       </button>
       <div class="title">{{ $t('header_actions.notifications') }} ({{ notifications.length }})</div>
       <div class="actions">
         <button v-if="notifications.length" v-tooltip="$t('clear_list')" class="btn-icon" @click.prevent="clearAll">
-          <md-ripple />
           <i-material-symbols:delete-forever-outline-rounded />
         </button>
       </div>
@@ -17,14 +15,14 @@
       <i-material-symbols:error-outline-rounded />
       <div class="body">{{ $t('desktop_notification_need_https') }}</div>
       <div class="actions">
-        <md-filled-button class="btn-sm" @click.stop="useHttpsLink">{{ $t('use_https_link') }}</md-filled-button>
+        <v-filled-button class="btn-sm" @click.stop="useHttpsLink">{{ $t('use_https_link') }}</v-filled-button>
       </div>
     </div>
     <div v-else-if="notifcationPermission !== 'granted'" class="alert-warning show">
       <i-material-symbols:error-outline-rounded />
       <div class="body">{{ $t('desktop_notification_permission_not_granted') }}</div>
       <div class="actions">
-        <md-filled-button class="btn-sm" @click.stop="grantPermission">{{ $t('grant_permission') }}</md-filled-button>
+        <v-filled-button class="btn-sm" @click.stop="grantPermission">{{ $t('grant_permission') }}</v-filled-button>
       </div>
     </div>
     <div class="quick-content-body">
@@ -43,7 +41,7 @@
           <div class="subtitle">{{ item.title }}</div>
           <div class="body">{{ item.body }}</div>
           <button class="btn-icon icon" @click.stop="deleteItem(item)">
-            <md-ripple />
+            
             <i-material-symbols:close-rounded />
           </button>
         </div>
@@ -96,7 +94,11 @@ const { loading } = initQuery({
   document: notificationsGQL,
 })
 
-const notifcationPermission = ref(Notification.permission)
+const notifcationPermission = ref(
+  'Notification' in window && typeof Notification !== 'undefined' 
+    ? Notification.permission 
+    : 'default'
+)
 
 const { mutate: cancelNotifications } = initMutation({
   document: cancelNotificationsGQL,
@@ -111,6 +113,10 @@ const useHttpsLink = () => {
 }
 
 const grantPermission = () => {
+  if (!('Notification' in window) || typeof Notification === 'undefined') {
+    return
+  }
+  
   if (Notification.permission === 'denied') {
     pushModal(ConfirmModal, {
       title: t('desktop_notification_permission_grant_title'),
@@ -133,7 +139,7 @@ onMounted(() => {
     const client = resolveClient('a')
     insertCache(client.cache, [{ ...data, __typename: 'Notification' }], notificationsGQL, null, true)
     data.icon = getFileUrlByPath(urlTokenKey.value, 'pkgicon://' + data.appId)
-    if ('Notification' in window) {
+    if ('Notification' in window && typeof Notification !== 'undefined') {
       if (Notification.permission === 'granted') {
         const notification = new Notification(data.title, {
           body: data.body,
@@ -153,7 +159,7 @@ onMounted(() => {
     cache.evict({ id: cache.identify({ __typename: 'Notification', id: data.id }) })
     insertCache(cache, [{ ...data, __typename: 'Notification' }], notificationsGQL, null, true)
     data.icon = getFileUrlByPath(urlTokenKey.value, 'pkgicon://' + data.appId)
-    if ('Notification' in window) {
+    if ('Notification' in window && typeof Notification !== 'undefined') {
       if (Notification.permission === 'granted') {
         const notification = new Notification(data.title, {
           body: data.body,

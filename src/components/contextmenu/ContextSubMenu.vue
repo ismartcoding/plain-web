@@ -25,18 +25,19 @@
         maxHeight: maxHeight > 0 ? `${maxHeight}px` : '',
       }"
     >
-      <md-menu-item
+      <div
         v-for="(item, i) in items"
         :key="i"
-        :disabled="item.disabled"
+        class="dropdown-item"
+        :class="{ disabled: item.disabled }"
         @mouseenter="showChildItem($event, item)"
         @mouseleave="hideChildItem()"
         @focus="showChildItem($event, item)"
         @blur="hideChildItem()"
         @click="onMouseClick(item)"
       >
-        <div slot="headline">{{ item.label }}</div>
-      </md-menu-item>
+        {{ item.label }}
+      </div>
     </div>
     <ContextSubMenu
       v-if="activeItem && activeItem.children"

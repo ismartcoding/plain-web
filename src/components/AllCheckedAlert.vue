@@ -20,9 +20,11 @@ defineProps({
   realAllChecked: { type: Boolean, required: true },
   selectRealAll: {
     type: Function as PropType<() => void>,
+    default: () => {},
   },
   clearSelection: {
     type: Function as PropType<() => void>,
+    default: () => {},
   },
 })
 </script>
