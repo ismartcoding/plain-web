@@ -26,14 +26,16 @@
       <i-material-symbols:label-outline-rounded slot="icon" />
     </md-input-chip>
   </md-chip-set>
-  <button id="btn-search" v-tooltip="$t('search')" class="btn-icon" @click.prevent="show">
-    <md-ripple />
-    <i-material-symbols:search-rounded />
-  </button>
-  <md-menu positioning="popover" anchor="btn-search" menu-corner="start-end" anchor-corner="end-end" stay-open-on-focusout quick :open="searchPanelVisible" @closed="hide">
+  <dropdown v-model="searchPanelVisible" :maxHeight="400">
+    <template #trigger>
+      <button v-tooltip="$t('search')" class="btn-icon">
+        <md-ripple />
+        <i-material-symbols:search-rounded />
+      </button>
+    </template>
     <div class="filters">
       <div class="form-row">
-        <md-outlined-text-field v-model="searchFilter.text" :label="$t('keywords')" @keyup.enter="applyAndDoSearch" />
+        <outlined-text-field v-model="searchFilter.text" :label="$t('keywords')" @keyup.enter="applyAndDoSearch" />
       </div>
       <md-chip-set v-if="props.showToday">
         <md-filter-chip key="chip-today" :label="$t('today')" :selected="searchFilter.today" @click="searchFilter.today = !searchFilter.today" />
@@ -66,16 +68,17 @@
         </md-chip-set>
       </template>
       <div class="buttons">
-        <md-filled-button @click.stop="applyAndDoSearch">
+        <filled-button @click.stop="applyAndDoSearch">
           {{ $t('search') }}
-        </md-filled-button>
+        </filled-button>
       </div>
     </div>
-  </md-menu>
+  </dropdown>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, type PropType } from 'vue'
+import { computed, reactive, ref, watch, type PropType } from 'vue'
+import Dropdown from '@/components/Dropdown.vue'
 import type { IBucket, IFeed, IFilter, ITag, IType } from '@/lib/interfaces'
 import { remove } from 'lodash-es'
 import { replacePath } from '@/plugins/router'
@@ -143,6 +146,13 @@ const filteredTypes = computed(() => {
 
 const searchPanelVisible = ref(false)
 
+// Watch for panel visibility changes and sync filter state when opening
+watch(searchPanelVisible, (isVisible) => {
+  if (isVisible) {
+    copyFilter(props.filter, searchFilter)
+  }
+})
+
 function onTagSelect(tag: ITag) {
   if (searchFilter.tagIds.includes(tag.id)) {
     remove(searchFilter.tagIds, (it: string) => it === tag.id)
@@ -178,7 +188,7 @@ function onTypeSelect(type: IType) {
 function applyAndDoSearch() {
   copyFilter(searchFilter, props.filter)
   doSearch()
-  hide()
+  searchPanelVisible.value = false
 }
 
 function doSearch() {
@@ -219,24 +229,13 @@ function removeText() {
   props.filter.text = undefined
   doSearch()
 }
-
-function show() {
-  searchPanelVisible.value = true
-  copyFilter(props.filter, searchFilter)
-}
-
-function hide() {
-  searchPanelVisible.value = false
-}
-
-defineExpose({ dismiss: hide })
 </script>
 <style lang="scss" scoped>
 .filters {
   padding: 16px;
   min-width: 400px;
 
-  md-outlined-text-field {
+  :deep(.form-row) {
     width: 100%;
   }
 

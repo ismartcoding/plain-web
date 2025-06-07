@@ -4,10 +4,10 @@
       {{ $t('confirm_to_delete_name', { name: truncate(files.map((it) => it.name).join(', '), { length: 200 }) }) }}
     </form>
     <div slot="actions">
-      <md-outlined-button form="form" value="cancel">{{ $t('cancel') }}</md-outlined-button>
-      <md-filled-button form="form" value="delete" :disabled="loading" autofocus @click="doDelete">
+      <outlined-button form="form" value="cancel">{{ $t('cancel') }}</outlined-button>
+      <filled-button form="form" value="delete" :disabled="loading" autofocus @click="doDelete">
         <md-circular-progress v-if="loading" slot="icon" indeterminate />{{ $t('delete') }}
-      </md-filled-button>
+      </filled-button>
     </div>
   </md-dialog>
 </template>

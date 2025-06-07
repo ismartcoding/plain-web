@@ -682,7 +682,7 @@ onBeforeUnmount(() => {
     }
   }
 
-  md-outlined-button,
+  .outlined-button,
   .btn-icon {
     margin-inline-end: 16px;
   }

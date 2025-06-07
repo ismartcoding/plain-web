@@ -5,8 +5,8 @@
       <div class="image"><img v-if="image" :src="getFileUrl(image, '&w=200&h=200')" alt="" class="image-thumb" onerror="this.style.display='none'" /></div>
     </form>
     <div slot="actions">
-      <md-outlined-button form="form" value="cancel">{{ $t('cancel') }}</md-outlined-button>
-      <md-filled-button form="form" value="delete" :disabled="loading" autofocus @click="doDelete">{{ $t('delete') }}</md-filled-button>
+      <outlined-button form="form" value="cancel">{{ $t('cancel') }}</outlined-button>
+      <filled-button form="form" value="delete" :disabled="loading" autofocus @click="doDelete">{{ $t('delete') }}</filled-button>
     </div>
   </md-dialog>
 </template>

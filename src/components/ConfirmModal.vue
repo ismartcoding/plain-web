@@ -7,9 +7,9 @@
       <pre>{{ message }}</pre>
     </section>
     <div slot="actions">
-      <md-filled-button form="form" value="ok" @click="ok">
+      <filled-button form="form" value="ok" @click="ok">
         {{ $t('ok') }}
-      </md-filled-button>
+      </filled-button>
     </div>
   </md-dialog>
 </template>

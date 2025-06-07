@@ -1,8 +1,3 @@
-body {
-  --md-menu-item-one-line-container-height: 48px;
-  --md-menu-item-selected-container-color: var(--md-sys-color-surface-container-highest);
-}
-
 md-dialog {
   min-width: 360px;
 }
@@ -16,12 +11,8 @@ md-chip-set {
   align-items: center;
 }
 
-md-menu::part(list) {
-  max-height: 50vh;
-}
-
-md-outlined-button.btn-sm,
-md-filled-button.btn-sm {
+.outlined-button.btn-sm,
+.filled-button.btn-sm {
   --_label-text-size: 0.75rem;
   height: 32px;
   --_container-height: 32px;
@@ -29,8 +20,8 @@ md-filled-button.btn-sm {
   --_trailing-space: 16px;
 }
 
-md-outlined-button.btn-lg,
-md-filled-button.btn-lg {
+.outlined-button.btn-lg,
+.filled-button.btn-lg {
   --_label-text-size: 1rem;
   --_container-height: 56px;
   height: 56px;
@@ -42,13 +33,6 @@ md-checkbox {
   border-radius: 4px;
 }
 
-md-outlined-segmented-button-set.sm {
-  --_container-height: 32px;
-  md-outlined-segmented-button {
-    --_label-text-size: 0.75rem;
-  }
-}
-
 .btn-icon {
   md-circular-progress {
     --md-circular-progress-size: 26px;
@@ -56,7 +40,7 @@ md-outlined-segmented-button-set.sm {
   }
 }
 
-md-filled-button {
+.filled-button {
   md-circular-progress {
     --md-circular-progress-size: 18px;
     --md-circular-progress-active-indicator-width: 16;

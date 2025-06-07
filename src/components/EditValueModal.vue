@@ -4,11 +4,11 @@
       {{ title }}
     </div>
     <div slot="content">
-      <md-outlined-text-field ref="inputRef" v-model="name" :placeholder="placeholder" :error="errors.name" :error-text="errors.name ? $t(errors.name) : ''" @keyup.enter="doAction" />
+      <outlined-text-field ref="inputRef" v-model="name" :placeholder="placeholder" :error="errors.name" :error-text="errors.name ? $t(errors.name) : ''" @keyup.enter="doAction" />
     </div>
     <div slot="actions">
-      <md-outlined-button value="cancel" @click="cancel">{{ $t('cancel') }}</md-outlined-button>
-      <md-filled-button value="save" :disabled="loading" autofocus @click="doAction"><md-circular-progress v-if="loading" slot="icon" indeterminate />{{ $t('save') }} </md-filled-button>
+      <outlined-button value="cancel" @click="cancel">{{ $t('cancel') }}</outlined-button>
+      <filled-button value="save" :disabled="loading" autofocus @click="doAction"><md-circular-progress v-if="loading" slot="icon" indeterminate />{{ $t('save') }} </filled-button>
     </div>
   </md-dialog>
 </template>
@@ -68,7 +68,7 @@ onDone(() => {
 })
 </script>
 <style scoped lang="scss">
-md-outlined-text-field {
+:deep(.form-control) {
   width: 100%;
 }
 </style>

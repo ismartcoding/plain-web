@@ -14,6 +14,7 @@
 @use 'media';
 @use 'mobile';
 @use 'print';
+@use 'buttons';
 
 #app:has(~ .lightbox) {
   display: none;

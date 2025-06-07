@@ -10,9 +10,11 @@
 
     <div class="quick-content-body">
       <div class="filter-bar">
-        <md-outlined-segmented-button-set>
-          <md-outlined-segmented-button v-for="type in types" :key="type" :data-value="type" :label="getLabel(type)" :selected="filterType === type" @click="chooseFilterType(type)" />
-        </md-outlined-segmented-button-set>
+        <div class="button-group">  
+          <button v-for="type in types" :key="type" :class="{ 'selected': filterType === type }" @click="chooseFilterType(type)">
+            {{ getLabel(type) }}
+          </button>
+        </div>
       </div>
       <VirtualList ref="listItemsRef" class="list-items" :data-key="'id'" :data-sources="visibleTasks" :estimate-size="80">
         <template #item="{ item }">
@@ -103,7 +105,7 @@ watch(
 .filter-bar {
   padding: 8px 16px;
 
-  md-outlined-segmented-button-set {
+  .button-group {
     width: 100%;
   }
 }

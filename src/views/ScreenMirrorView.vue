@@ -8,10 +8,10 @@
             <md-ripple />
             <i-material-symbols:refresh-rounded />
           </button>
-          <md-outlined-button v-tooltip="$t('change_quality')" class="btn-sm" @click="changeQuality">{{ $t('mirror_quality') }}</md-outlined-button>
-          <md-outlined-button v-tooltip="$t('screenshot')" class="btn-sm" @click="takeScreenshot">{{ $t('screenshot') }}</md-outlined-button>
-          <md-outlined-button v-tooltip="$t(paused ? 'resume' : 'pause')" class="btn-sm" @click="togglePause">{{ $t(paused ? 'resume' : 'pause') }}</md-outlined-button>
-          <md-outlined-button v-tooltip="$t('stop_mirror')" :disabled="stopServiceLoading" class="btn-sm btn-stop" @click="stopService">{{ $t('stop_mirror') }}</md-outlined-button>
+          <outlined-button v-tooltip="$t('change_quality')" class="btn-sm" @click="changeQuality">{{ $t('mirror_quality') }}</outlined-button>
+          <outlined-button v-tooltip="$t('screenshot')" class="btn-sm" @click="takeScreenshot">{{ $t('screenshot') }}</outlined-button>
+          <outlined-button v-tooltip="$t(paused ? 'resume' : 'pause')" class="btn-sm" @click="togglePause">{{ $t(paused ? 'resume' : 'pause') }}</outlined-button>
+          <outlined-button v-tooltip="$t('stop_mirror')" :disabled="stopServiceLoading" class="btn-sm btn-stop" @click="stopService">{{ $t('stop_mirror') }}</outlined-button>
           <button v-tooltip="$t('fullscreen')" class="btn-icon btn-enter-fullscreen" @click="requestFullscreen">
             <md-ripple />
             <i-material-symbols:fullscreen-rounded />
@@ -21,7 +21,7 @@
             <i-material-symbols:fullscreen-exit-rounded />
           </button>
         </template>
-        <md-outlined-button v-else-if="!relaunchAppLoading" class="btn-sm" @click="relaunchApp">{{ $t('relaunch_app') }}</md-outlined-button>
+        <outlined-button v-else-if="!relaunchAppLoading" class="btn-sm" @click="relaunchApp">{{ $t('relaunch_app') }}</outlined-button>
       </div>
     </div>
     <div class="content">
@@ -38,7 +38,7 @@
         <div v-if="failed && !state && !relaunchAppLoading" class="request-permission-failed">
           <MobileWarning />
           <p>{{ $t('screen_mirror_request_permission_failed') }}</p>
-          <md-filled-button @click="start">{{ $t('try_again') }}</md-filled-button>
+          <filled-button @click="start">{{ $t('try_again') }}</filled-button>
         </div>
         <canvas v-show="state" ref="canvasRef" class="canvas"></canvas>
       </template>

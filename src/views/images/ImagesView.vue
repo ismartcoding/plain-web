@@ -48,43 +48,41 @@
     </div>
     <div class="actions">
       <search-input :filter="filter" :tags="tags" :buckets="buckets" :get-url="getUrl" />
-      <popper v-if="!filter.trash">
-        <icon-button v-tooltip="$t('upload')">
-          <template #icon>
-            <i-material-symbols:upload-rounded />
-          </template>
-        </icon-button>
-        <template #content="slotProps">
-          <md-menu-item @click.stop="uploadFilesClick(slotProps)">
-            <div slot="headline">{{ $t('upload_files') }}</div>
-          </md-menu-item>
-          <md-menu-item @click.stop="uploadDirClick(slotProps)">
-            <div slot="headline">{{ $t('upload_folder') }}</div>
-          </md-menu-item>
+      <dropdown v-if="!filter.trash" v-model="uploadMenuVisible">
+        <template #trigger>
+          <icon-button v-tooltip="$t('upload')">
+            <template #icon>
+              <i-material-symbols:upload-rounded />
+            </template>
+          </icon-button>
         </template>
-      </popper>
-      <popper>
-        <icon-button v-tooltip="$t('sort')" :loading="sorting">
-          <template #icon>
-            <i-material-symbols:sort-rounded />
-          </template>
-        </icon-button>
-        <template #content="slotProps">
-          <div class="menu-items">
-            <md-menu-item v-for="item in sortItems" :key="item.value" :selected="item.value === imageSortBy" @click="sort(slotProps, item.value)">
-              <div slot="headline">{{ $t(item.label) }}</div>
-            </md-menu-item>
-          </div>
+        <div class="dropdown-item" @click.stop="uploadFilesClick(); uploadMenuVisible = false">
+          {{ $t('upload_files') }}
+        </div>  
+        <div class="dropdown-item" @click.stop="uploadDirClick(); uploadMenuVisible = false">
+          {{ $t('upload_folder') }}
+        </div>
+      </dropdown>
+      <dropdown v-model="sortMenuVisible">
+        <template #trigger>
+          <icon-button v-tooltip="$t('sort')" :loading="sorting">
+            <template #icon>
+              <i-material-symbols:sort-rounded />
+            </template>
+          </icon-button>
         </template>
-      </popper>
-      <md-outlined-segmented-button-set class="sm">
-        <md-outlined-segmented-button data-value="grid" no-checkmark :selected="!mainStore.imagesCardView" @click="mainStore.imagesCardView = false">
-          <i-material-symbols:grid-view-outline-rounded slot="icon" />
-        </md-outlined-segmented-button>
-        <md-outlined-segmented-button data-value="card" no-checkmark :selected="mainStore.imagesCardView" @click="mainStore.imagesCardView = true">
-          <i-material-symbols:splitscreen-outline slot="icon" />
-        </md-outlined-segmented-button>
-      </md-outlined-segmented-button-set>
+        <div v-for="item in sortItems" :key="item.value" class="dropdown-item" :class="{ 'selected': item.value === imageSortBy }" @click="sort(item.value); sortMenuVisible = false">
+          {{ $t(item.label) }}
+        </div>
+      </dropdown>
+      <div class="button-group"> 
+        <button :class="{ 'selected': !mainStore.imagesCardView }" @click="mainStore.imagesCardView = false">
+          <i-material-symbols:grid-view-outline-rounded />
+        </button>
+        <button :class="{ 'selected': mainStore.imagesCardView }" @click="mainStore.imagesCardView = true">
+          <i-material-symbols:splitscreen-outline />
+        </button>
+      </div>
     </div>
   </div>
   <all-checked-alert
@@ -319,6 +317,9 @@ const filter = reactive<IFilter>({
 const tempStore = useTempStore()
 const { app, urlTokenKey, uploads } = storeToRefs(tempStore)
 
+const uploadMenuVisible = ref(false)
+const sortMenuVisible = ref(false)
+
 const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload(uploads)
 const { input: dirFileInput, upload: uploadDir, uploadChanged: dirUploadChanged } = useFileUpload(uploads)
 const { dropping, fileDragEnter, fileDragLeave, dropFiles } = useDragDropUpload(uploads)
@@ -416,15 +417,13 @@ function addItemToTags(item: IImageItem) {
   })
 }
 
-function sort(slotProps: { close: () => void }, sort: string) {
-  if (imageSortBy.value === sort) {
-    slotProps.close()
+function sort(value: string) {
+  if (imageSortBy.value === value) {
     return
   }
   // only sort the last column
   sorting.value = true
-  imageSortBy.value = sort
-  slotProps.close()
+  imageSortBy.value = value
 }
 
 const { loading, fetch } = initLazyQuery({
@@ -468,14 +467,12 @@ function getUploadDir() {
   return `${app.value.internalStoragePath}/Pictures`
 }
 
-function uploadFilesClick(slotProps: { close: () => void }) {
+function uploadFilesClick() {
   uploadFiles(getUploadDir())
-  slotProps.close()
 }
 
-function uploadDirClick(slotProps: { close: () => void }) {
+function uploadDirClick() {
   uploadDir(getUploadDir())
-  slotProps.close()
 }
 
 function dropFiles2(e: DragEvent) {
@@ -544,3 +541,4 @@ onDeactivated(() => {
   window.removeEventListener('keyup', pageKeyUp)
 })
 </script>
+

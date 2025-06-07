@@ -5,9 +5,11 @@
     </div>
     <div slot="content">
       <div class="form-row">
-        <md-outlined-segmented-button-set @segmented-button-set-selection="onOptionSelected">
-          <md-outlined-segmented-button v-for="item in options" :key="item.id" :data-value="item.id" :label="$t(item.id)" :selected="qualityId === item.id" />
-        </md-outlined-segmented-button-set>
+        <div class="button-group"> 
+          <button v-for="item in options" :key="item.id" :class="{ 'selected': qualityId === item.id }" @click="onOptionSelected(item)">
+            {{ $t(item.id) }}
+          </button>
+        </div>
       </div>
       <div class="form-row">
         <label class="form-label">
@@ -34,8 +36,8 @@
       </div>
     </div>
     <div slot="actions">
-      <md-outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</md-outlined-button>
-      <md-filled-button value="save" :disabled="saving" autofocus @click="doAction"> <md-circular-progress v-if="saving" slot="icon" indeterminate /> {{ $t('save') }} </md-filled-button>
+      <outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</outlined-button>
+      <filled-button value="save" :disabled="saving" autofocus @click="doAction"> <md-circular-progress v-if="saving" slot="icon" indeterminate /> {{ $t('save') }} </filled-button>
     </div>
   </md-dialog>
 </template>
@@ -44,7 +46,6 @@ import { updateScreenMirrorQualityGQL, initMutation } from '@/lib/api/mutation'
 import type { IScreenMirrorQuality, IScreenMirrorQualityOption } from '@/lib/interfaces'
 import { ref } from 'vue'
 import { popModal } from './modal'
-import type { MdOutlinedSegmentedButton } from '@material/web/labs/segmentedbutton/outlined-segmented-button'
 import { screenMirrorQualityGQL, initQuery } from '@/lib/api/query'
 import toast from '@/components/toaster'
 import { useI18n } from 'vue-i18n'
@@ -88,20 +89,11 @@ function getCompressOptionText(value: number) {
   return value.toString()
 }
 
-function onOptionSelected(
-  e: CustomEvent<{
-    button: MdOutlinedSegmentedButton
-    selected: boolean
-    index: number
-  }>
-) {
-  const { button } = e.detail
-  const value = button.dataset.value as string
-  qualityId.value = value
-  const option = options.find((it) => it.id === value)
-  if (option && option.data) {
-    resolution.value = option.data.resolution
-    quality.value = option.data.quality
+function onOptionSelected(item: IScreenMirrorQualityOption) {
+  qualityId.value = item.id
+  if (item.data) {
+    resolution.value = item.data.resolution
+    quality.value = item.data.quality
   }
 }
 

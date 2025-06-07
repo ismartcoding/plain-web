@@ -16,21 +16,19 @@
     <div ref="scrollContainer" class="quick-content-body">
       <div v-for="(chatItem, index) of chatItems" :key="chatItem.id" class="chat-item">
         <div v-if="dateVisible(chatItem, index)" class="date">{{ formatDate(chatItem.createdAt) }}</div>
-        <popper>
-          <div class="chat-title">
-            <span class="name">{{ $t(chatItem.isMe ? 'me' : 'app_name') }}</span>
-            <time v-tooltip="formatDateTimeFull(chatItem.createdAt)" class="time">{{ formatTime(chatItem.createdAt) }}</time>
-            <span v-if="chatItem.id.startsWith('new_')" class="sending">{{ $t('sending') }}</span>
-            <i-material-symbols:expand-more-rounded class="bi bi-more" />
-          </div>
-          <template #content>
-            <div class="menu-items">
-              <md-menu-item :disabled="deleteLoading" @click="deleteMessage(chatItem.id)">
-                <div slot="headline">{{ $t('delete_message') }}</div>
-              </md-menu-item>
+        <dropdown v-model="menuVisible[chatItem.id]" align="top-left-to-bottom-left">
+          <template #trigger>
+            <div class="chat-title">
+              <span class="name">{{ $t(chatItem.isMe ? 'me' : 'app_name') }}</span>
+              <time v-tooltip="formatDateTimeFull(chatItem.createdAt)" class="time">{{ formatTime(chatItem.createdAt) }}</time>
+              <span v-if="chatItem.id.startsWith('new_')" class="sending">{{ $t('sending') }}</span>
+              <i-material-symbols:expand-more-rounded class="bi bi-more" />
             </div>
           </template>
-        </popper>
+          <div class="dropdown-item" :class="{ 'disabled': deleteLoading }" @click="deleteMessage(chatItem.id); menuVisible[chatItem.id] = false">
+            {{ $t('delete_message') }}
+          </div>
+        </dropdown>
         <div class="chat-content">
           <div v-if="chatItem._content.type === 'text'">
             <pre v-html="addLinksToURLs(chatItem._content.value.text)"></pre>
@@ -46,10 +44,10 @@
     <div class="chat-input">
       <div class="textarea-wrapper">
         <div v-show="displayDragMask" class="drag-mask">{{ $t('release_to_send_files') }}</div>
-        <md-outlined-text-field
+        <outlined-text-field
           v-model="chatText"
           type="textarea"
-          rows="2"
+          :rows="2"
           autocomplete="off"
           class="textarea"
           :placeholder="$t('chat_input_hint')"
@@ -63,21 +61,25 @@
           @keydown.enter.alt.exact.prevent="chatText += '\n'"
           @keydown.enter.meta.exact.prevent="chatText += '\n'"
         >
-          <div slot="leading-icon" class="leading-icons">
-            <button class="btn-icon" @click="sendImages">
+          <template #leading-icon>
+            <div class="leading-icons">
+              <button class="btn-icon" @click="sendImages">
+                <md-ripple />
+                <i-material-symbols:image-outline-rounded />
+              </button>
+              <button class="btn-icon" @click="sendFiles">
+                <md-ripple />
+                <i-material-symbols:folder-outline-rounded />
+              </button>
+            </div>
+          </template>
+          <template #trailing-icon>
+            <button class="btn-icon btn-send" :disable="createLoading" @click="send">
               <md-ripple />
-              <i-material-symbols:image-outline-rounded />
+              <i-material-symbols:send-outline-rounded />
             </button>
-            <button class="btn-icon" @click="sendFiles">
-              <md-ripple />
-              <i-material-symbols:folder-outline-rounded />
-            </button>
-          </div>
-          <button slot="trailing-icon" class="btn-icon btn-send" :disable="createLoading" @click="send">
-            <md-ripple />
-            <i-material-symbols:send-outline-rounded />
-          </button>
-        </md-outlined-text-field>
+          </template>
+        </outlined-text-field>
       </div>
     </div>
     <input ref="fileInput" style="display: none" type="file" multiple @change="uploadFilesChanged" />
@@ -95,7 +97,7 @@ import { useI18n } from 'vue-i18n'
 import { createChatItemGQL, deleteChatItemGQL, initMutation, insertCache } from '@/lib/api/mutation'
 import { chatItemsGQL, initQuery } from '@/lib/api/query'
 import toast from './toaster'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, reactive } from 'vue'
 import type { ApolloCache } from '@apollo/client/core'
 import { useTempStore } from '@/stores/temp'
 import type { IChatItem } from '@/lib/interfaces'
@@ -117,6 +119,7 @@ const scrollContainer = ref<HTMLDivElement>()
 const fileInput = ref<HTMLInputElement>()
 const imageInput = ref<HTMLInputElement>()
 const chatItems = ref<IChatItem[]>([])
+const menuVisible = reactive<Record<string, boolean>>({})
 const { enqueue: enqueueTask } = useTasks()
 
 const { app } = storeToRefs(useTempStore())
@@ -498,6 +501,7 @@ onMounted(() => {
 .chat-input {
   background-color: var(--md-sys-color-surface);
   padding: 8px 16px;
+  --outlined-field-bg: var(--md-sys-color-surface);
 
   .leading-icons {
     display: flex;
@@ -537,4 +541,5 @@ onMounted(() => {
   0%, 80%, 100% { transform: scale(1); opacity: 0.7; }
   40% { transform: scale(1.5); opacity: 1; }
 }
+
 </style>

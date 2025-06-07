@@ -54,35 +54,33 @@
 
     <div class="actions">
       <search-input :filter="filter" :tags="tags" :buckets="buckets" :get-url="getUrl" />
-      <popper>
-        <icon-button v-tooltip="$t('upload')">
-          <template #icon>
-            <i-material-symbols:upload-rounded />
-          </template>
-        </icon-button>
-        <template #content="slotProps">
-          <md-menu-item @click.stop="uploadFilesClick(slotProps)">
-            <div slot="headline">{{ $t('upload_files') }}</div>
-          </md-menu-item>
-          <md-menu-item @click.stop="uploadDirClick(slotProps)">
-            <div slot="headline">{{ $t('upload_folder') }}</div>
-          </md-menu-item>
+      <dropdown v-model="uploadMenuVisible">
+        <template #trigger>
+          <icon-button v-tooltip="$t('upload')">
+            <template #icon>
+              <i-material-symbols:upload-rounded />
+            </template>
+          </icon-button>
         </template>
-      </popper>
-      <popper>
-        <icon-button v-tooltip="$t('sort')" :loading="sorting">
-          <template #icon>
-            <i-material-symbols:sort-rounded />
-          </template>
-        </icon-button>
-        <template #content="slotProps">
-          <div class="menu-items">
-            <md-menu-item v-for="item in sortItems" :key="item.value" :selected="item.value === audioSortBy" @click="sort(slotProps, item.value)">
-              <div slot="headline">{{ $t(item.label) }}</div>
-            </md-menu-item>
-          </div>
+        <div class="dropdown-item" @click.stop="uploadFilesClick(); uploadMenuVisible = false">
+          {{ $t('upload_files') }}
+        </div>
+        <div class="dropdown-item" @click.stop="uploadDirClick(); uploadMenuVisible = false">
+          {{ $t('upload_folder') }}
+        </div>
+      </dropdown>
+      <dropdown v-model="sortMenuVisible">
+        <template #trigger>
+          <icon-button v-tooltip="$t('sort')" :loading="sorting">
+            <template #icon>
+              <i-material-symbols:sort-rounded />
+            </template>
+          </icon-button>
         </template>
-      </popper>
+        <div v-for="item in sortItems" :key="item.value" class="dropdown-item" :class="{ 'selected': item.value === audioSortBy }" @click="sort(item.value); sortMenuVisible = false">
+          {{ $t(item.label) }}
+        </div>
+      </dropdown>
     </div>
   </div>
   <all-checked-alert
@@ -288,6 +286,10 @@ const { app, urlTokenKey, audioPlaying, uploads } = storeToRefs(useTempStore())
 const isAudioPlaying = (item: IAudio) => {
   return audioPlaying.value && app.value?.audioCurrent === item.path
 }
+const animatingIds = ref<string[]>([])
+const uploadMenuVisible = ref(false)
+const sortMenuVisible = ref(false)
+
 const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload(uploads)
 const { input: dirFileInput, upload: uploadDir, uploadChanged: dirUploadChanged } = useFileUpload(uploads)
 const { dropping, fileDragEnter, fileDragLeave, dropFiles } = useDragDropUpload(uploads)
@@ -343,7 +345,6 @@ const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(total, limit, pa
 const { addItemsToPlaylist, addToPlaylist, removeFromPlaylist, isInPlaylist } = useAddToPlaylist(items, clearSelection)
 const sortItems = getSortItems()
 const imageErrorIds = ref<string[]>([])
-const animatingIds = ref<string[]>([])
 
 const { play, playPath, loading: playLoading, pause } = useAudioPlayer()
 
@@ -379,14 +380,12 @@ function getUrl(q: string) {
   return q ? `/audios?q=${q}` : `/audios`
 }
 
-function sort(slotProps: { close: () => void }, sort: string) {
-  if (audioSortBy.value === sort) {
-    slotProps.close()
+function sort(value: string) {
+  if (audioSortBy.value === value) {
     return
   }
   sorting.value = true
-  audioSortBy.value = sort
-  slotProps.close()
+  audioSortBy.value = value
 }
 
 function getUploadDir() {
@@ -398,14 +397,12 @@ function getUploadDir() {
   return `${app.value.internalStoragePath}/Music`
 }
 
-function uploadFilesClick(slotProps: { close: () => void }) {
-  uploadFiles(getUploadDir())
-  slotProps.close()
+function uploadFilesClick() {
+  fileInput.value!.click()
 }
 
-function uploadDirClick(slotProps: { close: () => void }) {
-  uploadDir(getUploadDir())
-  slotProps.close()
+function uploadDirClick() {
+  dirFileInput.value!.click()
 }
 
 function dropFiles2(e: DragEvent) {

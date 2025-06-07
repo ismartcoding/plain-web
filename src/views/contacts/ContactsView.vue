@@ -21,9 +21,9 @@
     </div>
     <div class="actions">
       <search-input :filter="filter" :tags="tags" :get-url="getUrl" />
-      <md-outlined-button class="btn-sm" @click="create">
+      <outlined-button class="btn-sm" @click="create">
         {{ $t('create') }}
-      </md-outlined-button>
+      </outlined-button>
     </div>
   </div>
   <all-checked-alert

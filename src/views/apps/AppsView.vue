@@ -17,20 +17,26 @@
         <md-ripple />
         <i-material-symbols:upload-rounded />
       </button>
-      <popper>
-        <button v-tooltip="$t('sort')" class="btn-icon btn-sort" :disabled="sorting">
-          <md-ripple />
-          <md-circular-progress v-if="sorting" indeterminate />
-          <i-material-symbols:sort-rounded v-else />
-        </button>
-        <template #content="slotProps">
-          <div class="menu-items">
-            <md-menu-item v-for="item in sortItems" :key="item.value" :selected="item.value === appSortBy" @click="sort(slotProps, item.value)">
-              <div slot="headline">{{ $t(item.label) }}</div>
-            </md-menu-item>
-          </div>
+      <dropdown v-model="sortMenuVisible">
+        <template #trigger>
+          <button v-tooltip="$t('sort')" class="btn-icon btn-sort" :disabled="sorting">
+            <md-ripple />
+            <md-circular-progress v-if="sorting" indeterminate />
+            <i-material-symbols:sort-rounded v-else />
+          </button>
         </template>
-      </popper>
+        <div class="menu-items">
+          <div
+            v-for="item in sortItems"
+            :key="item.value"
+            class="dropdown-item"
+            :class="{ selected: item.value === appSortBy }"
+            @click="sort(item.value)"
+          >
+            {{ $t(item.label) }}
+          </div>
+        </div>
+      </dropdown>
     </div>
   </div>
   <all-checked-alert
@@ -67,7 +73,7 @@
         <div class="actions">
           <template v-if="item.isUninstalling">
             <md-circular-progress v-tooltip="$t('uninstalling')" indeterminate class="spinner-sm" />
-            &nbsp;<md-outlined-button class="btn-sm" @click.stop="cancelUninstall(item)">{{ $t('cancel') }}</md-outlined-button>
+            &nbsp;<outlined-button class="btn-sm" @click.stop="cancelUninstall(item)">{{ $t('cancel') }}</outlined-button>
           </template>
           <button v-else v-tooltip="$t('uninstall')" class="btn-icon sm" @click.stop="uninstall(item)">
             <md-ripple />
@@ -144,6 +150,7 @@ import { getFileUrlByPath } from '@/lib/api/file'
 import { useSearch } from '@/hooks/search'
 import { useKeyEvents } from '@/hooks/key-events'
 import { getSortItems } from '@/lib/file'
+import Dropdown from '@/components/Dropdown.vue'
 
 // Track packages being installed
 const installingPackages = ref<{ id: string; updatedAt: string; isNew: boolean }[]>([])
@@ -237,15 +244,17 @@ function getUrl(q: string) {
   return q ? `/apps?q=${q}` : `/apps`
 }
 
-function sort(slotProps: { close: () => void }, sort: string) {
-  if (appSortBy.value === sort) {
-    slotProps.close()
+const sortMenuVisible = ref(false)
+
+function sort(value: string) {
+  if (appSortBy.value === value) {
+    sortMenuVisible.value = false
     return
   }
   sorting.value = true
-  appSortBy.value = sort
+  appSortBy.value = value
   gotoPage(1)
-  slotProps.close()
+  sortMenuVisible.value = false
 }
 
 const { mutate: uninstallMutate } = initMutation({

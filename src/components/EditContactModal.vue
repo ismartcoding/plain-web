@@ -8,9 +8,9 @@
         {{ $t('name') }}
       </label>
       <div class="form-row">
-        <md-outlined-text-field v-model="editItem.firstName" :label="$t('first_name')" />
-        <md-outlined-text-field v-if="complexName" v-model="editItem.middleName" :label="$t('middle_name')" />
-        <md-outlined-text-field v-model="editItem.lastName" :label="$t('last_name')" />
+        <outlined-text-field v-model="editItem.firstName" :label="$t('first_name')" />
+        <outlined-text-field v-if="complexName" v-model="editItem.middleName" :label="$t('middle_name')" />
+        <outlined-text-field v-model="editItem.lastName" :label="$t('last_name')" />
         <div v-if="!complexName" class="v-center">
           <button class="btn-icon" @click="complexName = true">
             <md-ripple />
@@ -19,8 +19,8 @@
         </div>
       </div>
       <div v-if="complexName" class="form-row">
-        <md-outlined-text-field v-model="editItem.prefix" :label="$t('prefix')" />
-        <md-outlined-text-field v-model="editItem.suffix" :label="$t('suffix')" />
+        <outlined-text-field v-model="editItem.prefix" :label="$t('prefix')" />
+        <outlined-text-field v-model="editItem.suffix" :label="$t('suffix')" />
         <div class="v-center">
           <button class="btn-icon" @click="complexName = false">
             <md-ripple />
@@ -37,7 +37,7 @@
             <div slot="headline">{{ getTypeLabel(item, type, 'phone_number_type') }}</div>
           </md-select-option>
         </md-outlined-select>
-        <md-outlined-text-field v-model="item.value" :placeholder="$t('telephone')" class="flex-3" />
+        <outlined-text-field v-model="item.value" :placeholder="$t('telephone')" class="flex-3" />
         <div class="v-center">
           <button v-if="editItem.phoneNumbers.length > 1" class="btn-icon" @click="deleteField(editItem.phoneNumbers, index)">
             <md-ripple />
@@ -54,7 +54,7 @@
             <div slot="headline">{{ getTypeLabel(item, type, 'email_type') }}</div>
           </md-select-option>
         </md-outlined-select>
-        <md-outlined-text-field v-model="item.value" :label="$t('email')" class="flex-3" />
+        <outlined-text-field v-model="item.value" :label="$t('email')" class="flex-3" />
         <div class="v-center">
           <button class="btn-icon" @click="deleteField(editItem.emails, index)">
             <md-ripple />
@@ -71,7 +71,7 @@
             <div slot="headline">{{ getTypeLabel(item, type, 'address_type') }}</div>
           </md-select-option>
         </md-outlined-select>
-        <md-outlined-text-field v-model="item.value" :label="$t('address')" class="flex-3" />
+        <outlined-text-field v-model="item.value" :label="$t('address')" class="flex-3" />
         <div class="v-center">
           <button class="btn-icon" @click="deleteField(editItem.addresses, index)">
             <md-ripple />
@@ -88,7 +88,7 @@
             <div slot="headline">{{ getTypeLabel(item, type, 'website_type') }}</div>
           </md-select-option>
         </md-outlined-select>
-        <md-outlined-text-field v-model="item.value" :placeholder="$t('website')" class="flex-3" />
+        <outlined-text-field v-model="item.value" :placeholder="$t('website')" class="flex-3" />
         <div class="v-center">
           <button class="btn-icon" @click="deleteField(editItem.websites, index)">
             <md-ripple />
@@ -105,7 +105,7 @@
             <div slot="headline">{{ getTypeLabel(item, type, 'im_type') }}</div>
           </md-select-option>
         </md-outlined-select>
-        <md-outlined-text-field v-model="item.value" :placeholder="$t('im')" class="flex-3" />
+        <outlined-text-field v-model="item.value" :placeholder="$t('im')" class="flex-3" />
         <div class="v-center">
           <button class="btn-icon" @click="deleteField(editItem.ims, index)">
             <md-ripple />
@@ -114,40 +114,37 @@
         </div>
       </div>
       <div class="form-row" style="display: block; position: relative">
-        <popper placement="auto">
-          <div>
-            <md-outlined-button>{{ $t('add_field') }}</md-outlined-button>
-          </div>
-          <template #content="slotProps">
-            <div class="menu-items">
-              <md-menu-item @click="() => addField(slotProps, editItem.phoneNumbers)">
-                <div slot="headline">{{ $t('phone_number') }}</div>
-              </md-menu-item>
-              <md-menu-item @click="() => addField(slotProps, editItem.emails)">
-                <div slot="headline">{{ $t('email') }}</div>
-              </md-menu-item>
-              <md-menu-item @click="() => addField(slotProps, editItem.addresses)">
-                <div slot="headline">{{ $t('address') }}</div>
-              </md-menu-item>
-              <md-menu-item @click="() => addField(slotProps, editItem.websites)">
-                <div slot="headline">{{ $t('website') }}</div>
-              </md-menu-item>
-              <md-menu-item @click="() => addField(slotProps, editItem.ims)">
-                <div slot="headline">{{ $t('im') }}</div>
-              </md-menu-item>
-            </div>
+        <dropdown v-model="addFieldMenuVisible" placement="auto" align="top-left-to-bottom-left">
+          <template #trigger>
+            <outlined-button>{{ $t('add_field') }}</outlined-button>
           </template>
-        </popper>
+          <div class="dropdown-item" @click="() => addField(editItem.phoneNumbers)">
+            {{ $t('phone_number') }}
+          </div>
+          <div class="dropdown-item" @click="() => addField(editItem.emails)">
+            {{ $t('email') }}
+          </div>
+          <div class="dropdown-item" @click="() => addField(editItem.addresses)">
+            {{ $t('address') }}
+          </div>
+          <div class="dropdown-item" @click="() => addField(editItem.websites)">
+            {{ $t('website') }}
+          </div>
+          <div class="dropdown-item" @click="() => addField(editItem.ims)">
+            {{ $t('im') }}
+          </div>
+        </dropdown>
       </div>
       <div class="form-row">
-        <md-outlined-text-field v-model="editItem.notes" type="textarea" :label="$t('notes')" rows="3" />
+        <outlined-text-field v-model="editItem.notes" type="textarea" :label="$t('notes')" :rows="3" />
       </div>
     </div>
     <div slot="actions">
-      <md-outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</md-outlined-button>
-      <md-filled-button value="save" :disabled="createLoading || editLoading" autofocus @click="doAction">
-        <md-circular-progress v-if="createLoading || editLoading" slot="icon" indeterminate /> {{ $t('save') }}
-      </md-filled-button>
+      <outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</outlined-button>
+      <filled-button value="save" :disabled="createLoading || editLoading" autofocus @click="doAction">
+        <md-circular-progress v-if="createLoading || editLoading" slot="icon" indeterminate />
+        {{ $t('save') }}
+      </filled-button>
     </div>
   </md-dialog>
 </template>
@@ -195,6 +192,7 @@ const editItem = reactive({
 })
 
 const complexName = ref(false)
+const addFieldMenuVisible = ref(false)
 
 const { t } = useI18n()
 
@@ -318,9 +316,9 @@ const getTypeLabel = (item: any, type: number, key: string) => {
   return t(`contact.${key}.${type}`)
 }
 
-const addField = (slotProps: any, items: any[]) => {
+const addField = (items: any[]) => {
   items.push({ type: 1, value: '', label: '' })
-  slotProps.close()
+  addFieldMenuVisible.value = false
 }
 
 const deleteField = (items: any[], index: number) => {

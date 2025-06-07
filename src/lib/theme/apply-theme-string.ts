@@ -22,9 +22,41 @@ export function applyThemeString(doc: DocumentOrShadowRoot, themeString: string,
   let sheet = (globalThis as WithStylesheet)[ssName]
   // Create a new sheet if it doesn't exist already and save it globally.
   if (!sheet) {
-    sheet = new CSSStyleSheet()
-    ;(globalThis as WithStylesheet)[ssName] = sheet
-    doc.adoptedStyleSheets.push(sheet)
+    try {
+      // Modern browsers support
+      sheet = new CSSStyleSheet()
+      ;(globalThis as WithStylesheet)[ssName] = sheet
+      doc.adoptedStyleSheets.push(sheet)
+    } catch (e) {
+      // Fallback for older browsers (like old Safari versions)
+      const styleEl = document.createElement('style')
+      styleEl.textContent = themeString
+      styleEl.setAttribute('data-ss-name', ssName)
+      
+      // Remove any previous style with same name
+      const oldStyle = document.querySelector(`style[data-ss-name="${ssName}"]`)
+      if (oldStyle) {
+        oldStyle.remove()
+      }
+      
+      // Append to document.head or to the document/shadowRoot directly
+      if ('head' in doc) {
+        (doc as Document).head?.appendChild(styleEl)
+      } else {
+        (doc as ShadowRoot).appendChild(styleEl)
+      }
+      
+      // Set the theme string directly and return early
+      localStorage.setItem(ssName, themeString)
+      
+      // Set theme color for URL bar
+      const surfaceContainer = themeString.match(/--md-sys-color-surface-container:(.+?);/)?.[1]
+      if (surfaceContainer) {
+        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', surfaceContainer)
+      }
+      
+      return
+    }
   }
 
   // Set the color of the URL bar because we are cool like that.
@@ -33,6 +65,24 @@ export function applyThemeString(doc: DocumentOrShadowRoot, themeString: string,
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', surfaceContainer)
   }
 
-  sheet.replaceSync(themeString)
+  try {
+    sheet.replaceSync(themeString)
+  } catch (e) {
+    // For browsers where replaceSync might fail
+    const styleEl = document.querySelector(`style[data-ss-name="${ssName}"]`)
+    if (styleEl) {
+      styleEl.textContent = themeString
+    } else {
+      const newStyle = document.createElement('style')
+      newStyle.textContent = themeString
+      newStyle.setAttribute('data-ss-name', ssName)
+      if ('head' in doc) {
+        (doc as Document).head?.appendChild(newStyle)
+      } else {
+        (doc as ShadowRoot).appendChild(newStyle)
+      }
+    }
+  }
+  
   localStorage.setItem(ssName, themeString)
 }

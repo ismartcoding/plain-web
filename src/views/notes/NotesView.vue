@@ -38,7 +38,7 @@
     </div>
     <div class="actions">
       <search-input :filter="filter" :tags="tags" :get-url="getUrl" :show-trash="true" />
-      <md-outlined-button v-if="!filter.trash" class="btn-sm" @click.prevent="create">{{ $t('create') }}</md-outlined-button>
+      <outlined-button v-if="!filter.trash" class="btn-sm" @click.prevent="create">{{ $t('create') }}</outlined-button>
     </div>
   </div>
   <all-checked-alert

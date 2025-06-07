@@ -10,7 +10,7 @@ export function formatDateTime(str: string, options?: Intl.DateTimeFormatOptions
   }
   return new Intl.DateTimeFormat(getLocale(), {
     hour12: false,
-    dateStyle: 'short',
+    dateStyle: 'medium',
     timeStyle: 'short',
     ...options,
   }).format(new Date(str))

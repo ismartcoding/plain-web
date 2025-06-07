@@ -15,7 +15,7 @@
   <ul class="nav">
     <li v-for="item in tags" :key="item.id" :class="{ active: item.id === selected }" @click.prevent="view(item)">
       <span class="title">{{ item.name }}</span>
-      <icon-button :id="'tag-' + item.id" v-tooltip="$t('actions')" class="sm" @click.prevent.stop="showMenu(item)">
+      <icon-button :id="'tag-' + item.id" v-tooltip="$t('actions')" class="sm btn-icon" @click.prevent.stop="showMenu(item)">
         <template #icon>
           <i-material-symbols:more-vert />
         </template>
@@ -23,14 +23,14 @@
       <span class="count">{{ item.count.toLocaleString() }}</span>
     </li>
   </ul>
-  <md-menu positioning="popover" :anchor="'tag-' + selectedItem?.id" stay-open-on-focusout quick :open="tagMenuVisible" @closed="tagMenuVisible = false">
-    <md-menu-item @click="renameTag(selectedItem!)">
-      <div slot="headline">{{ $t('rename') }}</div>
-    </md-menu-item>
-    <md-menu-item @click="deleteTag(selectedItem!)">
-      <div slot="headline">{{ $t('delete') }}</div>
-    </md-menu-item>
-  </md-menu>
+  <dropdown-menu v-model="tagMenuVisible" :anchor="'tag-' + selectedItem?.id">
+    <div class="dropdown-item" @click="renameTag(selectedItem!); tagMenuVisible = false">
+      {{ $t('rename') }}
+    </div>
+    <div class="dropdown-item" @click="deleteTag(selectedItem!); tagMenuVisible = false">
+      {{ $t('delete') }}
+    </div>
+  </dropdown-menu>
 </template>
 
 <script setup lang="ts">
@@ -79,6 +79,9 @@ const { refetch } = initQuery({
 
 function showMenu(item: ITag) {
   selectedItem.value = item
+  // Close other dropdowns before opening this one
+  const anchorElement = document.getElementById('tag-' + item.id)
+  document.dispatchEvent(new CustomEvent('dropdown-toggle', { detail: { exclude: anchorElement } }))
   tagMenuVisible.value = true
 }
 

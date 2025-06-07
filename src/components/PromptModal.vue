@@ -4,13 +4,13 @@
       {{ title }}
     </div>
     <div slot="content">
-      <md-outlined-text-field ref="inputRef" v-model="inputValue" class="form-control" :error="valueError" :error-text="valueError ? $t(valueError) : ''" @keyup.enter="doAction" />
+      <outlined-text-field ref="inputRef" v-model="inputValue" class="form-control" :error="valueError" :error-text="valueError ? $t(valueError) : ''" @keyup.enter="doAction" />
     </div>
     <div slot="actions">
-      <md-outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</md-outlined-button>
-      <md-filled-button value="ok" autofocus @click="doAction">
+      <outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</outlined-button>
+      <filled-button value="ok" autofocus @click="doAction">
         {{ $t('ok') }}
-      </md-filled-button>
+      </filled-button>
     </div>
   </md-dialog>
 </template>

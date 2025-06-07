@@ -109,6 +109,7 @@ function clickItem(item: ISource) {
 <style lang="scss" scoped>
 .file-container {
   margin-top: 6px;
+  max-width: 600px;
 }
 
 .file-item {
@@ -121,7 +122,6 @@ function clickItem(item: ISource) {
   border-radius: 12px;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  max-width: 400px;
 
   &:hover {
     background-color: var(--md-sys-color-surface-container-high);

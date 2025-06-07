@@ -805,13 +805,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@material/web@npm:^1.5.0":
-  version: 1.5.1
-  resolution: "@material/web@npm:1.5.1"
+"@material/web@npm:^2.3.0":
+  version: 2.3.0
+  resolution: "@material/web@npm:2.3.0"
   dependencies:
-    lit: "npm:^2.7.4 || ^3.0.0"
+    lit: "npm:^2.8.0 || ^3.0.0"
     tslib: "npm:^2.4.0"
-  checksum: 10/9be6019068fbc4ed6873837ad549fd672c24beaacd9123bc9f3d72b7dfd67a1acdafab43bd484b50d40300e27e3742314915f4d6e6723b38be223b4547ae206f
+  checksum: 10/a0b45f5ddb9c0f0bb4c8919573b22d93b7bb497bf138ea2c0431567c78197a54a452af215c93229d7c0ef815e21c624b2e1e076d58813a0c3d7eb59bf05e915b
   languageName: node
   linkType: hard
 
@@ -3208,7 +3208,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lit@npm:^2.7.4 || ^3.0.0":
+"lit@npm:^2.8.0 || ^3.0.0":
   version: 3.3.0
   resolution: "lit@npm:3.3.0"
   dependencies:
@@ -3882,7 +3882,7 @@ __metadata:
     "@iconify-json/lucide": "npm:^1.2.45"
     "@iconify-json/material-symbols": "npm:^1.2.23"
     "@material/material-color-utilities": "npm:^0.2.7"
-    "@material/web": "npm:^1.5.0"
+    "@material/web": "npm:^2.3.0"
     "@nuintun/qrcode": "npm:^3.3.0"
     "@popperjs/core": "npm:^2.11.6"
     "@rushstack/eslint-patch": "npm:^1.11.0"

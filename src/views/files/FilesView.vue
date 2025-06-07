@@ -43,21 +43,21 @@
           <i-material-symbols:create-new-folder-outline-rounded />
         </template>
       </icon-button>
-      <popper>
-        <icon-button v-tooltip="$t('upload')">
-          <template #icon>
-            <i-material-symbols:upload-rounded />
-          </template>
-        </icon-button>
-        <template #content="slotProps">
-          <md-menu-item @click.stop="uploadFilesClick(slotProps, filter.parent)">
-            <div slot="headline">{{ $t('upload_files') }}</div>
-          </md-menu-item>
-          <md-menu-item @click.stop="uploadDirClick(slotProps, filter.parent)">
-            <div slot="headline">{{ $t('upload_folder') }}</div>
-          </md-menu-item>
+      <dropdown v-model="uploadMenuVisible">
+        <template #trigger>
+          <icon-button v-tooltip="$t('upload')">
+            <template #icon>
+              <i-material-symbols:upload-rounded />
+            </template>
+          </icon-button>
         </template>
-      </popper>
+        <div class="dropdown-item" @click.stop="uploadFilesClick(filter.parent); uploadMenuVisible = false">
+          {{ $t('upload_files') }}
+        </div>
+        <div class="dropdown-item" @click.stop="uploadDirClick(filter.parent); uploadMenuVisible = false">
+          {{ $t('upload_folder') }}
+        </div>
+      </dropdown>
       <icon-button v-if="canPaste()" v-tooltip="$t('paste')" :loading="pasting" @click="pasteDir">
         <template #icon>
           <i-material-symbols:content-paste-rounded />
@@ -68,20 +68,18 @@
           <i-material-symbols:refresh-rounded />
         </template>
       </icon-button>
-      <popper>
-        <icon-button v-tooltip="$t('sort')" :loading="sorting">
-          <template #icon>
-            <i-material-symbols:sort-rounded />
-          </template>
-        </icon-button>
-        <template #content="slotProps">
-          <div class="menu-items">
-            <md-menu-item v-for="item in sortItems" :key="item.value" :selected="item.value === fileSortBy" @click="sort(slotProps, item.value)">
-              <div slot="headline">{{ $t(item.label) }}</div>
-            </md-menu-item>
-          </div>
+      <dropdown v-model="sortMenuVisible">
+        <template #trigger>
+          <icon-button v-tooltip="$t('sort')" :loading="sorting">
+            <template #icon>
+              <i-material-symbols:sort-rounded />
+            </template>
+          </icon-button>
         </template>
-      </popper>
+        <div v-for="item in sortItems" :key="item.value" class="dropdown-item" :class="{ 'selected': item.value === fileSortBy }" @click="sort(item.value); sortMenuVisible = false">
+          {{ $t(item.label) }}
+        </div>
+      </dropdown>
     </div>
   </div>
   <div v-if="loading && firstInit" class="scroller-wrapper">
@@ -152,21 +150,21 @@
                   <i-material-symbols:download-rounded />
                 </template>
               </icon-button>
-              <popper>
-                <icon-button v-tooltip="$t('upload')" class="sm">
-                  <template #icon>
-                    <i-material-symbols:upload-rounded />
-                  </template>
-                </icon-button>
-                <template #content="slotProps">
-                  <md-menu-item @click.stop="uploadFilesClick(slotProps, item.path)">
-                    <div slot="headline">{{ $t('upload_files') }}</div>
-                  </md-menu-item>
-                  <md-menu-item @click.stop="uploadDirClick(slotProps, item.path)">
-                    <div slot="headline">{{ $t('upload_folder') }}</div>
-                  </md-menu-item>
+              <dropdown v-model="uploadItemMenuVisible[item.id]">
+                <template #trigger>
+                  <icon-button v-tooltip="$t('upload')" class="sm">
+                    <template #icon>
+                      <i-material-symbols:upload-rounded />
+                    </template>
+                  </icon-button>
                 </template>
-              </popper>
+                <div class="dropdown-item" @click.stop="uploadFilesClick(item.path); uploadItemMenuVisible[item.id] = false">
+                  {{ $t('upload_files') }}
+                </div>
+                <div class="dropdown-item" @click.stop="uploadDirClick(item.path); uploadItemMenuVisible[item.id] = false">
+                  {{ $t('upload_folder') }}
+                </div>
+              </dropdown>
             </template>
             <template v-else>
               <icon-button v-tooltip="$t('download')" class="sm" @click.stop="downloadFile(item.path)">
@@ -181,48 +179,48 @@
                 <i-material-symbols:delete-forever-outline-rounded />
               </template>
             </icon-button>
-            <popper>
-              <icon-button v-tooltip="$t('info')" class="sm">
-                <template #icon>
-                  <i-material-symbols:info-outline-rounded />
-                </template>
-              </icon-button>
-              <template #content>
-                <section class="card card-info">
-                  <div class="key-value vertical">
-                    <div class="key">{{ $t('path') }}</div>
-                    <div class="value">
-                      {{ item.path }}
-                    </div>
+            <dropdown v-model="infoMenuVisible[item.id]">
+              <template #trigger>
+                <icon-button v-tooltip="$t('info')" class="sm">
+                  <template #icon>
+                    <i-material-symbols:info-outline-rounded />
+                  </template>
+                </icon-button>
+              </template>
+              <section class="card card-info">
+                <div class="key-value vertical">
+                  <div class="key">{{ $t('path') }}</div>
+                  <div class="value">
+                    {{ item.path }}
                   </div>
-                </section>
-              </template>
-            </popper>
+                </div>
+              </section>
+            </dropdown>
 
-            <popper>
-              <icon-button v-tooltip="$t('actions')" class="sm">
-                <template #icon>
-                  <i-material-symbols:more-vert />
-                </template>
-              </icon-button>
-              <template #content="slotProps">
-                <md-menu-item @click.stop="duplicateItem(slotProps, item)">
-                  <div slot="headline">{{ $t('duplicate') }}</div>
-                </md-menu-item>
-                <md-menu-item @click.stop="cutItem(slotProps, item)">
-                  <div slot="headline">{{ $t('cut') }}</div>
-                </md-menu-item>
-                <md-menu-item @click.stop="copyItem(slotProps, item)">
-                  <div slot="headline">{{ $t('copy') }}</div>
-                </md-menu-item>
-                <md-menu-item v-if="item.isDir && canPaste()" @click.stop="pasteItme(slotProps, item)">
-                  <div slot="headline">{{ $t('paste') }}</div>
-                </md-menu-item>
-                <md-menu-item @click.stop="renameItemClick(slotProps, item)">
-                  <div slot="headline">{{ $t('rename') }}</div>
-                </md-menu-item>
+            <dropdown v-model="actionsMenuVisible[item.id]">
+              <template #trigger>
+                <icon-button v-tooltip="$t('actions')" class="sm">
+                  <template #icon>
+                    <i-material-symbols:more-vert />
+                  </template>
+                </icon-button>
               </template>
-            </popper>
+              <div class="dropdown-item" @click.stop="duplicateItem(item); actionsMenuVisible[item.id] = false">
+                {{ $t('duplicate') }}
+              </div>
+              <div class="dropdown-item" @click.stop="cutItem(item); actionsMenuVisible[item.id] = false">
+                {{ $t('cut') }}
+              </div>
+              <div class="dropdown-item" @click.stop="copyItem(item); actionsMenuVisible[item.id] = false">
+                {{ $t('copy') }}
+              </div>
+              <div v-if="item.isDir && canPaste()" class="dropdown-item" @click.stop="pasteItem(item); actionsMenuVisible[item.id] = false">
+                {{ $t('paste') }}
+              </div>
+              <div class="dropdown-item" @click.stop="renameItemClick(item); actionsMenuVisible[item.id] = false">
+                {{ $t('rename') }}
+              </div>
+            </dropdown>
           </div>
         </section>
       </template>
@@ -495,16 +493,12 @@ function viewItem(event: Event, item: IFile) {
   }
 }
 
-function sort(slotProps: { close: () => void }, sort: string) {
-  if (fileSortBy.value === sort) {
-    sorting.value = false
-    slotProps.close()
+function sort(value: string) {
+  if (fileSortBy.value === value) {
     return
   }
-  // only sort the last column
   sorting.value = true
-  fileSortBy.value = sort
-  slotProps.close()
+  fileSortBy.value = value
 }
 
 function refreshCurrentDir() {
@@ -522,14 +516,16 @@ const createDir = () => {
   })
 }
 
-function uploadFilesClick(slotProps: { close: () => void }, dir: string) {
-  uploadFiles(dir)
-  slotProps.close()
+function uploadFilesClick(path: string) {
+  fileInput.value!.value = ''
+  fileInput.value!.setAttribute('data-dir', path)
+  fileInput.value!.click()
 }
 
-function uploadDirClick(slotProps: { close: () => void }, dir: string) {
-  uploadDir(dir)
-  slotProps.close()
+function uploadDirClick(path: string) {
+  dirFileInput.value!.value = ''
+  dirFileInput.value!.setAttribute('data-dir', path)
+  dirFileInput.value!.click()
 }
 
 function copyItems() {
@@ -546,28 +542,24 @@ function pasteDir() {
   paste(filter.parent)
 }
 
-function duplicateItem(slotProps: { close: () => void }, item: IFile) {
+function duplicateItem(item: IFile) {
   copy([item.id])
   paste(filter.parent)
-  slotProps.close()
 }
 
-function cutItem(slotProps: { close: () => void }, item: IFile) {
+function cutItem(item: IFile) {
   cut([item.id])
-  slotProps.close()
 }
 
-function copyItem(slotProps: { close: () => void }, item: IFile) {
+function copyItem(item: IFile) {
   copy([item.id])
-  slotProps.close()
 }
 
-function pasteItme(slotProps: { close: () => void }, item: IFile) {
+function pasteItem(item: IFile) {
   paste(item.path)
-  slotProps.close()
 }
 
-function renameItemClick(slotProps: { close: () => void }, item: IFile) {
+function renameItemClick(item: IFile) {
   renameItem.value = item
   openModal(EditValueModal, {
     title: t('rename'),
@@ -577,7 +569,6 @@ function renameItemClick(slotProps: { close: () => void }, item: IFile) {
     getVariables: renameVariables,
     done: renameDone,
   })
-  slotProps.close()
 }
 
 function deleteItem(item: IFile) {
@@ -609,6 +600,12 @@ const fileRenamedHandler = (event: IFileRenamedEvent) => {
 function dropFiles2(e: DragEvent) {
   dropFiles(e, filter.parent)
 }
+
+const uploadMenuVisible = ref(false)
+const sortMenuVisible = ref(false)
+const uploadItemMenuVisible = ref<Record<string, boolean>>({})
+const infoMenuVisible = ref<Record<string, boolean>>({})
+const actionsMenuVisible = ref<Record<string, boolean>>({})
 
 onActivated(() => {
   q.value = decodeBase64(query.q?.toString() ?? '')

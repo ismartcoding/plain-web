@@ -8,7 +8,7 @@
         {{ data?.url }}
       </div>
       <div class="form-row">
-        <md-outlined-text-field
+        <outlined-text-field
           ref="inputRef"
           v-model="inputValue"
           class="form-control"
@@ -26,8 +26,8 @@
       </div>
     </div>
     <div slot="actions">
-      <md-outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</md-outlined-button>
-      <md-filled-button value="save" :disabled="loading" autofocus @click="doAction"> <md-circular-progress v-if="loading" slot="icon" indeterminate /> {{ $t('save') }} </md-filled-button>
+      <outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</outlined-button>
+      <filled-button value="save" :disabled="loading" autofocus @click="doAction"> <md-circular-progress v-if="loading" slot="icon" indeterminate /> {{ $t('save') }} </filled-button>
     </div>
   </md-dialog>
 </template>

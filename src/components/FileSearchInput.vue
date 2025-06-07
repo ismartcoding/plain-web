@@ -9,29 +9,32 @@
       </md-input-chip>
     </div>
   </md-chip-set>
-  <button id="btn-search" v-tooltip="$t('search')" class="btn-icon" @click.prevent="show">
-    <md-ripple />
-    <i-material-symbols:search-rounded />
-  </button>
-  <md-menu positioning="popover" anchor="btn-search" menu-corner="start-end" anchor-corner="end-end" stay-open-on-focusout quick :open="searchPanelVisible" @closed="hide">
+  <dropdown v-model="searchPanelVisible" :maxHeight="400">
+    <template #trigger>
+      <button v-tooltip="$t('search')" class="btn-icon">
+        <md-ripple />
+        <i-material-symbols:search-rounded />
+      </button>
+    </template>
     <div class="filters">
       <div class="form-row">
-        <md-outlined-text-field v-model="searchFilter.text" :label="$t('keywords')" @keyup.enter="applyAndDoSearch" />
+        <outlined-text-field v-model="searchFilter.text" :label="$t('keywords')" @keyup.enter="applyAndDoSearch" />
       </div>
       <md-chip-set>
         <md-filter-chip key="chip-show-hidden" :label="$t('show_hidden')" :selected="searchFilter.showHidden" @click="toggleShowHidden" />
       </md-chip-set>
       <div class="buttons">
-        <md-filled-button @click.stop="applyAndDoSearch">
+        <filled-button @click.stop="applyAndDoSearch">
           {{ $t('search') }}
-        </md-filled-button>
+        </filled-button>
       </div>
     </div>
-  </md-menu>
+  </dropdown>
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, type PropType } from 'vue'
+import { reactive, ref, watch, type PropType } from 'vue'
+import Dropdown from '@/components/Dropdown.vue'
 import type { IFileFilter } from '@/lib/interfaces'
 import { replacePath } from '@/plugins/router'
 import { useSearch } from '@/hooks/files'
@@ -62,10 +65,17 @@ const props = defineProps({
 
 const searchPanelVisible = ref(false)
 
+// Watch for panel visibility changes and sync filter state when opening
+watch(searchPanelVisible, (isVisible) => {
+  if (isVisible) {
+    copyFilter(props.filter, searchFilter)
+  }
+})
+
 function applyAndDoSearch() {
   copyFilter(searchFilter, props.filter)
   doSearch()
-  hide()
+  searchPanelVisible.value = false
 }
 
 function doSearch() {
@@ -77,15 +87,6 @@ function removeText() {
   doSearch()
 }
 
-function show() {
-  searchPanelVisible.value = true
-  copyFilter(props.filter, searchFilter)
-}
-
-function hide() {
-  searchPanelVisible.value = false
-}
-
 function removeShowHidden() {
   props.filter.showHidden = false
   doSearch()
@@ -95,16 +96,12 @@ function toggleShowHidden() {
   searchFilter.showHidden = !searchFilter.showHidden
 }
 
-defineExpose({ dismiss: hide })
+defineExpose({ dismiss: () => { searchPanelVisible.value = false } })
 </script>
 <style lang="scss" scoped>
 .filters {
   padding: 16px;
   min-width: 400px;
-
-  md-outlined-text-field {
-    width: 100%;
-  }
 
   .buttons {
     text-align: right;
