@@ -46,6 +46,7 @@ const EventType: { [key: number]: string } = {
   7: 'notification_created',
   8: 'notification_updated',
   9: 'notification_deleted',
+  10: 'notification_refreshed',
 }
 
 async function connect() {
@@ -79,7 +80,7 @@ async function connect() {
       } else {
         try {
           const json = aesDecrypt(key, r.data)
-          emitter.emit(type, JSON.parse(json))
+          emitter.emit(type, json ? JSON.parse(json) : null)
           console.log(`${type}, ${json}`)
         } catch (ex) {
           console.error(ex)

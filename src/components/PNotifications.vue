@@ -78,7 +78,7 @@ const { t } = useI18n()
 const { app, urlTokenKey } = storeToRefs(useTempStore())
 const notifications = ref<INotification[]>([])
 const isHttps = window.location.protocol === 'https:'
-const { loading } = initQuery({
+const { loading, refetch } = initQuery({
   handle: (data: any, error: string) => {
     if (error) {
       toast(t(error), 'error')
@@ -177,6 +177,10 @@ onMounted(() => {
     const client = resolveClient('a')
     const cache = client.cache
     cache.evict({ id: cache.identify({ __typename: 'Notification', id: data.id }) })
+  })
+
+  emitter.on('notification_refreshed', async () => {
+    refetch()
   })
 })
 </script>

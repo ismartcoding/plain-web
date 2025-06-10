@@ -77,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import { formatFileSize, formatSeconds } from '@/lib/format'
 import { formatDateTime, formatDateTimeFull } from '@/lib/format'
 import { isVideo, isImage, isAudio } from '@/lib/file'
@@ -139,6 +139,25 @@ const canTrash = computed(() => {
   const mediaTypes = [DataType.VIDEO, DataType.AUDIO, DataType.IMAGE]
   const type = props.current?.type
   return type && mediaTypes.includes(type as DataType) && hasFeature(FEATURE.MEDIA_TRASH, props.osVersion)
+})
+
+function handleKeyDown(event: KeyboardEvent) {
+  if (event.key === 'Delete' || ((event.ctrlKey || event.metaKey) && event.key === 'Backspace')) {
+    event.preventDefault()
+    if (canTrash.value && !isTrashed.value) {
+      trashMediaItem()
+    } else if ((canTrash.value && isTrashed.value) || !canTrash.value) {
+      emit('delete-file')
+    }
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('keydown', handleKeyDown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeyDown)
 })
 
 function getResolution() {
