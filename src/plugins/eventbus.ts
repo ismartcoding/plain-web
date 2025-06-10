@@ -27,6 +27,7 @@ type Events = {
   notification_created: any
   notification_updated: any
   notification_deleted: any
+  notification_refreshed: any
   color_mode_changed: undefined
   app_socket_connection_changed: boolean
 }
