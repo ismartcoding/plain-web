@@ -150,6 +150,7 @@ import { getFileUrlByPath } from '@/lib/api/file'
 import { useSearch } from '@/hooks/search'
 import { useKeyEvents } from '@/hooks/key-events'
 import { getSortItems } from '@/lib/file'
+import { generateDownloadFileName } from '@/lib/format'
 import Dropdown from '@/components/base/VDropdown.vue'
 
 // Track packages being installed
@@ -193,7 +194,7 @@ const {
   selectAll,
   shouldSelect,
 } = useSelectable(items)
-const { downloadItems } = useDownloadItems(urlTokenKey, DataType.PACKAGE, clearSelection, 'apps.zip')
+const { downloadItems } = useDownloadItems(urlTokenKey, DataType.PACKAGE, clearSelection, () => generateDownloadFileName('apps'))
 const { downloadFile } = useDownload(urlTokenKey)
 const gotoPage = (page: number) => {
   const q = route.query.q

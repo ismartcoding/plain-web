@@ -461,4 +461,11 @@ export default {
   app_installation_completed: 'Cài đặt ứng dụng thành công',
   app_upgrade_completed: 'Cập nhật ứng dụng thành công',
   confirm_installation_on_phone: 'Vui lòng xác nhận cài đặt trên điện thoại của bạn.',
+  keyboard_shortcuts: 'Phím tắt',
+  delete_selected: 'Xóa đã chọn',
+  navigate_pages: 'Di chuyển trang',
+  previous_next: 'Trước/Tiếp',
+  play_pause_video: 'Phát/Tạm dừng video',
+  delete_file: 'Xóa tệp',
+  close_preview: 'Đóng xem trước',
 }

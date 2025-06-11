@@ -468,4 +468,11 @@ export default {
   app_installation_completed: 'Установка приложения завершена',
   app_upgrade_completed: 'Обновление приложения завершено',
   confirm_installation_on_phone: 'Пожалуйста, подтвердите установку на вашем телефоне.',
+  keyboard_shortcuts: 'Комбинации клавиш',
+  delete_selected: 'Удалить выделенное',
+  navigate_pages: 'Перейти на страницу',
+  previous_next: 'Назад/Вперед',
+  play_pause_video: 'Воспроизвести/Пауза видео',
+  delete_file: 'Удалить файл',
+  close_preview: 'Закрыть предпросмотр',
 }

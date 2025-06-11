@@ -461,4 +461,11 @@ export default {
   app_installation_completed: 'アプリのインストールが完了しました',
   app_upgrade_completed: 'アプリのアップグレードが完了しました',
   confirm_installation_on_phone: '電話でインストールを確認してください。',
+  keyboard_shortcuts: 'キーボードショートカット',
+  delete_selected: '選択したものを削除',
+  navigate_pages: 'ページを移動',
+  previous_next: '前/次',
+  play_pause_video: 'ビデオを再生/一時停止',
+  delete_file: 'ファイルを削除',
+  close_preview: 'プレビューを閉じる',
 }

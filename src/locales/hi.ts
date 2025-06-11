@@ -462,4 +462,11 @@ export default {
   app_installation_completed: 'ऐप इंस्टॉल संपन्न हो गया',
   app_upgrade_completed: 'ऐप अपग्रेड संपन्न हो गया',
   confirm_installation_on_phone: 'कृपया अपने फ़ोन पर स्थापना को सत्यापित करें।',
+  keyboard_shortcuts: 'कीबोर्ड शॉर्टकट्स',
+  delete_selected: 'चयनित हटाएं',
+  navigate_pages: 'पृष्ठ बाईं ओर जाएं',
+  previous_next: 'पिछला/अगला',
+  play_pause_video: 'वीडियो बजाएं/रोकें',
+  delete_file: 'फाइल हटाएं',
+  close_preview: 'पूर्वावलोकन बंद करें',
 }

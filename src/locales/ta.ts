@@ -465,4 +465,11 @@ export default {
   app_installation_completed: 'பயன்பாட்டை நிறுவப்பட்டது',
   app_upgrade_completed: 'பயன்பாட்டை மேம்படுத்தப்பட்டது',
   confirm_installation_on_phone: 'தயவுசெய்து தொலைபேசியில் நிறுவலை உறுதிப்படுத்தவும்.',  
+  keyboard_shortcuts: 'கீபோர்ட் குறுக்குவாட்டுகள்',
+  delete_selected: 'தேர்ந்தெடுக்கப்பட்டதை நீக்கு',
+  navigate_pages: 'பக்கங்களை நகர்த்து',
+  previous_next: 'முந்தைய/அடுத்தது',
+  play_pause_video: 'வீடியோவை இயக்கு/இடைநிறுத்து',
+  delete_file: 'கோப்பை நீக்கு',
+  close_preview: 'முன்னோட்டத்தை மூடு',
 }

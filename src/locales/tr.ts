@@ -462,4 +462,11 @@ export default {
   app_installation_completed: 'Uygulama yüklendi',
   app_upgrade_completed: 'Uygulama güncellendi',
   confirm_installation_on_phone: 'Lütfen telefonunuzda yüklemeyi onaylayın.',
+  keyboard_shortcuts: 'Klavye kısayolları',
+  delete_selected: 'Seçilenleri sil',
+  navigate_pages: 'Sayfalar arası geçiş',
+  previous_next: 'Önceki/Sonraki',
+  play_pause_video: 'Video oynat/duraklat',
+  delete_file: 'Dosyayı sil',
+  close_preview: 'Önizlemeyi kapat',
 }

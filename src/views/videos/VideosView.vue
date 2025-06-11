@@ -48,6 +48,7 @@
     </div>
     <div class="actions">
       <search-input :filter="filter" :tags="tags" :buckets="buckets" :get-url="getUrl" />
+      <media-keyboard-shortcuts />
       <v-dropdown v-if="!filter.trash" v-model="uploadMenuVisible">
         <template #trigger>
           <v-icon-button v-tooltip="$t('upload')">
@@ -306,7 +307,7 @@ import { DataType, FEATURE } from '@/lib/data'
 import { getDirFromPath, getSortItems, isVideo } from '@/lib/file'
 import { useSearch } from '@/hooks/search'
 import { useKeyEvents } from '@/hooks/key-events'
-import { formatDateTime, formatTimeAgo } from '@/lib/format'
+import { formatDateTime, formatTimeAgo, generateDownloadFileName } from '@/lib/format'
 import { useDragDropUpload, useFileUpload } from '@/hooks/upload'
 import { useMediaRestore, useMediaTrash } from '@/hooks/media-trash'
 import { hasFeature } from '@/lib/feature'
@@ -365,7 +366,7 @@ const {
   selectAll,
   shouldSelect,
 } = useSelectable(items)
-const { downloadItems } = useDownloadItems(urlTokenKey, dataType, clearSelection, 'videos.zip')
+const { downloadItems } = useDownloadItems(urlTokenKey, dataType, clearSelection, () => generateDownloadFileName('videos'))
 const { downloadFile } = useDownload(urlTokenKey)
 const gotoPage = (page: number) => {
   const q = route.query.q

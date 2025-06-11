@@ -22,11 +22,11 @@ defineProps({
   gap: 8px;
   border: 1px solid var(--md-sys-color-outline, #79747E);
   border-radius: 20px;
-  padding: 10px 24px;
+  padding: 8px 16px;
   background-color: transparent;
   color: var(--md-sys-color-primary, #6750A4);
   font-family: inherit;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
   letter-spacing: 0.1px;
   text-decoration: none;

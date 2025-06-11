@@ -466,4 +466,11 @@ export default {
     app_installation_completed: '安裝應用程式成功',
     app_upgrade_completed: '應用程式升級成功',
     confirm_installation_on_phone: '請在您的手機上確認安裝。',
+    keyboard_shortcuts: '鍵盤快捷鍵',
+    delete_selected: '刪除選取',
+    navigate_pages: '瀏覽頁面',
+    previous_next: '上一個/下一個',
+    play_pause_video: '播放/暫停視頻',
+    delete_file: '刪除檔案',
+    close_preview: '關閉預覽',
   }

@@ -461,4 +461,11 @@ export default {
   app_installation_completed: '앱 설치 완료',
   app_upgrade_completed: '앱 업그레이드 완료',
   confirm_installation_on_phone: '전화에서 설치를 확인하세요.',
+  keyboard_shortcuts: '키보드 단축키',
+  delete_selected: '선택된 항목 삭제',
+  navigate_pages: '페이지 이동',
+  previous_next: '이전/다음',
+  play_pause_video: '비디오 재생/일시 정지',
+  delete_file: '파일 삭제',
+  close_preview: '미리보기 닫기',
 }

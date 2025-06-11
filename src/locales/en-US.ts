@@ -466,4 +466,11 @@ export default {
   app_installation_completed: 'App installation completed',
   app_upgrade_completed: 'App upgrade completed',
   confirm_installation_on_phone: 'Please confirm installation on your phone.',
+  keyboard_shortcuts: 'Keyboard shortcuts',
+  delete_selected: 'Delete selected',
+  navigate_pages: 'Navigate pages',
+  previous_next: 'Previous/Next',
+  play_pause_video: 'Play/Pause video',
+  delete_file: 'Delete file',
+  close_preview: 'Close preview',
 }

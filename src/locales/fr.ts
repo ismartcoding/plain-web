@@ -465,4 +465,11 @@ export default {
   app_installation_completed: 'Installation de l\'application terminée',
   app_upgrade_completed: 'Mise à jour de l\'application terminée',
   confirm_installation_on_phone: 'Veuillez confirmer l\'installation sur votre téléphone.',
+  keyboard_shortcuts: 'Raccourcis clavier',
+  delete_selected: 'Supprimer la sélection',
+  navigate_pages: 'Naviguer entre les pages',
+  previous_next: 'Précédent/Suivant',
+  play_pause_video: 'Lire/Pause la vidéo',
+  delete_file: 'Supprimer le fichier',
+  close_preview: 'Fermer l\'aperçu',
 }

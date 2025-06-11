@@ -54,6 +54,7 @@
 
     <div class="actions">
       <search-input :filter="filter" :tags="tags" :buckets="buckets" :get-url="getUrl" />
+      <media-keyboard-shortcuts />
       <v-dropdown v-model="uploadMenuVisible">
         <template #trigger>
           <v-icon-button v-tooltip="$t('upload')">
@@ -268,7 +269,7 @@ import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { DataType, FEATURE } from '@/lib/data'
 import { getDirFromPath, getSortItems, isAudio } from '@/lib/file'
 import { useKeyEvents } from '@/hooks/key-events'
-import { formatDateTime, formatTimeAgo } from '@/lib/format'
+import { formatDateTime, formatTimeAgo, generateDownloadFileName } from '@/lib/format'
 import { useDragDropUpload, useFileUpload } from '@/hooks/upload'
 import { useMediaRestore, useMediaTrash } from '@/hooks/media-trash'
 import { hasFeature } from '@/lib/feature'
@@ -329,7 +330,7 @@ const {
   selectAll,
   shouldSelect,
 } = useSelectable(items)
-const { downloadItems } = useDownloadItems(urlTokenKey, dataType, clearSelection, 'audios.zip')
+const { downloadItems } = useDownloadItems(urlTokenKey, dataType, clearSelection, () => generateDownloadFileName('audios'))
 const { downloadFile } = useDownload(urlTokenKey)
 const gotoPage = (page: number) => {
   const q = route.query.q
@@ -634,4 +635,6 @@ onDeactivated(() => {
     transform: rotate(0deg);
   }
 }
+
+
 </style>

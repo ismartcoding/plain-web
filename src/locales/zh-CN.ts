@@ -466,4 +466,11 @@ export default {
   app_installation_completed: '安装应用成功',
   app_upgrade_completed: '应用升级成功',
   confirm_installation_on_phone: '请在您的手机上确认安装。',
+  keyboard_shortcuts: '键盘快捷键',
+  delete_selected: '删除所选',
+  navigate_pages: '浏览页面',
+  previous_next: '上一个/下一个',
+  play_pause_video: '播放/暂停视频',
+  delete_file: '删除文件',
+  close_preview: '关闭预览',
 }

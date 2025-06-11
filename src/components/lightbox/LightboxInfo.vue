@@ -1,44 +1,47 @@
 <template>
   <section class="info">
     <div class="info-header">
-      <h3 class="info-title">{{ $t('info') }}</h3>
+      <div class="info-title">
+        <span>{{ $t('info') }}</span>
+        <lightbox-keyboard-shortcuts class="info-keyboard-shortcuts" />
+      </div>
       <div class="info-actions">
         <template v-if="canTrash">
           <template v-if="isTrashed">
-            <button v-tooltip="$t('delete')" class="info-btn" @click.stop="$emit('delete-file')">
-              <i-material-symbols:delete-forever-outline-rounded />
-              <span class="info-btn-text">{{ $t('delete') }}</span>
-            </button>
-            <button v-tooltip="$t('restore')" class="info-btn" :class="{ 'loading': restoreLoading(`ids:${current?.data?.id}`) }" @click.stop="restoreItem">
-              <i-material-symbols:restore-from-trash-outline-rounded />
-              <span class="info-btn-text">{{ $t('restore') }}</span>
-            </button>
+            <v-outlined-button class="info-btn" @click.stop="$emit('delete-file')">
+              <i-material-symbols:delete-forever-outline-rounded slot="icon" />
+              {{ $t('delete') }}
+            </v-outlined-button>
+            <v-outlined-button class="info-btn" :class="{ loading: restoreLoading(`ids:${current?.data?.id}`) }" @click.stop="restoreItem">
+              <i-material-symbols:restore-from-trash-outline-rounded slot="icon" />
+              {{ $t('restore') }}
+            </v-outlined-button>
           </template>
           <template v-else>
-            <button v-tooltip="$t('move_to_trash')" class="info-btn" :class="{ 'loading': trashLoading(`ids:${current?.data?.id}`) }" @click.stop="trashMediaItem">
-              <i-material-symbols:delete-outline-rounded />
-              <span class="info-btn-text">{{ $t('move_to_trash') }}</span>
-            </button>
-            <button v-tooltip="$t('rename')" class="info-btn" @click.stop="$emit('rename-file')">
-              <i-material-symbols:edit-outline-rounded />
-              <span class="info-btn-text">{{ $t('rename') }}</span>
-            </button>
+            <v-outlined-button class="info-btn" :class="{ loading: trashLoading(`ids:${current?.data?.id}`) }" @click.stop="trashMediaItem">
+              <i-material-symbols:delete-outline-rounded slot="icon" />
+              {{ $t('move_to_trash') }}
+            </v-outlined-button>
+            <v-outlined-button class="info-btn" @click.stop="$emit('rename-file')">
+              <i-material-symbols:edit-outline-rounded slot="icon" />
+              {{ $t('rename') }}
+            </v-outlined-button>
           </template>
         </template>
         <template v-else>
-          <button v-tooltip="$t('delete')" class="info-btn" @click.stop="$emit('delete-file')">
-            <i-material-symbols:delete-forever-outline-rounded />
-            <span class="info-btn-text">{{ $t('delete') }}</span>
-          </button>
-          <button v-tooltip="$t('rename')" class="info-btn" @click.stop="$emit('rename-file')">
-            <i-material-symbols:edit-outline-rounded />
-            <span class="info-btn-text">{{ $t('rename') }}</span>
-          </button>
+          <v-outlined-button class="info-btn" @click.stop="$emit('delete-file')">
+            <i-material-symbols:delete-forever-outline-rounded slot="icon" />
+            {{ $t('delete') }}
+          </v-outlined-button>
+          <v-outlined-button class="info-btn" @click.stop="$emit('rename-file')">
+            <i-material-symbols:edit-outline-rounded slot="icon" />
+            {{ $t('rename') }}
+          </v-outlined-button>
         </template>
-        <button v-tooltip="$t('download')" class="info-btn download-btn" @click.stop="handleDownload">
-          <i-material-symbols:download-rounded />
-          <span class="info-btn-text">{{ $t('download') }}</span>
-        </button>
+        <v-outlined-button class="info-btn download-btn" @click.stop="handleDownload">
+          <i-material-symbols:download-rounded slot="icon" />
+          {{ $t('download') }}
+        </v-outlined-button>
       </div>
     </div>
     <div class="info-content">
@@ -88,45 +91,45 @@ import { hasFeature } from '@/lib/feature'
 import { useMediaRestore, useMediaTrash } from '@/hooks/media-trash'
 
 interface ISource {
-  name?: string;
-  path?: string;
-  src?: string;
-  type?: string;
-  size?: number;
-  duration?: number;
-  viewOriginImage?: boolean;
-  data?: any;
+  name?: string
+  path?: string
+  src?: string
+  type?: string
+  size?: number
+  duration?: number
+  viewOriginImage?: boolean
+  data?: any
 }
 
 const props = defineProps({
   current: {
     type: Object as () => ISource | undefined,
-    required: true
+    required: true,
   },
   fileInfo: {
     type: Object,
-    default: null
+    default: null,
   },
   urlTokenKey: {
     type: String,
-    required: true
+    required: true,
   },
   externalFilesDir: {
     type: String,
-    default: ''
+    default: '',
   },
   tagsMap: {
     type: Object as () => Map<string, ITag[]>,
-    required: true
+    required: true,
   },
   osVersion: {
     type: Number,
-    default: 0
+    default: 0,
   },
   downloadFile: {
     type: Function,
-    required: true
-  }
+    required: true,
+  },
 })
 
 const emit = defineEmits(['rename-file', 'delete-file', 'add-to-tags', 'refetch-info'])
@@ -195,11 +198,10 @@ function restoreItem() {
 <style lang="scss" scoped>
 .info {
   grid-area: info;
-  width: 320px;
+  width: 340px;
   height: 100vh;
   box-sizing: border-box;
   background: var(--md-sys-color-surface-container);
-  overflow-y: auto;
   z-index: 1;
   display: flex;
   flex-direction: column;
@@ -210,51 +212,25 @@ function restoreItem() {
 }
 
 .info-title {
-  font-size: 1.2rem;
-  font-weight: bold;
   margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  span {
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
 }
 
 .info-actions {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: auto auto;
-  gap: 10px;
-}
-
-.info-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  background-color: transparent;
-  border: 1px solid var(--md-sys-color-outline);
-  color: var(--md-sys-color-on-surface);
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  width: 100%;
-  box-sizing: border-box;
-
-  &:hover {
-    background-color: var(--md-sys-color-surface-container-highest);
-    border-color: var(--md-sys-color-outline-variant);
-  }
-
-  &.loading {
-    opacity: 0.7;
-    pointer-events: none;
-  }
+  gap: 8px;
 }
 
 .download-btn {
   grid-column: 1 / span 2;
-}
-
-.info-btn-text {
-  white-space: nowrap;
 }
 
 .info-content {
@@ -290,5 +266,7 @@ function restoreItem() {
   display: inline-flex;
   color: var(--md-sys-color-primary);
 }
-
-</style> 
+.info-keyboard-shortcuts {
+  margin-inline-start: auto;
+}
+</style>
