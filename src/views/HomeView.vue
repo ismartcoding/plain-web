@@ -351,7 +351,6 @@ initQuery({
 
       .title {
         font-size: 0.875rem;
-        font-weight: 400;
         text-transform: capitalize;
         color: var(--md-sys-color-on-surface);
       }
@@ -366,7 +365,6 @@ initQuery({
     .count {
       font-size: 0.875rem;
       color: var(--md-sys-color-on-surface-variant);
-      font-weight: 400;
     }
   }
 }

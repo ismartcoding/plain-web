@@ -407,7 +407,7 @@ function uploadDirClick() {
 }
 
 function dropFiles2(e: DragEvent) {
-  dropFiles(e, getUploadDir(), 'audio')
+  dropFiles(e, getUploadDir(), (file) => isAudio(file.name))
 }
 
 const getQuery = () => {

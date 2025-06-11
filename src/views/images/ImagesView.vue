@@ -477,7 +477,7 @@ function uploadDirClick() {
 }
 
 function dropFiles2(e: DragEvent) {
-  dropFiles(e, getUploadDir(), 'image')
+  dropFiles(e, getUploadDir(), (file) => isImage(file.name))
 }
 
 const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {

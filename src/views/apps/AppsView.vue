@@ -332,7 +332,7 @@ const uploadTaskDoneHandler = (r: IUploadItem) => {
 }
 
 function dropApkFiles(e: DragEvent) {
-  dropFiles(e, app.value.downloadsDir, 'application')
+  dropFiles(e, app.value.downloadsDir, (file) => file.name.endsWith('.apk'))
 }
 
 onActivated(() => {

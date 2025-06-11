@@ -134,7 +134,6 @@ function openLink(url: string) {
   
   .preview-title {
     margin: 0 0 4px 0;
-    font-weight: 600;
     color: var(--md-sys-color-on-surface);
     display: -webkit-box;
     -webkit-line-clamp: 2;

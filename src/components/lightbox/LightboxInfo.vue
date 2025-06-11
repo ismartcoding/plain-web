@@ -65,9 +65,11 @@
       <div v-if="current?.type && !isTrashed" class="info-item">
         <div class="info-item-label">
           {{ $t('tags') }}
-          <button v-tooltip="$t('add_to_tags')" class="info-tag-btn" @click.prevent="$emit('add-to-tags')">
-            <i-material-symbols:label-outline-rounded />
-          </button>
+          <v-icon-button v-tooltip="$t('add_to_tags')" class="info-tag-btn" @click.prevent="$emit('add-to-tags')">
+            <template #icon>
+              <i-material-symbols:label-outline-rounded />
+            </template>
+          </v-icon-button>
         </div>
         <div class="info-item-value"><item-tags :tags="fileInfo?.tags" /></div>
       </div>
@@ -198,7 +200,7 @@ function restoreItem() {
 <style lang="scss" scoped>
 .info {
   grid-area: info;
-  width: 340px;
+  width: 350px;
   height: 100vh;
   box-sizing: border-box;
   background: var(--md-sys-color-surface-container);
@@ -260,7 +262,6 @@ function restoreItem() {
 .info-tag-btn {
   background: none;
   border: none;
-  padding: 2px;
   margin-left: 4px;
   cursor: pointer;
   display: inline-flex;

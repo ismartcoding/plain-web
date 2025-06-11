@@ -487,7 +487,7 @@ function uploadDirClick() {
 }
 
 function dropFiles2(e: DragEvent) {
-  dropFiles(e, getUploadDir(), 'video')
+  dropFiles(e, getUploadDir(), (file) => isVideo(file.name))
 }
 
 const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {

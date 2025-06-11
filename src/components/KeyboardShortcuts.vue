@@ -89,7 +89,7 @@ onUnmounted(() => {
 
 .shortcuts-title {
   font-size: 1rem;
-  font-weight: 600;
+  font-weight:500;
   color: var(--md-sys-color-on-surface);
   margin-bottom: 12px;
   padding-bottom: 8px;
