@@ -33,57 +33,19 @@
         <div class="chat-content">
           <div v-if="chatItem._content.type === 'text'">
             <pre v-html="addLinksToURLs(chatItem._content.value.text)"></pre>
-            <div v-if="chatItem.isMe && chatItem.id.startsWith('new_')" class="chat-loading-dots">
-              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-            </div>
             <ChatLinkPreviews v-if="chatItem._content.value.linkPreviews && chatItem._content.value.linkPreviews.length" :data="chatItem" />
           </div>
           <component :is="getComponent(chatItem._content.type)" v-else :data="chatItem"></component>
         </div>
       </div>
     </div>
-    <div class="chat-input">
-      <div class="textarea-wrapper">
-        <div v-show="displayDragMask" class="drag-mask">{{ $t('release_to_send_files') }}</div>
-        <v-text-field
-          v-model="chatText"
-          type="textarea"
-          :rows="2"
-          autocomplete="off"
-          class="textarea"
-          :placeholder="$t('chat_input_hint')"
-          @paste="pasteFiles"
-          @drop.prevent="dropFiles"
-          @dragenter.prevent="fileDragEnter"
-          @dragleave.prevent="fileDragLeave"
-          @keydown.enter.exact.prevent="send"
-          @keydown.enter.shift.exact.prevent="chatText += '\n'"
-          @keydown.enter.ctrl.exact.prevent="chatText += '\n'"
-          @keydown.enter.alt.exact.prevent="chatText += '\n'"
-          @keydown.enter.meta.exact.prevent="chatText += '\n'"
-        >
-          <template #leading-icon>
-            <div class="leading-icons">
-              <button class="btn-icon" @click="sendImages">
-                
-                <i-material-symbols:image-outline-rounded />
-              </button>
-              <button class="btn-icon" @click="sendFiles">
-                
-                <i-material-symbols:folder-outline-rounded />
-              </button>
-            </div>
-          </template>
-          <template #trailing-icon>
-            <button class="btn-icon btn-send" :disable="createLoading" @click="send">
-              <i-material-symbols:send-outline-rounded />
-            </button>
-          </template>
-        </v-text-field>
-      </div>
-    </div>
-    <input ref="fileInput" style="display: none" type="file" multiple @change="uploadFilesChanged" />
-    <input ref="imageInput" style="display: none" type="file" accept="image/*, video/*" multiple @change="uploadImagesChanged" />
+    <ChatInput 
+      v-model="chatText"
+      :create-loading="createLoading"
+      @send-message="send"
+      @send-files="doUploadFiles"
+      @send-images="doUploadImages"
+    />
   </div>
 </template>
 
@@ -116,8 +78,6 @@ import { replacePath } from '@/plugins/router'
 const { getUploads } = useChatFilesUpload()
 const { resolveClient } = useApolloClient()
 const scrollContainer = ref<HTMLDivElement>()
-const fileInput = ref<HTMLInputElement>()
-const imageInput = ref<HTMLInputElement>()
 const chatItems = ref<IChatItem[]>([])
 const menuVisible = reactive<Record<string, boolean>>({})
 const { enqueue: enqueueTask } = useTasks()
@@ -184,14 +144,7 @@ const {
   },
 })
 
-function uploadFilesChanged(e: Event) {
-  const files = (e.target as HTMLInputElement).files as FileList
-  const items: File[] = []
-  for (const item of files) {
-    items.push(item)
-  }
-  doUploadFiles(items)
-}
+
 
 async function doUploadFiles(files: File[]) {
   if (!files.length) {
@@ -270,7 +223,7 @@ async function handleContentUpload(files: File[], contentType: string, options: 
   items.push(item);
   enqueueTask(item, uploads);
   const client = resolveClient('a');
-  insertCache(client.cache, items, chatItemsGQL);
+  insertCache(client.cache, item, chatItemsGQL);
   scrollBottom();
 }
 
@@ -359,10 +312,7 @@ function deleteMessage(id: string) {
   deleteItem({ id })
 }
 
-function sendImages() {
-  imageInput.value!.value = ''
-  imageInput.value!.click()
-}
+
 
 function openFolder() {
   const q = buildQuery([
@@ -380,70 +330,9 @@ function openFolder() {
   replacePath(store, `/files?q=${encodeBase64(q)}`)
 }
 
-function sendFiles() {
-  fileInput.value!.value = ''
-  fileInput.value!.click()
-}
 
-const displayDragMask = ref(false)
 
-function fileDragEnter() {
-  displayDragMask.value = true
-}
 
-function fileDragLeave() {
-  displayDragMask.value = false
-}
-
-function dropFiles(e: DragEvent) {
-  const fileList = e.dataTransfer?.files as FileList
-  displayDragMask.value = false
-  if (fileList) {
-    const files: File[] = []
-    for (const item of fileList) {
-      files.push(item)
-    }
-    if (files.length) {
-      doUploadFiles(files)
-    }
-  }
-}
-
-function pasteFiles(e: ClipboardEvent) {
-  const items = e.clipboardData?.items as DataTransferItemList
-  if (items) {
-    const images: File[] = []
-    const files: File[] = []
-    for (const item of items) {
-      if (item.kind !== 'file') {
-        continue
-      }
-      const file = item.getAsFile()!
-      if (file.type.startsWith('image') || file.type.startsWith('video')) {
-        images.push(file)
-      } else {
-        files.push(file)
-      }
-    }
-    if (images.length) {
-      e.preventDefault()
-      doUploadImages(images)
-    }
-    if (files.length) {
-      e.preventDefault()
-      doUploadFiles(files)
-    }
-  }
-}
-
-function uploadImagesChanged(e: Event) {
-  const files = (e.target as HTMLInputElement).files as FileList
-  const items: File[] = []
-  for (const item of files) {
-    items.push(item)
-  }
-  doUploadImages(items)
-}
 
 onMounted(() => {
   emitter.on('message_created', async (data: any[]) => {
@@ -498,29 +387,6 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.chat-input {
-  background-color: var(--md-sys-color-surface);
-  padding: 8px 16px;
-  --outlined-field-bg: var(--md-sys-color-surface);
-
-  .leading-icons {
-    display: flex;
-    flex-direction: column;
-    margin-block-start: 4px;
-  }
-
-  .btn-send {
-    margin-block-start: 4px;
-  }
-
-  .textarea-wrapper {
-    position: relative;
-    .textarea {
-      display: block;
-    }
-  }
-}
-
 .chat-content {
   margin-top: 8px;
   max-width: 800px;

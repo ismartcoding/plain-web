@@ -53,7 +53,7 @@ export const useDragDropUpload = (uploads: Ref<IUploadItem[]>) => {
     fileDragLeave() {
       dropping.value = false
     },
-    dropFiles(e: DragEvent, dir: string, type: string = '') {
+    dropFiles(e: DragEvent, dir: string, isValid: (file: File) => boolean) {
       dropping.value = false
       const files = e.dataTransfer?.files
       if (!files) {
@@ -62,12 +62,14 @@ export const useDragDropUpload = (uploads: Ref<IUploadItem[]>) => {
       const items = []
       for (let i = 0; i < files.length; i++) {
         const file = files[i]
-        if (file.type && type && !file.type.startsWith(type)) {
+        if (!isValid(file)) {
           continue
         }
         items.push(createUploadItem(file, dir))
       }
-      uploads.value = [...uploads.value, ...items]
+      if (items.length > 0) {
+        uploads.value = [...uploads.value, ...items]
+      }
     },
   }
 }
