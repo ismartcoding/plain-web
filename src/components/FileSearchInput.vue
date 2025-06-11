@@ -54,6 +54,10 @@ const props = defineProps({
     type: Function as PropType<(q: string) => string>,
     required: true,
   },
+  navigateToDir: {
+    type: Function as PropType<(dir: string) => void>,
+    required: false,
+  },
 })
 
 const mainStore = useMainStore()
@@ -83,8 +87,24 @@ function navigateToSearch(filter: IFileFilter) {
   replacePath(mainStore, props.getUrl(buildQ(filter)))
 }
 
+// Check if the input text looks like an absolute path
+function isAbsolutePath(text: string): boolean {
+  // Check for Unix/Android absolute paths (starting with /)
+  return text.startsWith('/')
+}
+
 // Apply search panel conditions
 function applySearch() {
+  const inputText = localFilter.text?.trim()
+  
+  // If the input looks like an absolute path, navigate to that directory
+  if (inputText && isAbsolutePath(inputText) && props.navigateToDir) {
+    props.navigateToDir(inputText)
+    searchPanelVisible.value = false
+    return
+  }
+  
+  // Otherwise, perform normal search
   doSearch()
   searchPanelVisible.value = false
 }
