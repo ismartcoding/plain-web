@@ -37,7 +37,7 @@
       </v-icon-button>
     </template>
     <div class="actions">
-      <file-search-input :filter="filter" :parent="rootDir" :get-url="getUrl" />
+      <file-search-input :filter="filter" :parent="rootDir" :get-url="getUrl" :navigate-to-dir="navigateToDir" />
       <v-icon-button v-tooltip="$t('create_folder')" @click="createDir">
         <template #icon>
           <i-material-symbols:create-new-folder-outline-rounded />
@@ -450,6 +450,8 @@ function getPageStats() {
 function navigateToDir(dir: string) {
   clearSelection()
   filter.parent = dir
+  // Clear search text when navigating to a directory to avoid filtering files in the new directory
+  filter.text = ''
   const q = buildQ(filter)
   replacePath(mainStore, getUrl(q))
 }
