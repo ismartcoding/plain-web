@@ -463,4 +463,11 @@ export default {
   app_installation_completed: 'App-installatie voltooid',
   app_upgrade_completed: 'App-upgrade voltooid',
   confirm_installation_on_phone: 'Bevestig de installatie op je telefoon.',
+  keyboard_shortcuts: 'Sneltoetsen',
+  delete_selected: 'Geselecteerde verwijderen',
+  navigate_pages: 'Pagina navigeren',
+  previous_next: 'Vorige/Volgende',
+  play_pause_video: 'Video afspelen/pauzeren',
+  delete_file: 'Bestand verwijderen',
+  close_preview: 'Voorbeeld sluiten',
 }

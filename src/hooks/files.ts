@@ -218,7 +218,7 @@ export function getFileDir(fileName: string) {
   return dir
 }
 
-export const useDownloadItems = (urlTokenKey: Ref<sjcl.BitArray | null>, type: string, clearSelection: () => void, fileName: string) => {
+export const useDownloadItems = (urlTokenKey: Ref<sjcl.BitArray | null>, type: string, clearSelection: () => void, fileName: string | (() => string)) => {
   const { t } = useI18n()
 
   return {
@@ -232,15 +232,18 @@ export const useDownloadItems = (urlTokenKey: Ref<sjcl.BitArray | null>, type: s
         q = `ids:${ids.join(',')}`
       }
 
+      // Generate dynamic filename if function is provided
+      const finalFileName = typeof fileName === 'function' ? fileName() : fileName
+
       const id = encryptUrlParams(
         urlTokenKey.value,
         JSON.stringify({
           query: q,
           type: type,
-          name: fileName,
+          name: finalFileName,
         })
       )
-      download(`${getApiBaseUrl()}/zip/files?id=${encodeURIComponent(id)}`, fileName)
+      download(`${getApiBaseUrl()}/zip/files?id=${encodeURIComponent(id)}`, finalFileName)
       clearSelection()
     },
   }

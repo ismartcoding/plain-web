@@ -467,4 +467,11 @@ export default {
   app_upgrade_completed: 'অ্যাপ আপগ্রেড সম্পন্ন হয়েছে',
   app_installation_completed: 'অ্যাপ ইনস্টল সম্পন্ন হয়েছে',
   confirm_installation_on_phone: 'দয়া করে ফোনে এ "এখন শুরু করুন" ট্যাপ করুন। \nযদি অনুমতি উইন্ডো প্রদর্শিত না হয়, তাহলে দয়া করে PlainApp পুনরায় আরম্ভ করুন। \n{সেকেন্ড} সেকেন্ডে আবার চেষ্টা করুন',
+  keyboard_shortcuts: 'কীবোর্ড শর্টকাটস',
+  delete_selected: 'নির্বাচিত মুছুন',
+  navigate_pages: 'পৃষ্ঠা নির্দেশ করুন',
+  previous_next: 'পূর্ববর্তী/পরবর্তী',
+  play_pause_video: 'ভিডিও প্লে/বিরতি',
+  delete_file: 'ফাইল মুছুন',
+  close_preview: 'প্রিভিউ বন্ধ করুন',
 }
