@@ -32,7 +32,7 @@
         
         <div class="file-actions">
           <v-outlined-button class="action-btn" @click="downloadFile">
-            <i-lucide-download slot="icon" />
+            <i-lucide-download />
             {{ $t('download') }}
           </v-outlined-button>
           <v-outlined-button 
@@ -40,8 +40,8 @@
             class="action-btn" 
             @click="toggleViewMode"
           >
-            <i-lucide-eye v-if="showRawText" slot="icon" />
-            <i-lucide-code v-else slot="icon" />
+            <i-lucide-eye v-if="showRawText" />
+            <i-lucide-code v-else />
             {{ showRawText ? $t('formatted_view') : $t('raw_text') }}
           </v-outlined-button>
           <v-outlined-button 
@@ -49,7 +49,7 @@
             class="action-btn" 
             @click="toggleTextWrap"
           >
-            <i-lucide-wrap-text slot="icon" />
+            <i-lucide-wrap-text />
             {{ textWrap ? $t('unwrap') : $t('wrap') }}
           </v-outlined-button>
         </div>

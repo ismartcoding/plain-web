@@ -380,3 +380,27 @@ export const mergeChunksGQL = gql`
     mergeChunks(fileId: $fileId, totalChunks: $totalChunks, path: $path, replace: $replace)
   }
 `
+
+export const startPomodoroGQL = gql`
+  mutation startPomodoro {
+    startPomodoro
+  }
+`
+
+export const stopPomodoroGQL = gql`
+  mutation stopPomodoro {
+    stopPomodoro
+  }
+`
+
+export const pausePomodoroGQL = gql`
+  mutation pausePomodoro {
+    pausePomodoro
+  }
+`
+
+export const updatePomodoroProgressGQL = gql`
+  mutation updatePomodoroProgress($timeLeft: Int!) {
+    updatePomodoroProgress(timeLeft: $timeLeft)
+  }
+`

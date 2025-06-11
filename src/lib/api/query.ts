@@ -558,3 +558,39 @@ export const uploadedChunksGQL = gql`
     uploadedChunks(fileId: $fileId)
   }
 `
+
+export const pomodoroSettingsGQL = gql`
+  query {
+    pomodoroSettings {
+      workDuration
+      shortBreakDuration
+      longBreakDuration
+      pomodorosBeforeLongBreak
+      showNotification
+      playSoundOnComplete
+    }
+  }
+`
+
+export const pomodoroTodayAndSettingsGQL = gql`
+  query {
+    pomodoroToday {
+      date
+      completedCount
+      currentRound
+      timeLeft
+      totalTime
+      isRunning
+      isPause
+      state
+    }
+    pomodoroSettings {
+      workDuration
+      shortBreakDuration
+      longBreakDuration
+      pomodorosBeforeLongBreak
+      showNotification
+      playSoundOnComplete
+    }
+  }
+`

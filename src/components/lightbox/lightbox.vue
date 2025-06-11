@@ -682,7 +682,7 @@ onBeforeUnmount(() => {
     }
   }
 
-  .outlined-button,
+  .v-outlined-button,
   .btn-icon {
     margin-inline-end: 16px;
   }

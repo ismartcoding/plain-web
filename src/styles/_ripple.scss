@@ -1,7 +1,7 @@
 /* Global Ripple Effect */
 .btn-icon,
 .v-filled-button,
-.outlined-button,
+.v-outlined-button,
 .info-btn,
 button[class*="btn-"] {
   position: relative;
@@ -10,7 +10,7 @@ button[class*="btn-"] {
 
 .btn-icon .ripple,
 .v-filled-button .ripple,
-.outlined-button .ripple,
+.v-outlined-button .ripple,
 .info-btn .ripple,
 button[class*="btn-"] .ripple {
   position: absolute;
@@ -29,7 +29,7 @@ button[class*="btn-"] .ripple {
   background: rgba(255, 255, 255, 0.3);
 }
 
-.outlined-button .ripple {
+.v-outlined-button .ripple {
   background: rgba(103, 80, 164, 0.2);
 }
 
@@ -51,7 +51,7 @@ button[class*="btn-"] .ripple {
 
 .btn-icon:disabled .ripple,
 .v-filled-button:disabled .ripple,
-.outlined-button:disabled .ripple,
+.v-outlined-button:disabled .ripple,
 .info-btn:disabled .ripple,
 button[class*="btn-"]:disabled .ripple {
   display: none;

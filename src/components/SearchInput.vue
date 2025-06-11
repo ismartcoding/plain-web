@@ -5,25 +5,25 @@
     </div>
     <div v-if="filter.today" key="filter-today">
       <v-input-chip :label="$t('today')" remove-only @remove="removeToday">
-        <i-material-symbols:today-outline-rounded slot="icon" />
+        <i-material-symbols:today-outline-rounded />
       </v-input-chip>
     </div>
     <div v-if="filter.trash" key="filter-trash">
       <v-input-chip :label="$t('trash')" remove-only @remove="removeTrash">
-        <i-material-symbols:delete-outline-rounded slot="icon" />
+        <i-material-symbols:delete-outline-rounded />
       </v-input-chip>
     </div>
     <v-input-chip v-for="item in filteredBuckets" :key="item.id" :label="item.name" remove-only @remove="removeBucket">
-      <i-material-symbols:folder-outline-rounded slot="icon" />
+      <i-material-symbols:folder-outline-rounded />
     </v-input-chip>
     <v-input-chip v-for="item in filteredFeeds" :key="item.id" :label="item.name" remove-only @remove="removeFeed">
-      <i-material-symbols:rss-feed-rounded slot="icon" />
+      <i-material-symbols:rss-feed-rounded />
     </v-input-chip>
     <v-input-chip v-for="item in filteredTypes" :key="item.id" :label="item.name" remove-only @remove="removeType">
-      <i-material-symbols:category-outline-rounded slot="icon" />
+      <i-material-symbols:category-outline-rounded />
     </v-input-chip>
     <v-input-chip v-for="item in filteredTags" :key="item.id" :label="item.name" remove-only @remove="removeTag(item)">
-      <i-material-symbols:label-outline-rounded slot="icon" />
+      <i-material-symbols:label-outline-rounded />
     </v-input-chip>
   </v-chip-set>
   <v-dropdown v-model="searchPanelVisible" :max-height="400">

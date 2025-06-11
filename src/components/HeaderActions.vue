@@ -3,7 +3,6 @@
     <v-dropdown v-model="langMenuVisible">
       <template #trigger>
         <button id="lang-ref" v-tooltip="t('header_actions.language')" class="btn-icon">
-          
           <i-material-symbols:translate-rounded />
         </button>
       </template>
@@ -17,7 +16,6 @@
     <v-dropdown v-model="themeMenuVisible">
       <template #trigger>
         <button id="theme-ref" v-tooltip="t('header_actions.theme')" class="btn-icon">
-          
           <i-material-symbols:sunny-outline-rounded />
         </button>
       </template>
@@ -26,7 +24,6 @@
   </div>
 
   <button v-if="props.loggedIn" v-tooltip="$t('header_actions.logout')" class="btn-icon h-action" style="margin-inline-end: 8px" @click="logout">
-    
     <i-material-symbols:logout-rounded />
   </button>
 </template>

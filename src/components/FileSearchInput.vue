@@ -5,7 +5,7 @@
     </div>
     <div v-if="filter.showHidden" key="filter-show-hidden">
       <v-input-chip :label="$t('show_hidden')" remove-only @remove="() => removeFilter('showHidden')">
-        <i-material-symbols:hide-source-outline-rounded slot="icon" />
+        <i-material-symbols:hide-source-outline-rounded />
       </v-input-chip>
     </div>
   </v-chip-set>

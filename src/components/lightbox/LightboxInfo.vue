@@ -9,37 +9,37 @@
         <template v-if="canTrash">
           <template v-if="isTrashed">
             <v-outlined-button class="info-btn" @click.stop="$emit('delete-file')">
-              <i-material-symbols:delete-forever-outline-rounded slot="icon" />
+              <i-material-symbols:delete-forever-outline-rounded />
               {{ $t('delete') }}
             </v-outlined-button>
             <v-outlined-button class="info-btn" :class="{ loading: restoreLoading(`ids:${current?.data?.id}`) }" @click.stop="restoreItem">
-              <i-material-symbols:restore-from-trash-outline-rounded slot="icon" />
+              <i-material-symbols:restore-from-trash-outline-rounded />
               {{ $t('restore') }}
             </v-outlined-button>
           </template>
           <template v-else>
             <v-outlined-button class="info-btn" :class="{ loading: trashLoading(`ids:${current?.data?.id}`) }" @click.stop="trashMediaItem">
-              <i-material-symbols:delete-outline-rounded slot="icon" />
+              <i-material-symbols:delete-outline-rounded />
               {{ $t('move_to_trash') }}
             </v-outlined-button>
             <v-outlined-button class="info-btn" @click.stop="$emit('rename-file')">
-              <i-material-symbols:edit-outline-rounded slot="icon" />
+              <i-material-symbols:edit-outline-rounded />
               {{ $t('rename') }}
             </v-outlined-button>
           </template>
         </template>
         <template v-else>
           <v-outlined-button class="info-btn" @click.stop="$emit('delete-file')">
-            <i-material-symbols:delete-forever-outline-rounded slot="icon" />
+            <i-material-symbols:delete-forever-outline-rounded />
             {{ $t('delete') }}
           </v-outlined-button>
           <v-outlined-button class="info-btn" @click.stop="$emit('rename-file')">
-            <i-material-symbols:edit-outline-rounded slot="icon" />
+            <i-material-symbols:edit-outline-rounded />
             {{ $t('rename') }}
           </v-outlined-button>
         </template>
         <v-outlined-button class="info-btn download-btn" @click.stop="handleDownload">
-          <i-material-symbols:download-rounded slot="icon" />
+          <i-material-symbols:download-rounded />
           {{ $t('download') }}
         </v-outlined-button>
       </div>
@@ -66,9 +66,7 @@
         <div class="info-item-label">
           {{ $t('tags') }}
           <v-icon-button v-tooltip="$t('add_to_tags')" class="info-tag-btn" @click.prevent="$emit('add-to-tags')">
-            <template #icon>
-              <i-material-symbols:label-outline-rounded />
-            </template>
+            <i-material-symbols:label-outline-rounded />
           </v-icon-button>
         </div>
         <div class="info-item-value"><item-tags :tags="fileInfo?.tags" /></div>

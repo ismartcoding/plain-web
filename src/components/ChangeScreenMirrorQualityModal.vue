@@ -40,7 +40,7 @@
     <template #actions>
       <v-outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</v-outlined-button>
       <v-filled-button value="save" :disabled="saving" @click="doAction">
-        <v-circular-progress v-if="saving" slot="icon" indeterminate />
+        <v-circular-progress v-if="saving" indeterminate />
         {{ $t('save') }}
       </v-filled-button>
     </template>

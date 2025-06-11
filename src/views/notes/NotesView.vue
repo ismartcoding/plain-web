@@ -7,31 +7,21 @@
       <template v-if="checked">
         <template v-if="filter.trash">
           <v-icon-button v-tooltip="$t('delete')" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)">
-            <template #icon>
               <i-material-symbols:delete-forever-outline-rounded />
-            </template>
           </v-icon-button>
           <v-icon-button v-tooltip="$t('restore')" :loading="restoreLoading(getQuery())" @click.stop="restore(getQuery())">
-            <template #icon>
               <i-material-symbols:restore-from-trash-outline-rounded />
-            </template>
           </v-icon-button>
         </template>
         <template v-else>
           <v-icon-button v-tooltip="$t('move_to_trash')" @click.stop="trash(getQuery())">
-            <template #icon>
               <i-material-symbols:delete-outline-rounded />
-            </template>
           </v-icon-button>
           <v-icon-button v-tooltip="$t('add_to_tags')" @click.stop="addToTags(selectedIds, realAllChecked, q)">
-            <template #icon>
               <i-material-symbols:label-outline-rounded />
-            </template>
           </v-icon-button>
           <v-icon-button v-tooltip="$t('export_notes')" @click.stop="exportNotes2">
-            <template #icon>
               <i-material-symbols:export-notes-outline-rounded />
-            </template>
           </v-icon-button>
         </template>
       </template>
@@ -96,26 +86,18 @@
           <div class="actions">
             <template v-if="filter.trash">
               <v-icon-button v-tooltip="$t('delete')" class="sm" @click.stop.prevent="deleteItem(item)">
-                <template #icon>
                   <i-material-symbols:delete-forever-outline-rounded />
-                </template>
               </v-icon-button>
               <v-icon-button v-tooltip="$t('restore')" class="sm" :loading="restoreLoading(`ids:${item.id}`)" @click.stop.prevent="restore(`ids:${item.id}`)">
-                <template #icon>
                   <i-material-symbols:restore-from-trash-outline-rounded />
-                </template>
               </v-icon-button>
             </template>
             <template v-else>
               <v-icon-button v-tooltip="$t('move_to_trash')" class="sm" :loading="trashLoading(`ids:${item.id}`)" @click.stop.prevent="trash(`ids:${item.id}`)">
-                <template #icon>
                   <i-material-symbols:delete-outline-rounded />
-                </template>
               </v-icon-button>
               <v-icon-button v-tooltip="$t('add_to_tags')" class="sm" @click.stop.prevent="addItemToTags(item)">
-                <template #icon>
                   <i-material-symbols:label-outline-rounded />
-                </template>
               </v-icon-button>
             </template>
           </div>
