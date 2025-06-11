@@ -16,39 +16,27 @@
     </div>
     <template v-if="checked">
       <v-icon-button v-tooltip="$t('copy')" @click.stop="copyItems">
-        <template #icon>
           <i-material-symbols:content-copy-outline-rounded />
-        </template>
       </v-icon-button>
       <v-icon-button v-tooltip="$t('cut')" @click.stop="cutItems">
-        <template #icon>
           <i-material-symbols:content-cut-rounded />
-        </template>
       </v-icon-button>
       <v-icon-button v-tooltip="$t('delete')" @click.stop="deleteItems">
-        <template #icon>
           <i-material-symbols:delete-forever-outline-rounded />
-        </template>
       </v-icon-button>
       <v-icon-button v-tooltip="$t('download')" :loading="downloadLoading" @click.stop="downloadItems">
-        <template #icon>
           <i-material-symbols:download-rounded />
-        </template>
       </v-icon-button>
     </template>
     <div class="actions">
       <file-search-input :filter="filter" :parent="rootDir" :get-url="getUrl" :navigate-to-dir="navigateToDir" />
       <v-icon-button v-tooltip="$t('create_folder')" @click="createDir">
-        <template #icon>
           <i-material-symbols:create-new-folder-outline-rounded />
-        </template>
       </v-icon-button>
       <v-dropdown v-model="uploadMenuVisible">
         <template #trigger>
           <v-icon-button v-tooltip="$t('upload')">
-            <template #icon>
               <i-material-symbols:upload-rounded />
-            </template>
           </v-icon-button>
         </template>
         <div class="dropdown-item" @click.stop="uploadFilesClick(filter.parent); uploadMenuVisible = false">
@@ -59,21 +47,15 @@
         </div>
       </v-dropdown>
       <v-icon-button v-if="canPaste()" v-tooltip="$t('paste')" :loading="pasting" @click="pasteDir">
-        <template #icon>
           <i-material-symbols:content-paste-rounded />
-        </template>
       </v-icon-button>
       <v-icon-button v-tooltip="$t('refresh')" :loading="refreshing" @click="refreshCurrentDir">
-        <template #icon>
           <i-material-symbols:refresh-rounded />
-        </template>
       </v-icon-button>
       <v-dropdown v-model="sortMenuVisible">
         <template #trigger>
           <v-icon-button v-tooltip="$t('sort')" :loading="sorting">
-            <template #icon>
               <i-material-symbols:sort-rounded />
-            </template>
           </v-icon-button>
         </template>
         <div v-for="item in sortItems" :key="item.value" class="dropdown-item" :class="{ 'selected': item.value === fileSortBy }" @click="sort(item.value); sortMenuVisible = false">
@@ -146,16 +128,12 @@
           <div class="actions">
             <template v-if="item.isDir">
               <v-icon-button v-tooltip="$t('download')" class="sm" @click.stop="downloadDir(item.path)">
-                <template #icon>
                   <i-material-symbols:download-rounded />
-                </template>
               </v-icon-button>
               <v-dropdown v-model="uploadItemMenuVisible[item.id]">
                 <template #trigger>
                   <v-icon-button v-tooltip="$t('upload')" class="sm">
-                    <template #icon>
                       <i-material-symbols:upload-rounded />
-                    </template>
                   </v-icon-button>
                 </template>
                 <div class="dropdown-item" @click.stop="uploadFilesClick(item.path); uploadItemMenuVisible[item.id] = false">
@@ -168,23 +146,17 @@
             </template>
             <template v-else>
               <v-icon-button v-tooltip="$t('download')" class="sm" @click.stop="downloadFile(item.path)">
-                <template #icon>
                   <i-material-symbols:download-rounded />
-                </template>
               </v-icon-button>
             </template>
 
             <v-icon-button v-tooltip="$t('delete')" class="sm" @click.stop="deleteItem(item)">
-              <template #icon>
                 <i-material-symbols:delete-forever-outline-rounded />
-              </template>
             </v-icon-button>
             <v-dropdown v-model="infoMenuVisible[item.id]">
               <template #trigger>
                 <v-icon-button v-tooltip="$t('info')" class="sm">
-                  <template #icon>
                     <i-material-symbols:info-outline-rounded />
-                  </template>
                 </v-icon-button>
               </template>
               <section class="card card-info">
@@ -200,9 +172,7 @@
             <v-dropdown v-model="actionsMenuVisible[item.id]">
               <template #trigger>
                 <v-icon-button v-tooltip="$t('actions')" class="sm">
-                  <template #icon>
                     <i-material-symbols:more-vert />
-                  </template>
                 </v-icon-button>
               </template>
               <div class="dropdown-item" @click.stop="duplicateItem(item); actionsMenuVisible[item.id] = false">

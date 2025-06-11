@@ -9,7 +9,7 @@
     <template #actions>
       <v-outlined-button value="cancel" @click="cancel">{{ $t('cancel') }}</v-outlined-button>
       <v-filled-button value="save" :disabled="loading" @click="doAction">
-        <v-circular-progress v-if="loading" slot="icon" indeterminate />
+        <v-circular-progress v-if="loading" indeterminate />
         {{ $t('save') }}
       </v-filled-button>
     </template>

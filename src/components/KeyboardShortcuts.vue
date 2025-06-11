@@ -3,26 +3,16 @@
     <template #trigger>
       <slot name="trigger">
         <v-icon-button v-tooltip="$t('keyboard_shortcuts')">
-          <template #icon>
-            <i-lucide:keyboard />
-          </template>
+          <i-lucide:keyboard />
         </v-icon-button>
       </slot>
     </template>
     <div class="shortcuts-menu">
       <div class="shortcuts-title">{{ $t('keyboard_shortcuts') }}</div>
       <div class="shortcuts-list">
-        <div 
-          v-for="shortcut in shortcuts" 
-          :key="shortcut.keys.join('+')" 
-          class="shortcut-item"
-        >
+        <div v-for="shortcut in shortcuts" :key="shortcut.keys.join('+')" class="shortcut-item">
           <span class="shortcut-keys">
-            <kbd 
-              v-for="key in shortcut.keys" 
-              :key="key"
-              :class="{ 'no-style': key === '+' }"
-            >
+            <kbd v-for="key in shortcut.keys" :key="key" :class="{ 'no-style': key === '+' }">
               {{ key === 'modifier' ? modifierKey : key }}
             </kbd>
           </span>
@@ -60,9 +50,9 @@ function detectKeyboard() {
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
   const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0
   const isLargeScreen = window.innerWidth >= 768
-  
+
   hasKeyboard.value = !isMobile || (isLargeScreen && !hasTouch) || (!hasTouch && isLargeScreen)
-  
+
   if (!hasKeyboard.value && isLargeScreen) {
     hasKeyboard.value = true
   }
@@ -89,7 +79,7 @@ onUnmounted(() => {
 
 .shortcuts-title {
   font-size: 1rem;
-  font-weight:500;
+  font-weight: 500;
   color: var(--md-sys-color-on-surface);
   margin-bottom: 12px;
   padding-bottom: 8px;
@@ -143,4 +133,4 @@ onUnmounted(() => {
   text-align: right;
   flex: 1;
 }
-</style> 
+</style>

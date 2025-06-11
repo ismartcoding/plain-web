@@ -3,7 +3,7 @@ export function initRippleEffect() {
     const target = e.target as HTMLElement;
     if (!target) return;
 
-    const rippleButton = target.closest('.btn-icon, .v-filled-button, .outlined-button, .info-btn, button[class*="btn-"]') as HTMLElement;
+    const rippleButton = target.closest('.btn-icon, .v-filled-button, .v-outlined-button, .info-btn, button[class*="btn-"]') as HTMLElement;
     if (!rippleButton) return;
 
     if (rippleButton.hasAttribute('disabled') || rippleButton.classList.contains('disabled')) {

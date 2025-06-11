@@ -30,6 +30,8 @@ type Events = {
   notification_refreshed: any
   color_mode_changed: undefined
   app_socket_connection_changed: boolean
+  pomodoro_action: any
+  pomodoro_settings_update: any
 }
 
 const emitter: Emitter<Events> = mitt<Events>()

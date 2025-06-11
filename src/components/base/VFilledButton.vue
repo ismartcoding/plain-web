@@ -1,8 +1,7 @@
 <template>
   <button class="v-filled-button" :disabled="disabled || loading">
     <v-circular-progress v-if="loading" indeterminate class="sm" />
-    <slot name="icon"></slot>
-    <slot></slot>
+    <slot />
   </button>
 </template>
 

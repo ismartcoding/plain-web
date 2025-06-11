@@ -62,7 +62,6 @@
           :class="{ selected: store.quick === 'task' }"
           @click="toggleQuick('task')"
         >
-          
           <i-material-symbols:format-list-numbered-rounded />
         </button>
         <button
@@ -73,18 +72,17 @@
           :class="{ selected: store.quick === 'notification' }"
           @click="toggleQuick('notification')"
         >
-          
           <i-material-symbols:notifications-outline-rounded />
         </button>
         <button id="quick-audio" v-tooltip="$t('playlist')" class="btn-icon q-action" toggle :class="{ selected: store.quick === 'audio' }" @click="toggleQuick('audio')">
-          
           <i-material-symbols:queue-music-rounded />
         </button>
-        <button v-tooltip="$t('my_phone')" class="btn-icon q-action" toggle :class="{ selected: store.quick === 'chat' }" @click="toggleQuick('chat')">
-          
-          <i-material-symbols:smartphone-outline />
+        <button v-tooltip="$t('pomodoro_timer')" class="btn-icon q-action" toggle :class="{ selected: store.quick === 'pomodoro' }" @click="toggleQuick('pomodoro')">
+          <i-material-symbols:timer-outline />
         </button>
-
+        <button v-tooltip="$t('my_phone')" class="btn-icon q-action" toggle :class="{ selected: store.quick === 'chat' }" @click="toggleQuick('chat')">
+          <i-lucide-bot />
+        </button>
         <div v-show="store.quick" class="drag-indicator" @mousedown="resizeWidth">
           <i-material-symbols:drag-indicator />
         </div>
@@ -95,6 +93,7 @@
           <p-chat v-show="store.quick === 'chat'" />
           <audio-player v-show="store.quick === 'audio'" />
           <p-notifications v-show="store.quick === 'notification'" />
+          <pomodoro-timer v-show="store.quick === 'pomodoro'" />
         </div>
       </transition>
       <lightbox />

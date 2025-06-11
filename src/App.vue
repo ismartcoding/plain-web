@@ -47,6 +47,8 @@ const EventType: { [key: number]: string } = {
   8: 'notification_updated',
   9: 'notification_deleted',
   10: 'notification_refreshed',
+  11: 'pomodoro_action',
+  12: 'pomodoro_settings_update',
 }
 
 async function connect() {

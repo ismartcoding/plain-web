@@ -6,9 +6,7 @@
     <div class="title">{{ $t('tags') }}</div>
     <div class="actions">
       <v-icon-button v-tooltip="$t('add_tag')" @click.prevent="add">
-        <template #icon>
-          <i-material-symbols:add-rounded />
-        </template>
+        <i-material-symbols:add-rounded />
       </v-icon-button>
     </div>
   </div>
@@ -16,9 +14,7 @@
     <li v-for="item in tags" :key="item.id" :class="{ active: item.id === selected }" @click.prevent="view(item)">
       <span class="title">{{ item.name }}</span>
       <v-icon-button :id="'tag-' + item.id" v-tooltip="$t('actions')" class="sm" @click.prevent.stop="showMenu(item)">
-        <template #icon>
-          <i-material-symbols:more-vert />
-        </template>
+        <i-material-symbols:more-vert />
       </v-icon-button>
       <span class="count">{{ item.count.toLocaleString() }}</span>
     </li>

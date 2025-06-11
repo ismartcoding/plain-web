@@ -161,7 +161,7 @@ function cancel() {
 }
 
 .v-filled-button,
-.outlined-button {
+.v-outlined-button {
   margin-top: 24px;
   width: 100%;
 }
