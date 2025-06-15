@@ -148,7 +148,6 @@ defineExpose({
 
   .form-label {
     margin-block-start: 16px;
-    margin-block-end: 8px;
   }
 }
 </style>

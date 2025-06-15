@@ -41,9 +41,5 @@ function view(item: ITag) {
 <style scoped lang="scss">
 a {
   white-space: nowrap;
-  margin-inline-end: 8px;
-}
-a:last-child {
-  margin-inline-end: 0;
 }
 </style>

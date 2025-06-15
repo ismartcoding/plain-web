@@ -1,2 +1,129 @@
-@media (max-width: 767px) {
+@media (max-width: 768px) {
+  .layout {
+    grid-template-areas:
+      'head head'
+      'page-content page-content';
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  // Page content should take full width on mobile
+  .page-content {
+    display: flex !important;
+    width: 100% !important;
+  }
+
+  // Sidebar overlay behavior like Android Drawer Menu
+  .sidebar {
+    position: fixed !important;
+    top: var(--pl-top-app-bar-height) !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 280px !important;
+    z-index: 999 !important;
+    transform: translateX(-100%) !important;
+    transition: transform 0.3s ease !important;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1) !important;
+    background: var(--md-sys-color-surface-container) !important;
+    
+    &:not(.mini) {
+      transform: translateX(0) !important;
+    }
+
+    // Hide resize drag indicator on mobile
+    .sidebar-drag-indicator {
+      display: none !important;
+    }
+  }
+
+  // Ensure main content takes full width on mobile
+  .main {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
+  // Backdrop overlay for sidebar
+  .sidebar-backdrop {
+    position: fixed !important;
+    top: var(--pl-top-app-bar-height) !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+    z-index: 998 !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transition: opacity 0.3s ease, visibility 0.3s ease !important;
+    
+    &.visible {
+      opacity: 1 !important;
+      visibility: visible !important;
+    }
+  }
+
+  .quick-actions {
+    display: none !important;
+  }
+
+  // When quick-content is visible, make it fullscreen
+  .quick-content:not([style*="display: none"]) {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    /* Fallback for older browsers */
+    height: 100vh !important;
+    /* Use small viewport height for better mobile support */
+    height: 100svh !important;
+    z-index: 1000 !important;
+    background: var(--md-sys-color-surface-container);
+    overflow-y: auto !important;
+  }
+
+  #header .start {
+    margin-inline-start: 8px;
+  }
+
+  .tab-items {
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .tab-item {
+    flex-shrink: 0;
+    
+    &:first-child span {
+      padding-inline-end: 8px;
+    }
+    
+    span {
+      padding: 8px 4px 8px 8px;
+      font-size: 0.9rem;
+    }
+    
+    .tab-icon {
+      margin-inline: 4px;
+    }
+  }
+}
+
+// Desktop styles (default)
+@media (min-width: 769px) {
+  .h-action {
+    .mobile-menu {
+      display: none;
+    }
+  }
+}
+
+.mobile-search-filters {
+  padding: 0px 16px 16px 16px;
 }

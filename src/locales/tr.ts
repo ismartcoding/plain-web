@@ -167,6 +167,7 @@ export default {
     logout: 'Çıkış yap',
     notifications: 'Bildirimler',
   },
+  quick_actions: 'Hızlı Eylemler',
   page_title: {
     home: 'Ana Sayfa',
     messages: 'Mesajlar',
@@ -465,6 +466,7 @@ export default {
   keyboard_shortcuts: 'Klavye kısayolları',
   delete_selected: 'Seçilenleri sil',
   navigate_pages: 'Sayfalar arası geçiş',
+  range_select: 'Aralığı seç',
   previous_next: 'Önceki/Sonraki',
   play_pause_video: 'Video oynat/duraklat',
   delete_file: 'Dosyayı sil',

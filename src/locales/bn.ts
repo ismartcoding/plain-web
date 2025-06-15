@@ -170,6 +170,7 @@ export default {
     logout: 'লগআউট',
     notifications: 'বিজ্ঞপ্তি',
   },
+  quick_actions: 'দ্রুত কার্যক্রম',
   page_title: {
     home: 'হোম',
     messages: 'মেসেজ',
@@ -470,6 +471,7 @@ export default {
   keyboard_shortcuts: 'কীবোর্ড শর্টকাটস',
   delete_selected: 'নির্বাচিত মুছুন',
   navigate_pages: 'পৃষ্ঠা নির্দেশ করুন',
+  range_select: 'বিস্তারিত নির্বাচন করুন',
   previous_next: 'পূর্ববর্তী/পরবর্তী',
   play_pause_video: 'ভিডিও প্লে/বিরতি',
   delete_file: 'ফাইল মুছুন',

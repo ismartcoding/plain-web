@@ -54,11 +54,6 @@ export const useAddToPlaylist = (items: Ref<IAudio[]>, clearSelection: () => voi
         }
         q = `ids:${selectedIds.join(',')}`
       }
-
-      const sourceElement = e.target
-      const targetElement = document.getElementById('quick-audio')
-      transferEffect(sourceElement, targetElement)
-
       mutate({ query: q })
     },
     removeItemsFromPlaylist: (e: MouseEvent, selectedIds: string[], realAllChecked: boolean, query: string) => {
@@ -80,15 +75,8 @@ export const useAddToPlaylist = (items: Ref<IAudio[]>, clearSelection: () => voi
             removeFromPlaylist({ path: item.path })
           })
       }
-
-      const sourceElement = e.target
-      const targetElement = document.getElementById('quick-audio')
-      transferEffect(sourceElement, targetElement)
     },
     addToPlaylist: (e: MouseEvent, item: IAudio) => {
-      const sourceElement = e.target
-      const targetElement = document.getElementById('quick-audio')
-      transferEffect(sourceElement, targetElement)
       mutate({ query: `ids:${item.id}` })
     },
     removeFromPlaylist: (e: MouseEvent, item: IAudio) => {

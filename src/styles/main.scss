@@ -16,6 +16,8 @@
 @use 'print';
 @use 'buttons';
 @use 'ripple';
+@use 'warning-dropdown';
+@use 'audio-list';
 
 #app:has(~ .lightbox) {
   display: none;
@@ -39,6 +41,11 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    margin-inline-start: 8px;
+  }
+
+  .btn-icon + .title {
+    margin-inline-start: 0;
   }
 
   .actions {
@@ -192,7 +199,7 @@
   .quick-content-main {
     display: flex;
     flex-flow: column;
-    height: 100vh;
+    height: 100%;
     .top-app-bar {
       padding: 0 8px;
     }
@@ -203,6 +210,7 @@
     flex: 1;
     background-color: var(--md-sys-color-surface);
     border-top-left-radius: var(--pl-shape-l);
+    border-top-right-radius: var(--pl-shape-l);
   }
 }
 
@@ -224,15 +232,8 @@
     }
 
     &.mini {
-      width: 56px !important;
-      & + .main {
-        margin-inline-start: 0;
-      }
-      .top-app-bar .title,
-      .top-app-bar .actions,
-      .sidebar-body {
-        display: none;
-      }
+      width: 0 !important;
+      padding: 0;
     }
   }
 
@@ -244,9 +245,6 @@
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-  }
-  .main-default {
-    margin-inline-start: 16px;
   }
 
   .alert-info.show + .scroll-content {
@@ -389,7 +387,8 @@
 }
 
 .btn-icon.selected {
-  color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-surface-variant);
+  background-color: var(--md-sys-color-surface-variant);
 }
 
 .btn-fullscreen-top-right {

@@ -166,6 +166,7 @@ export default {
     logout: 'Logout',
     notifications: 'Notifications',
   },
+  quick_actions: 'Quick Actions',
   page_title: {
     home: 'Home',
     messages: 'Messages',
@@ -469,6 +470,7 @@ export default {
   keyboard_shortcuts: 'Keyboard shortcuts',
   delete_selected: 'Delete selected',
   navigate_pages: 'Navigate pages',
+  range_select: 'Range select',
   previous_next: 'Previous/Next',
   play_pause_video: 'Play/Pause video',
   delete_file: 'Delete file',

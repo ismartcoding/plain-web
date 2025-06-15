@@ -259,19 +259,17 @@ defineExpose({
   // Textarea specific styles
   &.is-textarea {
     height: auto;
-    min-height: 56px;
 
     .field-input {
       height: auto;
-      min-height: 56px;
-      padding-top: 16px;
-      padding-bottom: 16px;
+      min-height: 64px;
+      padding-top: 12px;
+      padding-bottom: 8px;
       line-height: 1.5;
     }
 
     .field-container {
       height: auto;
-      min-height: 56px;
       align-items: flex-start;
     }
 
@@ -295,12 +293,12 @@ defineExpose({
 
   // Adjust padding when there are leading icons
   &:has(.leading-icon) .field-input {
-    padding-left: 60px;
+    padding-left: 48px;
   }
 
   // Adjust padding when there are trailing icons
   &:has(.trailing-icon) .field-input {
-    padding-right: 60px;
+    padding-right: 48px;
   }
 }
 

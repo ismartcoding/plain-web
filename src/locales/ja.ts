@@ -166,6 +166,7 @@ export default {
     logout: 'ログアウト',
     notifications: '通知',
   },
+  quick_actions: 'クイックアクション',
   page_title: {
     home: 'ホーム',
     messages: 'メッセージ',
@@ -464,6 +465,7 @@ export default {
   keyboard_shortcuts: 'キーボードショートカット',
   delete_selected: '選択したものを削除',
   navigate_pages: 'ページを移動',
+  range_select: '範囲を選択',
   previous_next: '前/次',
   play_pause_video: 'ビデオを再生/一時停止',
   delete_file: 'ファイルを削除',

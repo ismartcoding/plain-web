@@ -30,6 +30,7 @@
     </template>
     <div class="actions">
       <file-search-input :filter="filter" :parent="rootDir" :get-url="getUrl" :navigate-to-dir="navigateToDir" />
+      <files-keyboard-shortcuts />
       <v-icon-button v-tooltip="$t('create_folder')" @click="createDir">
           <i-material-symbols:create-new-folder-outline-rounded />
       </v-icon-button>

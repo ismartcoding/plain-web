@@ -1,8 +1,5 @@
 <template>
   <div class="top-app-bar">
-    <div class="leading-icon">
-      <i-material-symbols:label-outline-rounded />
-    </div>
     <div class="title">{{ $t('tags') }}</div>
     <div class="actions">
       <v-icon-button v-tooltip="$t('add_tag')" @click.prevent="add">
@@ -161,13 +158,3 @@ onUnmounted(() => {
   emitter.off('media_items_actioned', mediaItemsActionedHandler)
 })
 </script>
-
-<style lang="scss" scoped>
-.leading-icon {
-  align-items: center;
-    display: flex;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-}
-</style>

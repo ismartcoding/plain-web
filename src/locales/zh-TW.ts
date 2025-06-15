@@ -166,6 +166,7 @@ export default {
       logout: '登出',
       notifications: '通知',
     },
+    quick_actions: '快速操作',
     page_title: {
       home: '首頁',
       messages: '訊息',
@@ -469,6 +470,7 @@ export default {
     keyboard_shortcuts: '鍵盤快捷鍵',
     delete_selected: '刪除選取',
     navigate_pages: '瀏覽頁面',
+    range_select: '選擇範圍',
     previous_next: '上一個/下一個',
     play_pause_video: '播放/暫停視頻',
     delete_file: '刪除檔案',

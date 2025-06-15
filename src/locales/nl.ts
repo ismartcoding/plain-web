@@ -167,6 +167,7 @@ export default {
     logout: 'Uitloggen',
     notifications: 'Meldingen',
   },
+  quick_actions: 'Snelle acties',
   page_title: {
     home: 'Startpagina',
     messages: 'Berichten',
@@ -466,6 +467,7 @@ export default {
   keyboard_shortcuts: 'Sneltoetsen',
   delete_selected: 'Geselecteerde verwijderen',
   navigate_pages: 'Pagina navigeren',
+  range_select: 'Rangen selecteren',
   previous_next: 'Vorige/Volgende',
   play_pause_video: 'Video afspelen/pauzeren',
   delete_file: 'Bestand verwijderen',

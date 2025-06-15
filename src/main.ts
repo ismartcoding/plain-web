@@ -11,11 +11,13 @@ import VueTooltip from './plugins/tooltip'
 import VueRipple from './plugins/ripple'
 import i18n from './plugins/i18n'
 import { shortUUID } from './lib/strutil'
+import { getIsPhone } from './hooks/device'
 
 const clientId = localStorage.getItem('client_id')
 if (!clientId) {
   localStorage.setItem('client_id', shortUUID())
 }
+
 
 createApp({
   setup() {
@@ -29,4 +31,5 @@ createApp({
   .use(createPinia())
   .use(router)
   .use(i18n)
+  .provide('isPhone', getIsPhone())
   .mount('#app')

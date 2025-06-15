@@ -110,14 +110,14 @@ export const useSelectable = (items: Ref<IData[]>) => {
     // shift select
     shouldSelect,
     shiftEffectingIds,
-    toggleSelect: (event: Event, item: IData, index: number) => {
+    toggleSelect: (event: MouseEvent, item: IData, index: number) => {
       if (event.shiftKey) {
         toggleShiftSelection(item, index)
       } else {
         checkItem(!selectedIds.value.includes(item.id), item, index)
       }
     },
-    handleItemClick(event: Event, item: IData, index: number, view: (i: number) => void = () => {}) {
+    handleItemClick(event: MouseEvent, item: IData, index: number, view: (i: number) => void = () => {}) {
       if ((event.target as Element)?.nodeName === 'V-CHECKBOX') {
         return
       }
@@ -137,7 +137,7 @@ export const useSelectable = (items: Ref<IData[]>) => {
         checkItem(!selectedIds.value.includes(item.id), item, index)
       }
     },
-    handleMouseOver(event: Event, index: number) {
+    handleMouseOver(event: MouseEvent, index: number) {
       if (event.shiftKey) {
         if (lastCheckedIndex.value !== null && lastCheckedIndex.value !== index) {
           shiftEffectingIds.value = getShiftEffectingIds(index)

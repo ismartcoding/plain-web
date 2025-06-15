@@ -167,6 +167,7 @@ export default {
     logout: 'लॉगआउट',
     notifications: 'नोटिफिकेशन्स',
   },
+  quick_actions: 'क्विक एक्शन्स',
   page_title: {
     home: 'होम',
     messages: 'मैसेजेस',
@@ -465,6 +466,7 @@ export default {
   keyboard_shortcuts: 'कीबोर्ड शॉर्टकट्स',
   delete_selected: 'चयनित हटाएं',
   navigate_pages: 'पृष्ठ बाईं ओर जाएं',
+  range_select: 'बाईं ओर जाएं',
   previous_next: 'पिछला/अगला',
   play_pause_video: 'वीडियो बजाएं/रोकें',
   delete_file: 'फाइल हटाएं',

@@ -2,7 +2,7 @@
   <div class="quick-content-main">
     <div class="top-app-bar">
       <button v-tooltip="$t('close')" class="btn-icon" @click.prevent="store.quick = ''">
-        <i-material-symbols:right-panel-close-outline />
+        <i-lucide:x />
       </button>
       <div class="title">{{ current?.title ?? $t('audio_player') }}</div>
     </div>

@@ -2,24 +2,33 @@
   <div class="quick-content-main">
     <div class="top-app-bar">
       <button v-tooltip="$t('close')" class="btn-icon" @click.prevent="store.quick = ''">
-        <i-material-symbols:right-panel-close-outline />
+        <i-lucide:x />
       </button>
-      <div class="title">{{ $t('pomodoro_timer') }}</div>
-    </div>
-
-    <!-- Desktop notification warnings -->
-    <div v-if="settings.showNotification && !isHttps && notificationPermission !== 'granted'" class="alert-warning show">
-      <i-material-symbols:error-outline-rounded />
-      <div class="body">{{ $t('desktop_notification_need_https') }}</div>
-      <div class="actions">
-        <v-filled-button class="btn-sm" @click.stop="useHttpsLink">{{ $t('use_https_link') }}</v-filled-button>
-      </div>
-    </div>
-    <div v-else-if="settings.showNotification && notificationPermission !== 'granted'" class="alert-warning show">
-      <i-material-symbols:error-outline-rounded />
-      <div class="body">{{ $t('desktop_notification_permission_not_granted') }}</div>
-      <div class="actions">
-        <v-filled-button class="btn-sm" @click.stop="grantPermission">{{ $t('grant_permission') }}</v-filled-button>
+      <div class="title">
+        {{ $t('pomodoro_timer') }}
+        <!-- Warning icon for notification permissions -->
+        <div v-if="settings.showNotification && hasNotificationWarning" class="warning-indicator">
+          <popper>
+            <button class="btn-icon warning-icon">
+              <i-material-symbols:warning-outline />
+            </button>
+            <template #content>
+              <div class="warning-dropdown">
+                <div class="warning-content">
+                  <i-material-symbols:error-outline-rounded />
+                  <div class="warning-text">
+                    {{ $t(notificationWarningMessage) }}
+                  </div>
+                </div>
+                <div v-if="notificationWarningAction" class="warning-actions">
+                  <v-filled-button class="btn-sm" @click="notificationWarningAction.action()">
+                    {{ $t(notificationWarningAction.text) }}
+                  </v-filled-button>
+                </div>
+              </div>
+            </template>
+          </popper>
+        </div>
       </div>
     </div>
 
@@ -105,9 +114,9 @@ import { startPomodoroGQL, stopPomodoroGQL, pausePomodoroGQL, updatePomodoroProg
 import emitter from '@/plugins/eventbus'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
+import { useNotificationWarning } from '@/hooks/notification-warning'
 
 const store = useMainStore()
-const { app } = storeToRefs(useTempStore())
 const { t } = useI18n()
 
 // === GraphQL Mutations ===
@@ -133,9 +142,8 @@ const currentPhase = ref<'work' | 'shortBreak' | 'longBreak'>('work')
 const currentRound = ref(1)
 const completedToday = ref(0) // Will be loaded from API
 
-// === Notification State ===
-const notificationPermission = ref('Notification' in window && typeof Notification !== 'undefined' ? Notification.permission : 'default')
-const isHttps = window.location.protocol === 'https:'
+// === Notification Warning ===
+const { hasWarning: hasNotificationWarning, warningMessage: notificationWarningMessage, warningAction: notificationWarningAction, notificationPermission, grantPermission: grantNotificationPermission, useHttpsLink: useHttpsLinkAction } = useNotificationWarning({ showToast: true })
 
 // === Timer Management ===
 let timer: number | null = null
@@ -500,30 +508,6 @@ function requestNotificationPermission() {
   }
 }
 
-// Use HTTPS link
-function useHttpsLink() {
-  window.open(`https://${window.location.hostname}:${app.value.httpsPort}`, '_blank')
-}
-
-// Grant desktop notification permission
-function grantPermission() {
-  if (!('Notification' in window) || typeof Notification === 'undefined') {
-    return
-  }
-
-  if (Notification.permission === 'denied') {
-    toast(t('desktop_notification_permission_denied_help'), 'error')
-    return
-  }
-
-  Notification.requestPermission().then((permission) => {
-    notificationPermission.value = permission
-    if (permission === 'granted') {
-      toast(t('desktop_notification_permission_granted'), 'success')
-    }
-  })
-}
-
 // === Lifecycle Hooks ===
 onMounted(() => {
   requestNotificationPermission()
@@ -696,8 +680,5 @@ watch(
     color: var(--md-sys-color-on-surface);
   }
 }
-.alert-warning {
-  margin-block-end: 8px;
-  margin-inline-end: 8px;
-}
+
 </style>
