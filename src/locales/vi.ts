@@ -166,6 +166,7 @@ export default {
     logout: 'Đăng xuất',
     notifications: 'Thông báo',
   },
+  quick_actions: 'Hành động nhanh',
   page_title: {
     home: 'Trang chủ',
     messages: 'Tin nhắn',
@@ -464,6 +465,7 @@ export default {
   keyboard_shortcuts: 'Phím tắt',
   delete_selected: 'Xóa đã chọn',
   navigate_pages: 'Di chuyển trang',
+  range_select: 'Chọn khoảng',
   previous_next: 'Trước/Tiếp',
   play_pause_video: 'Phát/Tạm dừng video',
   delete_file: 'Xóa tệp',

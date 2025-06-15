@@ -26,7 +26,6 @@
         <search-input :filter="filter" :tags="tags" :feeds="feeds" :show-chips="!isDetail" :get-url="getUrl" :show-today="true" />
         <v-circular-progress v-if="feedsSyncing" indeterminate class="sm" />
         <button v-else v-tooltip="$t('sync_feeds')" class="btn-icon" :disabled="feedsSyncing" @click.prevent="syncFeeds">
-          
           <i-material-symbols:sync-rounded />
         </button>
       </div>

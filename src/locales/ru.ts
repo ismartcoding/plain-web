@@ -167,6 +167,7 @@ export default {
     logout: 'Выйти',
     notifications: 'Уведомления',
   },
+  quick_actions: 'Быстрые действия',
   page_title: {
     home: 'Главная',
     messages: 'Сообщения',
@@ -471,6 +472,7 @@ export default {
   keyboard_shortcuts: 'Комбинации клавиш',
   delete_selected: 'Удалить выделенное',
   navigate_pages: 'Перейти на страницу',
+  range_select: 'Выбрать диапазон',
   previous_next: 'Назад/Вперед',
   play_pause_video: 'Воспроизвести/Пауза видео',
   delete_file: 'Удалить файл',

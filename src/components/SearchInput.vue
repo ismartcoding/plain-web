@@ -1,32 +1,9 @@
 <template>
-  <v-chip-set v-if="showChips">
-    <div v-if="filter.text" key="filter-text">
-      <v-input-chip :label="filter.text" remove-only @remove="removeText" />
-    </div>
-    <div v-if="filter.today" key="filter-today">
-      <v-input-chip :label="$t('today')" remove-only @remove="removeToday">
-        <i-material-symbols:today-outline-rounded />
-      </v-input-chip>
-    </div>
-    <div v-if="filter.trash" key="filter-trash">
-      <v-input-chip :label="$t('trash')" remove-only @remove="removeTrash">
-        <i-material-symbols:delete-outline-rounded />
-      </v-input-chip>
-    </div>
-    <v-input-chip v-for="item in filteredBuckets" :key="item.id" :label="item.name" remove-only @remove="removeBucket">
-      <i-material-symbols:folder-outline-rounded />
-    </v-input-chip>
-    <v-input-chip v-for="item in filteredFeeds" :key="item.id" :label="item.name" remove-only @remove="removeFeed">
-      <i-material-symbols:rss-feed-rounded />
-    </v-input-chip>
-    <v-input-chip v-for="item in filteredTypes" :key="item.id" :label="item.name" remove-only @remove="removeType">
-      <i-material-symbols:category-outline-rounded />
-    </v-input-chip>
-    <v-input-chip v-for="item in filteredTags" :key="item.id" :label="item.name" remove-only @remove="removeTag(item)">
-      <i-material-symbols:label-outline-rounded />
-    </v-input-chip>
-  </v-chip-set>
-  <v-dropdown v-model="searchPanelVisible" :max-height="400">
+  <!-- Desktop SearchFilters -->
+  <SearchFilters v-if="showChips" :filter="filter" :tags="tags" :feeds="feeds" :buckets="buckets" :types="types" @filter-change="onFilterChange" />
+
+  <!-- Desktop dropdown search -->
+  <v-dropdown v-if="!isPhone" v-model="searchPanelVisible" :max-height="400">
     <template #trigger>
       <button v-tooltip="$t('search')" class="btn-icon">
         <i-material-symbols:search-rounded />
@@ -73,10 +50,61 @@
       </div>
     </div>
   </v-dropdown>
+
+  <!-- Mobile search button -->
+  <button v-if="isPhone" v-tooltip="$t('search')" class="btn-icon mobile-search-btn" @click="openMobileSearch">
+    <i-material-symbols:search-rounded />
+  </button>
+
+  <!-- Mobile search BottomSheet -->
+  <BottomSheet v-if="isPhone" v-model="mobileSearchVisible" :title="$t('search')" show-footer>
+    <label class="form-label">{{ $t('keywords') }}</label>
+    <v-text-field v-model="localFilter.text" @keyup.enter="applyMobileSearch" />
+    <template v-if="showToday || showTrash">
+      <v-chip-set>
+        <v-filter-chip v-if="showToday" :label="$t('today')" :selected="localFilter.today" @click="localFilter.today = !localFilter.today" />
+        <v-filter-chip v-if="showTrash" :label="$t('trash')" :selected="localFilter.trash" @click="localFilter.trash = !localFilter.trash" />
+      </v-chip-set>
+    </template>
+
+    <template v-if="tags.length > 0">
+      <label class="form-label">{{ $t('tags') }}</label>
+      <v-chip-set>
+        <v-filter-chip v-for="item in tags" :key="item.id" :label="item.name" :selected="localFilter.tagIds.includes(item.id)" @click="onTagSelect(item)" />
+      </v-chip-set>
+    </template>
+
+    <template v-if="feeds.length > 0">
+      <label class="form-label">{{ $t('page_title.feeds') }}</label>
+      <v-chip-set>
+        <v-filter-chip v-for="item in feeds" :key="item.id" :label="item.name" :selected="localFilter.feedId === item.id" @click="onFeedSelect(item)" />
+      </v-chip-set>
+    </template>
+
+    <template v-if="buckets.length > 0">
+      <label class="form-label">{{ $t('folders') }}</label>
+      <v-chip-set>
+        <v-filter-chip v-for="item in buckets" :key="item.id" :label="item.name" :selected="localFilter.bucketId === item.id" @click="onBucketSelect(item)" />
+      </v-chip-set>
+    </template>
+
+    <template v-if="types.length > 0">
+      <label class="form-label">{{ $t('types') }}</label>
+      <v-chip-set>
+        <v-filter-chip v-for="item in types" :key="item.id" :label="item.name" :selected="localFilter.type === item.id" @click="onTypeSelect(item)" />
+      </v-chip-set>
+    </template>
+
+    <template #footer>
+      <v-filled-button class="search-apply-btn" @click="applyMobileSearch">
+        {{ $t('search') }}
+      </v-filled-button>
+    </template>
+  </BottomSheet>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, watch, type PropType } from 'vue'
+import { reactive, ref, watch, type PropType } from 'vue'
 import type { IBucket, IFeed, IFilter, ITag, IType } from '@/lib/interfaces'
 import { remove } from 'lodash-es'
 import { replacePath } from '@/plugins/router'
@@ -88,6 +116,7 @@ const mainStore = useMainStore()
 const localFilter: IFilter = reactive({
   tagIds: [],
 })
+
 const props = defineProps({
   filter: {
     type: Object as PropType<IFilter>,
@@ -125,29 +154,22 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-})
-const filteredTags = computed(() => {
-  return (props.tags ?? []).filter((t) => props.filter.tagIds?.includes(t.id))
-})
-
-const filteredFeeds = computed(() => {
-  return (props.feeds ?? []).filter((t) => props.filter.feedId === t.id)
-})
-
-const filteredBuckets = computed(() => {
-  return (props.buckets ?? []).filter((t) => props.filter.bucketId === t.id)
-})
-
-const filteredTypes = computed(() => {
-  return (props.types ?? []).filter((t) => props.filter.type === t.id)
+  isPhone: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const searchPanelVisible = ref(false)
+const mobileSearchVisible = ref(false)
 
-watch(props.filter, (newValue) => {
-  copyFilter(newValue, localFilter)
-}, { immediate: true, deep: true })
-
+watch(
+  props.filter,
+  (newValue) => {
+    copyFilter(newValue, localFilter)
+  },
+  { immediate: true, deep: true }
+)
 
 watch(searchPanelVisible, (isVisible) => {
   if (isVisible) {
@@ -155,6 +177,11 @@ watch(searchPanelVisible, (isVisible) => {
   }
 })
 
+watch(mobileSearchVisible, (isVisible) => {
+  if (isVisible) {
+    copyFilter(props.filter, localFilter)
+  }
+})
 
 function onTagSelect(tag: ITag) {
   if (localFilter.tagIds.includes(tag.id)) {
@@ -193,69 +220,50 @@ function applySearch() {
   searchPanelVisible.value = false
 }
 
+function openMobileSearch() {
+  mobileSearchVisible.value = true
+}
+
+function applyMobileSearch() {
+  doSearch()
+  mobileSearchVisible.value = false
+}
+
 function doSearch() {
   copyFilter(localFilter, props.filter)
   replacePath(mainStore, props.getUrl(buildQ(props.filter)))
 }
 
-function removeFeed() {
-  localFilter.feedId = undefined
-  doSearch()
-}
-
-function removeType() {
-  localFilter.type = undefined
-  doSearch()
-}
-
-function removeBucket() {
-  localFilter.bucketId = undefined
-  doSearch()
-}
-
-function removeTag(tag: ITag) {
-  remove(localFilter.tagIds ?? [], (t) => t === tag.id)
-  doSearch()
-}
-
-function removeToday() {
-  localFilter.today = undefined
-  doSearch()
-}
-
-function removeTrash() {
-  localFilter.trash = false
-  doSearch()
-}
-
-function removeText() {
-  localFilter.text = undefined
-  doSearch()
+function onFilterChange(newFilter: IFilter) {
+  copyFilter(newFilter, props.filter)
+  replacePath(mainStore, props.getUrl(buildQ(props.filter)))
 }
 
 defineExpose({
   dismiss: () => {
     searchPanelVisible.value = false
+    mobileSearchVisible.value = false
   },
 })
 </script>
+
 <style lang="scss" scoped>
+/* Desktop styles */
 .filters {
   padding: 16px;
   min-width: 400px;
-
-  md-outlined-text-field {
-    width: 100%;
-  }
 
   .buttons {
     text-align: right;
     margin-block-start: 16px;
   }
+}
 
-  .form-label {
-    margin-block-start: 16px;
-    margin-block-end: 8px;
-  }
+.form-label {
+  margin-block-start: 16px;
+}
+
+.search-apply-btn {
+  width: 100%;
 }
 </style>

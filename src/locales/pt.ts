@@ -168,6 +168,7 @@ export default {
     logout: 'Sair',
     notifications: 'Notificações',
   },
+  quick_actions: 'Ações rápidas',
   page_title: {
     home: 'Início',
     messages: 'Mensagens',
@@ -465,6 +466,7 @@ export default {
   keyboard_shortcuts: 'Atalhos de teclado',
   delete_selected: 'Excluir selecionado',
   navigate_pages: 'Navegar entre páginas',
+  range_select: 'Selecionar intervalo',
   previous_next: 'Anterior/Próximo',
   play_pause_video: 'Reproduzir/Pausar vídeo',
   delete_file: 'Excluir arquivo',

@@ -430,14 +430,6 @@ onDeactivated(() => {
   flex-direction: column;
   gap: 8px;
 }
-.contact-list.select-mode {
-  .media-item {
-    cursor: pointer;
-    .actions {
-      visibility: hidden;
-    }
-  }
-}
 
 .contact-list {
   .contact-item {

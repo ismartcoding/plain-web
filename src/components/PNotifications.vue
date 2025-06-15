@@ -2,29 +2,40 @@
   <div class="quick-content-main">
     <div class="top-app-bar">
       <button v-tooltip="$t('close')" class="btn-icon" @click.prevent="store.quick = ''">
-        <i-material-symbols:right-panel-close-outline />
+        <i-lucide:x />
       </button>
-      <div class="title">{{ $t('header_actions.notifications') }} ({{ notifications.length }})</div>
+      <div class="title">
+        {{ $t('header_actions.notifications') }} ({{ notifications.length }})
+        <div v-if="hasNotificationWarning" class="warning-indicator">
+          <popper>
+            <button class="btn-icon warning-icon">
+              <i-material-symbols:warning-outline />
+            </button>
+            <template #content>
+              <div class="warning-dropdown">
+                <div class="warning-content">
+                  <i-material-symbols:error-outline-rounded />
+                  <div class="warning-text">
+                    {{ $t(notificationWarningMessage) }}
+                  </div>
+                </div>
+                <div v-if="notificationWarningAction" class="warning-actions">
+                  <v-filled-button class="btn-sm" @click="notificationWarningAction.action()">
+                    {{ $t(notificationWarningAction.text) }}
+                  </v-filled-button>
+                </div>
+              </div>
+            </template>
+          </popper>
+        </div>
+      </div>
       <div class="actions">
         <button v-if="notifications.length" v-tooltip="$t('clear_list')" class="btn-icon" @click.prevent="clearAll">
           <i-material-symbols:delete-forever-outline-rounded />
         </button>
       </div>
     </div>
-    <div v-if="!isHttps && notifcationPermission !== 'granted'" class="alert-warning show">
-      <i-material-symbols:error-outline-rounded />
-      <div class="body">{{ $t('desktop_notification_need_https') }}</div>
-      <div class="actions">
-        <v-filled-button class="btn-sm" @click.stop="useHttpsLink">{{ $t('use_https_link') }}</v-filled-button>
-      </div>
-    </div>
-    <div v-else-if="notifcationPermission !== 'granted'" class="alert-warning show">
-      <i-material-symbols:error-outline-rounded />
-      <div class="body">{{ $t('desktop_notification_permission_not_granted') }}</div>
-      <div class="actions">
-        <v-filled-button class="btn-sm" @click.stop="grantPermission">{{ $t('grant_permission') }}</v-filled-button>
-      </div>
-    </div>
+
     <div class="quick-content-body">
       <section v-if="notifications.length" class="list-items">
         <div v-for="item in notifications" :key="item.id" class="item">
@@ -67,17 +78,18 @@ import { noDataKey } from '@/lib/list'
 import { getFileUrlByPath } from '@/lib/api/file'
 import emitter from '@/plugins/eventbus'
 import { useApolloClient } from '@vue/apollo-composable'
-import { pushModal } from '@/components/modal'
-import ConfirmModal from '@/components/ConfirmModal.vue'
 import { useMainStore } from '@/stores/main'
+import { useNotificationWarning } from '@/hooks/notification-warning'
 
 const { resolveClient } = useApolloClient()
 const store = useMainStore()
 
 const { t } = useI18n()
 const { app, urlTokenKey } = storeToRefs(useTempStore())
+
+// Notification warning
+const { hasWarning: hasNotificationWarning, warningMessage: notificationWarningMessage, warningAction: notificationWarningAction } = useNotificationWarning()
 const notifications = ref<INotification[]>([])
-const isHttps = window.location.protocol === 'https:'
 const { loading, refetch } = initQuery({
   handle: (data: any, error: string) => {
     if (error) {
@@ -94,39 +106,12 @@ const { loading, refetch } = initQuery({
   document: notificationsGQL,
 })
 
-const notifcationPermission = ref(
-  'Notification' in window && typeof Notification !== 'undefined' 
-    ? Notification.permission 
-    : 'default'
-)
-
 const { mutate: cancelNotifications } = initMutation({
   document: cancelNotificationsGQL,
 })
 
 const deleteItem = (item: INotification) => {
   cancelNotifications({ ids: [item.id] })
-}
-
-const useHttpsLink = () => {
-  window.open(`https://${window.location.hostname}:${app.value.httpsPort}`, '_blank')
-}
-
-const grantPermission = () => {
-  if (!('Notification' in window) || typeof Notification === 'undefined') {
-    return
-  }
-  
-  if (Notification.permission === 'denied') {
-    pushModal(ConfirmModal, {
-      title: t('desktop_notification_permission_grant_title'),
-      message: t('desktop_notification_permission_grant_message'),
-    })
-    return
-  }
-  Notification.requestPermission().then((permission) => {
-    notifcationPermission.value = permission
-  })
 }
 
 const clearAll = () => {
@@ -212,10 +197,5 @@ onMounted(() => {
     white-space: nowrap;
     text-overflow: ellipsis;
   }
-}
-
-.alert-warning {
-  margin-block-end: 8px;
-  margin-inline-end: 8px;
 }
 </style>

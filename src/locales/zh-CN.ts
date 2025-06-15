@@ -166,6 +166,7 @@ export default {
     logout: '退出登录',
     notifications: '通知',
   },
+  quick_actions: '快捷操作',
   page_title: {
     home: '首页',
     messages: '短信',
@@ -469,6 +470,7 @@ export default {
   keyboard_shortcuts: '键盘快捷键',
   delete_selected: '删除所选',
   navigate_pages: '浏览页面',
+  range_select: '范围选择',
   previous_next: '上一个/下一个',
   play_pause_video: '播放/暂停视频',
   delete_file: '删除文件',

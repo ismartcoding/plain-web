@@ -419,13 +419,6 @@ onDeactivated(() => {
   flex-direction: column;
   gap: 8px;
 }
-.app-list.select-mode {
-  .media-item {
-    .actions {
-      visibility: hidden;
-    }
-  }
-}
 .app-list {
   .app-item {
     .skeleton-image {

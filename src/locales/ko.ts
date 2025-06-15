@@ -166,6 +166,7 @@ export default {
     logout: '로그아웃',
     notifications: '알림',
   },
+  quick_actions: '빠른 작업',
   page_title: {
     home: '홈',
     messages: '메시지',
@@ -464,6 +465,7 @@ export default {
   keyboard_shortcuts: '키보드 단축키',
   delete_selected: '선택된 항목 삭제',
   navigate_pages: '페이지 이동',
+  range_select: '범위 선택',
   previous_next: '이전/다음',
   play_pause_video: '비디오 재생/일시 정지',
   delete_file: '파일 삭제',

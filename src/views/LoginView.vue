@@ -157,7 +157,6 @@ function cancel() {
   display: flex;
   justify-content: end;
   margin-top: 6px;
-  padding-right: 16px;
 }
 
 .v-filled-button,

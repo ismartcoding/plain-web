@@ -169,6 +169,7 @@ export default {
     logout: 'வெளியேறு',
     notifications: 'அறிவிப்புகள்',
   },
+  quick_actions: 'விரைவு செயல்கள்',
   page_title: {
     home: 'முகப்பு',
     messages: 'செய்திகள்',
@@ -468,6 +469,7 @@ export default {
   keyboard_shortcuts: 'கீபோர்ட் குறுக்குவாட்டுகள்',
   delete_selected: 'தேர்ந்தெடுக்கப்பட்டதை நீக்கு',
   navigate_pages: 'பக்கங்களை நகர்த்து',
+  range_select: 'இடைவிட்டதை தேர்ந்தெடு',
   previous_next: 'முந்தைய/அடுத்தது',
   play_pause_video: 'வீடியோவை இயக்கு/இடைநிறுத்து',
   delete_file: 'கோப்பை நீக்கு',

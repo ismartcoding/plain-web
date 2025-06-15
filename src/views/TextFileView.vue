@@ -209,7 +209,6 @@ watch(fileName, () => {
 .header {
   display: flex;
   justify-content: end;
-  padding-right: 16px;
 }
 
 .main-content {

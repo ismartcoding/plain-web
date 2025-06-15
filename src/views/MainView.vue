@@ -9,6 +9,15 @@
     <div class="layout">
       <header id="header">
         <section class="start">
+          <button 
+            v-if="hasLeftSidebar"
+            v-tooltip="$t(store.miniSidebar ? 'open' : 'close')" 
+            class="btn-icon sidebar-toggle" 
+            @click.prevent="toggleSidebar"
+          >
+            <i-material-symbols:left-panel-open-outline-rounded v-if="store.miniSidebar" />
+            <i-material-symbols:left-panel-close-outline-rounded v-else />
+          </button>
           <div class="tab-items">
             <div key="/" class="tab-item" :class="{ active: currentPath === '/' }" @click="selectTab('/')" @contextmenu="itemCtxMenu($event, '/')">
               <span>{{ $t('page_title.home') }}</span>
@@ -23,14 +32,13 @@
             >
               <span>{{ $t(`page_title.${getRouteName(item.path)}`) }}</span>
               <button class="btn-icon sm tab-icon" @click.stop="closeTab(item.path)">
-                
                 <i-material-symbols:close-rounded />
               </button>
             </div>
           </div>
         </section>
         <section class="end">
-          <header-actions :logged-in="true" />
+          <header-actions :logged-in="true" @toggle-quick="toggleQuick" />
         </section>
       </header>
       <div class="page-content">
@@ -40,6 +48,13 @@
             <component :is="Component" :key="$route.meta.group" />
           </keep-alive>
         </router-view>
+        <!-- Mobile sidebar backdrop -->
+        <div 
+          v-if="hasLeftSidebar" 
+          class="sidebar-backdrop" 
+          :class="{ visible: !store.miniSidebar }"
+          @click="store.miniSidebar = true"
+        ></div>
         <main class="main" :class="'main-' + ($route.meta.className || 'default')">
           <router-view v-slot="{ Component }" name="LeftSidebar2">
             <keep-alive>
@@ -53,7 +68,7 @@
           </router-view>
         </main>
       </div>
-      <div class="quick">
+      <div class="quick-actions">
         <button
           v-if="hasTasks || store.quick === 'task'"
           v-tooltip="$t('header_actions.tasks')"
@@ -127,8 +142,20 @@ const loading = ref(true)
 const errorMessage = ref('')
 let playAudio = false
 
+// Sidebar collapse functionality
+function toggleSidebar() {
+  store.miniSidebar = !store.miniSidebar
+}
+
 const hasTasks = computed(() => {
   return tempStore.uploads.length > 0
+})
+
+// Check if current route has LeftSidebar component
+const hasLeftSidebar = computed(() => {
+  const route = router.currentRoute.value
+  const matchedRoute = route.matched[route.matched.length - 1]
+  return matchedRoute?.components?.LeftSidebar !== undefined
 })
 
 function getSidebar2CacheKey() {
@@ -321,19 +348,19 @@ router.afterEach((to, from, failure) => {
   display: grid;
   grid-template-areas:
     'head head quick-content'
-    'page-content quick quick-content';
+    'page-content quick-actions quick-content';
   grid-template-columns: 1fr auto auto;
   grid-template-rows: auto 1fr;
   height: 100vh;
 }
 
-.quick {
+.quick-actions {
   display: flex;
   flex-direction: column;
   height: 100%;
   position: relative;
   width: 56px;
-  grid-area: quick;
+  grid-area: quick-actions;
 
   .q-action {
     margin: 8px;
@@ -401,11 +428,13 @@ router.afterEach((to, from, failure) => {
   color: var(--md-sys-color-on-surface);
 
   .start {
-    margin-inline-start: 16px;
+    margin-inline-start: 8px;
     flex: 1;
     box-sizing: border-box;
     overflow: auto;
     scroll-behavior: smooth;
+    display: flex;
+    align-items: center;
     /* Hide the scrollbars */
     scrollbar-width: none;
     /* Firefox */
