@@ -1,31 +1,35 @@
 <template>
   <div class="h-action">
-    <v-dropdown v-model="langMenuVisible">
+    <v-dropdown v-model="menuVisible">
       <template #trigger>
-        <button id="lang-ref" v-tooltip="t('header_actions.language')" class="btn-icon">
-          <i-material-symbols:translate-rounded />
+        <button id="menu-ref" v-tooltip="t('settings')" class="btn-icon">
+          <i-lucide:ellipsis-vertical />
         </button>
       </template>
-      <div v-for="lang in langs" :key="lang.value" class="dropdown-item" @click="changeLang(lang.value)">
-        {{ lang.name }}
+      
+      <!-- Language Section -->
+      <div class="dropdown-section">
+        <div class="dropdown-section-title">{{ t('header_actions.language') }}</div>
+        <div v-for="lang in langs" :key="lang.value" class="dropdown-item" @click="changeLang(lang.value)">
+          {{ lang.name }}
+        </div>
+      </div>
+      
+      <!-- Theme Section -->
+      <div class="dropdown-section">
+        <div class="dropdown-section-title">{{ t('header_actions.theme') }}</div>
+        <theme-changer />
+      </div>
+      
+      <!-- Logout Section -->
+      <div v-if="props.loggedIn" class="dropdown-section">
+        <div class="dropdown-item" @click="logout">
+          <i-material-symbols:logout-rounded style="margin-inline-end: 8px;" />
+          {{ t('header_actions.logout') }}
+        </div>
       </div>
     </v-dropdown>
   </div>
-
-  <div class="h-action">
-    <v-dropdown v-model="themeMenuVisible">
-      <template #trigger>
-        <button id="theme-ref" v-tooltip="t('header_actions.theme')" class="btn-icon">
-          <i-material-symbols:sunny-outline-rounded />
-        </button>
-      </template>
-      <theme-changer />
-    </v-dropdown>
-  </div>
-
-  <button v-if="props.loggedIn" v-tooltip="$t('header_actions.logout')" class="btn-icon h-action" style="margin-inline-end: 8px" @click="logout">
-    <i-material-symbols:logout-rounded />
-  </button>
 </template>
 
 <script setup lang="ts">
@@ -36,8 +40,7 @@ const props = defineProps({
   loggedIn: { type: Boolean },
 })
 
-const langMenuVisible = ref(false)
-const themeMenuVisible = ref(false)
+const menuVisible = ref(false)
 const { locale, t } = useI18n()
 
 const langs = [
@@ -61,13 +64,14 @@ const langs = [
 ]
 
 function changeLang(loc: string) {
-  langMenuVisible.value = false
+  menuVisible.value = false
   locale.value = loc
   localStorage.setItem('locale', loc)
   document.title = t('app_name')
 }
 
 function logout() {
+  menuVisible.value = false
   localStorage.clear()
   window.location.reload()
 }
@@ -76,5 +80,20 @@ function logout() {
 <style lang="scss" scoped>
 .h-action {
   padding: 0 8px;
+}
+
+.dropdown-section {
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 8px;
+  }
+}
+
+.dropdown-section-title {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface-variant);
+  padding: 8px 12px 4px;
+  text-transform: uppercase;
 }
 </style>
