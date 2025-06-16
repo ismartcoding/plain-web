@@ -1,5 +1,5 @@
 <template>
-  <div class="actions" :class="{ mobile: isPhone }">
+  <div class="list-item-actions" :class="{ mobile: isPhone }">
     <template v-if="filter.trash">
       <v-icon-button v-tooltip="$t('delete')" class="sm" @click.stop="deleteItem(dataType, item)">
           <i-material-symbols:delete-forever-outline-rounded />
@@ -85,24 +85,3 @@ interface Props {
 
 defineProps<Props>()
 </script>
-
-<style scoped lang="scss">
-.actions {
-  &.mobile {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: flex-start;
-    margin-top: 4px;
-    
-    :deep(.btn-icon) {
-      background: var(--md-sys-color-surface-container);
-      border-radius: 8px;
-      
-      &:hover {
-        background: var(--md-sys-color-surface-container-high);
-      }
-    }
-  }
-}
-</style> 

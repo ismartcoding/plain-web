@@ -1,8 +1,10 @@
 import { initMutation, trashMediaItemsGQL, restoreMediaItemsGQL } from '@/lib/api/mutation'
-import type { DataType } from '@/lib/data'
+import { DataType, FEATURE } from '@/lib/data'
 import emitter from '@/plugins/eventbus'
 import type { FetchResult } from '@apollo/client'
-import { reactive } from 'vue'
+import { reactive, computed, ref, type Ref } from 'vue'
+import { hasFeature } from '@/lib/feature'
+import type { ISource } from '@/components/lightbox/types'
 
 export const useMediaTrash = () => {
   const { mutate, onDone: onTrashed } = initMutation({
@@ -51,5 +53,37 @@ export const useMediaRestore = () => {
       loading.set(query, true)
       mutate({ query, type })
     },
+  }
+}
+
+export function useFileTrashState(
+  current: (() => ISource | undefined) | Ref<ISource | undefined>, 
+  osVersion: (() => number) | Ref<number> | number
+) {
+  const isTrashed = computed(() => {
+    const currentValue = typeof current === 'function' ? current() : current.value
+    return currentValue?.path?.includes('.trashed-') === true
+  })
+
+  const canTrash = computed(() => {
+    const currentValue = typeof current === 'function' ? current() : current.value
+    const mediaTypes = [DataType.VIDEO, DataType.AUDIO, DataType.IMAGE]
+    const type = currentValue?.type
+    
+    let version: number
+    if (typeof osVersion === 'number') {
+      version = osVersion
+    } else if (typeof osVersion === 'function') {
+      version = osVersion()
+    } else {
+      version = osVersion.value
+    }
+    
+    return type && mediaTypes.includes(type as DataType) && hasFeature(FEATURE.MEDIA_TRASH, version)
+  })
+
+  return {
+    isTrashed,
+    canTrash
   }
 }

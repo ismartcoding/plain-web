@@ -1,8 +1,8 @@
 <template>
-  <div class="top-app-bar">
-    <div class="title">{{ $t('device_info') }}</div>
-  </div>
   <div class="scroll-content">
+    <div class="top-app-bar">
+      <div class="title">{{ $t('device_info') }}</div>
+    </div>
     <div class="grids">
       <div>
         <section class="card">
@@ -205,14 +205,37 @@ const { refetch } = initQuery({
 })
 </script>
 <style lang="scss" scoped>
+.scroll-content {
+  padding: 0 0 16px 0;
+}
+
 .grids {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
   gap: 16px;
-  flex: none !important;
+  padding: 0 16px 16px 16px;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
 }
 
 .card {
   height: 100%;
 }
+
+@media (max-width: 1200px) and (min-width: 769px) {
+  .grids {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .grids {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 0 12px 12px 12px;
+  }
+
+  .scroll-content {
+    padding: 0 0 12px 0;
+  }
+}
+
 </style>

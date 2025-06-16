@@ -36,7 +36,7 @@
       </template>
     </div>
 
-    <div class="actions">
+    <div v-if="!isPhone || !checked" class="actions">
       <search-input :filter="filter" :tags="tags" :buckets="buckets" :get-url="getUrl" :show-chips="!isPhone" :is-phone="isPhone" />
       <media-keyboard-shortcuts />
       <v-dropdown v-model="uploadMenuVisible">
@@ -84,7 +84,6 @@
     :select-real-all="selectRealAll"
     :clear-selection="clearSelection"
   />
-
   <div class="scroll-content" @dragover.stop.prevent="fileDragEnter">
     <div v-show="dropping" class="drag-mask" @drop.stop.prevent="dropFiles2" @dragleave.stop.prevent="fileDragLeave">{{ $t('release_to_send_files') }}</div>
     <div class="audio-list" :class="{ 'select-mode': checked }">

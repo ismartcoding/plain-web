@@ -18,6 +18,8 @@
 @use 'ripple';
 @use 'warning-dropdown';
 @use 'audio-list';
+@use 'list';
+@use 'skeleton';
 
 #app:has(~ .lightbox) {
   display: none;
@@ -30,7 +32,11 @@
   align-items: center;
   padding: 0 16px;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 8px;
+
+  .v-checkbox:first-child {
+    margin-inline-start: 4px;
+  }
 
   .title {
     flex: 1;
@@ -41,11 +47,6 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-inline-start: 8px;
-  }
-
-  .btn-icon + .title {
-    margin-inline-start: 0;
   }
 
   .actions {
@@ -56,6 +57,15 @@
     justify-content: space-between;
     align-items: center;
   }
+}
+
+.secondary-actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+  margin-block-end: 8px;
+  margin-inline: 16px;
 }
 
 .list-items {
@@ -160,6 +170,28 @@
     width: 120px;
     fill: var(--md-sys-color-primary);
   }
+
+  @media (max-width: 480px) {
+    width: calc(100vw - 32px);
+    max-width: 400px;
+    top: 50px;
+    flex-direction: column;
+    padding: 1.5rem;
+    text-align: center;
+    box-sizing: border-box;
+
+    div {
+      margin-inline-end: 0;
+      margin-block-end: 1rem;
+      font-size: 1.2rem;
+      line-height: 1.5;
+    }
+
+    *:is(svg) {
+      width: 80px;
+      margin: 0 auto;
+    }
+  }
 }
 
 .help-block {
@@ -254,7 +286,6 @@
     margin-block-start: 8px;
   }
   .scroll-content {
-    padding: 0 16px 16px 16px;
     overflow-y: auto;
     box-sizing: border-box;
     position: relative;
@@ -271,7 +302,7 @@
 
 .sidebar {
   .top-app-bar {
-    padding-inline-start: 8px;
+    padding-inline-start: 16px;
     padding-inline-end: 0;
     flex-wrap: nowrap;
   }
@@ -345,6 +376,8 @@
   position: relative;
   transform: translateX(-50%);
   border-radius: 8px;
+  // Global style: Hide browser default broken image icon for all image-thumb
+  text-indent: -9999px;
 }
 
 .blinking-cursor {

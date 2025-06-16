@@ -6,7 +6,7 @@
     @click.stop="handleItemClick($event, item, index, () => play(item))"
     @mouseover="handleMouseOver($event, index)"
   >
-    <div class="start">
+    <div class="list-item-start">
       <v-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, index)" />
       <v-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, index)" />
       <span class="number"><field-id :id="index + 1" :raw="item" /></span>
@@ -16,7 +16,7 @@
       <img v-else class="image-thumb" :src="getFileUrl(item.albumFileId, '&w=200&h=200')" @error="onImageError(item.id)" />
     </div>
     <div class="title">{{ item.title }}</div>
-    <div class="audio-item-subtitle">
+    <div class="subtitle">
       <span>{{ formatFileSize(item.size) }}</span>
       <span class="duration">
         {{ formatSeconds(item.duration) }}
@@ -54,35 +54,40 @@
   </section>
 
   <!-- phone Layout -->
-  <section
+  <ListItemPhone
     v-else
-    class="media-item-phone selectable-card"
-    :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
-    @click.stop="handleItemClick($event, item, index, () => play(item))"
+    :is-selected="selectedIds.includes(item.id)"
+    :is-selecting="shiftEffectingIds.includes(item.id)"
+    :checkbox-checked="shiftEffectingIds.includes(item.id) ? shouldSelect : selectedIds.includes(item.id)"
+    @click="handleItemClick($event, item, index, () => play(item))"
     @mouseover="handleMouseOver($event, index)"
+    @checkbox-click="(event: MouseEvent) => toggleSelect(event, item, index)"
   >
-    <div class="phone-left">
-      <v-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, index)" />
-      <v-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, index)" />
+    <template #image>
       <div class="image">
         <img v-if="imageErrorIds.includes(item.id)" :src="`/ficons/${getFileExtension(item.path)}.svg`" class="svg" />
         <img v-else class="image-thumb" :src="getFileUrl(item.albumFileId, '&w=200&h=200')" @error="onImageError(item.id)" />
       </div>
-    </div>
-    
-    <div class="phone-content">
-      <div class="title">{{ item.title }}</div>
-      <div class="audio-item-subtitle">
+    </template>
+
+    <template #title>{{ item.title }}</template>
+
+    <template #subtitle>
+      <div class="subtitle">
         <span>{{ formatFileSize(item.size) }}</span>
         <span class="duration">{{ formatSeconds(item.duration) }}</span>
+      </div>
+      <div v-if="bucketsMap[item.bucketId] || item.tags.length > 0" class="subtitle">
         <a @click.stop.prevent="viewBucket(mainStore, item.bucketId)">{{ bucketsMap[item.bucketId]?.name }}</a>
         <item-tags :tags="item.tags" :type="dataType" :only-links="true" />
       </div>
-      <div class="artist-time">
+      <div class="subtitle">
         <span v-if="item.artist" class="artist">{{ item.artist }}</span>
         <span class="time">{{ formatTimeAgo(item.createdAt) }}</span>
       </div>
-      
+    </template>
+
+    <template #actions>
       <AudioActionButtons
         :item="item"
         :filter="filter"
@@ -105,8 +110,8 @@
         :restore-loading="restoreLoading"
         :trash-loading="trashLoading"
       />
-    </div>
-  </section>
+    </template>
+  </ListItemPhone>
 </template>
 
 <script setup lang="ts">
@@ -114,7 +119,6 @@ import type { IAudio, IBucket, IFilter } from '@/lib/interfaces'
 import { DataType } from '@/lib/data'
 import { formatFileSize, formatSeconds, formatDateTime, formatTimeAgo } from '@/lib/format'
 import { getFileUrl, getFileExtension } from '@/lib/api/file'
-import AudioActionButtons from './AudioActionButtons.vue'
 
 interface Props {
   item: IAudio
@@ -155,50 +159,3 @@ interface Props {
 
 defineProps<Props>()
 </script>
-
-<style scoped lang="scss">
-.media-item-phone {
-  display: flex;
-  gap: 8px;
-  border-radius: 8px;
-  padding-block-end: 8px;
-  padding-inline-end: 8px;
-  
-  .phone-left {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    
-    .image {
-      width: 48px;
-      height: 48px;
-      margin-inline-start: 6px;
-      text-align: center;
-      .svg {
-        max-width: 48px;
-        max-height: 48px;
-      }
-    }
-  }
-  
-  .phone-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .title {
-    font-weight: bold;
-    word-break: break-all;
-    margin-block-start: 8px;
-  }
-
-  .artist-time {
-    display: flex;
-    gap: 8px;
-    color: var(--md-sys-color-on-surface-variant);
-    font-size: 0.875rem;
-  }
-}
-</style>

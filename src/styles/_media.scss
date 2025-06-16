@@ -3,6 +3,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(156px, 1fr));
   gap: 8px;
+  padding-inline: 16px;
   margin-block-end: 24px;
 
   .media-item {
@@ -150,11 +151,9 @@
       'start image title actions time'
       'start image subtitle  actions time';
     grid-template-columns: 48px 50px 1fr 140px minmax(140px, auto);
+    margin-inline: 16px;
     &:hover {
       cursor: pointer;
-    }
-    .start {
-      grid-area: start;
     }
     .number {
       font-size: 0.75rem;
@@ -167,6 +166,7 @@
       grid-area: image;
       margin-block: 12px;
       text-align: center;
+      border-radius: 4px;
       .svg {
         max-width: 50px;
         max-height: 50px;
@@ -189,7 +189,7 @@
       margin-block-start: 8px;
       margin-block-end: 12px;
     }
-    .actions {
+    .list-item-actions {
       grid-area: actions;
       display: flex;
       flex-direction: row;
@@ -208,7 +208,7 @@
   }
   &.select-mode {
     .media-item {
-      .actions {
+      .list-item-actions {
         visibility: hidden;
       }
     }
@@ -219,32 +219,7 @@
   .media-grid .media-item .btn-checkbox {
     display: flex;
   }
-  .media-list .media-item .actions {
+  .media-list .media-item .list-item-actions {
     visibility: visible;
-  }
-}
-
-.media-list {
-  .media-item {
-    .skeleton-image {
-      width: 50px;
-      height: 50px;
-    }
-    .skeleton-title {
-      width: 60%;
-      height: 24px;
-    }
-    .skeleton-subtitle {
-      width: 60%;
-      height: 20px;
-    }
-    .skeleton-actions {
-      width: 100px;
-      height: 20px;
-    }
-    .skeleton-time {
-      width: 60px;
-      height: 20px;
-    }
   }
 }

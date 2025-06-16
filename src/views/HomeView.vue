@@ -154,7 +154,7 @@
       </div>
     </div>
 
-    <div class="card feature-card" @click="openTab('/json-viewer')">
+    <div v-if="!isPhone" class="card feature-card" @click="openTab('/json-viewer')">
       <div class="card-icon">
         <i-material-symbols:code-blocks-outline-rounded />
       </div>
@@ -191,7 +191,7 @@
 import toast from '@/components/toaster'
 import { homeStatsGQL, initQuery } from '@/lib/api/query'
 import { formatFileSize } from '@/lib/format'
-import { ref, watch } from 'vue'
+import { inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
@@ -203,6 +203,7 @@ import type { IHomeStats, IStorageStatsItem } from '@/lib/interfaces'
 import { buildQuery } from '@/lib/search'
 import { encodeBase64 } from '@/lib/strutil'
 
+const isPhone = inject('isPhone') as boolean
 const { t } = useI18n()
 
 const mainStore = useMainStore()

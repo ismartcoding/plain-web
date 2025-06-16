@@ -382,8 +382,8 @@ export const mergeChunksGQL = gql`
 `
 
 export const startPomodoroGQL = gql`
-  mutation startPomodoro {
-    startPomodoro
+  mutation startPomodoro($timeLeft: Int!) {
+    startPomodoro(timeLeft: $timeLeft)
   }
 `
 
@@ -396,11 +396,5 @@ export const stopPomodoroGQL = gql`
 export const pausePomodoroGQL = gql`
   mutation pausePomodoro {
     pausePomodoro
-  }
-`
-
-export const updatePomodoroProgressGQL = gql`
-  mutation updatePomodoroProgress($timeLeft: Int!) {
-    updatePomodoroProgress(timeLeft: $timeLeft)
   }
 `

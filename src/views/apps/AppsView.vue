@@ -5,40 +5,39 @@
       <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
       <span v-else>{{ $t('page_title.apps') }} ({{ total.toLocaleString() }})</span>
       <template v-if="checked">
-        <button v-tooltip="$t('download')" class="btn-icon" @click.stop="downloadItems(realAllChecked, selectedIds, q)">
-          
+        <v-icon-button v-tooltip="$t('download')" @click.stop="downloadItems(realAllChecked, selectedIds, q)">
           <i-material-symbols:download-rounded />
-        </button>
+        </v-icon-button>
       </template>
     </div>
-    <div class="actions">
-      <search-input :filter="filter" :types="types" :get-url="getUrl" />
-      <button v-tooltip="$t('install_app')" class="btn-icon" @click.stop="install">
-        
-        <i-material-symbols:upload-rounded />
-      </button>
-      <v-dropdown v-model="sortMenuVisible">
-        <template #trigger>
-                  <button v-tooltip="$t('sort')" class="btn-icon btn-sort" :disabled="sorting">
-          
-          <v-circular-progress v-if="sorting" indeterminate />
-          <i-material-symbols:sort-rounded v-else />
-        </button>
-        </template>
-        <div class="menu-items">
-          <div
-            v-for="item in sortItems"
-            :key="item.value"
-            class="dropdown-item"
-            :class="{ selected: item.value === appSortBy }"
-            @click="sort(item.value)"
-          >
-            {{ $t(item.label) }}
-          </div>
-        </div>
-      </v-dropdown>
+
+    <div v-if="!isPhone || !checked" class="actions">
+      <AppsActionButtons
+        :filter="filter"
+        :types="types"
+        :get-url="getUrl"
+        :show-chips="!isPhone"
+        :is-phone="isPhone"
+        :sorting="sorting"
+        :sort-items="sortItems"
+        :app-sort-by="appSortBy"
+        @install="install"
+        @sort="sort"
+      />
     </div>
   </div>
+
+  <SearchFilters
+    v-if="isPhone"
+    class="mobile-search-filters"
+    :filter="filter"
+    :tags="[]"
+    :feeds="[]"
+    :buckets="[]"
+    :types="types"
+    @filter-change="onFilterChange"
+  />
+
   <all-checked-alert
     :limit="limit"
     :total="total"
@@ -50,70 +49,29 @@
   <div class="scroll-content" @dragover.stop.prevent="fileDragEnter">
     <div v-show="dropping" class="drag-mask" @drop.stop.prevent="dropApkFiles" @dragleave.stop.prevent="fileDragLeave">{{ $t('release_to_send_files') }}</div>
     <div class="app-list" :class="{ 'select-mode': checked }">
-      <section
+      <AppListItem
         v-for="(item, i) in items"
         :key="item.id"
-        class="app-item selectable-card"
-        :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
-        @click.stop="handleItemClick($event, item, i, () => {})"
-        @mouseover="handleMouseOver($event, i)"
-      >
-        <div class="start">
-          <v-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, i)" />
-          <v-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, i)" />
-          <span class="number"><field-id :id="i + 1" :raw="item" /></span>
-        </div>
-        <img class="image" width="50" height="50" :src="item.icon" />
-        <div class="title">{{ item.name }} ({{ item.version }})</div>
-        <div class="subtitle">
-          <span>{{ item.id }}</span>
-          <span>{{ formatFileSize(item.size) }}</span>
-          <span>{{ $t('app_type.' + item.type) }}</span>
-        </div>
-        <div class="actions">
-          <template v-if="item.isUninstalling">
-            <v-circular-progress v-tooltip="$t('uninstalling')" indeterminate class="sm" />
-            &nbsp;<v-outlined-button class="btn-sm" @click.stop="cancelUninstall(item)">{{ $t('cancel') }}</v-outlined-button>
-          </template>
-          <button v-else v-tooltip="$t('uninstall')" class="btn-icon sm" @click.stop="uninstall(item)">
-            
-            <i-material-symbols:delete-forever-outline-rounded />
-          </button>
-          <button v-tooltip="$t('download')" class="btn-icon sm" @click.stop="downloadFile(item.path, `${item.name.replace(' ', '')}-${item.id}.apk`)">
-            
-            <i-material-symbols:download-rounded />
-          </button>
-        </div>
-        <div class="time">
-          <span v-tooltip="formatDateTimeFull(item.installedAt)">{{ $t('installed_at') }}: {{ formatDateTime(item.installedAt) }} </span>
-          <span v-tooltip="formatDateTimeFull(item.updatedAt)">{{ $t('updated_at') }}: {{ formatDateTime(item.updatedAt) }} </span>
-        </div>
-      </section>
+        :item="item"
+        :index="i"
+        :selected-ids="selectedIds"
+        :shift-effecting-ids="shiftEffectingIds"
+        :should-select="shouldSelect"
+        :is-phone="isPhone"
+        :handle-item-click="handleItemClick"
+        :handle-mouse-over="handleMouseOver"
+        :toggle-select="toggleSelect"
+        @uninstall="uninstall"
+        @download="downloadApp"
+        @cancel-uninstall="cancelUninstall"
+      />
       <template v-if="loading && items.length === 0">
-        <section v-for="i in 20" :key="i" class="app-item selectable-card-skeleton">
-          <div class="start">
-            <div class="checkbox">
-              <div class="skeleton-checkbox"></div>
-            </div>
-            <span class="number">{{ i }}</span>
-          </div>
-          <div class="image">
-            <div class="skeleton-image"></div>
-          </div>
-          <div class="title">
-            <div class="skeleton-text skeleton-title"></div>
-          </div>
-          <div class="subtitle">
-            <div class="skeleton-text skeleton-subtitle"></div>
-          </div>
-          <div class="actions">
-            <div class="skeleton-text skeleton-actions"></div>
-          </div>
-          <div class="time">
-            <div class="skeleton-text skeleton-time"></div>
-            <div class="skeleton-text skeleton-time"></div>
-          </div>
-        </section>
+        <AppSkeletonItem
+          v-for="i in 20"
+          :key="i"
+          :index="i"
+          :is-phone="isPhone"
+        />
       </template>
     </div>
     <div v-if="!loading && items.length === 0" class="no-data-placeholder">
@@ -125,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { onActivated, onDeactivated, reactive, ref } from 'vue'
+import { onActivated, onDeactivated, reactive, ref, inject } from 'vue'
 import toast from '@/components/toaster'
 import tapPhone from '@/plugins/tapphone'
 import { formatDateTime, formatDateTimeFull, formatFileSize } from '@/lib/format'
@@ -151,7 +109,12 @@ import { useSearch } from '@/hooks/search'
 import { useKeyEvents } from '@/hooks/key-events'
 import { getSortItems } from '@/lib/file'
 import { generateDownloadFileName } from '@/lib/format'
-import Dropdown from '@/components/base/VDropdown.vue'
+import SearchFilters from '@/components/SearchFilters.vue'
+import AppsActionButtons from '@/components/apps/AppsActionButtons.vue'
+import AppSkeletonItem from '@/components/apps/AppSkeletonItem.vue'
+import AppListItem from '@/components/apps/AppListItem.vue'
+
+const isPhone = inject('isPhone') as boolean
 
 // Track packages being installed
 const installingPackages = ref<{ id: string; updatedAt: string; isNew: boolean }[]>([])
@@ -164,7 +127,7 @@ const mainStore = useMainStore()
 const items = ref<IPackageItem[]>([])
 const { t } = useI18n()
 const { appSortBy } = storeToRefs(mainStore)
-const { parseQ } = useSearch()
+const { parseQ, buildQ } = useSearch()
 const filter = reactive<IFilter>({
   tagIds: [],
 })
@@ -245,17 +208,21 @@ function getUrl(q: string) {
   return q ? `/apps?q=${q}` : `/apps`
 }
 
-const sortMenuVisible = ref(false)
+
 
 function sort(value: string) {
   if (appSortBy.value === value) {
-    sortMenuVisible.value = false
     return
   }
   sorting.value = true
   appSortBy.value = value
   gotoPage(1)
-  sortMenuVisible.value = false
+}
+
+function onFilterChange(newFilter: IFilter) {
+  Object.assign(filter, newFilter)
+  const q = buildQ(filter)
+  replacePath(mainStore, getUrl(q))
 }
 
 const { mutate: uninstallMutate } = initMutation({
@@ -266,6 +233,10 @@ function uninstall(item: IPackageItem) {
   item.isUninstalling = true
   tapPhone(t('confirm_uninstallation_on_phone'))
   uninstallMutate({ id: item.id })
+}
+
+function downloadApp(item: IPackageItem) {
+  downloadFile(item.path, `${item.name.replace(' ', '')}-${item.id}.apk`)
 }
 
 const { loading: fetchPackageStatusLoading, fetch: fetchPackageStatus } = initLazyQuery({
@@ -356,16 +327,18 @@ onDeactivated(() => {
 })
 </script>
 <style scoped lang="scss">
-.app-item {
+.app-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+:deep(.app-item) {
   display: grid;
   border-radius: 8px;
   grid-template-areas:
     'start image title actions time'
     'start image subtitle  actions time';
-  grid-template-columns: 48px 50px 2fr 1fr minmax(200px, auto);
-  .start {
-    grid-area: start;
-  }
+  grid-template-columns: 48px 50px 2fr 1fr minmax(240px, auto);
   .number {
     font-size: 0.75rem;
     display: flex;
@@ -394,7 +367,7 @@ onDeactivated(() => {
     font-size: 0.875rem;
     margin-inline: 16px;
   }
-  .actions {
+  .list-item-actions {
     grid-area: actions;
     display: flex;
     flex-direction: row;
@@ -412,35 +385,6 @@ onDeactivated(() => {
     align-items: end;
     gap: 8px;
     font-size: 0.875rem;
-  }
-}
-.app-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.app-list {
-  .app-item {
-    .skeleton-image {
-      width: 50px;
-      height: 50px;
-    }
-    .skeleton-title {
-      width: 40%;
-      height: 24px;
-    }
-    .skeleton-subtitle {
-      width: 50%;
-      height: 20px;
-    }
-    .skeleton-actions {
-      width: 140px;
-      height: 20px;
-    }
-    .skeleton-time {
-      width: 60px;
-      height: 20px;
-    }
   }
 }
 </style>
