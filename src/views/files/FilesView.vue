@@ -1,202 +1,115 @@
 <template>
   <div class="top-app-bar">
     <v-checkbox touch-target="wrapper" :checked="allChecked" :indeterminate="!allChecked && checked" @change="toggleAllChecked" />
-    <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
-    <div v-else class="breadcrumb">
-      <template v-for="(item, index) in breadcrumbPaths" :key="item.path">
-        <template v-if="index === 0">
-          <span v-if="item.path === filter.parent" v-tooltip="getPageStats()">{{ item.name }} ({{ total }})</span>
-          <a v-else v-tooltip="getPageStats()" href="#" @click.stop.prevent="navigateToDir(item.path)">{{ item.name }}</a>
+    <div class="title">
+      <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
+      <div v-else class="breadcrumb">
+        <template v-for="(item, index) in breadcrumbPaths" :key="item.path">
+          <template v-if="index === 0">
+            <span v-if="item.path === filter.parent" v-tooltip="getPageStats()">{{ item.name }} ({{ total }})</span>
+            <a v-else v-tooltip="getPageStats()" href="#" @click.stop.prevent="navigateToDir(item.path)">{{ item.name }}</a>
+          </template>
+          <template v-else>
+            <span v-if="item.path === filter.parent">{{ item.name }} ({{ total }})</span>
+            <a v-else href="#" @click.stop.prevent="navigateToDir(item.path)">{{ item.name }}</a>
+          </template>
         </template>
-        <template v-else>
-          <span v-if="item.path === filter.parent">{{ item.name }} ({{ total }})</span>
-          <a v-else href="#" @click.stop.prevent="navigateToDir(item.path)">{{ item.name }}</a>
-        </template>
+      </div>
+      <template v-if="checked">
+        <v-icon-button v-tooltip="$t('copy')" @click.stop="copyItems">
+            <i-material-symbols:content-copy-outline-rounded />
+        </v-icon-button>
+        <v-icon-button v-tooltip="$t('cut')" @click.stop="cutItems">
+            <i-material-symbols:content-cut-rounded />
+        </v-icon-button>
+        <v-icon-button v-tooltip="$t('delete')" @click.stop="deleteItems">
+            <i-material-symbols:delete-forever-outline-rounded />
+        </v-icon-button>
+        <v-icon-button v-tooltip="$t('download')" :loading="downloadLoading" @click.stop="downloadItems">
+            <i-material-symbols:download-rounded />
+        </v-icon-button>
       </template>
     </div>
-    <template v-if="checked">
-      <v-icon-button v-tooltip="$t('copy')" @click.stop="copyItems">
-          <i-material-symbols:content-copy-outline-rounded />
-      </v-icon-button>
-      <v-icon-button v-tooltip="$t('cut')" @click.stop="cutItems">
-          <i-material-symbols:content-cut-rounded />
-      </v-icon-button>
-      <v-icon-button v-tooltip="$t('delete')" @click.stop="deleteItems">
-          <i-material-symbols:delete-forever-outline-rounded />
-      </v-icon-button>
-      <v-icon-button v-tooltip="$t('download')" :loading="downloadLoading" @click.stop="downloadItems">
-          <i-material-symbols:download-rounded />
-      </v-icon-button>
-    </template>
-    <div class="actions">
-      <file-search-input :filter="filter" :parent="rootDir" :get-url="getUrl" :navigate-to-dir="navigateToDir" />
-      <files-keyboard-shortcuts />
-      <v-icon-button v-tooltip="$t('create_folder')" @click="createDir">
-          <i-material-symbols:create-new-folder-outline-rounded />
-      </v-icon-button>
-      <v-dropdown v-model="uploadMenuVisible">
-        <template #trigger>
-          <v-icon-button v-tooltip="$t('upload')">
-              <i-material-symbols:upload-rounded />
-          </v-icon-button>
-        </template>
-        <div class="dropdown-item" @click.stop="uploadFilesClick(filter.parent); uploadMenuVisible = false">
-          {{ $t('upload_files') }}
-        </div>
-        <div class="dropdown-item" @click.stop="uploadDirClick(filter.parent); uploadMenuVisible = false">
-          {{ $t('upload_folder') }}
-        </div>
-      </v-dropdown>
-      <v-icon-button v-if="canPaste()" v-tooltip="$t('paste')" :loading="pasting" @click="pasteDir">
-          <i-material-symbols:content-paste-rounded />
-      </v-icon-button>
-      <v-icon-button v-tooltip="$t('refresh')" :loading="refreshing" @click="refreshCurrentDir">
-          <i-material-symbols:refresh-rounded />
-      </v-icon-button>
-      <v-dropdown v-model="sortMenuVisible">
-        <template #trigger>
-          <v-icon-button v-tooltip="$t('sort')" :loading="sorting">
-              <i-material-symbols:sort-rounded />
-          </v-icon-button>
-        </template>
-        <div v-for="item in sortItems" :key="item.value" class="dropdown-item" :class="{ 'selected': item.value === fileSortBy }" @click="sort(item.value); sortMenuVisible = false">
-          {{ $t(item.label) }}
-        </div>
-      </v-dropdown>
+
+    <div v-if="!isPhone && !checked" class="actions">
+      <file-search-input :filter="filter" :parent="rootDir" :get-url="getUrl" :navigate-to-dir="navigateToDir" :show-chips="!isPhone" :is-phone="isPhone" />
+      <FilesActionButtons 
+        :current-dir="filter.parent"
+        :can-paste="canPaste()"
+        :pasting="pasting"
+        :refreshing="refreshing"
+        :sorting="sorting"
+        :sort-items="sortItems"
+        :file-sort-by="fileSortBy"
+        @create-dir="createDir"
+        @upload-files="uploadFilesClick"
+        @upload-dir="uploadDirClick"
+        @paste-dir="pasteDir"
+        @refresh-current-dir="refreshCurrentDir"
+        @sort="sort"
+      />
     </div>
   </div>
+
+  <div v-if="isPhone && !checked" class="secondary-actions">
+    <file-search-input :filter="filter" :parent="rootDir" :get-url="getUrl" :navigate-to-dir="navigateToDir" :show-chips="!isPhone" :is-phone="isPhone" />
+    <FilesActionButtons 
+        :current-dir="filter.parent"
+        :can-paste="canPaste()"
+        :pasting="pasting"
+        :refreshing="refreshing"
+        :sorting="sorting"
+        :sort-items="sortItems"
+        :file-sort-by="fileSortBy"
+        @create-dir="createDir"
+        @upload-files="uploadFilesClick"
+        @upload-dir="uploadDirClick"
+        @paste-dir="pasteDir"
+        @refresh-current-dir="refreshCurrentDir"
+        @sort="sort"
+      />
+  </div>
+
+  <FileSearchFilters v-if="isPhone" class="mobile-search-filters" :filter="filter" @filter-change="onFilterChange" />
+
   <div v-if="loading && firstInit" class="scroller-wrapper">
     <div class="scroller">
-      <section v-for="i in 20" :key="i" class="file-item selectable-card-skeleton">
-        <div class="start">
-          <div class="checkbox">
-            <div class="skeleton-checkbox"></div>
-          </div>
-          <span class="number">{{ i }}</span>
-        </div>
-        <div class="image">
-          <div class="skeleton-image"></div>
-        </div>
-        <div class="title">
-          <div class="skeleton-text skeleton-title"></div>
-        </div>
-        <div class="subtitle">
-          <div class="skeleton-text skeleton-subtitle"></div>
-        </div>
-        <div class="actions">
-          <div class="skeleton-text skeleton-actions"></div>
-        </div>
-      </section>
+      <FileSkeletonItem v-for="i in 20" :key="i" :index="i" :is-phone="isPhone" />
     </div>
   </div>
   <div class="scroller-wrapper" @dragover.stop.prevent="fileDragEnter">
     <div v-show="dropping" class="drag-mask" @drop.stop.prevent="dropFiles2" @dragleave.stop.prevent="fileDragLeave">{{ $t('release_to_send_files') }}</div>
     <VirtualList v-if="items.length > 0" class="scroller" :data-key="'id'" :data-sources="items" :estimate-size="80">
       <template #item="{ index, item }">
-        <section
-          class="file-item selectable-card"
-          :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
-          @click.stop="
-            handleItemClick($event, item, index, () => {
-              clickItem(item)
-            })
-          "
-          @mouseover="handleMouseOver($event, index)"
-        >
-          <div class="start">
-            <v-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, index)" />
-            <v-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, index)" />
-            <span class="number"><field-id :id="index + 1" :raw="item" /></span>
-          </div>
-
-          <div class="image" @click="viewItem($event, item)">
-            <img v-if="item.isDir" :src="`/ficons/folder.svg`" class="svg" />
-            <template v-else>
-              <img v-if="extensionImageErrorIds.includes(item.id)" class="svg" src="/ficons/default.svg" />
-              <img v-else-if="!imageErrorIds.includes(item.id) && item.fileId" class="image-thumb" :src="getFileUrl(item.fileId, '&w=50&h=50')" @error="onImageError(item.id)" />
-              <img v-else-if="item.extension" :src="`/ficons/${item.extension}.svg`" class="svg" @error="onExtensionImageError(item.id)" />
-              <img v-else class="svg" src="/ficons/default.svg" />
-            </template>
-          </div>
-          <div class="title">
-            {{ item.name }}
-          </div>
-          <div class="subtitle">
-            <span v-if="item.isDir">{{ $t('x_items', item.children) }}</span>
-            <span v-else>{{ formatFileSize(item.size) }}</span>
-            <span v-tooltip="formatDateTime(item.updatedAt)">{{ formatTimeAgo(item.updatedAt) }}</span>
-          </div>
-          <div class="actions">
-            <template v-if="item.isDir">
-              <v-icon-button v-tooltip="$t('download')" class="sm" @click.stop="downloadDir(item.path)">
-                  <i-material-symbols:download-rounded />
-              </v-icon-button>
-              <v-dropdown v-model="uploadItemMenuVisible[item.id]">
-                <template #trigger>
-                  <v-icon-button v-tooltip="$t('upload')" class="sm">
-                      <i-material-symbols:upload-rounded />
-                  </v-icon-button>
-                </template>
-                <div class="dropdown-item" @click.stop="uploadFilesClick(item.path); uploadItemMenuVisible[item.id] = false">
-                  {{ $t('upload_files') }}
-                </div>
-                <div class="dropdown-item" @click.stop="uploadDirClick(item.path); uploadItemMenuVisible[item.id] = false">
-                  {{ $t('upload_folder') }}
-                </div>
-              </v-dropdown>
-            </template>
-            <template v-else>
-              <v-icon-button v-tooltip="$t('download')" class="sm" @click.stop="downloadFile(item.path)">
-                  <i-material-symbols:download-rounded />
-              </v-icon-button>
-            </template>
-
-            <v-icon-button v-tooltip="$t('delete')" class="sm" @click.stop="deleteItem(item)">
-                <i-material-symbols:delete-forever-outline-rounded />
-            </v-icon-button>
-            <v-dropdown v-model="infoMenuVisible[item.id]">
-              <template #trigger>
-                <v-icon-button v-tooltip="$t('info')" class="sm">
-                    <i-material-symbols:info-outline-rounded />
-                </v-icon-button>
-              </template>
-              <section class="card card-info">
-                <div class="key-value vertical">
-                  <div class="key">{{ $t('path') }}</div>
-                  <div class="value">
-                    {{ item.path }}
-                  </div>
-                </div>
-              </section>
-            </v-dropdown>
-
-            <v-dropdown v-model="actionsMenuVisible[item.id]">
-              <template #trigger>
-                <v-icon-button v-tooltip="$t('actions')" class="sm">
-                    <i-material-symbols:more-vert />
-                </v-icon-button>
-              </template>
-              <div class="dropdown-item" @click.stop="duplicateItem(item); actionsMenuVisible[item.id] = false">
-                {{ $t('duplicate') }}
-              </div>
-              <div class="dropdown-item" @click.stop="cutItem(item); actionsMenuVisible[item.id] = false">
-                {{ $t('cut') }}
-              </div>
-              <div class="dropdown-item" @click.stop="copyItem(item); actionsMenuVisible[item.id] = false">
-                {{ $t('copy') }}
-              </div>
-              <div v-if="item.isDir && canPaste()" class="dropdown-item" @click.stop="pasteItem(item); actionsMenuVisible[item.id] = false">
-                {{ $t('paste') }}
-              </div>
-              <div v-if="!item.isDir" class="dropdown-item" @click.stop="copyLinkItem(item); actionsMenuVisible[item.id] = false">
-                {{ $t('copy_link') }}
-              </div>
-              <div class="dropdown-item" @click.stop="renameItemClick(item); actionsMenuVisible[item.id] = false">
-                {{ $t('rename') }}
-              </div>
-            </v-dropdown>
-          </div>
-        </section>
+        <FileListItem
+          :item="item"
+          :index="index"
+          :selected-ids="selectedIds"
+          :shift-effecting-ids="shiftEffectingIds"
+          :should-select="shouldSelect"
+          :is-phone="isPhone"
+          :image-error-ids="imageErrorIds"
+          :extension-image-error-ids="extensionImageErrorIds"
+          :can-paste="canPaste()"
+          :handle-item-click="handleItemClick"
+          :handle-mouse-over="handleMouseOver"
+          :toggle-select="toggleSelect"
+          :on-image-error="onImageError"
+          :on-extension-image-error="onExtensionImageError"
+          :view-item="viewItem"
+          :click-item="clickItem"
+          @download-dir="downloadDir"
+          @download-file="downloadFile"
+          @upload-files="uploadFilesClick"
+          @upload-dir="uploadDirClick"
+          @delete-item="deleteItem"
+          @duplicate-item="duplicateItem"
+          @cut-item="cutItem"
+          @copy-item="copyItem"
+          @paste-item="pasteItem"
+          @copy-link="copyLinkItem"
+          @rename-item="renameItemClick"
+        />
       </template>
     </VirtualList>
     <div v-if="!loading && items.length === 0" class="no-data-placeholder">
@@ -208,13 +121,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onActivated, onDeactivated, reactive, ref } from 'vue'
-import { formatDateTime, formatFileSize, formatTimeAgo } from '@/lib/format'
+import { computed, inject, onActivated, onDeactivated, reactive, ref } from 'vue'
+import { formatFileSize } from '@/lib/format'
 import { useI18n } from 'vue-i18n'
 import { useMainStore } from '@/stores/main'
 import { storeToRefs } from 'pinia'
 import { type IFile, canOpenInBrowser, canView, getSortItems, enrichFile, isTextFile } from '@/lib/file'
-import { getFileName, getFileUrl, getFileUrlByPath, getFileId } from '@/lib/api/file'
+import { getFileName, getFileUrlByPath, getFileId } from '@/lib/api/file'
 import { noDataKey } from '@/lib/list'
 import emitter from '@/plugins/eventbus'
 import { useCreateDir, useRename, useStats, useDownload, useView, useCopyPaste, getRootDir, useSearch } from '@/hooks/files'
@@ -237,6 +150,7 @@ import { replacePath } from '@/plugins/router'
 import { remove } from 'lodash-es'
 import { useFilesStore } from '@/stores/files'
 
+const isPhone = inject('isPhone') as boolean
 const { t } = useI18n()
 const sources = ref([])
 const { parseQ, buildQ } = useSearch()
@@ -592,6 +506,12 @@ function deleteItem(item: IFile) {
   })
 }
 
+function onFilterChange(newFilter: IFileFilter) {
+  Object.assign(filter, newFilter)
+  const q = buildQ(filter)
+  replacePath(mainStore, getUrl(q))
+}
+
 const uploadTaskDoneHandler = (r: IUploadItem) => {
   if (r.status === 'done') {
     // have to delay 1s to make sure the api return latest data.
@@ -612,14 +532,11 @@ const fileRenamedHandler = (event: IFileRenamedEvent) => {
 }
 
 function dropFiles2(e: DragEvent) {
-  dropFiles(e, filter.parent)
+  dropFiles(e, filter.parent, () => true)
 }
 
-const uploadMenuVisible = ref(false)
-const sortMenuVisible = ref(false)
-const uploadItemMenuVisible = ref<Record<string, boolean>>({})
-const infoMenuVisible = ref<Record<string, boolean>>({})
-const actionsMenuVisible = ref<Record<string, boolean>>({})
+
+
 
 onActivated(() => {
   q.value = decodeBase64(query.q?.toString() ?? '')

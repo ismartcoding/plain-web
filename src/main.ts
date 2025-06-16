@@ -11,7 +11,7 @@ import VueTooltip from './plugins/tooltip'
 import VueRipple from './plugins/ripple'
 import i18n from './plugins/i18n'
 import { shortUUID } from './lib/strutil'
-import { getIsPhone } from './hooks/device'
+import { getIsPhone, getIsTablet } from './hooks/device'
 
 const clientId = localStorage.getItem('client_id')
 if (!clientId) {
@@ -32,4 +32,5 @@ createApp({
   .use(router)
   .use(i18n)
   .provide('isPhone', getIsPhone())
+  .provide('isTablet', getIsTablet())
   .mount('#app')

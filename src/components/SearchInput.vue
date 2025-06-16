@@ -61,7 +61,7 @@
     <label class="form-label">{{ $t('keywords') }}</label>
     <v-text-field v-model="localFilter.text" @keyup.enter="applyMobileSearch" />
     <template v-if="showToday || showTrash">
-      <v-chip-set>
+      <v-chip-set style="margin-block-start: 16px">
         <v-filter-chip v-if="showToday" :label="$t('today')" :selected="localFilter.today" @click="localFilter.today = !localFilter.today" />
         <v-filter-chip v-if="showTrash" :label="$t('trash')" :selected="localFilter.trash" @click="localFilter.trash = !localFilter.trash" />
       </v-chip-set>

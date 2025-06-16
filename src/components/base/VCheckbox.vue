@@ -39,7 +39,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   change: [event: Event]
-  click: [event: Event]
+  click: [event: MouseEvent]
   'update:modelValue': [value: boolean]
 }>()
 
@@ -52,7 +52,7 @@ watch(() => props.indeterminate, (val) => {
   if (inputRef.value) inputRef.value.indeterminate = val
 }, { immediate: true })
 
-function handleWrapperClick(event: Event) {
+function handleWrapperClick(event: MouseEvent) {
   if (props.touchTarget === 'wrapper' && event.target === event.currentTarget) {
     inputRef.value?.click()
   }
@@ -83,7 +83,6 @@ defineExpose({
 }
 
 .v-checkbox.touch-wrapper {
-  padding: 2px;
   border-radius: 50%;
   transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }

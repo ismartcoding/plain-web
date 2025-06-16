@@ -1,3 +1,19 @@
+
+@media (max-width: 480px) {
+  .top-app-bar {
+    gap: 0px !important;
+    .v-checkbox:first-child {
+      margin-inline-start: 0px !important;
+    }
+  }
+  .media-grid, .top-app-bar {
+    padding-inline: 12px !important;
+  }
+  .feed-item {
+    margin-inline: 12px !important;
+  }
+}
+
 @media (max-width: 768px) {
   .layout {
     grid-template-areas:

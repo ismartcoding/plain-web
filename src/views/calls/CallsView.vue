@@ -6,19 +6,18 @@
       <span v-else>{{ $t('page_title.calls') }} ({{ total.toLocaleString() }})</span>
       <template v-if="checked">
         <button v-tooltip="$t('delete')" class="btn-icon" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)">
-          
           <i-material-symbols:delete-forever-outline-rounded />
         </button>
         <button v-tooltip="$t('add_to_tags')" class="btn-icon" @click.stop="addToTags(selectedIds, realAllChecked, q)">
-          
           <i-material-symbols:label-outline-rounded />
         </button>
       </template>
     </div>
 
     <div class="actions">
-      <search-input :filter="filter" :tags="tags" :types="types" :get-url="getUrl" />
+      <search-input :filter="filter" :tags="tags" :types="types" :get-url="getUrl" :show-chips="!isPhone" :is-phone="isPhone" />
     </div>
+    <SearchFilters v-if="isPhone" class="mobile-search-filters" :filter="filter" :tags="tags" :feeds="[]" :buckets="[]" :types="[]" @filter-change="onFilterChange" />
   </div>
   <all-checked-alert
     :limit="limit"
@@ -38,7 +37,7 @@
         @click.stop="handleItemClick($event, item, i, () => {})"
         @mouseover="handleMouseOver($event, i)"
       >
-        <div class="start">
+        <div class="list-item-start">
           <v-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, i)" />
           <v-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, i)" />
           <span class="number"><field-id :id="i + 1" :raw="item" /></span>
@@ -54,16 +53,13 @@
         </div>
         <div class="actions">
           <button v-tooltip="$t('delete')" class="btn-icon sm" @click.stop="deleteItem(item)">
-            
             <i-material-symbols:delete-forever-outline-rounded />
           </button>
           <v-circular-progress v-if="callLoading && callId === item.id" indeterminate class="sm" />
           <button v-else v-tooltip="$t('make_a_phone_call')" class="btn-icon sm" @click.stop="call(item)">
-            
             <i-material-symbols:call-outline-rounded />
           </button>
           <button v-tooltip="$t('add_to_tags')" class="btn-icon sm" @click.stop="addItemToTags(item)">
-            
             <i-material-symbols:label-outline-rounded />
           </button>
         </div>
@@ -77,29 +73,7 @@
         </div>
       </section>
       <template v-if="loading && items.length === 0">
-        <section v-for="i in 20" :key="i" class="call-item selectable-card-skeleton">
-          <div class="start">
-            <div class="checkbox">
-              <div class="skeleton-checkbox"></div>
-            </div>
-            <span class="number">{{ i }}</span>
-          </div>
-          <div class="title">
-            <div class="skeleton-text skeleton-title"></div>
-          </div>
-          <div class="subtitle">
-            <div class="skeleton-text skeleton-subtitle"></div>
-          </div>
-          <div class="actions">
-            <div class="skeleton-text skeleton-actions"></div>
-          </div>
-          <div class="geo">
-            <div class="skeleton-text skeleton-geo"></div>
-          </div>
-          <div class="time">
-            <div class="skeleton-text skeleton-time"></div>
-          </div>
-        </section>
+        <CallSkeletonItem v-for="i in 20" :key="i" :index="i" :is-phone="isPhone" />
       </template>
     </div>
     <div v-if="!loading && items.length === 0" class="no-data-placeholder">
@@ -110,7 +84,7 @@
 </template>
 
 <script setup lang="ts">
-import { onActivated, onDeactivated, reactive, ref } from 'vue'
+import { inject, onActivated, onDeactivated, reactive, ref } from 'vue'
 import toast from '@/components/toaster'
 import { formatDateTime, formatSeconds, formatTimeAgo } from '@/lib/format'
 import { callsGQL, initLazyQuery } from '@/lib/api/query'
@@ -135,11 +109,12 @@ import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { DataType } from '@/lib/data'
 import { useKeyEvents } from '@/hooks/key-events'
 
+const isPhone = inject('isPhone') as boolean
 const mainStore = useMainStore()
 const { app } = storeToRefs(useTempStore())
 const items = ref<ICall[]>([])
 const { t } = useI18n()
-const { parseQ } = useSearch()
+const { parseQ, buildQ } = useSearch()
 const filter = reactive<IFilter>({
   tagIds: [],
 })
@@ -286,6 +261,11 @@ function deleteItem(item: ICall) {
   })
 }
 
+function onFilterChange(newFilter: IFilter) {
+  Object.assign(filter, newFilter)
+  replacePath(mainStore, getUrl(buildQ(filter)))
+}
+
 onActivated(() => {
   q.value = decodeBase64(query.q?.toString() ?? '')
   parseQ(filter, q.value)
@@ -305,16 +285,13 @@ onDeactivated(() => {
 })
 </script>
 <style scoped lang="scss">
-.call-item {
+:deep(.call-item) {
   display: grid;
   border-radius: 8px;
   grid-template-areas:
     'start title actions geo time'
     'start subtitle actions geo time';
   grid-template-columns: 48px 2fr 1fr minmax(64px, 1fr) minmax(64px, 1fr);
-  .start {
-    grid-area: start;
-  }
   .number {
     font-size: 0.75rem;
     display: flex;
@@ -362,37 +339,12 @@ onDeactivated(() => {
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-.call-list.select-mode {
-  .call-item {
-    cursor: pointer;
-    .actions {
-      visibility: hidden;
-    }
-  }
-}
-
-.call-list {
-  .call-item {
-    .skeleton-title {
-      width: 160px;
-      height: 24px;
-    }
-    .skeleton-subtitle {
-      width: 80px;
-      height: 20px;
-    }
-    .skeleton-actions {
-      width: 120px;
-      height: 20px;
-    }
-    .skeleton-geo {
-      width: 100px;
-      height: 20px;
-    }
-    .skeleton-time {
-      width: 60px;
-      height: 20px;
+  &.select-mode {
+    .call-item {
+      cursor: pointer;
+      .actions {
+        visibility: hidden;
+      }
     }
   }
 }

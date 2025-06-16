@@ -2,51 +2,17 @@
   <Teleport to="body">
     <div v-if="tempStore.lightbox.visible" class="lightbox" @touchmove="preventDefault" @wheel="onWheel">
       <div class="layout">
-        <header v-if="current" class="toolbar">
-          <div v-if="current.name" class="source-name v-center">
-            <button v-tooltip="$t('close')" class="btn-icon" @click="closeDialog">
-              
-              <i-material-symbols:close-rounded />
-            </button>
-            <span>{{ current.name }}</span>
-          </div>
-
-          <template v-if="isImage(current.name)">
-            <button v-if="!current.viewOriginImage" v-tooltip="$t('view_origin_image')" class="btn-icon" @click="viewOrigin">
-              
-              <i-material-symbols:image-outline-rounded />
-            </button>
-
-            <button v-tooltip="$t('zoom_in')" class="btn-icon" @click="zoomIn">
-              
-              <i-material-symbols:zoom-in-rounded />
-            </button>
-
-            <button v-tooltip="$t('zoom_out')" class="btn-icon" @click="zoomOut">
-              
-              <i-material-symbols:zoom-out-rounded />
-            </button>
-
-            <button v-tooltip="$t('resize')" class="btn-icon" @click="resize">
-              
-              <i-material-symbols:aspect-ratio-outline-rounded />
-            </button>
-
-            <button v-tooltip="$t('rotate_left')" class="btn-icon" @click="rotateLeft">
-              
-              <i-material-symbols:rotate-left-rounded />
-            </button>
-
-            <button v-tooltip="$t('rotate_right')" class="btn-icon" @click="rotateRight">
-              
-              <i-material-symbols:rotate-right-rounded />
-            </button>
-          </template>
-          <button v-tooltip="$t('info')" class="btn-icon" @click="lightboxInfoVisible = !lightboxInfoVisible">
-            
-            <i-material-symbols:info-outline-rounded />
-          </button>
-        </header>
+        <LightboxHeader 
+          :current="current"
+          @close="closeDialog"
+          @view-origin="viewOrigin"
+          @zoom-in="zoomIn"
+          @zoom-out="zoomOut"
+          @resize="resize"
+          @rotate-left="rotateLeft"
+          @rotate-right="rotateRight"
+          @toggle-info="lightboxInfoVisible = !lightboxInfoVisible"
+        />
         <section class="content" @click.self="closeDialog">
           <div v-if="tempStore.lightbox.sources.length > 1 && (loop || imgIndex > 0)" class="btn-prev" @click="onPrev">
             <i-material-symbols:chevron-left-rounded />
@@ -92,8 +58,10 @@
             />
           </div>
         </section>
+        
+        <!-- Desktop info panel -->
         <LightboxInfo 
-          v-if="lightboxInfoVisible" 
+          v-if="lightboxInfoVisible && !isPhone && !isTablet" 
           :current="current" 
           :file-info="fileInfo" 
           :url-token-key="urlTokenKey ? urlTokenKey.toString() : ''" 
@@ -107,11 +75,40 @@
           @refetch-info="refetchInfo"
         />
       </div>
+      
+      <!-- Mobile info bottom sheet -->
+      <BottomSheet v-if="isPhone || isTablet" v-model="lightboxInfoVisible" :title="$t('info')" show-footer>
+        <!-- File Details Section -->
+        <FileDetails 
+          :current="current" 
+          :file-info="fileInfo" 
+          :external-files-dir="app.externalFilesDir" 
+        />
+        
+        <!-- File Tags Section -->
+        <FileTags 
+          :current="current" 
+          :file-info="fileInfo"
+          @add-to-tags="addToTags"
+        />
+        
+        <!-- Action Buttons in Footer -->
+        <template #footer>
+          <FileActionButtons 
+            :current="current" 
+            :os-version="app.osVersion"
+            :download-file="downloadFile"
+            @rename-file="renameFile"
+            @delete-file="deleteFile"
+            @action-success="handleActionSuccess"
+          />
+        </template>
+      </BottomSheet>
     </div>
   </Teleport>
 </template>
 <script setup lang="ts">
-import { computed, ref, reactive, watch, onMounted, onBeforeUnmount } from 'vue'
+import { computed, ref, reactive, watch, onMounted, onBeforeUnmount, inject } from 'vue'
 
 import { on, off, isArray, preventDefault } from './utils/index'
 import { useImage, useMouse, useTouch } from './utils/hooks'
@@ -130,13 +127,10 @@ import emitter from '@/plugins/eventbus'
 import { useDownload, useRename } from '@/hooks/files'
 import { getFileName } from '@/lib/api/file'
 import { useDeleteItems } from '@/hooks/media'
+import { DataType } from '@/lib/data'
 import { remove } from 'lodash-es'
-import { DataType, FEATURE } from '@/lib/data'
 import DeleteFileConfirm from '@/components/DeleteFileConfirm.vue'
 import EditValueModal from '@/components/EditValueModal.vue'
-import { hasFeature } from '@/lib/feature'
-import { useMediaRestore, useMediaTrash } from '@/hooks/media-trash'
-import LightboxInfo from './LightboxInfo.vue'
 
 const props = defineProps({
   loop: {
@@ -165,7 +159,7 @@ const { lightboxInfoVisible } = storeToRefs(useMainStore())
 const { downloadFile } = useDownload(urlTokenKey)
 const { deleteItem } = useDeleteItems()
 const { renameItem, renameDone, renameMutation, renameVariables } = useRename(() => {
-  // 重命名完成后刷新文件信息
+  // Refresh file info after rename completion
   refetchInfo()
 })
 
@@ -193,6 +187,8 @@ const status = reactive({
 })
 
 const current = ref<ISource>()
+const isPhone = inject('isPhone') as boolean
+const isTablet = inject('isTablet') as boolean
 
 const currCursor = () => {
   if (status.loadError) return 'default'
@@ -241,12 +237,12 @@ function renameFile() {
     getVariables: renameVariables,
     done: (newName: string) => {
       renameDone(newName)
-      // 更新当前文件的名称
+      // Update current file name
       if (current.value) {
         const oldPath = current.value.path
         const newPath = oldPath.substring(0, oldPath.lastIndexOf('/') + 1) + newName
         
-        // 发出文件重命名事件，通知其他组件刷新数据
+        // Emit file rename event to notify other components to refresh data
         emitter.emit('file_renamed', {
           oldPath,
           newPath,
@@ -313,9 +309,12 @@ const { loading: tagsLoading, load: loadTags } = initLazyQuery({
 })
 
 const imgWrapperStyle = computed(() => {
+  // On phone devices, adjust the top position to account for the two-row header
+  const mobileOffset = isPhone ? -28 : 0 // Half of the extra height (56px/2 = 28px)
+  
   return {
     cursor: currCursor(),
-    top: `calc(50% + ${imgWrapperState.top}px)`,
+    top: `calc(50% + ${imgWrapperState.top + mobileOffset}px)`,
     left: `calc(50% + ${imgWrapperState.left}px)`,
     transition: status.dragging || status.gesturing ? 'none' : '',
     transform: `translate(-50%, -50%) scale(${imgWrapperState.scale}) rotate(${imgWrapperState.rotateDeg}deg)`,
@@ -576,6 +575,13 @@ function addToTags() {
   })
 }
 
+function handleActionSuccess(action: string) {
+  // Close BottomSheet on mobile after successful trash/restore operations
+  if (isPhone && (action === 'trash' || action === 'restore')) {
+    lightboxInfoVisible.value = false
+  }
+}
+
 const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
   if (event.item.key === current.value?.data?.id) {
     refetchInfo()
@@ -606,7 +612,6 @@ const fileDeletedHandler = (event: IFileDeletedEvent) => {
 }
 
 const fileRenamedHandler = (event: IFileRenamedEvent) => {
-  // 更新 lightbox 中的文件信息
   tempStore.lightbox.sources.forEach((source: ISource) => {
     if (source.path === event.oldPath) {
       source.path = event.newPath
@@ -618,7 +623,7 @@ const fileRenamedHandler = (event: IFileRenamedEvent) => {
     }
   })
   
-  // 如果当前显示的文件被重命名了，更新显示
+  // If the currently displayed file was renamed, update the display
   if (current.value && current.value.path === event.oldPath) {
     current.value.path = event.newPath
     current.value.name = getFileName(event.newPath)
@@ -662,40 +667,18 @@ onBeforeUnmount(() => {
   animation: showDiv 0.5s ease-in-out 0.5s forwards;
 }
 
-.toolbar {
-  display: flex;
-  flex-direction: row;
-  padding-block: 8px;
-  align-items: center;
-  background: var(--md-sys-color-surface);
-  z-index: 1;
-  position: static;
-  width: 100%;
-  box-sizing: border-box;
-  grid-area: toolbar;
-
-  .source-name {
-    flex: 1;
-
-    .btn-icon {
-      margin-inline-start: 16px;
-    }
-  }
-
-  .v-outlined-button,
-  .btn-icon {
-    margin-inline-end: 16px;
-  }
-}
-
 .content {
   grid-area: content;
   position: relative;
   height: calc(100vh - 56px);
+
+  /* Mobile layout adjustment */
+  @media (max-width: 480px) {
+    height: calc(100vh - 112px); /* Account for two-row header on mobile */
+  }
 }
 
 .lightbox {
-  min-width: var(--screen-min-width);
   background: var(--md-sys-color-surface);
   overflow: hidden;
 }
@@ -707,6 +690,19 @@ onBeforeUnmount(() => {
     'content info';
   grid-template-columns: 1fr auto;
   grid-template-rows: auto 1fr;
+}
+
+/* Mobile BottomSheet styles */
+.lightbox :deep(.bottom-sheet-content) {
+  padding-inline: 24px;
+  padding-block: 0;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.lightbox :deep(.bottom-sheet-footer) {
+  padding: 16px 24px 24px 24px;
+  border-top: 1px solid var(--md-sys-color-outline-variant);
 }
 
 .v-img-wrapper {
@@ -776,4 +772,5 @@ onBeforeUnmount(() => {
 .btn-prev {
   left: 12px;
 }
+
 </style>

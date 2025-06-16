@@ -7,16 +7,16 @@
       <span v-else>{{ $t('page_title.messages') }} ({{ total.toLocaleString() }})</span>
       <template v-if="checked">
         <button v-tooltip="$t('add_to_tags')" class="btn-icon" @click.stop="addToTags(selectedIds, realAllChecked, q)">
-          
           <i-material-symbols:label-outline-rounded />
         </button>
       </template>
     </div>
 
     <div class="actions">
-      <search-input :filter="filter" :tags="tags" :types="types" :get-url="getUrl" />
+      <search-input :filter="filter" :tags="tags" :types="types" :get-url="getUrl" :show-chips="!isPhone" :is-phone="isPhone" />
     </div>
   </div>
+  <SearchFilters v-if="isPhone" class="mobile-search-filters" :filter="filter" :tags="tags" :feeds="[]" :buckets="[]" :types="[]" @filter-change="onFilterChange" />
   <all-checked-alert
     :limit="limit"
     :total="total"
@@ -35,7 +35,7 @@
         @click.stop="handleItemClick($event, item, i, () => {})"
         @mouseover="handleMouseOver($event, i)"
       >
-        <div class="start">
+        <div class="list-item-start">
           <v-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, i)" />
           <v-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, i)" />
           <span class="number"><field-id :id="i + 1" :raw="item" /></span>
@@ -65,30 +65,7 @@
         </div>
       </section>
       <template v-if="loading && items.length === 0">
-        <section v-for="i in 20" :key="i" class="sms-item selectable-card-skeleton">
-          <div class="start">
-            <div class="checkbox">
-              <div class="skeleton-checkbox"></div>
-            </div>
-            <span class="number">{{ i }}</span>
-          </div>
-          <div class="title">
-            <div class="skeleton-text skeleton-title"></div>
-          </div>
-          <div class="subtitle">
-            <div class="skeleton-text skeleton-subtitle"></div>
-            <div class="skeleton-text skeleton-subtitle"></div>
-          </div>
-          <div class="actions">
-            <div class="skeleton-text skeleton-actions"></div>
-          </div>
-          <div class="info">
-            <div class="skeleton-text skeleton-info"></div>
-          </div>
-          <div class="time">
-            <div class="skeleton-text skeleton-time"></div>
-          </div>
-        </section>
+        <MessageSkeletonItem v-for="i in 20" :key="i" :index="i" :is-phone="isPhone" />
       </template>
     </div>
     <div v-if="!loading && items.length === 0" class="no-data-placeholder">
@@ -99,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import { onActivated, onDeactivated, reactive, ref } from 'vue'
+import { inject, onActivated, onDeactivated, reactive, ref } from 'vue'
 import toast from '@/components/toaster'
 import { formatDateTime, formatTimeAgo } from '@/lib/format'
 import { initLazyQuery, messagesGQL } from '@/lib/api/query'
@@ -123,11 +100,12 @@ import { DataType } from '@/lib/data'
 import { callGQL, initMutation } from '@/lib/api/mutation'
 import { useKeyEvents } from '@/hooks/key-events'
 
+const isPhone = inject('isPhone')
 const mainStore = useMainStore()
 const { app } = storeToRefs(useTempStore())
 const items = ref<IMessage[]>([])
 const { t } = useI18n()
-const { parseQ } = useSearch()
+const { parseQ, buildQ } = useSearch()
 const filter = reactive<IFilter>({
   tagIds: [],
 })
@@ -223,6 +201,11 @@ const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
   }
 }
 
+function onFilterChange(newFilter: IFilter) {
+  Object.assign(filter, newFilter)
+  replacePath(mainStore, getUrl(buildQ(filter)))
+}
+
 onActivated(() => {
   q.value = decodeBase64(query.q?.toString() ?? '')
   parseQ(filter, q.value)
@@ -242,7 +225,7 @@ onDeactivated(() => {
 })
 </script>
 <style scoped lang="scss">
-.sms-item {
+:deep(.sms-item) {
   display: grid;
   border-radius: 8px;
   padding-block-end: 12px;
@@ -250,9 +233,6 @@ onDeactivated(() => {
     'start title actions info time'
     'start subtitle actions info time';
   grid-template-columns: 48px 3fr 100px minmax(64px, 1fr) minmax(64px, 1fr);
-  .start {
-    grid-area: start;
-  }
   .number {
     font-size: 0.75rem;
     display: flex;
@@ -308,34 +288,6 @@ onDeactivated(() => {
     cursor: pointer;
     .actions {
       visibility: hidden;
-    }
-  }
-}
-
-.sms-list {
-  .sms-item {
-    .skeleton-title {
-      width: 120px;
-      height: 24px;
-    }
-    .skeleton-subtitle {
-      width: 80%;
-      height: 20px;
-      &:nth-child(2) {
-        margin-block-start: 8px;
-      }
-    }
-    .skeleton-actions {
-      width: 140px;
-      height: 20px;
-    }
-    .skeleton-info {
-      width: 60px;
-      height: 20px;
-    }
-    .skeleton-time {
-      width: 60px;
-      height: 20px;
     }
   }
 }

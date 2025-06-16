@@ -110,10 +110,8 @@ import { playNotificationSound } from '@/utils/pomodoro'
 import { initQuery } from '@/lib/api/query'
 import { pomodoroTodayAndSettingsGQL } from '@/lib/api/query'
 import { initMutation } from '@/lib/api/mutation'
-import { startPomodoroGQL, stopPomodoroGQL, pausePomodoroGQL, updatePomodoroProgressGQL } from '@/lib/api/mutation'
+import { startPomodoroGQL, stopPomodoroGQL, pausePomodoroGQL } from '@/lib/api/mutation'
 import emitter from '@/plugins/eventbus'
-import { useTempStore } from '@/stores/temp'
-import { storeToRefs } from 'pinia'
 import { useNotificationWarning } from '@/hooks/notification-warning'
 
 const store = useMainStore()
@@ -123,7 +121,6 @@ const { t } = useI18n()
 const { mutate: startPomodoroMutation } = initMutation({ document: startPomodoroGQL })
 const { mutate: stopPomodoroMutation } = initMutation({ document: stopPomodoroGQL })
 const { mutate: pausePomodoroMutation } = initMutation({ document: pausePomodoroGQL })
-const { mutate: updatePomodoroProgressMutation } = initMutation({ document: updatePomodoroProgressGQL })
 
 // === State ===
 const settings = ref<PomodoroSettings>({
@@ -364,7 +361,7 @@ function startTimer() {
   setTimerState(true, false)
 
   // Call start pomodoro mutation to notify app
-  startPomodoroMutation().catch((error) => {
+  startPomodoroMutation({ timeLeft: timeLeft.value }).catch((error) => {
     console.error('Failed to start pomodoro:', error)
   })
 
@@ -426,7 +423,7 @@ function handleClick(event: MouseEvent) {
   timeLeft.value = Math.max(0, totalTime.value - elapsedTime)
   setTimerState(true, false)
   // Call update progress mutation to notify app about time adjustment
-  updatePomodoroProgressMutation({ timeLeft: timeLeft.value }).catch((error) => {
+  startPomodoroMutation({ timeLeft: timeLeft.value }).catch((error) => {
     console.error('Failed to update pomodoro progress:', error)
   })
   startTimerInterval()

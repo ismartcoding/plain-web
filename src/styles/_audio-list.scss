@@ -1,15 +1,13 @@
 .audio-list .media-item {
   display: grid;
   border-radius: 8px;
+  margin-inline: 16px;
   grid-template-areas:
     'start image title actions artist time'
     'start image subtitle  actions artist time';
   grid-template-columns: 48px 50px 2fr 240px minmax(64px, 1fr) minmax(140px, auto);
   &:hover {
     cursor: pointer;
-  }
-  .start {
-    grid-area: start;
   }
   .number {
     font-size: 0.75rem;
@@ -34,18 +32,22 @@
     padding-block-start: 12px;
     word-break: break-all;
   }
-  .audio-item-subtitle {
+  .subtitle {
     grid-area: subtitle;
     margin-inline: 16px;
     margin-block-start: 8px;
     margin-block-end: 12px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 0.875rem;
   }
   .artist {
     grid-area: artist;
     display: flex;
     align-items: center;
   }
-  .actions {
+  .list-item-actions {
     grid-area: actions;
     display: flex;
     flex-direction: row;
@@ -60,32 +62,6 @@
     align-items: center;
     padding-inline: 16px;
     justify-content: end;
-  }
-
-  // Skeleton styles
-  .skeleton-image {
-    width: 50px;
-    height: 50px;
-  }
-  .skeleton-title {
-    width: 50%;
-    height: 24px;
-  }
-  .skeleton-subtitle {
-    width: 40%;
-    height: 20px;
-  }
-  .skeleton-actions {
-    width: 140px;
-    height: 20px;
-  }
-  .skeleton-artist {
-    width: 60px;
-    height: 20px;
-  }
-  .skeleton-time {
-    width: 60px;
-    height: 20px;
   }
 }
 
@@ -110,11 +86,4 @@
   &.rotating {
     animation: rotate-icon 250ms ease-out forwards;
   }
-}
-
-.audio-item-subtitle {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  font-size: 0.875rem;
 }

@@ -1,0 +1,79 @@
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.skeleton-text, .skeleton-checkbox {
+  background-color: var(--md-sys-color-surface-container);
+  border-radius: 4px;
+}
+
+.skeleton-image {
+  background-color: var(--md-sys-color-surface-container);
+  border-radius: 4px;
+}
+
+.skeleton-action-square {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+}
+
+.skeleton-checkbox {
+  width: 20px;
+  height: 20px;
+  margin: 10px;
+}
+
+.skeleton-checkbox,
+.skeleton-image,
+.skeleton-action-square,
+.skeleton-text {
+  background: linear-gradient(
+    to right,
+    var(--md-sys-color-surface-container) 0%,
+    var(--md-sys-color-surface-container-highest) 20%,
+    var(--md-sys-color-surface-container) 40%,
+    var(--md-sys-color-surface-container) 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+.selectable-card-skeleton {
+  background: var(--md-sys-color-surface-container-low);
+  cursor: default !important;
+  .skeleton-image,
+  .skeleton-action-square,
+  .skeleton-text {
+    background-color: var(--md-sys-color-surface-container-high);
+    background: linear-gradient(
+      to right,
+      var(--md-sys-color-surface-container-high) 0%,
+      var(--md-sys-color-surface-container-highest) 20%,
+      var(--md-sys-color-surface-container-high) 40%,
+      var(--md-sys-color-surface-container-high) 100%
+    );
+  }
+}
+
+.skeleton-image.lg {
+  width: 50px;
+  height: 50px;
+}
+
+.skeleton-image.sm {
+  width: 32px;
+  height: 32px;
+}
+
+.skeleton-text {
+  height: 20px;
+  &.lg {
+    height: 24px;
+  }
+}

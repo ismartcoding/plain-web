@@ -7,29 +7,28 @@
         <span v-else>{{ $t('page_title.feeds') }} ({{ total.toLocaleString() }})</span>
         <template v-if="checked">
           <button v-tooltip="$t('delete')" class="btn-icon" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)">
-            
             <i-material-symbols:delete-forever-outline-rounded />
           </button>
           <button v-tooltip="$t('add_to_tags')" class="btn-icon" @click.stop="addToTags(selectedIds, realAllChecked, q)">
-            
             <i-material-symbols:label-outline-rounded />
           </button>
           <v-circular-progress v-if="savingNotes" indeterminate class="sm" />
           <button v-else v-tooltip="$t('save_to_notes')" class="btn-icon sm" @click.prevent="saveFeedsToNotes">
-            
             <i-material-symbols:add-notes-outline-rounded />
           </button>
         </template>
       </div>
 
       <div class="actions">
-        <search-input :filter="filter" :tags="tags" :feeds="feeds" :show-chips="!isDetail" :get-url="getUrl" :show-today="true" />
+        <search-input :filter="filter" :tags="tags" :feeds="feeds" :show-chips="!isDetail && !isPhone" :get-url="getUrl" :show-today="true" :is-phone="isPhone" />
         <v-circular-progress v-if="feedsSyncing" indeterminate class="sm" />
         <button v-else v-tooltip="$t('sync_feeds')" class="btn-icon" :disabled="feedsSyncing" @click.prevent="syncFeeds">
           <i-material-symbols:sync-rounded />
         </button>
       </div>
     </div>
+
+    <SearchFilters v-if="isDetail || isPhone" class="mobile-search-filters" :filter="filter" :tags="tags" :feeds="feeds" :buckets="[]" :types="[]" @filter-change="onFilterChange" />
 
     <all-checked-alert
       :limit="limit"
@@ -40,23 +39,7 @@
       :clear-selection="clearSelection"
     />
     <div v-if="listLoading && items.length === 0" class="scroller">
-      <section v-for="i in 20" :key="i" class="feed-item selectable-card-skeleton">
-        <div class="title">
-          <div class="checkbox">
-            <div class="skeleton-checkbox"></div>
-          </div>
-          <div class="text"><div class="skeleton-text skeleton-title"></div></div>
-        </div>
-        <div class="subtitle">
-          <span class="number">{{ i }}</span>
-          <div class="info">
-            <div class="skeleton-text skeleton-info"></div>
-          </div>
-        </div>
-        <div class="image">
-          <div class="skeleton-image"></div>
-        </div>
-      </section>
+      <FeedSkeletonItem v-for="i in 20" :key="i" :index="i" :is-phone="isPhone" />
     </div>
     <VirtualList v-if="items.length > 0" class="scroller" :data-key="'id'" :data-sources="items" :estimate-size="100" @tobottom="loadMore">
       <template #item="{ index, item }">
@@ -88,7 +71,6 @@
               </div>
             </div>
             <button v-tooltip="$t('actions')" class="btn-icon sm" style="display: none">
-              
               <i-material-symbols:more-vert />
             </button>
             <img v-if="item.image" class="image" :src="getFileUrl(item.image, '&w=200&h=200')" />
@@ -108,7 +90,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onActivated, onDeactivated, reactive, ref } from 'vue'
+import { computed, inject, onActivated, onDeactivated, reactive, ref } from 'vue'
 import toast from '@/components/toaster'
 import { formatTimeAgo, formatDateTime } from '@/lib/format'
 import { feedsTagsGQL, initLazyQuery } from '@/lib/api/query'
@@ -138,13 +120,14 @@ import { useLeftSidebarResize } from '@/hooks/sidebar'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 
+const isPhone = inject('isPhone')
 const mainStore = useMainStore()
 const { feedsSyncing } = storeToRefs(useTempStore())
 const { t } = useI18n()
 const filter = reactive<IFilter>({
   tagIds: [],
 })
-const { parseQ } = useSearch()
+const { parseQ, buildQ } = useSearch()
 const dataType = DataType.FEED_ENTRY
 const route = useRoute()
 const query = route.query
@@ -353,6 +336,11 @@ const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
   }
 }
 
+function onFilterChange(newFilter: IFilter) {
+  Object.assign(filter, newFilter)
+  replacePath(mainStore, getUrl(buildQ(filter)))
+}
+
 onActivated(() => {
   const scroller = document.getElementsByClassName('scroller')?.[0]
   if (scroller) {
@@ -393,7 +381,7 @@ onDeactivated(() => {
   }
 }
 
-.feed-item {
+:deep(.feed-item) {
   margin: 0 16px 8px 16px;
   display: grid;
   box-sizing: border-box;
@@ -422,7 +410,6 @@ onDeactivated(() => {
     grid-area: subtitle;
     display: flex;
     flex-direction: row;
-    gap: 8px;
     align-items: end;
     margin-block-end: 12px;
     margin-inline-end: 16px;
@@ -455,26 +442,5 @@ onDeactivated(() => {
   bottom: 0;
   width: 16px;
   cursor: col-resize;
-}
-
-.scroller {
-  .feed-item {
-    .skeleton-image {
-      width: 50px;
-      height: 50px;
-    }
-    .skeleton-title {
-      width: 50%;
-      height: 24px;
-    }
-    .skeleton-info {
-      width: 30%;
-      height: 20px;
-    }
-    .skeleton-time {
-      width: 60px;
-      height: 20px;
-    }
-  }
 }
 </style>

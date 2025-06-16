@@ -1,15 +1,9 @@
 <template>
-  <v-chip-set>
-    <div v-if="filter.text" key="filter-text">
-      <v-input-chip :label="filter.text" remove-only @remove="() => removeFilter('text')" />
-    </div>
-    <div v-if="filter.showHidden" key="filter-show-hidden">
-      <v-input-chip :label="$t('show_hidden')" remove-only @remove="() => removeFilter('showHidden')">
-        <i-material-symbols:hide-source-outline-rounded />
-      </v-input-chip>
-    </div>
-  </v-chip-set>
-  <v-dropdown v-model="searchPanelVisible" :max-height="400">
+  <!-- Desktop FileSearchFilters -->
+  <FileSearchFilters v-if="showChips" :filter="filter" @filter-change="onFilterChange" />
+
+  <!-- Desktop dropdown search -->
+  <v-dropdown v-if="!isPhone" v-model="searchPanelVisible" :max-height="400">
     <template #trigger>
       <button v-tooltip="$t('search')" class="btn-icon">
         <i-material-symbols:search-rounded />
@@ -29,17 +23,38 @@
       </div>
     </div>
   </v-dropdown>
+
+  <!-- Mobile search button -->
+  <button v-if="isPhone" v-tooltip="$t('search')" class="btn-icon mobile-search-btn" @click="openMobileSearch">
+    <i-material-symbols:search-rounded />
+  </button>
+
+  <!-- Mobile search BottomSheet -->
+  <BottomSheet v-if="isPhone" v-model="mobileSearchVisible" :title="$t('search')" show-footer>
+    <label class="form-label">{{ $t('keywords') }}</label>
+    <v-text-field v-model="localFilter.text" @keyup.enter="applyMobileSearch" />
+    <v-chip-set style="margin-block-start: 16px">
+      <v-filter-chip :label="$t('show_hidden')" :selected="localFilter.showHidden" @click="toggleShowHidden" />
+    </v-chip-set>
+
+    <template #footer>
+      <v-filled-button class="search-apply-btn" @click="applyMobileSearch">
+        {{ $t('search') }}
+      </v-filled-button>
+    </template>
+  </BottomSheet>
 </template>
 
 <script setup lang="ts">
 import { reactive, ref, watch, type PropType } from 'vue'
-import Dropdown from '@/components/base/VDropdown.vue'
 import type { IFileFilter } from '@/lib/interfaces'
 import { replacePath } from '@/plugins/router'
 import { useSearch } from '@/hooks/files'
 import { useMainStore } from '@/stores/main'
+import FileSearchFilters from './FileSearchFilters.vue'
 
 const { buildQ } = useSearch()
+const mainStore = useMainStore()
 
 const props = defineProps({
   parent: {
@@ -58,10 +73,18 @@ const props = defineProps({
     type: Function as PropType<(dir: string) => void>,
     required: false,
   },
+  showChips: {
+    type: Boolean,
+    default: true,
+  },
+  isPhone: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-const mainStore = useMainStore()
 const searchPanelVisible = ref(false)
+const mobileSearchVisible = ref(false)
 
 // Local filter state for search panel
 const localFilter = reactive<IFileFilter>({
@@ -75,21 +98,20 @@ watch(props.filter, (newValue) => {
   Object.assign(localFilter, newValue)
 }, { immediate: true, deep: true })
 
-
 watch(searchPanelVisible, (isVisible) => {
   if (isVisible) {
     Object.assign(localFilter, props.filter)
   }
 })
 
-// Navigate to search results
-function navigateToSearch(filter: IFileFilter) {
-  replacePath(mainStore, props.getUrl(buildQ(filter)))
-}
+watch(mobileSearchVisible, (isVisible) => {
+  if (isVisible) {
+    Object.assign(localFilter, props.filter)
+  }
+})
 
 // Check if the input text looks like an absolute path
 function isAbsolutePath(text: string): boolean {
-  // Check for Unix/Android absolute paths (starting with /)
   return text.startsWith('/')
 }
 
@@ -109,15 +131,23 @@ function applySearch() {
   searchPanelVisible.value = false
 }
 
-// Remove filter field
-function removeFilter(field: keyof Pick<IFileFilter, 'text' | 'showHidden'>) {
-  if (field === 'text') {
-    localFilter.text = ''
-    doSearch()
-  } else if (field === 'showHidden') {
-    localFilter.showHidden = false
-    doSearch()
+function openMobileSearch() {
+  mobileSearchVisible.value = true
+}
+
+function applyMobileSearch() {
+  const inputText = localFilter.text?.trim()
+  
+  // If the input looks like an absolute path, navigate to that directory
+  if (inputText && isAbsolutePath(inputText) && props.navigateToDir) {
+    props.navigateToDir(inputText)
+    mobileSearchVisible.value = false
+    return
   }
+  
+  // Otherwise, perform normal search
+  doSearch()
+  mobileSearchVisible.value = false
 }
 
 function doSearch() {
@@ -125,18 +155,31 @@ function doSearch() {
   navigateToSearch(props.filter)
 }
 
+// Navigate to search results
+function navigateToSearch(filter: IFileFilter) {
+  replacePath(mainStore, props.getUrl(buildQ(filter)))
+}
+
 // Toggle show hidden files
 function toggleShowHidden() {
   localFilter.showHidden = !localFilter.showHidden
 }
 
+function onFilterChange(newFilter: IFileFilter) {
+  Object.assign(props.filter, newFilter)
+  replacePath(mainStore, props.getUrl(buildQ(props.filter)))
+}
+
 defineExpose({
   dismiss: () => {
     searchPanelVisible.value = false
+    mobileSearchVisible.value = false
   },
 })
 </script>
+
 <style lang="scss" scoped>
+/* Desktop styles */
 .filters {
   padding: 16px;
   min-width: 400px;
@@ -145,9 +188,13 @@ defineExpose({
     text-align: right;
     margin-block-start: 16px;
   }
+}
 
-  .form-label {
-    margin-block-start: 16px;
-  }
+.form-label {
+  margin-block-start: 16px;
+}
+
+.search-apply-btn {
+  width: 100%;
 }
 </style>

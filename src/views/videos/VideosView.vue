@@ -32,8 +32,8 @@
         </template>
       </template>
     </div>
-    <div class="actions">
-      <search-input :filter="filter" :tags="tags" :buckets="buckets" :get-url="getUrl" />
+    <div v-if="!isPhone || !checked" class="actions">
+      <search-input :filter="filter" :tags="tags" :buckets="buckets" :get-url="getUrl" :show-chips="!isPhone" :is-phone="isPhone"/>
       <media-keyboard-shortcuts />
       <v-dropdown v-if="!filter.trash" v-model="uploadMenuVisible">
         <template #trigger>
@@ -58,16 +58,30 @@
           {{ $t(item.label) }}
         </div>
       </v-dropdown>
-    <div class="button-group">
-        <button :class="{ 'selected': !mainStore.videosCardView }" @click="mainStore.videosCardView = false">
-          <i-material-symbols:grid-view-outline-rounded />
-        </button>
-        <button :class="{ 'selected': mainStore.videosCardView }" @click="mainStore.videosCardView = true">
-          <i-material-symbols:splitscreen-outline />
-        </button>
-      </div>
+      <ViewToggleButtons 
+        v-if="!isPhone"
+        :card-view="mainStore.videosCardView" 
+        @update:card-view="(value: boolean) => mainStore.videosCardView = value" 
+      />
     </div>
   </div>
+  <div v-if="isPhone && !checked" class="secondary-actions">
+    <ViewToggleButtons 
+        :card-view="mainStore.videosCardView" 
+        @update:card-view="(value: boolean) => mainStore.videosCardView = value" 
+      />
+  </div>
+
+  <SearchFilters
+    v-if="isPhone"
+    class="mobile-search-filters"
+    :filter="filter"
+    :tags="tags"
+    :feeds="[]"
+    :buckets="buckets"
+    :types="[]"
+    @filter-change="onFilterChange"
+  />
   <all-checked-alert
     :limit="limit"
     :total="total"
@@ -148,70 +162,36 @@
       </template>
     </div>
     <div v-else class="media-list" :class="{ 'select-mode': checked }">
-      <section
+      <VideoListItem
         v-for="(item, i) in items"
         :key="item.id"
-        class="media-item selectable-card"
-        :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
-        @click.stop="handleItemClick($event, item, i, view)"
-        @mouseover="handleMouseOver($event, i)"
-      >
-        <div class="start">
-          <v-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, i)" />
-          <v-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, i)" />
-          <span class="number"><field-id :id="i + 1" :raw="item" /></span>
-        </div>
-        <div class="image">
-          <img v-if="imageErrorIds.includes(item.id)" :src="`/ficons/${getFileExtension(item.path)}.svg`" class="svg" />
-          <img v-else class="image-thumb" :src="getFileUrl(item.fileId, '&w=200&h=200')" @error="onImageError(item.id)" />
-        </div>
-        <div class="title">{{ getFileName(item.path) }}</div>
-        <div class="subtitle">
-          <span>{{ formatFileSize(item.size) }}</span>
-          <span>{{ formatSeconds(item.duration) }}</span>
-          <a @click.stop.prevent="viewBucket(mainStore, item.bucketId)">{{ bucketsMap[item.bucketId]?.name }}</a>
-          <item-tags :tags="item.tags" :type="dataType" :only-links="true" />
-        </div>
-        <div class="actions">
-          <template v-if="filter.trash">
-            <v-icon-button v-tooltip="$t('delete')" class="sm" @click.stop="deleteItem(dataType, item)">
-                <i-material-symbols:delete-forever-outline-rounded />
-            </v-icon-button>
-            <v-icon-button v-tooltip="$t('restore')" class="sm" :loading="restoreLoading(`ids:${item.id}`)" @click.stop="restore(dataType, `ids:${item.id}`)">
-                <i-material-symbols:restore-from-trash-outline-rounded />
-            </v-icon-button>
-            <v-icon-button v-tooltip="$t('download')" class="sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))">
-                <i-material-symbols:download-rounded />
-            </v-icon-button>
-          </template>
-          <template v-else>
-            <v-icon-button
-              v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)"
-              v-tooltip="$t('move_to_trash')"
-              class="sm"
-              :loading="trashLoading(`ids:${item.id}`)"
-              @click.stop="trash(dataType, `ids:${item.id}`)"
-            >
-                <i-material-symbols:delete-outline-rounded />
-            </v-icon-button>
-            <v-icon-button v-else v-tooltip="$t('delete')" class="sm" @click.stop="deleteItem(dataType, item)">
-                <i-material-symbols:delete-forever-outline-rounded />
-            </v-icon-button>
-            <v-icon-button v-tooltip="$t('download')" class="sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))">
-                <i-material-symbols:download-rounded />
-            </v-icon-button>
-            <v-icon-button v-tooltip="$t('add_to_tags')" class="sm" @click.stop="addItemToTags(item)">
-                <i-material-symbols:label-outline-rounded />
-            </v-icon-button>
-          </template>
-        </div>
-        <div class="time">
-          <span v-tooltip="formatDateTime(item.createdAt)">
-            {{ formatTimeAgo(item.createdAt) }}
-          </span>
-        </div>
-      </section>
-      <image-video-list-skeleton v-if="loading && items.length === 0" :limit="limit" />
+        :item="item"
+        :index="i"
+        :is-phone="isPhone"
+        :selected-ids="selectedIds"
+        :shift-effecting-ids="shiftEffectingIds"
+        :should-select="shouldSelect"
+        :image-error-ids="imageErrorIds"
+        :buckets-map="bucketsMap"
+        :filter="filter"
+        :data-type="dataType"
+        :main-store="mainStore"
+        :app="app"
+        :handle-item-click="handleItemClick"
+        :handle-mouse-over="handleMouseOver"
+        :toggle-select="toggleSelect"
+        :on-image-error="onImageError"
+        :view-bucket="viewBucket"
+        :delete-item="deleteItem"
+        :restore="restore"
+        :download-file="downloadFile"
+        :trash="trash"
+        :add-item-to-tags="addItemToTags"
+        :view="view"
+        :restore-loading="restoreLoading"
+        :trash-loading="trashLoading"
+      />
+      <image-video-list-skeleton v-if="loading && items.length === 0" :limit="limit" :is-phone="isPhone" />
     </div>
     <div v-if="!loading && items.length === 0" class="no-data-placeholder">
       {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
@@ -223,7 +203,7 @@
 </template>
 
 <script setup lang="ts">
-import { onActivated, onDeactivated, reactive, ref } from 'vue'
+import { inject, onActivated, onDeactivated, reactive, ref } from 'vue'
 import toast from '@/components/toaster'
 import { formatSeconds } from '@/lib/format'
 import { computed } from 'vue'
@@ -253,16 +233,17 @@ import { DataType, FEATURE } from '@/lib/data'
 import { getDirFromPath, getSortItems, isVideo } from '@/lib/file'
 import { useSearch } from '@/hooks/search'
 import { useKeyEvents } from '@/hooks/key-events'
-import { formatDateTime, formatTimeAgo, generateDownloadFileName } from '@/lib/format'
+import { generateDownloadFileName } from '@/lib/format'
 import { useDragDropUpload, useFileUpload } from '@/hooks/upload'
 import { useMediaRestore, useMediaTrash } from '@/hooks/media-trash'
 import { hasFeature } from '@/lib/feature'
 
+const isPhone = inject('isPhone') as boolean
 const mainStore = useMainStore()
 const { videoSortBy } = storeToRefs(mainStore)
 const items = ref<IVideoItem[]>([])
 const { t } = useI18n()
-const { parseQ } = useSearch()
+const { parseQ, buildQ } = useSearch()
 const filter = reactive<IFilter>({
   tagIds: [],
   bucketId: undefined,
@@ -474,6 +455,12 @@ const uploadTaskDoneHandler = (r: IUploadItem) => {
       emitter.emit('media_items_actioned', { type: dataType, action: 'upload', query: '' })
     }
   }
+}
+
+// Unified SearchFilters handler
+function onFilterChange(newFilter: IFilter) {
+  Object.assign(filter, newFilter)
+  replacePath(mainStore, getUrl(buildQ(filter)))
 }
 
 onActivated(() => {

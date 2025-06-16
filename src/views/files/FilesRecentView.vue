@@ -11,81 +11,28 @@
     </template>
   </div>
   <div v-if="loading && items.length === 0" class="scroller">
-    <section v-for="i in 20" :key="i" class="file-item selectable-card-skeleton">
-      <div class="start">
-        <div class="checkbox">
-          <div class="skeleton-checkbox"></div>
-        </div>
-        <span class="number">{{ i }}</span>
-      </div>
-      <div class="image">
-        <div class="skeleton-image"></div>
-      </div>
-      <div class="title">
-        <div class="skeleton-text skeleton-title"></div>
-      </div>
-      <div class="subtitle">
-        <div class="skeleton-text skeleton-subtitle"></div>
-      </div>
-      <div class="actions">
-        <div class="skeleton-text skeleton-actions"></div>
-      </div>
-    </section>
+    <FileRecentSkeletonItem v-for="i in 20" :key="i" :index="i" :is-phone="isPhone" />
   </div>
-  <VirtualList v-if="items.length > 0" class="scroller" :data-key="'id'" :data-sources="items" :estimate-size="80">
+  <VirtualList v-if="items.length > 0" class="scroller" :data-key="'id'" :data-sources="items" :estimate-size="isPhone ? 120 : 80">
     <template #item="{ index, item }">
-      <section
+      <FileRecentItem
         :key="item.id"
-        class="file-item selectable-card"
-        :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
-        @click.stop="
-          handleItemClick($event, item, index, () => {
-            clickItem(item)
-          })
-        "
-        @mouseover="handleMouseOver($event, index)"
-      >
-        <div class="start">
-          <v-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, index)" />
-          <v-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, index)" />
-          <span class="number"><field-id :id="index + 1" :raw="item" /></span>
-        </div>
-        <div class="image" @click.stop="clickItem(item)">
-          <img v-if="extensionImageErrorIds.includes(item.id)" class="svg" src="/ficons/default.svg" />
-          <img v-else-if="!imageErrorIds.includes(item.id) && item.fileId" class="image-thumb" :src="getFileUrl(item.fileId, '&w=50&h=50')" @error="onImageError(item.id)" />
-          <img v-else-if="item.extension" :src="`/ficons/${item.extension}.svg`" class="svg" @error="onExtensionImageError(item.id)" />
-          <img v-else class="svg" src="/ficons/default.svg" />
-        </div>
-        <div class="title">
-          {{ item.name }}
-        </div>
-        <div class="subtitle">
-          <span>{{ formatFileSize(item.size) }}</span>
-          <span v-tooltip="formatDateTime(item.updatedAt)">{{ formatTimeAgo(item.updatedAt) }}</span>
-        </div>
-        <div class="actions">
-          <button v-tooltip="$t('download')" class="btn-icon sm" @click.stop="downloadFile(item.path)">
-            
-            <i-material-symbols:download-rounded />
-          </button>
-
-          <popper>
-            <button v-tooltip="$t('info')" class="btn-icon sm">
-              <i-material-symbols:info-outline-rounded />
-            </button>
-            <template #content>
-              <section class="card card-info">
-                <div class="key-value vertical">
-                  <div class="key">{{ $t('path') }}</div>
-                  <div class="value">
-                    {{ item.path }}
-                  </div>
-                </div>
-              </section>
-            </template>
-          </popper>
-        </div>
-      </section>
+        :item="item"
+        :index="index"
+        :selected-ids="selectedIds"
+        :shift-effecting-ids="shiftEffectingIds"
+        :should-select="shouldSelect"
+        :is-phone="isPhone"
+        :image-error-ids="imageErrorIds"
+        :extension-image-error-ids="extensionImageErrorIds"
+        :handle-item-click="handleItemClick"
+        :handle-mouse-over="handleMouseOver"
+        :toggle-select="toggleSelect"
+        :on-image-error="onImageError"
+        :on-extension-image-error="onExtensionImageError"
+        :download-file="downloadFile"
+        :click-item="clickItem"
+      />
     </template>
   </VirtualList>
   <div v-if="!loading && items.length === 0" class="no-data-placeholder">
@@ -115,9 +62,11 @@ import VirtualList from '@/components/virtualscroll'
 import emitter from '@/plugins/eventbus'
 import type { IFileDeletedEvent, IFileRenamedEvent } from '@/lib/interfaces'
 import { remove } from 'lodash-es'
+import { getIsPhone } from '@/hooks/device'
 
 const { t } = useI18n()
 const sources = ref([])
+const isPhone = getIsPhone()
 
 const tempStore = useTempStore()
 const { app, urlTokenKey } = storeToRefs(tempStore)

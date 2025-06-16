@@ -1,13 +1,15 @@
 <template>
-  <div class="top-app-bar">
-    <div class="title">
-      {{ $t('qrcode_generator') }}
-    </div>
-  </div>
   <div class="scroll-content">
-    <v-text-field v-model="qrCode" class="qrcode-textarea" type="textarea" :rows="3" />
-    <div class="qrcode-panel">
-      <img v-if="url" :src="url" />
+    <div class="top-app-bar">
+      <div class="title">
+        {{ $t('qrcode_generator') }}
+      </div>
+    </div>
+    <div class="qrcode-container">
+      <v-text-field v-model="qrCode" class="qrcode-textarea" type="textarea" :rows="3" />
+      <div class="qrcode-panel">
+        <img v-if="url" :src="url" />
+      </div>
     </div>
   </div>
 </template>
@@ -41,9 +43,16 @@ watch(qrCode, () => {
 updateUrl()
 </script>
 <style lang="scss" scoped>
-.scroll-content {
+.qrcode-container {
   display: grid;
   grid-template-columns: 50% 50%;
+  margin-inline: 16px;
+  
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    margin-inline: 12px;
+  }
 }
 
 img {
@@ -53,9 +62,20 @@ img {
   aspect-ratio: 1 / 1;
   margin: 40px auto 0 auto;
   display: block;
+  
+  @media (max-width: 480px) {
+    width: 70%;
+    min-width: 150px;
+    max-width: 250px;
+    margin: 20px auto;
+  }
 }
 
 :deep(.qrcode-textarea) {
   height: calc(100vh - 180px) !important;
+  
+  @media (max-width: 480px) {
+    height: 200px !important;
+  }
 }
 </style>

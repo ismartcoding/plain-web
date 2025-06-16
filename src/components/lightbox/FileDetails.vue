@@ -1,0 +1,70 @@
+<template>
+  <div class="file-details">
+    <FileInfoItem :label="$t('file_size')">
+      {{ formatFileSize(current?.size ?? 0) }}
+      <span v-if="fileInfo?.data?.width && fileInfo?.data?.height" class="info-resolution">{{ getResolution() }}</span>
+    </FileInfoItem>
+    
+    <FileInfoItem 
+      v-if="fileInfo?.updatedAt" 
+      :label="$t('updated_at')"
+    >
+      <time v-tooltip="formatDateTimeFull(fileInfo.updatedAt)">{{ formatDateTime(fileInfo.updatedAt) }}</time>
+    </FileInfoItem>
+    
+    <FileInfoItem 
+      v-if="current && (isAudio(current?.name || '') || isVideo(current?.name || ''))" 
+      :label="$t('duration')"
+      :value="formatSeconds(fileInfo?.data?.duration ?? current?.duration)"
+    />
+    
+    <FileInfoItem 
+      v-if="current?.path" 
+      :label="$t('path')" 
+      :value="getFinalPath(externalFilesDir, current.path)" 
+      is-path
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { formatFileSize, formatSeconds, formatDateTime, formatDateTimeFull } from '@/lib/format'
+import { isVideo, isImage, isAudio } from '@/lib/file'
+import { getFinalPath } from '@/lib/api/file'
+import type { ISource } from './types'
+
+const props = defineProps({
+  current: {
+    type: Object as () => ISource | undefined,
+    required: true,
+  },
+  fileInfo: {
+    type: Object,
+    default: null,
+  },
+  externalFilesDir: {
+    type: String,
+    default: '',
+  },
+})
+
+function getResolution() {
+  const width = props.fileInfo?.data?.width ?? 0
+  const height = props.fileInfo?.data?.height ?? 0
+  let r = `  ${width} x ${height}`
+  if (isImage(props.current?.name ?? '')) {
+    const mp = Math.round((width * height) / 1000000)
+    if (mp > 1) {
+      r += `  ${mp} MP`
+    }
+  }
+  return r
+}
+</script>
+
+<style lang="scss" scoped>
+.info-resolution {
+  margin-inline-start: 4px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+</style> 

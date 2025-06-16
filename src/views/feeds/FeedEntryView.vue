@@ -4,24 +4,24 @@
     <article v-if="loading && !entry">
       <div class="top-app-bar">
         <div class="title">
-          <div class="skeleton-text skeleton-app-bar"></div>
+          <div class="skeleton-text lg" style="width: 40%"></div>
         </div>
         <div class="actions">
-          <div class="skeleton-image skeleton-icon"></div>
+          <div class="skeleton-image sm"></div>
         </div>
       </div>
       <div class="article-title">
-        <div class="skeleton-text skeleton-title"></div>
+        <div class="skeleton-text lg" style="width: 60%"></div>
       </div>
-      <div class="md-container">
-        <div class="skeleton-text skeleton-content" style="width: 100%"></div>
-        <div class="skeleton-text skeleton-content" style="width: 90%"></div>
-        <div class="skeleton-text skeleton-content" style="width: 75%"></div>
-        <div class="skeleton-text skeleton-content" style="width: 85%"></div>
-        <div class="skeleton-text skeleton-content" style="width: 60%"></div>
-        <div class="skeleton-text skeleton-content" style="width: 80%"></div>
-        <div class="skeleton-text skeleton-content" style="width: 70%"></div>
-        <div class="skeleton-text skeleton-content" style="width: 65%"></div>
+      <div class="md-container md-skeleton-container">
+        <div class="skeleton-text" style="width: 100%"></div>
+        <div class="skeleton-text" style="width: 90%"></div>
+        <div class="skeleton-text" style="width: 75%"></div>
+        <div class="skeleton-text" style="width: 85%"></div>
+        <div class="skeleton-text" style="width: 60%"></div>
+        <div class="skeleton-text" style="width: 80%"></div>
+        <div class="skeleton-text" style="width: 70%"></div>
+        <div class="skeleton-text" style="width: 65%"></div>
       </div>
     </article>
     <article v-else-if="entry">
@@ -236,24 +236,10 @@ onDeactivated(() => {
 }
 </style>
 <style lang="scss" scoped>
-.skeleton-app-bar {
-  width: 40%;
-  height: 24px;
-}
-
-.skeleton-icon {
-  width: 32px;
-  height: 32px;
-}
-
-.skeleton-title {
-  width: 60%;
-  height: 36px;
-}
-
-.skeleton-content {
-  height: 20px;
-  margin-block-end: 8px;
+.md-skeleton-container {
+  .skeleton-text {
+    margin-block-end: 8px;
+  }
 }
 
 .top-app-bar .title {

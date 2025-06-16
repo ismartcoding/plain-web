@@ -20,11 +20,11 @@ defineProps({
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border: 1px solid var(--md-sys-color-outline, #79747E);
+  border: 1px solid var(--md-sys-color-outline);
   border-radius: 20px;
   padding: 8px 16px;
   background-color: transparent;
-  color: var(--md-sys-color-primary, #6750A4);
+  color: var(--md-sys-color-on-surface);
   font-family: inherit;
   font-size: 0.875rem;
   font-weight: 500;

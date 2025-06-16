@@ -7,30 +7,31 @@
       <template v-if="checked">
         <template v-if="filter.trash">
           <v-icon-button v-tooltip="$t('delete')" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)">
-              <i-material-symbols:delete-forever-outline-rounded />
+            <i-material-symbols:delete-forever-outline-rounded />
           </v-icon-button>
           <v-icon-button v-tooltip="$t('restore')" :loading="restoreLoading(getQuery())" @click.stop="restore(getQuery())">
-              <i-material-symbols:restore-from-trash-outline-rounded />
+            <i-material-symbols:restore-from-trash-outline-rounded />
           </v-icon-button>
         </template>
         <template v-else>
           <v-icon-button v-tooltip="$t('move_to_trash')" @click.stop="trash(getQuery())">
-              <i-material-symbols:delete-outline-rounded />
+            <i-material-symbols:delete-outline-rounded />
           </v-icon-button>
           <v-icon-button v-tooltip="$t('add_to_tags')" @click.stop="addToTags(selectedIds, realAllChecked, q)">
-              <i-material-symbols:label-outline-rounded />
+            <i-material-symbols:label-outline-rounded />
           </v-icon-button>
           <v-icon-button v-tooltip="$t('export_notes')" @click.stop="exportNotes2">
-              <i-material-symbols:export-notes-outline-rounded />
+            <i-material-symbols:export-notes-outline-rounded />
           </v-icon-button>
         </template>
       </template>
     </div>
     <div class="actions">
-      <search-input :filter="filter" :tags="tags" :get-url="getUrl" :show-trash="true" />
+      <search-input :filter="filter" :tags="tags" :get-url="getUrl" :show-trash="true" :show-chips="!isPhone" :is-phone="isPhone" />
       <v-outlined-button v-if="!filter.trash" class="btn-sm" @click.prevent="create">{{ $t('create') }}</v-outlined-button>
     </div>
   </div>
+  <SearchFilters v-if="isPhone" class="mobile-search-filters" :filter="filter" :tags="tags" :feeds="[]" :buckets="[]" :types="[]" @filter-change="onFilterChange" />
   <all-checked-alert
     :limit="limit"
     :total="total"
@@ -40,73 +41,32 @@
     :clear-selection="clearSelection"
   />
   <div v-if="loading && items.length === 0" class="scroller">
-    <article v-for="i in 20" :key="i" class="note-item selectable-card-skeleton">
-      <div class="start">
-        <div class="checkbox">
-          <div class="skeleton-checkbox"></div>
-        </div>
-        <span class="number">{{ i }}</span>
-      </div>
-      <div class="title">
-        <div class="skeleton-text skeleton-title"></div>
-      </div>
-      <div class="subtitle">
-        <div class="skeleton-text skeleton-subtitle"></div>
-      </div>
-      <div class="actions">
-        <div class="skeleton-text skeleton-actions"></div>
-      </div>
-      <div class="time">
-        <div class="skeleton-text skeleton-time"></div>
-      </div>
-    </article>
+    <NoteSkeletonItem v-for="i in 20" :key="i" :index="i" :is-phone="isPhone" />
   </div>
   <VirtualList v-if="items.length" class="scroller" :data-key="'id'" :data-sources="items" :estimate-size="100" :class="{ 'select-mode': checked }">
     <template #item="{ index, item }">
       <a :key="item.id" class="item-link" :href="viewUrl(item)">
-        <article
-          class="note-item selectable-card"
-          :class="{ selected: selectedIds.includes(item.id) || item.id == $route.params['id'], selecting: shiftEffectingIds.includes(item.id) }"
-          @click.stop.prevent="
-            handleItemClick($event, item, index, () => {
-              view(item)
-            })
-          "
-          @mouseover="handleMouseOver($event, index)"
-        >
-          <div class="start">
-            <v-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, index)" />
-            <v-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, index)" />
-            <span class="number"><field-id :id="index + 1" :raw="item" /></span>
-          </div>
-          <div class="title">{{ getSummary(item.title.split('\n')[0].trimStart()) || $t('meta_no_title') }}</div>
-          <div class="subtitle">
-            <item-tags :tags="item.tags" :type="dataType" :only-links="true" />
-          </div>
-          <div class="actions">
-            <template v-if="filter.trash">
-              <v-icon-button v-tooltip="$t('delete')" class="sm" @click.stop.prevent="deleteItem(item)">
-                  <i-material-symbols:delete-forever-outline-rounded />
-              </v-icon-button>
-              <v-icon-button v-tooltip="$t('restore')" class="sm" :loading="restoreLoading(`ids:${item.id}`)" @click.stop.prevent="restore(`ids:${item.id}`)">
-                  <i-material-symbols:restore-from-trash-outline-rounded />
-              </v-icon-button>
-            </template>
-            <template v-else>
-              <v-icon-button v-tooltip="$t('move_to_trash')" class="sm" :loading="trashLoading(`ids:${item.id}`)" @click.stop.prevent="trash(`ids:${item.id}`)">
-                  <i-material-symbols:delete-outline-rounded />
-              </v-icon-button>
-              <v-icon-button v-tooltip="$t('add_to_tags')" class="sm" @click.stop.prevent="addItemToTags(item)">
-                  <i-material-symbols:label-outline-rounded />
-              </v-icon-button>
-            </template>
-          </div>
-          <div class="time">
-            <span v-tooltip="formatDateTime(item.updatedAt)">
-              {{ formatTimeAgo(item.updatedAt) }}
-            </span>
-          </div>
-        </article>
+        <NoteListItem
+          :item="item"
+          :index="index"
+          :selected-ids="selectedIds"
+          :shift-effecting-ids="shiftEffectingIds"
+          :should-select="shouldSelect"
+          :is-phone="isPhone"
+          :filter="filter"
+          :data-type="dataType"
+          :route-id="$route.params['id'] as string"
+          :handle-item-click="handleItemClick"
+          :handle-mouse-over="handleMouseOver"
+          :toggle-select="toggleSelect"
+          :view="view"
+          :delete-item="deleteItem"
+          :add-item-to-tags="addItemToTags"
+          :restore-loading="restoreLoading"
+          :trash-loading="trashLoading"
+          :restore="restore"
+          :trash="trash"
+        />
       </a>
     </template>
     <template #footer>
@@ -119,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { onActivated, onDeactivated, reactive, ref } from 'vue'
+import { inject, onActivated, onDeactivated, reactive, ref } from 'vue'
 import toast from '@/components/toaster'
 import { formatTimeAgo, formatDateTime } from '@/lib/format'
 import { notesGQL, initLazyQuery } from '@/lib/api/query'
@@ -146,11 +106,13 @@ import { useKeyEvents } from '@/hooks/key-events'
 import VirtualList from '@/components/virtualscroll'
 import { downloadFromString } from '@/lib/api/file'
 import { useNotesRestore, useNotesTrash } from '@/hooks/notes'
+import NoteListItem from '@/components/notes/NoteListItem.vue'
 
+const isPhone = inject('isPhone') as boolean
 const mainStore = useMainStore()
 const items = ref<INote[]>([])
 const { t } = useI18n()
-const { parseQ } = useSearch()
+const { parseQ, buildQ } = useSearch()
 const filter = reactive<IFilter>({
   tagIds: [],
   trash: false,
@@ -302,6 +264,11 @@ const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
   }
 }
 
+function onFilterChange(newFilter: IFilter) {
+  Object.assign(filter, newFilter)
+  replacePath(mainStore, getUrl(buildQ(filter)))
+}
+
 onActivated(() => {
   q.value = decodeBase64(query.q?.toString() ?? '')
   parseQ(filter, q.value)
@@ -335,7 +302,7 @@ onDeactivated(() => {
   }
 }
 
-.note-item {
+:deep(.note-item) {
   margin: 0 16px 8px 16px;
   display: grid;
   border-radius: 8px;
@@ -383,34 +350,9 @@ onDeactivated(() => {
   }
 }
 .select-mode {
-  .note-item {
+  :deep(.note-item) {
     .actions {
       visibility: hidden;
-    }
-  }
-}
-
-.scroller {
-  .note-item {
-    .skeleton-image {
-      width: 50px;
-      height: 50px;
-    }
-    .skeleton-title {
-      width: 50%;
-      height: 24px;
-    }
-    .skeleton-subtitle {
-      width: 40%;
-      height: 20px;
-    }
-    .skeleton-actions {
-      width: 140px;
-      height: 20px;
-    }
-    .skeleton-time {
-      width: 60px;
-      height: 20px;
     }
   }
 }
