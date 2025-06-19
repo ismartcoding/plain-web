@@ -146,8 +146,7 @@
     </template>
     <template #actions>
       <v-outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</v-outlined-button>
-      <v-filled-button value="save" :disabled="createLoading || editLoading" @click="doAction">
-        <v-circular-progress v-if="createLoading || editLoading" indeterminate />
+      <v-filled-button value="save" :loading="createLoading || editLoading" @click="doAction">
         {{ $t('save') }}
       </v-filled-button>
     </template>

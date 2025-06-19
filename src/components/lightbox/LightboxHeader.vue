@@ -1,43 +1,43 @@
 <template>
   <header v-if="current" class="toolbar">
     <div v-if="current.name" class="source-name">
-      <button v-tooltip="$t('close')" class="btn-icon close-btn" @click="$emit('close')">
+      <v-icon-button v-tooltip="$t('close')" class="close-btn" @click="$emit('close')">
         <i-material-symbols:close-rounded />
-      </button>
+      </v-icon-button>
       <span class="file-name">{{ current.name }}</span>
     </div>
 
     <div class="actions">
       <template v-if="isImage(current.name)">
-        <button v-if="!current.viewOriginImage" v-tooltip="$t('view_origin_image')" class="btn-icon" @click="$emit('view-origin')">
+        <v-icon-button v-if="!current.viewOriginImage" v-tooltip="$t('view_origin_image')" @click="$emit('view-origin')">
           <i-material-symbols:image-outline-rounded />
-        </button>
+        </v-icon-button>
 
-        <button v-tooltip="$t('zoom_in')" class="btn-icon" @click="$emit('zoom-in')">
+        <v-icon-button v-tooltip="$t('zoom_in')" @click="$emit('zoom-in')">
           <i-material-symbols:zoom-in-rounded />
-        </button>
+        </v-icon-button>
 
-        <button v-tooltip="$t('zoom_out')" class="btn-icon" @click="$emit('zoom-out')">
+        <v-icon-button v-tooltip="$t('zoom_out')" @click="$emit('zoom-out')">
           <i-material-symbols:zoom-out-rounded />
-        </button>
+        </v-icon-button>
 
-        <button v-tooltip="$t('resize')" class="btn-icon" @click="$emit('resize')">
+        <v-icon-button v-tooltip="$t('resize')" @click="$emit('resize')">
           <i-material-symbols:aspect-ratio-outline-rounded />
-        </button>
+        </v-icon-button>
 
-        <button v-tooltip="$t('rotate_left')" class="btn-icon" @click="$emit('rotate-left')">
+        <v-icon-button v-tooltip="$t('rotate_left')" @click="$emit('rotate-left')">
           <i-material-symbols:rotate-left-rounded />
-        </button>
+        </v-icon-button>
 
-        <button v-tooltip="$t('rotate_right')" class="btn-icon" @click="$emit('rotate-right')">
+        <v-icon-button v-tooltip="$t('rotate_right')" @click="$emit('rotate-right')">
           <i-material-symbols:rotate-right-rounded />
-        </button>
+        </v-icon-button>
       </template>
     </div>
 
-    <button v-tooltip="$t('info')" class="btn-icon info-btn" @click="$emit('toggle-info')">
+    <v-icon-button v-tooltip="$t('info')" class="info-btn" @click="$emit('toggle-info')">
       <i-material-symbols:info-outline-rounded />
-    </button>
+    </v-icon-button>
   </header>
 </template>
 
@@ -101,13 +101,6 @@ defineEmits<{
     flex-shrink: 0;
     flex-wrap: wrap;
     gap: 4px;
-
-    .btn-icon {
-      width: 40px;
-      height: 40px;
-      margin: 0;
-      flex-shrink: 0;
-    }
   }
 
   .info-btn {

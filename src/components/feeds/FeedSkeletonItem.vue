@@ -2,7 +2,7 @@
   <section v-if="!isPhone" class="feed-item selectable-card-skeleton">
     <div class="title">
       <div class="skeleton-checkbox"></div>
-      <div class="skeleton-text lg" style="width: 50%"></div>
+      <div class="skeleton-text text lg" style="width: 50%"></div>
     </div>
     <div class="subtitle">
       <span class="number">{{ index }}</span>

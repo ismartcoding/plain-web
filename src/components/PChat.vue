@@ -391,25 +391,4 @@ onMounted(() => {
   max-width: 800px;
 }
 
-.chat-loading-dots {
-  display: flex;
-  align-items: center;
-  margin-top: 4px;
-  .dot {
-    width: 7px;
-    height: 7px;
-    margin: 0 2px;
-    border-radius: 50%;
-    background: #bbb;
-    animation: chat-dot-bounce 1.2s infinite both;
-    &:nth-child(2) { animation-delay: 0.2s; }
-    &:nth-child(3) { animation-delay: 0.4s; }
-  }
-}
-
-@keyframes chat-dot-bounce {
-  0%, 80%, 100% { transform: scale(1); opacity: 0.7; }
-  40% { transform: scale(1.5); opacity: 1; }
-}
-
 </style>

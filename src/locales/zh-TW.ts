@@ -494,6 +494,10 @@ export default {
     settings: '設定',
     start: '開始',
     stop: '停止',
-    test: '測試',
-    click_to_adjust: '點擊調整進度',
-  }
+      test: '測試',
+  click_to_adjust: '點擊調整進度',
+  font_size: '字體大小',
+  increase_font_size: '增大字體',
+  decrease_font_size: '減小字體',
+  reset_font_size: '重置字體大小',
+}

@@ -6,7 +6,7 @@
         <lightbox-keyboard-shortcuts class="info-keyboard-shortcuts" />
       </div>
       <div class="info-actions">
-        <FileActionButtons 
+        <LightboxFileActionButtons 
           :current="current" 
           :os-version="osVersion"
           :download-file="downloadFile"
@@ -16,13 +16,13 @@
       </div>
     </div>
     <div class="info-content">
-      <FileDetails 
+      <LightboxFileDetails 
         :current="current" 
         :file-info="fileInfo" 
         :external-files-dir="externalFilesDir" 
       />
       
-      <FileTags 
+      <LightboxFileTags 
         :current="current" 
         :file-info="fileInfo"
         @add-to-tags="$emit('add-to-tags')"
@@ -33,9 +33,6 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue'
-import FileActionButtons from './FileActionButtons.vue'
-import FileDetails from './FileDetails.vue'
-import FileTags from './FileTags.vue'
 import { DataType } from '@/lib/data'
 import { useMediaTrash, useFileTrashState } from '@/hooks/media-trash'
 import type { ITag } from '@/lib/interfaces'

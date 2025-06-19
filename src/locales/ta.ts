@@ -495,4 +495,8 @@ export default {
   stop: 'நிறுத்து',
   test: 'சோதனை',
   click_to_adjust: 'தற்போதைய நிலையை மாற்ற சொல்லுங்கள்',
+  font_size: 'எழுத்து அளவு',
+  increase_font_size: 'எழுத்து அளவு அதிகரிக்கவும்',
+  decrease_font_size: 'எழுத்து அளவு குறைக்கவும்',
+  reset_font_size: 'எழுத்து அளவு மீட்டமை',
 }

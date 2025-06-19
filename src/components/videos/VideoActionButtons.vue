@@ -1,5 +1,5 @@
 <template>
-  <div class="list-item-actions" :class="{ mobile: isPhone }">
+  <div class="actions">
     <template v-if="filter.trash">
       <v-icon-button v-tooltip="$t('delete')" class="sm" @click.stop="deleteItem(dataType, item)">
           <i-material-symbols:delete-forever-outline-rounded />
@@ -48,7 +48,6 @@ interface Props {
   filter: IFilter
   dataType: DataType
   app: any
-  isPhone?: boolean
   // Functions passed from parent
   deleteItem: (dataType: DataType, item: IVideoItem) => void
   restore: (dataType: DataType, query: string) => void

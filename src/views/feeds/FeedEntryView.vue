@@ -1,81 +1,37 @@
 <!-- eslint-disable vue/no-v-html -->
 <template>
   <div class="content">
-    <article v-if="loading && !entry">
-      <div class="top-app-bar">
-        <div class="title">
-          <div class="skeleton-text lg" style="width: 40%"></div>
-        </div>
-        <div class="actions">
-          <div class="skeleton-image sm"></div>
-        </div>
-      </div>
-      <div class="article-title">
-        <div class="skeleton-text lg" style="width: 60%"></div>
-      </div>
-      <div class="md-container md-skeleton-container">
-        <div class="skeleton-text" style="width: 100%"></div>
-        <div class="skeleton-text" style="width: 90%"></div>
-        <div class="skeleton-text" style="width: 75%"></div>
-        <div class="skeleton-text" style="width: 85%"></div>
-        <div class="skeleton-text" style="width: 60%"></div>
-        <div class="skeleton-text" style="width: 80%"></div>
-        <div class="skeleton-text" style="width: 70%"></div>
-        <div class="skeleton-text" style="width: 65%"></div>
-      </div>
-    </article>
+    <feed-entry-skeleton-view v-if="loading && !entry" />
     <article v-else-if="entry">
-      <div class="top-app-bar">
-        <div class="title">
-          <a v-if="entry.feed" @click.stop.prevent="viewFeed(entry.feed)">{{ entry.feed.name }}</a>
-          <time v-if="entry" v-tooltip="formatDateTime(entry.publishedAt)">
-            {{ formatTimeAgo(entry.publishedAt) }}
-          </time>
-          <item-tags :tags="entry?.tags" :type="dataType" />
-          <button v-tooltip="$t('add_to_tags')" class="btn-icon sm" style="margin-inline-start: 16px" @click.prevent="addToTags">
-            
-            <i-material-symbols:label-outline-rounded />
-          </button>
-          <v-circular-progress v-if="syncContentLoading" indeterminate class="sm" />
-          <button v-else v-tooltip="$t('sync_content')" class="btn-icon sm" :disabled="syncContentLoading" @click.prevent="syncContent">
-            
-            <i-material-symbols:sync-rounded />
-          </button>
-          <a v-tooltip="$t('view_original_article')" :href="entry?.url" class="btn-icon" target="_blank">
-            <button class="btn-icon sm">
-              
-              <i-material-symbols:open-in-new-rounded />
-            </button>
-          </a>
-          <button v-tooltip="$t('save_to_notes')" class="btn-icon sm" @click.prevent="saveToNotes({ query: `ids:${id}` })">
-            
-            <i-material-symbols:add-notes-outline-rounded />
-          </button>
-          <button v-tooltip="$t('print')" class="btn-icon sm" @click.prevent="print">
-            
-            <i-material-symbols:print-outline-rounded />
-          </button>
-        </div>
-        <div class="actions">
-          <button v-tooltip="$t('close')" class="btn-icon" @click.prevent="backToList">
-            
-            <i-material-symbols:close-rounded />
-          </button>
-        </div>
-      </div>
-      <div class="article-title">
+      <feed-entry-toolbar
+        :entry="entry"
+        :data-type="dataType"
+        :sync-content-loading="syncContentLoading"
+        :is-phone="isPhone"
+        @view-feed="viewFeed"
+        @add-to-tags="addToTags"
+        @sync-content="syncContent"
+        @save-to-notes="saveToNotes({ query: `ids:${id}` })"
+        @print="print"
+        @decrease-font-size="decreaseFontSize"
+        @increase-font-size="increaseFontSize"
+        @reset-font-size="resetFontSize"
+        @close="backToList"
+      />
+      <div class="article-title" :style="{ fontSize: (mainStore.feedEntryFontSize * 1.5) + 'px' }">
         {{ entry?.title }}
       </div>
-      <div class="md-container" v-html="markdown"></div>
+      <div class="md-container" :style="{ fontSize: mainStore.feedEntryFontSize + 'px' }" v-html="markdown"></div>
     </article>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { onActivated, onDeactivated, ref } from 'vue'
+import { onActivated, onDeactivated, ref, inject } from 'vue'
 import toast from '@/components/toaster'
 import { useI18n } from 'vue-i18n'
+import FeedEntryToolbar from '@/components/feeds/FeedEntryToolbar.vue'
 import { feedEntryGQL, initLazyQuery, initQuery, tagsGQL } from '@/lib/api/query'
 import type { IFeedEntryDetail, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, ITag } from '@/lib/interfaces'
 import { useMarkdown } from '@/hooks/markdown'
@@ -92,6 +48,7 @@ import { replacePath } from '@/plugins/router'
 
 const { t } = useI18n()
 
+const isPhone = inject<boolean>('isPhone')
 const dataType = 'FEED_ENTRY'
 const route = useRoute()
 const id = ref(route.params.id)
@@ -218,6 +175,19 @@ onDeactivated(() => {
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
 })
+
+const decreaseFontSize = () => {
+  mainStore.decreaseFeedEntryFontSize()
+}
+
+const increaseFontSize = () => {
+  mainStore.increaseFeedEntryFontSize()
+}
+
+const resetFontSize = () => {
+  mainStore.resetFeedEntryFontSize()
+}
+
 </script>
 <style lang="scss">
 .page-content .main-feed-entry {
@@ -236,20 +206,6 @@ onDeactivated(() => {
 }
 </style>
 <style lang="scss" scoped>
-.md-skeleton-container {
-  .skeleton-text {
-    margin-block-end: 8px;
-  }
-}
-
-.top-app-bar .title {
-  align-items: center;
-  font-weight: normal;
-  display: flex;
-  .tags {
-    margin-inline-start: 8px;
-  }
-}
 .article-title {
   font-size: 1.5rem;
   font-weight: bold;

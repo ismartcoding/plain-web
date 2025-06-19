@@ -492,4 +492,8 @@ export default {
   stop: 'Durdur',
   test: 'Test',
   click_to_adjust: 'İlerlemeyi ayarlamak için tıklayın',
+  font_size: 'Yazı tipi boyutu',
+  increase_font_size: 'Yazı tipi boyutunu büyüt',
+  decrease_font_size: 'Yazı tipi boyutunu küçült',
+  reset_font_size: 'Yazı tipi boyutunu sıfırla',
 }

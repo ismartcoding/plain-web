@@ -141,7 +141,7 @@ function initializeTheme() {
 
 onMounted(() => {
   emitter.on('toast', (r: string) => {
-    toast(t(r))
+    toast(t(r), 'error')
   })
 
   emitter.on('tap_phone', (r: string) => {

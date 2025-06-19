@@ -6,7 +6,7 @@
     </template>
     <template #actions>
       <v-outlined-button @click="popModal">{{ $t('cancel') }}</v-outlined-button>
-      <v-filled-button :disabled="loading" @click="doDelete">{{ $t('delete') }}</v-filled-button>
+      <v-filled-button :loading="loading" @click="doDelete">{{ $t('delete') }}</v-filled-button>
     </template>
   </v-modal>
 </template>

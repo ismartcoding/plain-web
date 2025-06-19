@@ -20,10 +20,9 @@
         <button class="btn-icon" @click.stop="playNext">
           <i-material-symbols:skip-next-outline-rounded />
         </button>
-        <v-circular-progress v-if="clearLoading" indeterminate class="sm" />
-        <button v-else v-tooltip="$t('clear_list')" class="btn-icon" @click.prevent="clear">
+        <v-icon-button v-tooltip="$t('clear_list')" :loading="clearLoading" @click.prevent="clear">
           <i-material-symbols:delete-forever-outline-rounded />
-        </button>
+        </v-icon-button>
       </div>
       <section class="list-items">
         <VueDraggable 

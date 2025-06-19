@@ -22,6 +22,7 @@ export type MainState = {
   json: string // data in jsonViewer
   qrCode: string // data in qrCode Generator
   callNumber: string
+  feedEntryFontSize: number // font size for feed entry content
 }
 
 export const useMainStore = defineStore('main', {
@@ -49,6 +50,7 @@ export const useMainStore = defineStore('main', {
       json: '',
       qrCode: '',
       callNumber: '',
+      feedEntryFontSize: 16, // default font size
     }) as MainState,
   actions: {
     getCurrentPage(path: string): IPage {
@@ -65,6 +67,19 @@ export const useMainStore = defineStore('main', {
       if (page) {
         page.sidebar = sidebar
       }
+    },
+    increaseFeedEntryFontSize() {
+      if (this.feedEntryFontSize < 32) {
+        this.feedEntryFontSize += 2
+      }
+    },
+    decreaseFeedEntryFontSize() {
+      if (this.feedEntryFontSize > 10) {
+        this.feedEntryFontSize -= 2
+      }
+    },
+    resetFeedEntryFontSize() {
+      this.feedEntryFontSize = 16
     },
   },
 })

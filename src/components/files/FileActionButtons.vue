@@ -1,5 +1,5 @@
 <template>
-  <div class="list-item-actions" :class="{ mobile: isPhone }">
+  <div class="actions">
     <template v-if="item.isDir">
       <v-icon-button v-tooltip="$t('download')" class="sm" @click.stop="downloadDir(item.path)">
           <i-material-symbols:download-rounded />
@@ -79,7 +79,6 @@ import type { IFile } from '@/lib/file'
 interface Props {
   item: IFile
   canPaste: boolean
-  isPhone: boolean
 }
 
 defineProps<Props>()
@@ -148,7 +147,7 @@ function renameItem(item: IFile) {
 </script>
 
 <style scoped lang="scss">
-.list-item-actions {
+.actions {
   display: flex;
   gap: 4px;
   align-items: center;

@@ -172,10 +172,9 @@
         <div class="phone-input-row">
           <v-text-field v-model="callNumber" type="tel" :label="$t('phone_number')" class="phone-input" :error="callNumberError" :error-text="$t('valid.required')" @keyup.enter="callPhone">
             <template #trailing-icon>
-              <button class="btn-icon" @click.prevent="pastePhoneNumber">
-                
+              <v-icon-button @click.prevent="pastePhoneNumber">
                 <i-material-symbols:content-paste-rounded />
-              </button>
+              </v-icon-button>
             </template>
           </v-text-field>
           <v-filled-button class="call-btn" :disabled="callLoading" @click.prevent="callPhone">
@@ -372,7 +371,7 @@ initQuery({
 
 .phone-card {
   grid-column: span 2;
-  min-height: 120px;
+  min-height: 144px;
   .card-title {
     text-align: left;
   }
@@ -423,6 +422,7 @@ initQuery({
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 12px;
     padding: 12px;
+    margin-block-end: 24px;
   }
 
   .phone-card {

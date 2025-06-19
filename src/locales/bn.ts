@@ -497,4 +497,8 @@ export default {
   stop: 'বন্ধ করুন',
   test: 'পরীক্ষা',
   click_to_adjust: 'প্রস্থান প্রস্তুত করুন',
+  font_size: 'ফন্ট সাইজ',
+  increase_font_size: 'ফন্ট সাইজ বৃদ্ধি করুন',
+  decrease_font_size: 'ফন্ট সাইজ কমান',
+  reset_font_size: 'ফন্ট সাইজ রিসেট করুন',
 }

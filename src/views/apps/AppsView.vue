@@ -48,7 +48,7 @@
   />
   <div class="scroll-content" @dragover.stop.prevent="fileDragEnter">
     <div v-show="dropping" class="drag-mask" @drop.stop.prevent="dropApkFiles" @dragleave.stop.prevent="fileDragLeave">{{ $t('release_to_send_files') }}</div>
-    <div class="app-list" :class="{ 'select-mode': checked }">
+    <div class="main-list" :class="{ 'select-mode': checked }">
       <AppListItem
         v-for="(item, i) in items"
         :key="item.id"
@@ -86,7 +86,6 @@
 import { onActivated, onDeactivated, reactive, ref, inject } from 'vue'
 import toast from '@/components/toaster'
 import tapPhone from '@/plugins/tapphone'
-import { formatDateTime, formatDateTimeFull, formatFileSize } from '@/lib/format'
 import { packagesGQL, initLazyQuery, packageStatusesGQL } from '@/lib/api/query'
 import { useRoute } from 'vue-router'
 import { replacePath } from '@/plugins/router'
@@ -327,23 +326,11 @@ onDeactivated(() => {
 })
 </script>
 <style scoped lang="scss">
-.app-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
 :deep(.app-item) {
-  display: grid;
-  border-radius: 8px;
   grid-template-areas:
     'start image title actions time'
     'start image subtitle  actions time';
   grid-template-columns: 48px 50px 2fr 1fr minmax(240px, auto);
-  .number {
-    font-size: 0.75rem;
-    display: flex;
-    justify-content: center;
-  }
   .image {
     width: 50px;
     height: 50px;
@@ -353,11 +340,8 @@ onDeactivated(() => {
     margin-block: 12px;
   }
   .title {
-    grid-area: title;
-    font-weight: 500;
     margin-inline: 16px;
     padding-block-start: 12px;
-    word-break: break-all;
   }
   .subtitle {
     grid-area: subtitle;
@@ -366,15 +350,6 @@ onDeactivated(() => {
     flex-wrap: wrap;
     font-size: 0.875rem;
     margin-inline: 16px;
-  }
-  .list-item-actions {
-    grid-area: actions;
-    display: flex;
-    flex-direction: row;
-    gap: 4px;
-    align-items: center;
-    visibility: visible;
-    padding-inline: 16px;
   }
   .time {
     grid-area: time;

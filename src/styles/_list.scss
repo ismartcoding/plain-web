@@ -1,24 +1,48 @@
-.list-item-start {
-  grid-area: start;
-  text-align: center;
-}
-
-.list-item-actions {
-  &.mobile {
+.main-list  {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  .selectable-card, .selectable-card-skeleton {
+    display: grid;
+    border-radius: 8px;
+    padding-block-end: 12px;
+    margin-inline: 16px;
+  }
+  .start {
+    grid-area: start;
+    text-align: center;
+  }
+  .number {
+    font-size: 0.75rem;
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: flex-start;
-    margin-top: 4px;
-    
-    .btn-icon {
-      background: var(--md-sys-color-surface-container);
-      border-radius: 8px;
+    justify-content: center;
+  }
+  .title {
+    grid-area: title;
+    font-weight: 500;
+    word-break: break-all;
+  }
+  .actions {
+    grid-area: actions;
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    align-items: center;
+    visibility: visible;
+    padding-inline: 16px;
+  }
+  &.select-mode {
+    .selectable-card {
+      cursor: pointer;
+      .actions {
+        visibility: hidden;
+      }
     }
   }
 }
 
-.list-item-phone {
+
+.main-list .list-item-phone {
   display: flex;
   gap: 12px;
   border-radius: 8px;
@@ -47,6 +71,20 @@
         object-fit: cover;
         border-radius: 4px;
       }
+    }
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-start;
+    margin-top: 4px;
+    padding-inline: 0;
+    
+    .btn-icon {
+      background: var(--md-sys-color-surface-container);
+      border-radius: 8px;
     }
   }
   

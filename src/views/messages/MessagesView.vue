@@ -6,9 +6,9 @@
       <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
       <span v-else>{{ $t('page_title.messages') }} ({{ total.toLocaleString() }})</span>
       <template v-if="checked">
-        <button v-tooltip="$t('add_to_tags')" class="btn-icon" @click.stop="addToTags(selectedIds, realAllChecked, q)">
+        <v-icon-button v-tooltip="$t('add_to_tags')" @click.stop="addToTags(selectedIds, realAllChecked, q)">
           <i-material-symbols:label-outline-rounded />
-        </button>
+        </v-icon-button>
       </template>
     </div>
 
@@ -26,44 +26,25 @@
     :clear-selection="clearSelection"
   />
   <div class="scroll-content">
-    <div class="sms-list" :class="{ 'select-mode': checked }">
-      <section
+    <div class="main-list" :class="{ 'select-mode': checked }">
+      <MessageListItem
         v-for="(item, i) in items"
         :key="item.id"
-        class="sms-item selectable-card"
-        :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
-        @click.stop="handleItemClick($event, item, i, () => {})"
-        @mouseover="handleMouseOver($event, i)"
-      >
-        <div class="list-item-start">
-          <v-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, i)" />
-          <v-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, i)" />
-          <span class="number"><field-id :id="i + 1" :raw="item" /></span>
-        </div>
-        <div class="title">
-          {{ item.address }}
-        </div>
-        <div class="subtitle" v-html="addLinksToURLs(item.body)"></div>
-        <div class="actions">
-          <button v-tooltip="$t('add_to_tags')" class="btn-icon sm" @click.stop="addItemToTags(item)">
-            
-            <i-material-symbols:label-outline-rounded />
-          </button>
-          <v-circular-progress v-if="callLoading && callId === item.id" indeterminate class="sm" />
-          <button v-else v-tooltip="$t('make_a_phone_call')" class="btn-icon sm" @click.stop="call(item)">
-            <i-material-symbols:call-outline-rounded />
-          </button>
-        </div>
-        <div class="info">
-          <span>{{ $t(`message_type.${item.type}`) }}</span>
-          <item-tags :tags="item.tags" :type="dataType" :only-links="true" />
-        </div>
-        <div class="time">
-          <span v-tooltip="formatDateTime(item.date)">
-            {{ formatTimeAgo(item.date) }}
-          </span>
-        </div>
-      </section>
+        :item="item"
+        :index="i"
+        :selected-ids="selectedIds"
+        :shift-effecting-ids="shiftEffectingIds"
+        :should-select="shouldSelect"
+        :is-phone="isPhone"
+        :data-type="dataType"
+        :call-loading="callLoading"
+        :call-id="callId"
+        :handle-item-click="handleItemClick"
+        :handle-mouse-over="handleMouseOver"
+        :toggle-select="toggleSelect"
+        @add-item-to-tags="addItemToTags"
+        @call="call"
+      />
       <template v-if="loading && items.length === 0">
         <MessageSkeletonItem v-for="i in 20" :key="i" :index="i" :is-phone="isPhone" />
       </template>
@@ -78,7 +59,6 @@
 <script setup lang="ts">
 import { inject, onActivated, onDeactivated, reactive, ref } from 'vue'
 import toast from '@/components/toaster'
-import { formatDateTime, formatTimeAgo } from '@/lib/format'
 import { initLazyQuery, messagesGQL } from '@/lib/api/query'
 import { useRoute } from 'vue-router'
 import { replacePath } from '@/plugins/router'
@@ -95,12 +75,12 @@ import { useSearch } from '@/hooks/search'
 import emitter from '@/plugins/eventbus'
 import { openModal } from '@/components/modal'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
-import { addLinksToURLs } from '@/lib/strutil'
+
 import { DataType } from '@/lib/data'
 import { callGQL, initMutation } from '@/lib/api/mutation'
 import { useKeyEvents } from '@/hooks/key-events'
 
-const isPhone = inject('isPhone')
+const isPhone = inject('isPhone') as boolean
 const mainStore = useMainStore()
 const { app } = storeToRefs(useTempStore())
 const items = ref<IMessage[]>([])
@@ -226,39 +206,18 @@ onDeactivated(() => {
 </script>
 <style scoped lang="scss">
 :deep(.sms-item) {
-  display: grid;
-  border-radius: 8px;
-  padding-block-end: 12px;
   grid-template-areas:
     'start title actions info time'
     'start subtitle actions info time';
   grid-template-columns: 48px 3fr 100px minmax(64px, 1fr) minmax(64px, 1fr);
-  .number {
-    font-size: 0.75rem;
-    display: flex;
-    justify-content: center;
-  }
   .title {
-    grid-area: title;
-    font-weight: 500;
+    padding-block: 8px;
     margin-inline-end: 16px;
-    padding-block-start: 12px;
-    padding-block-end: 8px;
   }
   .subtitle {
     grid-area: subtitle;
     font-size: 0.875rem;
     margin-inline-end: 16px;
-  }
-
-  .actions {
-    grid-area: actions;
-    display: flex;
-    flex-direction: row;
-    gap: 4px;
-    align-items: center;
-    visibility: visible;
-    padding-inline: 16px;
   }
   .info {
     grid-area: info;
@@ -278,17 +237,4 @@ onDeactivated(() => {
     justify-content: end;
   }
 }
-.sms-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.sms-list.select-mode {
-  .sms-item {
-    cursor: pointer;
-    .actions {
-      visibility: hidden;
-    }
-  }
-}
-</style>
+</style> 

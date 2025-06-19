@@ -491,4 +491,8 @@ export default {
   stop: '停止',
   test: 'テスト',
   click_to_adjust: '進捗を調整するにはクリックしてください',
+  font_size: 'フォントサイズ',
+  increase_font_size: 'フォントサイズを拡大',
+  decrease_font_size: 'フォントサイズを縮小',
+  reset_font_size: 'フォントサイズをリセット',
 }

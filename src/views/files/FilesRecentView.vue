@@ -4,16 +4,15 @@
     <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
     <span v-else>{{ $t('recent_files') }} ({{ total.toLocaleString() }})</span>
     <template v-if="checked">
-      <button v-tooltip="$t('download')" class="btn-icon" @click.stop="downloadItems">
-        
+      <v-icon-button v-tooltip="$t('download')" @click.stop="downloadItems">
         <i-material-symbols:download-rounded />
-      </button>
+      </v-icon-button>
     </template>
   </div>
-  <div v-if="loading && items.length === 0" class="scroller">
+  <div v-if="loading && items.length === 0" class="scroller main-list">
     <FileRecentSkeletonItem v-for="i in 20" :key="i" :index="i" :is-phone="isPhone" />
   </div>
-  <VirtualList v-if="items.length > 0" class="scroller" :data-key="'id'" :data-sources="items" :estimate-size="isPhone ? 120 : 80">
+  <VirtualList v-if="items.length > 0" class="scroller main-list" :data-key="'id'" :data-sources="items" :estimate-size="isPhone ? 120 : 80">
     <template #item="{ index, item }">
       <FileRecentItem
         :key="item.id"
@@ -43,11 +42,10 @@
 <script setup lang="ts">
 import toast from '@/components/toaster'
 import { onActivated, onDeactivated, ref } from 'vue'
-import { formatDateTime, formatFileSize, formatTimeAgo } from '@/lib/format'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
-import { type IFile, isImage, isVideo, canOpenInBrowser, canView, enrichFile } from '@/lib/file'
-import { getFileUrl, getFileUrlByPath } from '@/lib/api/file'
+import { type IFile, canOpenInBrowser, canView, enrichFile } from '@/lib/file'
+import { getFileUrlByPath } from '@/lib/api/file'
 import { noDataKey } from '@/lib/list'
 import { useDownload, useView } from '@/hooks/files'
 import { useTempStore, type IUploadItem } from '@/stores/temp'

@@ -494,4 +494,8 @@ export default {
   stop: 'Stop',
   test: 'Test',
   click_to_adjust: 'Klicken Sie, um den Fortschritt zu ändern',
+  font_size: 'Schriftgröße',
+  increase_font_size: 'Schrift vergrößern',
+  decrease_font_size: 'Schrift verkleinern',
+  reset_font_size: 'Schriftgröße zurücksetzen',
 }

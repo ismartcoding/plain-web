@@ -491,4 +491,8 @@ export default {
   stop: '중지',
   test: '테스트',
   click_to_adjust: '진행을 조정하려면 클릭하세요',
+  font_size: '글꼴 크기',
+  increase_font_size: '글꼴 크기 늘리기',
+  decrease_font_size: '글꼴 크기 줄이기',
+  reset_font_size: '글꼴 크기 재설정',
 }

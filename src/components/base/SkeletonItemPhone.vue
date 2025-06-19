@@ -2,7 +2,7 @@
   <section class="skeleton-item-phone selectable-card-skeleton">
     <div class="phone-left">
       <div class="skeleton-checkbox"></div>
-      <div class="skeleton-image"></div>
+      <div v-if="image" class="skeleton-image"></div>
     </div>
 
     <div class="phone-content">
@@ -28,12 +28,14 @@ interface Props {
   titleWidth?: string
   subtitles?: SkeletonItem[]
   actionCount?: number
+  image?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
   titleWidth: '70%',
   subtitles: () => [{ width: '60%', height: '18px' }],
   actionCount: 0,
+  image: true,
 })
 </script>
 
@@ -86,6 +88,7 @@ withDefaults(defineProps<Props>(), {
     display: flex;
     gap: 4px;
     margin-top: 4px;
+    padding-inline: 0 !important;
   }
 }
 </style>

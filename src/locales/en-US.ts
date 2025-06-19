@@ -497,4 +497,8 @@ export default {
   stop: 'Stop',
   test: 'Test',
   click_to_adjust: 'Click to adjust progress',
+  increase_font_size: 'Increase font size',
+  decrease_font_size: 'Decrease font size',
+  font_size: 'Font size',
+  reset_font_size: 'Reset font size',
 }

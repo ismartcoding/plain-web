@@ -1,5 +1,5 @@
 <template>
-  <div class="list-item-actions" :class="{ mobile: isPhone }">
+  <div class="actions">
     <template v-if="item.isUninstalling">
       <v-circular-progress v-tooltip="$t('uninstalling')" indeterminate class="sm" />
       &nbsp;<v-outlined-button class="btn-sm" @click.stop="cancelUninstall">{{ $t('cancel') }}</v-outlined-button>
@@ -20,7 +20,6 @@ import type { IPackageItem } from '@/lib/interfaces'
 
 interface Props {
   item: IPackageItem
-  isPhone: boolean
 }
 
 defineProps<Props>()
@@ -43,16 +42,3 @@ function cancelUninstall() {
   emit('cancelUninstall')
 }
 </script>
-
-<style scoped lang="scss">
-.list-item-actions {
-  display: flex;
-  flex-direction: row;
-  gap: 4px;
-  align-items: center;
-  
-  &.mobile {
-    flex-wrap: wrap;
-  }
-}
-</style>

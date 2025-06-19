@@ -1,7 +1,7 @@
 <template>
   <!-- Desktop Layout -->
-  <section v-if="!isPhone" class="file-item selectable-card-skeleton">
-    <div class="list-item-start">
+  <section v-if="!isPhone" class="file-item recent-file-item selectable-card-skeleton">
+    <div class="start">
       <div class="skeleton-checkbox"></div>
       <span class="number">{{ index }}</span>
     </div>
@@ -14,8 +14,8 @@
     <div class="subtitle">
       <div class="skeleton-text" style="width: 30%"></div>
     </div>
-    <div class="list-item-actions">
-      <div class="skeleton-text lg" style="width: 60px"></div>
+    <div class="actions">
+      <div class="skeleton-text lg" style="width: 80px"></div>
     </div>
   </section>
 
@@ -32,9 +32,6 @@ defineProps<Props>()
 </script>
 
 <style scoped lang="scss">
-.file-item {
-  margin: 0 16px 8px 16px;
-}
 .skeleton-item-phone {
   margin-block-end: 8px;
 }

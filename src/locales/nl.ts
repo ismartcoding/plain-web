@@ -493,4 +493,8 @@ export default {
   stop: 'Stop',
   test: 'Test',
   click_to_adjust: 'Klik om de voortgang aan te passen',
+  font_size: 'Lettergrootte',
+  increase_font_size: 'Lettergrootte vergroten',
+  decrease_font_size: 'Lettergrootte verkleinen',
+  reset_font_size: 'Lettergrootte resetten',
 }

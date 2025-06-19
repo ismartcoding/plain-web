@@ -496,4 +496,8 @@ export default {
   stop: '停止',
   test: '测试',
   click_to_adjust: '点击调整进度',
+  increase_font_size: '增大字体',
+  decrease_font_size: '减小字体',
+  font_size: '字体大小',
+  reset_font_size: '重置字体大小',
 }

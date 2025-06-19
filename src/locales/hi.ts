@@ -492,4 +492,8 @@ export default {
   stop: 'रोकें',
   test: 'टेस्ट',
   click_to_adjust: 'प्रगति को समायोजित करने के लिए क्लिक करें',
+  font_size: 'फ़ॉन्ट साइज़',
+  increase_font_size: 'फ़ॉन्ट साइज़ बढ़ाएं',
+  decrease_font_size: 'फ़ॉन्ट साइज़ घटाएं',
+  reset_font_size: 'फ़ॉन्ट साइज़ रीसेट करें',
 }

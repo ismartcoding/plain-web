@@ -94,5 +94,3 @@ function viewAll() {
   replacePath(mainStore, '/messages')
 }
 </script>
-import { initLazyQuery, smsCountGQL } from '@/lib/api/query' import { useTempStore } from '@/stores/temp' import { storeToRefs } from 'pinia' initLazyQuery, import { useTempStore } from
-'@/stores/temp' import { storeToRefs } from 'pinia'

@@ -1,4 +1,3 @@
-
 @media (max-width: 480px) {
   .top-app-bar {
     gap: 0px !important;
@@ -81,21 +80,46 @@
     display: none !important;
   }
 
-  // When quick-content is visible, make it fullscreen
-  .quick-content:not([style*="display: none"]) {
+  @mixin mobile-full-screen {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
     right: 0 !important;
     bottom: 0 !important;
-    width: 100vw !important;
-    /* Fallback for older browsers */
-    height: 100vh !important;
-    /* Use small viewport height for better mobile support */
-    height: 100svh !important;
     z-index: 1000 !important;
+    width: 100vw !important;
+    animation: mobile-fullscreen-enter 0.2s ease-in-out !important;
+  }
+
+  @keyframes mobile-fullscreen-enter {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  // When quick-content is visible, make it fullscreen
+  .quick-content:not([style*="display: none"]) {
+    @include mobile-full-screen;
     background: var(--md-sys-color-surface-container);
     overflow-y: auto !important;
+  }
+
+  // Make feed entry article fullscreen like quick-content
+  .main-feed-entry {
+    .content {
+      @include mobile-full-screen;
+      background: var(--md-sys-color-surface-container);
+      overflow-y: auto !important;
+      padding: 0 !important;
+    }
+    .article-title, .md-container {
+      padding-inline: 16px;
+    }
   }
 
   #header .start {
@@ -127,15 +151,6 @@
     
     .tab-icon {
       margin-inline: 4px;
-    }
-  }
-}
-
-// Desktop styles (default)
-@media (min-width: 769px) {
-  .h-action {
-    .mobile-menu {
-      display: none;
     }
   }
 }

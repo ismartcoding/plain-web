@@ -9,15 +9,15 @@
     <div class="layout">
       <header id="header">
         <section class="start">
-          <button 
+          <v-icon-button 
             v-if="hasLeftSidebar"
             v-tooltip="$t(store.miniSidebar ? 'open' : 'close')" 
-            class="btn-icon sidebar-toggle" 
+            class="sidebar-toggle" 
             @click.prevent="toggleSidebar"
           >
             <i-material-symbols:left-panel-open-outline-rounded v-if="store.miniSidebar" />
             <i-material-symbols:left-panel-close-outline-rounded v-else />
-          </button>
+          </v-icon-button>
           <div class="tab-items">
             <div key="/" class="tab-item" :class="{ active: currentPath === '/' }" @click="selectTab('/')" @contextmenu="itemCtxMenu($event, '/')">
               <span>{{ $t('page_title.home') }}</span>
@@ -31,9 +31,9 @@
               @contextmenu="itemCtxMenu($event, item.path)"
             >
               <span>{{ $t(`page_title.${getRouteName(item.path)}`) }}</span>
-              <button class="btn-icon sm tab-icon" @click.stop="closeTab(item.path)">
+              <v-icon-button class="tab-icon" @click.stop="closeTab(item.path)">
                 <i-material-symbols:close-rounded />
-              </button>
+              </v-icon-button>
             </div>
           </div>
         </section>
@@ -52,7 +52,7 @@
         <div 
           v-if="hasLeftSidebar" 
           class="sidebar-backdrop" 
-          :class="{ visible: !store.miniSidebar }"
+          :class="{ visible: !store.miniSidebar && isTablet }"
           @click="store.miniSidebar = true"
         ></div>
         <main class="main" :class="'main-' + ($route.meta.className || 'default')">
@@ -69,35 +69,35 @@
         </main>
       </div>
       <div class="quick-actions">
-        <button
+        <v-icon-button
           v-if="hasTasks || store.quick === 'task'"
           v-tooltip="$t('header_actions.tasks')"
-          class="btn-icon q-action"
+          class="q-action"
           toggle
           :class="{ selected: store.quick === 'task' }"
           @click="toggleQuick('task')"
         >
           <i-material-symbols:format-list-numbered-rounded />
-        </button>
-        <button
+        </v-icon-button>
+        <v-icon-button
           v-if="app.channel !== 'GOOGLE'"
           v-tooltip="$t('header_actions.notifications')"
-          class="btn-icon q-action"
+          class="q-action"
           toggle
           :class="{ selected: store.quick === 'notification' }"
           @click="toggleQuick('notification')"
         >
           <i-material-symbols:notifications-outline-rounded />
-        </button>
-        <button id="quick-audio" v-tooltip="$t('playlist')" class="btn-icon q-action" toggle :class="{ selected: store.quick === 'audio' }" @click="toggleQuick('audio')">
+        </v-icon-button>
+        <v-icon-button id="quick-audio" v-tooltip="$t('playlist')" class="q-action" toggle :class="{ selected: store.quick === 'audio' }" @click="toggleQuick('audio')">
           <i-material-symbols:queue-music-rounded />
-        </button>
-        <button v-tooltip="$t('pomodoro_timer')" class="btn-icon q-action" toggle :class="{ selected: store.quick === 'pomodoro' }" @click="toggleQuick('pomodoro')">
+        </v-icon-button>
+        <v-icon-button v-tooltip="$t('pomodoro_timer')" class="q-action" toggle :class="{ selected: store.quick === 'pomodoro' }" @click="toggleQuick('pomodoro')">
           <i-material-symbols:timer-outline />
-        </button>
-        <button v-tooltip="$t('my_phone')" class="btn-icon q-action" toggle :class="{ selected: store.quick === 'chat' }" @click="toggleQuick('chat')">
+        </v-icon-button>
+        <v-icon-button v-tooltip="$t('my_phone')" class="q-action" toggle :class="{ selected: store.quick === 'chat' }" @click="toggleQuick('chat')">
           <i-lucide-bot />
-        </button>
+        </v-icon-button>
         <div v-show="store.quick" class="drag-indicator" @mousedown="resizeWidth">
           <i-material-symbols:drag-indicator />
         </div>
@@ -117,7 +117,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch, computed, onUnmounted } from 'vue'
+import { onMounted, inject, ref, watch, computed, onUnmounted } from 'vue'
 import { useMainStore } from '@/stores/main'
 import { useRouter, type RouteLocationNormalized } from 'vue-router'
 import { getRouteName } from '@/plugins/router'
@@ -132,6 +132,7 @@ import { useI18n } from 'vue-i18n'
 import { remove } from 'lodash-es'
 import { useRightSidebarResize } from '@/hooks/sidebar'
 
+const isTablet = inject('isTablet')
 const store = useMainStore()
 const router = useRouter()
 const tempStore = useTempStore()
@@ -415,6 +416,8 @@ router.afterEach((to, from, failure) => {
 
   .tab-icon {
     margin-inline: 8px;
+    width: 32px;
+    height: 32px;
   }
 }
 

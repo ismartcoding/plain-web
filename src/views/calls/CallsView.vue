@@ -5,12 +5,12 @@
       <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
       <span v-else>{{ $t('page_title.calls') }} ({{ total.toLocaleString() }})</span>
       <template v-if="checked">
-        <button v-tooltip="$t('delete')" class="btn-icon" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)">
+        <v-icon-button v-tooltip="$t('delete')" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)">
           <i-material-symbols:delete-forever-outline-rounded />
-        </button>
-        <button v-tooltip="$t('add_to_tags')" class="btn-icon" @click.stop="addToTags(selectedIds, realAllChecked, q)">
+        </v-icon-button>
+        <v-icon-button v-tooltip="$t('add_to_tags')" @click.stop="addToTags(selectedIds, realAllChecked, q)">
           <i-material-symbols:label-outline-rounded />
-        </button>
+        </v-icon-button>
       </template>
     </div>
 
@@ -28,50 +28,26 @@
     :clear-selection="clearSelection"
   />
   <div class="scroll-content">
-    <div class="call-list" :class="{ 'select-mode': checked }">
-      <section
+    <div class="main-list" :class="{ 'select-mode': checked }">
+      <CallListItem
         v-for="(item, i) in items"
         :key="item.id"
-        class="call-item selectable-card"
-        :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
-        @click.stop="handleItemClick($event, item, i, () => {})"
-        @mouseover="handleMouseOver($event, i)"
-      >
-        <div class="list-item-start">
-          <v-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, i)" />
-          <v-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, i)" />
-          <span class="number"><field-id :id="i + 1" :raw="item" /></span>
-        </div>
-
-        <div class="title">
-          {{ item.name ? item.name + ' ' + item.number : item.number }}
-        </div>
-        <div class="subtitle">
-          <span>{{ formatSeconds(item.duration) }}</span>
-          <span>{{ $t('call_type.' + item.type) }}</span>
-          <item-tags :tags="item.tags" :type="dataType" :only-links="true" />
-        </div>
-        <div class="actions">
-          <button v-tooltip="$t('delete')" class="btn-icon sm" @click.stop="deleteItem(item)">
-            <i-material-symbols:delete-forever-outline-rounded />
-          </button>
-          <v-circular-progress v-if="callLoading && callId === item.id" indeterminate class="sm" />
-          <button v-else v-tooltip="$t('make_a_phone_call')" class="btn-icon sm" @click.stop="call(item)">
-            <i-material-symbols:call-outline-rounded />
-          </button>
-          <button v-tooltip="$t('add_to_tags')" class="btn-icon sm" @click.stop="addItemToTags(item)">
-            <i-material-symbols:label-outline-rounded />
-          </button>
-        </div>
-        <div class="geo">
-          {{ getGeoText(item.geo) }}
-        </div>
-        <div class="time">
-          <span v-tooltip="formatDateTime(item.startedAt)">
-            {{ formatTimeAgo(item.startedAt) }}
-          </span>
-        </div>
-      </section>
+        :item="item"
+        :index="i"
+        :selected-ids="selectedIds"
+        :shift-effecting-ids="shiftEffectingIds"
+        :should-select="shouldSelect"
+        :is-phone="isPhone"
+        :data-type="dataType"
+        :call-loading="callLoading"
+        :call-id="callId"
+        :handle-item-click="handleItemClick"
+        :handle-mouse-over="handleMouseOver"
+        :toggle-select="toggleSelect"
+        @delete-item="deleteItem"
+        @call="call"
+        @add-item-to-tags="addItemToTags"
+      />
       <template v-if="loading && items.length === 0">
         <CallSkeletonItem v-for="i in 20" :key="i" :index="i" :is-phone="isPhone" />
       </template>
@@ -86,7 +62,7 @@
 <script setup lang="ts">
 import { inject, onActivated, onDeactivated, reactive, ref } from 'vue'
 import toast from '@/components/toaster'
-import { formatDateTime, formatSeconds, formatTimeAgo } from '@/lib/format'
+
 import { callsGQL, initLazyQuery } from '@/lib/api/query'
 import { useRoute } from 'vue-router'
 import { replacePath } from '@/plugins/router'
@@ -98,7 +74,7 @@ import { noDataKey } from '@/lib/list'
 import { storeToRefs } from 'pinia'
 import { openModal } from '@/components/modal'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
-import type { ICall, ICallGeo, IFilter, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, ITag } from '@/lib/interfaces'
+import type { ICall, IFilter, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, ITag } from '@/lib/interfaces'
 import { decodeBase64 } from '@/lib/strutil'
 import { useDelete, useSelectable } from '@/hooks/list'
 import { useSearch } from '@/hooks/search'
@@ -108,6 +84,7 @@ import { callGQL, deleteCallsGQL, initMutation } from '@/lib/api/mutation'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { DataType } from '@/lib/data'
 import { useKeyEvents } from '@/hooks/key-events'
+import CallListItem from '@/components/calls/CallListItem.vue'
 
 const isPhone = inject('isPhone') as boolean
 const mainStore = useMainStore()
@@ -209,24 +186,7 @@ const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
   }
 }
 
-function getGeoText(geo: ICallGeo | null | undefined) {
-  if (!geo) {
-    return ''
-  }
 
-  const texts = []
-  if (geo.isp) {
-    texts.push(t('phone_isp_type.' + geo.isp))
-  }
-
-  if (geo.city === geo.province) {
-    texts.push(geo.city)
-  } else {
-    texts.push(`${geo.province}${geo.city}`)
-  }
-
-  return texts.join(', ')
-}
 
 const callId = ref('')
 const { mutate: mutateCall, loading: callLoading } = initMutation({
@@ -286,23 +246,13 @@ onDeactivated(() => {
 </script>
 <style scoped lang="scss">
 :deep(.call-item) {
-  display: grid;
-  border-radius: 8px;
   grid-template-areas:
     'start title actions geo time'
     'start subtitle actions geo time';
   grid-template-columns: 48px 2fr 1fr minmax(64px, 1fr) minmax(64px, 1fr);
-  .number {
-    font-size: 0.75rem;
-    display: flex;
-    justify-content: center;
-    padding-block-end: 12px;
-  }
   .title {
-    grid-area: title;
-    font-weight: 500;
     margin-inline-end: 16px;
-    padding-block-start: 12px;
+    padding-block: 8px;
   }
   .subtitle {
     grid-area: subtitle;
@@ -313,15 +263,6 @@ onDeactivated(() => {
     margin-inline-end: 16px;
   }
 
-  .actions {
-    grid-area: actions;
-    display: flex;
-    flex-direction: row;
-    gap: 4px;
-    align-items: center;
-    visibility: visible;
-    padding-inline: 16px;
-  }
   .geo {
     grid-area: geo;
     display: flex;
@@ -333,19 +274,6 @@ onDeactivated(() => {
     align-items: center;
     padding-inline: 16px;
     justify-content: end;
-  }
-}
-.call-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  &.select-mode {
-    .call-item {
-      cursor: pointer;
-      .actions {
-        visibility: hidden;
-      }
-    }
   }
 }
 </style>

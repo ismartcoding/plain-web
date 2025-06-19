@@ -8,8 +8,7 @@
     </template>
     <template #actions>
       <v-outlined-button value="cancel" @click="cancel">{{ $t('cancel') }}</v-outlined-button>
-      <v-filled-button value="save" :disabled="loading" @click="doAction">
-        <v-circular-progress v-if="loading" indeterminate />
+      <v-filled-button value="save" :loading="loading" @click="doAction">
         {{ $t('save') }}
       </v-filled-button>
     </template>

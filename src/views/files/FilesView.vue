@@ -73,13 +73,13 @@
   <FileSearchFilters v-if="isPhone" class="mobile-search-filters" :filter="filter" @filter-change="onFilterChange" />
 
   <div v-if="loading && firstInit" class="scroller-wrapper">
-    <div class="scroller">
+    <div class="scroller main-list">
       <FileSkeletonItem v-for="i in 20" :key="i" :index="i" :is-phone="isPhone" />
     </div>
   </div>
   <div class="scroller-wrapper" @dragover.stop.prevent="fileDragEnter">
     <div v-show="dropping" class="drag-mask" @drop.stop.prevent="dropFiles2" @dragleave.stop.prevent="fileDragLeave">{{ $t('release_to_send_files') }}</div>
-    <VirtualList v-if="items.length > 0" class="scroller" :data-key="'id'" :data-sources="items" :estimate-size="80">
+    <VirtualList v-if="items.length > 0" class="scroller main-list" :data-key="'id'" :data-sources="items" :estimate-size="80">
       <template #item="{ index, item }">
         <FileListItem
           :item="item"
@@ -569,9 +569,6 @@ onDeactivated(() => {
   }
 }
 .main-files {
-  .file-item {
-    grid-template-columns: 48px 50px auto 200px;
-  }
   .scroller-wrapper {
     position: relative;
     height: 100%;

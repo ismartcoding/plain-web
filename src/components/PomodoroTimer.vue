@@ -63,7 +63,6 @@
           </svg>
           <div class="timer-content">
             <div class="time-display">{{ formatTime(timeLeft) }}</div>
-            <div class="time-label">{{ getCurrentPhaseText() }}</div>
             <div v-if="totalTime > 0" class="click-hint">{{ $t('click_to_adjust') }}</div>
           </div>
         </div>
@@ -600,12 +599,6 @@ watch(
       font-weight: bold;
       color: var(--md-sys-color-on-surface);
       font-family: 'Courier New', monospace;
-    }
-
-    .time-label {
-      font-size: 0.875rem;
-      color: var(--md-sys-color-on-surface-variant);
-      margin-top: 4px;
     }
 
     .click-hint {

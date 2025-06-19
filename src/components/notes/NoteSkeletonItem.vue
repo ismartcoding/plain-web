@@ -1,15 +1,15 @@
 <template>
   <section v-if="!isPhone" class="note-item selectable-card-skeleton">
-    <div class="list-item-start">
+    <div class="start">
       <div class="skeleton-checkbox"></div>
       <span class="number">{{ index }}</span>
     </div>
     <div class="title">
-      <div class="skeleton-text lg" style="width: 50%"></div>
-    </div>
-    <div class="subtitle">
       <div class="skeleton-text" style="width: 40%"></div>
       <div class="skeleton-text" style="width: 40%; margin-block-start: 8px"></div>
+    </div>
+    <div class="subtitle">
+      <div class="skeleton-text" style="width: 30%"></div>
     </div>
     <div class="actions">
       <div class="skeleton-text" style="width: 140px"></div>

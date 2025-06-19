@@ -495,4 +495,8 @@ export default {
   stop: 'Arrêter',
   test: 'Test',
   click_to_adjust: 'Cliquez pour ajuster le progrès',
+  font_size: 'Taille de police',
+  increase_font_size: 'Augmenter la taille de police',
+  decrease_font_size: 'Diminuer la taille de police',
+  reset_font_size: 'Réinitialiser la taille de police',
 }
