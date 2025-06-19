@@ -86,7 +86,7 @@
   />
   <div class="scroll-content" @dragover.stop.prevent="fileDragEnter">
     <div v-show="dropping" class="drag-mask" @drop.stop.prevent="dropFiles2" @dragleave.stop.prevent="fileDragLeave">{{ $t('release_to_send_files') }}</div>
-    <div class="audio-list" :class="{ 'select-mode': checked }">
+    <div class="main-list" :class="{ 'select-mode': checked }">
       <AudioListItem
         v-for="(item, i) in items"
         :key="item.id"
@@ -422,10 +422,51 @@ onDeactivated(() => {
 })
 </script>
 <style scoped lang="scss">
-.audio-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+:deep(.media-item) {
+  grid-template-areas:
+    'start image title actions artist time'
+    'start image subtitle  actions artist time';
+  grid-template-columns: 48px 50px 2fr 240px minmax(64px, 1fr) minmax(140px, auto);
+  &:hover {
+    cursor: pointer;
+  }
+  .image {
+    width: 50px;
+    height: 50px;
+    grid-area: image;
+    margin-block: 12px;
+    text-align: center;
+    .svg {
+      max-width: 50px;
+      max-height: 50px;
+    }
+  }
+  .title {
+    margin-inline: 16px;
+    padding-block-start: 12px;
+  }
+  .subtitle {
+    grid-area: subtitle;
+    margin-inline: 16px;
+    margin-block-start: 8px;
+    margin-block-end: 12px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 0.875rem;
+  }
+  .artist {
+    grid-area: artist;
+    display: flex;
+    align-items: center;
+  }
+  .time {
+    grid-area: time;
+    display: flex;
+    align-items: center;
+    padding-inline: 16px;
+    justify-content: end;
+  }
 }
 
 </style>

@@ -494,4 +494,8 @@ export default {
   stop: 'Ferma',
   test: 'Test',
   click_to_adjust: 'Clicca per regolare il progresso',
+  font_size: 'Dimensione del carattere',
+  increase_font_size: 'Aumenta dimensione carattere',
+  decrease_font_size: 'Diminuisci dimensione carattere',
+  reset_font_size: 'Ripristina dimensione carattere',
 }

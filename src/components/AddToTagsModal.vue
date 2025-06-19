@@ -21,8 +21,7 @@
     </template>
     <template #actions>
       <v-outlined-button value="cancel" @click="popModal">{{ $t('cancel') }}</v-outlined-button>
-      <v-filled-button value="save" :disabled="adding || removing" @click="doAction">
-        <v-circular-progress v-if="adding || removing" indeterminate />
+      <v-filled-button value="save" :loading="adding || removing" @click="doAction">
         {{ $t('save') }}
       </v-filled-button>
     </template>

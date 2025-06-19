@@ -6,7 +6,7 @@
     @click.stop="handleItemClick($event, item, index, () => clickItem(item))"
     @mouseover="handleMouseOver($event, index)"
   >
-    <div class="list-item-start">
+    <div class="start">
       <v-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, index)" />
       <v-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, index)" />
       <span class="number"><field-id :id="index + 1" :raw="item" /></span>
@@ -35,7 +35,6 @@
     <FileActionButtons
       :item="item"
       :can-paste="canPaste"
-      :is-phone="isPhone"
       @download-dir="downloadDir"
       @download-file="downloadFile"
       @upload-files="uploadFiles"
@@ -84,7 +83,6 @@
       <FileActionButtons
         :item="item"
         :can-paste="canPaste"
-        :is-phone="isPhone"
         @download-dir="downloadDir"
         @download-file="downloadFile"
         @upload-files="uploadFiles"
@@ -110,7 +108,6 @@ interface IFileWithChildren extends IFile {
 }
 import { formatFileSize, formatDateTime, formatTimeAgo } from '@/lib/format'
 import { getFileUrl } from '@/lib/api/file'
-import FileActionButtons from './FileActionButtons.vue'
 
 interface Props {
   item: IFileWithChildren
@@ -194,9 +191,6 @@ function renameItem(item: IFile) {
 </script>
 
 <style scoped lang="scss">
-.file-item {
-  margin: 0 16px 8px 16px;
-}
 .list-item-phone {
   margin-block-end: 8px;
 }

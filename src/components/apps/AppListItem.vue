@@ -6,7 +6,7 @@
     @click.stop="handleItemClick($event, item, index, () => {})"
     @mouseover="handleMouseOver($event, index)"
   >
-    <div class="list-item-start">
+    <div class="start">
       <v-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, index)" />
       <v-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, index)" />
       <span class="number"><field-id :id="index + 1" :raw="item" /></span>
@@ -22,7 +22,7 @@
       <span>{{ $t('app_type.' + item.type) }}</span>
     </div>
 
-    <div class="list-item-actions">
+    <div class="actions">
       <AppActionButtons :item="item" :is-phone="isPhone" @uninstall="uninstall" @download="download" @cancel-uninstall="cancelUninstall" />
     </div>
 

@@ -6,7 +6,7 @@
     @click.stop="handleItemClick($event, item, index, () => play(item))"
     @mouseover="handleMouseOver($event, index)"
   >
-    <div class="list-item-start">
+    <div class="start">
       <v-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, index)" />
       <v-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, index)" />
       <span class="number"><field-id :id="index + 1" :raw="item" /></span>
@@ -96,7 +96,6 @@
         :play-loading="playLoading"
         :play-path="playPath"
         :app="app"
-        :is-phone="true"
         :delete-item="deleteItem"
         :restore="restore"
         :download-file="downloadFile"

@@ -79,14 +79,14 @@
       <!-- Mobile info bottom sheet -->
       <BottomSheet v-if="isPhone || isTablet" v-model="lightboxInfoVisible" :title="$t('info')" show-footer>
         <!-- File Details Section -->
-        <FileDetails 
+        <LightboxFileDetails 
           :current="current" 
           :file-info="fileInfo" 
           :external-files-dir="app.externalFilesDir" 
         />
         
         <!-- File Tags Section -->
-        <FileTags 
+        <LightboxFileTags 
           :current="current" 
           :file-info="fileInfo"
           @add-to-tags="addToTags"
@@ -94,7 +94,7 @@
         
         <!-- Action Buttons in Footer -->
         <template #footer>
-          <FileActionButtons 
+          <LightboxFileActionButtons 
             :current="current" 
             :os-version="app.osVersion"
             :download-file="downloadFile"

@@ -7,19 +7,15 @@
 
   .file-item {
     margin: 0 16px 8px 16px;
-    display: grid;
-    border-radius: 8px;
     grid-template-areas:
       'start image title actions'
       'start image subtitle actions';
-    grid-template-columns: 48px 50px auto 100px;
+    grid-template-columns: 48px 50px auto 250px;
+    &.recent-file-item {
+      grid-template-columns: 48px 50px auto 120px;
+    }
     &:hover {
       cursor: pointer;
-    }
-    .number {
-      font-size: 0.75rem;
-      display: flex;
-      justify-content: center;
     }
     .image {
       width: 50px;
@@ -33,11 +29,8 @@
       }
     }
     .title {
-      grid-area: title;
-      font-weight: 500;
       margin-inline: 16px;
       padding-block-start: 8px;
-      word-break: break-all;
       user-select: none;
     }
     .subtitle {
@@ -49,16 +42,6 @@
       margin-inline: 16px;
       margin-block: 8px;
       user-select: none;
-    }
-    .list-item-actions {
-      grid-area: actions;
-      display: flex;
-      flex-direction: row;
-      gap: 4px;
-      align-items: center;
-      visibility: visible;
-      padding-inline: 16px;
-      justify-content: end;
     }
   }
 

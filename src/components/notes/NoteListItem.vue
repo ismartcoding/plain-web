@@ -6,7 +6,7 @@
     @click.stop.prevent="handleItemClick($event, item, index, () => view(item))"
     @mouseover="handleMouseOver($event, index)"
   >
-    <div class="list-item-start">
+    <div class="start">
       <v-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, index)" />
       <v-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, index)" />
       <span class="number"><field-id :id="index + 1" :raw="item" /></span>
@@ -19,7 +19,6 @@
       <NoteActionButtons
         :item="item"
         :filter="filter"
-        :is-phone="false"
         :delete-item="deleteItem"
         :add-item-to-tags="addItemToTags"
         :restore-loading="restoreLoading"
@@ -60,7 +59,6 @@
       <NoteActionButtons
         :item="item"
         :filter="filter"
-        :is-phone="true"
         :delete-item="deleteItem"
         :add-item-to-tags="addItemToTags"
         :restore-loading="restoreLoading"

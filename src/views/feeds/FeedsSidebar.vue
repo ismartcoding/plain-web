@@ -4,10 +4,9 @@
       {{ $t('page_title.feeds') }}
     </template>
     <template #actions>
-      <button id="add-feed-ref" v-tooltip="t('add_subscription')" class="btn-icon" @click="() => (addMenuVisible = true)">
-        
+      <v-icon-button id="add-feed-ref" v-tooltip="t('add_subscription')" @click="() => (addMenuVisible = true)">
         <i-material-symbols:add-rounded />
-      </button>
+      </v-icon-button>
     </template>
     <template #body>
       <ul class="nav">
@@ -28,10 +27,9 @@
           @click.stop.prevent="viewFeed(item)"
         >
           <span class="title">{{ item.name }}</span>
-          <button :id="'feed-' + item.id" v-tooltip="$t('actions')" class="btn-icon sm" @click.prevent.stop="showFeedMenu(item)">
-            
+          <v-icon-button :id="'feed-' + item.id" v-tooltip="$t('actions')" @click.prevent.stop="showFeedMenu(item)">
             <i-material-symbols:more-vert />
-          </button>
+          </v-icon-button>
           <span v-if="getFeedCount(item.id) >= 0" class="count">{{ getFeedCount(item.id).toLocaleString() }}</span>
         </li>
       </ul>

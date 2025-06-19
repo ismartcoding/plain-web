@@ -498,4 +498,8 @@ export default {
   stop: 'Остановить',
   test: 'Тест',
   click_to_adjust: 'Нажмите для настройки прогресса',
+  font_size: 'Размер шрифта',
+  increase_font_size: 'Увеличить размер шрифта',
+  decrease_font_size: 'Уменьшить размер шрифта',
+  reset_font_size: 'Сбросить размер шрифта',
 }

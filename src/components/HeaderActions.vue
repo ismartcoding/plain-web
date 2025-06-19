@@ -8,7 +8,7 @@
       </template>
 
       <!-- Quick Actions Section -->
-      <div class="mobile-menu dropdown-section">
+      <div v-if="isTablet" class="dropdown-section">
         <div class="dropdown-section-title">{{ t('quick_actions') }}</div>
         <div v-if="hasTasks || store.quick === 'task'" class="dropdown-item" :class="{ selected: store.quick === 'task' }" @click="toggleQuick('task')">
           <i-material-symbols:format-list-numbered-rounded />
@@ -58,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
@@ -76,6 +76,8 @@ const { app } = storeToRefs(tempStore)
 const menuVisible = ref(false)
 const { locale, t } = useI18n()
 
+
+const isTablet = inject('isTablet')
 const hasTasks = computed(() => {
   return tempStore.uploads.length > 0
 })

@@ -491,4 +491,8 @@ export default {
   stop: 'Dừng',
   test: 'Kiểm tra',
   click_to_adjust: 'Nhấn để điều chỉnh tiến trình',
+  font_size: 'Kích thước phông chữ',
+  increase_font_size: 'Tăng kích thước phông chữ',
+  decrease_font_size: 'Giảm kích thước phông chữ',
+  reset_font_size: 'Đặt lại kích thước phông chữ',
 }

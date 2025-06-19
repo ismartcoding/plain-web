@@ -40,10 +40,10 @@
     :select-real-all="selectRealAll"
     :clear-selection="clearSelection"
   />
-  <div v-if="loading && items.length === 0" class="scroller">
+  <div v-if="loading && items.length === 0" class="scroller main-list">
     <NoteSkeletonItem v-for="i in 20" :key="i" :index="i" :is-phone="isPhone" />
   </div>
-  <VirtualList v-if="items.length" class="scroller" :data-key="'id'" :data-sources="items" :estimate-size="100" :class="{ 'select-mode': checked }">
+  <VirtualList v-if="items.length" class="scroller main-list" :data-key="'id'" :data-sources="items" :estimate-size="100" :class="{ 'select-mode': checked }">
     <template #item="{ index, item }">
       <a :key="item.id" class="item-link" :href="viewUrl(item)">
         <NoteListItem
@@ -303,9 +303,7 @@ onDeactivated(() => {
 }
 
 :deep(.note-item) {
-  margin: 0 16px 8px 16px;
-  display: grid;
-  border-radius: 8px;
+  margin-block-end: 8px;
   grid-template-areas:
     'start title actions time'
     'start subtitle actions time';
@@ -313,13 +311,9 @@ onDeactivated(() => {
   &:hover {
     cursor: pointer;
   }
-  .number {
-    font-size: 0.75rem;
-    display: flex;
-    justify-content: center;
-  }
   .title {
     grid-area: title;
+    font-weight: normal;
     margin-inline-end: 16px;
     padding-block-start: 12px;
   }
@@ -331,15 +325,7 @@ onDeactivated(() => {
     font-size: 0.875rem;
     margin-inline-end: 16px;
     margin-block-end: 12px;
-  }
-  .actions {
-    grid-area: actions;
-    display: flex;
-    flex-direction: row;
-    gap: 4px;
-    align-items: center;
-    visibility: visible;
-    padding-inline: 16px;
+    margin-block-start: 8px;
   }
   .time {
     grid-area: time;
@@ -347,13 +333,6 @@ onDeactivated(() => {
     align-items: center;
     padding-inline: 16px;
     justify-content: end;
-  }
-}
-.select-mode {
-  :deep(.note-item) {
-    .actions {
-      visibility: hidden;
-    }
   }
 }
 </style>

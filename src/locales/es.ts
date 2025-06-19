@@ -494,4 +494,8 @@ export default {
   stop: 'Detener',
   test: 'Prueba',
   click_to_adjust: 'Haga clic para ajustar el progreso',
+  font_size: 'Tamaño de fuente',
+  increase_font_size: 'Aumentar tamaño de fuente',
+  decrease_font_size: 'Disminuir tamaño de fuente',
+  reset_font_size: 'Restablecer tamaño de fuente',
 }

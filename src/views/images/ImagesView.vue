@@ -161,7 +161,7 @@
         <section v-for="i in limit" :key="i" class="skeleton-image media-item"></section>
       </template>
     </div>
-    <div v-else class="media-list" :class="{ 'select-mode': checked }">
+    <div v-else class="main-list media-list" :class="{ 'select-mode': checked }">
       <ImageListItem
         v-for="(item, i) in items"
         :key="item.id"

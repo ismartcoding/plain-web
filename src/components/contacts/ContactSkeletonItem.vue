@@ -1,6 +1,6 @@
 <template>
   <section v-if="!isPhone" class="contact-item selectable-card-skeleton">
-    <div class="list-item-start">
+    <div class="start">
       <div class="skeleton-checkbox"></div>
       <span class="number">{{ index }}</span>
     </div>

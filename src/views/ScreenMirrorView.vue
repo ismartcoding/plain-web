@@ -4,22 +4,49 @@
       <div class="title">{{ $t('screen_mirror') }}</div>
       <div class="actions">
         <template v-if="state">
-          <button v-tooltip="$t('refresh')" class="btn-icon" @click="() => refetch()">
-            
+          <v-icon-button v-tooltip="$t('refresh')" @click="() => refetch()">
             <i-material-symbols:refresh-rounded />
-          </button>
-          <v-outlined-button v-tooltip="$t('change_quality')" class="btn-sm" @click="changeQuality">{{ $t('mirror_quality') }}</v-outlined-button>
-          <v-outlined-button v-tooltip="$t('screenshot')" class="btn-sm" @click="takeScreenshot">{{ $t('screenshot') }}</v-outlined-button>
-          <v-outlined-button v-tooltip="$t(paused ? 'resume' : 'pause')" class="btn-sm" @click="togglePause">{{ $t(paused ? 'resume' : 'pause') }}</v-outlined-button>
-          <v-outlined-button v-tooltip="$t('stop_mirror')" :disabled="stopServiceLoading" class="btn-sm btn-stop" @click="stopService">{{ $t('stop_mirror') }}</v-outlined-button>
-          <button v-tooltip="$t('fullscreen')" class="btn-icon btn-enter-fullscreen" @click="requestFullscreen">
-            
-            <i-material-symbols:fullscreen-rounded />
-          </button>
-          <button v-tooltip="$t('exit_fullscreen')" class="btn-icon btn-exit-fullscreen" @click="exitFullscreen">
-            
-            <i-material-symbols:fullscreen-exit-rounded />
-          </button>
+          </v-icon-button>
+          <v-icon-button v-tooltip="$t(paused ? 'resume' : 'pause')" @click="togglePause">
+            <i-material-symbols:play-arrow-rounded v-if="paused" />
+            <i-material-symbols:pause-rounded v-else />
+          </v-icon-button>
+          <v-icon-button v-tooltip="$t('stop_mirror')" :disabled="stopServiceLoading" class="btn-stop" @click="stopService">
+            <i-material-symbols:stop-rounded />
+          </v-icon-button>
+          <template v-if="!isPhone">
+            <v-outlined-button v-tooltip="$t('change_quality')" class="btn-sm" @click="changeQuality">{{ $t('mirror_quality') }}</v-outlined-button>
+            <v-outlined-button v-tooltip="$t('screenshot')" class="btn-sm" @click="takeScreenshot">{{ $t('screenshot') }}</v-outlined-button>
+            <v-icon-button v-tooltip="$t('fullscreen')" class="btn-enter-fullscreen" @click="requestFullscreen">
+              <i-material-symbols:fullscreen-rounded />
+            </v-icon-button>
+            <v-icon-button v-tooltip="$t('exit_fullscreen')" @click="exitFullscreen">
+              <i-material-symbols:fullscreen-exit-rounded />
+            </v-icon-button>
+          </template>
+          <v-dropdown v-if="isPhone" v-model="moreMenuVisible">
+            <template #trigger>
+              <v-icon-button v-tooltip="$t('settings')">
+                <i-material-symbols:more-vert />
+              </v-icon-button>
+            </template>
+            <div class="dropdown-item" @click="changeQuality(); moreMenuVisible = false">
+              <i-material-symbols:tune-rounded />
+              {{ $t('mirror_quality') }}
+            </div>
+            <div class="dropdown-item" @click="takeScreenshot(); moreMenuVisible = false">
+              <i-material-symbols:photo-camera-rounded />
+              {{ $t('screenshot') }}
+            </div>
+            <div class="dropdown-item enter-fullscreen" @click="requestFullscreen(); moreMenuVisible = false">
+              <i-material-symbols:fullscreen-rounded />
+              {{ $t('fullscreen') }}
+            </div>
+            <div class="dropdown-item exit-fullscreen" @click="exitFullscreen(); moreMenuVisible = false">
+              <i-material-symbols:fullscreen-exit-rounded />
+              {{ $t('exit_fullscreen') }}
+            </div>
+          </v-dropdown>
         </template>
         <v-outlined-button v-else-if="!relaunchAppLoading" class="btn-sm" @click="relaunchApp">{{ $t('relaunch_app') }}</v-outlined-button>
       </div>
@@ -49,7 +76,7 @@
 <script setup lang="ts">
 import emitter from '@/plugins/eventbus'
 import toast from '@/components/toaster'
-import { onActivated, onDeactivated, ref } from 'vue'
+import { onActivated, onDeactivated, ref, inject } from 'vue'
 import MobileWarning from '@/assets/mobile-warning.svg'
 import { initQuery, screenMirrorStateGQL } from '@/lib/api/query'
 import { useI18n } from 'vue-i18n'
@@ -62,12 +89,14 @@ import { download } from '@/lib/api/file'
 
 let countIntervalId: number
 const { t } = useI18n()
+const isPhone = inject('isPhone') as boolean
 const state = ref(false)
 const seconds = ref(0)
 const failed = ref(false)
 const paused = ref(false)
 const showLatest = ref(false)
 const canvasRef = ref<HTMLCanvasElement>()
+const moreMenuVisible = ref(false)
 
 const screenMirroringHandler = async (data: Blob) => {
   state.value = true
@@ -249,7 +278,11 @@ stopServiceDone(() => {
   .btn-exit-fullscreen {
     display: block;
   }
+  .dropdown-item.exit-fullscreen {
+    display: flex;
+  }
   .btn-enter-fullscreen,
+  .dropdown-item.enter-fullscreen,
   .btn-stop {
     display: none;
   }
@@ -262,7 +295,8 @@ stopServiceDone(() => {
   height: calc(100vh - 132px);
 }
 
-.btn-exit-fullscreen {
+.btn-exit-fullscreen,
+.dropdown-item.exit-fullscreen {
   display: none;
 }
 
@@ -282,7 +316,7 @@ stopServiceDone(() => {
     text-align: center;
     font-size: 1.2rem;
     line-height: 2;
-    margin-block-end: 16px;
+    margin: 16px;
   }
 }
 
@@ -290,12 +324,32 @@ stopServiceDone(() => {
   text-align: center;
   font-size: 1.2rem;
   line-height: 2;
+  margin: 16px;
 
   *:is(svg) {
     width: 140px;
     display: block;
     fill: currentColor;
     margin: 0 auto 20px auto;
+  }
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  cursor: pointer;
+  color: var(--md-sys-color-on-surface);
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
+  }
+
+  i {
+    width: 20px;
+    height: 20px;
   }
 }
 </style>

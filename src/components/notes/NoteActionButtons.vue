@@ -1,5 +1,5 @@
 <template>
-  <div class="list-item-actions" :class="{ mobile: isPhone }">
+  <div class="actions">
     <template v-if="filter.trash">
       <v-icon-button v-tooltip="$t('delete')" class="sm" @click.stop.prevent="deleteItem(item)">
         <i-material-symbols:delete-forever-outline-rounded />
@@ -28,7 +28,6 @@ const { t: $t } = useI18n()
 interface Props {
   item: INote
   filter: IFilter
-  isPhone?: boolean
   // Functions passed from parent
   deleteItem: (item: INote) => void
   addItemToTags: (item: INote) => void

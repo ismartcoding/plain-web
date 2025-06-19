@@ -6,25 +6,23 @@
         <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
         <span v-else>{{ $t('page_title.feeds') }} ({{ total.toLocaleString() }})</span>
         <template v-if="checked">
-          <button v-tooltip="$t('delete')" class="btn-icon" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)">
+          <v-icon-button v-tooltip="$t('delete')" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)">
             <i-material-symbols:delete-forever-outline-rounded />
-          </button>
-          <button v-tooltip="$t('add_to_tags')" class="btn-icon" @click.stop="addToTags(selectedIds, realAllChecked, q)">
+          </v-icon-button>
+          <v-icon-button v-tooltip="$t('add_to_tags')" @click.stop="addToTags(selectedIds, realAllChecked, q)">
             <i-material-symbols:label-outline-rounded />
-          </button>
-          <v-circular-progress v-if="savingNotes" indeterminate class="sm" />
-          <button v-else v-tooltip="$t('save_to_notes')" class="btn-icon sm" @click.prevent="saveFeedsToNotes">
+          </v-icon-button>
+          <v-icon-button v-tooltip="$t('save_to_notes')" :loading="savingNotes" @click.prevent="saveFeedsToNotes">
             <i-material-symbols:add-notes-outline-rounded />
-          </button>
+          </v-icon-button>
         </template>
       </div>
 
       <div class="actions">
         <search-input :filter="filter" :tags="tags" :feeds="feeds" :show-chips="!isDetail && !isPhone" :get-url="getUrl" :show-today="true" :is-phone="isPhone" />
-        <v-circular-progress v-if="feedsSyncing" indeterminate class="sm" />
-        <button v-else v-tooltip="$t('sync_feeds')" class="btn-icon" :disabled="feedsSyncing" @click.prevent="syncFeeds">
+        <v-icon-button v-tooltip="$t('sync_feeds')" :loading="feedsSyncing" @click.prevent="syncFeeds">
           <i-material-symbols:sync-rounded />
-        </button>
+        </v-icon-button>
       </div>
     </div>
 
@@ -70,9 +68,9 @@
                 <item-tags :tags="item.tags" :type="dataType" :only-links="true" />
               </div>
             </div>
-            <button v-tooltip="$t('actions')" class="btn-icon sm" style="display: none">
+            <v-icon-button v-tooltip="$t('actions')" style="display: none">
               <i-material-symbols:more-vert />
-            </button>
+            </v-icon-button>
             <img v-if="item.image" class="image" :src="getFileUrl(item.image, '&w=200&h=200')" />
           </article>
         </a>
@@ -231,7 +229,7 @@ const {
 })
 
 function saveFeedsToNotes() {
-  if (!realAllChecked) {
+  if (!realAllChecked.value) {
     if (selectedIds.value.length === 0) {
       toast(t('select_first'), 'error')
       return
@@ -396,23 +394,26 @@ onDeactivated(() => {
   .title {
     grid-area: title;
     display: flex;
+    .v-checkbox {
+      margin-inline-start: 4px;
+    }
     .text {
       font-weight: 500;
       flex: 1;
       width: 0;
-      margin-block: 12px;
+      margin-block: 8px;
       margin-inline-end: 12px;
     }
   }
   .subtitle {
     font-size: 0.875rem;
-    color: var(--md-sys-color-secondary);
     grid-area: subtitle;
     display: flex;
     flex-direction: row;
     align-items: end;
     margin-block-end: 12px;
     margin-inline-end: 16px;
+    margin-inline-start: 4px;
     .number {
       min-width: 40px;
       text-align: center;

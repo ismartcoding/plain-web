@@ -5,15 +5,15 @@
       <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
       <span v-else>{{ $t('page_title.contacts') }} ({{ total.toLocaleString() }})</span>
       <template v-if="checked">
-        <button v-tooltip="$t('delete')" class="btn-icon" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)">
+        <v-icon-button v-tooltip="$t('delete')" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)">
           <i-material-symbols:delete-forever-outline-rounded />
-        </button>
-        <button v-tooltip="$t('download')" class="btn-icon" style="display: none">
+        </v-icon-button>
+        <v-icon-button v-tooltip="$t('download')" style="display: none">
           <i-material-symbols:download-rounded />
-        </button>
-        <button v-tooltip="$t('add_to_tags')" class="btn-icon" @click.stop="addToTags(selectedIds, realAllChecked, q)">
+        </v-icon-button>
+        <v-icon-button v-tooltip="$t('add_to_tags')" @click.stop="addToTags(selectedIds, realAllChecked, q)">
           <i-material-symbols:label-outline-rounded />
-        </button>
+        </v-icon-button>
       </template>
     </div>
     <div class="actions">
@@ -33,61 +33,28 @@
     :clear-selection="clearSelection"
   />
   <div class="scroll-content">
-    <div class="contact-list" :class="{ 'select-mode': checked }">
-      <section
+    <div class="main-list" :class="{ 'select-mode': checked }">
+      <ContactListItem
         v-for="(item, i) in items"
         :key="item.id"
-        class="contact-item selectable-card"
-        :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
-        @click.stop="handleItemClick($event, item, i, () => {})"
-        @mouseover="handleMouseOver($event, i)"
-      >
-        <div class="list-item-start">
-          <v-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, i)" />
-          <v-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, i)" />
-          <span class="number"><field-id :id="i + 1" :raw="item" /></span>
-        </div>
-        <img v-if="item.thumbnailId" class="image" :src="getFileUrl(item.thumbnailId)" width="50" />
-        <i-material-symbols:contact-page-outline-rounded v-else class="image" />
-        <div class="title">{{ fullName(item) }}</div>
-        <div class="subtitle">
-          <span v-if="item.notes">{{ item.notes }}</span>
-          <item-tags :tags="item.tags" :type="dataType" :only-links="true" />
-        </div>
-        <div class="info">
-          <ul class="list-unstyled">
-            <li v-for="(it, index) in item.phoneNumbers" :key="index" class="phone-number">
-              {{ it.type > 0 ? $t(`contact.phone_number_type.${it.type}`) : it.label }}
-              {{ it.normalizedNumber || it.value }}
-              <v-circular-progress v-if="callLoading && callId === item.id && callIndex === index" indeterminate class="sm" />
-              <button v-else v-tooltip="$t('make_a_phone_call')" class="btn-icon sm" @click.stop="call(item.id, it.normalizedNumber || it.value, index)">
-                <i-material-symbols:call-outline-rounded />
-              </button>
-            </li>
-            <li v-for="it in item.emails" :key="it.type + it.value">{{ it.type > 0 ? $t(`contact.email_type.${it.type}`) : it.label }} {{ it.value }}</li>
-            <li v-for="it in item.addresses" :key="it.type + it.value">{{ it.type > 0 ? $t(`contact.address_type.${it.type}`) : it.label }} {{ it.value }}</li>
-            <li v-for="it in item.websites" :key="it.type + it.value">{{ it.type > 0 ? $t(`contact.website_type.${it.type}`) : it.label }} {{ it.value }}</li>
-            <li v-for="it in item.ims" :key="it.type + it.value">{{ it.type > 0 ? $t(`contact.im_type.${it.type}`) : it.label }} {{ it.value }}</li>
-            <li v-for="it in item.events" :key="it.type + it.value">{{ it.type > 0 ? $t(`contact.event_type.${it.type}`) : it.label }} {{ it.value }}</li>
-          </ul>
-        </div>
-        <div class="actions">
-          <button v-tooltip="$t('delete')" class="btn-icon sm" @click.stop="deleteItem(item)">
-            <i-material-symbols:delete-forever-outline-rounded />
-          </button>
-          <button v-tooltip="$t('edit')" class="btn-icon sm" @click.stop="edit(item)">
-            <i-material-symbols:edit />
-          </button>
-          <button v-tooltip="$t('add_to_tags')" class="btn-icon sm" @click.stop="addItemToTags(item)">
-            <i-material-symbols:label-outline-rounded />
-          </button>
-        </div>
-        <div class="time">
-          <span v-tooltip="formatDateTime(item.updatedAt)">
-            {{ formatTimeAgo(item.updatedAt) }}
-          </span>
-        </div>
-      </section>
+        :item="item"
+        :index="i"
+        :selected-ids="selectedIds"
+        :shift-effecting-ids="shiftEffectingIds"
+        :should-select="shouldSelect"
+        :is-phone="isPhone"
+        :data-type="dataType"
+        :call-loading="callLoading"
+        :call-id="callId"
+        :call-index="callIndex"
+        :handle-item-click="handleItemClick"
+        :handle-mouse-over="handleMouseOver"
+        :toggle-select="toggleSelect"
+        @delete-item="deleteItem"
+        @edit="edit"
+        @add-item-to-tags="addItemToTags"
+        @call="call"
+      />
       <template v-if="loading && items.length === 0">
         <ContactSkeletonItem v-for="i in 20" :key="i" :index="i" :is-phone="isPhone" />
       </template>
@@ -102,7 +69,7 @@
 <script setup lang="ts">
 import { inject, onActivated, onDeactivated, reactive, ref } from 'vue'
 import toast from '@/components/toaster'
-import { formatDateTime, formatTimeAgo } from '@/lib/format'
+
 import { initQuery, contactsGQL, contactSourcesGQL, initLazyQuery } from '@/lib/api/query'
 import { useRoute } from 'vue-router'
 import { replacePath } from '@/plugins/router'
@@ -111,7 +78,7 @@ import { useTempStore } from '@/stores/temp'
 import { containsChinese, decodeBase64 } from '@/lib/strutil'
 import gql from 'graphql-tag'
 import { useI18n } from 'vue-i18n'
-import { getFileUrl } from '@/lib/api/file'
+
 import { noDataKey } from '@/lib/list'
 import { storeToRefs } from 'pinia'
 import { openModal } from '@/components/modal'
@@ -126,8 +93,9 @@ import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { DataType } from '@/lib/data'
 import { useSearch } from '@/hooks/search'
 import { useKeyEvents } from '@/hooks/key-events'
+import ContactListItem from '@/components/contacts/ContactListItem.vue'
 
-const isPhone = inject('isPhone')
+const isPhone = inject('isPhone') as boolean
 const mainStore = useMainStore()
 const { app } = storeToRefs(useTempStore())
 const items = ref<IContact[]>([])
@@ -338,30 +306,21 @@ onDeactivated(() => {
   padding: 0;
 }
 :deep(.contact-item) {
-  display: grid;
-  border-radius: 8px;
   grid-template-areas:
     'start image title info actions time'
     'start image subtitle info actions time';
   grid-template-columns: 48px 50px minmax(100px, 1fr) 1fr 1fr minmax(64px, 1fr);
-  .number {
-    font-size: 0.75rem;
-    display: flex;
-    justify-content: center;
-  }
   .image {
     width: 50px;
     height: 50px;
     grid-area: image;
     object-fit: cover;
     border-radius: 8px;
-    margin-block: 12px;
+    margin-block: 8px;
   }
   .title {
-    grid-area: title;
-    font-weight: 500;
     margin-inline: 16px;
-    padding-block-start: 12px;
+    padding-block-start: 8px;
   }
   .subtitle {
     grid-area: subtitle;
@@ -380,15 +339,6 @@ onDeactivated(() => {
     padding-block: 12px;
     justify-content: center;
   }
-  .actions {
-    grid-area: actions;
-    display: flex;
-    flex-direction: row;
-    gap: 4px;
-    align-items: center;
-    visibility: visible;
-    padding-inline: 16px;
-  }
   .time {
     grid-area: time;
     display: flex;
@@ -396,10 +346,5 @@ onDeactivated(() => {
     padding-inline: 16px;
     justify-content: end;
   }
-}
-.contact-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 }
 </style>

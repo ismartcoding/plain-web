@@ -1,24 +1,24 @@
 <template>
   <div class="file-details">
-    <FileInfoItem :label="$t('file_size')">
+    <LightboxFileInfoItem :label="$t('file_size')">
       {{ formatFileSize(current?.size ?? 0) }}
       <span v-if="fileInfo?.data?.width && fileInfo?.data?.height" class="info-resolution">{{ getResolution() }}</span>
-    </FileInfoItem>
+    </LightboxFileInfoItem>
     
-    <FileInfoItem 
+    <LightboxFileInfoItem 
       v-if="fileInfo?.updatedAt" 
       :label="$t('updated_at')"
     >
       <time v-tooltip="formatDateTimeFull(fileInfo.updatedAt)">{{ formatDateTime(fileInfo.updatedAt) }}</time>
-    </FileInfoItem>
+    </LightboxFileInfoItem>
     
-    <FileInfoItem 
+    <LightboxFileInfoItem 
       v-if="current && (isAudio(current?.name || '') || isVideo(current?.name || ''))" 
       :label="$t('duration')"
       :value="formatSeconds(fileInfo?.data?.duration ?? current?.duration)"
     />
     
-    <FileInfoItem 
+    <LightboxFileInfoItem 
       v-if="current?.path" 
       :label="$t('path')" 
       :value="getFinalPath(externalFilesDir, current.path)" 

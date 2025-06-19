@@ -1,5 +1,9 @@
 import type { Directive, Plugin } from 'vue'
 
+declare global {
+  var showTooltipTimeout: number
+}
+
 const plugin: Plugin = {
   install: (app) => {
     app.directive('tooltip', directive)
@@ -60,7 +64,9 @@ const directive: Directive = {
       clearTimeout(globalThis.showTooltipTimeout)
       const tooltips = document.getElementsByClassName('tooltip')
       for (const tooltip of tooltips) {
-        document.body.removeChild(tooltip)
+        if (tooltip.parentNode) {
+          tooltip.parentNode.removeChild(tooltip)
+        }
       }
       tooltipElement = null
     }

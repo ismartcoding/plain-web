@@ -1,6 +1,6 @@
 <template>
   <section v-if="!isPhone" class="sms-item selectable-card-skeleton">
-    <div class="list-item-start">
+    <div class="start">
       <div class="skeleton-checkbox"></div>
       <span class="number">{{ index }}</span>
     </div>
@@ -21,7 +21,7 @@
       <div class="skeleton-text" style="width: 60px"></div>
     </div>
   </section>
-  <SkeletonItemPhone v-else title-width="70%" :subtitles="[{ width: '45%' }, { width: '30%' }, { width: '40%' }]" :action-count="3" />
+  <SkeletonItemPhone v-else title-width="70%" :image="false" :subtitles="[{ width: '45%' }, { width: '30%' }, { width: '40%' }]" :action-count="2" />
 </template>
 
 <script setup lang="ts">

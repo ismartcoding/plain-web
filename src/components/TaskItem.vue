@@ -19,19 +19,16 @@
 
         <!-- Resume button -->
         <button v-if="canResume(item)" v-tooltip="$t('resume')" class="btn-icon resume-btn" @click="() => resumeTask(props.item)">
-          
           <i-material-symbols:play-arrow-rounded />
         </button>
 
         <!-- Retry button -->
         <button v-if="canRetry(item)" v-tooltip="$t('retry')" class="btn-icon retry-btn" @click="() => retryTask(props.item)">
-          
           <i-material-symbols:refresh-rounded />
         </button>
 
         <!-- Cancel/Remove button -->
         <button v-tooltip="$t('remove')" class="btn-icon remove-btn" @click="() => removeTask(props.item)">
-          
           <i-material-symbols:close-rounded />
         </button>
       </div>

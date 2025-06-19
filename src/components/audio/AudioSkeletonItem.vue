@@ -1,6 +1,6 @@
 <template>
   <section v-if="!isPhone" class="media-item selectable-card-skeleton">
-    <div class="list-item-start">
+    <div class="start">
       <div class="skeleton-checkbox"></div>
       <span class="number">{{ index }}</span>
     </div>
@@ -13,7 +13,7 @@
     <div class="subtitle">
       <div class="skeleton-text" style="width: 30%"></div>
     </div>
-    <div class="list-item-actions">
+    <div class="actions">
       <div class="skeleton-text lg" style="width: 140px"></div>
     </div>
     <div class="artist">

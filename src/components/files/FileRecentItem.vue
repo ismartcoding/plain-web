@@ -1,12 +1,12 @@
 <template>
   <section
     v-if="!isPhone"
-    class="file-item selectable-card"
+    class="file-item recent-file-item selectable-card"
     :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
     @click.stop="handleItemClick($event, item, index, () => clickItem(item))"
     @mouseover="handleMouseOver($event, index)"
   >
-    <div class="list-item-start">
+    <div class="start">
       <v-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, index)" />
       <v-checkbox v-else class="checkbox" touch-target="wrapper" :checked="selectedIds.includes(item.id)" @click.stop="toggleSelect($event, item, index)" />
       <span class="number"><field-id :id="index + 1" :raw="item" /></span>
@@ -24,15 +24,15 @@
       <span>{{ formatFileSize(item.size) }}</span>
       <span v-tooltip="formatDateTime(item.updatedAt)">{{ formatTimeAgo(item.updatedAt) }}</span>
     </div>
-    <div class="list-item-actions">
-      <button v-tooltip="$t('download')" class="btn-icon sm" @click.stop="downloadFile(item.path)">
+    <div class="actions">
+      <v-icon-button v-tooltip="$t('download')" @click.stop="downloadFile(item.path)">
         <i-material-symbols:download-rounded />
-      </button>
+      </v-icon-button>
 
       <popper>
-        <button v-tooltip="$t('info')" class="btn-icon sm">
+        <v-icon-button v-tooltip="$t('info')">
           <i-material-symbols:info-outline-rounded />
-        </button>
+        </v-icon-button>
         <template #content>
           <section class="card card-info">
             <div class="key-value vertical">
@@ -74,15 +74,15 @@
     </template>
     
     <template #actions>
-      <div class="list-item-actions mobile">
-        <button v-tooltip="$t('download')" class="btn-icon sm" @click.stop="downloadFile(item.path)">
+      <div class="actions">
+        <v-icon-button v-tooltip="$t('download')" @click.stop="downloadFile(item.path)">
           <i-material-symbols:download-rounded />
-        </button>
+        </v-icon-button>
 
         <popper>
-          <button v-tooltip="$t('info')" class="btn-icon sm">
+          <v-icon-button v-tooltip="$t('info')">
             <i-material-symbols:info-outline-rounded />
-          </button>
+          </v-icon-button>
           <template #content>
             <section class="card card-info">
               <div class="key-value vertical">
@@ -127,9 +127,6 @@ defineProps<Props>()
 </script>
 
 <style scoped lang="scss">
-.file-item {
-  margin: 0 16px 8px 16px;
-}
 .list-item-phone {
   margin-block-end: 8px;
 }

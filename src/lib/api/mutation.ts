@@ -369,11 +369,8 @@ export const updateScreenMirrorQualityGQL = gql`
 
 export const saveFeedEntriesToNotesGQL = gql`
   mutation saveFeedEntriesToNotes($query: String!) {
-    saveFeedEntriesToNotes(query: $query) {
-      ...NoteFragment
-    }
+    saveFeedEntriesToNotes(query: $query)
   }
-  ${noteFragment}
 `
 export const mergeChunksGQL = gql`
   mutation mergeChunks($fileId: String!, $totalChunks: Int!, $path: String!, $replace: Boolean!) {

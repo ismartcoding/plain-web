@@ -1,5 +1,5 @@
 <template>
-  <FileInfoItem v-if="current?.type && !isTrashed" :label="$t('tags')">
+  <LightboxFileInfoItem v-if="current?.type && !isTrashed" :label="$t('tags')">
     <template #label>
       {{ $t('tags') }}
       <v-icon-button 
@@ -11,7 +11,7 @@
       </v-icon-button>
     </template>
     <item-tags :tags="fileInfo?.tags" />
-  </FileInfoItem>
+  </LightboxFileInfoItem>
 </template>
 
 <script setup lang="ts">
