@@ -289,7 +289,7 @@
     position: relative;
     flex: 1;
     .pagination {
-      padding-block: 16px 0;
+      padding-block: 16px;
     }
   }
 }
@@ -420,23 +420,6 @@
 .btn-icon.selected {
   color: var(--md-sys-color-on-surface-variant);
   background-color: var(--md-sys-color-surface-variant);
-}
-
-.btn-fullscreen-top-right {
-  position: absolute;
-  top: 0;
-  right: 0;
-  margin: 8px;
-  &::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 68px;
-    height: 68px;
-    border-radius: 0 0 0 100%;
-    background-color: rgba(255, 255, 255, 0.1);
-  }
 }
 
 .scroller .footer {
