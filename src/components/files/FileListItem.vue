@@ -32,21 +32,22 @@
       <span v-tooltip="formatDateTime(item.updatedAt)">{{ formatTimeAgo(item.updatedAt) }}</span>
     </div>
     
-    <FileActionButtons
-      :item="item"
-      :can-paste="canPaste"
-      @download-dir="downloadDir"
-      @download-file="downloadFile"
-      @upload-files="uploadFiles"
-      @upload-dir="uploadDir"
-      @delete-item="deleteItem"
-      @duplicate-item="duplicateItem"
-      @cut-item="cutItem"
-      @copy-item="copyItem"
-      @paste-item="pasteItem"
-      @copy-link="copyLink"
-      @rename-item="renameItem"
-    />
+            <FileActionButtons
+          :item="item"
+          :can-paste="canPaste"
+          @download-dir="downloadDir"
+          @download-file="downloadFile"
+          @upload-files="uploadFiles"
+          @upload-dir="uploadDir"
+          @delete-item="deleteItem"
+          @duplicate-item="duplicateItem"
+          @cut-item="cutItem"
+          @copy-item="copyItem"
+          @paste-item="pasteItem"
+          @copy-link="copyLink"
+          @rename-item="renameItem"
+          @add-to-favorites="addToFavorites"
+        />
   </section>
 
   <!-- Phone Layout -->
@@ -94,6 +95,7 @@
         @paste-item="pasteItem"
         @copy-link="copyLink"
         @rename-item="renameItem"
+        @add-to-favorites="addToFavorites"
       />
     </template>
   </ListItemPhone>
@@ -143,6 +145,7 @@ const emit = defineEmits<{
   pasteItem: [item: IFile]
   copyLink: [item: IFile]
   renameItem: [item: IFile]
+  addToFavorites: [item: IFile]
 }>()
 
 function downloadDir(path: string) {
@@ -187,6 +190,10 @@ function copyLink(item: IFile) {
 
 function renameItem(item: IFile) {
   emit('renameItem', item)
+}
+
+function addToFavorites(item: IFile) {
+  emit('addToFavorites', item)
 }
 </script>
 

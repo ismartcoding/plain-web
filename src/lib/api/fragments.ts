@@ -47,6 +47,10 @@ export const appFragment = gql`
     internalStoragePath
     downloadsDir
     developerMode
+    favoriteFolders {
+      rootPath
+      fullPath
+    }
   }
   ${playlistAudioFragment}
 `

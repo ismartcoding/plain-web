@@ -499,4 +499,8 @@ export default {
   increase_font_size: 'Augmenter la taille de police',
   decrease_font_size: 'Diminuer la taille de police',
   reset_font_size: 'Réinitialiser la taille de police',
+  removed: 'Supprimé',
+  added: 'Ajouté',
+  add_to_favorites: 'Ajouter aux favoris',
+  remove_from_favorites: 'Retirer des favoris',
 }

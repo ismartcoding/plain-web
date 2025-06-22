@@ -65,6 +65,9 @@
       <div v-if="!item.isDir" class="dropdown-item" @click.stop="copyLink(item); actionsMenuVisible = false">
         {{ $t('copy_link') }}
       </div>
+      <div v-if="item.isDir" class="dropdown-item" @click.stop="addToFavorites(item); actionsMenuVisible = false">
+        {{ $t('add_to_favorites') }}
+      </div>
       <div class="dropdown-item" @click.stop="renameItem(item); actionsMenuVisible = false">
         {{ $t('rename') }}
       </div>
@@ -95,6 +98,7 @@ const emit = defineEmits<{
   pasteItem: [item: IFile]
   copyLink: [item: IFile]
   renameItem: [item: IFile]
+  addToFavorites: [item: IFile]
 }>()
 
 const uploadMenuVisible = ref(false)
@@ -143,6 +147,10 @@ function copyLink(item: IFile) {
 
 function renameItem(item: IFile) {
   emit('renameItem', item)
+}
+
+function addToFavorites(item: IFile) {
+  emit('addToFavorites', item)
 }
 </script>
 

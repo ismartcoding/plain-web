@@ -502,4 +502,8 @@ export default {
   increase_font_size: 'Увеличить размер шрифта',
   decrease_font_size: 'Уменьшить размер шрифта',
   reset_font_size: 'Сбросить размер шрифта',
+  removed: 'Удалено',
+  added: 'Добавлено',
+  add_to_favorites: 'Добавить в избранное',
+  remove_from_favorites: 'Удалить из избранного',
 }

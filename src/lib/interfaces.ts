@@ -172,7 +172,8 @@ export interface IFilter {
 
 export interface IFileFilter {
   showHidden: boolean
-  linkName: string
+  type: string
+  rootPath: string
   text: string
   parent: string
 }
@@ -314,6 +315,11 @@ export interface IHomeStats {
   storageStats: IStorageStats
 }
 
+export interface IFavoriteFolder {
+  rootPath: string
+  fullPath: string
+}
+
 export interface IApp {
   usbConnected: boolean
   urlToken: string
@@ -334,6 +340,7 @@ export interface IApp {
   internalStoragePath: string
   downloadsDir: string
   developerMode: boolean
+  favoriteFolders: IFavoriteFolder[]
 }
 
 export interface IBreadcrumbItem {

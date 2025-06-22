@@ -145,3 +145,28 @@ export function enrichFile(item: IFile, urlTokenKey: sjcl.BitArray | null) {
     extension,
   }
 }
+
+/**
+ * Determine storage type based on root path
+ * @param rootPath - The root path to analyze
+ * @param appPaths - Object containing various app storage paths
+ * @returns Storage type string
+ */
+export function getStorageTypeByRootPath(
+  rootPath: string,
+  appPaths: {
+    internalStoragePath: string
+    externalFilesDir: string
+    sdcardPath?: string
+    usbDiskPaths: string[]
+  }
+): string {
+  if (rootPath === appPaths.externalFilesDir) {
+    return 'APP'
+  } else if (rootPath === appPaths.sdcardPath) {
+    return 'SDCARD'
+  } else if (appPaths.usbDiskPaths.includes(rootPath)) {
+    return 'USB_STORAGE'
+  }
+  return 'INTERNAL_STORAGE'
+}

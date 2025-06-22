@@ -425,7 +425,7 @@ export default {
   install: 'インストール',
   sending: '送信中…',
   usb_storage: 'USBストレージ',
-  folders: 'フォルダー',
+  folders: 'フォルダ',
   color: '色',
   make_a_phone_call: '電話をかける',
   pause: '一時停止',
@@ -495,4 +495,8 @@ export default {
   increase_font_size: 'フォントサイズを拡大',
   decrease_font_size: 'フォントサイズを縮小',
   reset_font_size: 'フォントサイズをリセット',
+  removed: '削除されました',
+  added: '追加されました',
+  add_to_favorites: 'お気に入りに追加',
+  remove_from_favorites: 'お気に入りから削除',
 }

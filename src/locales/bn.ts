@@ -430,7 +430,7 @@ export default {
   install: 'ইনস্টল করুন',
   sending: 'প্রেরণ…',
   usb_storage: 'ইউএসবি স্টোরেজ',
-  folders: 'ফোল্ডারগুলি',
+  folders: 'ফোল্ডার',
   color: 'রঙ',
   make_a_phone_call: 'ফোন করুন',
   pause: 'বিরতি',
@@ -501,4 +501,8 @@ export default {
   increase_font_size: 'ফন্ট সাইজ বৃদ্ধি করুন',
   decrease_font_size: 'ফন্ট সাইজ কমান',
   reset_font_size: 'ফন্ট সাইজ রিসেট করুন',
+  removed: 'সরানো হয়েছে',
+  added: 'যোগ করা হয়েছে',
+  add_to_favorites: 'প্রিয়তে যোগ করুন',
+  remove_from_favorites: 'প্রিয় থেকে সরান',
 }

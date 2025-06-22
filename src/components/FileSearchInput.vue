@@ -72,6 +72,7 @@ const props = defineProps({
   navigateToDir: {
     type: Function as PropType<(dir: string) => void>,
     required: false,
+    default: () => {},
   },
   showChips: {
     type: Boolean,
@@ -89,7 +90,8 @@ const mobileSearchVisible = ref(false)
 // Local filter state for search panel
 const localFilter = reactive<IFileFilter>({
   showHidden: false,
-  linkName: '',
+  type: '',
+  rootPath: '',
   text: '',
   parent: '',
 })
