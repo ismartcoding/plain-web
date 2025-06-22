@@ -109,6 +109,7 @@
           @paste-item="pasteItem"
           @copy-link="copyLinkItem"
           @rename-item="renameItemClick"
+          @add-to-favorites="addToFavoritesClick"
         />
       </template>
     </VirtualList>
@@ -130,7 +131,7 @@ import { type IFile, canOpenInBrowser, canView, getSortItems, enrichFile, isText
 import { getFileName, getFileUrlByPath, getFileId } from '@/lib/api/file'
 import { noDataKey } from '@/lib/list'
 import emitter from '@/plugins/eventbus'
-import { useCreateDir, useRename, useStats, useDownload, useView, useCopyPaste, getRootDir, useSearch } from '@/hooks/files'
+import { useCreateDir, useRename, useStats, useDownload, useView, useCopyPaste, useSearch } from '@/hooks/files'
 import { useDragDropUpload, useFileUpload } from '@/hooks/upload'
 import { useTempStore, type IUploadItem } from '@/stores/temp'
 import { openModal } from '@/components/modal'
@@ -138,7 +139,7 @@ import DeleteFileConfirm from '@/components/DeleteFileConfirm.vue'
 import EditValueModal from '@/components/EditValueModal.vue'
 import { useRoute } from 'vue-router'
 import { decodeBase64, shortUUID } from '@/lib/strutil'
-import { initMutation, setTempValueGQL } from '@/lib/api/mutation'
+import { initMutation, setTempValueGQL, addFavoriteFolderGQL } from '@/lib/api/mutation'
 import type { ISource } from '@/components/lightbox/types'
 import type { IFileDeletedEvent, IFileRenamedEvent, IFileFilter, IBreadcrumbItem } from '@/lib/interfaces'
 import { useSelectable } from '@/hooks/list'
@@ -155,7 +156,8 @@ const { t } = useI18n()
 const sources = ref([])
 const { parseQ, buildQ } = useSearch()
 const filter = reactive<IFileFilter>({
-  linkName: '',
+  type: '',
+  rootPath: '',
   showHidden: false,
   text: '',
   parent: '',
@@ -191,7 +193,7 @@ const tempStore = useTempStore()
 const { app, urlTokenKey, uploads } = storeToRefs(tempStore)
 const { selectedFiles, isCut } = storeToRefs(useFilesStore())
 const { dropping, fileDragEnter, fileDragLeave, dropFiles } = useDragDropUpload(uploads)
-const rootDir = computed(() => getRootDir(filter.linkName, app.value))
+const rootDir = computed(() => filter.rootPath)
 const { createPath, createVariables, createMutation } = useCreateDir(urlTokenKey, items)
 const { renameItem, renameDone, renameMutation, renameVariables } = useRename(() => {
   fetch()
@@ -300,12 +302,13 @@ const deleteItems = () => {
 }
 
 function getPageTitle() {
-  if (filter.linkName === 'sdcard') {
+  if (filter.type === 'SDCARD') {
     return t('sdcard')
-  } else if (filter.linkName === 'app') {
+  } else if (filter.type === 'APP') {
     return t('app_data')
-  } else if (filter.linkName.startsWith('usb')) {
-    const num = parseInt(filter.linkName.substring(3))
+  } else if (filter.type === 'USB_STORAGE') {
+    const usbIndex = app.value.usbDiskPaths.indexOf(filter.rootPath)
+    const num = usbIndex !== -1 ? usbIndex + 1 : 1
     return `${t('usb_storage')} ${num}`
   }
 
@@ -313,16 +316,16 @@ function getPageTitle() {
 }
 
 function getPageStats() {
-  if (filter.linkName === 'sdcard') {
+  if (filter.type === 'SDCARD') {
     return `${t('storage_free_total', {
       free: formatFileSize(sdcard.value?.freeBytes ?? 0),
       total: formatFileSize(sdcard.value?.totalBytes ?? 0),
     })}`
-  } else if (filter.linkName === 'app') {
+  } else if (filter.type === 'APP') {
     return t('app_data')
-  } else if (filter.linkName.startsWith('usb')) {
-    const num = parseInt(filter.linkName.substring(3))
-    const u = usb.value[num - 1]
+  } else if (filter.type === 'USB_STORAGE') {
+    const usbIndex = app.value.usbDiskPaths.indexOf(filter.rootPath)
+    const u = usb.value[usbIndex]
     return `${t('storage_free_total', {
       free: formatFileSize(u?.freeBytes ?? 0),
       total: formatFileSize(u?.totalBytes ?? 0),
@@ -446,7 +449,7 @@ function copyLinkItem(item: IFile) {
   // Try modern clipboard API first
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(url).then(() => {
-      toast(t('link_copied'), 'success')
+      toast(t('link_copied'))
     }).catch(() => {
       fallbackCopyToClipboard(url)
     })
@@ -473,7 +476,7 @@ function fallbackCopyToClipboard(text: string) {
     document.body.removeChild(textArea)
     
     if (successful) {
-      toast(t('link_copied'), 'success')
+      toast(t('link_copied'))
     } else {
       toast(t('copy_failed'), 'error')
     }
@@ -503,6 +506,35 @@ function deleteItem(item: IFile) {
   openModal(DeleteFileConfirm, {
     files: [item],
     onDone: onDeleted,
+  })
+}
+
+const { mutate: addFavoriteFolderMutation, loading: addingFavorite } = initMutation({
+  document: addFavoriteFolderGQL,
+  options: {
+    update: () => {
+      // Refetch app data to update favorites list
+      emitter.emit('refetch_app')
+    },
+  },
+})
+
+function addToFavoritesClick(item: IFile) {
+  if (!item.isDir) {
+    return
+  }
+  
+  // Determine the root path based on the link name
+  let rootPath = rootDir.value
+  
+  addFavoriteFolderMutation({
+    rootPath: rootPath,
+    fullPath: item.path
+  }).then(() => {
+    toast(t('added'))
+  }).catch((error) => {
+    console.error('Error adding favorite folder:', error)
+    toast(t('error'), 'error')
   })
 }
 

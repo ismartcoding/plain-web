@@ -194,6 +194,24 @@ export const deleteTagGQL = gql`
   }
 `
 
+export const addFavoriteFolderGQL = gql`
+  mutation addFavoriteFolder($rootPath: String!, $fullPath: String!) {
+    addFavoriteFolder(rootPath: $rootPath, fullPath: $fullPath) {
+      rootPath
+      fullPath
+    }
+  }
+`
+
+export const removeFavoriteFolderGQL = gql`
+  mutation removeFavoriteFolder($fullPath: String!) {
+    removeFavoriteFolder(fullPath: $fullPath) {
+      rootPath
+      fullPath
+    }
+  }
+`
+
 export const saveNoteGQL = gql`
   mutation saveNote($id: ID!, $input: NoteInput!) {
     saveNote(id: $id, input: $input) {

@@ -249,20 +249,6 @@ export const useDownloadItems = (urlTokenKey: Ref<sjcl.BitArray | null>, type: s
   }
 }
 
-export const getRootDir = (filesType: string, app: IApp) => {
-  let rootDir = app.internalStoragePath
-  if (filesType) {
-    if (filesType === 'sdcard') {
-      rootDir = app.sdcardPath
-    } else if (filesType.startsWith('usb')) {
-      rootDir = app.usbDiskPaths[parseInt(filesType.substring(3)) - 1]
-    } else if (filesType === 'app') {
-      rootDir = app.externalFilesDir
-    }
-  }
-  return rootDir
-}
-
 export const useSearch = () => {
   return {
     parseQ: (filter: IFileFilter, q: string) => {
@@ -270,14 +256,16 @@ export const useSearch = () => {
       filter.showHidden = false
       filter.text = ''
       filter.parent = ''
-      filter.linkName = ''
+      filter.rootPath = ''
       fields.forEach((it) => {
         if (it.name === 'text') {
           filter.text = it.value
         } else if (it.name === 'parent') {
           filter.parent = it.value
-        } else if (it.name === 'link_name') {
-          filter.linkName = it.value
+        } else if (it.name === 'type') {
+          filter.type = it.value
+        } else if (it.name === 'root_path') {
+          filter.rootPath = it.value
         } else if (it.name === 'show_hidden') {
           filter.showHidden = it.value === 'true'
         }
@@ -293,11 +281,11 @@ export const useSearch = () => {
         })
       }
 
-      if (filter.linkName !== '') {
+      if (filter.type !== '') {
         fields.push({
-          name: 'link_name',
+          name: 'type',
           op: '',
-          value: filter.linkName,
+          value: filter.type,
         })
       }
 
@@ -306,6 +294,14 @@ export const useSearch = () => {
           name: 'text',
           op: '',
           value: filter.text,
+        })
+      }
+
+      if (filter.rootPath !== '') {
+        fields.push({
+          name: 'root_path',
+          op: '',
+          value: filter.rootPath,
         })
       }
 

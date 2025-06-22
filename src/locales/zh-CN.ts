@@ -500,4 +500,8 @@ export default {
   decrease_font_size: '减小字体',
   font_size: '字体大小',
   reset_font_size: '重置字体大小',
+  removed: '已删除',
+  added: '已添加',
+  add_to_favorites: '添加到收藏夹',
+  remove_from_favorites: '从收藏夹中移除',
 }

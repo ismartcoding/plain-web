@@ -55,7 +55,7 @@ export function useNotificationWarning(options?: { showToast?: boolean }) {
     Notification.requestPermission().then((permission) => {
       notificationPermission.value = permission
       if (options?.showToast && permission === 'granted') {
-        toast(t('desktop_notification_permission_granted'), 'success')
+        toast(t('desktop_notification_permission_granted'))
       }
     })
   }

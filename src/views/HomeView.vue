@@ -224,9 +224,14 @@ function openFilesInternalStorage() {
       value: app.value.internalStoragePath,
     },
     {
-      name: 'link_name',
+      name: 'type',
       op: '',
-      value: 'internal',
+      value: 'INTERNAL_STORAGE',
+    },
+    {
+      name: 'root_path',
+      op: '',
+      value: app.value.internalStoragePath,
     },
   ])
   replacePath(mainStore, `/files?q=${encodeBase64(q)}`)

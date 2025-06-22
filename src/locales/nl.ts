@@ -497,4 +497,8 @@ export default {
   increase_font_size: 'Lettergrootte vergroten',
   decrease_font_size: 'Lettergrootte verkleinen',
   reset_font_size: 'Lettergrootte resetten',
+  removed: 'Verwijderd',
+  added: 'Toegevoegd',
+  add_to_favorites: 'Toevoegen aan favorieten',
+  remove_from_favorites: 'Verwijderen uit favorieten',
 }

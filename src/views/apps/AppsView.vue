@@ -251,9 +251,9 @@ const { loading: fetchPackageStatusLoading, fetch: fetchPackageStatus } = initLa
               installingPackages.value = installingPackages.value.filter((it) => it.id !== item.id)
               tapPhone('')
               if (isNewInstalled) {
-                toast(t('app_installation_completed'), 'success')
+                toast(t('app_installation_completed'))
               } else {
-                toast(t('app_upgrade_completed'), 'success')
+                toast(t('app_upgrade_completed'))
               }
               fetch()
           }

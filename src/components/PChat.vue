@@ -321,9 +321,14 @@ function openFolder() {
       value: app.value.externalFilesDir,
     },
     {
-      name: 'link_name',
+      name: 'type',
       op: '',
-      value: 'app',
+      value: 'APP',
+    },
+    {
+      name: 'root_path',
+      op: '',
+      value: app.value.externalFilesDir,
     },
   ])
   replacePath(store, `/files?q=${encodeBase64(q)}`)

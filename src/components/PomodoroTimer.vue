@@ -491,7 +491,7 @@ function showNotification() {
     }
   } else {
     // Fallback to toast message if no desktop notification permission
-    toast(`${title} - ${body}`, 'success')
+    toast(`${title} - ${body}`)
   }
 }
 

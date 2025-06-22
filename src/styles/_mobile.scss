@@ -81,7 +81,7 @@
   }
 
   @mixin mobile-full-screen {
-    media not print {
+    @media not print {
       position: fixed !important;
       top: 0 !important;
       left: 0 !important;
@@ -107,17 +107,23 @@
   // When quick-content is visible, make it fullscreen
   .quick-content:not([style*="display: none"]) {
     @include mobile-full-screen;
-    background: var(--md-sys-color-surface-container);
-    overflow-y: auto !important;
+    
+    & {
+      background: var(--md-sys-color-surface-container);
+      overflow-y: auto !important;
+    }
   }
 
   // Make feed entry article fullscreen like quick-content
   .main-feed-entry {
     .content {
       @include mobile-full-screen;
-      background: var(--md-sys-color-surface-container);
-      overflow-y: auto !important;
-      padding: 0 !important;
+      
+      & {
+        background: var(--md-sys-color-surface-container);
+        overflow-y: auto !important;
+        padding: 0px !important;
+      }
     }
     .article-title, .md-container {
       padding-inline: 16px;

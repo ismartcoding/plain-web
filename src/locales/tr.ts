@@ -496,4 +496,8 @@ export default {
   increase_font_size: 'Yazı tipi boyutunu büyüt',
   decrease_font_size: 'Yazı tipi boyutunu küçült',
   reset_font_size: 'Yazı tipi boyutunu sıfırla',
+  removed: 'Kaldırıldı',
+  added: 'Eklendi',
+  add_to_favorites: 'Favorilere ekle',
+  remove_from_favorites: 'Favorilerden kaldır',
 }

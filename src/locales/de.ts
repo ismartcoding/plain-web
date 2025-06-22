@@ -498,4 +498,8 @@ export default {
   increase_font_size: 'Schrift vergrößern',
   decrease_font_size: 'Schrift verkleinern',
   reset_font_size: 'Schriftgröße zurücksetzen',
+  removed: 'Entfernt',
+  added: 'Hinzugefügt',
+  add_to_favorites: 'Zu Favoriten hinzufügen',
+  remove_from_favorites: 'Aus Favoriten entfernen',
 }
