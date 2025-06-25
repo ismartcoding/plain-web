@@ -27,6 +27,7 @@ export const useSelectable = (items: Ref<IData[]>) => {
   }
 
   const getShiftEffectingIds = (index: number) => {
+    if (lastCheckedIndex.value === null) return []
     const start = Math.min(lastCheckedIndex.value, index)
     const end = Math.max(lastCheckedIndex.value, index)
     const lastIndexId = items.value[lastCheckedIndex.value].id
@@ -53,7 +54,7 @@ export const useSelectable = (items: Ref<IData[]>) => {
       shiftEffectingIds.value = []
       lastCheckedIndex.value = index
       shouldSelect.value = selectedIds.value.includes(item.id)
-      updateAllCheckState(shouldSelect)
+      updateAllCheckState(shouldSelect.value)
     } else {
       checkItem(!selectedIds.value.includes(item.id), item, index)
     }
@@ -124,7 +125,13 @@ export const useSelectable = (items: Ref<IData[]>) => {
 
       const selection = window.getSelection()
       if (selection && selection.toString()) {
-        return
+        const currentTarget = event.currentTarget as Element
+        if (currentTarget && selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0)
+          if (currentTarget.contains(range.commonAncestorContainer)) {
+            return
+          }
+        }
       }
 
       if (selectedIds.value.length === 0) {
