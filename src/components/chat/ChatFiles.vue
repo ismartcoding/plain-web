@@ -75,7 +75,8 @@ const items = computed<ISource[]>(() => {
       fileId: id,
       thumbnail: file.thumbnail,
       extension: getFileExtension(file.uri),
-      summary: file.summary || undefined
+      summary: file.summary || undefined,
+      isFromChat: true
     })
   })
   return items

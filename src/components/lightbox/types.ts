@@ -43,6 +43,7 @@ export interface ISource {
   thumbnail?: string // video thumbnail
   summary?: string   // text file summary
   data?: any // video, audio, image item
+  isFromChat?: boolean // whether the source is from chat components
 }
 
 export type MouseEventHandler = (e: MouseEvent) => void

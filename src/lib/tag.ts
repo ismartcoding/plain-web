@@ -7,5 +7,4 @@ export const names: Record<string, string> = {
   SMS: 'messages',
   CALL: 'calls',
   CONTACT: 'contacts',
-  AI_CHAT: 'aichats',
 }

@@ -54,6 +54,7 @@ const sources = computed(() => {
       duration: file.duration,
       size: file.size,
       thumbnail: file.thumbnail,
+      isFromChat: true,
     })
   })
 

@@ -3,7 +3,6 @@ export enum DataType {
   VIDEO = 'VIDEO',
   IMAGE = 'IMAGE',
   PACKAGE = 'PACKAGE',
-  AI_CHAT = 'AI_CHAT',
   CALL = 'CALL',
   CONTACT = 'CONTACT',
   SMS = 'SMS',

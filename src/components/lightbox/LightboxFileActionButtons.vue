@@ -1,36 +1,38 @@
 <template>
   <div class="file-action-buttons">
-    <template v-if="canTrash">
-      <template v-if="isTrashed">
+    <template v-if="!current?.isFromChat">
+      <template v-if="canTrash">
+        <template v-if="isTrashed">
+          <v-outlined-button @click.stop="$emit('delete-file')">
+            <i-material-symbols:delete-forever-outline-rounded />
+            {{ $t('delete') }}
+          </v-outlined-button>
+          <v-outlined-button :class="{ loading: restoreLoading(`ids:${current?.data?.id}`) }" @click.stop="restoreItem">
+            <i-material-symbols:restore-from-trash-outline-rounded />
+            {{ $t('restore') }}
+          </v-outlined-button>
+        </template>
+        <template v-else>
+          <v-outlined-button :class="{ loading: trashLoading(`ids:${current?.data?.id}`) }" @click.stop="trashMediaItem">
+            <i-material-symbols:delete-outline-rounded />
+            {{ $t('move_to_trash') }}
+          </v-outlined-button>
+          <v-outlined-button @click.stop="$emit('rename-file')">
+            <i-material-symbols:edit-outline-rounded />
+            {{ $t('rename') }}
+          </v-outlined-button>
+        </template>
+      </template>
+      <template v-else>
         <v-outlined-button @click.stop="$emit('delete-file')">
           <i-material-symbols:delete-forever-outline-rounded />
           {{ $t('delete') }}
-        </v-outlined-button>
-        <v-outlined-button :class="{ loading: restoreLoading(`ids:${current?.data?.id}`) }" @click.stop="restoreItem">
-          <i-material-symbols:restore-from-trash-outline-rounded />
-          {{ $t('restore') }}
-        </v-outlined-button>
-      </template>
-      <template v-else>
-        <v-outlined-button :class="{ loading: trashLoading(`ids:${current?.data?.id}`) }" @click.stop="trashMediaItem">
-          <i-material-symbols:delete-outline-rounded />
-          {{ $t('move_to_trash') }}
         </v-outlined-button>
         <v-outlined-button @click.stop="$emit('rename-file')">
           <i-material-symbols:edit-outline-rounded />
           {{ $t('rename') }}
         </v-outlined-button>
       </template>
-    </template>
-    <template v-else>
-      <v-outlined-button @click.stop="$emit('delete-file')">
-        <i-material-symbols:delete-forever-outline-rounded />
-        {{ $t('delete') }}
-      </v-outlined-button>
-      <v-outlined-button @click.stop="$emit('rename-file')">
-        <i-material-symbols:edit-outline-rounded />
-        {{ $t('rename') }}
-      </v-outlined-button>
     </template>
     <v-outlined-button class="download-btn" @click.stop="handleDownload">
       <i-material-symbols:download-rounded />
@@ -112,5 +114,9 @@ onUnmounted(() => {
 
 .download-btn {
   grid-column: 1 / span 2;
+
+  &:first-child {
+    grid-column: 1 / span 2;
+  }
 }
 </style> 

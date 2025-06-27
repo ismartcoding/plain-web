@@ -368,11 +368,14 @@ onDeactivated(() => {
 <style scoped lang="scss">
 .sidebar2 {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--pl-top-app-bar-height));
 }
 .scroller {
   overflow-y: auto;
   overflow-x: hidden;
-  height: calc(100vh - 112px);
+  flex: 1;
   .item-link {
     text-decoration: none;
     display: block;
