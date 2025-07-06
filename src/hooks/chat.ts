@@ -21,7 +21,7 @@ export const useTasks = () => {
     options: {
       update: (cache: ApolloCache<any>, data: any) => {
         cache.evict({ id: cache.identify({ __typename: 'ChatItem', id: pending?.item.id }) })
-        insertCache(cache, data.data.createChatItem, chatItemsGQL)
+        insertCache(cache, data.data.createChatItem, chatItemsGQL, { id: 'local' })
         signalEnd()
       },
     },
@@ -53,9 +53,9 @@ export const useTasks = () => {
       const c = pending.item._content
       const items: any[] = []
       c.value.items.forEach((it: any, index: number) => {
-        const dir = getFileDir(it.uri)
+        const fileName = pending!.uploads[index].fileName
         items.push({
-          uri: `app://${dir}/` + pending!.uploads[index].fileName,
+          uri: it.isAppDir ? `app://` + fileName : it.dir + '/' + fileName,
           size: it.size,
           duration: it.duration,
           width: it.width,

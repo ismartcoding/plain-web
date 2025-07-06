@@ -105,8 +105,8 @@ export function initLazyQuery<TResult = any>(params: InitQueryParams<TResult>) {
 }
 
 export const chatItemsGQL = gql`
-  query {
-    chatItems {
+  query ($id: String!) {
+    chatItems(id: $id) {
       ...ChatItemFragment
     }
   }

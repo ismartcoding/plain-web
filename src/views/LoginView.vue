@@ -47,7 +47,7 @@ import { useField, useForm } from 'vee-validate'
 import { string } from 'yup'
 import { useI18n } from 'vue-i18n'
 import router from '@/plugins/router'
-import { sha512, hashToKey, aesEncrypt, aesDecrypt, bitArrayToUint8Array } from '@/lib/api/crypto'
+import { sha512, hashToKey, chachaEncrypt, chachaDecrypt, bitArrayToUint8Array } from '@/lib/api/crypto'
 import { getApiBaseUrl, getApiHeaders, getWebSocketBaseUrl } from '@/lib/api/api'
 import { getAccurateAgent } from '@/lib/agent/agent'
 import { arrayBuffertoBits } from '@/lib/api/sjcl-arraybuffer'
@@ -57,10 +57,12 @@ const webAccessDisabled = ref(true)
 const showConfirm = ref(false)
 const error = ref('')
 let ws: WebSocket
-const showWarning = window.location.protocol === 'http:' ? false : !window.navigator.userAgentData
+const showWarning = window.location.protocol === 'http:' ? false : !(window.navigator as any).userAgentData
 const { t } = useI18n()
 const { value: password, errorMessage: passwordError } = useField('password', string().required())
 const showPasswordInput = ref(false)
+
+
 
 async function initRequest() {
   const r = await fetch(`${getApiBaseUrl()}/init`, {
@@ -73,6 +75,7 @@ async function initRequest() {
     error.value = 'web_access_disabled'
     return
   }
+  
   webAccessDisabled.value = false
   const pwd = await r.text()
   if (pwd) {
@@ -96,7 +99,7 @@ const onSubmit = handleSubmit(async () => {
   ws.onopen = async () => {
     isSubmitting.value = true
     const ua = await getAccurateAgent()
-    const enc = aesEncrypt(
+    const enc = chachaEncrypt(
       key,
       JSON.stringify({
         password: hash,
@@ -110,7 +113,7 @@ const onSubmit = handleSubmit(async () => {
     ws.send(bitArrayToUint8Array(enc))
   }
   ws.onmessage = async (event: MessageEvent) => {
-    const d = aesDecrypt(key, arrayBuffertoBits(await event.data.arrayBuffer()))
+    const d = chachaDecrypt(key, arrayBuffertoBits(await event.data.arrayBuffer()))
     const r = JSON.parse(d)
     if (r.status === 'PENDING') {
       showConfirm.value = true

@@ -19,7 +19,7 @@ import { useI18n } from 'vue-i18n'
 import emitter from './plugins/eventbus'
 import toast from '@/components/toaster'
 import { getWebSocketBaseUrl } from './lib/api/api'
-import { aesDecrypt, aesEncrypt, bitArrayToUint8Array } from './lib/api/crypto'
+import { chachaDecrypt, chachaEncrypt, bitArrayToUint8Array } from './lib/api/crypto'
 import { parseWebSocketData } from './lib/api/sjcl-arraybuffer'
 import { applyDarkClass, changeColor, changeColorMode, getCurrentMode, getLastSavedAutoColorMode, isModeDark } from './lib/theme'
 import TouchPhone from '@/assets/touch-phone.svg'
@@ -66,7 +66,7 @@ async function connect() {
       emitter.emit('app_socket_connection_changed', true)
       console.log('WebSocket is connecting to app')
       retryTime = 1000 // reset retry time
-      const enc = aesEncrypt(key, new Date().getTime().toString())
+      const enc = chachaEncrypt(key, new Date().getTime().toString())
       ws.send(bitArrayToUint8Array(enc))
       wsStatus.value = ''
     }
@@ -81,7 +81,7 @@ async function connect() {
         console.log(type)
       } else {
         try {
-          const json = aesDecrypt(key, r.data)
+          const json = chachaDecrypt(key, r.data)
           emitter.emit(type, json ? JSON.parse(json) : null)
           console.log(`${type}, ${json}`)
         } catch (ex) {

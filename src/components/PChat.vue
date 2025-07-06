@@ -8,7 +8,6 @@
       <div class="title">{{ app?.deviceName ?? $t('my_phone') }}{{ app?.battery ? ' (' + $t('battery_left', { percentage: app?.battery }) + ')' : '' }}</div>
       <div class="actions">
         <button v-tooltip="$t('files')" class="btn-icon" @click.prevent="openFolder">
-          
           <i-lucide:folder />
         </button>
       </div>
@@ -19,7 +18,7 @@
         <v-dropdown v-model="menuVisible[chatItem.id]" align="top-left-to-bottom-left">
           <template #trigger>
             <div class="chat-title">
-              <span class="name">{{ $t(chatItem.isMe ? 'me' : 'app_name') }}</span>
+              <span class="name">{{ $t(chatItem.fromId === 'me' ? 'me' : 'app_name') }}</span>
               <time v-tooltip="formatDateTimeFull(chatItem.createdAt)" class="time">{{ formatTime(chatItem.createdAt) }}</time>
               <span v-if="chatItem.id.startsWith('new_')" class="sending">{{ $t('sending') }}</span>
               <i-material-symbols:expand-more-rounded class="bi bi-more" />
@@ -117,6 +116,7 @@ initQuery({
     }
   },
   document: chatItemsGQL,
+  variables: { id: 'local' },
 })
 
 function getComponent(type: string) {
@@ -143,8 +143,6 @@ const {
   },
 })
 
-
-
 async function doUploadFiles(files: File[]) {
   if (!files.length) {
     return
@@ -165,7 +163,8 @@ async function doUploadImages(files: File[]) {
 
 // Generic function for handling uploads of different content types
 async function handleContentUpload(files: File[], contentType: string, options: { summary?: string } = {}) {
-  const uploads = getUploads(externalFilesDir, files);
+  const dir = app.value.customChatFolder || externalFilesDir
+  const uploads = getUploads(dir, files);
   const items = [];
   const valueItems: any[] = [];
   
@@ -173,6 +172,8 @@ async function handleContentUpload(files: File[], contentType: string, options: 
   for (const upload of uploads) {
     // Base item properties
     const itemProps: any = { 
+      dir: dir,
+      isAppDir: app.value.customChatFolder ? false : true,
       uri: upload.fileName, 
       size: upload.file.size, 
       duration: 0, 
@@ -208,7 +209,8 @@ async function handleContentUpload(files: File[], contentType: string, options: 
   // Create ChatItem
   const item: IChatItem = {
     id: 'new_' + shortUUID(),
-    isMe: true,
+    fromId: 'me',
+    toId: 'local',
     createdAt: new Date().toISOString(),
     content: JSON.stringify(_content),
     _content,
@@ -218,11 +220,12 @@ async function handleContentUpload(files: File[], contentType: string, options: 
       ids: uploads.map((it) => URL.createObjectURL(it.file)),
     },
   };
+
   
   items.push(item);
   enqueueTask(item, uploads);
   const client = resolveClient('a');
-  insertCache(client.cache, item, chatItemsGQL);
+  insertCache(client.cache, item, chatItemsGQL, { id: 'local' });
   scrollBottom();
 }
 
@@ -240,7 +243,8 @@ function send() {
     const tempId = 'new_' + shortUUID();
     const tempItem = {
       id: tempId,
-      isMe: true,
+      fromId: 'me',
+      toId: 'local',
       createdAt: new Date().toISOString(),
       content: JSON.stringify({ type: 'text', value: { text: chatText.value } }),
       _content: { type: 'text', value: { text: chatText.value } },
@@ -318,25 +322,21 @@ function openFolder() {
     {
       name: 'parent',
       op: '',
-      value: app.value.externalFilesDir,
+      value: app.value.customChatFolder || externalFilesDir,
     },
     {
       name: 'type',
       op: '',
-      value: 'APP',
+      value: app.value.customChatFolder ? 'INTERNAL_STORAGE' : 'APP',
     },
     {
       name: 'root_path',
       op: '',
-      value: app.value.externalFilesDir,
+      value: app.value.customChatFolder ? app.value.internalStoragePath : externalFilesDir,
     },
   ])
   replacePath(store, `/files?q=${encodeBase64(q)}`)
 }
-
-
-
-
 
 onMounted(() => {
   emitter.on('message_created', async (data: any[]) => {

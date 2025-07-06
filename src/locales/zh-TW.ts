@@ -501,7 +501,7 @@ export default {
     decrease_font_size: '減小字體',
     reset_font_size: '重置字體大小',
     removed: '已刪除',
-    added: '已新增',
-    add_to_favorites: '加入我的最愛',
-    remove_from_favorites: '從我的最愛中移除',
+      added: '已新增',
+  add_to_favorites: '加入我的最愛',
+  remove_from_favorites: '從我的最愛中移除',
 }

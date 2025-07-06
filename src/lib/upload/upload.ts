@@ -1,7 +1,7 @@
 import type { IUploadItem } from '@/stores/temp'
 import { arrayBufferToHex } from '../strutil'
 import { getApiBaseUrl } from '../api/api'
-import { aesEncrypt, bitArrayToUint8Array } from '../api/crypto'
+import { chachaEncrypt, bitArrayToUint8Array } from '../api/crypto'
 import * as sjcl from 'sjcl'
 import { uploadedChunksGQL } from '../api/query'
 import { mergeChunksGQL } from '../api/mutation'
@@ -137,7 +137,7 @@ export async function upload(upload: IUploadItem, replace: boolean) {
 async function uploadDirect(upload: IUploadItem, replace: boolean, key: sjcl.BitArray) {
   try {
     const data = new FormData()
-    const v = bitArrayToUint8Array(aesEncrypt(key, JSON.stringify({ dir: upload.dir, replace })))
+    const v = bitArrayToUint8Array(chachaEncrypt(key, JSON.stringify({ dir: upload.dir, replace })))
     data.append('info', new Blob([v]))
     data.append('file', upload.file)
 
@@ -384,7 +384,7 @@ async function uploadChunk(upload: IUploadItem, chunkData: IUploadChunk & { star
       fileId: upload.fileId,
       index: chunkData.index,
     })
-    const v = bitArrayToUint8Array(aesEncrypt(key, info))
+    const v = bitArrayToUint8Array(chachaEncrypt(key, info))
     data.append('info', new Blob([v]))
     data.append('file', chunkData.chunk, upload.file.name)
 

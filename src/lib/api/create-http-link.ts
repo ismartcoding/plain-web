@@ -5,7 +5,7 @@ import { fromError } from '@apollo/client/link/utils'
 import { Observable } from '@apollo/client/utilities'
 import { visit, type VariableDefinitionNode } from 'graphql'
 import { getApiBaseUrl, getApiHeaders } from './api'
-import { aesEncrypt, aesDecrypt, arrayBufferToBitArray, bitArrayToUint8Array } from './crypto'
+import { chachaEncrypt, chachaDecrypt, arrayBufferToBitArray, bitArrayToUint8Array } from './crypto'
 import { tokenToKey } from './file'
 
 export const createHttpLink = (linkOptions: HttpOptions = {}) => {
@@ -74,7 +74,7 @@ export const createHttpLink = (linkOptions: HttpOptions = {}) => {
       const doIt = async () => {
         const startTime = performance.now()
         const key = tokenToKey(token)
-        ;(options as any).body = bitArrayToUint8Array(aesEncrypt(key, json))
+        ;(options as any).body = bitArrayToUint8Array(chachaEncrypt(key, json))
         const encryptTime = performance.now()
         Promise.race([fetch(chosenURI, options), new Promise((_, reject) => setTimeout(() => reject(new Error('connection_timeout')), 30000))])
           .then(async (response: any) => {
@@ -86,7 +86,7 @@ export const createHttpLink = (linkOptions: HttpOptions = {}) => {
             } else {
               const text = await response.arrayBuffer()
               const apiEndTime = performance.now()
-              const r = aesDecrypt(key, arrayBufferToBitArray(text))
+              const r = chachaDecrypt(key, arrayBufferToBitArray(text))
               const decryptEndTime = performance.now()
               console.info(`[response] ${r}`)
               console.info(`[time] encrypt: ${encryptTime - startTime}ms, api: ${apiEndTime - encryptTime}ms, decrypt: ${decryptEndTime - apiEndTime}ms`)

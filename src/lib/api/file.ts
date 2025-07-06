@@ -1,6 +1,6 @@
 import { arrayBufferToHex } from '../strutil'
 import { getApiBaseUrl } from './api'
-import { aesEncrypt, bitArrayToBase64 } from './crypto'
+import { chachaEncrypt, bitArrayToBase64 } from './crypto'
 import * as sjcl from 'sjcl'
 
 declare global {
@@ -70,7 +70,7 @@ export function encryptUrlParams(key: sjcl.BitArray | null, params: string) {
     return ''
   }
 
-  const enc = aesEncrypt(key, params)
+  const enc = chachaEncrypt(key, params)
   return bitArrayToBase64(enc)
 }
 
@@ -97,7 +97,7 @@ export function getFileId(key: sjcl.BitArray | null, path: string, mediaId: stri
     return fileIdMap.get(path) ?? ''
   }
 
-  const enc = aesEncrypt(key, mediaId ? JSON.stringify({ path, mediaId }) : path)
+  const enc = chachaEncrypt(key, mediaId ? JSON.stringify({ path, mediaId }) : path)
   const id = bitArrayToBase64(enc)
   fileIdMap.set(path, id)
   return id

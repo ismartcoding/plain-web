@@ -191,7 +191,8 @@ export interface ITagRelationStub {
 
 export interface IChatItem extends IData {
   id: string
-  isMe: boolean
+  fromId: string
+  toId: string
   createdAt: string
   content: string
   _content: any
@@ -341,6 +342,7 @@ export interface IApp {
   downloadsDir: string
   developerMode: boolean
   favoriteFolders: IFavoriteFolder[]
+  customChatFolder: string
 }
 
 export interface IBreadcrumbItem {

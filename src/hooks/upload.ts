@@ -82,7 +82,7 @@ export const useChatFilesUpload = () => {
         const file = files[i]
         items.push({
           id: shortUUID(),
-          dir: baseDir + '/' + getFileDir(file.name),
+          dir: baseDir,
           fileName: file.name,
           file,
           status: 'created',

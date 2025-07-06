@@ -51,13 +51,15 @@ export const appFragment = gql`
       rootPath
       fullPath
     }
+    customChatFolder
   }
   ${playlistAudioFragment}
 `
 export const chatItemFragment = gql`
   fragment ChatItemFragment on ChatItem {
     id
-    isMe
+    fromId
+    toId
     createdAt
     content
     _content @client
