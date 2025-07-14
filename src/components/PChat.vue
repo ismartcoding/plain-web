@@ -339,6 +339,10 @@ function openFolder() {
 }
 
 onMounted(() => {
+  emitter.on('chat_settings_update', async (data: any) => {
+    emitter.emit('refetch_app')
+  })
+
   emitter.on('message_created', async (data: any[]) => {
     const client = resolveClient('a')
     const items = []

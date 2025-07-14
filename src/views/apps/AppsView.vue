@@ -75,7 +75,7 @@
       </template>
     </div>
     <div v-if="!loading && items.length === 0" class="no-data-placeholder">
-      {{ $t(noDataKey(loading)) }}
+      {{ $t(noDataKey(loading, app.permissions, 'QUERY_ALL_PACKAGES')) }}
     </div>
     <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" />
     <input ref="fileInput" style="display: none" type="file" accept=".apk" multiple @change="uploadChanged" />
