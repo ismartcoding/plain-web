@@ -138,7 +138,7 @@ const {
   document: createChatItemGQL,
   options: {
     update: (cache: ApolloCache<any>, data: any) => {
-      insertCache(cache, data.data.createChatItem, chatItemsGQL)
+      insertCache(cache, data.data.createChatItem, chatItemsGQL, { id: 'local' })
     },
   },
 })
@@ -354,7 +354,7 @@ onMounted(() => {
       }
       items.push({ ...item, data: data, __typename: 'ChatItem' })
     }
-    insertCache(client.cache, items, chatItemsGQL)
+    insertCache(client.cache, items, chatItemsGQL, { id: 'local' })
     scrollBottom()
   })
 
