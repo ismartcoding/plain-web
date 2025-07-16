@@ -2,7 +2,7 @@ import { stringToArrayBuffer } from '../strutil'
 import * as sjcl from 'sjcl'
 import _ from './sha512'
 import { arrayBufferFromBits, arrayBuffertoBits } from './sjcl-arraybuffer'
-import { chacha20poly1305 } from '@noble/ciphers/chacha'
+import { xchacha20poly1305 } from '@noble/ciphers/chacha'
 import { randomBytes } from '@noble/ciphers/webcrypto'
 
 export function sha512(input: string): string {
@@ -29,24 +29,8 @@ function bytesToBitArray(bytes: Uint8Array): sjcl.BitArray {
   return arrayBuffertoBits(buffer)
 }
 
-/**
- * ChaCha20-Poly1305 encryption function
- * 
- * This implementation follows RFC 8439 standard:
- * - Uses 96-bit (12 bytes) nonce
- * - Uses 256-bit (32 bytes) key
- * - Outputs: nonce(12) + ciphertext + auth_tag(16)
- * 
- * Security considerations:
- * - Never reuse the same nonce with the same key
- * - Consider using a counter-based nonce for better security
- * - Random nonces are acceptable but have birthday collision risk after ~2^48 messages
- */
 export function chachaEncrypt(key: sjcl.BitArray, plaintext: string): sjcl.BitArray {
-  // Generate 12 bytes random nonce (RFC 8439 standard)
-  // Note: For production systems, consider using a counter-based nonce
-  // to avoid the birthday paradox collision risk with random nonces
-  const nonce = randomBytes(12)
+  const nonce = randomBytes(24)
   
   // Convert key to 32-byte Uint8Array
   const keyBytes = bitArrayToBytes(key)
@@ -57,8 +41,7 @@ export function chachaEncrypt(key: sjcl.BitArray, plaintext: string): sjcl.BitAr
   // Convert plaintext to Uint8Array
   const plaintextBytes = new TextEncoder().encode(plaintext)
   
-  // Use ChaCha20-Poly1305 encryption
-  const cipher = chacha20poly1305(key32, nonce)
+  const cipher = xchacha20poly1305(key32, nonce)
   const ciphertext = cipher.encrypt(plaintextBytes)
   
   // Combine nonce and ciphertext (standard format: nonce + ciphertext + tag)
@@ -69,24 +52,13 @@ export function chachaEncrypt(key: sjcl.BitArray, plaintext: string): sjcl.BitAr
   return bytesToBitArray(result)
 }
 
-/**
- * ChaCha20-Poly1305 decryption function
- * 
- * Expects input format: nonce(12) + ciphertext + auth_tag(16)
- * Returns decrypted plaintext or throws error on authentication failure
- */
 export function chachaDecrypt(key: sjcl.BitArray, data: sjcl.BitArray): string {
   const dataBytes = bitArrayToBytes(data)
   
-  // Minimum size check: nonce(12) + tag(16) = 28 bytes
-  if (dataBytes.length < 28) {
-    throw new Error('Invalid ciphertext: too short')
-  }
-  
-  // Extract nonce (first 12 bytes)
-  const nonce = dataBytes.slice(0, 12)
+  // Extract nonce (first 24 bytes)
+  const nonce = dataBytes.slice(0, 24)
   // Extract ciphertext + tag (remaining bytes)
-  const ciphertext = dataBytes.slice(12)
+  const ciphertext = dataBytes.slice(24)
   
   // Convert key to 32-byte Uint8Array
   const keyBytes = bitArrayToBytes(key)
@@ -95,7 +67,7 @@ export function chachaDecrypt(key: sjcl.BitArray, data: sjcl.BitArray): string {
   
   try {
     // Use ChaCha20-Poly1305 decryption
-    const cipher = chacha20poly1305(key32, nonce)
+    const cipher = xchacha20poly1305(key32, nonce)
     const plaintext = cipher.decrypt(ciphertext)
     
     return new TextDecoder().decode(plaintext)
