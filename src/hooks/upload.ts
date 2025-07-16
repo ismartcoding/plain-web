@@ -1,7 +1,6 @@
 import { ref, type Ref } from 'vue'
 import { type IUploadItem } from '@/stores/temp'
 import { shortUUID } from '@/lib/strutil'
-import { getFileDir } from './files'
 
 function createUploadItem(file: File, dir: string): IUploadItem {
   return {
@@ -43,6 +42,33 @@ export const useFileUpload = (uploads: Ref<IUploadItem[]>) => {
 export const useDragDropUpload = (uploads: Ref<IUploadItem[]>) => {
   const dropping = ref(false)
 
+  const readDirectory = async (entry: FileSystemDirectoryEntry, basePath = ''): Promise<Array<{ file: File; relativePath: string }>> => {
+    const files: Array<{ file: File; relativePath: string }> = []
+    const reader = entry.createReader()
+    
+    const readEntries = (): Promise<FileSystemEntry[]> => {
+      return new Promise((resolve) => {
+        reader.readEntries(resolve)
+      })
+    }
+
+    const entries = await readEntries()
+    for (const entry of entries) {
+      if (entry.isFile) {
+        const file = await new Promise<File>((resolve) => {
+          (entry as FileSystemFileEntry).file(resolve)
+        })
+        const relativePath = basePath ? `${basePath}/${entry.name}` : entry.name
+        files.push({ file, relativePath })
+      } else if (entry.isDirectory) {
+        const subPath = basePath ? `${basePath}/${entry.name}` : entry.name
+        const subFiles = await readDirectory(entry as FileSystemDirectoryEntry, subPath)
+        files.push(...subFiles)
+      }
+    }
+    return files
+  }
+
   return {
     dropping,
     fileDragEnter(e: DragEvent) {
@@ -53,22 +79,44 @@ export const useDragDropUpload = (uploads: Ref<IUploadItem[]>) => {
     fileDragLeave() {
       dropping.value = false
     },
-    dropFiles(e: DragEvent, dir: string, isValid: (file: File) => boolean) {
+    async dropFiles(e: DragEvent, dir: string, isValid: (file: File) => boolean) {
       dropping.value = false
-      const files = e.dataTransfer?.files
-      if (!files) {
+      const items = e.dataTransfer?.items
+      if (!items) {
         return
       }
-      const items = []
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i]
-        if (!isValid(file)) {
-          continue
+      
+      const allFileItems: Array<{ file: File; relativePath: string }> = []
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i]
+        if (item.kind === 'file') {
+          const entry = item.webkitGetAsEntry()
+          if (entry?.isFile) {
+            const file = item.getAsFile()
+            if (file) allFileItems.push({ file, relativePath: file.name })
+          } else if (entry?.isDirectory) {
+            const dirFiles = await readDirectory(entry as FileSystemDirectoryEntry, entry.name)
+            allFileItems.push(...dirFiles)
+          }
         }
-        items.push(createUploadItem(file, dir))
       }
-      if (items.length > 0) {
-        uploads.value = [...uploads.value, ...items]
+
+      const uploadItems = []
+      for (const fileItem of allFileItems) {
+        if (isValid(fileItem.file)) {
+          const file = fileItem.file
+          const pathParts = fileItem.relativePath.split('/')
+          let targetDir = dir
+          if (pathParts.length > 1) {
+            const subPath = pathParts.slice(0, -1).join('/')
+            targetDir = dir.endsWith('/') ? dir + subPath : dir + '/' + subPath
+          }
+          uploadItems.push(createUploadItem(file, targetDir))
+        }
+      }
+      
+      if (uploadItems.length > 0) {
+        uploads.value = [...uploads.value, ...uploadItems]
       }
     },
   }
