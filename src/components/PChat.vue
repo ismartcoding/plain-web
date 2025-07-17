@@ -347,6 +347,9 @@ onMounted(() => {
     const client = resolveClient('a')
     const items = []
     for (const item of data) {
+      if (item.toId !== 'local') {
+        continue
+      }
       let data = null
       if (item.data) {
         data = item.data
@@ -354,8 +357,10 @@ onMounted(() => {
       }
       items.push({ ...item, data: data, __typename: 'ChatItem' })
     }
-    insertCache(client.cache, items, chatItemsGQL, { id: 'local' })
-    scrollBottom()
+    if (items.length > 0) {
+      insertCache(client.cache, items, chatItemsGQL, { id: 'local' })
+      scrollBottom()
+    }
   })
 
   emitter.on('message_deleted', async (data: string[]) => {

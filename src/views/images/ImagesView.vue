@@ -100,7 +100,7 @@
         class="media-item"
         :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
         @click.stop="handleItemClick($event, item, i, view)"
-        @mouseover="handleMouseOver($event, i)"
+        @mouseenter.stop="handleMouseOver($event, i)"
       >
         <img class="image-thumb image" :src="getFileUrl(item.fileId, '&w=200&h=200')" onerror="this.src='/broken-image.png'" />
         <v-icon-button v-if="shiftEffectingIds.includes(item.id)" class="btn-checkbox" @click.stop="toggleSelect($event, item, i)">

@@ -6,7 +6,6 @@ import { openModal } from '@/components/modal'
 import DeleteItemsConfirm from '@/components/DeleteItemsConfirm.vue'
 import type { DocumentNode } from 'graphql'
 
-
 export const useSelectable = (items: Ref<IData[]>) => {
   const allChecked = ref(false)
   const realAllChecked = ref(false)

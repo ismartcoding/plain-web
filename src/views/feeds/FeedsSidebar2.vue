@@ -50,7 +50,7 @@
                 view(item)
               })
             "
-            @mouseover="handleMouseOver($event, index)"
+            @mouseenter.stop="handleMouseOver($event, index)"
           >
             <div class="title">
               <v-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, index)" />

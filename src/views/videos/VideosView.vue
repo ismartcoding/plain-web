@@ -99,7 +99,7 @@
         class="media-item"
         :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
         @click.stop="handleItemClick($event, item, i, view)"
-        @mouseover="handleMouseOver($event, i)"
+        @mouseenter.stop="handleMouseOver($event, i)"
       >
         <img v-if="imageErrorIds.includes(item.id)" :src="`/ficons/${getFileExtension(item.path)}.svg`" class="image svg" />
         <img v-else class="image image-thumb" :src="getFileUrl(item.fileId, '&w=200&h=200')" @error="onImageError(item.id)" />

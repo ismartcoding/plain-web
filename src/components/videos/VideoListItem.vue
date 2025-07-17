@@ -4,7 +4,7 @@
     class="media-item selectable-card"
     :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
     @click.stop="handleItemClick($event, item, index, () => view(index))"
-    @mouseover="handleMouseOver($event, index)"
+    @mouseenter.stop="handleMouseOver($event, index)"
   >
     <div class="start">
       <v-checkbox v-if="shiftEffectingIds.includes(item.id)" class="checkbox" touch-target="wrapper" :checked="shouldSelect" @click.stop="toggleSelect($event, item, index)" />
@@ -49,7 +49,7 @@
     :is-selecting="shiftEffectingIds.includes(item.id)"
     :checkbox-checked="shiftEffectingIds.includes(item.id) ? shouldSelect : selectedIds.includes(item.id)"
     @click="handleItemClick($event, item, index, () => view(index))"
-    @mouseover="handleMouseOver($event, index)"
+    @mouseenter.stop="handleMouseOver($event, index)"
     @checkbox-click="(event: MouseEvent) => toggleSelect(event, item, index)"
   >
     <template #image>
