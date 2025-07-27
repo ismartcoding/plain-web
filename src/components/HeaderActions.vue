@@ -32,11 +32,11 @@
         </div>
       </div>
 
-      <!-- Language Section -->
-      <div class="dropdown-section">
-        <div class="dropdown-section-title">{{ t('header_actions.language') }}</div>
-        <div v-for="lang in langs" :key="lang.value" class="dropdown-item" @click="changeLang(lang.value)">
-          {{ lang.name }}
+      <!-- Logout Section -->
+      <div v-if="props.loggedIn" class="dropdown-section">
+        <div class="dropdown-item" @click="logout">
+          <i-material-symbols:logout-rounded />
+          {{ t('header_actions.logout') }}
         </div>
       </div>
 
@@ -46,11 +46,11 @@
         <theme-changer />
       </div>
 
-      <!-- Logout Section -->
-      <div v-if="props.loggedIn" class="dropdown-section">
-        <div class="dropdown-item" @click="logout">
-          <i-material-symbols:logout-rounded />
-          {{ t('header_actions.logout') }}
+      <!-- Language Section -->
+      <div class="dropdown-section">
+        <div class="dropdown-section-title">{{ t('header_actions.language') }}</div>
+        <div v-for="lang in langs" :key="lang.value" class="dropdown-item" @click="changeLang(lang.value)">
+          {{ lang.name }}
         </div>
       </div>
     </v-dropdown>
@@ -75,7 +75,6 @@ const tempStore = useTempStore()
 const { app } = storeToRefs(tempStore)
 const menuVisible = ref(false)
 const { locale, t } = useI18n()
-
 
 const isTablet = inject('isTablet')
 const hasTasks = computed(() => {
@@ -129,7 +128,6 @@ function logout() {
 .dropdown-section {
   &:not(:last-child) {
     border-bottom: 1px solid var(--border-color);
-    padding-bottom: 8px;
   }
 }
 
