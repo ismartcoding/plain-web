@@ -48,6 +48,8 @@ import { type IFile, canOpenInBrowser, canView, enrichFile } from '@/lib/file'
 import { getFileUrlByPath } from '@/lib/api/file'
 import { noDataKey } from '@/lib/list'
 import { useDownload, useView } from '@/hooks/files'
+import { openModal } from '@/components/modal'
+import DownloadMethodModal from '@/components/DownloadMethodModal.vue'
 import { useTempStore, type IUploadItem } from '@/stores/temp'
 import { shortUUID } from '@/lib/strutil'
 import { initMutation, setTempValueGQL } from '@/lib/api/mutation'
@@ -72,7 +74,7 @@ const items = ref<IFile[]>([])
 
 const { selectedIds, allChecked, realAllChecked, clearSelection, toggleAllChecked, toggleSelect, total, checked, shiftEffectingIds, handleItemClick, handleMouseOver, selectAll, shouldSelect } =
   useSelectable(items)
-const { downloadFile, downloadFiles } = useDownload(urlTokenKey)
+const { downloadFile, downloadFiles, downloadDir } = useDownload(urlTokenKey)
 const { view } = useView(sources, (s: ISource[], index: number) => {
   tempStore.lightbox = {
     sources: s,
@@ -127,13 +129,40 @@ const { loading, fetch } = initLazyQuery({
 })
 
 const downloadItems = () => {
-  setTempValue({
-    key: shortUUID(),
-    value: JSON.stringify(
-      selectedIds.value.map((it: string) => ({
-        path: it,
-      }))
-    ),
+  const selected = items.value.filter((it) => selectedIds.value.includes(it.id))
+  if (selected.length === 0) {
+    toast(t('select_first'), 'error')
+    return
+  }
+
+  if (selected.length === 1 && !selected[0].isDir) {
+    downloadFile(selected[0].path)
+    clearSelection()
+    return
+  }
+
+  openModal(DownloadMethodModal, {
+    onEach: async () => {
+      for (const it of selected) {
+        if (it.isDir) {
+          downloadDir(it.path)
+        } else {
+          downloadFile(it.path)
+        }
+        await new Promise((resolve) => setTimeout(resolve, 250))
+      }
+      clearSelection()
+    },
+    onZip: () => {
+      setTempValue({
+        key: shortUUID(),
+        value: JSON.stringify(
+          selectedIds.value.map((it: string) => ({
+            path: it,
+          }))
+        ),
+      })
+    },
   })
 }
 

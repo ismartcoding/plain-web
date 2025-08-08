@@ -51,6 +51,8 @@ import { sha512, hashToKey, chachaEncrypt, chachaDecrypt, bitArrayToUint8Array }
 import { getApiBaseUrl, getApiHeaders, getWebSocketBaseUrl } from '@/lib/api/api'
 import { getAccurateAgent } from '@/lib/agent/agent'
 import { arrayBuffertoBits } from '@/lib/api/sjcl-arraybuffer'
+import { randomUUID } from '@/lib/strutil'
+import { tokenToKey } from '@/lib/api/file'
 const { handleSubmit, isSubmitting } = useForm()
 const showError = ref(false)
 const webAccessDisabled = ref(true)
@@ -65,10 +67,20 @@ const showPasswordInput = ref(false)
 
 
 async function initRequest() {
-  const r = await fetch(`${getApiBaseUrl()}/init`, {
+  const token = localStorage.getItem('auth_token') ?? ''
+  const options: RequestInit & { headers: Record<string, string> } = {
     method: 'POST',
-    headers: getApiHeaders(),
-  })
+    headers: getApiHeaders() as Record<string, string>,
+  }
+
+  if (token) {
+    const uuid = randomUUID()
+    const key = tokenToKey(token)
+    const enc = chachaEncrypt(key, uuid)
+    options.body = bitArrayToUint8Array(enc)
+  }
+
+  const r = await fetch(`${getApiBaseUrl()}/init`, options)
   if (r.status === 403) {
     showError.value = true
     webAccessDisabled.value = true
@@ -77,7 +89,13 @@ async function initRequest() {
   }
   
   webAccessDisabled.value = false
-  const pwd = await r.text()
+  const bodyText = await r.text()
+  if (r.status === 200 && token && !bodyText) {
+    window.location.href = router.currentRoute.value.query['redirect']?.toString() ?? '/'
+    return
+  }
+
+  const pwd = bodyText
   if (pwd) {
     password.value = pwd
     showPasswordInput.value = false

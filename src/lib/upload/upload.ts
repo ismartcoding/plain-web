@@ -1,4 +1,5 @@
 import type { IUploadItem } from '@/stores/temp'
+import emitter from '@/plugins/eventbus'
 import { arrayBufferToHex } from '../strutil'
 import { getApiBaseUrl } from '../api/api'
 import { chachaEncrypt, bitArrayToUint8Array } from '../api/crypto'
@@ -149,6 +150,7 @@ async function uploadDirect(upload: IUploadItem, replace: boolean, key: sjcl.Bit
         (e) => {
           if (e.lengthComputable) {
             updateUploadProgress(upload, e.loaded)
+            emitter.emit('upload_progress', upload)
           }
         },
         false
@@ -169,12 +171,15 @@ async function uploadDirect(upload: IUploadItem, replace: boolean, key: sjcl.Bit
             upload.fileName = xhr.responseText
             upload.status = 'done'
             resolve({ fileName: xhr.responseText })
+            emitter.emit('upload_progress', upload)
           } else if (xhr.status === 0) {
             resolve({ error: 'Upload aborted' })
+            emitter.emit('upload_progress', upload)
           } else {
             upload.status = 'error'
             upload.error = xhr.responseText
             resolve({ error: xhr.responseText })
+            emitter.emit('upload_progress', upload)
           }
         }
       }
@@ -183,11 +188,13 @@ async function uploadDirect(upload: IUploadItem, replace: boolean, key: sjcl.Bit
         upload.status = 'error'
         upload.error = 'Network error'
         resolve({ error: 'Network error' })
+        emitter.emit('upload_progress', upload)
       }
 
       xhr.onabort = () => {
         console.log('Upload aborted')
         resolve({ error: 'Upload aborted' })
+        emitter.emit('upload_progress', upload)
       }
 
       try {
@@ -402,6 +409,7 @@ async function uploadChunk(upload: IUploadItem, chunkData: IUploadChunk & { star
             const uploadedInThisChunk = e.loaded - excludeSize
             const totalUploaded = chunkData.start + uploadedInThisChunk
             updateUploadProgress(upload, totalUploaded)
+            emitter.emit('upload_progress', upload)
           }
         }
       },
@@ -409,26 +417,31 @@ async function uploadChunk(upload: IUploadItem, chunkData: IUploadChunk & { star
     )
 
     xhr.onreadystatechange = function () {
-      if (xhr.readyState === 4) {
-        if (xhr.status === 201) {
-          resolve(true)
-        } else if (xhr.status === 0) {
-          console.log(`Chunk ${chunkData.index} upload was aborted`)
-          resolve(false)
-        } else {
-          console.warn(`Chunk ${chunkData.index} upload failed with status ${xhr.status}`)
-          resolve(false)
+        if (xhr.readyState === 4) {
+          if (xhr.status === 201) {
+            emitter.emit('upload_progress', upload)
+            resolve(true)
+          } else if (xhr.status === 0) {
+            console.log(`Chunk ${chunkData.index} upload was aborted`)
+            emitter.emit('upload_progress', upload)
+            resolve(false)
+          } else {
+            console.warn(`Chunk ${chunkData.index} upload failed with status ${xhr.status}`)
+            emitter.emit('upload_progress', upload)
+            resolve(false)
+          }
         }
-      }
     }
 
     xhr.onerror = () => {
       console.warn(`Chunk ${chunkData.index} upload network error`)
+      emitter.emit('upload_progress', upload)
       resolve(false)
     }
 
     xhr.onabort = () => {
       console.log(`Chunk ${chunkData.index} upload was aborted`)
+      emitter.emit('upload_progress', upload)
       resolve(false)
     }
 

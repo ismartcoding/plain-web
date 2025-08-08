@@ -1,11 +1,11 @@
-import { upload } from '@/lib/upload/upload'
-import { createChatItemGQL, initMutation, insertCache } from '@/lib/api/mutation'
+// use upload queue instead of calling upload directly
+import { addUploadTask } from '@/lib/upload/upload-queue'
+import { createChatItemGQL, insertCache } from '@/lib/api/mutation'
 import type { IChatItem } from '@/lib/interfaces'
 import type { IUploadItem } from '@/stores/temp'
-import type { ApolloCache } from '@apollo/client/core'
-import { chunk } from 'lodash-es'
-import { getFileDir } from './files'
+import apollo from '@/plugins/apollo'
 import { chatItemsGQL } from '@/lib/api/query'
+import emitter from '@/plugins/eventbus'
 
 interface IChatTask {
   uploads: IUploadItem[]
@@ -13,66 +13,77 @@ interface IChatTask {
 }
 
 export const useTasks = () => {
-  const tasks: IChatTask[] = [] // send message tasks
-  let pending: IChatTask | null = null
+  // Active tasks keyed by message id
+  const activeTasks: Map<string, IChatTask> = new Map()
+  const finalized: Set<string> = new Set()
+  let subscribed = false
 
-  const { mutate } = initMutation({
-    document: createChatItemGQL,
-    options: {
-      update: (cache: ApolloCache<any>, data: any) => {
-        cache.evict({ id: cache.identify({ __typename: 'ChatItem', id: pending?.item.id }) })
-        insertCache(cache, data.data.createChatItem, chatItemsGQL, { id: 'local' })
-        signalEnd()
-      },
-    },
-  })
+  const tryFinalize = async (task: IChatTask) => {
+    if (finalized.has(task.item.id)) return
+    const allDone = task.uploads.every((u) => u.status === 'done' || u.status === 'error')
+    if (!allDone) return
 
-  const signalEnd = () => {
-    pending = null
-    if (tasks.length) {
-      doNext()
+    finalized.add(task.item.id)
+    activeTasks.delete(task.item.id)
+
+    const c = task.item._content
+    const items: any[] = []
+    c.value.items.forEach((it: any, index: number) => {
+      const fileName = task.uploads[index].fileName
+      items.push({
+        uri: it.isAppDir ? `app://` + fileName : it.dir + '/' + fileName,
+        size: it.size,
+        duration: it.duration,
+        width: it.width,
+        height: it.height,
+        summary: it.summary,
+      })
+    })
+
+    const res = await apollo.a.mutate({ mutation: createChatItemGQL, variables: { content: JSON.stringify({ type: c.type, value: { items } }) } })
+    const cache = apollo.a.cache
+    cache.evict({ id: cache.identify({ __typename: 'ChatItem', id: task.item.id }) })
+    if (res?.data?.createChatItem) {
+      insertCache(cache, res.data.createChatItem, chatItemsGQL, { id: 'local' })
     }
   }
 
-  const doNext = async () => {
-    if (pending) {
-      return
-    }
-
-    pending = tasks.shift() || null
-    if (pending) {
-      const chunked = chunk(pending.uploads, 5)
-      for (const it of chunked) {
-        await Promise.all(
-          it.map(async (item) => {
-            await upload(item, false)
-          })
-        )
+  const ensureSubscribed = () => {
+    if (subscribed) return
+    // finalize on success event
+    emitter.on('upload_task_done', (u: IUploadItem) => {
+      for (const task of activeTasks.values()) {
+        if (task.uploads.some((it) => it.id === u.id)) {
+          tryFinalize(task)
+          break
+        }
       }
-
-      const c = pending.item._content
-      const items: any[] = []
-      c.value.items.forEach((it: any, index: number) => {
-        const fileName = pending!.uploads[index].fileName
-        items.push({
-          uri: it.isAppDir ? `app://` + fileName : it.dir + '/' + fileName,
-          size: it.size,
-          duration: it.duration,
-          width: it.width,
-          height: it.height,
-          summary: it.summary,
-        })
-      })
-      mutate({ content: JSON.stringify({ type: c.type, value: { items } }) })
-    }
+    })
+    // also react to progress/error to avoid waiting forever
+    emitter.on('upload_progress', (u: IUploadItem) => {
+      for (const task of activeTasks.values()) {
+        if (task.uploads.some((it) => it.id === u.id)) {
+          tryFinalize(task)
+          break
+        }
+      }
+    })
+    subscribed = true
   }
 
   return {
     async enqueue(item: IChatItem, uploads: IUploadItem[]) {
-      tasks.push({ item, uploads })
-      if (pending == null) {
-        await doNext()
-      }
+      ensureSubscribed()
+      const task: IChatTask = { item, uploads }
+      activeTasks.set(item.id, task)
+      // start all uploads immediately; concurrency is controlled by upload-queue (maxConcurrent)
+      uploads.forEach((u) => addUploadTask(u, false))
+      // in case some finished synchronously, try finalize now
+      await tryFinalize(task)
+    },
+    cancel(messageId: string) {
+      finalized.add(messageId)
+      activeTasks.delete(messageId)
     },
   }
 }

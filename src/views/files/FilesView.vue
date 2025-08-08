@@ -17,23 +17,23 @@
       </div>
       <template v-if="checked">
         <v-icon-button v-tooltip="$t('copy')" @click.stop="copyItems">
-            <i-material-symbols:content-copy-outline-rounded />
+          <i-material-symbols:content-copy-outline-rounded />
         </v-icon-button>
         <v-icon-button v-tooltip="$t('cut')" @click.stop="cutItems">
-            <i-material-symbols:content-cut-rounded />
+          <i-material-symbols:content-cut-rounded />
         </v-icon-button>
         <v-icon-button v-tooltip="$t('delete')" @click.stop="deleteItems">
-            <i-material-symbols:delete-forever-outline-rounded />
+          <i-material-symbols:delete-forever-outline-rounded />
         </v-icon-button>
         <v-icon-button v-tooltip="$t('download')" :loading="downloadLoading" @click.stop="downloadItems">
-            <i-material-symbols:download-rounded />
+          <i-material-symbols:download-rounded />
         </v-icon-button>
       </template>
     </div>
 
     <div v-if="!isPhone && !checked" class="actions">
       <file-search-input :filter="filter" :parent="rootDir" :get-url="getUrl" :navigate-to-dir="navigateToDir" :show-chips="!isPhone" :is-phone="isPhone" />
-      <FilesActionButtons 
+      <FilesActionButtons
         :current-dir="filter.parent"
         :can-paste="canPaste()"
         :pasting="pasting"
@@ -53,21 +53,21 @@
 
   <div v-if="isPhone && !checked" class="secondary-actions">
     <file-search-input :filter="filter" :parent="rootDir" :get-url="getUrl" :navigate-to-dir="navigateToDir" :show-chips="!isPhone" :is-phone="isPhone" />
-    <FilesActionButtons 
-        :current-dir="filter.parent"
-        :can-paste="canPaste()"
-        :pasting="pasting"
-        :refreshing="refreshing"
-        :sorting="sorting"
-        :sort-items="sortItems"
-        :file-sort-by="fileSortBy"
-        @create-dir="createDir"
-        @upload-files="uploadFilesClick"
-        @upload-dir="uploadDirClick"
-        @paste-dir="pasteDir"
-        @refresh-current-dir="refreshCurrentDir"
-        @sort="sort"
-      />
+    <FilesActionButtons
+      :current-dir="filter.parent"
+      :can-paste="canPaste()"
+      :pasting="pasting"
+      :refreshing="refreshing"
+      :sorting="sorting"
+      :sort-items="sortItems"
+      :file-sort-by="fileSortBy"
+      @create-dir="createDir"
+      @upload-files="uploadFilesClick"
+      @upload-dir="uploadDirClick"
+      @paste-dir="pasteDir"
+      @refresh-current-dir="refreshCurrentDir"
+      @sort="sort"
+    />
   </div>
 
   <FileSearchFilters v-if="isPhone" class="mobile-search-filters" :filter="filter" @filter-change="onFilterChange" />
@@ -135,6 +135,7 @@ import { useCreateDir, useRename, useStats, useDownload, useView, useCopyPaste, 
 import { useDragDropUpload, useFileUpload } from '@/hooks/upload'
 import { useTempStore, type IUploadItem } from '@/stores/temp'
 import { openModal } from '@/components/modal'
+import DownloadMethodModal from '@/components/DownloadMethodModal.vue'
 import DeleteFileConfirm from '@/components/DeleteFileConfirm.vue'
 import EditValueModal from '@/components/EditValueModal.vue'
 import { useRoute } from 'vue-router'
@@ -273,13 +274,45 @@ setTempValueDone((r: any) => {
 })
 
 const downloadItems = () => {
-  setTempValue({
-    key: shortUUID(),
-    value: JSON.stringify(
-      selectedIds.value.map((it: string) => ({
-        path: it,
-      }))
-    ),
+  const selected = items.value.filter((it) => selectedIds.value.includes(it.id))
+  if (selected.length === 0) {
+    toast(t('select_first'), 'error')
+    return
+  }
+
+  if (selected.length === 1) {
+    const item = selected[0]
+    if (item.isDir) {
+      downloadDir(item.path)
+    } else {
+      downloadFile(item.path)
+    }
+    clearSelection()
+    return
+  }
+
+  openModal(DownloadMethodModal, {
+    onEach: async () => {
+      for (const it of selected) {
+        if (it.isDir) {
+          downloadDir(it.path)
+        } else {
+          downloadFile(it.path)
+        }
+        await new Promise((resolve) => setTimeout(resolve, 250))
+      }
+      clearSelection()
+    },
+    onZip: () => {
+      setTempValue({
+        key: shortUUID(),
+        value: JSON.stringify(
+          selectedIds.value.map((it: string) => ({
+            path: it,
+          }))
+        ),
+      })
+    },
   })
 }
 
@@ -445,14 +478,17 @@ function copyItem(item: IFile) {
 
 function copyLinkItem(item: IFile) {
   const url = getFileUrlByPath(urlTokenKey.value, item.path)
-  
+
   // Try modern clipboard API first
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(url).then(() => {
-      toast(t('link_copied'))
-    }).catch(() => {
-      fallbackCopyToClipboard(url)
-    })
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        toast(t('link_copied'))
+      })
+      .catch(() => {
+        fallbackCopyToClipboard(url)
+      })
   } else {
     // Fallback for older browsers or non-HTTPS environments
     fallbackCopyToClipboard(url)
@@ -470,11 +506,11 @@ function fallbackCopyToClipboard(text: string) {
     document.body.appendChild(textArea)
     textArea.focus()
     textArea.select()
-    
+
     // Try to copy using execCommand
     const successful = document.execCommand('copy')
     document.body.removeChild(textArea)
-    
+
     if (successful) {
       toast(t('link_copied'))
     } else {
@@ -523,19 +559,21 @@ function addToFavoritesClick(item: IFile) {
   if (!item.isDir) {
     return
   }
-  
+
   // Determine the root path based on the link name
   let rootPath = rootDir.value
-  
+
   addFavoriteFolderMutation({
     rootPath: rootPath,
-    fullPath: item.path
-  }).then(() => {
-    toast(t('added'))
-  }).catch((error) => {
-    console.error('Error adding favorite folder:', error)
-    toast(t('error'), 'error')
+    fullPath: item.path,
   })
+    .then(() => {
+      toast(t('added'))
+    })
+    .catch((error) => {
+      console.error('Error adding favorite folder:', error)
+      toast(t('error'), 'error')
+    })
 }
 
 function onFilterChange(newFilter: IFileFilter) {
@@ -566,9 +604,6 @@ const fileRenamedHandler = (event: IFileRenamedEvent) => {
 function dropFiles2(e: DragEvent) {
   dropFiles(e, filter.parent, () => true)
 }
-
-
-
 
 onActivated(() => {
   q.value = decodeBase64(query.q?.toString() ?? '')

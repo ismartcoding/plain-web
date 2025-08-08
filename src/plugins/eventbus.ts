@@ -4,6 +4,7 @@ import mitt, { type Emitter } from 'mitt'
 
 type Events = {
   upload_task_done: IUploadItem
+  upload_progress: IUploadItem
   refetch_app: undefined
   play_audio: undefined
   do_play_audio: undefined

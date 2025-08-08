@@ -20,7 +20,7 @@
             <div class="chat-title">
               <span class="name">{{ $t(chatItem.fromId === 'me' ? 'me' : 'app_name') }}</span>
               <time v-tooltip="formatDateTimeFull(chatItem.createdAt)" class="time">{{ formatTime(chatItem.createdAt) }}</time>
-              <span v-if="chatItem.id.startsWith('new_')" class="sending">{{ $t('sending') }}</span>
+              <span v-if="chatItem.id.startsWith('new_')" class="sending">{{ sendingText(chatItem.id) }}</span>
               <i-material-symbols:expand-more-rounded class="bi bi-more" />
             </div>
           </template>
@@ -57,7 +57,7 @@ import { useI18n } from 'vue-i18n'
 import { createChatItemGQL, deleteChatItemGQL, initMutation, insertCache } from '@/lib/api/mutation'
 import { chatItemsGQL, initQuery } from '@/lib/api/query'
 import toast from './toaster'
-import { onMounted, ref, reactive } from 'vue'
+import { onMounted, ref, reactive, onUnmounted } from 'vue'
 import type { ApolloCache } from '@apollo/client/core'
 import { useTempStore } from '@/stores/temp'
 import type { IChatItem } from '@/lib/interfaces'
@@ -72,13 +72,28 @@ import { useTasks } from '@/hooks/chat'
 import { addLinksToURLs } from '@/lib/strutil'
 import { buildQuery } from '@/lib/search'
 import { replacePath } from '@/plugins/router'
+import type { IUploadItem } from '@/stores/temp'
+import { formatFileSize } from '@/lib/format'
 
 const { getUploads } = useChatFilesUpload()
 const { resolveClient } = useApolloClient()
 const scrollContainer = ref<HTMLDivElement>()
 const chatItems = ref<IChatItem[]>([])
 const menuVisible = reactive<Record<string, boolean>>({})
-const { enqueue: enqueueTask } = useTasks()
+const { enqueue: enqueueTask, cancel: cancelTask } = useTasks()
+// Track uploads and map them to temp chat item id for inline sending text
+const uploading = ref<IUploadItem[]>([])
+const messageUploads = reactive<Record<string, IUploadItem[]>>({})
+// map upload id -> message id to update targeted message quickly
+const uploadToMessage = new Map<string, string>()
+// aggregate progress cache per message for minimal recompute
+const sendingAgg = reactive<Record<string, { uploaded: number; speed: number }>>({})
+
+function sendingText(messageId: string) {
+  const agg = sendingAgg[messageId]
+  if (!agg) return t('sending') as unknown as string
+  return `${t('sending')} ${formatFileSize(agg.uploaded)} (${formatFileSize(agg.speed)}/s)`
+}
 
 const { app } = storeToRefs(useTempStore())
 const { externalFilesDir } = app.value
@@ -165,6 +180,8 @@ async function doUploadImages(files: File[]) {
 async function handleContentUpload(files: File[], contentType: string, options: { summary?: string } = {}) {
   const dir = app.value.customChatFolder || externalFilesDir
   const uploads = getUploads(dir, files);
+    // track uploads locally for inline progress display
+    uploads.forEach((u) => (u.status = 'pending'))
   const items = [];
   const valueItems: any[] = [];
   
@@ -223,6 +240,15 @@ async function handleContentUpload(files: File[], contentType: string, options: 
 
   
   items.push(item);
+  // map this message to uploads for sending text
+  messageUploads[item.id] = uploads
+  uploads.forEach((u) => uploadToMessage.set(u.id, item.id))
+  // init aggregate so UI shows immediately
+  sendingAgg[item.id] = {
+    uploaded: uploads.reduce((s, u) => s + (u.uploadedSize || 0), 0),
+    speed: uploads.reduce((s, u) => s + (u.uploadSpeed || 0), 0),
+  }
+  uploading.value = [...uploading.value, ...uploads]
   enqueueTask(item, uploads);
   const client = resolveClient('a');
   insertCache(client.cache, item, chatItemsGQL, { id: 'local' });
@@ -289,11 +315,10 @@ async function sendLongMessageAsFile(message: string) {
 
 function scrollBottom() {
   const div = scrollContainer.value
-  if (div) {
-    setTimeout(() => {
-      div.scrollTop = div.scrollHeight
-    }, 100)
-  }
+  if (!div) return
+  setTimeout(() => {
+    div.scrollTop = div.scrollHeight
+  }, 100)
 }
 
 createDone(() => {
@@ -313,6 +338,8 @@ const { mutate: deleteItem, loading: deleteLoading } = initMutation({
 function deleteMessage(id: string) {
   deleteId.value = id
   deleteItem({ id })
+  // also cancel any pending-upload task for this temp message id
+  cancelTask(id)
 }
 
 
@@ -342,6 +369,21 @@ onMounted(() => {
   emitter.on('chat_settings_update', async (data: any) => {
     emitter.emit('refetch_app')
   })
+
+  // update targeted message aggregate when any upload reports progress
+  const onProgress = (u: IUploadItem) => {
+    const mid = uploadToMessage.get(u.id)
+    if (!mid) return
+    const list = messageUploads[mid]
+    if (!list) return
+    sendingAgg[mid] = {
+      uploaded: list.reduce((s, it) => s + (it.uploadedSize || 0), 0),
+      speed: list.reduce((s, it) => s + (it.uploadSpeed || 0), 0),
+    }
+  }
+  emitter.on('upload_progress', onProgress)
+  // keep reference for cleanup
+  ;(onMounted as any)._chat_onProgress = onProgress
 
   emitter.on('message_created', async (data: any[]) => {
     const client = resolveClient('a')
@@ -397,9 +439,15 @@ onMounted(() => {
     }
   })
 })
+
+onUnmounted(() => {
+  const fn = (onMounted as any)._chat_onProgress
+  if (fn) emitter.off('upload_progress', fn)
+})
 </script>
 
 <style lang="scss" scoped>
+
 .chat-content {
   margin-top: 8px;
   max-width: 800px;
