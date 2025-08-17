@@ -20,7 +20,7 @@
             <v-icon-button v-tooltip="$t('fullscreen')" class="btn-enter-fullscreen" @click="requestFullscreen">
               <i-material-symbols:fullscreen-rounded />
             </v-icon-button>
-            <v-icon-button v-tooltip="$t('exit_fullscreen')" @click="exitFullscreen">
+            <v-icon-button v-tooltip="$t('exit_fullscreen')" class="btn-exit-fullscreen" @click="exitFullscreen">
               <i-material-symbols:fullscreen-exit-rounded />
             </v-icon-button>
           </template>
