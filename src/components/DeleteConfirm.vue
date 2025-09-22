@@ -30,7 +30,7 @@ const props = defineProps({
   },
   variables: {
     type: Function as PropType<() => any>,
-    default: () => ({}),
+    default: undefined,
   },
 })
 
