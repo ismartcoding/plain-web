@@ -198,7 +198,7 @@ import { sumBy } from 'lodash-es'
 import { useMainStore } from '@/stores/main'
 import { callGQL, initMutation } from '@/lib/api/mutation'
 import { replacePath } from '@/plugins/router'
-import type { IHomeStats, IStorageStatsItem } from '@/lib/interfaces'
+import type { IHomeStats, IStorageMount } from '@/lib/interfaces'
 import { buildQuery } from '@/lib/search'
 import { encodeBase64 } from '@/lib/strutil'
 
@@ -212,16 +212,21 @@ const callNumberError = ref(false)
 
 const { app, counter } = storeToRefs(useTempStore())
 
+const mounts = ref<IStorageMount[]>([])
+
 function openTab(fullPath: string) {
   replacePath(mainStore, fullPath)
 }
 
 function openFilesInternalStorage() {
+  const internalRoot =
+    mounts.value.find((m) => m.driveType === 'INTERNAL_STORAGE')?.mountPoint || app.value.internalStoragePath
+
   const q = buildQuery([
     {
       name: 'parent',
       op: '',
-      value: app.value.internalStoragePath,
+      value: internalRoot,
     },
     {
       name: 'type',
@@ -231,7 +236,7 @@ function openFilesInternalStorage() {
     {
       name: 'root_path',
       op: '',
-      value: app.value.internalStoragePath,
+      value: internalRoot,
     },
   ])
   replacePath(mainStore, `/files?q=${encodeBase64(q)}`)
@@ -265,6 +270,8 @@ initQuery({
       toast(t(error), 'error')
     } else {
       if (data) {
+        mounts.value = data.mounts ?? []
+
         counter.value.messages = data.messageCount
         counter.value.contacts = data.contactCount
         counter.value.calls = data.callCount
@@ -274,21 +281,10 @@ initQuery({
         counter.value.packages = data.packageCount
         counter.value.notes = data.noteCount
         counter.value.feedEntries = data.feedEntryCount
-        let totalBytes = data.storageStats.internal.totalBytes
-        let freeBytes = data.storageStats.internal.freeBytes
-        const sdcard = data.storageStats.sdcard
-        if (sdcard) {
-          totalBytes += sdcard.totalBytes
-          freeBytes += sdcard.freeBytes
-        }
-        const usb = data.storageStats.usb
-        if (usb.length) {
-          totalBytes += sumBy(usb, (it: IStorageStatsItem) => it.totalBytes)
-          freeBytes += sumBy(usb, (it: IStorageStatsItem) => it.freeBytes)
-        }
 
-        counter.value.total = totalBytes
-        counter.value.free = freeBytes
+        const vols = (data.mounts ?? []).filter((m) => (m.totalBytes ?? 0) > 0)
+        counter.value.total = sumBy(vols, (it) => it.totalBytes ?? 0)
+        counter.value.free = sumBy(vols, (it) => it.freeBytes ?? 0)
       }
     }
   },

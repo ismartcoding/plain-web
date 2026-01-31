@@ -27,11 +27,9 @@
       </template>
     </div>
     <div class="actions">
-      <search-input :filter="filter" :tags="tags" :get-url="getUrl" :show-trash="true" :show-chips="!isPhone" :is-phone="isPhone" />
       <v-outlined-button v-if="!filter.trash" class="btn-sm" @click.prevent="create">{{ $t('create') }}</v-outlined-button>
     </div>
   </div>
-  <SearchFilters v-if="isPhone" class="mobile-search-filters" :filter="filter" :tags="tags" :feeds="[]" :buckets="[]" :types="[]" @filter-change="onFilterChange" />
   <all-checked-alert
     :limit="limit"
     :total="total"
@@ -79,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, onActivated, onDeactivated, reactive, ref } from 'vue'
+import { inject, onActivated, onDeactivated, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatTimeAgo, formatDateTime } from '@/lib/format'
 import { notesGQL, initLazyQuery } from '@/lib/api/query'
@@ -112,15 +110,14 @@ const isPhone = inject('isPhone') as boolean
 const mainStore = useMainStore()
 const items = ref<INote[]>([])
 const { t } = useI18n()
-const { parseQ, buildQ } = useSearch()
+const { parseQ } = useSearch()
 const filter = reactive<IFilter>({
   tagIds: [],
   trash: false,
 })
 const dataType = DataType.NOTE
 const route = useRoute()
-const query = route.query
-const page = ref(parseInt(query.page?.toString() ?? '1'))
+const page = ref(1)
 const limit = 50
 const q = ref('')
 const { tags, fetch: fetchTags } = useTags(dataType)
@@ -182,9 +179,6 @@ function addItemToTags(item: INote) {
   })
 }
 
-function getUrl(q: string) {
-  return q ? `/notes?q=${q}` : `/notes`
-}
 
 const { mutate: exportNotes, onDone: onExpored } = initMutation({
   document: exportNotesGQL,
@@ -264,20 +258,32 @@ const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
   }
 }
 
-function onFilterChange(newFilter: IFilter) {
-  Object.assign(filter, newFilter)
-  replacePath(mainStore, getUrl(buildQ(filter)))
-}
+const isActive = ref(false)
 
-onActivated(() => {
-  q.value = decodeBase64(query.q?.toString() ?? '')
+function applyRouteQuery() {
+  const nextPage = parseInt(route.query.page?.toString() ?? '1')
+  page.value = Number.isFinite(nextPage) && nextPage > 0 ? nextPage : 1
+  q.value = decodeBase64(route.query.q?.toString() ?? '')
   parseQ(filter, q.value)
   // trash field is required
   if (filter.trash === undefined) {
     filter.trash = false
   }
-  fetchTags()
   fetch()
+}
+
+watch(
+  () => route.fullPath,
+  () => {
+    if (!isActive.value) return
+    applyRouteQuery()
+  }
+)
+
+onActivated(() => {
+  fetchTags()
+  isActive.value = true
+  applyRouteQuery()
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
   emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
   window.addEventListener('keydown', pageKeyDown)
@@ -285,6 +291,7 @@ onActivated(() => {
 })
 
 onDeactivated(() => {
+  isActive.value = false
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
   window.removeEventListener('keydown', pageKeyDown)

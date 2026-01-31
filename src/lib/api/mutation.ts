@@ -208,6 +208,17 @@ export const removeFavoriteFolderGQL = gql`
     removeFavoriteFolder(fullPath: $fullPath) {
       rootPath
       fullPath
+      alias
+    }
+  }
+`
+
+export const setFavoriteFolderAliasGQL = gql`
+  mutation setFavoriteFolderAlias($fullPath: String!, $alias: String!) {
+    setFavoriteFolderAlias(fullPath: $fullPath, alias: $alias) {
+      rootPath
+      fullPath
+      alias
     }
   }
 `

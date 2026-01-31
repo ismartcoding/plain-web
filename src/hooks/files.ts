@@ -2,7 +2,7 @@ import { ref, type Ref } from 'vue'
 import type { ApolloCache, ApolloError } from '@apollo/client/core'
 import { copyFileGQL, createDirGQL, initMutation, moveFileGQL, renameFileGQL } from '@/lib/api/mutation'
 import { enrichFile, isAudio, isImage, isVideo, type IFile } from '@/lib/file'
-import { initQuery, storageStatsGQL } from '@/lib/api/query'
+import { initQuery, mountsGQL } from '@/lib/api/query'
 import { useI18n } from 'vue-i18n'
 import toast from '@/components/toaster'
 import { download, encryptUrlParams, getFileId, getFileName, getFileUrl, getFileUrlByPath } from '@/lib/api/file'
@@ -11,7 +11,7 @@ import { encodeBase64 } from '@/lib/strutil'
 import { buildQuery, parseQuery, type IFilterField } from '@/lib/search'
 import { findIndex, remove } from 'lodash-es'
 import { getApiBaseUrl } from '@/lib/api/api'
-import type { IApp, IFileFilter, IStorageStats, IStorageStatsItem } from '@/lib/interfaces'
+import type { IApp, IFileFilter, IStorageMount } from '@/lib/interfaces'
 import type sjcl from 'sjcl'
 
 export const useCreateDir = (urlTokenKey: Ref<sjcl.BitArray | null>, items: Ref<IFile[]>) => {
@@ -55,22 +55,18 @@ export const useRename = (fetch: () => void) => {
   }
 }
 
-export const useStats = () => {
-  const internal = ref<IStorageStatsItem | null>(null)
-  const sdcard = ref<IStorageStatsItem | null>(null)
-  const usb = ref<IStorageStatsItem[]>([])
+export const useMounts = () => {
+  const mounts = ref<IStorageMount[]>([])
   const { refetch } = initQuery({
-    handle: (data: { storageStats: IStorageStats }, error: string) => {
+    handle: (data: { mounts: IStorageMount[] }, error: string) => {
       if (!error) {
-        internal.value = data.storageStats.internal
-        sdcard.value = data.storageStats.sdcard
-        usb.value = data.storageStats.usb
+        mounts.value = data?.mounts ?? []
       }
     },
-    document: storageStatsGQL,
+    document: mountsGQL,
   })
 
-  return { internal, sdcard, usb, refetch }
+  return { mounts, refetch }
 }
 
 export const useDownload = (urlTokenKey: Ref<sjcl.BitArray | null>) => {
@@ -257,6 +253,7 @@ export const useSearch = () => {
       filter.text = ''
       filter.parent = ''
       filter.rootPath = ''
+      filter.fileSize = undefined
       fields.forEach((it) => {
         if (it.name === 'text') {
           filter.text = it.value
@@ -268,6 +265,8 @@ export const useSearch = () => {
           filter.rootPath = it.value
         } else if (it.name === 'show_hidden') {
           filter.showHidden = it.value === 'true'
+        } else if (it.name === 'file_size') {
+          filter.fileSize = it.op + it.value
         }
       })
     },
@@ -311,6 +310,19 @@ export const useSearch = () => {
           op: '',
           value: filter.showHidden ? 'true' : 'false',
         })
+      }
+
+      if (filter.fileSize !== undefined && filter.fileSize !== '') {
+        const match = filter.fileSize.match(/^([><=!]+)?(.+)$/)
+        if (match) {
+          const op = match[1] || ''
+          const value = match[2]
+          fields.push({
+            name: 'file_size',
+            op: op,
+            value: value,
+          })
+        }
       }
 
       return encodeBase64(buildQuery(fields))

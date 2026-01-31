@@ -1,24 +1,43 @@
 <template>
-  <left-sidebar>
-    <template #title>
-      {{ $t('page_title.files') }}
-    </template>
+  <left-sidebar class="files-sidebar">
     <template #body>
       <ul class="nav">
-        <li v-for="item in links" :key="item.fullPath" :class="{ active: item.isChecked }" @click.prevent="openLink(item)">
+        <li v-for="item in quickLinks" :key="item.type" :class="{ active: item.isChecked }" @click.prevent="openLink(item)">
+          <span class="icon" aria-hidden="true">
+            <i-lucide:history v-if="item.type === 'RECENTS'" />
+          </span>
           <span class="title">{{ item.title }}</span>
-          <v-icon-button 
-            v-if="item.isFavoriteFolder" 
-            :id="'favorite-' + item.fullPath" 
-            v-tooltip="$t('actions')" 
-            class="sm" 
-            @click.prevent.stop="showFavoriteMenu(item)"
-          >
-            <i-material-symbols:more-vert />
-          </v-icon-button>
         </li>
       </ul>
+
+      <div class="section-title">
+        {{ $t('volumes') }}
+      </div>
+      <div class="volumes">
+        <VolumeCard
+          v-for="item in volumeLinks" :key="item.fullPath" :title="item.title" :count="item.count || ''" :data="item"
+          :used-percent="item.usedPercent || 0" :percent-class="percentClass(item.usedPercent)" :active="item.isChecked"
+          :show-progress="item.showProgress" @click="openLink(item)"
+        />
+      </div>
+
+      <template v-if="favoriteLinks.length">
+        <div class="section-title">{{ $t('favorites') }}</div>
+        <ul class="nav">
+          <li v-for="item in favoriteLinks" :key="item.fullPath" :class="{ active: item.isChecked }" @click.prevent="openLink(item)">
+            <span class="title">{{ item.title }}</span>
+            <v-icon-button
+              :id="'favorite-' + item.fullPath" v-tooltip="$t('actions')" class="sm"
+              @click.prevent.stop="showFavoriteMenu(item)"
+            >
+              <i-material-symbols:more-vert />
+            </v-icon-button>
+          </li>
+        </ul>
+      </template>
+
       <v-dropdown-menu v-model="favoriteMenuVisible" :anchor="'favorite-' + selectedFavorite?.fullPath">
+        <div class="dropdown-item" @click="openSetFavoriteAlias(); favoriteMenuVisible = false">{{ $t('rename') }}</div>
         <div class="dropdown-item" @click="removeFavoriteFolder(selectedFavorite!); favoriteMenuVisible = false">
           {{ $t('remove_from_favorites') }}
         </div>
@@ -28,26 +47,30 @@
 </template>
 
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
 import router, { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { storeToRefs } from 'pinia'
 import { useTempStore } from '@/stores/temp'
 import { computed, reactive, ref, watch } from 'vue'
 import { buildQuery } from '@/lib/search'
-import type { IFileFilter, IFavoriteFolder } from '@/lib/interfaces'
+import type { IFileFilter, IFavoriteFolder, IStorageMount } from '@/lib/interfaces'
 import { useSearch } from '@/hooks/files'
 import { decodeBase64, encodeBase64 } from '@/lib/strutil'
 import { useI18n } from 'vue-i18n'
-import { initMutation, removeFavoriteFolderGQL } from '@/lib/api/mutation'
+import { initMutation, removeFavoriteFolderGQL, setFavoriteFolderAliasGQL } from '@/lib/api/mutation'
 import toast from '@/components/toaster'
 import emitter from '@/plugins/eventbus'
-import { getStorageTypeByRootPath } from '@/lib/file'
+import { formatFileSize } from '@/lib/format'
+import { useMounts } from '@/hooks/files'
+import VolumeCard from '@/components/storage/VolumeCard.vue'
+import { openModal } from '@/components/modal'
+import EditValueModal from '@/components/EditValueModal.vue'
 
-const route = useRoute()
 const mainStore = useMainStore()
 const { app } = storeToRefs(useTempStore())
 const { t } = useI18n()
+
+const { mounts } = useMounts()
 
 const { parseQ } = useSearch()
 const filter = reactive<IFileFilter>({
@@ -96,6 +119,38 @@ function removeFavoriteFolder(item: LinkItem) {
   })
 }
 
+function openSetFavoriteAlias() {
+  const item = selectedFavorite.value
+  if (!item) return
+
+  const current = app.value.favoriteFolders?.find((f) => f.fullPath === item.fullPath)
+  const currentAlias = (current?.alias || '').trim()
+
+  const mutationFactory = () =>
+    initMutation({
+      document: setFavoriteFolderAliasGQL,
+      options: {
+        update: () => {
+          emitter.emit('refetch_app')
+        },
+      },
+    })
+
+  openModal(EditValueModal, {
+    title: t('name'),
+    placeholder: item.title || '',
+    value: currentAlias || '',
+    mutation: mutationFactory,
+    getVariables: (value: string) => ({
+      fullPath: item.fullPath,
+      alias: (value || '').trim(),
+    }),
+    done: () => {
+      toast(t('saved'))
+    },
+  })
+}
+
 interface LinkItem {
   rootPath: string
   fullPath: string
@@ -103,17 +158,17 @@ interface LinkItem {
   title: string
   isChecked: boolean
   isFavoriteFolder: boolean
+  count?: string
+  usedPercent?: number
+  showProgress?: boolean
 }
 
 const links = computed(() => {
   // Helper function to find the longest matching prefix for current path
   const findLongestMatch = (currentPath: string): string => {
     const allPaths = [
-      app.value.internalStoragePath,
-      app.value.externalFilesDir,
-      ...(app.value.sdcardPath ? [app.value.sdcardPath] : []),
-      ...app.value.usbDiskPaths,
-      ...(app.value.favoriteFolders?.map(f => f.fullPath) || [])
+      ...mounts.value.map((m) => m.mountPoint).filter(Boolean),
+      ...(app.value.favoriteFolders?.map((f) => f.fullPath) || []),
     ]
     
     let longestMatch = ''
@@ -128,15 +183,30 @@ const links = computed(() => {
 
   // Helper function to generate display title for favorite folders
   const generateFavoriteDisplayTitle = (favoriteFolder: IFavoriteFolder): string => {
+    const alias = (favoriteFolder.alias || '').trim()
+    if (alias) return alias
+
+    const usbMountPoints = mounts.value
+      .filter((m) => m.driveType === 'USB_STORAGE')
+      .map((m) => m.mountPoint)
+      .filter(Boolean)
+    const usbIndexByMountPoint = new Map<string, number>(usbMountPoints.map((p, i) => [p, i + 1]))
+
+    const mountTitle = (m?: IStorageMount | null): string => {
+      if (!m) return ''
+      if (m.driveType === 'INTERNAL_STORAGE') return t('internal_storage')
+      if (m.driveType === 'APP') return t('app_data')
+      if (m.driveType === 'SDCARD') return t('sdcard')
+      if (m.driveType === 'USB_STORAGE') {
+        const idx = usbIndexByMountPoint.get(m.mountPoint) ?? 1
+        return `${t('usb_storage')} ${idx}`
+      }
+      return m.name || m.mountPoint
+    }
+
     const rootName = (() => {
-      if (favoriteFolder.rootPath === app.value.internalStoragePath) return t('internal_storage')
-      if (favoriteFolder.rootPath === app.value.externalFilesDir) return t('app_data')
-      if (favoriteFolder.rootPath === app.value.sdcardPath) return t('sdcard')
-      
-      const usbIndex = app.value.usbDiskPaths.indexOf(favoriteFolder.rootPath)
-      if (usbIndex !== -1) return `${t('usb_storage')} ${usbIndex + 1}`
-      
-      return favoriteFolder.rootPath
+      const m = mounts.value.find((it) => it.mountPoint === favoriteFolder.rootPath)
+      return mountTitle(m) || favoriteFolder.rootPath
     })()
 
     // Calculate relative path from root to favorite folder
@@ -145,6 +215,31 @@ const links = computed(() => {
       : favoriteFolder.fullPath.split('/').pop() || ''
 
     return relativePath ? `${rootName}/${relativePath}` : rootName
+  }
+
+  const storageCount = (freeBytes: number, totalBytes: number) => {
+    if (totalBytes <= 0) return ''
+    return t('storage_free_total', {
+      free: formatFileSize(freeBytes),
+      total: formatFileSize(totalBytes),
+    })
+  }
+
+  const usedPct = (freeBytes: number, totalBytes: number) => {
+    if (totalBytes <= 0) return 0
+    const usedBytes = Math.max(0, totalBytes - freeBytes)
+    return (usedBytes / totalBytes) * 100
+  }
+
+  const mountTitle = (m: IStorageMount, usbIndexByMountPoint: Map<string, number>) => {
+    if (m.driveType === 'INTERNAL_STORAGE') return t('internal_storage')
+    if (m.driveType === 'APP') return t('app_data')
+    if (m.driveType === 'SDCARD') return t('sdcard')
+    if (m.driveType === 'USB_STORAGE') {
+      const idx = usbIndexByMountPoint.get(m.mountPoint) ?? 1
+      return `${t('usb_storage')} ${idx}`
+    }
+    return m.name || m.mountPoint
   }
 
   // If on recent page, don't match any path to ensure mutual exclusivity
@@ -160,48 +255,43 @@ const links = computed(() => {
     isFavoriteFolder: false
   })
 
-  // Internal Storage
-  links.push({
-    rootPath: app.value.internalStoragePath,
-    fullPath: app.value.internalStoragePath,
-    type: 'INTERNAL_STORAGE',
-    title: t('internal_storage'),
-    isChecked: longestMatchPath === app.value.internalStoragePath,
-    isFavoriteFolder: false
-  })
+  const usbMountPoints = mounts.value
+    .filter((m) => m.driveType === 'USB_STORAGE')
+    .map((m) => m.mountPoint)
+    .filter(Boolean)
+  const usbIndexByMountPoint = new Map<string, number>(usbMountPoints.map((p, i) => [p, i + 1]))
 
-  // SD Card (if available)
-  if (app.value.sdcardPath) {
-    links.push({
-      rootPath: app.value.sdcardPath,
-      fullPath: app.value.sdcardPath,
-      type: 'SDCARD',
-      title: t('sdcard'),
-      isChecked: longestMatchPath === app.value.sdcardPath,
-      isFavoriteFolder: false
-    })
+  const driveRank = (m: IStorageMount) => {
+    if (m.driveType === 'INTERNAL_STORAGE') return 0
+    if (m.driveType === 'SDCARD') return 1
+    if (m.driveType === 'USB_STORAGE') return 2
+    if (m.driveType === 'APP') return 3
+    return 9
   }
 
-  // USB Storage (if available)
-  app.value.usbDiskPaths.forEach((path, index) => {
-    links.push({
-      rootPath: path,
-      fullPath: path,
-      type: 'USB_STORAGE',
-      title: `${t('usb_storage')} ${index + 1}`,
-      isChecked: longestMatchPath === path,
-      isFavoriteFolder: false
-    })
+  const sortedMounts = [...mounts.value].sort((a, b) => {
+    const da = driveRank(a)
+    const db = driveRank(b)
+    if (da !== db) return da - db
+    return (a.mountPoint || '').localeCompare(b.mountPoint || '')
   })
 
-  // App Storage
-  links.push({
-    rootPath: app.value.externalFilesDir,
-    fullPath: app.value.externalFilesDir,
-    type: 'APP',
-    title: t('app_data'),
-    isChecked: longestMatchPath === app.value.externalFilesDir,
-    isFavoriteFolder: false
+  sortedMounts.forEach((m) => {
+    const mp = m.mountPoint
+    if (!mp) return
+    const total = Number(m.totalBytes || 0)
+    const free = Number(m.freeBytes || 0)
+    links.push({
+      rootPath: mp,
+      fullPath: mp,
+      type: m.driveType || '',
+      title: mountTitle(m, usbIndexByMountPoint),
+      isChecked: longestMatchPath === mp,
+      isFavoriteFolder: false,
+      count: storageCount(free, total),
+      usedPercent: usedPct(free, total),
+      showProgress: total > 0,
+    })
   })
 
   // Favorite folders
@@ -209,13 +299,7 @@ const links = computed(() => {
     app.value.favoriteFolders.forEach((folder: IFavoriteFolder, index: number) => {
       const displayTitle = generateFavoriteDisplayTitle(folder)
       
-      // Determine type based on rootPath
-      const folderType = getStorageTypeByRootPath(folder.rootPath, {
-        internalStoragePath: app.value.internalStoragePath,
-        externalFilesDir: app.value.externalFilesDir,
-        sdcardPath: app.value.sdcardPath,
-        usbDiskPaths: app.value.usbDiskPaths
-      })
+      const folderType = mounts.value.find((m) => m.mountPoint === folder.rootPath)?.driveType ?? ''
       
       links.push({
         rootPath: folder.rootPath,
@@ -223,13 +307,23 @@ const links = computed(() => {
         type: folderType,
         title: displayTitle,
         isChecked: longestMatchPath === folder.fullPath,
-        isFavoriteFolder: true
+        isFavoriteFolder: true,
       })
     })
   }
 
   return links
 })
+
+const quickLinks = computed(() => links.value.filter((it) => it.type === 'RECENTS'))
+const volumeLinks = computed(() => links.value.filter((it) => it.type !== 'RECENTS' && !it.isFavoriteFolder))
+const favoriteLinks = computed(() => links.value.filter((it) => it.isFavoriteFolder))
+
+function percentClass(p?: number) {
+  const v = Math.round(p || 0)
+  if (v >= 85) return 'warn'
+  return ''
+}
 
 function openLink(link: LinkItem) {
   if (link.type === 'RECENTS') {

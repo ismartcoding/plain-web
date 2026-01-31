@@ -1,12 +1,22 @@
 <template>
-  <li v-for="item in mediaBuckets" :key="item.id" :class="{ active: selected && item.id === selected }" @click.prevent="view(mainStore, item.id)">
-    <span class="title">{{ item.name }}</span
-    ><span class="count">{{ item.itemCount.toLocaleString() }}</span>
-  </li>
+  <div class="section-title">
+    {{ $t('folders') }}
+    <v-icon-button v-tooltip="isCollapsed ? $t('expand_all') : $t('collapse_all')" @click.prevent="toggleCollapsed">
+      <i-material-symbols:expand-more-rounded v-if="isCollapsed" />
+      <i-material-symbols:expand-less-rounded v-else />
+    </v-icon-button>
+  </div>
+  <ul v-show="!isCollapsed" class="nav">
+    <li
+      v-for="item in sortedBuckets" :key="item.id" :class="{ active: selected && item.id === selected }"
+      @click.prevent="view(mainStore, item.id)">
+      <span class="title">{{ item.name }}</span><span class="count">{{ item.itemCount.toLocaleString() }}</span>
+    </li>
+  </ul>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, type PropType } from 'vue'
+import { computed, onMounted, onUnmounted, ref, type PropType } from 'vue'
 import { initQuery, mediaBucketsGQL } from '@/lib/api/query'
 import type { IBucket, IMediaItemsActionedEvent } from '@/lib/interfaces'
 import { useMainStore } from '@/stores/main'
@@ -25,6 +35,18 @@ const { t } = useI18n()
 
 const mainStore = useMainStore()
 const mediaBuckets = ref<IBucket[]>([])
+
+const isCollapsed = computed(() => !!mainStore.bucketFilterCollapsed?.[props.type])
+
+function toggleCollapsed() {
+  mainStore.bucketFilterCollapsed[props.type] = !isCollapsed.value
+}
+
+const sortedBuckets = computed(() =>
+  [...(mediaBuckets.value ?? [])].sort((a, b) =>
+    (a.name ?? '').localeCompare(b.name ?? '', undefined, { numeric: true, sensitivity: 'base' })
+  )
+)
 const { view } = useBuckets(props.type)
 
 const { refetch } = initQuery({

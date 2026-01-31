@@ -13,11 +13,6 @@
 
     <div v-if="!isPhone || !checked" class="actions">
       <AppsActionButtons
-        :filter="filter"
-        :types="types"
-        :get-url="getUrl"
-        :show-chips="!isPhone"
-        :is-phone="isPhone"
         :sorting="sorting"
         :sort-items="sortItems"
         :app-sort-by="appSortBy"
@@ -26,17 +21,6 @@
       />
     </div>
   </div>
-
-  <SearchFilters
-    v-if="isPhone"
-    class="mobile-search-filters"
-    :filter="filter"
-    :tags="[]"
-    :feeds="[]"
-    :buckets="[]"
-    :types="types"
-    @filter-change="onFilterChange"
-  />
 
   <all-checked-alert
     :limit="limit"
@@ -83,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { onActivated, onDeactivated, reactive, ref, inject } from 'vue'
+import { onActivated, onDeactivated, ref, inject, watch } from 'vue'
 import toast from '@/components/toaster'
 import tapPhone from '@/plugins/tapphone'
 import { packagesGQL, initLazyQuery, packageStatusesGQL } from '@/lib/api/query'
@@ -92,7 +76,7 @@ import { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useI18n } from 'vue-i18n'
 import { noDataKey } from '@/lib/list'
-import type { IFilter, IPackageItem, IPackage, IPackageStatus } from '@/lib/interfaces'
+import type { IPackageItem, IPackage, IPackageStatus } from '@/lib/interfaces'
 import { decodeBase64 } from '@/lib/strutil'
 import { useSelectable } from '@/hooks/list'
 import { initMutation, uninstallPackageGQL, installPackageGQL } from '@/lib/api/mutation'
@@ -104,11 +88,9 @@ import { deleteById } from '@/lib/array'
 import emitter from '@/plugins/eventbus'
 import { DataType } from '@/lib/data'
 import { getFileUrlByPath } from '@/lib/api/file'
-import { useSearch } from '@/hooks/search'
 import { useKeyEvents } from '@/hooks/key-events'
 import { getSortItems } from '@/lib/file'
 import { generateDownloadFileName } from '@/lib/format'
-import SearchFilters from '@/components/SearchFilters.vue'
 import AppsActionButtons from '@/components/apps/AppsActionButtons.vue'
 import AppSkeletonItem from '@/components/apps/AppSkeletonItem.vue'
 import AppListItem from '@/components/apps/AppListItem.vue'
@@ -126,18 +108,15 @@ const mainStore = useMainStore()
 const items = ref<IPackageItem[]>([])
 const { t } = useI18n()
 const { appSortBy } = storeToRefs(mainStore)
-const { parseQ, buildQ } = useSearch()
-const filter = reactive<IFilter>({
-  tagIds: [],
-})
 const sortItems = getSortItems()
 const sorting = ref(false)
 
 const route = useRoute()
-const query = route.query
-const page = ref(parseInt(query.page?.toString() ?? '1'))
+const page = ref(parseInt(route.query.page?.toString() ?? '1'))
 const limit = 50
 const q = ref('')
+const isActive = ref(false)
+let statusInterval: number | undefined
 
 const {
   selectedIds,
@@ -172,8 +151,6 @@ const { mutate: installPackageMutate } = initMutation({
   document: installPackageGQL,
 })
 
-const types = ['user', 'system'].map((it) => ({ id: it, name: t('app_type.' + it) }))
-
 const cancelUninstall = (item: IPackageItem) => {
   item.isUninstalling = false
 }
@@ -203,12 +180,6 @@ const { loading, fetch } = initLazyQuery({
   }),
 })
 
-function getUrl(q: string) {
-  return q ? `/apps?q=${q}` : `/apps`
-}
-
-
-
 function sort(value: string) {
   if (appSortBy.value === value) {
     return
@@ -218,10 +189,11 @@ function sort(value: string) {
   gotoPage(1)
 }
 
-function onFilterChange(newFilter: IFilter) {
-  Object.assign(filter, newFilter)
-  const q = buildQ(filter)
-  replacePath(mainStore, getUrl(q))
+function applyRouteQuery() {
+  if (!isActive.value) return
+  page.value = parseInt(route.query.page?.toString() ?? '1')
+  q.value = decodeBase64(route.query.q?.toString() ?? '')
+  fetch()
 }
 
 const { mutate: uninstallMutate } = initMutation({
@@ -306,24 +278,41 @@ function dropApkFiles(e: DragEvent) {
 }
 
 onActivated(() => {
-  setInterval(() => {
+  isActive.value = true
+
+  if (statusInterval) {
+    clearInterval(statusInterval)
+    statusInterval = undefined
+  }
+  statusInterval = window.setInterval(() => {
     if ((items.value.some((it) => it.isUninstalling) || installingPackages.value.length > 0) && !fetchPackageStatusLoading.value) {
       fetchPackageStatus()
     }
   }, 1000)
-  q.value = decodeBase64(query.q?.toString() ?? '')
-  parseQ(filter, q.value)
-  fetch()
+
+  applyRouteQuery()
   emitter.on('upload_task_done', uploadTaskDoneHandler)
   window.addEventListener('keydown', pageKeyDown)
   window.addEventListener('keyup', pageKeyUp)
 })
 
 onDeactivated(() => {
+  isActive.value = false
+  if (statusInterval) {
+    clearInterval(statusInterval)
+    statusInterval = undefined
+  }
   emitter.off('upload_task_done', uploadTaskDoneHandler)
   window.removeEventListener('keydown', pageKeyDown)
   window.removeEventListener('keyup', pageKeyUp)
 })
+
+watch(
+  () => route.fullPath,
+  () => {
+    applyRouteQuery()
+  }
+)
 </script>
 <style scoped lang="scss">
 :deep(.app-item) {

@@ -1,4 +1,3 @@
-import type { IPage } from '@/lib/interfaces'
 import { defineStore } from 'pinia'
 
 // data will be stored to local storage
@@ -10,10 +9,11 @@ export type MainState = {
   sidebarWidth: number
   sidebar2Width: number
   miniSidebar: boolean
-  pages: IPage[]
+  lastRoutes: Record<string, string>
   lightboxInfoVisible: boolean
   videosCardView: boolean
   imagesCardView: boolean
+  bucketFilterCollapsed: Record<string, boolean>
   appSortBy: string
   fileSortBy: string
   imageSortBy: string
@@ -23,6 +23,7 @@ export type MainState = {
   qrCode: string // data in qrCode Generator
   callNumber: string
   feedEntryFontSize: number // font size for feed entry content
+  searchHistory: Record<string, string[]>
 }
 
 export const useMainStore = defineStore('main', {
@@ -36,12 +37,13 @@ export const useMainStore = defineStore('main', {
       sidebar2Width: 360,
       miniSidebar: false,
       noteExpand: true,
-      pages: [],
+      lastRoutes: {},
       audios: [],
       audioPlaying: null,
       lightboxInfoVisible: false,
       videosCardView: false,
       imagesCardView: false,
+      bucketFilterCollapsed: {},
       appSortBy: 'NAME_ASC',
       fileSortBy: 'NAME_ASC',
       imageSortBy: 'DATE_DESC',
@@ -51,23 +53,9 @@ export const useMainStore = defineStore('main', {
       qrCode: '',
       callNumber: '',
       feedEntryFontSize: 16, // default font size
+      searchHistory: {},
     }) as MainState,
   actions: {
-    getCurrentPage(path: string): IPage {
-      return this.pages.find((it: IPage) => it.path === path) || { path }
-    },
-    replaceRoute(from: string, to: string) {
-      const index = this.pages.findIndex((it: IPage) => it.path === from)
-      if (index !== -1) {
-        this.pages.splice(index, 1, { path: to, sidebar: this.pages[index].sidebar })
-      }
-    },
-    updatePageSidebar(path: string, sidebar: boolean) {
-      const page = this.pages.find((it: IPage) => it.path === path)
-      if (page) {
-        page.sidebar = sidebar
-      }
-    },
     increaseFeedEntryFontSize() {
       if (this.feedEntryFontSize < 32) {
         this.feedEntryFontSize += 2

@@ -32,7 +32,6 @@
     </div>
 
     <div v-if="!isPhone && !checked" class="actions">
-      <file-search-input :filter="filter" :parent="rootDir" :get-url="getUrl" :navigate-to-dir="navigateToDir" :show-chips="!isPhone" :is-phone="isPhone" />
       <FilesActionButtons
         :current-dir="filter.parent"
         :can-paste="canPaste()"
@@ -52,7 +51,6 @@
   </div>
 
   <div v-if="isPhone && !checked" class="secondary-actions">
-    <file-search-input :filter="filter" :parent="rootDir" :get-url="getUrl" :navigate-to-dir="navigateToDir" :show-chips="!isPhone" :is-phone="isPhone" />
     <FilesActionButtons
       :current-dir="filter.parent"
       :can-paste="canPaste()"
@@ -69,8 +67,6 @@
       @sort="sort"
     />
   </div>
-
-  <FileSearchFilters v-if="isPhone" class="mobile-search-filters" :filter="filter" @filter-change="onFilterChange" />
 
   <div v-if="loading && firstInit" class="scroller-wrapper">
     <div class="scroller main-list">
@@ -122,7 +118,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onActivated, onDeactivated, reactive, ref } from 'vue'
+import { computed, inject, onActivated, onDeactivated, reactive, ref, watch } from 'vue'
 import { formatFileSize } from '@/lib/format'
 import { useI18n } from 'vue-i18n'
 import { useMainStore } from '@/stores/main'
@@ -131,7 +127,7 @@ import { type IFile, canOpenInBrowser, canView, getSortItems, enrichFile, isText
 import { getFileName, getFileUrlByPath, getFileId } from '@/lib/api/file'
 import { noDataKey } from '@/lib/list'
 import emitter from '@/plugins/eventbus'
-import { useCreateDir, useRename, useStats, useDownload, useView, useCopyPaste, useSearch } from '@/hooks/files'
+import { useCreateDir, useRename, useMounts, useDownload, useView, useCopyPaste, useSearch } from '@/hooks/files'
 import { useDragDropUpload, useFileUpload } from '@/hooks/upload'
 import { useTempStore, type IUploadItem } from '@/stores/temp'
 import { openModal } from '@/components/modal'
@@ -142,7 +138,7 @@ import { useRoute } from 'vue-router'
 import { decodeBase64, shortUUID } from '@/lib/strutil'
 import { initMutation, setTempValueGQL, addFavoriteFolderGQL } from '@/lib/api/mutation'
 import type { ISource } from '@/components/lightbox/types'
-import type { IFileDeletedEvent, IFileRenamedEvent, IFileFilter, IBreadcrumbItem } from '@/lib/interfaces'
+import type { IFileDeletedEvent, IFileRenamedEvent, IFileFilter, IBreadcrumbItem, IStorageMount } from '@/lib/interfaces'
 import { useSelectable } from '@/hooks/list'
 import { useFilesKeyEvents } from '@/hooks/key-events'
 import { filesGQL, initLazyQuery } from '@/lib/api/query'
@@ -165,7 +161,6 @@ const filter = reactive<IFileFilter>({
 })
 
 const route = useRoute()
-const query = route.query
 const q = ref('')
 const items = ref<IFile[]>([])
 const { selectedIds, allChecked, realAllChecked, clearSelection, toggleAllChecked, toggleSelect, total, checked, shiftEffectingIds, handleItemClick, handleMouseOver, selectAll, shouldSelect } =
@@ -199,7 +194,7 @@ const { createPath, createVariables, createMutation } = useCreateDir(urlTokenKey
 const { renameItem, renameDone, renameMutation, renameVariables } = useRename(() => {
   fetch()
 })
-const { internal, sdcard, usb, refetch: refetchStats } = useStats()
+const { mounts, refetch: refetchMounts } = useMounts()
 const { downloadFile, downloadDir, downloadFiles } = useDownload(urlTokenKey)
 const { view } = useView(sources, (s: ISource[], index: number) => {
   tempStore.lightbox = {
@@ -209,8 +204,18 @@ const { view } = useView(sources, (s: ISource[], index: number) => {
   }
 })
 
-const page = ref(parseInt(query.page?.toString() ?? '1'))
+const page = ref(1)
 const limit = 10000 // not paging for now
+
+const isActive = ref(false)
+
+function applyRouteQuery() {
+  page.value = parseInt(route.query.page?.toString() ?? '1')
+  q.value = decodeBase64(route.query.q?.toString() ?? '')
+  parseQ(filter, q.value)
+}
+
+applyRouteQuery()
 
 const breadcrumbPaths = computed(() => {
   const paths: IBreadcrumbItem[] = []
@@ -256,7 +261,7 @@ const { loading, fetch } = initLazyQuery({
     fetchPolicy: 'cache-and-network',
   },
 })
-const { loading: pasting, canPaste, copy, cut, paste } = useCopyPaste(items, isCut, selectedFiles, fetch, refetchStats)
+const { loading: pasting, canPaste, copy, cut, paste } = useCopyPaste(items, isCut, selectedFiles, fetch, refetchMounts)
 const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload(uploads)
 const { input: dirFileInput, upload: uploadDir, uploadChanged: dirUploadChanged } = useFileUpload(uploads)
 
@@ -322,7 +327,7 @@ const onDeleted = (files: IFile[]) => {
   })
   total.value = items.value.length
   clearSelection()
-  refetchStats()
+  refetchMounts()
 }
 
 const deleteItems = () => {
@@ -349,23 +354,17 @@ function getPageTitle() {
 }
 
 function getPageStats() {
-  if (filter.type === 'SDCARD') {
-    return `${t('storage_free_total', {
-      free: formatFileSize(sdcard.value?.freeBytes ?? 0),
-      total: formatFileSize(sdcard.value?.totalBytes ?? 0),
-    })}`
-  } else if (filter.type === 'APP') {
+  if (filter.type === 'APP') {
     return t('app_data')
-  } else if (filter.type === 'USB_STORAGE') {
-    const usbIndex = app.value.usbDiskPaths.indexOf(filter.rootPath)
-    const u = usb.value[usbIndex]
-    return `${t('storage_free_total', {
-      free: formatFileSize(u?.freeBytes ?? 0),
-      total: formatFileSize(u?.totalBytes ?? 0),
-    })}`
   }
 
-  return `${formatFileSize(internal.value?.freeBytes ?? 0)} / ${formatFileSize(internal.value?.totalBytes ?? 0, true, 0)}`
+  const v = mounts.value.find((m: IStorageMount) => m.mountPoint === filter.rootPath)
+  if (!v) return ''
+
+  return `${t('storage_free_total', {
+    free: formatFileSize(v.freeBytes ?? 0),
+    total: formatFileSize(v.totalBytes ?? 0),
+  })}`
 }
 
 function navigateToDir(dir: string) {
@@ -576,18 +575,23 @@ function addToFavoritesClick(item: IFile) {
     })
 }
 
-function onFilterChange(newFilter: IFileFilter) {
-  Object.assign(filter, newFilter)
-  const q = buildQ(filter)
-  replacePath(mainStore, getUrl(q))
-}
+watch(
+  () => route.fullPath,
+  () => {
+    if (!isActive.value) {
+      return
+    }
+    applyRouteQuery()
+    fetch()
+  }
+)
 
 const uploadTaskDoneHandler = (r: IUploadItem) => {
   if (r.status === 'done') {
     // have to delay 1s to make sure the api return latest data.
     setTimeout(() => {
       fetch()
-      refetchStats()
+      refetchMounts()
     }, 1000)
   }
 }
@@ -606,8 +610,8 @@ function dropFiles2(e: DragEvent) {
 }
 
 onActivated(() => {
-  q.value = decodeBase64(query.q?.toString() ?? '')
-  parseQ(filter, q.value)
+  isActive.value = true
+  applyRouteQuery()
   fetch()
   emitter.on('upload_task_done', uploadTaskDoneHandler)
   emitter.on('file_deleted', fileDeletedHanlder)
@@ -617,6 +621,7 @@ onActivated(() => {
 })
 
 onDeactivated(() => {
+  isActive.value = false
   emitter.off('upload_task_done', uploadTaskDoneHandler)
   emitter.off('file_deleted', fileDeletedHanlder)
   emitter.off('file_renamed', fileRenamedHandler)

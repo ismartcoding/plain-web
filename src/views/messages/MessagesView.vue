@@ -13,10 +13,8 @@
     </div>
 
     <div class="actions">
-      <search-input :filter="filter" :tags="tags" :types="types" :get-url="getUrl" :show-chips="!isPhone" :is-phone="isPhone" />
     </div>
   </div>
-  <SearchFilters v-if="isPhone" class="mobile-search-filters" :filter="filter" :tags="tags" :feeds="[]" :buckets="[]" :types="[]" @filter-change="onFilterChange" />
   <all-checked-alert
     :limit="limit"
     :total="total"
@@ -57,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, onActivated, onDeactivated, reactive, ref } from 'vue'
+import { inject, onActivated, onDeactivated, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { initLazyQuery, messagesGQL } from '@/lib/api/query'
 import { useRoute } from 'vue-router'
@@ -85,15 +83,14 @@ const mainStore = useMainStore()
 const { app } = storeToRefs(useTempStore())
 const items = ref<IMessage[]>([])
 const { t } = useI18n()
-const { parseQ, buildQ } = useSearch()
+const { parseQ } = useSearch()
 const filter = reactive<IFilter>({
   tagIds: [],
 })
 
 const dataType = DataType.SMS
 const route = useRoute()
-const query = route.query
-const page = ref(parseInt(query.page?.toString() ?? '1'))
+const page = ref(1)
 const limit = 50
 const q = ref('')
 const { tags, fetch: fetchTags } = useTags(dataType)
@@ -139,8 +136,6 @@ const { loading, fetch } = initLazyQuery({
   }),
 })
 
-const types = ['1', '2', '3'].map((it) => ({ id: it, name: t('message_type.' + it) }))
-
 function addItemToTags(item: IMessage) {
   openModal(UpdateTagRelationsModal, {
     type: dataType,
@@ -164,9 +159,6 @@ function call(item: IMessage) {
   mutateCall({ number: item.address })
 }
 
-function getUrl(q: string) {
-  return q ? `/messages?q=${q}` : `/messages`
-}
 
 const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
   if (event.type === dataType) {
@@ -181,16 +173,28 @@ const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
   }
 }
 
-function onFilterChange(newFilter: IFilter) {
-  Object.assign(filter, newFilter)
-  replacePath(mainStore, getUrl(buildQ(filter)))
+const isActive = ref(false)
+
+function applyRouteQuery() {
+  const nextPage = parseInt(route.query.page?.toString() ?? '1')
+  page.value = Number.isFinite(nextPage) && nextPage > 0 ? nextPage : 1
+  q.value = decodeBase64(route.query.q?.toString() ?? '')
+  parseQ(filter, q.value)
+  fetch()
 }
 
+watch(
+  () => route.fullPath,
+  () => {
+    if (!isActive.value) return
+    applyRouteQuery()
+  }
+)
+
 onActivated(() => {
-  q.value = decodeBase64(query.q?.toString() ?? '')
-  parseQ(filter, q.value)
   fetchTags()
-  fetch()
+  isActive.value = true
+  applyRouteQuery()
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
   emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
   window.addEventListener('keydown', pageKeyDown)
@@ -198,6 +202,7 @@ onActivated(() => {
 })
 
 onDeactivated(() => {
+  isActive.value = false
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
   window.removeEventListener('keydown', pageKeyDown)

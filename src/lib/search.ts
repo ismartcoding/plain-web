@@ -41,7 +41,7 @@ export function splitGroup(q: string): IQueryGroup {
   const field = removeQuotation(parts[0])
   const query = removeQuotation(parts.slice(1).join(FILTER_DELIMITER))
   const op = detectGroupType(query)
-  const value = query.slice(op.length)
+  const value = op && query.startsWith(op) ? query.slice(op.length) : query
 
   return {
     length: parts.length,

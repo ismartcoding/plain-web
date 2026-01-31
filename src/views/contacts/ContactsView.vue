@@ -17,13 +17,11 @@
       </template>
     </div>
     <div class="actions">
-      <search-input :filter="filter" :tags="tags" :get-url="getUrl" :show-chips="!isPhone" :is-phone="isPhone" />
       <v-outlined-button class="btn-sm" @click="create">
         {{ $t('create') }}
       </v-outlined-button>
     </div>
   </div>
-  <SearchFilters v-if="isPhone" class="mobile-search-filters" :filter="filter" :tags="tags" :feeds="[]" :buckets="[]" :types="[]" @filter-change="onFilterChange" />
   <all-checked-alert
     :limit="limit"
     :total="total"
@@ -67,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, onActivated, onDeactivated, reactive, ref } from 'vue'
+import { inject, onActivated, onDeactivated, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 
 import { initQuery, contactsGQL, contactSourcesGQL, initLazyQuery } from '@/lib/api/query'
@@ -100,15 +98,14 @@ const mainStore = useMainStore()
 const { app } = storeToRefs(useTempStore())
 const items = ref<IContact[]>([])
 const { t } = useI18n()
-const { parseQ, buildQ } = useSearch()
+const { parseQ } = useSearch()
 const filter = reactive<IFilter>({
   tagIds: [],
 })
 const dataType = DataType.CONTACT
 
 const route = useRoute()
-const query = route.query
-const page = ref(parseInt(query.page?.toString() ?? '1'))
+const page = ref(1)
 const sources = ref<IContactSource[]>([])
 const limit = 50
 const q = ref('')
@@ -261,9 +258,6 @@ function create() {
   })
 }
 
-function getUrl(q: string) {
-  return q ? `/contacts?q=${q}` : `/contacts`
-}
 
 const callId = ref('')
 const callIndex = ref(0)
@@ -277,22 +271,35 @@ function call(id: string, number: string, index: number) {
   mutateCall({ number })
 }
 
-function onFilterChange(newFilter: IFilter) {
-  Object.assign(filter, newFilter)
-  replacePath(mainStore, getUrl(buildQ(filter)))
+const isActive = ref(false)
+
+function applyRouteQuery() {
+  const nextPage = parseInt(route.query.page?.toString() ?? '1')
+  page.value = Number.isFinite(nextPage) && nextPage > 0 ? nextPage : 1
+  q.value = decodeBase64(route.query.q?.toString() ?? '')
+  parseQ(filter, q.value)
+  fetch()
 }
 
+watch(
+  () => route.fullPath,
+  () => {
+    if (!isActive.value) return
+    applyRouteQuery()
+  }
+)
+
 onActivated(() => {
-  q.value = decodeBase64(query.q?.toString() ?? '')
-  parseQ(filter, q.value)
   fetchTags()
-  fetch()
+  isActive.value = true
+  applyRouteQuery()
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
   emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
   window.addEventListener('keydown', pageKeyDown)
   window.addEventListener('keyup', pageKeyUp)
 })
 onDeactivated(() => {
+  isActive.value = false
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
   window.removeEventListener('keydown', pageKeyDown)

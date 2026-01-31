@@ -33,7 +33,6 @@
       </template>
     </div>
     <div v-if="!isPhone || !checked" class="actions">
-      <search-input :filter="filter" :tags="tags" :buckets="buckets" :get-url="getUrl" :show-chips="!isPhone" :is-phone="isPhone"/>
       <media-keyboard-shortcuts />
       <v-dropdown v-if="!filter.trash" v-model="uploadMenuVisible">
         <template #trigger>
@@ -71,17 +70,6 @@
         @update:card-view="(value: boolean) => mainStore.videosCardView = value" 
       />
   </div>
-
-  <SearchFilters
-    v-if="isPhone"
-    class="mobile-search-filters"
-    :filter="filter"
-    :tags="tags"
-    :feeds="[]"
-    :buckets="buckets"
-    :types="[]"
-    @filter-change="onFilterChange"
-  />
   <all-checked-alert
     :limit="limit"
     :total="total"
@@ -203,7 +191,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, onActivated, onDeactivated, reactive, ref } from 'vue'
+import { inject, onActivated, onDeactivated, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatSeconds } from '@/lib/format'
 import { computed } from 'vue'
@@ -243,7 +231,7 @@ const mainStore = useMainStore()
 const { videoSortBy } = storeToRefs(mainStore)
 const items = ref<IVideoItem[]>([])
 const { t } = useI18n()
-const { parseQ, buildQ } = useSearch()
+const { parseQ } = useSearch()
 const filter = reactive<IFilter>({
   tagIds: [],
   bucketId: undefined,
@@ -261,8 +249,7 @@ const sorting = ref(false)
 
 const dataType = DataType.VIDEO
 const route = useRoute()
-const query = route.query
-const page = ref(parseInt(query.page?.toString() ?? '1'))
+const page = ref(1)
 const limit = 55
 const { tags, buckets, fetch: fetchBucketsTags } = useBucketsTags(dataType)
 const bucketsMap = computed(() => {
@@ -379,9 +366,6 @@ function sort(value: string) {
   videoSortBy.value = value
 }
 
-function getUrl(q: string) {
-  return q ? `/videos?q=${q}` : `/videos`
-}
 
 function addItemToTags(item: IVideoItem) {
   openModal(UpdateTagRelationsModal, {
@@ -457,17 +441,28 @@ const uploadTaskDoneHandler = (r: IUploadItem) => {
   }
 }
 
-// Unified SearchFilters handler
-function onFilterChange(newFilter: IFilter) {
-  Object.assign(filter, newFilter)
-  replacePath(mainStore, getUrl(buildQ(filter)))
+const isActive = ref(false)
+
+function applyRouteQuery() {
+  const nextPage = parseInt(route.query.page?.toString() ?? '1')
+  page.value = Number.isFinite(nextPage) && nextPage > 0 ? nextPage : 1
+  q.value = decodeBase64(route.query.q?.toString() ?? '')
+  parseQ(filter, q.value)
+  fetch()
 }
 
+watch(
+  () => route.fullPath,
+  () => {
+    if (!isActive.value) return
+    applyRouteQuery()
+  }
+)
+
 onActivated(() => {
-  q.value = decodeBase64(query.q?.toString() ?? '')
-  parseQ(filter, q.value)
   fetchBucketsTags()
-  fetch()
+  isActive.value = true
+  applyRouteQuery()
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
   emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
   emitter.on('media_items_actioned', mediaItemsActionedHandler)
@@ -477,6 +472,7 @@ onActivated(() => {
 })
 
 onDeactivated(() => {
+  isActive.value = false
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
   emitter.off('media_items_actioned', mediaItemsActionedHandler)

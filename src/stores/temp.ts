@@ -6,7 +6,11 @@ import type { IApp } from '@/lib/interfaces'
 
 export interface IUploadItem {
   id: string
+  batchId?: string
+  createdAt?: number
   dir: string
+  baseDir?: string
+  relativePath?: string
   fileName: string
   file: File
   uploadedSize: number

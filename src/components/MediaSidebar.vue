@@ -1,23 +1,26 @@
 <template>
   <left-sidebar>
-    <template #title>
-      {{ $t(`page_title.${group}`) }}
-    </template>
     <template #body>
       <ul class="nav">
         <li :class="{ active: !selectedTagId && !selectedBucketId && !trash }" @click.prevent="viewAll">
+          <span class="icon" aria-hidden="true">
+            <i-lucide:layout-grid />
+          </span>
           <span class="title">{{ $t('all') }}</span>
           <span v-if="total >= 0" class="count">{{ total.toLocaleString() }}</span>
         </li>
         <li v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)" :class="{ active: trash }" @click.prevent="viewTrash">
+          <span class="icon" aria-hidden="true">
+            <i-lucide:trash />
+          </span>
           <span class="title">{{ $t('trash') }}</span>
           <v-icon-button v-tooltip="$t('trash_tips')" class="btn-help sm">
             <i-material-symbols:help-outline-rounded />
           </v-icon-button>
           <span v-if="totalTrash >= 0" class="count">{{ totalTrash.toLocaleString() }}</span>
         </li>
-        <bucket-filter :type="props.type" :selected="selectedBucketId" />
       </ul>
+      <bucket-filter :type="props.type" :selected="selectedBucketId" />
       <tag-filter :type="props.type" :selected="selectedTagId" />
     </template>
   </left-sidebar>
@@ -32,15 +35,15 @@ import { decodeBase64, encodeBase64 } from '@/lib/strutil'
 import type { IFilter, IMediaItemsActionedEvent } from '@/lib/interfaces'
 import { storeToRefs } from 'pinia'
 import { useTempStore } from '@/stores/temp'
-import { DataType, FEATURE } from '@/lib/data'
+import { DataType } from '@/lib/data'
 import type { DocumentNode } from 'graphql'
 import { initLazyQuery } from '@/lib/api/query'
 import { buildQuery } from '@/lib/search'
 import emitter from '@/plugins/eventbus'
 import { hasFeature } from '@/lib/feature'
+import { FEATURE } from '@/lib/data'
 
-const tempStore = useTempStore()
-const { app } = storeToRefs(tempStore)
+useTempStore()
 const props = defineProps({
   type: {
     type: String as PropType<DataType>,
@@ -50,7 +53,7 @@ const props = defineProps({
 })
 
 const mainStore = useMainStore()
-const { counter } = storeToRefs(useTempStore())
+const { counter, app } = storeToRefs(useTempStore())
 const { parseQ } = useSearch()
 const filter = reactive<IFilter>({
   tagIds: [],

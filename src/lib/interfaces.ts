@@ -176,6 +176,7 @@ export interface IFileFilter {
   rootPath: string
   text: string
   parent: string
+  fileSize?: string
 }
 
 export interface IDropdownItem {
@@ -249,11 +250,6 @@ export interface IPackageItem extends IPackage {
   isUninstalling: boolean
 }
 
-export interface IStorageStatsItem {
-  totalBytes: number
-  freeBytes: number
-}
-
 // deleted, trashed, restored
 export interface IMediaItemsActionedEvent {
   type: string
@@ -296,10 +292,19 @@ export interface IScreenMirrorQualityOption {
   data?: IScreenMirrorQuality
 }
 
-export interface IStorageStats {
-  internal: IStorageStatsItem
-  sdcard: IStorageStatsItem
-  usb: IStorageStatsItem[]
+export interface IStorageMount {
+  id: string
+  name: string
+  path: string
+  mountPoint: string
+  fsType: string
+  totalBytes: number
+  usedBytes: number
+  freeBytes: number
+  remote: boolean
+  alias: string
+  driveType: string
+  diskID: string
 }
 
 export interface IHomeStats {
@@ -313,12 +318,13 @@ export interface IHomeStats {
   audioCount: number
   imageCount: number
   packageCount: number
-  storageStats: IStorageStats
+  mounts: IStorageMount[]
 }
 
 export interface IFavoriteFolder {
   rootPath: string
   fullPath: string
+  alias?: string | null
 }
 
 export interface IApp {

@@ -2,10 +2,14 @@ import { ref, type Ref } from 'vue'
 import { type IUploadItem } from '@/stores/temp'
 import { shortUUID } from '@/lib/strutil'
 
-function createUploadItem(file: File, dir: string): IUploadItem {
+function createUploadItem(file: File, dir: string, batchId: string, baseDir?: string, relativePath?: string): IUploadItem {
   return {
     id: shortUUID(),
+    batchId,
+    createdAt: Date.now(),
     dir: dir,
+    baseDir,
+    relativePath,
     fileName: '',
     file,
     status: 'created',
@@ -13,6 +17,12 @@ function createUploadItem(file: File, dir: string): IUploadItem {
     error: '',
     pausing: false,
   }
+}
+
+function normalizeJoin(base: string, rel: string) {
+  const b = (base || '').replace(/\/+$/g, '')
+  const r = (rel || '').replace(/^\/+/, '')
+  return (b ? `${b}/${r}` : `/${r}`).replace(/\/+?/g, '/').replace(/\/+$/g, '')
 }
 
 export const useFileUpload = (uploads: Ref<IUploadItem[]>) => {
@@ -30,9 +40,19 @@ export const useFileUpload = (uploads: Ref<IUploadItem[]>) => {
       if (!files) {
         return
       }
+      const batchId = shortUUID()
       const items = []
       for (let i = 0; i < files.length; i++) {
-        items.push(createUploadItem(files[i], _dir))
+        const file = files[i]
+        const rel = (file as any).webkitRelativePath ? String((file as any).webkitRelativePath) : ''
+        if (rel && rel.includes('/')) {
+          const parts = rel.split('/').filter(Boolean)
+          const relDir = parts.slice(0, -1).join('/')
+          const targetDir = relDir ? normalizeJoin(_dir, relDir) : _dir
+          items.push(createUploadItem(file, targetDir, batchId, _dir, rel))
+        } else {
+          items.push(createUploadItem(file, _dir, batchId, _dir, rel || undefined))
+        }
       }
       uploads.value = [...uploads.value, ...items]
     },
@@ -45,7 +65,7 @@ export const useDragDropUpload = (uploads: Ref<IUploadItem[]>) => {
   const readDirectory = async (entry: FileSystemDirectoryEntry, basePath = ''): Promise<Array<{ file: File; relativePath: string }>> => {
     const files: Array<{ file: File; relativePath: string }> = []
     const reader = entry.createReader()
-    
+
     const readEntries = (): Promise<FileSystemEntry[]> => {
       return new Promise((resolve) => {
         reader.readEntries(resolve)
@@ -79,13 +99,13 @@ export const useDragDropUpload = (uploads: Ref<IUploadItem[]>) => {
     fileDragLeave() {
       dropping.value = false
     },
-    async dropFiles(e: DragEvent, dir: string, isValid: (file: File) => boolean) {
+    async dropFiles(e: DragEvent, dir: string | (() => Promise<string | undefined>), isValid: (file: File) => boolean) {
       dropping.value = false
       const items = e.dataTransfer?.items
       if (!items) {
         return
       }
-      
+
       const allFileItems: Array<{ file: File; relativePath: string }> = []
       for (let i = 0; i < items.length; i++) {
         const item = items[i]
@@ -101,20 +121,27 @@ export const useDragDropUpload = (uploads: Ref<IUploadItem[]>) => {
         }
       }
 
-      const uploadItems = []
-      for (const fileItem of allFileItems) {
-        if (isValid(fileItem.file)) {
-          const file = fileItem.file
-          const pathParts = fileItem.relativePath.split('/')
-          let targetDir = dir
-          if (pathParts.length > 1) {
-            const subPath = pathParts.slice(0, -1).join('/')
-            targetDir = dir.endsWith('/') ? dir + subPath : dir + '/' + subPath
-          }
-          uploadItems.push(createUploadItem(file, targetDir))
-        }
+      const validFileItems = allFileItems.filter((it) => isValid(it.file))
+      if (validFileItems.length === 0) {
+        return
       }
-      
+
+      const resolvedDir = typeof dir === 'function' ? await dir() : dir
+      const targetBaseDir = String(resolvedDir || '').trim()
+      if (!targetBaseDir) {
+        return
+      }
+
+      const batchId = shortUUID()
+
+      const uploadItems = []
+      for (const fileItem of validFileItems) {
+        const file = fileItem.file
+        const pathParts = fileItem.relativePath.split('/')
+        const targetDir = pathParts.length > 1 ? normalizeJoin(targetBaseDir, pathParts.slice(0, -1).join('/')) : targetBaseDir
+        uploadItems.push(createUploadItem(file, targetDir, batchId, targetBaseDir, fileItem.relativePath))
+      }
+
       if (uploadItems.length > 0) {
         uploads.value = [...uploads.value, ...uploadItems]
       }
@@ -125,19 +152,11 @@ export const useDragDropUpload = (uploads: Ref<IUploadItem[]>) => {
 export const useChatFilesUpload = () => {
   return {
     getUploads(baseDir: string, files: File[]): IUploadItem[] {
+      const batchId = shortUUID()
       const items = []
       for (let i = 0; i < files.length; i++) {
         const file = files[i]
-        items.push({
-          id: shortUUID(),
-          dir: baseDir,
-          fileName: file.name,
-          file,
-          status: 'created',
-          uploadedSize: 0,
-          error: '',
-          pausing: false,
-        })
+        items.push(createUploadItem(file, baseDir, batchId, baseDir))
       }
       return items
     },
@@ -150,6 +169,8 @@ export const pasteToUpload = (e: ClipboardEvent, dir: string, uploads: Ref<IUplo
     return
   }
 
+  const batchId = shortUUID()
+
   const files: IUploadItem[] = []
   for (const item of items) {
     if (item.kind !== 'file') {
@@ -161,7 +182,7 @@ export const pasteToUpload = (e: ClipboardEvent, dir: string, uploads: Ref<IUplo
       if (file.type && type && !file.type.startsWith(type)) {
         continue
       }
-      files.push(createUploadItem(file, dir))
+      files.push(createUploadItem(file, dir, batchId, dir))
     }
   }
 

@@ -1,5 +1,4 @@
 <template>
-  <search-input :filter="filter" :types="types" :get-url="getUrl" :show-chips="showChips" :is-phone="isPhone" />
   <v-icon-button v-tooltip="$t('install_app')" @click="install">
     <i-material-symbols:upload-rounded />
   </v-icon-button>
@@ -17,14 +16,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { IFilter } from '@/lib/interfaces'
 
 interface Props {
-  filter: IFilter
-  types: { id: string; name: string }[]
-  getUrl: (q: string) => string
-  showChips: boolean
-  isPhone: boolean
   sorting: boolean
   sortItems: { value: string; label: string }[]
   appSortBy: string

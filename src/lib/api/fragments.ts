@@ -50,6 +50,7 @@ export const appFragment = gql`
     favoriteFolders {
       rootPath
       fullPath
+      alias
     }
     customChatFolder
   }

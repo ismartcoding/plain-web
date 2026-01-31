@@ -1,5 +1,5 @@
 <template>
-  <div class="h-action">
+  <div class="q-action">
     <v-dropdown v-model="menuVisible">
       <template #trigger>
         <button id="menu-ref" v-tooltip="t('settings')" class="btn-icon">
@@ -121,10 +121,6 @@ function logout() {
 </script>
 
 <style lang="scss" scoped>
-.h-action {
-  padding: 0 8px;
-}
-
 .dropdown-section {
   &:not(:last-child) {
     border-bottom: 1px solid var(--border-color);

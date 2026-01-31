@@ -19,14 +19,11 @@
       </div>
 
       <div class="actions">
-        <search-input :filter="filter" :tags="tags" :feeds="feeds" :show-chips="!isDetail && !isPhone" :get-url="getUrl" :show-today="true" :is-phone="isPhone" />
         <v-icon-button v-tooltip="$t('sync_feeds')" :loading="feedsSyncing" @click.prevent="syncFeeds">
           <i-material-symbols:sync-rounded />
         </v-icon-button>
       </div>
     </div>
-
-    <SearchFilters v-if="isDetail || isPhone" class="mobile-search-filters" :filter="filter" :tags="tags" :feeds="feeds" :buckets="[]" :types="[]" @filter-change="onFilterChange" />
 
     <all-checked-alert
       :limit="limit"
@@ -88,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onActivated, onDeactivated, reactive, ref } from 'vue'
+import { computed, inject, onActivated, onDeactivated, reactive, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { formatTimeAgo, formatDateTime } from '@/lib/format'
 import { feedsTagsGQL, initLazyQuery } from '@/lib/api/query'
@@ -125,11 +122,10 @@ const { t } = useI18n()
 const filter = reactive<IFilter>({
   tagIds: [],
 })
-const { parseQ, buildQ } = useSearch()
+const { parseQ } = useSearch()
 const dataType = DataType.FEED_ENTRY
 const route = useRoute()
-const query = route.query
-const page = ref(parseInt(query.page?.toString() ?? '1'))
+const page = ref(1)
 const limit = 100
 const tags = ref<ITag[]>([])
 const feeds = ref<IFeed[]>([])
@@ -253,9 +249,6 @@ function backToList() {
   }
 }
 
-function getUrl(q: string) {
-  return q ? `/feeds?q=${q}` : '/feeds'
-}
 
 const { fetch: fetchFeedsTags } = initLazyQuery({
   handle: async (data: { tags: ITag[]; feeds: IFeed[] }, error: string) => {
@@ -334,20 +327,32 @@ const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
   }
 }
 
-function onFilterChange(newFilter: IFilter) {
-  Object.assign(filter, newFilter)
-  replacePath(mainStore, getUrl(buildQ(filter)))
+const isActive = ref(false)
+
+function applyRouteQuery() {
+  const nextPage = parseInt(route.query.page?.toString() ?? '1')
+  page.value = Number.isFinite(nextPage) && nextPage > 0 ? nextPage : 1
+  q.value = decodeBase64(route.query.q?.toString() ?? '')
+  parseQ(filter, q.value)
+  fetch()
 }
+
+watch(
+  () => route.fullPath,
+  () => {
+    if (!isActive.value) return
+    applyRouteQuery()
+  }
+)
 
 onActivated(() => {
   const scroller = document.getElementsByClassName('scroller')?.[0]
   if (scroller) {
     scroller.scrollTop = 0
   }
-  q.value = decodeBase64(query.q?.toString() ?? '')
-  parseQ(filter, q.value)
   fetchFeedsTags()
-  fetch()
+  isActive.value = true
+  applyRouteQuery()
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
   emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
   emitter.on('feeds_fetched', feedsFetchedHandler)
@@ -356,6 +361,7 @@ onActivated(() => {
 })
 
 onDeactivated(() => {
+  isActive.value = false
   listPage.value = 1
   noMore.value = false
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)

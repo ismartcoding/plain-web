@@ -1,0 +1,33 @@
+.settings-kv {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding-top: 4px;
+}
+
+.settings-kv__label {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.settings-kv__value {
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 720px) {
+  .settings-kv {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 6px;
+  }
+
+  .settings-kv__value {
+    min-height: 0;
+    word-break: break-all;
+  }
+}

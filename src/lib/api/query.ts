@@ -186,19 +186,13 @@ export const homeStatsGQL = gql`
     packageCount(query: "")
     noteCount(query: "")
     feedEntryCount(query: "")
-    storageStats {
-      internal {
-        totalBytes
-        freeBytes
-      }
-      sdcard {
-        totalBytes
-        freeBytes
-      }
-      usb {
-        totalBytes
-        freeBytes
-      }
+    mounts {
+      id
+      path
+      mountPoint
+      totalBytes
+      freeBytes
+      driveType
     }
   }
 `
@@ -270,21 +264,21 @@ export const recentFilesGQL = gql`
   ${fileFragment}
 `
 
-export const storageStatsGQL = gql`
+export const mountsGQL = gql`
   query {
-    storageStats {
-      internal {
-        totalBytes
-        freeBytes
-      }
-      sdcard {
-        totalBytes
-        freeBytes
-      }
-      usb {
-        totalBytes
-        freeBytes
-      }
+    mounts {
+      id
+      name
+      path
+      mountPoint
+      fsType
+      totalBytes
+      usedBytes
+      freeBytes
+      remote
+      alias
+      driveType
+      diskID
     }
   }
 `

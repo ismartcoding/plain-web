@@ -9,38 +9,21 @@
     <div class="layout">
       <header id="header">
         <section class="start">
-          <v-icon-button 
+          <v-icon-button
             v-if="hasLeftSidebar"
-            v-tooltip="$t(store.miniSidebar ? 'open' : 'close')" 
-            class="sidebar-toggle" 
+            v-tooltip="$t(store.miniSidebar ? 'open' : 'close')"
+            class="sidebar-toggle"
             @click.prevent="toggleSidebar"
           >
             <i-material-symbols:left-panel-open-outline-rounded v-if="store.miniSidebar" />
             <i-material-symbols:left-panel-close-outline-rounded v-else />
           </v-icon-button>
-          <div class="tab-items">
-            <div key="/" class="tab-item" :class="{ active: currentPath === '/' }" @click="selectTab('/')" @contextmenu="itemCtxMenu($event, '/')">
-              <span>{{ $t('page_title.home') }}</span>
-            </div>
-            <div
-              v-for="item of store.pages"
-              :key="item.path"
-              class="tab-item"
-              :class="{ active: currentPath === item.path }"
-              @click="selectTab(item.path)"
-              @contextmenu="itemCtxMenu($event, item.path)"
-            >
-              <span>{{ $t(`page_title.${getRouteName(item.path)}`) }}</span>
-              <v-icon-button class="tab-icon" @click.stop="closeTab(item.path)">
-                <i-material-symbols:close-rounded />
-              </v-icon-button>
-            </div>
-          </div>
         </section>
         <section class="end">
-          <header-actions :logged-in="true" @toggle-quick="toggleQuick" />
+          <HeaderSearch v-if="showHeaderSearch" :placeholder="$t('search')" />
         </section>
       </header>
+      <app-rail />
       <div class="page-content">
         <!-- The cache key $route.meta.group is mainly used for MediaSidebar, otherwise the component will be cached totally. -->
         <router-view v-slot="{ Component }" name="LeftSidebar">
@@ -69,6 +52,8 @@
         </main>
       </div>
       <div class="quick-actions">
+        <header-actions :logged-in="true" @toggle-quick="toggleQuick" />
+
         <v-icon-button
           v-if="hasTasks || store.quick === 'task'"
           v-tooltip="$t('header_actions.tasks')"
@@ -119,25 +104,21 @@
 <script setup lang="ts">
 import { onMounted, inject, ref, watch, computed, onUnmounted } from 'vue'
 import { useMainStore } from '@/stores/main'
-import { useRouter, type RouteLocationNormalized } from 'vue-router'
-import { getRouteName } from '@/plugins/router'
+import { useRouter } from 'vue-router'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { appGQL, initQuery } from '@/lib/api/query'
 import emitter from '@/plugins/eventbus'
 import { tokenToKey } from '@/lib/api/file'
-import type { IApp, IMediaItemsActionedEvent, IPage } from '@/lib/interfaces'
-import { contextmenu } from '@/components/contextmenu'
-import { useI18n } from 'vue-i18n'
-import { remove } from 'lodash-es'
+import type { IApp, IMediaItemsActionedEvent } from '@/lib/interfaces'
 import { useRightSidebarResize } from '@/hooks/sidebar'
+import HeaderSearch from '@/components/HeaderSearch.vue'
 
 const isTablet = inject('isTablet')
 const store = useMainStore()
 const router = useRouter()
 const tempStore = useTempStore()
 const { app, urlTokenKey } = storeToRefs(tempStore)
-const { t } = useI18n()
 
 const loading = ref(true)
 const errorMessage = ref('')
@@ -171,6 +152,12 @@ function toggleQuick(name: string) {
     store.quick = name
   }
 }
+
+const showHeaderSearch = computed(() => {
+  const route = router.currentRoute.value
+  if (route.path === '/files/recent') return false
+  return true
+})
 
 const { refetch: refetchApp } = initQuery({
   handle: (data: { app: IApp }, error: string) => {
@@ -206,43 +193,6 @@ const { resizeWidth } = useRightSidebarResize(
     store.quickContentWidth = width
   }
 )
-
-function itemCtxMenu(e: MouseEvent, path: string) {
-  e.preventDefault()
-  const items = []
-  if (path !== '/') {
-    items.push({
-      label: t('close'),
-      onClick: () => {
-        closeTab(path)
-      },
-    })
-  }
-  items.push({
-    label: t('close_other_tabs'),
-    onClick: () => {
-      remove(store.pages, (it: IPage) => it.path !== path)
-      if (currentPath.value !== path && currentPath.value !== '/') {
-        selectTab(path)
-      }
-    },
-  })
-  items.push({
-    label: t('close_tabs_to_the_right'),
-    onClick: () => {
-      const index = store.pages.findIndex((it: IPage) => it.path === path)
-      remove(store.pages, (it: IPage) => store.pages.indexOf(it) > index)
-      if (currentPath.value !== path && currentPath.value !== '/') {
-        selectTab(path)
-      }
-    },
-  })
-  contextmenu({
-    x: e.x,
-    y: e.y,
-    items,
-  })
-}
 
 const currentPath = ref(router.currentRoute.value.fullPath)
 
@@ -280,24 +230,10 @@ onUnmounted(() => {
   emitter.off('media_items_actioned', mediaItemsActionedHandler)
 })
 
-function selectTab(fullPath: string) {
-  router.push(fullPath)
-}
-
-function closeTab(fullPath: string) {
-  const index = store.pages.findIndex((it: IPage) => it.path === fullPath)
-  if (index !== -1) {
-    store.pages.splice(index, 1)
-    if (currentPath.value === fullPath) {
-      if (!store.pages.length) {
-        selectTab('/')
-      } else if (index < store.pages.length) {
-        selectTab(store.pages[index].path)
-      } else if (index - 1 < store.pages.length) {
-        selectTab(store.pages[index - 1].path)
-      }
-    }
-  }
+const localState = localStorage.getItem('main_state')
+if (localState) {
+  const json = JSON.parse(localState)
+  store.$state = { ...store.$state, ...json }
 }
 
 watch(
@@ -308,51 +244,27 @@ watch(
   },
   { deep: true }
 )
-
-const localState = localStorage.getItem('main_state')
-if (localState) {
-  const json = JSON.parse(localState)
-  // TODO: remove this after 2025.06.01
-  if (json.pages) {
-    const newPages: IPage[] = []
-    json.pages.forEach((it: IPage | string) => {
-      if (typeof it === 'string') {
-        newPages.push({ path: it })
-      } else {
-        newPages.push(it)
-      }
-    })
-    json.pages = newPages
-  }
-  store.$state = { ...store.$state, ...json }
-}
-
-const ensurePages = (to: RouteLocationNormalized) => {
-  if (!['/', '/login'].includes(to.path)) {
-    if (!store.pages.some((it: IPage) => it.path === to.fullPath)) {
-      store.pages.push({ path: to.fullPath })
-    }
-  }
-}
-
-ensurePages(router.currentRoute.value)
-router.afterEach((to, from, failure) => {
-  ensurePages(to)
-})
 </script>
 
 <style lang="scss" scoped>
 .content-loading {
   height: 100vh;
 }
+
 .layout {
   display: grid;
   grid-template-areas:
-    'head head quick-content'
-    'page-content quick-actions quick-content';
-  grid-template-columns: 1fr auto auto;
+    'rail head quick-actions quick-content'
+    'rail page-content quick-actions quick-content';
+  grid-template-columns: auto 1fr auto auto;
   grid-template-rows: auto 1fr;
   height: 100vh;
+}
+
+.page-content {
+  grid-area: page-content;
+  display: flex;
+  min-height: 0;
 }
 
 .quick-actions {
@@ -378,47 +290,6 @@ router.afterEach((to, from, failure) => {
 .quick-content {
   grid-area: quick-content;
   overflow: hidden;
-}
-
-.tab-items {
-  display: flex;
-  white-space: nowrap;
-
-  .btn-icon {
-    *:is(svg) {
-      width: 12px;
-      height: 12px;
-    }
-  }
-}
-
-.tab-item {
-  outline: none;
-  cursor: pointer;
-  box-sizing: border-box;
-  user-select: none;
-  text-align: center;
-  border-bottom: 3px solid transparent;
-
-  &.active {
-    border-color: var(--md-sys-color-primary);
-    color: var(--md-sys-color-primary);
-  }
-
-  &:first-child span {
-    padding-inline-end: 16px;
-  }
-
-  span {
-    padding: 8px 8px 8px 16px;
-    display: inline-block;
-  }
-
-  .tab-icon {
-    margin-inline: 8px;
-    width: 32px;
-    height: 32px;
-  }
 }
 
 #header {
@@ -453,6 +324,9 @@ router.afterEach((to, from, failure) => {
   .end {
     margin-left: auto;
     display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-inline-end: 8px;
   }
 }
 

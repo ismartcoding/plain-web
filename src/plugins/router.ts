@@ -1,12 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import MainView from '@/views/MainView.vue'
-import type { IPage } from '@/lib/interfaces'
 import type { MainState } from '@/stores/main'
 
 const router = createRouter({
   strict: true,
   history: createWebHistory(),
-  scrollBehavior(to: string, from: string, savedPosition: { top: number } | null) {
+  scrollBehavior(_to, _from, savedPosition) {
     if (savedPosition) {
       return savedPosition
     } else {
@@ -203,26 +202,12 @@ router.afterEach((to, from) => {
 export default router
 
 export const replacePathNoReload = (store: MainState, fullPath: string) => {
-  const oldPath = router.currentRoute.value.fullPath
   router.currentRoute.value.fullPath = fullPath
-  const index = store.pages.findIndex((it: IPage) => it.path === fullPath)
-  if (index !== -1) {
-    window.history.pushState({}, document.title, fullPath)
-  } else {
-    window.history.replaceState({}, document.title, fullPath)
-    store.replaceRoute(oldPath, fullPath)
-  }
+  window.history.replaceState({}, document.title, fullPath)
 }
 
 export const replacePath = (store: MainState, fullPath: string) => {
-  const index = store.pages.findIndex((it: IPage) => it.path === fullPath)
-  if (index !== -1) {
-    router.push(fullPath)
-  } else {
-    const oldPath = router.currentRoute.value.fullPath
-    router.replace(fullPath)
-    store.replaceRoute(oldPath, fullPath)
-  }
+  router.replace(fullPath)
 }
 
 export const pushPath = (fullPath: string) => {
