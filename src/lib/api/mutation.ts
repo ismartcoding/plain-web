@@ -29,6 +29,39 @@ export function initMutation(params: InitMutationParams, handleError = true) {
   return r
 }
 
+export async function runMutation<TVariables extends Record<string, any> | undefined>(
+  mutate: (variables?: TVariables) => Promise<any>,
+  onDone: (fn: (...args: any[]) => void) => { off: () => void },
+  onError: (fn: (...args: any[]) => void) => { off: () => void },
+  variables?: TVariables
+): Promise<boolean> {
+  return await new Promise<boolean>((resolve) => {
+    let doneSub: { off: () => void } | null = null
+    let errorSub: { off: () => void } | null = null
+
+    const cleanup = () => {
+      doneSub?.off()
+      errorSub?.off()
+      doneSub = null
+      errorSub = null
+    }
+
+    doneSub = onDone(() => {
+      cleanup()
+      resolve(true)
+    })
+
+    errorSub = onError(() => {
+      cleanup()
+      resolve(false)
+    })
+
+    mutate(variables).catch(() => {
+      // Errors are handled via onError callbacks.
+    })
+  })
+}
+
 export function insertCache(cache: ApolloCache<any>, data: any, query: DocumentNode, variables?: any, reversed: boolean = false) {
   const q: any = cache.readQuery({ query, variables })
   const key = Object.keys(q)[0]
@@ -62,6 +95,15 @@ export const deleteChatItemGQL = gql`
 export const createDirGQL = gql`
   mutation createDir($path: String!) {
     createDir(path: $path) {
+      ...FileFragment
+    }
+  }
+  ${fileFragment}
+`
+
+export const writeTextFileGQL = gql`
+  mutation writeTextFile($path: String!, $content: String!, $overwrite: Boolean!) {
+    writeTextFile(path: $path, content: $content, overwrite: $overwrite) {
       ...FileFragment
     }
   }

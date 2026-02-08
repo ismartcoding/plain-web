@@ -494,6 +494,8 @@ export default {
   invalid_json_format: 'Invalid JSON format',
   raw_text: 'Raw text',
   formatted_view: 'Formatted view',
+  unsaved_changes_warning: 'You have unsaved changes. Are you sure you want to exit?',
+  invalid_file_path: 'Invalid file path',
   install_app: 'Install APK',
   app_installation_failed: 'App installation failed',
   app_installation_completed: 'App installation completed',

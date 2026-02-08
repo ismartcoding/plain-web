@@ -80,6 +80,7 @@ declare module 'vue' {
     ILucideCode: typeof import('~icons/lucide/code')['default']
     ILucideDownload: typeof import('~icons/lucide/download')['default']
     ILucideEye: typeof import('~icons/lucide/eye')['default']
+    ILucidePencil: typeof import('~icons/lucide/pencil')['default']
     ILucideWrapText: typeof import('~icons/lucide/wrap-text')['default']
     ImageActionButtons: typeof import('./src/components/images/ImageActionButtons.vue')['default']
     ImageListItem: typeof import('./src/components/images/ImageListItem.vue')['default']
