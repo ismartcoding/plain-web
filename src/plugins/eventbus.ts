@@ -1,6 +1,7 @@
 import type { IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IFileDeletedEvent, IFileRenamedEvent, IMediaItemsActionedEvent, INotesActionedEvent } from '@/lib/interfaces'
 import type { IUploadItem } from '@/stores/temp'
 import mitt, { type Emitter } from 'mitt'
+import type { SignalingMessage } from '@/lib/webrtc-client'
 
 type Events = {
   upload_task_done: IUploadItem
@@ -21,7 +22,6 @@ type Events = {
   toast: string
   tap_phone: string
   feeds_fetched: any
-  screen_mirroring: Blob
   message_created: any
   message_updated: any
   message_deleted: any
@@ -34,6 +34,8 @@ type Events = {
   pomodoro_action: any
   pomodoro_settings_update: any
   chat_settings_update: any
+  webrtc_signaling: SignalingMessage
+  screen_mirroring: string
 }
 
 const emitter: Emitter<Events> = mitt<Events>()

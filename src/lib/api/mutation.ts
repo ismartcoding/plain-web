@@ -433,8 +433,14 @@ export const cancelNotificationsGQL = gql`
 `
 
 export const updateScreenMirrorQualityGQL = gql`
-  mutation updateScreenMirrorQuality($quality: Int!, $resolution: Int!) {
-    updateScreenMirrorQuality(quality: $quality, resolution: $resolution)
+  mutation updateScreenMirrorQuality($mode: String!) {
+    updateScreenMirrorQuality(mode: $mode)
+  }
+`
+
+export const sendWebRtcSignalingGQL = gql`
+  mutation sendWebRtcSignaling($payload: WebRtcSignalingMessage!) {
+    sendWebRtcSignaling(payload: $payload)
   }
 `
 

@@ -43,6 +43,7 @@ const EventType: { [key: number]: string } = {
   3: 'message_updated',
   4: 'feeds_fetched',
   5: 'screen_mirroring',
+  6: 'webrtc_signaling',
   7: 'notification_created',
   8: 'notification_updated',
   9: 'notification_deleted',
@@ -74,20 +75,14 @@ async function connect() {
 
     ws.onmessage = async (event: MessageEvent) => {
       const buffer = await event.data.arrayBuffer()
-      const plainTypes = [5]
-      const r = parseWebSocketData(buffer, plainTypes)
-      const type = EventType[r.type] ?? ''
-      if (plainTypes.includes(r.type)) {
-        emitter.emit(type, new Blob([r.data], { type: 'application/octet-stream' }))
-        console.log(type)
-      } else {
-        try {
-          const json = chachaDecrypt(key, r.data)
-          emitter.emit(type, json ? JSON.parse(json) : null)
-          console.log(`${type}, ${json}`)
-        } catch (ex) {
-          console.error(ex)
-        }
+      const r = parseWebSocketData(buffer)
+      const type = EventType[r.type]
+      try {
+        const json = chachaDecrypt(key, r.data)
+        emitter.emit(type, json ? JSON.parse(json) : null)
+        console.log(`ws.onmessage: ${type}, ${json}`)
+      } catch (ex) {
+        console.error(ex)
       }
       wsStatus.value = ''
     }

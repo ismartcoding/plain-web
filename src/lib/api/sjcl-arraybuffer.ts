@@ -63,7 +63,7 @@ export function arrayBuffertoBits(buffer: ArrayBuffer) {
   return out
 }
 
-export function parseWebSocketData(buffer: ArrayBuffer, plainTypes: number[]): { type: number; data: any } {
+export function parseWebSocketData(buffer: ArrayBuffer): { type: number; data: any } {
   const out = []
   let tmp
 
@@ -78,13 +78,6 @@ export function parseWebSocketData(buffer: ArrayBuffer, plainTypes: number[]): {
 
   const inView = new DataView(buffer)
   prefix = inView.getInt32(0)
-  if (plainTypes.includes(prefix)) {
-    return {
-      type: prefix,
-      data: buffer.slice(4),
-    }
-  }
-
   const len = inView.byteLength - (inView.byteLength % 4)
 
   for (let i = 0; i < len; i += 4) {

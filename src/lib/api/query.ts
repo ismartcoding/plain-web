@@ -504,8 +504,8 @@ export const screenMirrorStateGQL = gql`
   query {
     screenMirrorState
     screenMirrorQuality {
+      mode
       resolution
-      quality
     }
   }
 `
@@ -513,8 +513,7 @@ export const screenMirrorStateGQL = gql`
 export const screenMirrorQualityGQL = gql`
   query {
     screenMirrorQuality {
-      resolution
-      quality
+      mode
     }
   }
 `

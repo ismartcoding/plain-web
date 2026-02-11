@@ -3,8 +3,8 @@
     <div class="top-app-bar">
       <div class="title">{{ $t('screen_mirror') }}</div>
       <div class="actions">
-        <template v-if="state">
-          <v-icon-button v-tooltip="$t('refresh')" @click="() => refetch()">
+        <template v-if="mirroring">
+          <v-icon-button v-tooltip="$t('refresh')" @click="refresh">
             <i-material-symbols:refresh-rounded />
           </v-icon-button>
           <v-icon-button v-tooltip="$t(paused ? 'resume' : 'pause')" @click="togglePause">
@@ -14,8 +14,31 @@
           <v-icon-button v-tooltip="$t('stop_mirror')" :disabled="stopServiceLoading" class="btn-stop" @click="stopService">
             <i-material-symbols:stop-rounded />
           </v-icon-button>
+
+          <v-dropdown v-model="qualityMenuVisible" placement="auto" align="top-left-to-bottom-left">
+            <template #trigger>
+              <v-outlined-button v-tooltip="$t('mirror_quality')" class="btn-sm" :loading="updateQualityLoading">
+                {{ modeLabel }}
+              </v-outlined-button>
+            </template>
+            <div class="dropdown-item" :class="{ active: qualityMode === 'AUTO' }" @click="() => setQualityMode('AUTO')">
+              <i-material-symbols:check-rounded v-if="qualityMode === 'AUTO'" />
+              <span v-else class="check-placeholder" />
+              {{ $t('mirror_auto') }}
+            </div>
+            <div class="dropdown-item" :class="{ active: qualityMode === 'HD' }" @click="() => setQualityMode('HD')">
+              <i-material-symbols:check-rounded v-if="qualityMode === 'HD'" />
+              <span v-else class="check-placeholder" />
+              {{ $t('mirror_hd') }}
+            </div>
+            <div class="dropdown-item" :class="{ active: qualityMode === 'SMOOTH' }" @click="() => setQualityMode('SMOOTH')">
+              <i-material-symbols:check-rounded v-if="qualityMode === 'SMOOTH'" />
+              <span v-else class="check-placeholder" />
+              {{ $t('mirror_smooth') }}
+            </div>
+          </v-dropdown>
+
           <template v-if="!isPhone">
-            <v-outlined-button v-tooltip="$t('change_quality')" class="btn-sm" @click="changeQuality">{{ $t('mirror_quality') }}</v-outlined-button>
             <v-outlined-button v-tooltip="$t('screenshot')" class="btn-sm" @click="takeScreenshot">{{ $t('screenshot') }}</v-outlined-button>
             <v-icon-button v-tooltip="$t('fullscreen')" class="btn-enter-fullscreen" @click="requestFullscreen">
               <i-material-symbols:fullscreen-rounded />
@@ -30,10 +53,6 @@
                 <i-material-symbols:more-vert />
               </v-icon-button>
             </template>
-            <div class="dropdown-item" @click="changeQuality(); moreMenuVisible = false">
-              <i-material-symbols:tune-rounded />
-              {{ $t('mirror_quality') }}
-            </div>
             <div class="dropdown-item" @click="takeScreenshot(); moreMenuVisible = false">
               <i-material-symbols:photo-camera-rounded />
               {{ $t('screenshot') }}
@@ -52,7 +71,7 @@
       </div>
     </div>
     <div class="content">
-      <div v-if="fetchImageLoading || startServiceLoading || relaunchAppLoading">
+      <div v-if="fetchStateLoading || startServiceLoading || relaunchAppLoading || connecting">
         <v-circular-progress indeterminate />
       </div>
       <template v-else>
@@ -62,13 +81,13 @@
           </div>
           <pre class="text">{{ $t('screen_mirror_request_permission', { seconds: seconds }) }}</pre>
         </div>
-        <div v-if="failed && !state && !relaunchAppLoading" class="request-permission-failed">
+        <div v-if="failed && !mirroring && !relaunchAppLoading" class="request-permission-failed">
           <MobileWarning />
           <p>{{ $t('screen_mirror_request_permission_failed') }}</p>
           <v-filled-button @click="start">{{ $t('try_again') }}</v-filled-button>
         </div>
-        <canvas v-show="state" ref="canvasRef" class="canvas"></canvas>
       </template>
+      <video v-show="mirroring && !fetchStateLoading" ref="videoRef" class="video" autoplay playsinline muted></video>
     </div>
   </div>
 </template>
@@ -76,35 +95,60 @@
 <script setup lang="ts">
 import emitter from '@/plugins/eventbus'
 import toast from '@/components/toaster'
-import { onActivated, onDeactivated, ref, inject } from 'vue'
+import { onActivated, onDeactivated, ref, inject, watch, computed } from 'vue'
 import MobileWarning from '@/assets/mobile-warning.svg'
 import { initQuery, screenMirrorStateGQL } from '@/lib/api/query'
 import { useI18n } from 'vue-i18n'
-import { initMutation, relaunchAppGQL, startScreenMirrorGQL, stopScreenMirrorGQL } from '@/lib/api/mutation'
+import { initMutation, relaunchAppGQL, startScreenMirrorGQL, stopScreenMirrorGQL, updateScreenMirrorQualityGQL } from '@/lib/api/mutation'
 import type { ApolloError } from '@apollo/client/errors'
 import TouchPhone from '@/assets/touch-phone.svg'
-import ChangeScreenMirrorQualityModal from '@/components/ChangeScreenMirrorQualityModal.vue'
-import { openModal } from '@/components/modal'
 import { download } from '@/lib/api/file'
+import { WebRTCClient, type SignalingMessage } from '@/lib/webrtc-client'
+import { sendWebRTCSignaling } from '@/lib/webrtc-signaling'
 
 let countIntervalId: number
 const { t } = useI18n()
 const isPhone = inject('isPhone') as boolean
-const state = ref(false)
+const mirroring = ref(false)
 const seconds = ref(0)
 const failed = ref(false)
 const paused = ref(false)
-const showLatest = ref(false)
-const canvasRef = ref<HTMLCanvasElement>()
+const connecting = ref(false)
+const videoRef = ref<HTMLVideoElement>()
 const moreMenuVisible = ref(false)
+const qualityMenuVisible = ref(false)
+const qualityMode = ref('AUTO')
 
-const screenMirroringHandler = async (data: Blob) => {
-  state.value = true
-  renderCanvas(data)
+const modeLabels: Record<string, string> = {
+  AUTO: 'mirror_auto',
+  HD: 'mirror_hd',
+  SMOOTH: 'mirror_smooth',
+}
+const modeLabel = computed(() => t(modeLabels[qualityMode.value] || 'mirror_auto'))
+
+let webrtcClient: WebRTCClient | null = null
+let pendingStream: MediaStream | null = null
+
+const screenMirroringHandler = async () => {
+  mirroring.value = true
   failed.value = false
   seconds.value = 0
   clearInterval(countIntervalId)
+  startWebRTC()
 }
+
+const refresh = () => {
+  refetch()
+}
+
+// When the video element appears in DOM, attach any pending stream
+watch(videoRef, (video) => {
+  if (video && pendingStream) {
+    video.srcObject = pendingStream
+    video.play().catch(() => undefined)
+    pendingStream = null
+  }
+})
 
 let relaunchAppLoading = false
 
@@ -114,13 +158,32 @@ const { mutate: doRelaunchApp } = initMutation({
 
 const togglePause = () => {
   paused.value = !paused.value
-  if (!paused.value) {
-    refetch()
+  const video = videoRef.value
+  if (!video) return
+  if (paused.value) {
+    video.pause()
+  } else {
+    video.play().catch(() => undefined)
   }
 }
 
-const changeQuality = () => {
-  openModal(ChangeScreenMirrorQualityModal)
+let pendingMode: string | null = null
+
+const { mutate: updateQuality, loading: updateQualityLoading, onDone: updateQualityDone } = initMutation({
+  document: updateScreenMirrorQualityGQL,
+})
+
+updateQualityDone(() => {
+  if (pendingMode != null) {
+    qualityMode.value = pendingMode
+    pendingMode = null
+  }
+  qualityMenuVisible.value = false
+})
+
+const setQualityMode = (mode: string) => {
+  pendingMode = mode
+  updateQuality({ mode })
 }
 
 const relaunchApp = () => {
@@ -139,44 +202,94 @@ const appSocketConnectionChangedHanlder = (connected: boolean) => {
 }
 
 const takeScreenshot = () => {
-  const canvas = canvasRef.value
-  if (!canvas) {
+  const video = videoRef.value
+  if (!video) {
     return
+  }
+  const canvas = document.createElement('canvas')
+  canvas.width = video.videoWidth
+  canvas.height = video.videoHeight
+  const ctx = canvas.getContext('2d')
+  if (ctx) {
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
   }
   const d = new Date()
   const fileName = 'screenshot-' + [d.getFullYear(), d.getMonth() + 1, d.getDate(), d.getHours(), d.getMinutes(), d.getSeconds(), d.getMilliseconds()].join('') + '.png'
   download(canvas.toDataURL(), fileName)
 }
 
-function renderCanvas(blob: Blob) {
-  const canvas = canvasRef.value
-  if (!canvas) {
-    return
+const initWebRTCClient = () => {
+  if (webrtcClient) {
+    webrtcClient.cleanup()
   }
-  if (paused.value && !showLatest.value) {
-    return
-  }
-  showLatest.value = false
-  const ctx = canvas.getContext('2d')
-  const img = new Image()
-  img.src = URL.createObjectURL(blob)
-  img.onload = function () {
-    if (ctx) {
-      canvas.width = img.width
-      canvas.height = img.height
-      ctx.drawImage(img, 0, 0)
-    }
+
+  webrtcClient = new WebRTCClient({
+    sendSignaling: (message: SignalingMessage) => {
+      sendWebRTCSignaling(message)
+    },
+    onStream: (stream: MediaStream) => {
+      connecting.value = false
+      const video = videoRef.value
+      if (video) {
+        video.srcObject = stream
+        video.play().catch(() => undefined)
+        mirroring.value = true
+        failed.value = false
+        seconds.value = 0
+        clearInterval(countIntervalId)
+      } else {
+        // Video element not yet in DOM, store for later
+        pendingStream = stream
+        mirroring.value = true
+        failed.value = false
+        seconds.value = 0
+        clearInterval(countIntervalId)
+      }
+    },
+    onConnectionStateChange: (newState: RTCPeerConnectionState) => {
+      if (newState === 'connected') {
+        connecting.value = false
+      } else if (newState === 'failed' || newState === 'disconnected') {
+        connecting.value = false
+        failed.value = true
+      }
+    },
+    onError: (error: string) => {
+      connecting.value = false
+      toast(error, 'error')
+      failed.value = true
+    },
+  })
+}
+
+const startWebRTC = () => {
+  connecting.value = true
+  // Act as answerer: wait for offer from app.
+  webrtcClient?.startSession(true, false)
+}
+
+const webrtcSignalingHandler = async (message: SignalingMessage) => {
+  if (webrtcClient) {
+    await webrtcClient.handleSignalingMessage(message)
   }
 }
 
+
 onActivated(() => {
   emitter.on('screen_mirroring', screenMirroringHandler)
+  emitter.on('webrtc_signaling', webrtcSignalingHandler)
   emitter.on('app_socket_connection_changed', appSocketConnectionChangedHanlder)
+  initWebRTCClient()
 })
 
 onDeactivated(() => {
   emitter.off('screen_mirroring', screenMirroringHandler)
+  emitter.off('webrtc_signaling', webrtcSignalingHandler)
   emitter.off('app_socket_connection_changed', appSocketConnectionChangedHanlder)
+  if (webrtcClient) {
+    webrtcClient.cleanup()
+    webrtcClient = null
+  }
 })
 
 const {
@@ -188,18 +301,19 @@ const {
   document: startScreenMirrorGQL,
 })
 
-const { loading: fetchImageLoading, refetch } = initQuery({
-  handle: (data: { screenMirrorState: boolean }, error: string) => {
+const { loading: fetchStateLoading, refetch } = initQuery({
+  handle: (data: { screenMirrorState: boolean; screenMirrorQuality?: { mode: string } }, error: string) => {
     if (error) {
       toast(t(error), 'error')
     } else {
+      if (data?.screenMirrorQuality?.mode) {
+        qualityMode.value = data.screenMirrorQuality.mode
+      }
       if (!data.screenMirrorState) {
-        state.value = false
-        showLatest.value = false
+        mirroring.value = false
         start()
       } else {
-        state.value = true
-        showLatest.value = true
+        startWebRTC()
       }
     }
   },
@@ -254,11 +368,14 @@ stopServiceError((error: ApolloError) => {
 
 stopServiceDone(() => {
   failed.value = true
-  state.value = false
+  mirroring.value = false
+  if (webrtcClient) {
+    webrtcClient.cleanup()
+  }
 })
 </script>
 <style lang="scss" scoped>
-.canvas {
+.video {
   margin: 0 auto;
   display: block;
   width: 100%;
@@ -272,7 +389,7 @@ stopServiceDone(() => {
   .content {
     height: auto;
   }
-  .canvas {
+  .video {
     max-height: calc(100vh - 60px);
   }
   .btn-exit-fullscreen {
@@ -347,7 +464,17 @@ stopServiceDone(() => {
     background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
   }
 
+  &.active {
+    color: var(--md-sys-color-primary);
+  }
+
   i {
+    width: 20px;
+    height: 20px;
+  }
+
+  .check-placeholder {
+    display: inline-block;
     width: 20px;
     height: 20px;
   }
