@@ -12,7 +12,7 @@ function loadLocale(file) {
   }).outputText
 
   const wrapped = out.replace(/export\s+default\s+/, 'return ')
-  // eslint-disable-next-line no-new-func
+   
   return new Function(wrapped)()
 }
 
@@ -140,5 +140,3 @@ for (const f of files) {
   fs.writeFileSync(webFile, out, 'utf8')
   touched++
 }
-
-console.log(`Updated ${touched} locale file(s).`)

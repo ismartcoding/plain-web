@@ -503,6 +503,7 @@ export const packageStatusesGQL = gql`
 export const screenMirrorStateGQL = gql`
   query {
     screenMirrorState
+    screenMirrorControlEnabled
     screenMirrorQuality {
       mode
       resolution

@@ -18,8 +18,10 @@
             <i-material-symbols:left-panel-open-outline-rounded v-if="store.miniSidebar" />
             <i-material-symbols:left-panel-close-outline-rounded v-else />
           </v-icon-button>
+          <div id="header-start-slot"></div>
         </section>
         <section class="end">
+          <div id="header-end-slot"></div>
           <HeaderSearch v-if="showHeaderSearch" :placeholder="$t('search')" />
         </section>
       </header>
@@ -155,7 +157,7 @@ function toggleQuick(name: string) {
 
 const showHeaderSearch = computed(() => {
   const route = router.currentRoute.value
-  if (route.path === '/files/recent') return false
+  if (route.path === '/files/recent' || route.path === '/screen-mirror') return false
   return true
 })
 
@@ -327,6 +329,11 @@ watch(
     align-items: center;
     gap: 8px;
     margin-inline-end: 8px;
+  }
+
+  #header-start-slot,
+  #header-end-slot {
+    display: contents;
   }
 }
 

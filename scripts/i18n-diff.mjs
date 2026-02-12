@@ -12,7 +12,7 @@ function loadLocale(file) {
   }).outputText
 
   const wrapped = out.replace(/export\s+default\s+/, 'return ')
-  // eslint-disable-next-line no-new-func
+   
   return new Function(wrapped)()
 }
 
@@ -62,5 +62,3 @@ for (const f of files) {
     extra,
   }
 }
-
-console.log(JSON.stringify(report, null, 2))

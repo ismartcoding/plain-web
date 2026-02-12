@@ -478,3 +478,9 @@ export const pausePomodoroGQL = gql`
     pausePomodoro
   }
 `
+
+export const sendScreenMirrorControlGQL = gql`
+  mutation sendScreenMirrorControl($input: ScreenMirrorControlInput!) {
+    sendScreenMirrorControl(input: $input)
+  }
+`

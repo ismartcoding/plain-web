@@ -1,6 +1,6 @@
 <template>
   <div class="screen-mirror">
-    <div class="top-app-bar">
+    <Teleport v-if="isActive" to="#header-start-slot" defer>
       <div class="title">
         {{ $t('screen_mirror') }}
         <template v-if="mirroring">
@@ -45,6 +45,8 @@
           </div>
         </template>
       </div>
+    </Teleport>
+    <Teleport v-if="isActive" to="#header-end-slot" defer>
       <div class="actions">
         <template v-if="mirroring">
           <v-icon-button v-tooltip="$t('refresh')" @click="refresh">
@@ -78,11 +80,34 @@
           </v-dropdown>
 
           <v-outlined-button v-tooltip="$t('screenshot')" class="btn-sm" @click="takeScreenshot">{{ $t('screenshot') }}</v-outlined-button>
+
+          <v-outlined-button
+            v-tooltip="recording ? $t('stop_recording') : $t('start_recording')"
+            class="btn-sm"
+            :class="{ active: recording }"
+            @click="toggleRecording"
+          >
+            <i-material-symbols:fiber-manual-record v-if="!recording" />
+            <i-material-symbols:stop-rounded v-else />
+            {{ recording ? recordingTime : $t('start_recording') }}
+          </v-outlined-button>
+
+          <v-outlined-button
+            v-tooltip="controlEnabled ? $t('disable_control') : $t('enable_control')"
+            class="btn-sm"
+            :class="{ active: controlEnabled }"
+            @click="toggleControl"
+          >
+            <i-material-symbols:touch-app-rounded />
+            {{ $t('remote_control') }}
+          </v-outlined-button>
+
+          <keyboard-shortcuts :shortcuts="mirrorShortcuts" />
         </template>
         <v-outlined-button v-else-if="!relaunchAppLoading" class="btn-sm" @click="relaunchApp">{{ $t('relaunch_app') }}</v-outlined-button>
       </div>
-    </div>
-    <div class="content">
+    </Teleport>
+    <div class="content" :class="{ 'content-centered': !mirroring || showLoading || !controlEnabled }">
       <div v-if="showLoading">
         <v-circular-progress indeterminate />
       </div>
@@ -99,7 +124,33 @@
           <v-filled-button @click="start">{{ $t('try_again') }}</v-filled-button>
         </div>
       </template>
-      <video v-show="mirroring && !showLoading" ref="videoRef" class="video" controls="true" autoplay playsinline muted></video>
+      <div v-show="mirroring && !showLoading" class="video-wrapper">
+        <video ref="videoRef" class="video" :controls="!controlEnabled" autoplay playsinline muted></video>
+        <!-- Transparent overlay to capture input when control is enabled -->
+        <div
+          v-if="controlEnabled"
+          ref="controlOverlayRef"
+          class="control-overlay"
+          tabindex="0"
+        ></div>
+      </div>
+      <!-- Recording indicator -->
+      <div v-if="recording" class="recording-indicator">
+        <span class="recording-dot"></span>
+        {{ $t('recording') }} {{ recordingTime }}
+      </div>
+      <!-- Navigation bar shown when control is enabled -->
+      <div v-if="mirroring && !showLoading && controlEnabled" class="nav-bar">
+        <button class="nav-btn" @click="sendNavAction('BACK')" :title="$t('nav_back')">
+          <i-material-symbols:arrow-back-rounded />
+        </button>
+        <button class="nav-btn" @click="sendNavAction('HOME')" :title="$t('nav_home')">
+          <i-material-symbols:circle-outline />
+        </button>
+        <button class="nav-btn" @click="sendNavAction('RECENTS')" :title="$t('nav_recents')">
+          <i-material-symbols:crop-square-outline />
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -122,6 +173,10 @@ import { hasFeature } from '@/lib/feature'
 import { FEATURE } from '@/lib/data'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
+import { useScreenMirrorControl, type ScreenMirrorControlAction } from '@/hooks/screen-mirror-control'
+import { openModal } from '@/components/modal'
+import AccessibilityGuideModal from '@/components/AccessibilityGuideModal.vue'
+import { useScreenRecording } from '@/hooks/screen-recording'
 
 let countIntervalId: number
 const { t } = useI18n()
@@ -134,6 +189,10 @@ const videoRef = ref<HTMLVideoElement>()
 const qualityMenuVisible = ref(false)
 const qualityMode = ref('AUTO')
 const audioRequesting = ref(false)
+const controlEnabled = ref(false)
+const controlOverlayRef = ref<HTMLDivElement>()
+const accessibilityEnabled = ref(false)
+const isActive = ref(false)
 
 const modeLabels: Record<string, string> = {
   AUTO: 'mirror_auto',
@@ -145,6 +204,50 @@ const modeLabel = computed(() => t(modeLabels[qualityMode.value] || 'mirror_auto
 let webrtcClient: WebRTCClient | null = null
 let pendingStream: MediaStream | null = null
 
+const { attachOverlay, setupListeners, removeListeners, sendControl } = useScreenMirrorControl(videoRef, controlEnabled)
+const { recording, recordingTime, toggleRecording } = useScreenRecording(videoRef)
+
+const mirrorShortcuts = [
+  { keys: ['Click'], description: 'mirror_tap' },
+  { keys: ['Click', '+', 'Drag'], description: 'mirror_swipe' },
+  { keys: ['Scroll'], description: 'mirror_scroll' },
+  { keys: ['Long press'], description: 'mirror_long_press' },
+  { keys: ['Esc'], description: 'nav_back' },
+  { keys: ['Backspace'], description: 'nav_back' },
+  { keys: ['Home'], description: 'nav_home' },
+]
+
+const sendNavAction = (action: Extract<ScreenMirrorControlAction, 'BACK' | 'HOME' | 'RECENTS' | 'LOCK_SCREEN'>) => {
+  sendControl({ action })
+}
+
+const toggleControl = () => {
+  if (controlEnabled.value) {
+    controlEnabled.value = false
+    return
+  }
+  // Check if accessibility service is enabled on the phone
+  if (!accessibilityEnabled.value) {
+    openModal(AccessibilityGuideModal, {
+      onConfirm: () => {
+        // User clicked OK — refresh state to re-check
+        refresh()
+      },
+    })
+    return
+  }
+  controlEnabled.value = true
+}
+
+// When overlay element appears/disappears, attach/detach listeners
+watch(controlOverlayRef, (el) => {
+  removeListeners()
+  attachOverlay(el)
+  if (el) {
+    setupListeners()
+  }
+})
+
 const screenMirroringHandler = async () => {
   mirroring.value = true
   failed.value = false
@@ -153,11 +256,7 @@ const screenMirroringHandler = async () => {
   startWebRTC()
 }
 
-const showLoading = computed(() =>  fetchStateLoading.value || startServiceLoading.value || relaunchAppLoading.value || connecting.value)
-
-const refresh = () => {
-  refetch()
-}
+const showLoading = computed(() =>  fetchStateLoading.value || startServiceLoading.value || relaunchAppLoading.value || stopServiceLoading.value || connecting.value)
 
 // When the video element appears in DOM, attach any pending stream
 watch(videoRef, (video) => {
@@ -308,6 +407,7 @@ const webrtcSignalingHandler = async (message: SignalingMessage) => {
 
 
 onActivated(() => {
+  isActive.value = true
   emitter.on('screen_mirroring', screenMirroringHandler)
   emitter.on('webrtc_signaling', webrtcSignalingHandler)
   emitter.on('app_socket_connection_changed', appSocketConnectionChangedHanlder)
@@ -316,6 +416,7 @@ onActivated(() => {
 })
 
 onDeactivated(() => {
+  isActive.value = false
   emitter.off('screen_mirroring', screenMirroringHandler)
   emitter.off('webrtc_signaling', webrtcSignalingHandler)
   emitter.off('app_socket_connection_changed', appSocketConnectionChangedHanlder)
@@ -335,14 +436,15 @@ const {
   document: startScreenMirrorGQL,
 })
 
-const { loading: fetchStateLoading, refetch } = initQuery({
-  handle: (data: { screenMirrorState: boolean; screenMirrorQuality?: { mode: string } }, error: string) => {
+const { loading: fetchStateLoading, refetch: refresh } = initQuery({
+  handle: (data: { screenMirrorState: boolean; screenMirrorControlEnabled?: boolean; screenMirrorQuality?: { mode: string } }, error: string) => {
     if (error) {
       toast(t(error), 'error')
     } else {
       if (data?.screenMirrorQuality?.mode) {
         qualityMode.value = data.screenMirrorQuality.mode
       }
+      accessibilityEnabled.value = data?.screenMirrorControlEnabled === true
       if (!data.screenMirrorState) {
         mirroring.value = false
         start()
@@ -394,12 +496,40 @@ stopServiceError((error: ApolloError) => {
 stopServiceDone(() => {
   failed.value = true
   mirroring.value = false
+  controlEnabled.value = false
+  if (recording.value) {
+    toggleRecording()
+  }
   if (webrtcClient) {
     webrtcClient.cleanup()
   }
 })
 </script>
 <style lang="scss" scoped>
+.title {
+  flex: 1;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.actions {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+}
+
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  height: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .video {
   margin: 0 auto;
   display: block;
@@ -408,11 +538,115 @@ stopServiceDone(() => {
   object-fit: contain;
 }
 
-.content {
+.control-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  z-index: 10;
+  touch-action: none;
+  outline: none;
+
+  // Subtle border to indicate control mode is active
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    border-radius: 4px;
+  }
+}
+
+.recording-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--md-sys-color-error);
+  flex-shrink: 0;
+}
+
+.recording-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--md-sys-color-error);
+  animation: recording-blink 1s ease-in-out infinite;
+}
+
+@keyframes recording-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.btn-sm.active.recording-active {
+  background: var(--md-sys-color-error);
+  border-color: var(--md-sys-color-error);
+  color: var(--md-sys-color-on-error);
+}
+
+.nav-bar {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: calc(100vh - 132px);
+  gap: 24px;
+  padding: 8px 0;
+  flex-shrink: 0;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+
+  &:hover {
+    background: var(--md-sys-color-surface-container-high);
+  }
+
+  &:active {
+    transform: scale(0.92);
+  }
+
+  i,
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.btn-sm.active {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  border-color: var(--md-sys-color-primary);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--pl-top-app-bar-height));
+  overflow: hidden;
+
+  &.content-centered {
+    justify-content: center;
+    align-items: center;
+  }
 }
 
 .btn-exit-fullscreen,
