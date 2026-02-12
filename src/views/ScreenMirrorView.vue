@@ -1,15 +1,54 @@
 <template>
   <div class="screen-mirror">
     <div class="top-app-bar">
-      <div class="title">{{ $t('screen_mirror') }}</div>
+      <div class="title">
+        {{ $t('screen_mirror') }}
+        <template v-if="mirroring">
+          <div v-if="!hasFeature(FEATURE.MIRROR_AUDIO, app.osVersion)" class="warning-indicator">
+            <popper>
+              <button class="btn-icon warning-icon">
+                <i-material-symbols:warning-outline />
+              </button>
+              <template #content>
+                <div class="warning-dropdown">
+                  <div class="warning-content">
+                    <i-material-symbols:error-outline-rounded />
+                    <div class="warning-text">
+                      {{ $t('mirror_audio_not_supported') }}
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </popper>
+          </div>
+          <div v-else-if="!app.permissions.includes('RECORD_AUDIO')" class="warning-indicator">
+            <popper>
+              <button class="btn-icon warning-icon">
+                <i-material-symbols:warning-outline />
+              </button>
+              <template #content>
+                <div class="warning-dropdown">
+                  <div class="warning-content">
+                    <i-material-symbols:error-outline-rounded />
+                    <div class="warning-text">
+                      {{ $t('mirror_audio_no_permission') }}
+                    </div>
+                  </div>
+                  <div class="warning-actions">
+                    <v-filled-button class="btn-sm" :loading="audioRequesting" @click="requestAudioPermission">
+                      {{ $t('grant_permission') }}
+                    </v-filled-button>
+                  </div>
+                </div>
+              </template>
+            </popper>
+          </div>
+        </template>
+      </div>
       <div class="actions">
         <template v-if="mirroring">
           <v-icon-button v-tooltip="$t('refresh')" @click="refresh">
             <i-material-symbols:refresh-rounded />
-          </v-icon-button>
-          <v-icon-button v-tooltip="$t(paused ? 'resume' : 'pause')" @click="togglePause">
-            <i-material-symbols:play-arrow-rounded v-if="paused" />
-            <i-material-symbols:pause-rounded v-else />
           </v-icon-button>
           <v-icon-button v-tooltip="$t('stop_mirror')" :disabled="stopServiceLoading" class="btn-stop" @click="stopService">
             <i-material-symbols:stop-rounded />
@@ -38,56 +77,29 @@
             </div>
           </v-dropdown>
 
-          <template v-if="!isPhone">
-            <v-outlined-button v-tooltip="$t('screenshot')" class="btn-sm" @click="takeScreenshot">{{ $t('screenshot') }}</v-outlined-button>
-            <v-icon-button v-tooltip="$t('fullscreen')" class="btn-enter-fullscreen" @click="requestFullscreen">
-              <i-material-symbols:fullscreen-rounded />
-            </v-icon-button>
-            <v-icon-button v-tooltip="$t('exit_fullscreen')" class="btn-exit-fullscreen" @click="exitFullscreen">
-              <i-material-symbols:fullscreen-exit-rounded />
-            </v-icon-button>
-          </template>
-          <v-dropdown v-if="isPhone" v-model="moreMenuVisible">
-            <template #trigger>
-              <v-icon-button v-tooltip="$t('settings')">
-                <i-material-symbols:more-vert />
-              </v-icon-button>
-            </template>
-            <div class="dropdown-item" @click="takeScreenshot(); moreMenuVisible = false">
-              <i-material-symbols:photo-camera-rounded />
-              {{ $t('screenshot') }}
-            </div>
-            <div class="dropdown-item enter-fullscreen" @click="requestFullscreen(); moreMenuVisible = false">
-              <i-material-symbols:fullscreen-rounded />
-              {{ $t('fullscreen') }}
-            </div>
-            <div class="dropdown-item exit-fullscreen" @click="exitFullscreen(); moreMenuVisible = false">
-              <i-material-symbols:fullscreen-exit-rounded />
-              {{ $t('exit_fullscreen') }}
-            </div>
-          </v-dropdown>
+          <v-outlined-button v-tooltip="$t('screenshot')" class="btn-sm" @click="takeScreenshot">{{ $t('screenshot') }}</v-outlined-button>
         </template>
         <v-outlined-button v-else-if="!relaunchAppLoading" class="btn-sm" @click="relaunchApp">{{ $t('relaunch_app') }}</v-outlined-button>
       </div>
     </div>
     <div class="content">
-      <div v-if="fetchStateLoading || startServiceLoading || relaunchAppLoading || connecting">
+      <div v-if="showLoading">
         <v-circular-progress indeterminate />
       </div>
       <template v-else>
-        <div v-if="seconds > 0 && !relaunchAppLoading" class="request-permission">
+        <div v-if="seconds > 0" class="request-permission">
           <div class="tap-phone">
             <TouchPhone />
           </div>
           <pre class="text">{{ $t('screen_mirror_request_permission', { seconds: seconds }) }}</pre>
         </div>
-        <div v-if="failed && !mirroring && !relaunchAppLoading" class="request-permission-failed">
+        <div v-if="failed && !mirroring" class="request-permission-failed">
           <MobileWarning />
           <p>{{ $t('screen_mirror_request_permission_failed') }}</p>
           <v-filled-button @click="start">{{ $t('try_again') }}</v-filled-button>
         </div>
       </template>
-      <video v-show="mirroring && !fetchStateLoading" ref="videoRef" class="video" autoplay playsinline muted></video>
+      <video v-show="mirroring && !showLoading" ref="videoRef" class="video" controls="true" autoplay playsinline muted></video>
     </div>
   </div>
 </template>
@@ -95,29 +107,33 @@
 <script setup lang="ts">
 import emitter from '@/plugins/eventbus'
 import toast from '@/components/toaster'
-import { onActivated, onDeactivated, ref, inject, watch, computed } from 'vue'
+import tapPhone from '@/plugins/tapphone'
+import { onActivated, onDeactivated, ref, watch, computed } from 'vue'
 import MobileWarning from '@/assets/mobile-warning.svg'
 import { initQuery, screenMirrorStateGQL } from '@/lib/api/query'
 import { useI18n } from 'vue-i18n'
-import { initMutation, relaunchAppGQL, startScreenMirrorGQL, stopScreenMirrorGQL, updateScreenMirrorQualityGQL } from '@/lib/api/mutation'
+import { initMutation, relaunchAppGQL, startScreenMirrorGQL, stopScreenMirrorGQL, updateScreenMirrorQualityGQL, requestScreenMirrorAudioGQL } from '@/lib/api/mutation'
 import type { ApolloError } from '@apollo/client/errors'
 import TouchPhone from '@/assets/touch-phone.svg'
 import { download } from '@/lib/api/file'
 import { WebRTCClient, type SignalingMessage } from '@/lib/webrtc-client'
 import { sendWebRTCSignaling } from '@/lib/webrtc-signaling'
+import { hasFeature } from '@/lib/feature'
+import { FEATURE } from '@/lib/data'
+import { useTempStore } from '@/stores/temp'
+import { storeToRefs } from 'pinia'
 
 let countIntervalId: number
 const { t } = useI18n()
-const isPhone = inject('isPhone') as boolean
+const { app } = storeToRefs(useTempStore())
 const mirroring = ref(false)
 const seconds = ref(0)
 const failed = ref(false)
-const paused = ref(false)
 const connecting = ref(false)
 const videoRef = ref<HTMLVideoElement>()
-const moreMenuVisible = ref(false)
 const qualityMenuVisible = ref(false)
 const qualityMode = ref('AUTO')
+const audioRequesting = ref(false)
 
 const modeLabels: Record<string, string> = {
   AUTO: 'mirror_auto',
@@ -137,6 +153,8 @@ const screenMirroringHandler = async () => {
   startWebRTC()
 }
 
+const showLoading = computed(() =>  fetchStateLoading.value || startServiceLoading.value || relaunchAppLoading.value || connecting.value)
+
 const refresh = () => {
   refetch()
 }
@@ -150,21 +168,41 @@ watch(videoRef, (video) => {
   }
 })
 
-let relaunchAppLoading = false
-
-const { mutate: doRelaunchApp } = initMutation({
+const { mutate: relaunchApp, loading: relaunchAppLoading } = initMutation({
   document: relaunchAppGQL,
 })
 
-const togglePause = () => {
-  paused.value = !paused.value
-  const video = videoRef.value
-  if (!video) return
-  if (paused.value) {
-    video.pause()
-  } else {
-    video.play().catch(() => undefined)
+const requestAudioPermission = () => {
+  if (audioRequesting.value) return
+  audioRequesting.value = true
+  tapPhone(t('confirm_mirror_audio_permission_on_phone'))
+  requestMirrorAudio()
+}
+
+const { mutate: requestMirrorAudio, onDone: requestMirrorAudioDone, onError: requestMirrorAudioError } = initMutation({
+  document: requestScreenMirrorAudioGQL,
+})
+
+requestMirrorAudioError((error: ApolloError) => {
+  audioRequesting.value = false
+  tapPhone('')
+  toast(t(error.message), 'error')
+})
+
+requestMirrorAudioDone((result: any) => {
+  const alreadyGranted = result?.data?.requestScreenMirrorAudio
+  if (alreadyGranted) {
+    audioRequesting.value = false
+    tapPhone('')
+    emitter.emit('refetch_app')
   }
+})
+
+const screenMirrorAudioGrantedHandler = () => {
+  audioRequesting.value = false
+  tapPhone('')
+  emitter.emit('refetch_app')
+  refresh()
 }
 
 let pendingMode: string | null = null
@@ -186,15 +224,9 @@ const setQualityMode = (mode: string) => {
   updateQuality({ mode })
 }
 
-const relaunchApp = () => {
-  doRelaunchApp()
-  relaunchAppLoading = true
-}
-
 const appSocketConnectionChangedHanlder = (connected: boolean) => {
   if (connected) {
-    if (relaunchAppLoading) {
-      relaunchAppLoading = false
+    if (relaunchAppLoading.value) {
       clearInterval(countIntervalId)
       start()
     }
@@ -279,6 +311,7 @@ onActivated(() => {
   emitter.on('screen_mirroring', screenMirroringHandler)
   emitter.on('webrtc_signaling', webrtcSignalingHandler)
   emitter.on('app_socket_connection_changed', appSocketConnectionChangedHanlder)
+  emitter.on('screen_mirror_audio_granted', screenMirrorAudioGrantedHandler)
   initWebRTCClient()
 })
 
@@ -286,6 +319,7 @@ onDeactivated(() => {
   emitter.off('screen_mirroring', screenMirroringHandler)
   emitter.off('webrtc_signaling', webrtcSignalingHandler)
   emitter.off('app_socket_connection_changed', appSocketConnectionChangedHanlder)
+  emitter.off('screen_mirror_audio_granted', screenMirrorAudioGrantedHandler)
   if (webrtcClient) {
     webrtcClient.cleanup()
     webrtcClient = null
@@ -323,18 +357,9 @@ const { loading: fetchStateLoading, refetch } = initQuery({
   document: screenMirrorStateGQL,
 })
 
-const requestFullscreen = () => {
-  document.getElementsByClassName('screen-mirror')[0].requestFullscreen({ navigationUI: 'show' })
-}
-
 const start = () => {
   failed.value = false
-  paused.value = false
-  startService()
-}
-
-const exitFullscreen = () => {
-  document.exitFullscreen()
+  startService({ audio: true })
 }
 
 startServiceError((error: ApolloError) => {
@@ -381,28 +406,6 @@ stopServiceDone(() => {
   width: 100%;
   height: 100%;
   object-fit: contain;
-}
-
-:fullscreen {
-  background-color: var(--md-sys-color-surface);
-  padding: 0 16px;
-  .content {
-    height: auto;
-  }
-  .video {
-    max-height: calc(100vh - 60px);
-  }
-  .btn-exit-fullscreen {
-    display: block;
-  }
-  .dropdown-item.exit-fullscreen {
-    display: flex;
-  }
-  .btn-enter-fullscreen,
-  .dropdown-item.enter-fullscreen,
-  .btn-stop {
-    display: none;
-  }
 }
 
 .content {

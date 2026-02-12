@@ -13,4 +13,5 @@ export enum DataType {
 
 export enum FEATURE {
   MEDIA_TRASH,
+  MIRROR_AUDIO,
 }

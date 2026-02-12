@@ -406,8 +406,14 @@ export const installPackageGQL = gql`
 `
 
 export const startScreenMirrorGQL = gql`
-  mutation startScreenMirror {
-    startScreenMirror
+  mutation startScreenMirror($audio: Boolean!) {
+    startScreenMirror(audio: $audio)
+  }
+`
+
+export const requestScreenMirrorAudioGQL = gql`
+  mutation requestScreenMirrorAudio {
+    requestScreenMirrorAudio
   }
 `
 
@@ -433,7 +439,7 @@ export const cancelNotificationsGQL = gql`
 `
 
 export const updateScreenMirrorQualityGQL = gql`
-  mutation updateScreenMirrorQuality($mode: String!) {
+  mutation updateScreenMirrorQuality($mode: ScreenMirrorMode!) {
     updateScreenMirrorQuality(mode: $mode)
   }
 `

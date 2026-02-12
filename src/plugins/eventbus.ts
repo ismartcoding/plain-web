@@ -36,6 +36,7 @@ type Events = {
   chat_settings_update: any
   webrtc_signaling: SignalingMessage
   screen_mirroring: string
+  screen_mirror_audio_granted: boolean
 }
 
 const emitter: Emitter<Events> = mitt<Events>()

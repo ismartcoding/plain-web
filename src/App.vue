@@ -45,6 +45,7 @@ const EventType: { [key: number]: string } = {
   5: 'screen_mirroring',
   6: 'webrtc_signaling',
   7: 'notification_created',
+  14: 'screen_mirror_audio_granted',
   8: 'notification_updated',
   9: 'notification_deleted',
   10: 'notification_refreshed',
