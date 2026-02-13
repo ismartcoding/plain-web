@@ -108,61 +108,63 @@ initRequest()
 
 const onSubmit = handleSubmit(async () => {
   const clientId = localStorage.getItem('client_id')
-  ws = new WebSocket(`${getWebSocketBaseUrl()}?cid=${clientId}&auth=1`)
   const pass = (password.value as string) ?? ''
   const hash = sha512(pass)
   const key = hashToKey(hash)
   error.value = ''
   showError.value = false
-  ws.onopen = async () => {
-    isSubmitting.value = true
-    const ua = await getAccurateAgent()
-    const enc = chachaEncrypt(
-      key,
-      JSON.stringify({
-        password: hash,
-        browserName: ua.browser.name,
-        browserVersion: ua.browser.version,
-        osName: ua.os.name,
-        osVersion: ua.os.version,
-        isMobile: ua.isMobile,
-      })
-    )
-    ws.send(bitArrayToUint8Array(enc))
-  }
-  ws.onmessage = async (event: MessageEvent) => {
-    const d = chachaDecrypt(key, arrayBuffertoBits(await event.data.arrayBuffer()))
-    const r = JSON.parse(d)
-    if (r.status === 'PENDING') {
-      showConfirm.value = true
-    } else {
-      localStorage.setItem('auth_token', r.token)
-      ws.close()
-      window.location.href = router.currentRoute.value.query['redirect']?.toString() ?? '/'
+
+  await new Promise<void>((resolve) => {
+    ws = new WebSocket(`${getWebSocketBaseUrl()}?cid=${clientId}&auth=1`)
+    ws.onopen = async () => {
+      const ua = await getAccurateAgent()
+      const enc = chachaEncrypt(
+        key,
+        JSON.stringify({
+          password: hash,
+          browserName: ua.browser.name,
+          browserVersion: ua.browser.version,
+          osName: ua.os.name,
+          osVersion: ua.os.version,
+          isMobile: ua.isMobile,
+        })
+      )
+      ws.send(bitArrayToUint8Array(enc))
     }
-  }
-  ws.onclose = async (event: CloseEvent) => {
-    if (event.reason === 'abort' || event.reason === 'OK') {
-      return
-    }
-    isSubmitting.value = false
-    showError.value = true
-    showConfirm.value = false
-    if (!event.reason) {
-      const r = await fetch(`${getApiBaseUrl()}/health_check`)
-      if (r.status === 200) {
-        error.value = 'failed_connect_ws'
-        return
+    ws.onmessage = async (event: MessageEvent) => {
+      const d = chachaDecrypt(key, arrayBuffertoBits(await event.data.arrayBuffer()))
+      const r = JSON.parse(d)
+      if (r.status === 'PENDING') {
+        showConfirm.value = true
+      } else {
+        localStorage.setItem('auth_token', r.token)
+        ws.close()
+        window.location.href = router.currentRoute.value.query['redirect']?.toString() ?? '/'
       }
     }
-    error.value = `login.${event.reason ? event.reason : 'failed'}`
-  }
-
-  window.setTimeout(function () {
-    if (ws.readyState !== 1) {
-      ws.close(3001, 'timeout')
+    ws.onclose = async (event: CloseEvent) => {
+      resolve()
+      if (event.reason === 'abort' || event.reason === 'OK') {
+        return
+      }
+      showError.value = true
+      showConfirm.value = false
+      if (!event.reason) {
+        const r = await fetch(`${getApiBaseUrl()}/health_check`)
+        if (r.status === 200) {
+          error.value = 'failed_connect_ws'
+          return
+        }
+      }
+      error.value = `login.${event.reason ? event.reason : 'failed'}`
     }
-  }, 2000)
+
+    window.setTimeout(function () {
+      if (ws.readyState !== 1) {
+        ws.close(3001, 'timeout')
+      }
+    }, 5000)
+  })
 })
 
 function cancel() {
