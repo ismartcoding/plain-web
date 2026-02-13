@@ -117,12 +117,57 @@ interface GestureState {
  * @param videoRef - Ref to the <video> element (for coordinate normalization)
  * @param enabled - Ref<boolean> indicating if control mode is on
  */
+// ---- Touch indicator helpers ----
+
+function createTouchIndicator(container: HTMLElement): HTMLElement {
+  const dot = document.createElement('div')
+  dot.className = 'touch-indicator'
+  container.appendChild(dot)
+  return dot
+}
+
+function positionIndicator(dot: HTMLElement, x: number, y: number) {
+  dot.style.left = `${x}px`
+  dot.style.top = `${y}px`
+}
+
+function showIndicator(dot: HTMLElement, x: number, y: number) {
+  positionIndicator(dot, x, y)
+  dot.classList.remove('touch-indicator--fade-out')
+  dot.classList.add('touch-indicator--active')
+}
+
+function hideIndicator(dot: HTMLElement, isTap: boolean) {
+  if (isTap) {
+    // On tap: quick ripple then fade
+    dot.classList.add('touch-indicator--ripple')
+  }
+  dot.classList.remove('touch-indicator--active')
+  dot.classList.add('touch-indicator--fade-out')
+  const onEnd = () => {
+    dot.classList.remove('touch-indicator--fade-out', 'touch-indicator--ripple')
+    dot.removeEventListener('transitionend', onEnd)
+  }
+  dot.addEventListener('transitionend', onEnd, { once: true })
+}
+
+// ---- Composable ----
+
 export function useScreenMirrorControl(
   videoRef: Ref<HTMLVideoElement | undefined>,
   enabled: Ref<boolean>
 ) {
   const overlayRef = ref<HTMLDivElement>()
   let gesture: GestureState | null = null
+  let touchDot: HTMLElement | null = null
+
+  // Compute local position (relative to overlay) from client coords
+  const localPos = (clientX: number, clientY: number): { lx: number; ly: number } | null => {
+    const el = overlayRef.value
+    if (!el) return null
+    const rect = el.getBoundingClientRect()
+    return { lx: clientX - rect.left, ly: clientY - rect.top }
+  }
 
   const onPointerDown = (e: PointerEvent) => {
     if (!enabled.value) return
@@ -146,10 +191,18 @@ export function useScreenMirrorControl(
       pointerId: e.pointerId,
     }
 
+    // Show touch indicator
+    const pos = localPos(e.clientX, e.clientY)
+    if (pos && touchDot) {
+      showIndicator(touchDot, pos.lx, pos.ly)
+    }
+
     // Start long press detection
     gesture.longPressTimer = setTimeout(() => {
       if (gesture) {
         gesture.isLongPress = true
+        // Grow indicator to signal long press
+        touchDot?.classList.add('touch-indicator--long-press')
         sendControl({
           action: 'LONG_PRESS',
           x: gesture.startX,
@@ -167,10 +220,18 @@ export function useScreenMirrorControl(
     const dy = e.clientY - gesture.startClientY
     const distance = Math.sqrt(dx * dx + dy * dy)
 
+    // Move the touch indicator to follow the pointer
+    const pos = localPos(e.clientX, e.clientY)
+    if (pos && touchDot) {
+      positionIndicator(touchDot, pos.lx, pos.ly)
+    }
+
     // If moved beyond threshold, cancel long press detection
     if (distance > SWIPE_THRESHOLD && gesture.longPressTimer) {
       clearTimeout(gesture.longPressTimer)
       gesture.longPressTimer = null
+      // Add dragging visual state
+      touchDot?.classList.add('touch-indicator--dragging')
     }
   }
 
@@ -192,6 +253,13 @@ export function useScreenMirrorControl(
     const dy = e.clientY - gesture.startClientY
     const distance = Math.sqrt(dx * dx + dy * dy)
     const duration = Date.now() - gesture.startTime
+
+    // Hide touch indicator
+    const isTap = !gesture.isLongPress && distance <= SWIPE_THRESHOLD
+    if (touchDot) {
+      touchDot.classList.remove('touch-indicator--dragging', 'touch-indicator--long-press')
+      hideIndicator(touchDot, isTap)
+    }
 
     if (gesture.isLongPress) {
       // Already sent long_press on timer
@@ -223,6 +291,10 @@ export function useScreenMirrorControl(
   const onPointerCancel = () => {
     if (gesture?.longPressTimer) {
       clearTimeout(gesture.longPressTimer)
+    }
+    if (touchDot) {
+      touchDot.classList.remove('touch-indicator--dragging', 'touch-indicator--long-press')
+      hideIndicator(touchDot, false)
     }
     gesture = null
   }
@@ -269,7 +341,15 @@ export function useScreenMirrorControl(
   }
 
   const attachOverlay = (el: HTMLDivElement | undefined) => {
+    // Clean up previous dot
+    if (touchDot && touchDot.parentElement) {
+      touchDot.parentElement.removeChild(touchDot)
+      touchDot = null
+    }
     overlayRef.value = el
+    if (el) {
+      touchDot = createTouchIndicator(el)
+    }
   }
 
   const setupListeners = () => {
@@ -300,6 +380,10 @@ export function useScreenMirrorControl(
     removeListeners()
     if (gesture?.longPressTimer) {
       clearTimeout(gesture.longPressTimer)
+    }
+    if (touchDot && touchDot.parentElement) {
+      touchDot.parentElement.removeChild(touchDot)
+      touchDot = null
     }
   })
 

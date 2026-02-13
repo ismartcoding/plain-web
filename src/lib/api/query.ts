@@ -511,6 +511,12 @@ export const screenMirrorStateGQL = gql`
   }
 `
 
+export const screenMirrorControlEnabledGQL = gql`
+  query {
+    screenMirrorControlEnabled
+  }
+`
+
 export const screenMirrorQualityGQL = gql`
   query {
     screenMirrorQuality {

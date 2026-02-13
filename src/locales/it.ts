@@ -440,6 +440,8 @@ export default {
   color: 'Colore',
   make_a_phone_call: 'Fai una chiamata',
   pause: 'Pausa',
+  mute: 'Disattiva audio',
+  unmute: 'Attiva audio',
   playlist: 'Playlist',
   no_api_key: 'Nessuna chiave API',
   refresh: 'Aggiorna',

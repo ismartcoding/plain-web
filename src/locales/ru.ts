@@ -440,6 +440,8 @@ export default {
   color: 'Цвет',
   make_a_phone_call: 'Сделать звонок',
   pause: 'Пауза',
+  mute: 'Выключить звук',
+  unmute: 'Включить звук',
   playlist: 'Плейлист',
   no_api_key: 'Нет API ключа',
   refresh: 'Обновить',

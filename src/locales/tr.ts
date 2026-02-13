@@ -436,6 +436,8 @@ export default {
   color: 'Renk',
   make_a_phone_call: 'Telefonla ara',
   pause: 'Duraklat',
+  mute: 'Sessize al',
+  unmute: 'Sesi aç',
   playlist: 'Çalma listesi',
   no_api_key: 'API anahtarı yok',
   refresh: 'Yenile',

@@ -440,6 +440,8 @@ export default {
   color: 'রঙ',
   make_a_phone_call: 'ফোন করুন',
   pause: 'বিরতি',
+  mute: 'নিঃশব্দ করুন',
+  unmute: 'নিঃশব্দ বন্ধ করুন',
   playlist: 'প্লেলিস্ট',
   no_api_key: 'কোন API কী নেই',
   refresh: 'রিফ্রেশ',

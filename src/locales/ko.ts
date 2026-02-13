@@ -440,6 +440,8 @@ export default {
   color: '색상',
   make_a_phone_call: '전화 걸기',
   pause: '일시 정지',
+  mute: '음소거',
+  unmute: '음소거 해제',
   playlist: '재생 목록',
   no_api_key: 'API 키 없음',
   refresh: '새로 고침',

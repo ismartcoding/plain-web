@@ -436,6 +436,8 @@ export default {
   color: '顏色',
   make_a_phone_call: '撥打電話',
   pause: '暫停',
+  mute: '靜音',
+  unmute: '取消靜音',
   pausing: '暫停中...',
   playlist: '播放清單',
   no_api_key: '無API金鑰',

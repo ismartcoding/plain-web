@@ -436,6 +436,8 @@ export default {
   color: 'Kleur',
   make_a_phone_call: 'Telefoongesprek voeren',
   pause: 'Pauze',
+  mute: 'Dempen',
+  unmute: 'Dempen opheffen',
   playlist: 'Afspeellijst',
   no_api_key: 'Geen API-sleutel',
   refresh: 'Vernieuwen',

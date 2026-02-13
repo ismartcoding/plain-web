@@ -436,6 +436,8 @@ export default {
   color: 'Color',
   make_a_phone_call: 'hacer una llamada telefónica',
   pause: 'Pausa',
+  mute: 'Silenciar',
+  unmute: 'Quitar silencio',
   playlist: 'Lista de reproducción',
   no_api_key: 'Sin clave API',
   refresh: 'Actualizar',

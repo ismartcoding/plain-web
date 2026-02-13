@@ -44,6 +44,31 @@
             </popper>
           </div>
         </template>
+        <div v-if="mirroring && !showLoading" class="media-controls">
+          <v-icon-button v-tooltip="paused ? $t('play') : $t('pause')" @click="togglePlay">
+            <i-material-symbols:play-arrow-rounded v-if="paused" />
+            <i-material-symbols:pause-rounded v-else />
+          </v-icon-button>
+          <v-icon-button v-tooltip="isFullscreen ? $t('exit_fullscreen') : $t('fullscreen')" @click="toggleFullscreen">
+            <i-material-symbols:fullscreen-exit-rounded v-if="isFullscreen" />
+            <i-material-symbols:fullscreen-rounded v-else />
+          </v-icon-button>
+          <v-icon-button v-tooltip="muted ? $t('unmute') : $t('mute')" @click="toggleMute">
+            <i-material-symbols:volume-off-rounded v-if="muted" />
+            <i-material-symbols:volume-up-rounded v-else />
+          </v-icon-button>
+          <template v-if="controlEnabled" >
+          <v-icon-button v-tooltip="$t('nav_back')" @click="sendNavAction('BACK')">
+            <i-material-symbols:arrow-back-rounded />
+          </v-icon-button>
+          <v-icon-button v-tooltip="$t('nav_home')" @click="sendNavAction('HOME')">
+            <i-material-symbols:circle-outline />
+          </v-icon-button>
+          <v-icon-button v-tooltip="$t('nav_recents')" @click="sendNavAction('RECENTS')">
+            <i-material-symbols:crop-square-outline />
+          </v-icon-button>
+        </template>
+        </div>
       </div>
     </Teleport>
     <Teleport v-if="isActive" to="#header-end-slot" defer>
@@ -125,7 +150,7 @@
         </div>
       </template>
       <div v-show="mirroring && !showLoading" class="video-wrapper">
-        <video ref="videoRef" class="video" :controls="!controlEnabled" autoplay playsinline muted></video>
+        <video ref="videoRef" class="video" autoplay playsinline muted></video>
         <!-- Transparent overlay to capture input when control is enabled -->
         <div
           v-if="controlEnabled"
@@ -133,23 +158,6 @@
           class="control-overlay"
           tabindex="0"
         ></div>
-      </div>
-      <!-- Recording indicator -->
-      <div v-if="recording" class="recording-indicator">
-        <span class="recording-dot"></span>
-        {{ $t('recording') }} {{ recordingTime }}
-      </div>
-      <!-- Navigation bar shown when control is enabled -->
-      <div v-if="mirroring && !showLoading && controlEnabled" class="nav-bar">
-        <button class="nav-btn" @click="sendNavAction('BACK')" :title="$t('nav_back')">
-          <i-material-symbols:arrow-back-rounded />
-        </button>
-        <button class="nav-btn" @click="sendNavAction('HOME')" :title="$t('nav_home')">
-          <i-material-symbols:circle-outline />
-        </button>
-        <button class="nav-btn" @click="sendNavAction('RECENTS')" :title="$t('nav_recents')">
-          <i-material-symbols:crop-square-outline />
-        </button>
       </div>
     </div>
   </div>
@@ -161,7 +169,7 @@ import toast from '@/components/toaster'
 import tapPhone from '@/plugins/tapphone'
 import { onActivated, onDeactivated, ref, watch, computed } from 'vue'
 import MobileWarning from '@/assets/mobile-warning.svg'
-import { initQuery, screenMirrorStateGQL } from '@/lib/api/query'
+import { initLazyQuery, initQuery, screenMirrorControlEnabledGQL, screenMirrorStateGQL } from '@/lib/api/query'
 import { useI18n } from 'vue-i18n'
 import { initMutation, relaunchAppGQL, startScreenMirrorGQL, stopScreenMirrorGQL, updateScreenMirrorQualityGQL, requestScreenMirrorAudioGQL } from '@/lib/api/mutation'
 import type { ApolloError } from '@apollo/client/errors'
@@ -193,6 +201,9 @@ const controlEnabled = ref(false)
 const controlOverlayRef = ref<HTMLDivElement>()
 const accessibilityEnabled = ref(false)
 const isActive = ref(false)
+const paused = ref(false)
+const muted = ref(true)
+const isFullscreen = ref(false)
 
 const modeLabels: Record<string, string> = {
   AUTO: 'mirror_auto',
@@ -221,6 +232,39 @@ const sendNavAction = (action: Extract<ScreenMirrorControlAction, 'BACK' | 'HOME
   sendControl({ action })
 }
 
+const togglePlay = () => {
+  const video = videoRef.value
+  if (!video) return
+  if (video.paused) {
+    video.play().catch(() => undefined)
+    paused.value = false
+  } else {
+    video.pause()
+    paused.value = true
+  }
+}
+
+const toggleMute = () => {
+  const video = videoRef.value
+  if (!video) return
+  video.muted = !video.muted
+  muted.value = video.muted
+}
+
+const toggleFullscreen = () => {
+  const wrapper = document.querySelector('.video-wrapper')
+  if (!wrapper) return
+  if (document.fullscreenElement) {
+    document.exitFullscreen()
+  } else {
+    wrapper.requestFullscreen()
+  }
+}
+
+const onFullscreenChange = () => {
+  isFullscreen.value = !!document.fullscreenElement
+}
+
 const toggleControl = () => {
   if (controlEnabled.value) {
     controlEnabled.value = false
@@ -230,8 +274,7 @@ const toggleControl = () => {
   if (!accessibilityEnabled.value) {
     openModal(AccessibilityGuideModal, {
       onConfirm: () => {
-        // User clicked OK — refresh state to re-check
-        refresh()
+        fetchScreenMirrorControlEnabled()
       },
     })
     return
@@ -412,6 +455,7 @@ onActivated(() => {
   emitter.on('webrtc_signaling', webrtcSignalingHandler)
   emitter.on('app_socket_connection_changed', appSocketConnectionChangedHanlder)
   emitter.on('screen_mirror_audio_granted', screenMirrorAudioGrantedHandler)
+  document.addEventListener('fullscreenchange', onFullscreenChange)
   initWebRTCClient()
 })
 
@@ -421,6 +465,7 @@ onDeactivated(() => {
   emitter.off('webrtc_signaling', webrtcSignalingHandler)
   emitter.off('app_socket_connection_changed', appSocketConnectionChangedHanlder)
   emitter.off('screen_mirror_audio_granted', screenMirrorAudioGrantedHandler)
+  document.removeEventListener('fullscreenchange', onFullscreenChange)
   if (webrtcClient) {
     webrtcClient.cleanup()
     webrtcClient = null
@@ -457,6 +502,19 @@ const { loading: fetchStateLoading, refetch: refresh } = initQuery({
     fetchPolicy: 'no-cache',
   },
   document: screenMirrorStateGQL,
+})
+
+const { fetch: fetchScreenMirrorControlEnabled } = initLazyQuery({
+  handle: (data: { screenMirrorControlEnabled: boolean }) => {
+    if (data) {
+      accessibilityEnabled.value = data?.screenMirrorControlEnabled === true
+      if (accessibilityEnabled.value) {
+        controlEnabled.value = true
+      }
+    }
+  },
+  document: screenMirrorControlEnabledGQL,
+  variables: () => ({}),
 })
 
 const start = () => {
@@ -505,6 +563,7 @@ stopServiceDone(() => {
   }
 })
 </script>
+<style lang="scss" src="@/styles/screen-mirror.scss"></style>
 <style lang="scss" scoped>
 .title {
   flex: 1;
@@ -544,48 +603,13 @@ stopServiceDone(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  cursor: crosshair;
+  cursor: default;
   z-index: 10;
   touch-action: none;
   outline: none;
-
-  // Subtle border to indicate control mode is active
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    pointer-events: none;
-    border-radius: 4px;
-  }
-}
-
-.recording-indicator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 6px 16px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--md-sys-color-error);
-  flex-shrink: 0;
-}
-
-.recording-dot {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--md-sys-color-error);
-  animation: recording-blink 1s ease-in-out infinite;
-}
-
-@keyframes recording-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .btn-sm.active.recording-active {
@@ -594,24 +618,20 @@ stopServiceDone(() => {
   color: var(--md-sys-color-on-error);
 }
 
-.nav-bar {
+.media-controls {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 24px;
-  padding: 8px 0;
-  flex-shrink: 0;
+  gap: 8px;
 }
 
 .nav-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  border: 1px solid var(--md-sys-color-outline-variant);
-  background: var(--md-sys-color-surface-container);
   color: var(--md-sys-color-on-surface);
   cursor: pointer;
   transition: background-color 0.15s ease, transform 0.1s ease;

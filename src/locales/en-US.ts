@@ -461,6 +461,8 @@ export default {
   color: 'Color',
   make_a_phone_call: 'make a phone call',
   pause: 'Pause',
+  mute: 'Mute',
+  unmute: 'Unmute',
   pausing: 'Pausing...',
   playlist: 'Playlist',
   no_api_key: 'No api key',

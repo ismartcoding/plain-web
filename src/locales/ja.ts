@@ -436,6 +436,8 @@ export default {
   color: '色',
   make_a_phone_call: '電話をかける',
   pause: '一時停止',
+  mute: 'ミュート',
+  unmute: 'ミュート解除',
   playlist: 'プレイリスト',
   no_api_key: 'APIキーがありません。',
   refresh: '更新',

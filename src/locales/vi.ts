@@ -440,6 +440,8 @@ export default {
   color: 'Màu sắc',
   make_a_phone_call: 'Thực hiện cuộc gọi điện thoại',
   pause: 'Tạm dừng',
+  mute: 'Tắt tiếng',
+  unmute: 'Bật tiếng',
   playlist: 'Danh sách phát',
   no_api_key: 'Không có khóa API',
   refresh: 'Làm mới',

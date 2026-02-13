@@ -457,6 +457,8 @@ export default {
   color: '颜色',
   make_a_phone_call: '打电话',
   pause: '暂停',
+  mute: '静音',
+  unmute: '取消静音',
   pausing: '暂停中...',
   playlist: '播放列表',
   no_api_key: '缺少 API 密钥',

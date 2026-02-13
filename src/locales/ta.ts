@@ -436,6 +436,8 @@ export default {
   color: 'நிறம்',
   make_a_phone_call: 'தொலைபேசி அழைப்பு செய்',
   pause: 'இடைநிறுத்து',
+  mute: 'ஒலியை அணை',
+  unmute: 'ஒலியை இயக்கு',
   playlist: 'பிளேலிஸ்டு',
   no_api_key: 'API விசை இல்லை',
   refresh: 'புதுப்பி',
