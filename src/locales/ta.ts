@@ -41,6 +41,8 @@ export default {
   confirm_uninstallation_on_phone: 'உங்கள் கைபேசியில் அணைத்தலை உறுதி செய்க.',
   fetch_content_automatically: 'உருப்படியை தானாக பெறுங்கள்',
   call: 'அழை',
+  send: 'அனுப்பு',
+  send_sms: 'SMS அனுப்பு',
   call_phone: 'போனில் அழை',
   device_info: 'கருவி தகவல்',
   basic_info: 'அடிப்படை தகவல்',

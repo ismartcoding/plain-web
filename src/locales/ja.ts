@@ -41,6 +41,8 @@ export default {
   confirm_uninstallation_on_phone: 'お使いの携帯電話でアンインストールを確認してください。',
   fetch_content_automatically: 'コンテンツを自動的に取得',
   call: 'コール',
+  send: '送信',
+  send_sms: 'SMSを送信',
   call_phone: '電話する',
   device_info: 'デバイス情報',
   basic_info: '基本情報',

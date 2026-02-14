@@ -41,6 +41,8 @@ export default {
   confirm_uninstallation_on_phone: 'Vui lòng xác nhận gỡ cài đặt trên điện thoại của bạn.',
   fetch_content_automatically: 'Tự động lấy nội dung',
   call: 'Gọi',
+  send: 'Gửi',
+  send_sms: 'Gửi SMS',
   call_phone: 'Gọi điện thoại',
   device_info: 'Thông tin thiết bị',
   basic_info: 'Thông tin cơ bản',

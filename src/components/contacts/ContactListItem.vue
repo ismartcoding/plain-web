@@ -23,6 +23,9 @@
         <li v-for="(it, phoneIndex) in item.phoneNumbers" :key="phoneIndex" class="phone-number">
           {{ it.type > 0 ? $t(`contact.phone_number_type.${it.type}`) : it.label }}
           {{ it.normalizedNumber || it.value }}
+          <v-icon-button v-tooltip="$t('send_sms')" @click.stop="sendSms(item.id, it.normalizedNumber || it.value, phoneIndex)">
+            <i-material-symbols:sms-outline-rounded />
+          </v-icon-button>
           <v-icon-button v-tooltip="$t('make_a_phone_call')" :loading="callLoading && callId === item.id && callIndex === phoneIndex" @click.stop="call(item.id, it.normalizedNumber || it.value, phoneIndex)">
             <i-material-symbols:call-outline-rounded />
           </v-icon-button>
@@ -74,6 +77,9 @@
           <li v-for="(it, phoneIndex) in item.phoneNumbers" :key="phoneIndex" class="phone-number">
             {{ it.type > 0 ? $t(`contact.phone_number_type.${it.type}`) : it.label }}
             {{ it.normalizedNumber || it.value }}
+            <v-icon-button v-tooltip="$t('send_sms')" @click.stop="sendSms(item.id, it.normalizedNumber || it.value, phoneIndex)">
+              <i-material-symbols:sms-outline-rounded />
+            </v-icon-button>
             <v-icon-button v-tooltip="$t('make_a_phone_call')" :loading="callLoading && callId === item.id && callIndex === phoneIndex" @click.stop="call(item.id, it.normalizedNumber || it.value, phoneIndex)">
               <i-material-symbols:call-outline-rounded />
             </v-icon-button>
@@ -134,6 +140,7 @@ const emit = defineEmits<{
   deleteItem: [item: IContact]
   edit: [item: IContact]
   addItemToTags: [item: IContact]
+  sendSms: [id: string, number: string, index: number]
   call: [id: string, number: string, index: number]
 }>()
 
@@ -151,6 +158,10 @@ function addItemToTags(item: IContact) {
 
 function call(id: string, number: string, index: number) {
   emit('call', id, number, index)
+}
+
+function sendSms(id: string, number: string, index: number) {
+  emit('sendSms', id, number, index)
 }
 
 function fullName(item: IContact) {

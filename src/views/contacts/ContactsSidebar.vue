@@ -1,8 +1,5 @@
 <template>
   <left-sidebar>
-    <template #title>
-      {{ $t('page_title.contacts') }}
-    </template>
     <template #body>
       <ul class="nav">
         <li :class="{ active: !selectedTagId }" @click.prevent="viewAll">

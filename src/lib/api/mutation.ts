@@ -383,6 +383,12 @@ export const callGQL = gql`
   }
 `
 
+export const sendSmsGQL = gql`
+  mutation sendSms($number: String!, $body: String!) {
+    sendSms(number: $number, body: $body)
+  }
+`
+
 export const uninstallPackagesGQL = gql`
   mutation uninstallPackages($ids: [ID!]!) {
     uninstallPackages(ids: $ids)

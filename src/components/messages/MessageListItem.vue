@@ -21,6 +21,7 @@
       :call-loading="callLoading"
       :call-id="callId"
       @add-item-to-tags="addItemToTags"
+      @send-sms="sendSms"
       @call="call"
     />
     <div class="info">
@@ -65,6 +66,7 @@
         :call-loading="callLoading"
         :call-id="callId"
         @add-item-to-tags="addItemToTags"
+        @send-sms="sendSms"
         @call="call"
       />
     </template>
@@ -98,6 +100,7 @@ defineProps<Props>()
 
 const emit = defineEmits<{
   addItemToTags: [item: IMessage]
+  sendSms: [item: IMessage]
   call: [item: IMessage]
 }>()
 
@@ -107,6 +110,10 @@ function addItemToTags(item: IMessage) {
 
 function call(item: IMessage) {
   emit('call', item)
+}
+
+function sendSms(item: IMessage) {
+  emit('sendSms', item)
 }
 </script>
 

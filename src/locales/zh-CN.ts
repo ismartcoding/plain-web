@@ -41,6 +41,8 @@ export default {
   confirm_uninstallation_on_phone: '请在您的手机上确认卸载。',
   fetch_content_automatically: '自动拉取正文内容',
   call: '呼叫',
+  send: '发送',
+  send_sms: '发送短信',
   call_phone: '打电话',
   device_info: '设备信息',
   basic_info: '基本信息',

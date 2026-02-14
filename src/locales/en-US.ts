@@ -41,6 +41,8 @@ export default {
   confirm_uninstallation_on_phone: 'Please confirm uninstallation on your phone.',
   fetch_content_automatically: 'Fetch content automatically',
   call: 'Call',
+  send: 'Send',
+  send_sms: 'Send SMS',
   call_phone: 'Call phone',
   device_info: 'Device info',
   basic_info: 'Basic info',

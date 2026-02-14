@@ -41,6 +41,8 @@ export default {
   confirm_uninstallation_on_phone: '請在手機上確認解除安裝。',
   fetch_content_automatically: '自動獲取內容',
   call: '通話',
+  send: '發送',
+  send_sms: '發送簡訊',
   call_phone: '撥打電話',
   device_info: '裝置資訊',
   basic_info: '基本資訊',

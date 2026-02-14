@@ -13,6 +13,9 @@
     </div>
 
     <div class="actions">
+      <v-icon-button v-tooltip="$t('send_sms')" @click.stop="openSendSms()">
+        <i-material-symbols:sms-outline-rounded />
+      </v-icon-button>
     </div>
   </div>
   <all-checked-alert
@@ -41,6 +44,7 @@
         :handle-mouse-over="handleMouseOver"
         :toggle-select="toggleSelect"
         @add-item-to-tags="addItemToTags"
+        @send-sms="sendSms"
         @call="call"
       />
       <template v-if="loading && items.length === 0">
@@ -73,6 +77,7 @@ import { useSearch } from '@/hooks/search'
 import emitter from '@/plugins/eventbus'
 import { openModal } from '@/components/modal'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
+import SendSmsModal from '@/components/messages/SendSmsModal.vue'
 
 import { DataType } from '@/lib/data'
 import { callGQL, initMutation } from '@/lib/api/mutation'
@@ -159,6 +164,21 @@ function call(item: IMessage) {
   mutateCall({ number: item.address })
 }
 
+function openSendSms(number = '', body = '') {
+  openModal(SendSmsModal, {
+    number,
+    body,
+  })
+}
+
+function sendSms(item: IMessage) {
+  openSendSms(item.address)
+}
+
+const smsSentHandler = () => {
+  fetch()
+}
+
 
 const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
   if (event.type === dataType) {
@@ -197,6 +217,7 @@ onActivated(() => {
   applyRouteQuery()
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
   emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
+  emitter.on('sms_sent', smsSentHandler)
   window.addEventListener('keydown', pageKeyDown)
   window.addEventListener('keyup', pageKeyUp)
 })
@@ -205,6 +226,7 @@ onDeactivated(() => {
   isActive.value = false
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
+  emitter.off('sms_sent', smsSentHandler)
   window.removeEventListener('keydown', pageKeyDown)
   window.removeEventListener('keyup', pageKeyUp)
 })

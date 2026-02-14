@@ -41,6 +41,8 @@ export default {
   confirm_uninstallation_on_phone: 'Por favor, confirme la desinstalación en su teléfono.',
   fetch_content_automatically: 'Obtener contenido automáticamente',
   call: 'Llamada',
+  send: 'Enviar',
+  send_sms: 'Enviar SMS',
   call_phone: 'Llamar por teléfono',
   device_info: 'Información del dispositivo',
   basic_info: 'Información básica',

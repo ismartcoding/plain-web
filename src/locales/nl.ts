@@ -41,6 +41,8 @@ export default {
   confirm_uninstallation_on_phone: 'Bevestig de verwijdering op uw telefoon a.u.b.',
   fetch_content_automatically: 'Inhoud automatisch ophalen',
   call: 'Oproep',
+  send: 'Verzenden',
+  send_sms: 'SMS verzenden',
   call_phone: 'Telefoonoproep',
   device_info: 'Apparaatinformatie',
   basic_info: 'Basisinformatie',

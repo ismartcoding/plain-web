@@ -51,6 +51,7 @@
         @delete-item="deleteItem"
         @edit="edit"
         @add-item-to-tags="addItemToTags"
+        @send-sms="sendSms"
         @call="call"
       />
       <template v-if="loading && items.length === 0">
@@ -92,6 +93,7 @@ import { DataType } from '@/lib/data'
 import { useSearch } from '@/hooks/search'
 import { useKeyEvents } from '@/hooks/key-events'
 import ContactListItem from '@/components/contacts/ContactListItem.vue'
+import SendSmsModal from '@/components/messages/SendSmsModal.vue'
 
 const isPhone = inject('isPhone') as boolean
 const mainStore = useMainStore()
@@ -269,6 +271,14 @@ function call(id: string, number: string, index: number) {
   callId.value = id
   callIndex.value = index
   mutateCall({ number })
+}
+
+function sendSms(id: string, number: string, index: number) {
+  callId.value = id
+  callIndex.value = index
+  openModal(SendSmsModal, {
+    number,
+  })
 }
 
 const isActive = ref(false)

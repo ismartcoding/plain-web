@@ -41,6 +41,8 @@ export default {
   confirm_uninstallation_on_phone: 'कृपया अपने फ़ोन पर अनइंस्टॉलेशन की पुष्टि करें।',
   fetch_content_automatically: 'ऑटोमेटिकली कंटेंट लोड करें',
   call: 'कॉल',
+  send: 'भेजें',
+  send_sms: 'SMS भेजें',
   call_phone: 'फोन पर कॉल',
   device_info: 'डिवाइस जानकारी',
   basic_info: 'मौलिक जानकारी',

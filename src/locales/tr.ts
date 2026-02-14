@@ -41,6 +41,8 @@ export default {
   confirm_uninstallation_on_phone: 'Lütfen telefonunuzda kaldırma işlemini onaylayın.',
   fetch_content_automatically: 'İçeriği otomatik olarak getir',
   call: 'Ara',
+  send: 'Gönder',
+  send_sms: 'SMS gönder',
   call_phone: 'Telefonla ara',
   device_info: 'Cihaz bilgisi',
   basic_info: 'Temel bilgi',

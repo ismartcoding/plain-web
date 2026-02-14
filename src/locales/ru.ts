@@ -41,6 +41,8 @@ export default {
   confirm_uninstallation_on_phone: 'Пожалуйста, подтвердите удаление на своем телефоне.',
   fetch_content_automatically: 'Автоматически получать содержимое',
   call: 'Звонок',
+  send: 'Отправить',
+  send_sms: 'Отправить SMS',
   call_phone: 'Позвонить по телефону',
   device_info: 'Информация об устройстве',
   basic_info: 'Основная информация',
