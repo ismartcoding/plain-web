@@ -6,7 +6,8 @@
     @mouseover="$emit('mouseover', $event)"
   >
     <div class="phone-left">
-      <v-checkbox 
+      <v-checkbox
+        v-if="showCheckbox"
         touch-target="wrapper" 
         :checked="checkboxChecked" 
         @click.stop="$emit('checkboxClick', $event)" 
@@ -33,12 +34,14 @@ interface Props {
   isSelected?: boolean
   isSelecting?: boolean
   checkboxChecked?: boolean
+  showCheckbox?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
   isSelected: false,
   isSelecting: false,
-  checkboxChecked: false
+  checkboxChecked: false,
+  showCheckbox: true,
 })
 
 defineEmits<{

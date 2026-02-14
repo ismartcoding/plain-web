@@ -17,54 +17,52 @@
           </v-icon-button>
         </template>
         <template v-else>
-          <v-icon-button v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)" v-tooltip="$t('move_to_trash')" :loading="trashLoading(getQuery())" @click.stop="trash(dataType, getQuery())">
-              <i-material-symbols:delete-outline-rounded />
-          </v-icon-button>
-          <v-icon-button v-else v-tooltip="$t('delete')" @click.stop="deleteItems(dataType, selectedIds, realAllChecked, total, q)">
-              <i-material-symbols:delete-forever-outline-rounded />
-          </v-icon-button>
+          <template v-if="uiMode === 'edit'">
+            <v-icon-button v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)" v-tooltip="$t('move_to_trash')" :loading="trashLoading(getQuery())" @click.stop="trash(dataType, getQuery())">
+                <i-material-symbols:delete-outline-rounded />
+            </v-icon-button>
+            <v-icon-button v-else v-tooltip="$t('delete')" @click.stop="deleteItems(dataType, selectedIds, realAllChecked, total, q)">
+                <i-material-symbols:delete-forever-outline-rounded />
+            </v-icon-button>
+            <v-icon-button v-tooltip="$t('add_to_tags')" @click.stop="addToTags(selectedIds, realAllChecked, q)">
+                <i-material-symbols:label-outline-rounded />
+            </v-icon-button>
+          </template>
           <v-icon-button v-tooltip="$t('download')" @click.stop="downloadItems(realAllChecked, selectedIds, q)">
               <i-material-symbols:download-rounded />
           </v-icon-button>
-          <v-icon-button v-tooltip="$t('add_to_playlist')" @click.stop="addItemsToPlaylist($event, selectedIds, realAllChecked, q)">
+          <v-icon-button v-if="uiMode !== 'edit'" v-tooltip="$t('add_to_playlist')" @click.stop="addItemsToPlaylist($event, selectedIds, realAllChecked, q)">
               <i-material-symbols:playlist-add />
-          </v-icon-button>
-          <v-icon-button v-tooltip="$t('add_to_tags')" @click.stop="addToTags(selectedIds, realAllChecked, q)">
-              <i-material-symbols:label-outline-rounded />
           </v-icon-button>
         </template>
       </template>
     </div>
 
-    <div v-if="!isPhone || !checked" class="actions">
-      <media-keyboard-shortcuts />
-      <v-dropdown v-model="uploadMenuVisible">
-        <template #trigger>
-          <v-icon-button v-tooltip="$t('upload')">
-              <i-material-symbols:upload-rounded />
-          </v-icon-button>
-        </template>
-        <div class="dropdown-item" @click.stop="uploadFilesClick(); uploadMenuVisible = false">
-          {{ $t('upload_files') }}
-        </div>
-        <div class="dropdown-item" @click.stop="uploadDirClick(); uploadMenuVisible = false">
-          {{ $t('upload_folder') }}
-        </div>
-      </v-dropdown>
-      <v-dropdown v-model="sortMenuVisible">
-        <template #trigger>
-          <v-icon-button v-tooltip="$t('sort')" :loading="sorting">
-              <i-material-symbols:sort-rounded />
-          </v-icon-button>
-        </template>
-        <div v-for="item in sortItems" :key="item.value" class="dropdown-item" :class="{ 'selected': item.value === audioSortBy }" @click="sort(item.value); sortMenuVisible = false">
-          {{ $t(item.label) }}
-        </div>
-      </v-dropdown>
+    <div class="actions">
+      <MediaPageActions
+        placement="top"
+        :ui-mode="uiMode"
+        :filter-trash="!!filter.trash"
+        :is-phone="isPhone"
+        :checked="checked"
+        :upload-menu-visible="uploadMenuVisible"
+        :more-menu-visible="moreMenuVisible"
+        :sort-by="audioSortBy"
+        :sort-items="sortItems"
+        :show-view-toggle="false"
+        :on-toggle-ui-mode="toggleUIMode"
+        :on-upload-files="uploadFilesClick"
+        :on-upload-dir="uploadDirClick"
+        :on-open-keyboard-shortcuts="openKeyboardShortcuts"
+        :on-sort="sort"
+        @update:uploadMenuVisible="(v) => uploadMenuVisible = v"
+        @update:moreMenuVisible="(v) => moreMenuVisible = v"
+      />
     </div>
   </div>
 
   <all-checked-alert
+    v-if="uiMode === 'edit'"
     :limit="limit"
     :total="total"
     :all-checked-alert-visible="allCheckedAlertVisible"
@@ -94,7 +92,7 @@
         :main-store="mainStore"
         :app="app"
         :handle-item-click="handleItemClick"
-        :handle-mouse-over="handleMouseOver"
+        :handle-mouse-over="handleMouseOverMode"
         :toggle-select="toggleSelect"
         :on-image-error="onImageError"
         :view-bucket="viewBucket"
@@ -111,6 +109,7 @@
         :is-in-playlist="isInPlaylist"
         :restore-loading="restoreLoading"
         :trash-loading="trashLoading"
+        :edit-mode="uiMode === 'edit'"
       />
       <template v-if="loading && items.length === 0">
         <AudioSkeletonItem
@@ -160,6 +159,9 @@ import { generateDownloadFileName } from '@/lib/format'
 import { useDragDropUpload, useFileUpload } from '@/hooks/upload'
 import { useMediaRestore, useMediaTrash } from '@/hooks/media-trash'
 import { hasFeature } from '@/lib/feature'
+import MediaPageActions from '@/components/media/MediaPageActions.vue'
+import KeyboardShortcutsModal from '@/components/KeyboardShortcutsModal.vue'
+import { mediaKeyboardShortcuts } from '@/lib/shortcuts/media'
 
 const isPhone = inject('isPhone') as boolean
 const mainStore = useMainStore()
@@ -177,7 +179,16 @@ const isAudioPlaying = (item: IAudio) => {
 }
 const animatingIds = ref<string[]>([])
 const uploadMenuVisible = ref(false)
-const sortMenuVisible = ref(false)
+const moreMenuVisible = ref(false)
+
+type UIMode = 'view' | 'edit'
+const uiMode = computed<UIMode>({
+  get: () => (filter.trash ? 'edit' : (mainStore.pageUIMode.audios ?? 'view')),
+  set: (value) => {
+    if (filter.trash) return
+    mainStore.pageUIMode.audios = value
+  },
+})
 
 const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload(uploads)
 const { input: dirFileInput, upload: uploadDir, uploadChanged: dirUploadChanged } = useFileUpload(uploads)
@@ -223,13 +234,34 @@ const gotoPage = (page: number) => {
   const q = route.query.q
   replacePath(mainStore, q ? `/audios?page=${page}&q=${q}` : `/audios?page=${page}`)
 }
-const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(total, limit, page, selectAll, clearSelection, gotoPage, () => {
+const selectAllInEditMode = () => {
+  if (uiMode.value !== 'edit') return
+  selectAll()
+}
+
+const clearSelectionInEditMode = () => {
+  if (uiMode.value !== 'edit') return
+  clearSelection()
+}
+
+const trashInEditMode = () => {
+  if (uiMode.value !== 'edit') return
   if (hasFeature(FEATURE.MEDIA_TRASH, app.value.osVersion)) {
     trash(dataType, getQuery())
   } else {
     deleteItems(dataType, selectedIds.value, realAllChecked.value, total.value, q.value)
   }
-})
+}
+
+const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(
+  total,
+  limit,
+  page,
+  selectAllInEditMode,
+  clearSelectionInEditMode,
+  gotoPage,
+  trashInEditMode,
+)
 const { addItemsToPlaylist, addToPlaylist, removeFromPlaylist, isInPlaylist } = useAddToPlaylist(items, clearSelection)
 const sortItems = getSortItems()
 const imageErrorIds = ref<string[]>([])
@@ -270,6 +302,24 @@ function sort(value: string) {
   }
   sorting.value = true
   audioSortBy.value = value
+}
+
+function toggleUIMode() {
+  if (filter.trash) return
+  clearSelection()
+  uiMode.value = uiMode.value === 'edit' ? 'view' : 'edit'
+}
+
+function openKeyboardShortcuts() {
+  openModal(KeyboardShortcutsModal, {
+    title: t('keyboard_shortcuts'),
+    shortcuts: mediaKeyboardShortcuts,
+  })
+}
+
+function handleMouseOverMode(event: MouseEvent, index: number) {
+  if (uiMode.value !== 'edit') return
+  handleMouseOver(event, index)
 }
 
 function getUploadDir() {

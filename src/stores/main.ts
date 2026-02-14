@@ -13,6 +13,7 @@ export type MainState = {
   lightboxInfoVisible: boolean
   videosCardView: boolean
   imagesCardView: boolean
+  pageUIMode: Record<string, 'view' | 'edit'>
   bucketFilterCollapsed: Record<string, boolean>
   appSortBy: string
   fileSortBy: string
@@ -43,6 +44,7 @@ export const useMainStore = defineStore('main', {
       lightboxInfoVisible: false,
       videosCardView: false,
       imagesCardView: false,
+      pageUIMode: {},
       bucketFilterCollapsed: {},
       appSortBy: 'NAME_ASC',
       fileSortBy: 'NAME_ASC',

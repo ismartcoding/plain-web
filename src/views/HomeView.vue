@@ -143,28 +143,6 @@
       </div>
     </div>
 
-    <div class="card feature-card" @click="openTab('/qrcode-generator')">
-      <div class="card-icon">
-        <i-material-symbols:qr-code-rounded />
-      </div>
-      <div class="card-content">
-        <div class="card-title-row">
-          <span class="title">{{ $t('qrcode_generator') }}</span>
-        </div>
-      </div>
-    </div>
-
-    <div v-if="!isPhone" class="card feature-card" @click="openTab('/json-viewer')">
-      <div class="card-icon">
-        <i-material-symbols:code-blocks-outline-rounded />
-      </div>
-      <div class="card-content">
-        <div class="card-title-row">
-          <span class="title">{{ $t('json_viewer') }}</span>
-        </div>
-      </div>
-    </div>
-
     <!-- Phone Call Card -->
     <div class="card phone-card">
       <div class="card-content">

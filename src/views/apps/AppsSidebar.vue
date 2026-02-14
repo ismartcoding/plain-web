@@ -1,6 +1,5 @@
 <template>
   <left-sidebar>
-    <template #title>{{ $t('page_title.apps') }}</template>
     <template #body>
       <ul class="nav">
         <li :class="{ active: !type }" @click.prevent="viewAll">

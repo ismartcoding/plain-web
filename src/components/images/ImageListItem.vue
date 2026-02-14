@@ -22,6 +22,7 @@
       :item="item"
       :filter="filter"
       :data-type="dataType"
+      :edit-mode="editMode"
       :app="app"
       :delete-item="deleteItem"
       :restore="restore"
@@ -44,6 +45,7 @@
     :is-selected="selectedIds.includes(item.id)"
     :is-selecting="shiftEffectingIds.includes(item.id)"
     :checkbox-checked="shiftEffectingIds.includes(item.id) ? shouldSelect : selectedIds.includes(item.id)"
+    :show-checkbox="editMode"
     @click="handleItemClick($event, item, index, () => view(index))"
     @mouseenter.stop="handleMouseOver($event, index)"
     @checkbox-click="(event: MouseEvent) => toggleSelect(event, item, index)"
@@ -70,6 +72,7 @@
         :item="item"
         :filter="filter"
         :data-type="dataType"
+        :edit-mode="editMode"
         :app="app"
         :delete-item="deleteItem"
         :restore="restore"
@@ -96,6 +99,7 @@ interface Props {
   shiftEffectingIds: string[]
   shouldSelect: boolean
   isPhone: boolean
+  editMode: boolean
   bucketsMap: Record<string, IBucket>
   filter: IFilter
   dataType: DataType

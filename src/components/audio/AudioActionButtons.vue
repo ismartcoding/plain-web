@@ -1,7 +1,7 @@
 <template>
   <div class="actions">
     <template v-if="filter.trash">
-      <v-icon-button v-tooltip="$t('delete')" class="sm" @click.stop="deleteItem(dataType, item)">
+      <v-icon-button v-if="editMode" v-tooltip="$t('delete')" class="sm" @click.stop="deleteItem(dataType, item)">
           <i-material-symbols:delete-forever-outline-rounded />
       </v-icon-button>
       <v-icon-button v-tooltip="$t('restore')" class="sm" :loading="restoreLoading(`ids:${item.id}`)" @click.stop="restore(dataType, `ids:${item.id}`)">
@@ -12,6 +12,7 @@
       </v-icon-button>
     </template>
     <template v-else>
+      <template v-if="editMode">
       <v-icon-button
         v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)"
         v-tooltip="$t('move_to_trash')"
@@ -19,34 +20,40 @@
         :loading="trashLoading(`ids:${item.id}`)"
         @click.stop="trash(dataType, `ids:${item.id}`)"
       >
-          <i-material-symbols:delete-outline-rounded />
+        <i-material-symbols:delete-outline-rounded />
       </v-icon-button>
       <v-icon-button v-else v-tooltip="$t('delete')" class="sm" @click.stop="deleteItem(dataType, item)">
-          <i-material-symbols:delete-forever-outline-rounded />
+        <i-material-symbols:delete-forever-outline-rounded />
       </v-icon-button>
       <v-icon-button v-tooltip="$t('download')" class="sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))">
-          <i-material-symbols:download-rounded />
-      </v-icon-button>
-      <v-icon-button v-if="isInPlaylist(item) && !animatingIds.includes(item.id)" v-tooltip="$t('remove_from_playlist')" class="sm" @click.stop.prevent="handleRemoveFromPlaylist($event, item)">
-          <i-material-symbols:playlist-remove class="playlist-remove-icon" />
-      </v-icon-button>
-      <v-icon-button v-else-if="isInPlaylist(item) && animatingIds.includes(item.id)" class="sm" :disabled="true">
-          <i-material-symbols:playlist-remove class="playlist-remove-icon rotating" />
-      </v-icon-button>
-      <v-icon-button v-else-if="!isInPlaylist(item) && !animatingIds.includes(item.id)" v-tooltip="$t('add_to_playlist')" class="sm" @click.stop.prevent="addToPlaylist($event, item)">
-          <i-material-symbols:playlist-add class="playlist-add-icon" />
-      </v-icon-button>
-      <v-icon-button v-else-if="!isInPlaylist(item) && animatingIds.includes(item.id)" class="sm" :disabled="true">
-          <i-material-symbols:playlist-add class="playlist-add-icon rotating" />
+        <i-material-symbols:download-rounded />
       </v-icon-button>
       <v-icon-button v-tooltip="$t('add_to_tags')" class="sm" @click.stop="addItemToTags(item)">
-          <i-material-symbols:label-outline-rounded />
+        <i-material-symbols:label-outline-rounded />
       </v-icon-button>
-    </template>
-    <v-circular-progress v-if="playLoading && item.path === playPath" indeterminate class="sm" />
-    <v-icon-button v-else-if="isAudioPlaying(item)" v-tooltip="$t('pause')" class="sm" @click.stop="pause()">
+      </template>
+      <template v-else>
+      <v-icon-button v-tooltip="$t('download')" class="sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))">
+        <i-material-symbols:download-rounded />
+      </v-icon-button>
+      <v-icon-button v-if="isInPlaylist(item) && !animatingIds.includes(item.id)" v-tooltip="$t('remove_from_playlist')" class="sm" @click.stop.prevent="handleRemoveFromPlaylist($event, item)">
+        <i-material-symbols:playlist-remove class="playlist-remove-icon" />
+      </v-icon-button>
+      <v-icon-button v-else-if="isInPlaylist(item) && animatingIds.includes(item.id)" class="sm" :disabled="true">
+        <i-material-symbols:playlist-remove class="playlist-remove-icon rotating" />
+      </v-icon-button>
+      <v-icon-button v-else-if="!isInPlaylist(item) && !animatingIds.includes(item.id)" v-tooltip="$t('add_to_playlist')" class="sm" @click.stop.prevent="addToPlaylist($event, item)">
+        <i-material-symbols:playlist-add class="playlist-add-icon" />
+      </v-icon-button>
+      <v-icon-button v-else-if="!isInPlaylist(item) && animatingIds.includes(item.id)" class="sm" :disabled="true">
+        <i-material-symbols:playlist-add class="playlist-add-icon rotating" />
+      </v-icon-button>
+      <v-circular-progress v-if="playLoading && item.path === playPath" indeterminate class="sm" />
+      <v-icon-button v-else-if="isAudioPlaying(item)" v-tooltip="$t('pause')" class="sm" @click.stop="pause()">
         <i-material-symbols:pause-circle-outline-rounded />
-    </v-icon-button>
+      </v-icon-button>
+      </template>
+    </template>
   </div>
 </template>
 
@@ -63,6 +70,7 @@ interface Props {
   item: IAudio
   filter: IFilter
   dataType: DataType
+  editMode: boolean
   animatingIds: string[]
   playLoading: boolean
   playPath: string

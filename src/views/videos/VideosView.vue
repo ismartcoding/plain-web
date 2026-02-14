@@ -17,58 +17,66 @@
           </v-icon-button>
         </template>
         <template v-else>
-          <v-icon-button v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)" v-tooltip="$t('move_to_trash')" :loading="trashLoading(getQuery())" @click.stop="trash(dataType, getQuery())">
-              <i-material-symbols:delete-outline-rounded />
-          </v-icon-button>
-          <v-icon-button v-else v-tooltip="$t('delete')" @click.stop="deleteItems(dataType, selectedIds, realAllChecked, total, q)">
-              <i-material-symbols:delete-forever-outline-rounded />
-          </v-icon-button>
+          <template v-if="uiMode === 'edit'">
+            <v-icon-button v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)" v-tooltip="$t('move_to_trash')" :loading="trashLoading(getQuery())" @click.stop="trash(dataType, getQuery())">
+                <i-material-symbols:delete-outline-rounded />
+            </v-icon-button>
+            <v-icon-button v-else v-tooltip="$t('delete')" @click.stop="deleteItems(dataType, selectedIds, realAllChecked, total, q)">
+                <i-material-symbols:delete-forever-outline-rounded />
+            </v-icon-button>
+            <v-icon-button v-tooltip="$t('add_to_tags')" @click.stop="addToTags(selectedIds, realAllChecked, q)">
+                <i-material-symbols:label-outline-rounded />
+            </v-icon-button>
+          </template>
           <v-icon-button v-tooltip="$t('download')" @click.stop="downloadItems(realAllChecked, selectedIds, q)">
               <i-material-symbols:download-rounded />
-          </v-icon-button>
-          <v-icon-button v-tooltip="$t('add_to_tags')" @click.stop="addToTags(selectedIds, realAllChecked, q)">
-              <i-material-symbols:label-outline-rounded />
           </v-icon-button>
         </template>
       </template>
     </div>
-    <div v-if="!isPhone || !checked" class="actions">
-      <media-keyboard-shortcuts />
-      <v-dropdown v-if="!filter.trash" v-model="uploadMenuVisible">
-        <template #trigger>
-          <v-icon-button v-tooltip="$t('upload')">
-              <i-material-symbols:upload-rounded />
-          </v-icon-button>
-        </template>
-        <div class="dropdown-item" @click.stop="uploadFilesClick(); uploadMenuVisible = false">
-          {{ $t('upload_files') }}
-        </div>
-        <div class="dropdown-item" @click.stop="uploadDirClick(); uploadMenuVisible = false">
-          {{ $t('upload_folder') }}
-        </div>
-      </v-dropdown>
-      <v-dropdown v-model="sortMenuVisible">
-        <template #trigger>
-          <v-icon-button v-tooltip="$t('sort')" :loading="sorting">
-              <i-material-symbols:sort-rounded />
-          </v-icon-button>
-        </template>
-        <div v-for="item in sortItems" :key="item.value" class="dropdown-item" :class="{ 'selected': item.value === videoSortBy }" @click="sort(item.value); sortMenuVisible = false">
-          {{ $t(item.label) }}
-        </div>
-      </v-dropdown>
-      <ViewToggleButtons 
-        v-if="!isPhone"
-        :card-view="mainStore.videosCardView" 
-        @update:card-view="(value: boolean) => mainStore.videosCardView = value" 
+    <div class="actions">
+      <MediaPageActions
+        placement="top"
+        :ui-mode="uiMode"
+        :filter-trash="!!filter.trash"
+        :is-phone="isPhone"
+        :checked="checked"
+        :upload-menu-visible="uploadMenuVisible"
+        :more-menu-visible="moreMenuVisible"
+        :sort-by="videoSortBy"
+        :sort-items="sortItems"
+        :show-view-toggle="true"
+        :card-view="mainStore.videosCardView"
+        :on-toggle-ui-mode="toggleUIMode"
+        :on-upload-files="uploadFilesClick"
+        :on-upload-dir="uploadDirClick"
+        :on-open-keyboard-shortcuts="openKeyboardShortcuts"
+        :on-sort="sort"
+        :on-update-card-view="(value: boolean) => mainStore.videosCardView = value"
+        @update:uploadMenuVisible="(v) => uploadMenuVisible = v"
+        @update:moreMenuVisible="(v) => moreMenuVisible = v"
       />
     </div>
   </div>
   <div v-if="isPhone && !checked" class="secondary-actions">
-    <ViewToggleButtons 
-        :card-view="mainStore.videosCardView" 
-        @update:card-view="(value: boolean) => mainStore.videosCardView = value" 
-      />
+    <MediaPageActions
+      placement="secondary"
+      :ui-mode="uiMode"
+      :filter-trash="!!filter.trash"
+      :is-phone="isPhone"
+      :checked="checked"
+      :upload-menu-visible="uploadMenuVisible"
+      :more-menu-visible="moreMenuVisible"
+      :sort-by="videoSortBy"
+      :sort-items="sortItems"
+      :show-view-toggle="true"
+      :card-view="mainStore.videosCardView"
+      :on-open-keyboard-shortcuts="openKeyboardShortcuts"
+      :on-sort="sort"
+      :on-update-card-view="(value: boolean) => mainStore.videosCardView = value"
+      @update:uploadMenuVisible="(v) => uploadMenuVisible = v"
+      @update:moreMenuVisible="(v) => moreMenuVisible = v"
+    />
   </div>
   <all-checked-alert
     :limit="limit"
@@ -87,7 +95,7 @@
         class="media-item"
         :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
         @click.stop="handleItemClick($event, item, i, view)"
-        @mouseenter.stop="handleMouseOver($event, i)"
+        @mouseenter.stop="handleMouseOverMode($event, i)"
       >
         <img v-if="imageErrorIds.includes(item.id)" :src="`/ficons/${getFileExtension(item.path)}.svg`" class="image svg" />
         <img v-else class="image image-thumb" :src="getFileUrl(item.fileId, '&w=200&h=200')" @error="onImageError(item.id)" />
@@ -103,47 +111,14 @@
               <i-material-symbols:check-circle-rounded v-if="selectedIds.includes(item.id)" />
               <i-material-symbols:check-circle-outline-rounded v-else />
           </v-icon-button>
-          <v-icon-button v-if="checked" v-tooltip="$t('open')" class="btn-zoom sm" @click.stop="view(i)">
-              <i-material-symbols:zoom-in-rounded />
-          </v-icon-button>
-          <div v-else class="actions">
-            <template v-if="filter.trash">
-              <v-icon-button v-tooltip="$t('delete')" class="sm" @click.stop="deleteItem(dataType, item)">
-                  <i-material-symbols:delete-forever-outline-rounded />
-              </v-icon-button>
-              <v-icon-button v-tooltip="$t('restore')" class="sm" :loading="restoreLoading(`ids:${item.id}`)" @click.stop="restore(dataType, `ids:${item.id}`)">
-                  <i-material-symbols:restore-from-trash-outline-rounded />
-              </v-icon-button>
-              <v-icon-button v-tooltip="$t('download')" class="sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))">
-                  <i-material-symbols:download-rounded />
-              </v-icon-button>
-            </template>
-            <template v-else>
-              <v-icon-button
-                v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)"
-                v-tooltip="$t('move_to_trash')"
-                class="sm"
-                :loading="trashLoading(`ids:${item.id}`)"
-                @click.stop="trash(dataType, `ids:${item.id}`)"
-              >
-                  <i-material-symbols:delete-outline-rounded />
-              </v-icon-button>
-              <v-icon-button v-else v-tooltip="$t('delete')" class="sm" @click.stop="deleteItem(dataType, item)">
-                  <i-material-symbols:delete-forever-outline-rounded />
-              </v-icon-button>
-              <v-icon-button v-tooltip="$t('download')" class="sm" @click.stop="downloadFile(item.path, getFileName(item.path).replace(' ', '-'))">
-                  <i-material-symbols:download-rounded />
-              </v-icon-button>
-              <v-icon-button v-tooltip="$t('add_to_tags')" class="sm" @click.stop="addItemToTags(item)">
-                  <i-material-symbols:label-outline-rounded />
-              </v-icon-button>
-            </template>
-          </div>
-          <div class="info" :class="{ 'has-tags': item.tags.length > 0 }">
-            <item-tags :tags="item.tags" :type="dataType" />
-            <span class="right">{{ ['SIZE_ASC', 'SIZE_DESC'].includes(videoSortBy) ? formatFileSize(item.size) : formatSeconds(item.duration) }}</span>
-          </div>
         </template>
+        <v-icon-button v-if="checked" v-tooltip="$t('open')" class="btn-zoom sm" @click.stop="view(i)">
+            <i-material-symbols:zoom-in-rounded />
+        </v-icon-button>
+        <div class="info" :class="{ 'has-tags': item.tags.length > 0 }">
+          <item-tags :tags="item.tags" :type="dataType" />
+          <span class="right">{{ ['SIZE_ASC', 'SIZE_DESC'].includes(videoSortBy) ? formatFileSize(item.size) : formatSeconds(item.duration) }}</span>
+        </div>
       </section>
       <template v-if="loading && items.length === 0">
         <section v-for="i in limit" :key="i" class="skeleton-image media-item"></section>
@@ -166,7 +141,7 @@
         :main-store="mainStore"
         :app="app"
         :handle-item-click="handleItemClick"
-        :handle-mouse-over="handleMouseOver"
+        :handle-mouse-over="handleMouseOverMode"
         :toggle-select="toggleSelect"
         :on-image-error="onImageError"
         :view-bucket="viewBucket"
@@ -177,6 +152,7 @@
         :add-item-to-tags="addItemToTags"
         :view="view"
         :restore-loading="restoreLoading"
+        :edit-mode="uiMode === 'edit'"
         :trash-loading="trashLoading"
       />
       <image-video-list-skeleton v-if="loading && items.length === 0" :limit="limit" :is-phone="isPhone" />
@@ -225,6 +201,9 @@ import { generateDownloadFileName } from '@/lib/format'
 import { useDragDropUpload, useFileUpload } from '@/hooks/upload'
 import { useMediaRestore, useMediaTrash } from '@/hooks/media-trash'
 import { hasFeature } from '@/lib/feature'
+import MediaPageActions from '@/components/media/MediaPageActions.vue'
+import KeyboardShortcutsModal from '@/components/KeyboardShortcutsModal.vue'
+import { mediaKeyboardShortcuts } from '@/lib/shortcuts/media'
 
 const isPhone = inject('isPhone') as boolean
 const mainStore = useMainStore()
@@ -240,7 +219,15 @@ const tempStore = useTempStore()
 const { app, urlTokenKey, uploads } = storeToRefs(tempStore)
 
 const uploadMenuVisible = ref(false)
-const sortMenuVisible = ref(false)
+const moreMenuVisible = ref(false)
+
+const uiMode = computed<'view' | 'edit'>({
+  get: () => (filter.trash ? 'edit' : (mainStore.pageUIMode.videos ?? 'view')),
+  set: (value) => {
+    if (filter.trash) return
+    mainStore.pageUIMode.videos = value
+  },
+})
 
 const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload(uploads)
 const { input: dirFileInput, upload: uploadDir, uploadChanged: dirUploadChanged } = useFileUpload(uploads)
@@ -286,13 +273,32 @@ const gotoPage = (page: number) => {
   const q = route.query.q
   replacePath(mainStore, q ? `/videos?page=${page}&q=${q}` : `/videos?page=${page}`)
 }
-const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(total, limit, page, selectAll, clearSelection, gotoPage, () => {
+const selectAllInEditMode = () => {
+  if (uiMode.value !== 'edit') return
+  selectAll()
+}
+const clearSelectionInEditMode = () => {
+  if (uiMode.value !== 'edit') return
+  clearSelection()
+}
+const trashInEditMode = () => {
+  if (uiMode.value !== 'edit') return
   if (hasFeature(FEATURE.MEDIA_TRASH, app.value.osVersion)) {
     trash(dataType, getQuery())
   } else {
     deleteItems(dataType, selectedIds.value, realAllChecked.value, total.value, q.value)
   }
-})
+}
+
+const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(
+  total,
+  limit,
+  page,
+  selectAllInEditMode,
+  clearSelectionInEditMode,
+  gotoPage,
+  trashInEditMode,
+)
 const imageErrorIds = ref<string[]>([])
 const sortItems = getSortItems()
 
@@ -340,6 +346,28 @@ const { loading, fetch } = initLazyQuery({
 
 const { trashLoading, trash } = useMediaTrash()
 const { restoreLoading, restore } = useMediaRestore()
+
+function toggleUIMode() {
+  if (filter.trash) return
+  if (uiMode.value === 'edit') {
+    uiMode.value = 'view'
+    clearSelection()
+  } else {
+    uiMode.value = 'edit'
+  }
+}
+
+function openKeyboardShortcuts() {
+  openModal(KeyboardShortcutsModal, {
+    title: t('keyboard_shortcuts'),
+    shortcuts: mediaKeyboardShortcuts,
+  })
+}
+
+function handleMouseOverMode(e: MouseEvent, index: number) {
+  if (uiMode.value !== 'edit') return
+  handleMouseOver(e, index)
+}
 
 function view(index: number) {
   tempStore.lightbox = {
