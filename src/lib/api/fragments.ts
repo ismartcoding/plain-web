@@ -86,11 +86,30 @@ export const messageFragment = gql`
     serviceCenter
     date
     type
+    threadId
+    subscriptionId
+    isMms
+    attachments {
+      path
+      contentType
+      name
+    }
     tags {
       ...TagSubFragment
     }
   }
   ${tagSubFragment}
+`
+
+export const messageConversationFragment = gql`
+  fragment MessageConversationFragment on MessageConversation {
+    id
+    address
+    snippet
+    date
+    messageCount
+    read
+  }
 `
 export const contactFragment = gql`
   fragment ContactFragment on Contact {

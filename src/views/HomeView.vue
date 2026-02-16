@@ -250,7 +250,7 @@ initQuery({
       if (data) {
         mounts.value = data.mounts ?? []
 
-        counter.value.messages = data.messageCount
+        counter.value.messages = data.smsCount
         counter.value.contacts = data.contactCount
         counter.value.calls = data.callCount
         counter.value.videos = data.videoCount

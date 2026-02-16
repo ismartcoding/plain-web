@@ -19,6 +19,8 @@ export default {
   card_view: '卡片視圖',
   grid_view: '網格視圖',
   today: '今天',
+  yesterday: '昨天',
+  write_a_message: '輸入訊息',
   back: '返回',
   screenshot: '截圖',
   mirror_quality: '鏡像品質',

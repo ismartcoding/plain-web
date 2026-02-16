@@ -19,6 +19,8 @@ export default {
   card_view: 'Vista de tarjeta',
   grid_view: 'Vista de cuadrícula',
   today: 'Hoy',
+  yesterday: 'Ayer',
+  write_a_message: 'Escribir un mensaje',
   back: 'Atrás',
   screenshot: 'Captura de pantalla',
   mirror_quality: 'Calidad del espejo',

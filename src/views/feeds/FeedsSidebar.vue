@@ -11,10 +11,12 @@
     <template #body>
       <ul class="nav">
         <li :class="{ active: !today && !selectedTagId && !selectedFeedId }" @click.prevent="viewAll">
+          <span class="icon" aria-hidden="true"><i-lucide:layout-grid /></span>
           <span class="title">{{ $t('all') }}</span>
           <span v-if="counter.feedEntries >= 0" class="count">{{ counter.feedEntries.toLocaleString() }}</span>
         </li>
         <li :class="{ active: today }" @click.prevent="viewToday">
+          <span class="icon" aria-hidden="true"><i-lucide:calendar-days /></span>
           <span class="title">{{ $t('today') }}</span>
           <span v-if="counter.feedEntriesToday >= 0" class="count">{{ counter.feedEntriesToday.toLocaleString() }}</span>
         </li>

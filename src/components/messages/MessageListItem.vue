@@ -4,7 +4,7 @@
     v-if="!isPhone"
     class="sms-item selectable-card"
     :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
-    @click.stop="handleItemClick($event, item, index, () => {})"
+    @click.stop="handleItemClick($event, item, index, () => onView(index, item))"
     @mouseenter.stop="handleMouseOver($event, index)"
   >
     <div class="start">
@@ -13,7 +13,8 @@
       <span class="number"><field-id :id="index + 1" :raw="item" /></span>
     </div>
     <div class="title">
-      {{ item.address }}
+      {{ getDisplayName(item.address) }}
+      <span v-if="item.type === 5" class="failed-icon" v-tooltip="$t('message_type.5')">&#x26A0;</span>
     </div>
     <div class="subtitle" v-html="addLinksToURLs(item.body)"></div>
     <MessageActionButtons
@@ -25,7 +26,7 @@
       @call="call"
     />
     <div class="info">
-      <span>{{ $t(`message_type.${item.type}`) }}</span>
+      <span :class="{ 'text-red': item.type === 5 }">{{ $t(`message_type.${item.type}`) }}</span>
       <item-tags :tags="item.tags" :type="dataType" :only-links="true" />
     </div>
     <div class="time">
@@ -41,16 +42,19 @@
     :is-selected="selectedIds.includes(item.id)"
     :is-selecting="shiftEffectingIds.includes(item.id)"
     :checkbox-checked="shiftEffectingIds.includes(item.id) ? shouldSelect : selectedIds.includes(item.id)"
-    @click="handleItemClick($event, item, index, () => {})"
+    @click="handleItemClick($event, item, index, () => onView(index, item))"
     @mouseenter.stop="handleMouseOver($event, index)"
     @checkbox-click="(event: MouseEvent) => toggleSelect(event, item, index)"
   >
-    <template #title>{{ item.address }}</template>
+    <template #title>
+      {{ getDisplayName(item.address) }}
+      <span v-if="item.type === 5" class="failed-icon" v-tooltip="$t('message_type.5')">&#x26A0;</span>
+    </template>
     
     <template #subtitle>
       <div class="subtitle" v-html="addLinksToURLs(item.body)"></div>
       <div class="info">
-        <span>{{ $t(`message_type.${item.type}`) }}</span>
+        <span :class="{ 'text-red': item.type === 5 }">{{ $t(`message_type.${item.type}`) }}</span>
         <item-tags :tags="item.tags" :type="dataType" :only-links="true" />
       </div>
       <div class="time">
@@ -79,6 +83,9 @@ import { DataType } from '@/lib/data'
 import { formatDateTime, formatTimeAgo } from '@/lib/format'
 import { addLinksToURLs } from '@/lib/strutil'
 import MessageActionButtons from './MessageActionButtons.vue'
+import { useContactName } from '@/hooks/contacts'
+
+const { getDisplayName } = useContactName()
 
 interface Props {
   item: IMessage
@@ -94,9 +101,10 @@ interface Props {
   handleItemClick: (event: MouseEvent, item: IMessage, index: number, callback: () => void) => void
   handleMouseOver: (event: MouseEvent, index: number) => void
   toggleSelect: (event: MouseEvent, item: IMessage, index: number) => void
+  onView?: (index: number, item: IMessage) => void
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const emit = defineEmits<{
   addItemToTags: [item: IMessage]
@@ -115,10 +123,24 @@ function call(item: IMessage) {
 function sendSms(item: IMessage) {
   emit('sendSms', item)
 }
+
+function onView(index: number, item: IMessage) {
+  props.onView?.(index, item)
+}
 </script>
 
 <style scoped lang="scss">
 .main-list .list-item-phone {
   gap: 8px;
+}
+
+.failed-icon {
+  color: var(--md-sys-color-error, #d32f2f);
+  font-size: 14px;
+  margin-inline-start: 4px;
+}
+
+.text-red {
+  color: var(--md-sys-color-error, #d32f2f);
 }
 </style>

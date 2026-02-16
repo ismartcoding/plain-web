@@ -24,7 +24,7 @@ export function keyOptionsForGroup(group: string, hasHistory: boolean): string[]
     case 'files':
       return withHistory(['file_size'])
     case 'messages':
-      return withHistory(['type'])
+      return withHistory(['type', 'tag'])
     case 'calls':
       return withHistory(['type', 'duration', 'start_time'])
     case 'feeds':
@@ -41,6 +41,7 @@ export function valueOptionsForGroup(opts: {
   mediaTags: ITag[]
   mediaBuckets: IBucket[]
   feeds: IFeed[]
+  messageTags?: ITag[]
 }) {
   const base: Record<string, any[]> = {}
   if ((opts.history ?? []).length > 0) base.history = opts.history
@@ -69,6 +70,7 @@ export function valueOptionsForGroup(opts: {
       { value: '2', label: opts.t('message_type.2') },
       { value: '3', label: opts.t('message_type.3') },
     ]
+    base.tag = (opts.messageTags ?? []).map((t) => t.name)
   }
 
   if (opts.group === 'calls') {

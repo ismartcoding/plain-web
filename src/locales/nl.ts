@@ -19,6 +19,8 @@ export default {
   card_view: 'Kaartweergave',
   grid_view: 'Rasterweergave',
   today: 'Vandaag',
+  yesterday: 'Gisteren',
+  write_a_message: 'Schrijf een bericht',
   back: 'Terug',
   screenshot: 'Schermafbeelding',
   mirror_quality: 'Spiegelkwaliteit',

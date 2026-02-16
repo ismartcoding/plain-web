@@ -19,6 +19,8 @@ export default {
   card_view: 'அட்டை பார்வை',
   grid_view: 'கட்டம் பார்வை',
   today: 'இன்று',
+  yesterday: 'நேற்று',
+  write_a_message: 'ஒரு செய்தி எழுதுங்கள்',
   back: 'பின்னால்',
   screenshot: 'ஸ்கிரீன் ஷாட்',
   mirror_quality: 'திரை பிரதிமை தரம்',

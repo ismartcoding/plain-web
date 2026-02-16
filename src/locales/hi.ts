@@ -19,6 +19,8 @@ export default {
   card_view: 'कार्ड व्यू',
   grid_view: 'ग्रिड व्यू',
   today: 'आज',
+  yesterday: 'कल',
+  write_a_message: 'संदेश लिखें',
   back: 'बैक',
   screenshot: 'स्क्रीनशॉट',
   mirror_quality: 'मिरर क्वालिटी',

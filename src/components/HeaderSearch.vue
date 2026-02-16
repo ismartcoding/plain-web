@@ -34,6 +34,7 @@ import { useSearch as useMediaSearch } from '@/hooks/search'
 import { useSearch as useFilesSearch } from '@/hooks/files'
 import { DataType } from '@/lib/data'
 import { useBucketsTags } from '@/hooks/media'
+import { useTags } from '@/hooks/tags'
 import TokenSearchField, { type Token as UiToken } from '@/components/TokenSearchField.vue'
 import { feedsGQL, initLazyQuery } from '@/lib/api/query'
 import { usePerPageSearchHistory } from '@/components/header-search/history'
@@ -143,6 +144,8 @@ const sortedMediaBuckets = computed<IBucket[]>(() =>
   [...(mediaBuckets.value ?? [])].sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', undefined, { numeric: true, sensitivity: 'base' }))
 )
 
+const { tags: messageTags, fetch: fetchMessageTags } = useTags(DataType.SMS)
+
 const feeds = ref<IFeed[]>([])
 const { fetch: fetchFeeds } = initLazyQuery({
   handle: (data: { feeds: IFeed[] }, error: string) => {
@@ -169,8 +172,7 @@ const { historyQ, historyValueOptions, rememberHistoryDecoded, rememberHistoryBa
         t,
         mediaBuckets: mediaBuckets.value ?? [],
         mediaTags: mediaTags.value ?? [],
-        feeds: feeds.value ?? [],
-      }),
+        feeds: feeds.value ?? [],        messageTags: messageTags.value ?? [],      }),
   })
 
 const keyOptions = computed(() => {
@@ -186,6 +188,7 @@ const valueOptions = computed<Record<string, any[]>>(() => {
     mediaTags: mediaTags.value ?? [],
     mediaBuckets: mediaBuckets.value ?? [],
     feeds: feeds.value ?? [],
+    messageTags: messageTags.value ?? [],
   })
 })
 
@@ -223,6 +226,10 @@ const uiTokens = computed<UiToken[]>(() => {
   if (showMessagesFilters.value) {
     if (mediaLocalFilter.type) {
       tokens.push({ key: 'type', value: mediaLocalFilter.type })
+    }
+    for (const id of mediaLocalFilter.tagIds ?? []) {
+      const tag = (messageTags.value ?? []).find((it) => it.id === id)
+      if (tag) tokens.push({ key: 'tag', value: tag.name })
     }
     return tokens
   }
@@ -286,6 +293,13 @@ function onUiTokensChange(tokens: UiToken[]) {
   if (showMessagesFilters.value) {
     const typeTok = tokens.find((it) => it.key === 'type')
     mediaLocalFilter.type = typeTok?.value
+    const nextTagIds: string[] = []
+    for (const tok of tokens) {
+      if (tok.key !== 'tag') continue
+      const tag = (messageTags.value ?? []).find((t) => t.name.toLowerCase() === tok.value.toLowerCase())
+      if (tag) nextTagIds.push(tag.id)
+    }
+    mediaLocalFilter.tagIds = nextTagIds
     mediaLocalFilter.text = text.value
     return
   }
@@ -351,9 +365,12 @@ function buildNextMediaQ(next: IFilter) {
 }
 
 function buildNextMessagesQ() {
-  const fields = parseCurrentFields(currentEncodedQ.value).filter((f) => f.name !== 'text' && f.name !== 'type')
+  const fields = parseCurrentFields(currentEncodedQ.value).filter((f) => f.name !== 'text' && f.name !== 'type' && f.name !== 'tag_id')
   if (mediaLocalFilter.type) {
     fields.push({ name: 'type', op: '', value: mediaLocalFilter.type })
+  }
+  for (const id of mediaLocalFilter.tagIds ?? []) {
+    fields.push({ name: 'tag_id', op: '', value: id })
   }
   const v = text.value.trim()
   if (v) fields.push({ name: 'text', op: '', value: v })
@@ -584,6 +601,8 @@ watch(
       fetchImageBucketsTags()
     } else if (g === 'feeds') {
       fetchFeeds()
+    } else if (g === 'messages') {
+      fetchMessageTags()
     }
   },
   { immediate: true }

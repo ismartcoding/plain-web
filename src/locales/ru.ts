@@ -19,6 +19,8 @@ export default {
   card_view: 'Плитка',
   grid_view: 'Сетка',
   today: 'Сегодня',
+  yesterday: 'Вчера',
+  write_a_message: 'Написать сообщение',
   back: 'Назад',
   screenshot: 'Скриншот',
   mirror_quality: 'Качество зеркала',

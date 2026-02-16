@@ -19,6 +19,8 @@ export default {
   card_view: 'Visualização de cartão',
   grid_view: 'Visualização de grade',
   today: 'Hoje',
+  yesterday: 'Ontem',
+  write_a_message: 'Escreva uma mensagem',
   back: 'Voltar',
   screenshot: 'Captura de tela',
   mirror_quality: 'Qualidade do espelhamento',

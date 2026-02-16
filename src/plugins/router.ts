@@ -29,10 +29,19 @@ const router = createRouter({
         {
           path: 'messages',
           components: {
+            LeftSidebar: () => import('@/views/messages/MessagesSidebar.vue'),
+            LeftSidebar2: () => import('@/views/messages/MessagesSidebar2.vue'),
+          },
+          meta: { group: 'messages', className: 'messages' },
+        },
+        {
+          path: 'messages/:threadId',
+          components: {
             default: () => import('@/views/messages/MessagesView.vue'),
             LeftSidebar: () => import('@/views/messages/MessagesSidebar.vue'),
+            LeftSidebar2: () => import('@/views/messages/MessagesSidebar2.vue'),
           },
-          meta: { group: 'messages' },
+          meta: { group: 'messages', className: 'messages' },
         },
         {
           path: 'calls',

@@ -3,10 +3,12 @@
     <template #body>
       <ul class="nav">
         <li :class="{ active: !selectedTagId && !trash }" @click.prevent="viewAll">
+          <span class="icon" aria-hidden="true"><i-lucide:layout-grid /></span>
           <span class="title">{{ $t('all') }}</span>
           <span v-if="counter.notes >= 0" class="count">{{ counter.notes.toLocaleString() }}</span>
         </li>
         <li :class="{ active: trash }" @click.prevent="viewTrash">
+          <span class="icon" aria-hidden="true"><i-lucide:trash /></span>
           <span class="title">{{ $t('trash') }}</span>
           <span v-if="counter.notesTrash >= 0" class="count">{{ counter.notesTrash.toLocaleString() }}</span>
         </li>

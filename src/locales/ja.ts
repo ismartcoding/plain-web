@@ -19,6 +19,8 @@ export default {
   card_view: 'カードビュー',
   grid_view: 'グリッドビュー',
   today: '今日',
+  yesterday: '昨日',
+  write_a_message: 'メッセージを入力',
   back: '戻る',
   screenshot: 'スクリーンショット',
   mirror_quality: 'ミラーリング品質',

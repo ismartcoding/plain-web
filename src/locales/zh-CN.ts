@@ -19,6 +19,8 @@ export default {
   card_view: '卡片视图',
   grid_view: '网格视图',
   today: '今天',
+  yesterday: '昨天',
+  write_a_message: '输入消息',
   back: '返回',
   screenshot: '截屏',
   mirror_quality: '镜像画质',
@@ -173,6 +175,7 @@ export default {
   page_title: {
     home: '首页',
     messages: '短信',
+    conversations: '会话',
     contacts: '联系人',
     calls: '通话记录',
     apps: '应用',

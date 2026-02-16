@@ -8,6 +8,7 @@ export function formatHistoryLabel(opts: {
   mediaBuckets: IBucket[]
   mediaTags: ITag[]
   feeds: IFeed[]
+  messageTags?: ITag[]
 }) {
   const parts: string[] = []
   const textParts: string[] = []
@@ -27,7 +28,8 @@ export function formatHistoryLabel(opts: {
     }
 
     if (f.name === 'tag_id') {
-      const tag = (opts.mediaTags ?? []).find((it) => it.id === f.value)
+      const tagList = opts.group === 'messages' ? (opts.messageTags ?? []) : (opts.mediaTags ?? [])
+      const tag = tagList.find((it) => it.id === f.value)
       parts.push(`${opts.t('tag')}: ${tag?.name ?? f.value}`)
       continue
     }

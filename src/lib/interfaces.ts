@@ -34,7 +34,26 @@ export interface IMessage extends IData {
   serviceCenter: string
   date: string
   type: number
+  threadId: string
+  subscriptionId: number
+  isMms?: boolean
+  attachments?: IMessageAttachment[]
   tags: ITag[]
+}
+
+export interface IMessageAttachment {
+  path: string
+  contentType: string
+  name: string
+}
+
+export interface IMessageConversation extends IData {
+  id: string
+  address: string
+  snippet: string
+  date: string
+  messageCount: number
+  read: boolean
 }
 
 export interface IContactContentItem {
@@ -310,7 +329,7 @@ export interface IStorageMount {
 export interface IHomeStats {
   callCount: number
   contactCount: number
-  messageCount: number
+  smsCount: number
   noteCount: number
   mediaCount: number
   feedEntryCount: number

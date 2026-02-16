@@ -19,6 +19,8 @@ export default {
   card_view: 'কার্ড দেখুন',
   grid_view: 'গ্রিড দেখুন',
   today: 'আজ',
+  yesterday: 'গতকাল',
+  write_a_message: 'একটি বার্তা লিখুন',
   back: 'পিছনে',
   screenshot: 'স্ক্রিনশট',
   mirror_quality: 'মিরর গুন সুত্তি',

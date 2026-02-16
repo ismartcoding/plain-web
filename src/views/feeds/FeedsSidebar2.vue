@@ -387,8 +387,7 @@ onDeactivated(() => {
     display: block;
   }
 }
-
-:deep(.feed-item) {
+.feed-item {
   margin: 0 16px 8px 16px;
   display: grid;
   box-sizing: border-box;

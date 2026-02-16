@@ -20,7 +20,11 @@ export function initMutation(params: InitMutationParams, handleError = true) {
       if (error.networkError?.message === 'connection_timeout') {
         emitter.emit('toast', 'connection_timeout')
       } else {
-        emitter.emit('toast', error.message)
+        const gqlMessage = error.graphQLErrors?.[0]?.message
+        const message = gqlMessage || error.message
+        if (message) {
+          emitter.emit('toast', message)
+        }
       }
       logErrorMessages(error)
     })

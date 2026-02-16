@@ -3,6 +3,7 @@
     <template #body>
       <ul class="nav">
         <li :class="{ active: !selectedTagId }" @click.prevent="viewAll">
+          <span class="icon" aria-hidden="true"><i-lucide:layout-grid /></span>
           <span class="title">{{ $t('all') }}</span>
           <span v-if="counter.contacts >= 0" class="count">{{ counter.contacts.toLocaleString() }}</span>
         </li>

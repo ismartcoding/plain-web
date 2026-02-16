@@ -20,6 +20,7 @@ export type MainState = {
   imageSortBy: string
   videoSortBy: string
   audioSortBy: string
+  conversationSortBy: string
   json: string // data in jsonViewer
   qrCode: string // data in qrCode Generator
   callNumber: string
@@ -51,6 +52,7 @@ export const useMainStore = defineStore('main', {
       imageSortBy: 'DATE_DESC',
       videoSortBy: 'DATE_DESC',
       audioSortBy: 'DATE_DESC',
+      conversationSortBy: 'DATE_DESC',
       json: '',
       qrCode: '',
       callNumber: '',

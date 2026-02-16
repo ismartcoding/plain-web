@@ -130,6 +130,19 @@
     }
   }
 
+  // Make messages detail view fullscreen on mobile
+  .main-messages {
+    .content {
+      @include mobile-full-screen;
+
+      & {
+        background: var(--md-sys-color-surface-container);
+        overflow-y: auto !important;
+        padding: 0px !important;
+      }
+    }
+  }
+
   #header .start {
     margin-inline-start: 8px;
   }

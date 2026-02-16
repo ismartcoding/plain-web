@@ -19,6 +19,8 @@ export default {
   card_view: 'Vista a schede',
   grid_view: 'Vista a griglia',
   today: 'Oggi',
+  yesterday: 'Ieri',
+  write_a_message: 'Scrivi un messaggio',
   back: 'Indietro',
   screenshot: 'Screenshot',
   mirror_quality: 'Qualità dello specchio',

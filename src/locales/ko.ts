@@ -19,6 +19,8 @@ export default {
   card_view: '카드 보기',
   grid_view: '그리드 보기',
   today: '오늘',
+  yesterday: '어제',
+  write_a_message: '메시지 입력',
   back: '뒤로',
   screenshot: '스크린샷',
   mirror_quality: '화면 미러링 화질',

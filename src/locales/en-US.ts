@@ -19,6 +19,8 @@ export default {
   card_view: 'Card view',
   grid_view: 'Grid view',
   today: 'Today',
+  yesterday: 'Yesterday',
+  write_a_message: 'Write a message',
   back: 'Back',
   screenshot: 'Screenshot',
   mirror_quality: 'Mirror quality',
@@ -173,6 +175,7 @@ export default {
   page_title: {
     home: 'Home',
     messages: 'Messages',
+    conversations: 'Conversations',
     contacts: 'Contacts',
     calls: 'Calls',
     apps: 'Apps',

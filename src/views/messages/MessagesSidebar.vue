@@ -3,10 +3,16 @@
     <template #body>
       <ul class="nav">
         <li :class="{ active: !selectedTagId && !type }" @click.prevent="viewAll">
+          <span class="icon" aria-hidden="true"><i-lucide:layout-grid /></span>
           <span class="title">{{ $t('all') }}</span>
           <span v-if="counter.messages >= 0" class="count">{{ counter.messages.toLocaleString() }}</span>
         </li>
         <li v-for="t in ['1', '2', '3']" :key="t" :class="{ active: t === type }" @click.prevent="openByType(t)">
+          <span class="icon" aria-hidden="true">
+            <i-material-symbols:inbox-outline-rounded v-if="t === '1'" />
+            <i-material-symbols:send-outline-rounded v-else-if="t === '2'" />
+            <i-material-symbols:draft-outline-rounded v-else />
+          </span>
           <span class="title">{{ $t(`message_type.${t}`) }}</span>
           <span v-if="getTypeCount(t) >= 0" class="count">{{ getTypeCount(t).toLocaleString() }}</span>
         </li>

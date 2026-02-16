@@ -19,6 +19,8 @@ export default {
   card_view: 'Xem thẻ',
   grid_view: 'Xem lưới',
   today: 'Hôm nay',
+  yesterday: 'Hôm qua',
+  write_a_message: 'Viết tin nhắn',
   back: 'Quay lại',
   screenshot: 'Chụp màn hình',
   mirror_quality: 'Chất lượng phản chiếu',

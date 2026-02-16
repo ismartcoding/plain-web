@@ -19,6 +19,8 @@ export default {
   card_view: 'Kartenansicht',
   grid_view: 'Rasteransicht',
   today: 'Heute',
+  yesterday: 'Gestern',
+  write_a_message: 'Nachricht schreiben',
   back: 'Zurück',
   screenshot: 'Screenshot',
   mirror_quality: 'Spiegelqualität',

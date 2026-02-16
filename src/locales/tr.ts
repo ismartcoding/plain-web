@@ -19,6 +19,8 @@ export default {
   card_view: 'Kart görünümü',
   grid_view: 'Izgara görünümü',
   today: 'Bugün',
+  yesterday: 'Dün',
+  write_a_message: 'Bir mesaj yazın',
   back: 'Geri',
   screenshot: 'Ekran Görüntüsü',
   mirror_quality: 'Yansıma kalitesi',

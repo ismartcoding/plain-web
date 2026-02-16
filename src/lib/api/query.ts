@@ -4,6 +4,7 @@ import type { DocumentParameter, OptionsParameter } from '@vue/apollo-composable
 import {
   chatItemFragment,
   messageFragment,
+  messageConversationFragment,
   contactFragment,
   callFragment,
   imageFragment,
@@ -98,7 +99,9 @@ export function initLazyQuery<TResult = any>(params: InitQueryParams<TResult>) {
         first = false
         load()
       } else {
-        refetch()
+        // Pass the latest variables to refetch() to avoid replaying stale cached results
+        // (e.g., after an error, clicking a different item should query with updated variables)
+        refetch(typeof params.variables === 'function' ? params.variables() : undefined)
       }
     },
   }
@@ -155,14 +158,24 @@ export const fileInfoGQL = gql`
   ${tagSubFragment}
 `
 
-export const messagesGQL = gql`
-  query messages($offset: Int!, $limit: Int!, $query: String!) {
-    messages(offset: $offset, limit: $limit, query: $query) {
+export const smsGQL = gql`
+  query sms($offset: Int!, $limit: Int!, $query: String!) {
+    sms(offset: $offset, limit: $limit, query: $query) {
       ...MessageFragment
     }
-    messageCount(query: $query)
+    smsCount(query: $query)
   }
   ${messageFragment}
+`
+
+export const smsConversationsGQL = gql`
+  query smsConversations($offset: Int!, $limit: Int!, $query: String!) {
+    smsConversations(offset: $offset, limit: $limit, query: $query) {
+      ...MessageConversationFragment
+    }
+    smsConversationCount(query: $query)
+  }
+  ${messageConversationFragment}
 `
 
 export const contactsGQL = gql`
@@ -177,7 +190,7 @@ export const contactsGQL = gql`
 
 export const homeStatsGQL = gql`
   query {
-    messageCount(query: "")
+    smsCount(query: "")
     contactCount(query: "")
     callCount(query: "")
     imageCount(query: "")
@@ -466,10 +479,10 @@ export const callCountGQL = gql`
 
 export const smsCountGQL = gql`
   query {
-    total: messageCount(query: "")
-    inbox: messageCount(query: "type:1")
-    sent: messageCount(query: "type:2")
-    drafts: messageCount(query: "type:3")
+    total: smsCount(query: "")
+    inbox: smsCount(query: "type:1")
+    sent: smsCount(query: "type:2")
+    drafts: smsCount(query: "type:3")
   }
 `
 

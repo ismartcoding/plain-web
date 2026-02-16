@@ -3,14 +3,17 @@
     <template #body>
       <ul class="nav">
         <li :class="{ active: !type }" @click.prevent="viewAll">
+          <span class="icon" aria-hidden="true"><i-lucide:layout-grid /></span>
           <span class="title">{{ $t('all') }}</span>
           <span v-if="counter.packages >= 0" class="count">{{ counter.packages.toLocaleString() }}</span>
         </li>
         <li :class="{ active: 'user' === type }" @click.prevent="openByType('user')">
+          <span class="icon" aria-hidden="true"><i-material-symbols:person-outline-rounded /></span>
           <span class="title">{{ $t(`app_type.user`) }}</span>
           <span v-if="userTypeCount >= 0" class="count">{{ userTypeCount.toLocaleString() }}</span>
         </li>
         <li :class="{ active: 'system' === type }" @click.prevent="openByType('system')">
+          <span class="icon" aria-hidden="true"><i-material-symbols:settings-outline-rounded /></span>
           <span class="title">{{ $t(`app_type.system`) }}</span>
           <span v-if="counter.packagesSystem >= 0" class="count">{{ counter.packagesSystem.toLocaleString() }}</span>
         </li>
