@@ -186,6 +186,7 @@ import { useSelectable } from '@/hooks/list'
 import { useBuckets, useBucketsTags, useDeleteItems } from '@/hooks/media'
 import { useDownload, useDownloadItems } from '@/hooks/files'
 import { useDragDropUpload, useFileUpload } from '@/hooks/upload'
+import { createBucketUploadTarget } from '@/hooks/media-upload'
 import emitter from '@/plugins/eventbus'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
@@ -400,25 +401,32 @@ const { loading, fetch } = initLazyQuery({
 const { trashLoading, trash } = useMediaTrash()
 const { restoreLoading, restore } = useMediaRestore()
 
-function getUploadDir() {
-  const bucket = buckets.value.find((it) => it.id === filter.bucketId)
-  if (bucket) {
-    return getDirFromPath(bucket.topItems[0])
-  }
+const uploadTarget = createBucketUploadTarget({
+  filter,
+  buckets,
+  picker: {
+    title: t('upload_select_destination'),
+    description: t('upload_select_destination_desc'),
+    initialPath: '',
+    modalId: 'upload-directory-picker-images',
+    storageKey: 'plainweb.uploadDir.images',
+  },
+})
 
-  return `${app.value.internalStoragePath}/Pictures`
+async function uploadFilesClick() {
+  const dir = await uploadTarget.resolveTargetDir()
+  if (!dir) return
+  uploadFiles(dir)
 }
 
-function uploadFilesClick() {
-  uploadFiles(getUploadDir())
-}
-
-function uploadDirClick() {
-  uploadDir(getUploadDir())
+async function uploadDirClick() {
+  const dir = await uploadTarget.resolveTargetDir()
+  if (!dir) return
+  uploadDir(dir)
 }
 
 function dropFiles2(e: DragEvent) {
-  dropFiles(e, getUploadDir(), (file) => isImage(file.name))
+  dropFiles(e, uploadTarget.resolveTargetDir, (file) => isImage(file.name))
 }
 
 const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {

@@ -199,6 +199,7 @@ import { useSearch } from '@/hooks/search'
 import { useKeyEvents } from '@/hooks/key-events'
 import { generateDownloadFileName } from '@/lib/format'
 import { useDragDropUpload, useFileUpload } from '@/hooks/upload'
+import { createBucketUploadTarget } from '@/hooks/media-upload'
 import { useMediaRestore, useMediaTrash } from '@/hooks/media-trash'
 import { hasFeature } from '@/lib/feature'
 import MediaPageActions from '@/components/media/MediaPageActions.vue'
@@ -347,6 +348,18 @@ const { loading, fetch } = initLazyQuery({
 const { trashLoading, trash } = useMediaTrash()
 const { restoreLoading, restore } = useMediaRestore()
 
+const uploadTarget = createBucketUploadTarget({
+  filter,
+  buckets,
+  picker: {
+    title: t('upload_select_destination'),
+    description: t('upload_select_destination_desc'),
+    initialPath: '',
+    modalId: 'upload-directory-picker-videos',
+    storageKey: 'plainweb.uploadDir.videos',
+  },
+})
+
 function toggleUIMode() {
   if (filter.trash) return
   if (uiMode.value === 'edit') {
@@ -408,25 +421,20 @@ function addItemToTags(item: IVideoItem) {
   })
 }
 
-function getUploadDir() {
-  const bucket = buckets.value.find((it) => it.id === filter.bucketId)
-  if (bucket) {
-    return getDirFromPath(bucket.topItems[0])
-  }
-
-  return `${app.value.internalStoragePath}/Movies`
+async function uploadFilesClick() {
+  const dir = await uploadTarget.resolveTargetDir()
+  if (!dir) return
+  uploadFiles(dir)
 }
 
-function uploadFilesClick() {
-  uploadFiles(getUploadDir())
-}
-
-function uploadDirClick() {
-  uploadDir(getUploadDir())
+async function uploadDirClick() {
+  const dir = await uploadTarget.resolveTargetDir()
+  if (!dir) return
+  uploadDir(dir)
 }
 
 function dropFiles2(e: DragEvent) {
-  dropFiles(e, getUploadDir(), (file) => isVideo(file.name))
+  dropFiles(e, uploadTarget.resolveTargetDir, (file) => isVideo(file.name))
 }
 
 const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {

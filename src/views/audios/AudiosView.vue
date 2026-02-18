@@ -157,6 +157,7 @@ import { getDirFromPath, getSortItems, isAudio } from '@/lib/file'
 import { useKeyEvents } from '@/hooks/key-events'
 import { generateDownloadFileName } from '@/lib/format'
 import { useDragDropUpload, useFileUpload } from '@/hooks/upload'
+import { createBucketUploadTarget } from '@/hooks/media-upload'
 import { useMediaRestore, useMediaTrash } from '@/hooks/media-trash'
 import { hasFeature } from '@/lib/feature'
 import MediaPageActions from '@/components/media/MediaPageActions.vue'
@@ -296,6 +297,18 @@ const { loading, fetch } = initLazyQuery({
 const { trashLoading, trash } = useMediaTrash()
 const { restoreLoading, restore } = useMediaRestore()
 
+const uploadTarget = createBucketUploadTarget({
+  filter,
+  buckets,
+  picker: {
+    title: t('upload_select_destination'),
+    description: t('upload_select_destination_desc'),
+    initialPath: '',
+    modalId: 'upload-directory-picker-audios',
+    storageKey: 'plainweb.uploadDir.audios',
+  },
+})
+
 function sort(value: string) {
   if (audioSortBy.value === value) {
     return
@@ -322,25 +335,20 @@ function handleMouseOverMode(event: MouseEvent, index: number) {
   handleMouseOver(event, index)
 }
 
-function getUploadDir() {
-  const bucket = buckets.value.find((it) => it.id === filter.bucketId)
-  if (bucket) {
-    return getDirFromPath(bucket.topItems[0])
-  }
-
-  return `${app.value.internalStoragePath}/Music`
+async function uploadFilesClick() {
+  const dir = await uploadTarget.resolveTargetDir()
+  if (!dir) return
+  uploadFiles(dir)
 }
 
-function uploadFilesClick() {
-  uploadFiles(getUploadDir())
-}
-
-function uploadDirClick() {
-  uploadDir(getUploadDir())
+async function uploadDirClick() {
+  const dir = await uploadTarget.resolveTargetDir()
+  if (!dir) return
+  uploadDir(dir)
 }
 
 function dropFiles2(e: DragEvent) {
-  dropFiles(e, getUploadDir(), (file) => isAudio(file.name))
+  dropFiles(e, uploadTarget.resolveTargetDir, (file) => isAudio(file.name))
 }
 
 const getQuery = () => {
