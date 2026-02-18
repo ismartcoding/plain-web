@@ -26,6 +26,10 @@
           <i-material-symbols:timer-outline />
           {{ t('pomodoro_timer') }}
         </div>
+        <div class="dropdown-item" :class="{ selected: store.quick === 'bookmark' }" @click="toggleQuick('bookmark')">
+          <i-lucide:bookmark />
+          {{ t('bookmarks') }}
+        </div>
         <div class="dropdown-item" :selected="{ active: store.quick === 'chat' }" @click="toggleQuick('chat')">
           <i-lucide-bot />
           {{ t('my_phone') }}

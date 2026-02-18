@@ -37,6 +37,7 @@ type Events = {
   webrtc_signaling: SignalingMessage
   screen_mirroring: string
   screen_mirror_audio_granted: boolean
+  bookmark_updated: any
 }
 
 const emitter: Emitter<Events> = mitt<Events>()

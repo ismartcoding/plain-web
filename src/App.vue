@@ -52,6 +52,8 @@ const EventType: { [key: number]: string } = {
   11: 'pomodoro_action',
   12: 'pomodoro_settings_update',
   13: 'chat_settings_update',
+  14: 'screen_mirror_audio_granted',
+  15: 'bookmark_updated',
 }
 
 async function connect() {

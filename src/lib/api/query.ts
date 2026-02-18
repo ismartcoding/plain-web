@@ -20,6 +20,8 @@ import {
   tagSubFragment,
   notificationFragment,
   deviceInfoFragment,
+  bookmarkFragment,
+  bookmarkGroupFragment,
 } from './fragments'
 import type { ApolloQueryResult } from '@apollo/client'
 
@@ -606,4 +608,17 @@ export const pomodoroTodayAndSettingsGQL = gql`
       playSoundOnComplete
     }
   }
+`
+
+export const bookmarksGQL = gql`
+  query {
+    bookmarks {
+      ...BookmarkFragment
+    }
+    bookmarkGroups {
+      ...BookmarkGroupFragment
+    }
+  }
+  ${bookmarkFragment}
+  ${bookmarkGroupFragment}
 `

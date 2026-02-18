@@ -166,7 +166,8 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   min-width: 120px;
-  padding: 16px;
+  padding: 0 16px;
+  height: 64px;
   cursor: pointer;
   
   &--disabled {
@@ -191,14 +192,14 @@ onUnmounted(() => {
     padding: 0 4px;
     font-size: 12px;
     color: var(--md-sys-color-on-surface-variant);
-    background: var(--md-sys-color-surface);
+    background: var(--outlined-field-bg, var(--md-sys-color-surface, #fffbfe));
   }
   
   &__content {
     flex: 1;
-    min-height: 24px;
     display: flex;
     align-items: center;
+    margin-top: 8px;
   }
   
   &__text {
@@ -215,6 +216,7 @@ onUnmounted(() => {
     width: 24px;
     height: 24px;
     margin-left: 12px;
+    margin-top: 8px;
     color: var(--md-sys-color-on-surface-variant);
     transition: transform 0.2s ease;
     

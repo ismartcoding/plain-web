@@ -82,6 +82,9 @@
         <v-icon-button v-tooltip="$t('pomodoro_timer')" class="q-action" toggle :class="{ selected: store.quick === 'pomodoro' }" @click="toggleQuick('pomodoro')">
           <i-material-symbols:timer-outline />
         </v-icon-button>
+        <v-icon-button v-tooltip="$t('bookmarks')" class="q-action" toggle :class="{ selected: store.quick === 'bookmark' }" @click="toggleQuick('bookmark')">
+          <i-lucide:bookmark />
+        </v-icon-button>
         <v-icon-button v-tooltip="$t('my_phone')" class="q-action" toggle :class="{ selected: store.quick === 'chat' }" @click="toggleQuick('chat')">
           <i-lucide-bot />
         </v-icon-button>
@@ -96,6 +99,7 @@
           <audio-player v-show="store.quick === 'audio'" />
           <p-notifications v-show="store.quick === 'notification'" />
           <pomodoro-timer v-show="store.quick === 'pomodoro'" />
+          <bookmark-list v-show="store.quick === 'bookmark'" />
         </div>
       </transition>
       <lightbox />
@@ -115,6 +119,7 @@ import { tokenToKey } from '@/lib/api/file'
 import type { IApp, IMediaItemsActionedEvent } from '@/lib/interfaces'
 import { useRightSidebarResize } from '@/hooks/sidebar'
 import HeaderSearch from '@/components/HeaderSearch.vue'
+import BookmarkList from '@/components/BookmarkList.vue'
 
 const isTablet = inject('isTablet')
 const store = useMainStore()

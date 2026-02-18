@@ -363,3 +363,30 @@ export const deviceInfoFragment = gql`
     }
   }
 `
+
+export const bookmarkFragment = gql`
+  fragment BookmarkFragment on Bookmark {
+    id
+    url
+    title
+    faviconPath
+    groupId
+    pinned
+    clickCount
+    lastClickedAt
+    sortOrder
+    createdAt
+    updatedAt
+  }
+`
+
+export const bookmarkGroupFragment = gql`
+  fragment BookmarkGroupFragment on BookmarkGroup {
+    id
+    name
+    collapsed
+    sortOrder
+    createdAt
+    updatedAt
+  }
+`

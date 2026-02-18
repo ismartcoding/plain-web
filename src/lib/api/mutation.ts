@@ -1,7 +1,7 @@
 import type { ApolloCache, DocumentNode } from '@apollo/client/core'
 import gql from 'graphql-tag'
 import { useMutation } from '@vue/apollo-composable'
-import { chatItemFragment, feedEntryFragment, feedFragment, fileFragment, noteFragment, playlistAudioFragment, tagFragment } from './fragments'
+import { chatItemFragment, feedEntryFragment, feedFragment, fileFragment, noteFragment, playlistAudioFragment, tagFragment, bookmarkFragment, bookmarkGroupFragment } from './fragments'
 import { logErrorMessages } from '@vue/apollo-util'
 import emitter from '@/plugins/eventbus'
 
@@ -77,6 +77,38 @@ export function insertCache(cache: ApolloCache<any>, data: any, query: DocumentN
     }
   } else {
     obj[key] = reversed ? data.concat(q[key]) : q[key].concat(data)
+  }
+  cache.writeQuery({ query, variables, data: obj })
+}
+
+/**
+ * Update one or more items (matched by `id`) inside a cached array query.
+ * `data` can be a single object or an array of objects; each must have an `id` field.
+ * Works for flat array queries (e.g. bookmarks, bookmarkGroups).
+ */
+export function updateCache(cache: ApolloCache<any>, data: any | any[], query: DocumentNode, key: string, variables?: any) {
+  const q: any = cache.readQuery({ query, variables })
+  if (!q) return
+  const updates: any[] = Array.isArray(data) ? data : [data]
+  const updateMap = new Map(updates.map((item) => [item.id, item]))
+  const obj: Record<string, any> = {
+    ...q,
+    [key]: (q[key] as any[]).map((item: any) => (updateMap.has(item.id) ? { ...item, ...updateMap.get(item.id) } : item)),
+  }
+  cache.writeQuery({ query, variables, data: obj })
+}
+
+/**
+ * Remove items by id from a cached array query.
+ * `ids` is a string or array of strings.
+ */
+export function deleteCache(cache: ApolloCache<any>, ids: string | string[], query: DocumentNode, key: string, variables?: any) {
+  const q: any = cache.readQuery({ query, variables })
+  if (!q) return
+  const idSet = new Set(Array.isArray(ids) ? ids : [ids])
+  const obj: Record<string, any> = {
+    ...q,
+    [key]: (q[key] as any[]).filter((item: any) => !idSet.has(item.id)),
   }
   cache.writeQuery({ query, variables, data: obj })
 }
@@ -492,5 +524,59 @@ export const pausePomodoroGQL = gql`
 export const sendScreenMirrorControlGQL = gql`
   mutation sendScreenMirrorControl($input: ScreenMirrorControlInput!) {
     sendScreenMirrorControl(input: $input)
+  }
+`
+
+export const addBookmarksGQL = gql`
+  mutation addBookmarks($urls: [String!]!, $groupId: String!) {
+    addBookmarks(urls: $urls, groupId: $groupId) {
+      ...BookmarkFragment
+    }
+  }
+  ${bookmarkFragment}
+`
+
+export const updateBookmarkGQL = gql`
+  mutation updateBookmark($id: ID!, $title: String!, $groupId: String!, $pinned: Boolean!, $sortOrder: Int!) {
+    updateBookmark(id: $id, title: $title, groupId: $groupId, pinned: $pinned, sortOrder: $sortOrder) {
+      ...BookmarkFragment
+    }
+  }
+  ${bookmarkFragment}
+`
+
+export const deleteBookmarksGQL = gql`
+  mutation deleteBookmarks($ids: [ID!]!) {
+    deleteBookmarks(ids: $ids)
+  }
+`
+
+export const recordBookmarkClickGQL = gql`
+  mutation recordBookmarkClick($id: ID!) {
+    recordBookmarkClick(id: $id)
+  }
+`
+
+export const createBookmarkGroupGQL = gql`
+  mutation createBookmarkGroup($name: String!) {
+    createBookmarkGroup(name: $name) {
+      ...BookmarkGroupFragment
+    }
+  }
+  ${bookmarkGroupFragment}
+`
+
+export const updateBookmarkGroupGQL = gql`
+  mutation updateBookmarkGroup($id: ID!, $name: String!, $collapsed: Boolean!, $sortOrder: Int!) {
+    updateBookmarkGroup(id: $id, name: $name, collapsed: $collapsed, sortOrder: $sortOrder) {
+      ...BookmarkGroupFragment
+    }
+  }
+  ${bookmarkGroupFragment}
+`
+
+export const deleteBookmarkGroupGQL = gql`
+  mutation deleteBookmarkGroup($id: ID!) {
+    deleteBookmarkGroup(id: $id)
   }
 `
