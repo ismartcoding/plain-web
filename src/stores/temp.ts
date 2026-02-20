@@ -19,6 +19,8 @@ export interface IUploadItem {
   pausing?: boolean
   xhr?: XMLHttpRequest
   fileId?: string
+  fileHash?: string
+  isAppFile?: boolean
   isChunked?: boolean
   uploadedChunks?: number[]
   uploadSpeed?: number // bytes per second

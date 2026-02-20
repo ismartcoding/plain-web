@@ -65,7 +65,7 @@
           :current="current" 
           :file-info="fileInfo" 
           :url-token-key="urlTokenKey ? urlTokenKey.toString() : ''" 
-          :external-files-dir="app.externalFilesDir" 
+          :app-dir="app.appDir" 
           :tags-map="tagsMap" 
           :os-version="app.osVersion"
           :download-file="downloadFile"
@@ -82,7 +82,7 @@
         <LightboxFileDetails 
           :current="current" 
           :file-info="fileInfo" 
-          :external-files-dir="app.externalFilesDir" 
+          :app-dir="app.appDir" 
         />
         
         <!-- File Tags Section -->
@@ -279,6 +279,7 @@ const {
   variables: () => ({
     id: current.value?.data?.id ?? '',
     path: current.value?.path ?? '',
+    fileName: current.value?.name
   }),
 })
 

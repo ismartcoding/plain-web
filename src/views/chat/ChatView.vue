@@ -42,6 +42,7 @@
     </template>
   </div>
   <ChatInput
+    v-if="!peer || peer.status === 'paired'"
     v-model="chatText"
     :create-loading="sendLoading"
     @send-message="send"
@@ -75,14 +76,17 @@ import { buildQuery } from '@/lib/search'
 import { replacePath } from '@/plugins/router'
 import type { IUploadItem } from '@/stores/temp'
 import emitter from '@/plugins/eventbus'
-import { getVideoData, getImageData } from '@/lib/file'
+import { getVideoData, getImageData, isVideo } from '@/lib/file'
 import { useTasks } from '@/hooks/chat'
+import { chachaDecrypt } from '@/lib/api/crypto'
+import * as sjcl from 'sjcl'
 
 const route = useRoute()
 const { t } = useI18n()
 const store = useMainStore()
 const { chatText } = storeToRefs(store)
-const { app } = storeToRefs(useTempStore())
+const tempStore = useTempStore()
+const { app, urlTokenKey } = storeToRefs(tempStore)
 const { getUploads } = useChatFilesUpload()
 const { resolveClient } = useApolloClient()
 const scrollContainer = ref<HTMLDivElement>()
@@ -100,9 +104,30 @@ const downloadProgress = reactive<Record<string, { downloaded: number; total: nu
 
 let initialized = false
 
-const chatId = computed(() => (route.params.id as string) || 'local')
+function getChatIdFromRoute(rawId: string) {
+  if (!rawId) return 'local'
+
+  try {
+    if (!urlTokenKey.value) return 'local'
+    const bits = sjcl.codec.base64.toBits(rawId)
+    const decrypted = chachaDecrypt(urlTokenKey.value, bits)
+    if (decrypted.startsWith('peer:')) {
+      return decrypted
+    }
+  } catch {
+    // ignore malformed id
+  }
+
+  return 'local'
+}
+
+const routeId = computed(() => {
+  const qid = route.query.id
+  return typeof qid === 'string' ? qid : ''
+})
+const chatId = computed(() => getChatIdFromRoute(routeId.value))
 const peerId = computed(() => (chatId.value.startsWith('peer:') ? chatId.value.slice(5) : ''))
-const { externalFilesDir } = app.value
+const { appDir } = app.value
 
 const peer = computed(() => peers.value.find((p) => p.id === peerId.value) ?? null)
 
@@ -196,23 +221,26 @@ async function doUploadImages(files: File[]) {
 }
 
 async function handleContentUpload(files: File[], contentType: string, options: { summary?: string } = {}) {
-  const dir = app.value.customChatFolder || externalFilesDir
+  const dir = appDir
   const uploads = getUploads(dir, files)
-  uploads.forEach((u) => (u.status = 'pending'))
+  uploads.forEach((u) => {
+    u.status = 'pending'
+    u.isAppFile = true
+  })
+
   const valueItems: any[] = []
 
   for (const upload of uploads) {
     const itemProps: any = {
       dir,
-      isAppDir: app.value.customChatFolder ? false : true,
-      uri: upload.fileName,
+      uri: upload.fileName || upload.file.name,
       size: upload.file.size,
       duration: 0,
       width: 0,
       height: 0,
       summary: options.summary,
     }
-    if (upload.file.type.startsWith('video')) {
+    if (upload.file.type.startsWith('video') || isVideo(upload.file.name)) {
       const v = await getVideoData(upload.file)
       itemProps.duration = v.duration
       itemProps.thumbnail = v.thumbnail
@@ -307,16 +335,16 @@ function deleteMessage(id: string) {
 
 function openFolder() {
   const q = buildQuery([
-    { name: 'parent', op: '', value: app.value.customChatFolder || externalFilesDir },
-    { name: 'type', op: '', value: app.value.customChatFolder ? 'INTERNAL_STORAGE' : 'APP' },
-    { name: 'root_path', op: '', value: app.value.customChatFolder ? app.value.internalStoragePath : externalFilesDir },
+    { name: 'parent', op: '', value: appDir },
+    { name: 'type', op: '', value: 'APP' },
+    { name: 'root_path', op: '', value: appDir },
   ])
   replacePath(store, `/files?q=${encodeBase64(q)}`)
 }
 
 // Re-initialize on route change
 watch(
-  () => route.params.id,
+  () => route.query.id,
   () => {
     initialized = false
     chatItems.value = []
@@ -328,11 +356,6 @@ watch(
 const _handlers: Record<string, (...args: any[]) => any> = {}
 
 onMounted(() => {
-  _handlers.chat_settings_update = () => {
-    emitter.emit('refetch_app')
-  }
-  emitter.on('chat_settings_update', _handlers.chat_settings_update)
-
   _handlers.upload_progress = (u: IUploadItem) => {
     const mid = uploadToMessage.get(u.id)
     if (!mid) return

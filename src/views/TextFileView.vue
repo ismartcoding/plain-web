@@ -215,7 +215,16 @@ function tryDecryptPathFromID(id: string) {
   try {
     if (!id || !urlTokenKey.value) return ''
     const bits = sjcl.codec.base64.toBits(id)
-    return chachaDecrypt(urlTokenKey.value, bits)
+    const decrypted = chachaDecrypt(urlTokenKey.value, bits)
+    if (decrypted.startsWith('{')) {
+      try {
+        const json = JSON.parse(decrypted)
+        return json.path || ''
+      } catch {
+        return ''
+      }
+    }
+    return decrypted
   } catch {
     return ''
   }

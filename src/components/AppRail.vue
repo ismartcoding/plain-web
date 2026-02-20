@@ -50,7 +50,7 @@
 
     <router-link
       v-tooltip="$t('page_title.chat')"
-      :to="lastRoute('/chat/local', 'chat')"
+      :to="lastRoute('/chat', 'chat')"
       class="rail-item"
       :class="{ active: isActive('/chat') }"
       aria-label="Chat"

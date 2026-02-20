@@ -5,7 +5,7 @@ import { enrichFile, isAudio, isImage, isVideo, type IFile } from '@/lib/file'
 import { initQuery, mountsGQL } from '@/lib/api/query'
 import { useI18n } from 'vue-i18n'
 import toast from '@/components/toaster'
-import { download, encryptUrlParams, getFileId, getFileName, getFileUrl, getFileUrlByPath } from '@/lib/api/file'
+import { download, encryptUrlParams, getFileId, getFileName, getFileUrl } from '@/lib/api/file'
 import type { ISource } from '@/components/lightbox/types'
 import { encodeBase64 } from '@/lib/strutil'
 import { buildQuery, parseQuery, type IFilterField } from '@/lib/search'
@@ -72,21 +72,18 @@ export const useMounts = () => {
 export const useDownload = (urlTokenKey: Ref<sjcl.BitArray | null>) => {
   return {
     async downloadFile(path: string, fileName?: string) {
-      const url = getFileUrlByPath(urlTokenKey.value, path)
-      if (fileName) {
-        download(url + `&dl=1&name=${fileName}`, fileName)
-      } else {
-        download(url + '&dl=1', getFileName(path))
-      }
+      const name = fileName || getFileName(path)
+      const id = fileName
+        ? getFileId(urlTokenKey.value, JSON.stringify({ path, name: fileName }))
+        : getFileId(urlTokenKey.value, path)
+      const url = `${getApiBaseUrl()}/fs?id=${encodeURIComponent(id)}&dl=1`
+      download(url, name)
     },
     async downloadDir(path: string, fileName?: string) {
-      const id = getFileId(urlTokenKey.value, path)
+      const name = fileName || `${getFileName(path)}.zip`
+      const id = getFileId(urlTokenKey.value, JSON.stringify({ path, name }))
       const url = `${getApiBaseUrl()}/zip/dir?id=${encodeURIComponent(id)}`
-      if (fileName) {
-        download(url + `&name=${fileName}`, fileName)
-      } else {
-        download(url, getFileName(path))
-      }
+      download(url, name)
     },
     downloadFiles(key: string) {
       const id = encryptUrlParams(

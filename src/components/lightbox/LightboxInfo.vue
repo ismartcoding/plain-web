@@ -19,7 +19,7 @@
       <LightboxFileDetails 
         :current="current" 
         :file-info="fileInfo" 
-        :external-files-dir="externalFilesDir" 
+        :app-dir="appDir" 
       />
       
       <LightboxFileTags 
@@ -51,7 +51,7 @@ const props = defineProps({
     type: String,
     required: true,
   },
-  externalFilesDir: {
+  appDir: {
     type: String,
     default: '',
   },

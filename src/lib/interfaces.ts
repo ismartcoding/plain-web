@@ -362,7 +362,7 @@ export interface IApp {
   urlToken: string
   httpPort: number
   httpsPort: number
-  externalFilesDir: string
+  appDir: string
   deviceName: string
   battery: number
   appVersion: string
@@ -378,7 +378,6 @@ export interface IApp {
   downloadsDir: string
   developerMode: boolean
   favoriteFolders: IFavoriteFolder[]
-  customChatFolder: string
 }
 
 export interface IBreadcrumbItem {

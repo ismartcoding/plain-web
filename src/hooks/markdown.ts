@@ -30,7 +30,7 @@ async function replaceNodes(nodes: Array<ChildNode>, replace: (link: string) => 
   }
 }
 
-export const useMarkdown = (app: Ref<{ externalFilesDir: string }>, urlTokenKey: Ref<sjcl.BitArray | null>) => {
+export const useMarkdown = (app: Ref<{ appDir: string }>, urlTokenKey: Ref<sjcl.BitArray | null>) => {
   const md = new MarkdownIt()
     .use(subscript)
     .use(superscript)
@@ -51,8 +51,8 @@ export const useMarkdown = (app: Ref<{ externalFilesDir: string }>, urlTokenKey:
 
   const replace = (link: string) => {
     if (link.startsWith('app://')) {
-      const { externalFilesDir } = app.value
-      return getFileUrlByPath(urlTokenKey.value, externalFilesDir + '/' + link.replace('app://', ''))
+      const { appDir } = app.value
+      return getFileUrlByPath(urlTokenKey.value, appDir + '/' + link.replace('app://', ''))
     }
     return link
   }

@@ -71,7 +71,8 @@ const { isTrashed, canTrash } = useFileTrashState(() => props.current, () => pro
 
 function handleDownload() {
   if (props.current?.path) {
-    props.downloadFile(props.current.path, getFileName(props.current.path).replace(' ', '-'))
+    const fileName = (props.current.name ? props.current.name : getFileName(props.current.path)).replace(' ', '-')
+    props.downloadFile(props.current.path, fileName)
   }
 }
 

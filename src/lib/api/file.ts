@@ -53,7 +53,8 @@ export function downloadFromString(content: string, mimeType: string, fileName: 
   download(url, fileName)
 }
 
-export function getFileName(path: string) {
+export function getFileName(path: string | undefined | null) {
+  if (!path) return ''
   return path.substring(path.lastIndexOf('/') + 1)
 }
 
@@ -93,9 +94,12 @@ export function getPeerProxyUrl(
   return `${getApiBaseUrl()}/proxyfs?id=${encodeURIComponent(encrypted)}`
 }
 
-export function getFinalPath(externalFilesDir: string, path: string) {
+export function getFinalPath(appDir: string, path: string) {
   if (path.startsWith('app://')) {
-    return externalFilesDir + '/' + path.replace('app://', '')
+    return appDir + '/' + path.replace('app://', '')
+  } else if (path.startsWith('fid:')) {
+    const hash = path.replace('fid:', '')
+    return `${appDir}/${hash.substring(0, 2)}/${hash.substring(2, 4)}/${hash}`
   }
 
   return path

@@ -191,6 +191,8 @@ export default {
     screen_mirror: '螢幕鏡像',
     device_info: '裝置資訊',
     conversations: 'Conversations',
+    chat: 'Chat',
+    local_chat: 'Local chat',
   },
   manufacturer: '製造商',
   mac_address: 'MAC位址',
@@ -598,4 +600,6 @@ export default {
   confirm_delete_group: 'Are you sure you want to delete this group? Bookmarks in this group will be moved to ungrouped.',
   group_name: 'Group Name',
   group_name_placeholder: 'Enter group name',
+  paired_devices: 'Paired devices',
+  unpaired_devices: 'Unpaired devices',
 }

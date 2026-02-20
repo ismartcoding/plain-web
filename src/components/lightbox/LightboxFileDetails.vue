@@ -21,7 +21,7 @@
     <LightboxFileInfoItem 
       v-if="current?.path" 
       :label="$t('path')" 
-      :value="getFinalPath(externalFilesDir, current.path)" 
+      :value="getFinalPath(appDir, current.path)" 
       is-path
     />
   </div>
@@ -42,7 +42,7 @@ const props = defineProps({
     type: Object,
     default: null,
   },
-  externalFilesDir: {
+  appDir: {
     type: String,
     default: '',
   },

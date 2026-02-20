@@ -21,9 +21,10 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { getFileName, getFileUrl, notId, getFileExtension, getPeerProxyUrl } from '@/lib/api/file'
+import { storeToRefs } from 'pinia'
+import { getFileName, getFileUrl, notId, getFileExtension, getPeerProxyUrl, getFileId } from '@/lib/api/file'
 import type { ISource } from '../lightbox/types'
-import { isVideo, isImage, isAudio, isTextFile, canOpenInBrowser } from '@/lib/file'
+import { isVideo, isImage, isAudio, isTextFile, canOpenInBrowser, isAppFile } from '@/lib/file'
 import { formatSeconds, formatFileSize } from '@/lib/format'
 import { useTempStore } from '@/stores/temp'
 import ChatAudioPlayer from './ChatAudioPlayer.vue'
@@ -36,6 +37,7 @@ const props = defineProps({
 })
 
 const tempStore = useTempStore()
+const { urlTokenKey } = storeToRefs(tempStore)
 
 const activeAudioSrc = ref<string | null>(null)
 const iconErrors = ref<string[]>([])
@@ -47,7 +49,7 @@ const items = computed<ISource[]>(() => {
     return {
       path: f.uri, src: getFileUrl(id),
       viewOriginImage: notId(id) || f.uri.endsWith('.gif'),
-      name: getFileName(f.fileName), duration: f.duration, size: f.size,
+      name: getFileName(f.fileName ?? f.uri), duration: f.duration, size: f.size,
       fileId: id, thumbnail: f.thumbnail, extension: getFileExtension(f.uri),
       summary: f.summary || undefined, isFromChat: true,
     }
@@ -86,7 +88,11 @@ function clickItem(item: ISource) {
     return
   }
   if (isTextFile(item.name) && item.fileId) {
-    window.open(`/text-file?id=${encodeURIComponent(item.fileId)}`, '_blank')
+    let textFileId = item.fileId
+    if (isAppFile(item.path) && urlTokenKey.value) {
+      textFileId = getFileId(urlTokenKey.value, JSON.stringify({ path: item.path, name: item.name }))
+    }
+    window.open(`/text-file?id=${encodeURIComponent(textFileId)}`, '_blank')
   } else if (canOpenInBrowser(item.name)) {
     window.open(item.src, '_blank')
   } else if (isImage(item.name) || isVideo(item.name)) {

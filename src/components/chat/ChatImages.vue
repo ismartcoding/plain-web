@@ -69,7 +69,7 @@ const sources = computed(() => {
       path: file.uri,
       src: getFileUrl(id),
       viewOriginImage: notId(id) || file.uri.endsWith('.gif'),
-      name: getFileName(file.uri),
+      name: file.fileName || getFileName(file.uri),
       duration: file.duration,
       size: file.size,
       thumbnail: file.thumbnail,

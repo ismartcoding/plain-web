@@ -134,8 +134,8 @@ export const peersGQL = gql`
 `
 
 export const fileInfoGQL = gql`
-  query ($id: ID!, $path: String!) {
-    fileInfo(id: $id, path: $path) {
+  query ($id: ID!, $path: String!, $fileName: String!) {
+    fileInfo(id: $id, path: $path, fileName: $fileName) {
       ... on FileInfo {
         path
         updatedAt

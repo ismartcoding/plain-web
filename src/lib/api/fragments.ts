@@ -30,7 +30,7 @@ export const appFragment = gql`
     urlToken
     httpPort
     httpsPort
-    externalFilesDir
+    appDir
     deviceName
     battery
     appVersion
@@ -52,7 +52,6 @@ export const appFragment = gql`
       fullPath
       alias
     }
-    customChatFolder
   }
   ${playlistAudioFragment}
 `

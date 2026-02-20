@@ -22,6 +22,10 @@ export function isTextFile(name: string) {
   return ['.txt', '.md', '.markdown', '.json', '.xml', '.css', '.js', '.ts', '.html', '.yml', '.yaml', '.ini', '.conf', '.log'].some((it) => v.endsWith(it))
 }
 
+export function isAppFile(path: string) {
+  return path.startsWith('fid:')
+}
+
 export function isImage(name: string) {
   const v = name.toLowerCase()
   return photoExtensions.some((it) => v.endsWith(it))
@@ -156,12 +160,12 @@ export function getStorageTypeByRootPath(
   rootPath: string,
   appPaths: {
     internalStoragePath: string
-    externalFilesDir: string
+    appDir: string
     sdcardPath?: string
     usbDiskPaths: string[]
   }
 ): string {
-  if (rootPath === appPaths.externalFilesDir) {
+  if (rootPath === appPaths.appDir) {
     return 'APP'
   } else if (rootPath === appPaths.sdcardPath) {
     return 'SDCARD'

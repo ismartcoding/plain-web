@@ -33,7 +33,6 @@ type Events = {
   app_socket_connection_changed: boolean
   pomodoro_action: any
   pomodoro_settings_update: any
-  chat_settings_update: any
   webrtc_signaling: SignalingMessage
   screen_mirroring: string
   screen_mirror_audio_granted: boolean

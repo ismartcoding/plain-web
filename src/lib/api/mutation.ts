@@ -498,8 +498,8 @@ export const saveFeedEntriesToNotesGQL = gql`
   }
 `
 export const mergeChunksGQL = gql`
-  mutation mergeChunks($fileId: String!, $totalChunks: Int!, $path: String!, $replace: Boolean!) {
-    mergeChunks(fileId: $fileId, totalChunks: $totalChunks, path: $path, replace: $replace)
+  mutation mergeChunks($fileId: String!, $totalChunks: Int!, $path: String!, $replace: Boolean!, $isAppFile: Boolean!) {
+    mergeChunks(fileId: $fileId, totalChunks: $totalChunks, path: $path, replace: $replace, isAppFile: $isAppFile)
   }
 `
 

@@ -156,7 +156,7 @@ export async function upload(upload: IUploadItem, replace: boolean) {
 async function uploadDirect(upload: IUploadItem, replace: boolean, key: sjcl.BitArray) {
   try {
     const data = new FormData()
-    const v = bitArrayToUint8Array(chachaEncrypt(key, JSON.stringify({ dir: upload.dir, replace })))
+    const v = bitArrayToUint8Array(chachaEncrypt(key, JSON.stringify({ dir: upload.dir, replace, isAppFile: upload.isAppFile ?? false })))
     data.append('info', new Blob([v]))
     data.append('file', upload.file)
 
@@ -186,7 +186,12 @@ async function uploadDirect(upload: IUploadItem, replace: boolean, key: sjcl.Bit
       xhr.onreadystatechange = function () {
         if (xhr.readyState === 4) {
           if (xhr.status === 201) {
-            upload.fileName = xhr.responseText
+            if (upload.isAppFile) {
+              // Server returns SHA-256 hash for app files; keep original local filename
+              upload.fileHash = xhr.responseText
+            } else {
+              upload.fileName = xhr.responseText
+            }
             upload.status = 'done'
             resolve({ fileName: xhr.responseText })
             emitter.emit('upload_progress', upload)
@@ -306,11 +311,18 @@ async function uploadWithChunks(upload: IUploadItem, replace: boolean, key: sjcl
         totalChunks,
         path: filePath,
         replace: replace,
+        isAppFile: upload.isAppFile ?? false,
       },
     })
 
     if (result?.data?.mergeChunks) {
-      upload.fileName = result.data.mergeChunks
+      const returned = result.data.mergeChunks
+      if (upload.isAppFile) {
+        // Server returns SHA-256 hash for app files; keep original local filename
+        upload.fileHash = returned
+      } else {
+        upload.fileName = returned
+      }
       upload.status = 'done'
     } else {
       upload.status = 'error'

@@ -30,9 +30,9 @@ export const useTasks = () => {
     const c = task.item._content
     const items: any[] = []
     c.value.items.forEach((it: any, index: number) => {
-      const fileName = task.uploads[index].fileName
+      const fileName = task.uploads[index].file.name
       items.push({
-        uri: it.isAppDir ? `app://` + fileName : it.dir + '/' + fileName,
+        uri: 'fid:' + (task.uploads[index].fileHash || fileName),
         size: it.size,
         duration: it.duration,
         width: it.width,

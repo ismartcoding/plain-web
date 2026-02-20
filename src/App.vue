@@ -51,7 +51,6 @@ const EventType: { [key: number]: string } = {
   10: 'notification_refreshed',
   11: 'pomodoro_action',
   12: 'pomodoro_settings_update',
-  13: 'chat_settings_update',
   14: 'screen_mirror_audio_granted',
   15: 'bookmark_updated',
   16: 'download_progress',
