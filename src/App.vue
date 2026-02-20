@@ -54,6 +54,7 @@ const EventType: { [key: number]: string } = {
   13: 'chat_settings_update',
   14: 'screen_mirror_audio_granted',
   15: 'bookmark_updated',
+  16: 'download_progress',
 }
 
 async function connect() {

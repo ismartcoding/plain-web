@@ -157,6 +157,21 @@ const router = createRouter({
           },
           meta: { group: 'feeds', className: 'feed-entry' },
         },
+        {
+          path: 'chat',
+          components: {
+            LeftSidebar: () => import('@/views/chat/ChatSidebar.vue'),
+          },
+          meta: { group: 'chat' },
+        },
+        {
+          path: 'chat/:id',
+          components: {
+            default: () => import('@/views/chat/ChatView.vue'),
+            LeftSidebar: () => import('@/views/chat/ChatSidebar.vue'),
+          },
+          meta: { group: 'chat', className: 'chat' },
+        },
       ],
     },
     {

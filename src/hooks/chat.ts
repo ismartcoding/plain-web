@@ -1,6 +1,6 @@
 // use upload queue instead of calling upload directly
 import { addUploadTask } from '@/lib/upload/upload-queue'
-import { createChatItemGQL, insertCache } from '@/lib/api/mutation'
+import { sendChatItemGQL, insertCache } from '@/lib/api/mutation'
 import type { IChatItem } from '@/lib/interfaces'
 import type { IUploadItem } from '@/stores/temp'
 import apollo from '@/plugins/apollo'
@@ -10,6 +10,7 @@ import emitter from '@/plugins/eventbus'
 interface IChatTask {
   uploads: IUploadItem[]
   item: IChatItem
+  toId: string
 }
 
 export const useTasks = () => {
@@ -37,14 +38,15 @@ export const useTasks = () => {
         width: it.width,
         height: it.height,
         summary: it.summary,
+        fileName: fileName,
       })
     })
 
-    const res = await apollo.a.mutate({ mutation: createChatItemGQL, variables: { content: JSON.stringify({ type: c.type, value: { items } }) } })
+    const res = await apollo.a.mutate({ mutation: sendChatItemGQL, variables: { toId: task.toId, content: JSON.stringify({ type: c.type, value: { items } }) } })
     const cache = apollo.a.cache
     cache.evict({ id: cache.identify({ __typename: 'ChatItem', id: task.item.id }) })
-    if (res?.data?.createChatItem) {
-      insertCache(cache, res.data.createChatItem, chatItemsGQL, { id: 'local' })
+    if (res?.data?.sendChatItem) {
+      insertCache(cache, res.data.sendChatItem, chatItemsGQL, { id: task.toId })
     }
   }
 
@@ -72,9 +74,9 @@ export const useTasks = () => {
   }
 
   return {
-    async enqueue(item: IChatItem, uploads: IUploadItem[]) {
+    async enqueue(item: IChatItem, uploads: IUploadItem[], toId: string) {
       ensureSubscribed()
-      const task: IChatTask = { item, uploads }
+      const task: IChatTask = { item, uploads, toId }
       activeTasks.set(item.id, task)
       // start all uploads immediately; concurrency is controlled by upload-queue (maxConcurrent)
       uploads.forEach((u) => addUploadTask(u, false))

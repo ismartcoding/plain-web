@@ -418,14 +418,15 @@ onDeactivated(() => {
   display: flex;
   flex-direction: column;
   max-width: 75%;
-
+  .chat-bubble {
+    background: var(--md-sys-color-surface-container-high);
+    color: var(--md-sys-color-on-surface);
+  }
   &.sent {
     align-self: flex-end;
     align-items: flex-end;
 
     .chat-bubble {
-      background: var(--md-sys-color-primary-container);
-      color: var(--md-sys-color-on-primary-container);
       border-radius: 16px 16px 4px 16px;
     }
   }
@@ -435,8 +436,6 @@ onDeactivated(() => {
     align-items: flex-start;
 
     .chat-bubble {
-      background: var(--md-sys-color-surface-container-high);
-      color: var(--md-sys-color-on-surface);
       border-radius: 16px 16px 16px 4px;
     }
   }

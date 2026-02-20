@@ -140,10 +140,6 @@ const mediaBuckets = computed<IBucket[]>(() => {
   return []
 })
 
-const sortedMediaBuckets = computed<IBucket[]>(() =>
-  [...(mediaBuckets.value ?? [])].sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', undefined, { numeric: true, sensitivity: 'base' }))
-)
-
 const { tags: messageTags, fetch: fetchMessageTags } = useTags(DataType.SMS)
 
 const feeds = ref<IFeed[]>([])

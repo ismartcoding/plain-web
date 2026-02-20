@@ -38,6 +38,7 @@ type Events = {
   screen_mirroring: string
   screen_mirror_audio_granted: boolean
   bookmark_updated: any
+  download_progress: any[]
 }
 
 const emitter: Emitter<Events> = mitt<Events>()

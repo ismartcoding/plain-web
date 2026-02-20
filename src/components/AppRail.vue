@@ -47,6 +47,28 @@
       <i-lucide:video />
       <div class="rail-label">{{ $t('page_title.videos') }}</div>
     </router-link>
+
+    <router-link
+      v-tooltip="$t('page_title.chat')"
+      :to="lastRoute('/chat/local', 'chat')"
+      class="rail-item"
+      :class="{ active: isActive('/chat') }"
+      aria-label="Chat"
+    >
+      <i-lucide:bot />
+      <div class="rail-label">{{ $t('page_title.chat') }}</div>
+    </router-link>
+
+    <div class="rail-spacer"></div>
+
+    <div v-if="app?.battery" v-tooltip="$t('battery_left', { percentage: app.battery })" class="rail-battery">
+      <svg class="battery-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="1" y="6.5" width="18" height="11" rx="2" ry="2" />
+        <line x1="23" y1="10" x2="23" y2="14" />
+        <rect x="2.5" y="8" :width="14 * (app.battery / 100)" height="8" rx="1" fill="currentColor" stroke="none" />
+      </svg>
+      <div class="rail-label">{{ app.battery }}%</div>
+    </div>
   </nav>
 </template>
 
@@ -54,6 +76,10 @@
 import { onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMainStore } from '@/stores/main'
+import { useTempStore } from '@/stores/temp'
+import { storeToRefs } from 'pinia'
+
+const { app } = storeToRefs(useTempStore())
 
 const store = useMainStore()
 const router = useRouter()
@@ -164,5 +190,25 @@ onBeforeUnmount(() => {
 .rail-item.active {
   background: color-mix(in srgb, var(--md-sys-color-primary) 12%, transparent);
   color: var(--md-sys-color-primary);
+}
+
+.rail-spacer {
+  flex: 1;
+}
+
+.rail-battery {
+  width: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 0;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.battery-svg {
+  width: 24px;
+  height: 24px;
 }
 </style>

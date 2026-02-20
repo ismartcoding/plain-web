@@ -85,9 +85,6 @@
         <v-icon-button v-tooltip="$t('bookmarks')" class="q-action" toggle :class="{ selected: store.quick === 'bookmark' }" @click="toggleQuick('bookmark')">
           <i-lucide:bookmark />
         </v-icon-button>
-        <v-icon-button v-tooltip="$t('my_phone')" class="q-action" toggle :class="{ selected: store.quick === 'chat' }" @click="toggleQuick('chat')">
-          <i-lucide-bot />
-        </v-icon-button>
         <div v-show="store.quick" class="drag-indicator" @mousedown="resizeWidth">
           <i-material-symbols:drag-indicator />
         </div>
@@ -95,7 +92,6 @@
       <transition name="width">
         <div v-show="store.quick" class="quick-content" :style="{ width: store.quickContentWidth + 'px' }">
           <task-list v-show="store.quick === 'task'" />
-          <p-chat v-show="store.quick === 'chat'" />
           <audio-player v-show="store.quick === 'audio'" />
           <p-notifications v-show="store.quick === 'notification'" />
           <pomodoro-timer v-show="store.quick === 'pomodoro'" />
@@ -131,6 +127,9 @@ const loading = ref(true)
 const errorMessage = ref('')
 let playAudio = false
 
+const hiddenHeaderSearchRoutes = new Set(['/files/recent', '/screen-mirror'])
+const hiddenHeaderSearchPatterns = [/^\/chat(?:\/|$)/]
+
 // Sidebar collapse functionality
 function toggleSidebar() {
   store.miniSidebar = !store.miniSidebar
@@ -162,8 +161,7 @@ function toggleQuick(name: string) {
 
 const showHeaderSearch = computed(() => {
   const route = router.currentRoute.value
-  if (route.path === '/files/recent' || route.path === '/screen-mirror') return false
-  return true
+  return !hiddenHeaderSearchRoutes.has(route.path) && !hiddenHeaderSearchPatterns.some((pattern) => pattern.test(route.path))
 })
 
 const { refetch: refetchApp } = initQuery({

@@ -1,106 +1,97 @@
 <template>
   <div class="file-container">
-    <div v-for="(item, i) in items" :key="i" class="file-item" @click="clickItem(item)">
-      <div class="file-content">
-        <div class="file-name">{{ item.name }}</div>
-        <div class="file-info">{{ formatFileSize(item.size) }}{{ isVideo(item.name) ? ' / ' + formatSeconds(item.duration) : '' }}</div>
-        <div v-if="item.summary" class="file-summary">{{ item.summary }}</div>
+    <div v-for="(item, i) in items" :key="i" class="file-item-wrapper">
+      <div class="file-item" @click="clickItem(item)">
+        <div class="file-content">
+          <div class="file-name" :class="{ playing: activeAudioSrc === item.src }">{{ item.name }}</div>
+          <div class="file-info">
+            {{ formatFileSize(item.size) }}{{ item.duration > 0 ? ' / ' + formatSeconds(item.duration) : '' }}
+          </div>
+          <div v-if="item.summary" class="file-summary">{{ item.summary }}</div>
+        </div>
+        <div class="thumb-wrap">
+          <img v-if="getThumb(item)" :src="getThumb(item)" class="file-thumbnail" :class="{ 'file-icon': !isImage(item.name) && !isVideo(item.name) }" @error="onIconError(item.name)" />
+          <ChatDownloadOverlay :download-info="downloadInfo" :ring-size="40" border-radius="8px" />
+        </div>
       </div>
-      <template v-if="isImage(item.name) || isVideo(item.name)">
-        <img :src="getPreview(item)" class="file-thumbnail" />
-      </template>
-      <template v-else>
-        <img
-          v-if="extensionImageErrorIds.includes(item.name)"
-          class="file-thumbnail file-icon"
-          src="/ficons/default.svg"
-        />
-        <img
-          v-else-if="item.extension"
-          class="file-thumbnail file-icon"
-          :src="`/ficons/${item.extension}.svg`"
-          @error="onExtensionImageError(item.name)"
-        />
-        <img
-          v-else
-          class="file-thumbnail file-icon"
-          src="/ficons/default.svg"
-        />
-      </template>
+      <ChatAudioPlayer v-if="activeAudioSrc === item.src" :src="item.src" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { getFileName, getFileUrl, notId, getFileExtension } from '@/lib/api/file'
+import { getFileName, getFileUrl, notId, getFileExtension, getPeerProxyUrl } from '@/lib/api/file'
 import type { ISource } from '../lightbox/types'
-import { isVideo, isImage, canView, isTextFile, canOpenInBrowser } from '@/lib/file'
+import { isVideo, isImage, isAudio, isTextFile, canOpenInBrowser } from '@/lib/file'
 import { formatSeconds, formatFileSize } from '@/lib/format'
 import { useTempStore } from '@/stores/temp'
-
-const tempStore = useTempStore()
-
-const sources = ref<ISource[]>([])
-const extensionImageErrorIds = ref<string[]>([])
+import ChatAudioPlayer from './ChatAudioPlayer.vue'
+import ChatDownloadOverlay from './ChatDownloadOverlay.vue'
 
 const props = defineProps({
   data: { type: Object, default: () => ({}) },
+  downloadInfo: { type: Object as () => { downloaded: number; total: number; speed: number; status: string } | null, default: null },
+  peer: { type: Object as () => { ip: string; port: number } | null, default: null },
 })
 
-function getPreview(source: ISource) {
-  if (source.thumbnail) {
-    return source.thumbnail
-  }
+const tempStore = useTempStore()
 
-  if (source.src.startsWith('blob:')) {
-    return source.src
-  }
-
-  return `${source.src}&w=50&h=50`
-}
+const activeAudioSrc = ref<string | null>(null)
+const iconErrors = ref<string[]>([])
 
 const items = computed<ISource[]>(() => {
   const files = props.data?._content?.value?.items ?? []
-  const items: ISource[] = []
-  props.data?.data?.ids?.forEach((id: string, index: number) => {
-    const file = files[index]
-    items.push({
-      path: file.uri,
-      src: getFileUrl(id),
-      viewOriginImage: notId(id) || file.uri.endsWith('.gif'),
-      name: getFileName(file.uri),
-      duration: file.duration,
-      size: file.size,
-      fileId: id,
-      thumbnail: file.thumbnail,
-      extension: getFileExtension(file.uri),
-      summary: file.summary || undefined,
-      isFromChat: true
-    })
+  return (props.data?.data?.ids ?? []).map((id: string, i: number) => {
+    const f = files[i]
+    return {
+      path: f.uri, src: getFileUrl(id),
+      viewOriginImage: notId(id) || f.uri.endsWith('.gif'),
+      name: getFileName(f.fileName), duration: f.duration, size: f.size,
+      fileId: id, thumbnail: f.thumbnail, extension: getFileExtension(f.uri),
+      summary: f.summary || undefined, isFromChat: true,
+    }
   })
-  return items
 })
 
-function onExtensionImageError(name: string) {
-  if (!extensionImageErrorIds.value.includes(name)) {
-    extensionImageErrorIds.value.push(name)
+const ACTIVE_STATUSES = ['pending', 'downloading', 'paused', 'failed']
+const isActiveDl = computed(
+  () => !!props.downloadInfo && ACTIVE_STATUSES.includes(props.downloadInfo.status),
+)
+
+function getThumb(item: ISource) {
+  if (isImage(item.name) || isVideo(item.name)) {
+    if (item.thumbnail) return item.thumbnail
+    // During active download the file doesn't exist yet — use peer proxy if available
+    if (isActiveDl.value) {
+      if (props.peer && item.path.startsWith('fsid:')) {
+        return getPeerProxyUrl(tempStore.urlTokenKey, props.peer, item.path.slice(4), '&w=50&h=50')
+      }
+      return ''
+    }
+    return item.src.startsWith('blob:') ? item.src : `${item.src}&w=50&h=50`
   }
+  const ext = item.extension
+  if (ext && !iconErrors.value.includes(item.name)) return `/ficons/${ext}.svg`
+  return '/ficons/default.svg'
+}
+
+function onIconError(name: string) {
+  if (!iconErrors.value.includes(name)) iconErrors.value.push(name)
 }
 
 function clickItem(item: ISource) {
+  if (isAudio(item.name)) {
+    activeAudioSrc.value = activeAudioSrc.value === item.src ? null : item.src
+    return
+  }
   if (isTextFile(item.name) && item.fileId) {
     window.open(`/text-file?id=${encodeURIComponent(item.fileId)}`, '_blank')
   } else if (canOpenInBrowser(item.name)) {
     window.open(item.src, '_blank')
-  } else if (canView(item.name)) {
-    sources.value = items.value.filter((it) => canView(it.name))
-    const idx = sources.value.findIndex((it) => it.src === item.src)
-    tempStore.lightbox = {
-      sources: sources.value,
-      index: idx,
-      visible: true,
-    }
+  } else if (isImage(item.name) || isVideo(item.name)) {
+    const viewable = items.value.filter((it) => isImage(it.name) || isVideo(it.name))
+    tempStore.lightbox = { sources: viewable, index: viewable.findIndex((it) => it.src === item.src), visible: true }
   } else {
     window.open(item.src, '_blank')
   }
@@ -113,24 +104,21 @@ function clickItem(item: ISource) {
   max-width: 600px;
 }
 
+.file-item-wrapper {
+  margin-bottom: 6px;
+  background: var(--md-sys-color-surface-container);
+  border-radius: 12px;
+  overflow: hidden;
+  &:last-child { margin-bottom: 0; }
+}
+
 .file-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 12px 16px;
-  margin-bottom: 6px;
-  background-color: var(--md-sys-color-surface-container);
-  border-radius: 12px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
-
-  &:hover {
-    background-color: var(--md-sys-color-surface-container-high);
-  }
-
-  &:last-child {
-    margin-bottom: 0;
-  }
+  transition: background 0.15s;
+  &:hover { background: var(--md-sys-color-surface-container-high); }
 }
 
 .file-content {
@@ -143,15 +131,16 @@ function clickItem(item: ISource) {
   color: var(--md-sys-color-on-surface);
   word-break: break-all;
   margin-bottom: 4px;
+  &.playing { color: var(--md-sys-color-on-surface-variant); }
 }
 
 .file-info {
   font-size: 0.875rem;
   color: var(--md-sys-color-on-surface-variant);
-  opacity: 0.8;
 }
 
 .file-summary {
+  font-size: 0.8rem;
   color: var(--md-sys-color-on-surface-variant);
   margin-top: 4px;
   overflow: hidden;
@@ -166,8 +155,17 @@ function clickItem(item: ISource) {
   height: 48px;
   border-radius: 8px;
   object-fit: cover;
+  display: block;
+}
+
+.thumb-wrap {
+  position: relative;
+  width: 48px;
+  height: 48px;
   margin-left: 12px;
   flex-shrink: 0;
+  background: var(--md-sys-color-surface-container-high);
+  border-radius: 8px;
 }
 
 .file-icon {
@@ -176,20 +174,5 @@ function clickItem(item: ISource) {
   background: none;
 }
 
-@media (max-width: 768px) {
-  .file-item {
-    max-width: 100%;
-    padding: 10px 12px;
-    
-    .file-thumbnail {
-      width: 40px;
-      height: 40px;
-      margin-left: 8px;
-    }
-  }
-  .file-icon {
-    width: 40px;
-    height: 40px;
-  }
-}
+// Overlay styles handled by ChatDownloadOverlay component
 </style>

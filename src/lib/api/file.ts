@@ -74,6 +74,25 @@ export function encryptUrlParams(key: sjcl.BitArray | null, params: string) {
   return bitArrayToBase64(enc)
 }
 
+/**
+ * Build a /proxyfs URL that proxies a peer's file through the local app server.
+ * Avoids CORS issues when the peer uses a self-signed HTTPS certificate.
+ * @param peerFileId - the raw peer-side encrypted file ID (from `fsid:<id>` URI)
+ */
+export function getPeerProxyUrl(
+  urlTokenKey: sjcl.BitArray | null,
+  peer: { ip: string; port: number },
+  peerFileId: string,
+  query: string = '',
+): string {
+  if (!urlTokenKey || !peer?.ip || !peer?.port || !peerFileId) {
+    return ''
+  }
+  const peerUrl = `https://${peer.ip}:${peer.port}/fs?id=${encodeURIComponent(peerFileId)}${query}`
+  const encrypted = encryptUrlParams(urlTokenKey, peerUrl)
+  return `${getApiBaseUrl()}/proxyfs?id=${encodeURIComponent(encrypted)}`
+}
+
 export function getFinalPath(externalFilesDir: string, path: string) {
   if (path.startsWith('app://')) {
     return externalFilesDir + '/' + path.replace('app://', '')

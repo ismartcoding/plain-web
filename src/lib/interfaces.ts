@@ -220,6 +220,17 @@ export interface IChatItem extends IData {
   data: any
 }
 
+export interface IPeer {
+  id: string
+  name: string
+  ip: string
+  status: string
+  port: number
+  deviceType: string
+  createdAt: string
+  updatedAt: string
+}
+
 export interface IFeedCount {
   id: string
   count: number

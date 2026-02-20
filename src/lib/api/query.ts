@@ -118,6 +118,21 @@ export const chatItemsGQL = gql`
   ${chatItemFragment}
 `
 
+export const peersGQL = gql`
+  query {
+    peers {
+      id
+      name
+      ip
+      status
+      port
+      deviceType
+      createdAt
+      updatedAt
+    }
+  }
+`
+
 export const fileInfoGQL = gql`
   query ($id: ID!, $path: String!) {
     fileInfo(id: $id, path: $path) {

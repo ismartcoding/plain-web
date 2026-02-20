@@ -113,9 +113,9 @@ export function deleteCache(cache: ApolloCache<any>, ids: string | string[], que
   cache.writeQuery({ query, variables, data: obj })
 }
 
-export const createChatItemGQL = gql`
-  mutation createChatItem($content: String!) {
-    createChatItem(content: $content) {
+export const sendChatItemGQL = gql`
+  mutation sendChatItem($toId: String!, $content: String!) {
+    sendChatItem(toId: $toId, content: $content) {
       ...ChatItemFragment
     }
   }
