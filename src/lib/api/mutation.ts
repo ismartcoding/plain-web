@@ -480,6 +480,12 @@ export const cancelNotificationsGQL = gql`
   }
 `
 
+export const replyNotificationGQL = gql`
+  mutation replyNotification($id: ID!, $actionIndex: Int!, $text: String!) {
+    replyNotification(id: $id, actionIndex: $actionIndex, text: $text)
+  }
+`
+
 export const updateScreenMirrorQualityGQL = gql`
   mutation updateScreenMirrorQuality($mode: ScreenMirrorMode!) {
     updateScreenMirrorQuality(mode: $mode)

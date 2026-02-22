@@ -320,6 +320,7 @@ export const notificationFragment = gql`
     title
     body
     actions
+    replyActions
   }
 `
 

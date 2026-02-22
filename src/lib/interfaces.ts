@@ -262,6 +262,7 @@ export interface INotification extends IData {
   body: string
   icon: string
   actions: string[]
+  replyActions: string[]
 }
 
 export interface IPackage extends IData {

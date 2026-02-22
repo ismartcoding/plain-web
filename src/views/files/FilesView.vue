@@ -10,6 +10,7 @@
             <a v-else v-tooltip="getPageStats()" href="#" @click.stop.prevent="navigateToDir(item.path)">{{ item.name }}</a>
           </template>
           <template v-else>
+            <span class="sep">/</span>
             <span v-if="item.path === filter.parent">{{ item.name }} ({{ total }})</span>
             <a v-else href="#" @click.stop.prevent="navigateToDir(item.path)">{{ item.name }}</a>
           </template>
@@ -631,13 +632,22 @@ onDeactivated(() => {
 </script>
 <style lang="scss" scoped>
 .breadcrumb {
-  a {
-    &:not(:last-child) {
-      &::after {
-        content: '/';
-        margin-inline: 4px;
-      }
-    }
+  display: inline-flex;
+  align-items: center;
+  overflow: hidden;
+
+  .sep {
+    flex-shrink: 0;
+    margin-inline: 4px;
+  }
+
+  a, span:not(.sep) {
+    max-width: 300px;
+    overflow: hidden;
+    display: inline-block;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex-shrink: 1;
   }
 }
 .main-files {

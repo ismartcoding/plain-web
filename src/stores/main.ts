@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 // data will be stored to local storage
 export type MainState = {
   fileShowHidden: boolean
-  chatText: string
+  chatTexts: Record<string, string>
   quick: string
   quickContentWidth: number
   sidebarWidth: number
@@ -26,13 +26,14 @@ export type MainState = {
   callNumber: string
   feedEntryFontSize: number // font size for feed entry content
   searchHistory: Record<string, string[]>
+  notificationSound: boolean
 }
 
 export const useMainStore = defineStore('main', {
   state: () =>
     ({
       fileShowHidden: false,
-      chatText: '',
+      chatTexts: {},
       quick: '',
       quickContentWidth: 400,
       sidebarWidth: 240,
@@ -58,6 +59,7 @@ export const useMainStore = defineStore('main', {
       callNumber: '',
       feedEntryFontSize: 16, // default font size
       searchHistory: {},
+      notificationSound: true,
     }) as MainState,
   actions: {
     increaseFeedEntryFontSize() {

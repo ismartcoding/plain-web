@@ -25,6 +25,7 @@ type Events = {
   message_created: any
   message_updated: any
   message_deleted: any
+  message_cleared: string
   notification_created: any
   notification_updated: any
   notification_deleted: any

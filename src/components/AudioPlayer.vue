@@ -271,7 +271,6 @@ function deleteItem(item: IPlaylistAudio) {
 }
 
 function setDragData(dataTransfer: DataTransfer, dragEl: HTMLElement) {
-  // 设置拖拽数据类型为 playlist-item，而不是 Files
   dataTransfer.setData('text/plain', 'playlist-item')
   dataTransfer.effectAllowed = 'move'
 }

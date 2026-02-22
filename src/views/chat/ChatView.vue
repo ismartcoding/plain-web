@@ -10,6 +10,9 @@
   </Teleport>
   <div class="top-app-bar">
     <div class="title">{{ pageTitle }}</div>
+    <v-icon-button v-tooltip="$t('chat_info')" @click="openChatInfo">
+      <i-material-symbols:more-vert />
+    </v-icon-button>
   </div>
   <div ref="scrollContainer" class="chat-view-body">
     <div v-if="loading && chatItems.length === 0" class="loading-state">
@@ -71,6 +74,8 @@ import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
 import type { IChatItem, IPeer } from '@/lib/interfaces'
 import { useChatFilesUpload } from '@/hooks/upload'
+import { openModal } from '@/components/modal'
+import ChatInfoModal from './ChatInfoModal.vue'
 import { encodeBase64, shortUUID, addLinksToURLs } from '@/lib/strutil'
 import { buildQuery } from '@/lib/search'
 import { replacePath } from '@/plugins/router'
@@ -84,7 +89,12 @@ import * as sjcl from 'sjcl'
 const route = useRoute()
 const { t } = useI18n()
 const store = useMainStore()
-const { chatText } = storeToRefs(store)
+const chatText = computed({
+  get: () => store.chatTexts[chatId.value] ?? '',
+  set: (v: string) => {
+    store.chatTexts[chatId.value] = v
+  },
+})
 const tempStore = useTempStore()
 const { app, urlTokenKey } = storeToRefs(tempStore)
 const { getUploads } = useChatFilesUpload()
@@ -206,7 +216,6 @@ const { mutate: deleteItem, loading: deleteLoading } = initMutation({
 })
 
 sendDone(() => {
-  chatText.value = ''
   scrollBottom()
 })
 
@@ -300,6 +309,7 @@ function send() {
       data: { __typename: 'MessageText', ids: [] },
     }
     chatItems.value = [...chatItems.value, tempItem]
+    chatText.value = ''
     scrollBottom()
     sendMutate({ toId: chatId.value, content: tempItem.content }).then(() => {
       chatItems.value = chatItems.value.filter((i) => i.id !== tempId)
@@ -331,6 +341,22 @@ function deleteMessage(id: string) {
   deleteId.value = id
   deleteItem({ id })
   cancelTask(id)
+}
+
+function openChatInfo() {
+  openModal(ChatInfoModal, {
+    peer: peer.value,
+    onClear: clearMessages,
+  })
+}
+
+async function clearMessages(): Promise<void> {
+  const ids = chatItems.value.filter((i) => !i.id.startsWith('new_')).map((i) => i.id)
+  for (const id of ids) {
+    cancelTask(id)
+    deleteId.value = id
+    await deleteItem({ id })
+  }
 }
 
 function openFolder() {
@@ -402,6 +428,19 @@ onMounted(() => {
     }
   }
   emitter.on('message_deleted', _handlers.message_deleted)
+
+  _handlers.message_cleared = (toId: string) => {
+    const clearedChatId = toId === 'local' ? 'local' : `peer:${toId}`
+    if (clearedChatId !== chatId.value) return
+    const client = resolveClient('a')
+    client.cache.writeQuery({
+      query: chatItemsGQL,
+      variables: { id: chatId.value },
+      data: { chatItems: [] },
+    })
+    chatItems.value = []
+  }
+  emitter.on('message_cleared', _handlers.message_cleared)
 
   _handlers.message_updated = async (items: any[]) => {
     const client = resolveClient('a')
