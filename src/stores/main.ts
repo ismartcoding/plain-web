@@ -33,7 +33,7 @@ export const useMainStore = defineStore('main', {
     ({
       fileShowHidden: false,
       chatText: '',
-      quick: 'chat',
+      quick: '',
       quickContentWidth: 400,
       sidebarWidth: 240,
       sidebar2Width: 360,
