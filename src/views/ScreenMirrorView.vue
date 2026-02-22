@@ -118,6 +118,7 @@
           </v-outlined-button>
 
           <v-outlined-button
+            v-if="app.channel !== 'GOOGLE'"
             v-tooltip="controlEnabled ? $t('disable_control') : $t('enable_control')"
             class="btn-sm"
             :class="{ active: controlEnabled }"
