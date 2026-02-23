@@ -25,6 +25,7 @@ export class WebRTCClient {
   private audioEnabled = false
   private remoteDescriptionSet = false
   private pendingIceCandidates: { candidate: string; sdpMid?: string; sdpMLineIndex?: number }[] = []
+  private isHandlingOffer = false
 
   constructor(options: WebRTCClientOptions) {
     this.options = options
@@ -116,6 +117,12 @@ export class WebRTCClient {
       return
     }
 
+    if (this.isHandlingOffer) {
+      console.warn('Ignoring offer: already handling one')
+      return
+    }
+
+    this.isHandlingOffer = true
     try {
       const offer = new RTCSessionDescription({ type: 'offer', sdp })
       await this.pc.setRemoteDescription(offer)
@@ -129,6 +136,8 @@ export class WebRTCClient {
       })
     } catch (error) {
       this.options.onError(`Failed to handle offer: ${error}`)
+    } finally {
+      this.isHandlingOffer = false
     }
   }
 
@@ -232,6 +241,7 @@ export class WebRTCClient {
   cleanup(): void {
     this.remoteDescriptionSet = false
     this.pendingIceCandidates = []
+    this.isHandlingOffer = false
     if (this.pc) {
       this.pc.ontrack = null
       this.pc.onicecandidate = null

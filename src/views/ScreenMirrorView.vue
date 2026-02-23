@@ -74,9 +74,6 @@
     <Teleport v-if="isActive" to="#header-end-slot" defer>
       <div class="actions">
         <template v-if="mirroring">
-          <v-icon-button v-tooltip="$t('refresh')" @click="refresh">
-            <i-material-symbols:refresh-rounded />
-          </v-icon-button>
           <v-icon-button v-tooltip="$t('stop_mirror')" :disabled="stopServiceLoading" class="btn-stop" @click="stopService">
             <i-material-symbols:stop-rounded />
           </v-icon-button>
@@ -342,10 +339,7 @@ requestMirrorAudioDone((result: any) => {
 })
 
 const screenMirrorAudioGrantedHandler = () => {
-  audioRequesting.value = false
-  tapPhone('')
-  emitter.emit('refetch_app')
-  refresh()
+  window.location.reload()
 }
 
 let pendingMode: string | null = null
@@ -482,7 +476,7 @@ const {
   document: startScreenMirrorGQL,
 })
 
-const { loading: fetchStateLoading, refetch: refresh } = initQuery({
+const { loading: fetchStateLoading } = initQuery({
   handle: (data: { screenMirrorState: boolean; screenMirrorControlEnabled?: boolean; screenMirrorQuality?: { mode: string } }, error: string) => {
     if (error) {
       toast(t(error), 'error')
