@@ -71,10 +71,13 @@ onDone((result: any) => {
 function save() {
   mutate({
     id: props.bookmark.id,
-    title: localTitle.value.trim(),
-    groupId: localGroupId.value,
-    pinned: props.bookmark.pinned,
-    sortOrder: props.bookmark.sortOrder,
+    input: {
+      title: localTitle.value.trim(),
+      url: localUrl.value.trim(),
+      groupId: localGroupId.value,
+      pinned: props.bookmark.pinned,
+      sortOrder: props.bookmark.sortOrder,
+    },
   })
 }
 </script>

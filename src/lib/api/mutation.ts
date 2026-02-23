@@ -543,8 +543,8 @@ export const addBookmarksGQL = gql`
 `
 
 export const updateBookmarkGQL = gql`
-  mutation updateBookmark($id: ID!, $title: String!, $groupId: String!, $pinned: Boolean!, $sortOrder: Int!) {
-    updateBookmark(id: $id, title: $title, groupId: $groupId, pinned: $pinned, sortOrder: $sortOrder) {
+  mutation updateBookmark($id: ID!, $input: BookmarkInput!) {
+    updateBookmark(id: $id, input: $input) {
       ...BookmarkFragment
     }
   }

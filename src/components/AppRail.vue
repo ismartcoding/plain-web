@@ -147,18 +147,13 @@ onBeforeUnmount(() => {
 }
 
 .app-rail .brand-logo {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   display: block;
-  background-color: currentColor;
-  -webkit-mask-image: url('/logo.svg');
-  mask-image: url('/logo.svg');
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
-  -webkit-mask-size: contain;
-  mask-size: contain;
+  background-image: url('/logo.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
 }
 
 .rail-item {

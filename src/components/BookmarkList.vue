@@ -341,10 +341,13 @@ function onBookmarkUpdated(updated: Bookmark) {
 async function togglePin(b: Bookmark) {
   const r = await mutateUpdateBookmark({
     id: b.id,
-    title: b.title,
-    groupId: b.groupId,
-    pinned: !b.pinned,
-    sortOrder: b.sortOrder,
+    input: {
+      title: b.title,
+      url: b.url,
+      groupId: b.groupId,
+      pinned: !b.pinned,
+      sortOrder: b.sortOrder,
+    },
   })
   if (r?.data?.updateBookmark) {
     bmStore.updateBookmark({ ...r.data.updateBookmark })
