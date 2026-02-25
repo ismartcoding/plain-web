@@ -331,23 +331,14 @@ function openLink(link: LinkItem) {
     return
   }
 
-  const q = buildQuery([
-    {
-      name: 'parent',
-      op: '',
-      value: link.fullPath,
-    },
-    {
-      name: 'type',
-      op: '',
-      value: link.type,
-    },
-    {
-      name: 'root_path',
-      op: '',
-      value: link.rootPath,
-    },
-  ])
+  const fields: { name: string; op: string; value: string }[] = []
+  fields.push({ name: 'parent', op: '', value: link.fullPath })
+  fields.push({ name: 'type', op: '', value: link.type })
+  fields.push({ name: 'root_path', op: '', value: link.rootPath })
+  if (mainStore.fileShowHidden) {
+    fields.push({ name: 'show_hidden', op: '', value: 'true' })
+  }
+  const q = buildQuery(fields)
   replacePath(mainStore, `/files?q=${encodeBase64(q)}`)
 }
 

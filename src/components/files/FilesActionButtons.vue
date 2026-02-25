@@ -1,5 +1,4 @@
 <template>
-  <files-keyboard-shortcuts />
   <v-icon-button v-tooltip="$t('create_folder')" @click="createDir">
       <i-material-symbols:create-new-folder-outline-rounded />
   </v-icon-button>
@@ -28,6 +27,12 @@
           <i-material-symbols:sort-rounded />
       </v-icon-button>
     </template>
+    <div class="dropdown-item" @click.stop="emit('openKeyboardShortcuts'); sortMenuVisible = false">
+      {{ $t('keyboard_shortcuts') }}
+    </div>
+    <div class="dropdown-item" :class="{ 'selected': showHidden }" @click.stop="emit('toggleShowHidden'); sortMenuVisible = false">
+      {{ $t('search_filter_show_hidden') }}
+    </div>
     <div v-for="item in sortItems" :key="item.value" class="dropdown-item" :class="{ 'selected': item.value === fileSortBy }" @click="sort(item.value); sortMenuVisible = false">
       {{ $t(item.label) }}
     </div>
@@ -66,6 +71,10 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  showHidden: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const emit = defineEmits<{
@@ -75,6 +84,8 @@ const emit = defineEmits<{
   pasteDir: []
   refreshCurrentDir: []
   sort: [value: string]
+  openKeyboardShortcuts: []
+  toggleShowHidden: []
 }>()
 
 const uploadMenuVisible = ref(false)

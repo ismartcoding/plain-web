@@ -62,8 +62,6 @@ declare module 'vue' {
     FileRecentItem: typeof import('./src/components/files/FileRecentItem.vue')['default']
     FileRecentSkeletonItem: typeof import('./src/components/files/FileRecentSkeletonItem.vue')['default']
     FilesActionButtons: typeof import('./src/components/files/FilesActionButtons.vue')['default']
-    FileSearchFilters: typeof import('./src/components/FileSearchFilters.vue')['default']
-    FileSearchInput: typeof import('./src/components/FileSearchInput.vue')['default']
     FileSkeletonItem: typeof import('./src/components/files/FileSkeletonItem.vue')['default']
     FilesKeyboardShortcuts: typeof import('./src/components/FilesKeyboardShortcuts.vue')['default']
     HeaderActions: typeof import('./src/components/HeaderActions.vue')['default']

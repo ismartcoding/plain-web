@@ -41,12 +41,15 @@
         :sorting="sorting"
         :sort-items="sortItems"
         :file-sort-by="fileSortBy"
+        :show-hidden="filter.showHidden"
         @create-dir="createDir"
         @upload-files="uploadFilesClick"
         @upload-dir="uploadDirClick"
         @paste-dir="pasteDir"
         @refresh-current-dir="refreshCurrentDir"
         @sort="sort"
+        @open-keyboard-shortcuts="openKeyboardShortcuts"
+        @toggle-show-hidden="toggleShowHidden"
       />
     </div>
   </div>
@@ -60,12 +63,15 @@
       :sorting="sorting"
       :sort-items="sortItems"
       :file-sort-by="fileSortBy"
+      :show-hidden="filter.showHidden"
       @create-dir="createDir"
       @upload-files="uploadFilesClick"
       @upload-dir="uploadDirClick"
       @paste-dir="pasteDir"
       @refresh-current-dir="refreshCurrentDir"
       @sort="sort"
+      @open-keyboard-shortcuts="openKeyboardShortcuts"
+      @toggle-show-hidden="toggleShowHidden"
     />
   </div>
 
@@ -135,6 +141,8 @@ import { openModal } from '@/components/modal'
 import DownloadMethodModal from '@/components/DownloadMethodModal.vue'
 import DeleteFileConfirm from '@/components/DeleteFileConfirm.vue'
 import EditValueModal from '@/components/EditValueModal.vue'
+import KeyboardShortcutsModal from '@/components/KeyboardShortcutsModal.vue'
+import { filesKeyboardShortcuts } from '@/lib/shortcuts/files'
 import { useRoute } from 'vue-router'
 import { decodeBase64, shortUUID } from '@/lib/strutil'
 import { initMutation, setTempValueGQL, addFavoriteFolderGQL } from '@/lib/api/mutation'
@@ -424,6 +432,20 @@ function sort(value: string) {
   }
   sorting.value = true
   fileSortBy.value = value
+}
+
+function openKeyboardShortcuts() {
+  openModal(KeyboardShortcutsModal, {
+    title: t('keyboard_shortcuts'),
+    shortcuts: filesKeyboardShortcuts,
+  })
+}
+
+function toggleShowHidden() {
+  filter.showHidden = !filter.showHidden
+  mainStore.fileShowHidden = filter.showHidden
+  const q = buildQ(filter)
+  replacePath(mainStore, getUrl(q))
 }
 
 function refreshCurrentDir() {
