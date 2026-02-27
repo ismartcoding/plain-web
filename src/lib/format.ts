@@ -1,7 +1,13 @@
 import { format } from './timeago'
 
 function getLocale() {
-  return localStorage.getItem('locale') ?? navigator.language ?? 'en-US'
+  const locale = localStorage.getItem('locale') ?? navigator.language ?? 'en-US'
+  try {
+    Intl.DateTimeFormat.supportedLocalesOf([locale])
+    return locale
+  } catch {
+    return 'en-US'
+  }
 }
 
 export function formatDateTime(str: string, options?: Intl.DateTimeFormatOptions | undefined) {
