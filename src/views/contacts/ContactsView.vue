@@ -61,12 +61,12 @@
     <div v-if="!loading && items.length === 0" class="no-data-placeholder">
       {{ $t(noDataKey(loading, app.permissions, 'WRITE_CONTACTS')) }}
     </div>
-    <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" />
+    <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" :page-size="limit" :on-change-page-size="onChangePageSize" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { inject, onActivated, onDeactivated, reactive, ref, watch } from 'vue'
+import { inject, onActivated, onDeactivated, reactive, ref, computed, watch } from 'vue'
 import toast from '@/components/toaster'
 
 import { initQuery, contactsGQL, contactSourcesGQL, initLazyQuery } from '@/lib/api/query'
@@ -109,7 +109,7 @@ const dataType = DataType.CONTACT
 const route = useRoute()
 const page = ref(1)
 const sources = ref<IContactSource[]>([])
-const limit = 50
+const limit = computed(() => mainStore.pageSize)
 const q = ref('')
 const { tags, fetch: fetchTags } = useTags(dataType)
 const { addToTags } = useAddToTags(dataType, tags)
@@ -139,6 +139,12 @@ const gotoPage = (page: number) => {
   const q = route.query.q
   replacePath(mainStore, q ? `/contacts?page=${page}&q=${q}` : `/contacts?page=${page}`)
 }
+
+function onChangePageSize(size: number) {
+  mainStore.pageSize = size
+  const q = route.query.q
+  replacePath(mainStore, q ? `/contacts?page=1&q=${q}` : `/contacts?page=1`)
+}
 const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(total, limit, page, selectAll, clearSelection, gotoPage, () => {
   deleteItems(selectedIds.value, realAllChecked.value, total.value, q.value)
 })
@@ -155,8 +161,8 @@ const { loading, fetch } = initLazyQuery({
   },
   document: contactsGQL,
   variables: () => ({
-    offset: (page.value - 1) * limit,
-    limit,
+    offset: (page.value - 1) * limit.value,
+    limit: limit.value,
     query: q.value,
   }),
 })

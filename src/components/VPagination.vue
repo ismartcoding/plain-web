@@ -12,6 +12,12 @@
     <button class="btn-icon" :disabled="!isNextActive" @click.prevent="next">
       <i-material-symbols:skip-next-outline-rounded />
     </button>
+    <template v-if="onChangePageSize">
+      <span class="page-size-divider"></span>
+      <select class="page-size-select" :value="pageSize" @change="handlePageSizeChange">
+        <option v-for="size in pageSizeOptions" :key="size" :value="size">{{ size }}</option>
+      </select>
+    </template>
   </div>
 </template>
 
@@ -38,6 +44,18 @@ const props = defineProps({
   page: {
     type: Number,
     default: 1,
+  },
+  pageSize: {
+    type: Number,
+    default: 50,
+  },
+  pageSizeOptions: {
+    type: Array as PropType<number[]>,
+    default: () => [20, 50, 100, 200],
+  },
+  onChangePageSize: {
+    type: Function as PropType<(size: number) => void>,
+    default: undefined,
   },
 })
 
@@ -107,6 +125,13 @@ function prev(): void {
 function next(): void {
   if (isNextActive.value) {
     props.go(props.page + 1)
+  }
+}
+
+function handlePageSizeChange(event: Event): void {
+  const size = Number((event.target as HTMLSelectElement).value)
+  if (props.onChangePageSize) {
+    props.onChangePageSize(size)
   }
 }
 </script>

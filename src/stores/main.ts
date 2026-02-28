@@ -18,6 +18,7 @@ export type MainState = {
   appSortBy: string
   fileSortBy: string
   imageSortBy: string
+  pageSize: number
   videoSortBy: string
   audioSortBy: string
   conversationSortBy: string
@@ -51,6 +52,7 @@ export const useMainStore = defineStore('main', {
       appSortBy: 'NAME_ASC',
       fileSortBy: 'NAME_ASC',
       imageSortBy: 'DATE_DESC',
+      pageSize: 50,
       videoSortBy: 'DATE_DESC',
       audioSortBy: 'DATE_DESC',
       conversationSortBy: 'DATE_DESC',

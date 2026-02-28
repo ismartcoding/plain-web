@@ -158,7 +158,7 @@
     <div v-if="!loading && items.length === 0" class="no-data-placeholder">
       {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
     </div>
-    <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" />
+    <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" :page-size="limit" :on-change-page-size="onChangePageSize" />
     <input ref="fileInput" style="display: none" type="file" accept="image/*" multiple @change="uploadChanged" />
     <input ref="dirFileInput" style="display: none" type="file" accept="image/*" multiple webkitdirectory mozdirectory directory @change="dirUploadChanged" />
   </div>
@@ -237,7 +237,7 @@ const sorting = ref(false)
 const dataType = DataType.IMAGE
 const route = useRoute()
 const page = ref(1)
-const limit = 55
+const limit = computed(() => mainStore.pageSize)
 const { tags, buckets, fetch: fetchBucketsTags } = useBucketsTags(dataType)
 const bucketsMap = computed(() => {
   const map: Record<string, IBucket> = {}
@@ -273,6 +273,12 @@ const { downloadFile } = useDownload(urlTokenKey)
 const gotoPage = (page: number) => {
   const q = route.query.q
   replacePath(mainStore, q ? `/images?page=${page}&q=${q}` : `/images?page=${page}`)
+}
+
+function onChangePageSize(size: number) {
+  mainStore.pageSize = size
+  const q = route.query.q
+  replacePath(mainStore, q ? `/images?page=1&q=${q}` : `/images?page=1`)
 }
 const selectAllInEditMode = () => {
   if (uiMode.value !== 'edit') return
@@ -391,8 +397,8 @@ const { loading, fetch } = initLazyQuery({
   },
   document: imagesGQL,
   variables: () => ({
-    offset: (page.value - 1) * limit,
-    limit,
+    offset: (page.value - 1) * limit.value,
+    limit: limit.value,
     query: q.value,
     sortBy: imageSortBy.value,
   }),

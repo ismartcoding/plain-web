@@ -1,11 +1,11 @@
-import { type Ref } from 'vue'
+import { isRef, type ComputedRef, type Ref } from 'vue'
 
 function isInputFocused() {
   const activeElement = document.activeElement
   return activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'SELECT')
 }
 
-export const useKeyEvents = (total: Ref<number>, limit: number, page: Ref<number>, selectAll: () => void, clearSelection: () => void, gotoPage: (page: number) => void, deleteItems: () => void) => {
+export const useKeyEvents = (total: Ref<number>, limit: Ref<number> | ComputedRef<number> | number, page: Ref<number>, selectAll: () => void, clearSelection: () => void, gotoPage: (page: number) => void, deleteItems: () => void) => {
   return {
     keyDown: (e: KeyboardEvent) => {
       if (document.querySelector('md-dialog[open]') || document.getElementsByClassName('lightbox').length > 0) {
@@ -39,7 +39,8 @@ export const useKeyEvents = (total: Ref<number>, limit: number, page: Ref<number
           gotoPage(page.value - 1)
         }
       } else if (e.key === 'ArrowRight') {
-        const pages = Math.ceil(total.value / limit)
+        const limitVal = isRef(limit) ? limit.value : limit
+        const pages = Math.ceil(total.value / limitVal)
         if (page.value < pages) {
           gotoPage(page.value + 1)
         }

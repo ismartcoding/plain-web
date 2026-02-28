@@ -61,13 +61,13 @@
     <div v-if="!loading && items.length === 0" class="no-data-placeholder">
       {{ $t(noDataKey(loading, app.permissions, 'QUERY_ALL_PACKAGES')) }}
     </div>
-    <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" />
+    <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" :page-size="limit" :on-change-page-size="onChangePageSize" />
     <input ref="fileInput" style="display: none" type="file" accept=".apk" multiple @change="uploadChanged" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { onActivated, onDeactivated, ref, inject, watch } from 'vue'
+import { computed, onActivated, onDeactivated, ref, inject, watch } from 'vue'
 import toast from '@/components/toaster'
 import tapPhone from '@/plugins/tapphone'
 import { packagesGQL, initLazyQuery, packageStatusesGQL } from '@/lib/api/query'
@@ -113,7 +113,7 @@ const sorting = ref(false)
 
 const route = useRoute()
 const page = ref(parseInt(route.query.page?.toString() ?? '1'))
-const limit = 50
+const limit = computed(() => mainStore.pageSize)
 const q = ref('')
 const isActive = ref(false)
 let statusInterval: number | undefined
@@ -140,6 +140,12 @@ const { downloadFile } = useDownload(urlTokenKey)
 const gotoPage = (page: number) => {
   const q = route.query.q
   replacePath(mainStore, q ? `/apps?page=${page}&q=${q}` : `/apps?page=${page}`)
+}
+
+function onChangePageSize(size: number) {
+  mainStore.pageSize = size
+  const q = route.query.q
+  replacePath(mainStore, q ? `/apps?page=1&q=${q}` : `/apps?page=1`)
 }
 const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(total, limit, page, selectAll, clearSelection, gotoPage, () => {})
 
@@ -173,8 +179,8 @@ const { loading, fetch } = initLazyQuery({
   },
   document: packagesGQL,
   variables: () => ({
-    offset: (page.value - 1) * limit,
-    limit,
+    offset: (page.value - 1) * limit.value,
+    limit: limit.value,
     query: q.value,
     sortBy: appSortBy.value,
   }),
