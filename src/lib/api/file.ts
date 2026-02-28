@@ -29,7 +29,16 @@ export function getFileUrlByPath(key: sjcl.BitArray | null, path: string) {
   return getFileUrl(getFileId(key, path))
 }
 
+const _recentDownloads = new Set<string>()
+
 export function download(url: string, name: string) {
+  // Prevent duplicate downloads triggered by rapid double-clicks.
+  if (_recentDownloads.has(url)) {
+    return
+  }
+  _recentDownloads.add(url)
+  setTimeout(() => _recentDownloads.delete(url), 1000)
+
   const link = document.createElement('a')
   if (typeof link.download === 'string') {
     link.href = url
