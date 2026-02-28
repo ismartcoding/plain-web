@@ -33,6 +33,7 @@
           >
             <div class="chat-bubble-with-actions">
               <v-icon-button
+                v-if="!isDraftOrPending(item)"
                 v-tooltip="$t('add_to_tags')"
                 class="chat-tag-btn"
                 @click.stop="addItemToTags(item)"
@@ -80,6 +81,10 @@
               <span v-for="tag in item.tags" :key="tag.id" class="chat-tag-chip">{{ tag.name }}</span>
             </div>
             <span class="chat-time" v-tooltip="formatDateTime(item.date)">{{ formatTime(item.date) }}</span>
+            <span v-if="isDraftOrPending(item)" class="chat-pending-status" :class="{ failed: isPendingFailed(item) }">
+              <i-material-symbols:error-outline-rounded v-if="isPendingFailed(item)" class="pending-error-icon" />
+              {{ isPendingFailed(item) ? $t('mms_cancelled') : $t('message_type.3') }}
+            </span>
           </div>
         </div>
       </template>
@@ -88,23 +93,54 @@
       </div>
     </div>
     <div class="chat-input-bar">
-      <v-text-field
-        v-model="messageBody"
-        type="textarea"
-        :rows="1"
-        :placeholder="$t('write_a_message')"
-        class="chat-input-field"
-        @keydown.enter.exact.prevent="sendMessage"
-      />
-      <v-icon-button class="chat-send-btn" :loading="sendLoading" @click="sendMessage">
-        <i-material-symbols:send-rounded />
-      </v-icon-button>
+      <div v-if="pendingFiles.length" class="chat-attachment-preview">
+        <div v-for="(file, idx) in pendingFiles" :key="idx" class="chat-attachment-preview-item">
+          <img v-if="file.type.startsWith('image/')" :src="filePreviewUrl(file)" class="chat-preview-thumb" />
+          <div v-else class="chat-preview-file">
+            <i-material-symbols:attach-file-rounded />
+          </div>
+          <span class="chat-preview-name">{{ file.name }}</span>
+          <span class="chat-preview-size" :class="{ warn: !file.type.startsWith('image/') && file.size > MMS_WARN_SIZE }">{{ formatFileSize(file.size) }}</span>
+          <v-icon-button class="chat-preview-remove" @click="removePendingFile(idx)">
+            <i-material-symbols:close-rounded />
+          </v-icon-button>
+        </div>
+        <div v-if="hasLargeNonImageFile" class="chat-size-warning">
+          <i-material-symbols:warning-outline-rounded />
+          {{ $t('mms_large_file_warning') }}
+        </div>
+        <div v-else-if="totalPendingSize > MMS_WARN_SIZE" class="chat-size-hint">
+          {{ $t('mms_image_auto_compress') }}
+        </div>
+      </div>
+      <div class="chat-input-row">
+        <input ref="fileInputRef" type="file" multiple accept="image/*,video/*,audio/*" class="hidden-file-input" @change="onFileSelected" />
+        <v-text-field
+          v-model="messageBody"
+          type="textarea"
+          :rows="1"
+          :placeholder="$t('write_a_message')"
+          class="chat-input-field"
+          @keydown.enter.exact.prevent="sendMessage"
+        >
+          <template #leading-icon>
+            <v-icon-button v-tooltip="$t('attachments')" @click="openFilePicker">
+              <i-material-symbols:attach-file-rounded />
+            </v-icon-button>
+          </template>
+          <template #trailing-icon>
+            <v-icon-button class="btn-send" :disabled="sendLoading || mmsUploading" @click="sendMessage">
+              <i-material-symbols:send-rounded />
+            </v-icon-button>
+          </template>
+        </v-text-field>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, inject, nextTick, onActivated, onDeactivated, ref, watch } from 'vue'
+import { computed, inject, nextTick, onActivated, onDeactivated, onUnmounted, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { initLazyQuery, smsGQL } from '@/lib/api/query'
 import { useRoute } from 'vue-router'
@@ -122,12 +158,15 @@ import SendSmsModal from '@/components/messages/SendSmsModal.vue'
 import ExportSmsModal from '@/components/messages/ExportSmsModal.vue'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { DataType } from '@/lib/data'
-import { callGQL, initMutation, sendSmsGQL } from '@/lib/api/mutation'
+import { callGQL, initMutation, sendSmsGQL, sendMmsGQL } from '@/lib/api/mutation'
+import tapPhone from '@/plugins/tapphone'
 import { buildQuery } from '@/lib/search'
 import { useContactName } from '@/hooks/contacts'
 import { formatDateTime, formatTime } from '@/lib/format'
-import { addLinksToURLs } from '@/lib/strutil'
+import { addLinksToURLs, shortUUID } from '@/lib/strutil'
 import { getFileUrlByPath } from '@/lib/api/file'
+import { upload as uploadFile } from '@/lib/upload/upload'
+import type { IUploadItem } from '@/stores/temp'
 
 const isPhone = inject('isPhone') as boolean
 const mainStore = useMainStore()
@@ -142,7 +181,30 @@ const threadId = ref('')
 const detailLoading = ref(false)
 const messageBody = ref('')
 const chatScrollRef = ref<HTMLElement>()
+const fileInputRef = ref<HTMLInputElement>()
+const pendingFiles = ref<File[]>([])
+const mmsUploading = ref(false)
+const pendingMmsItem = ref<IMessage | null>(null)
+const pendingSmsItem = ref<IMessage | null>(null)
+let pendingSmsPreCount = 0
+let lastMmsSendBody = ''
+let lastMmsSendAddress = ''
 const { tags, fetch: fetchTags } = useTags(dataType)
+
+// MMS size constants — images are auto-compressed on the server, but
+// video/audio cannot be compressed and will fail if too large.
+const MMS_WARN_SIZE = 300 * 1024 // 300 KB — conservative carrier minimum
+
+const totalPendingSize = computed(() => pendingFiles.value.reduce((s, f) => s + f.size, 0))
+const hasLargeNonImageFile = computed(() =>
+  pendingFiles.value.some((f) => !f.type.startsWith('image/') && f.size > MMS_WARN_SIZE)
+)
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return bytes + ' B'
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB'
+  return (bytes / 1024 / 1024).toFixed(1) + ' MB'
+}
 
 const contactName = computed(() => {
   const address = items.value[0]?.address || ''
@@ -157,12 +219,26 @@ const contactAddress = computed(() => {
 })
 
 const sortedItems = computed(() => {
-  return [...items.value].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  const base = [...items.value].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  // Only add in-memory pending items if the backend hasn't returned them yet
+  const pending: IMessage[] = []
+  if (pendingSmsItem.value && !base.some((it) => it.id === pendingSmsItem.value?.id)) {
+    pending.push(pendingSmsItem.value)
+  }
+  if (pendingMmsItem.value && !base.some((it) => it.id === pendingMmsItem.value?.id)) {
+    pending.push(pendingMmsItem.value)
+  }
+  return pending.length ? [...base, ...pending] : base
 })
 
 function isSent(item: IMessage): boolean {
   // type 2 = sent, 4 = outbox
   return item.type === 2 || item.type === 4
+}
+
+function isDraftOrPending(item: IMessage): boolean {
+  // In-memory placeholder created by this app, or a type=3 draft from the DB
+  return item.id.startsWith('pending_sms') || item.id.startsWith('pending_mms') || item.type === 3
 }
 
 function showDateSeparator(index: number): boolean {
@@ -184,6 +260,8 @@ function formatDateLabel(dateStr: string): string {
 }
 
 function attachmentUrl(path: string): string {
+  // Blob/data URLs (used for the pending MMS preview) are already absolute
+  if (path.startsWith('blob:') || path.startsWith('data:')) return path
   return getFileUrlByPath(urlTokenKey.value, path)
 }
 
@@ -218,6 +296,10 @@ const { loading, fetch } = initLazyQuery({
       toast(t(error), 'error')
     } else if (data) {
       items.value = data.sms
+      // Clear the in-memory SMS pending item once the backend confirms the new message
+      if (pendingSmsItem.value && data.sms.length > pendingSmsPreCount) {
+        pendingSmsItem.value = null
+      }
       scrollToBottom()
     }
   },
@@ -244,17 +326,157 @@ const { mutate: mutateSendSms, loading: sendLoading, onDone: onSendDone } = init
   document: sendSmsGQL,
 })
 
+const { mutate: mutateSendMms, onDone: onSendMmsDone } = initMutation({
+  document: sendMmsGQL,
+})
+
+// Android's SmsManager.sendTextMessage() is fire-and-forget: the mutation
+// returns as soon as the message is queued with the modem.  The OS writes
+// the sent SMS to the content provider asynchronously (typically 1-3 s).
+// We therefore retry the refetch a few times with increasing delays so the
+// new message shows up without requiring a manual page refresh.
+function refetchWithRetry() {
+  const previousCount = items.value.length
+  const delays = [1000, 2000, 3000]
+  let attempt = 0
+
+  function tryFetch() {
+    fetch()
+    attempt++
+    if (attempt < delays.length) {
+      setTimeout(() => {
+        // If the item count hasn't changed, try again
+        if (items.value.length <= previousCount) {
+          tryFetch()
+        }
+      }, delays[attempt])
+    }
+  }
+
+  // First attempt after a short delay to give the OS time to persist
+  setTimeout(tryFetch, delays[0])
+}
+
 onSendDone(() => {
+  refetchWithRetry()
+})
+
+onSendMmsDone((result: any) => {
+  // Use the pending ID returned by the backend so the in-memory placeholder
+  // and the backend-stored entry share the same ID.
+  const pendingId: string = result?.data?.sendMms ?? ('pending_mms_' + Date.now())
+  // Capture blob preview URLs before clearing pendingFiles
+  const pendingAttachments = pendingFiles.value.map((file) => ({
+    path: URL.createObjectURL(file),
+    contentType: file.type || 'application/octet-stream',
+    name: file.name,
+  }))
+  pendingMmsItem.value = {
+    id: pendingId,
+    body: lastMmsSendBody,
+    address: lastMmsSendAddress,
+    serviceCenter: '',
+    date: new Date().toISOString(),
+    type: 3, // draft, since it's not sent yet
+    threadId: threadId.value,
+    subscriptionId: -1,
+    isMms: true,
+    attachments: pendingAttachments,
+    tags: [],
+  }
   messageBody.value = ''
-  emitter.emit('sms_sent' as any)
+  pendingFiles.value = []
+  tapPhone(t('confirm_mms_on_phone'))
+  scrollToBottom()
+  // Immediately fetch so the backend-stored pending entry replaces the in-memory one
   fetch()
 })
 
-function sendMessage() {
+function openFilePicker() {
+  fileInputRef.value?.click()
+}
+
+function onFileSelected(e: Event) {
+  const input = e.target as HTMLInputElement
+  if (input.files) {
+    pendingFiles.value = [...pendingFiles.value, ...Array.from(input.files)]
+  }
+  // reset so the same file can be re-selected
+  input.value = ''
+}
+
+function removePendingFile(index: number) {
+  pendingFiles.value = pendingFiles.value.filter((_, i) => i !== index)
+}
+
+function filePreviewUrl(file: File): string {
+  return URL.createObjectURL(file)
+}
+
+async function uploadAttachments(): Promise<string[]> {
+  const paths: string[] = []
+  const mmsDir = `${app.value.appDir}/mms_tmp`
+  for (const file of pendingFiles.value) {
+    const item: IUploadItem = {
+      id: shortUUID(),
+      dir: mmsDir,
+      fileName: file.name,
+      file,
+      status: 'pending',
+      uploadedSize: 0,
+      error: '',
+      isAppFile: false,
+    }
+    const result = await uploadFile(item, false) as { fileName?: string; error?: string } | undefined
+    if (result && result.fileName) {
+      paths.push(`${mmsDir}/${result.fileName}`)
+    } else {
+      throw new Error(t('upload_failed'))
+    }
+  }
+  return paths
+}
+
+async function sendMessage() {
   const body = messageBody.value.trim()
   const address = items.value[0]?.address
-  if (!body || !address) return
-  mutateSendSms({ number: address, body })
+  if ((!body && pendingFiles.value.length === 0) || !address) return
+
+  // If there are attachments, send as MMS
+  if (pendingFiles.value.length > 0) {
+    mmsUploading.value = true
+    try {
+      const attachmentPaths = await uploadAttachments()
+      lastMmsSendBody = body
+      lastMmsSendAddress = address
+      mutateSendMms({ number: address, body: body || '', attachmentPaths, threadId: threadId.value })
+    } catch (e: any) {
+      toast(e.message || t('upload_failed'), 'error')
+    } finally {
+      mmsUploading.value = false
+    }
+  } else {
+    // Plain SMS
+    if (!body) return
+    pendingSmsPreCount = items.value.length
+    mutateSendSms({ number: address, body })
+    // Immediately show a pending bubble for better UX
+    pendingSmsItem.value = {
+      id: 'pending_sms_' + Date.now(),
+      body,
+      address,
+      serviceCenter: '',
+      date: new Date().toISOString(),
+      type: 2, // sent
+      threadId: threadId.value,
+      subscriptionId: -1,
+      isMms: false,
+      attachments: [],
+      tags: [],
+    }
+    messageBody.value = ''
+    scrollToBottom()
+  }
 }
 
 function addItemToTags(item: IMessage) {
@@ -270,10 +492,6 @@ function addItemToTags(item: IMessage) {
   })
 }
 
-function openSendSms(number = '', body = '') {
-  openModal(SendSmsModal, { number, body })
-}
-
 function openExport() {
   openModal(ExportSmsModal, {
     items: [...sortedItems.value],
@@ -287,8 +505,13 @@ function backToList() {
   replacePath(mainStore, q ? `/messages?q=${q}` : `/messages`)
 }
 
-const smsSentHandler = () => {
-  fetch()
+
+function isPendingFailed(item: IMessage): boolean {
+  // Only in-memory pending items can time out; DB drafts (type=3) are just drafts.
+  if (!item.id.startsWith('pending_mms')) return false
+  // Show as failed (cancelled) if the pending MMS is older than 5 minutes.
+  // This also handles the page-refresh case where no timer is running.
+  return (Date.now() - new Date(item.date).getTime()) > 5 * 60 * 1000
 }
 
 const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
@@ -303,6 +526,13 @@ const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
   }
 }
 
+// When the backend-stored pending entry appears in items, discard the in-memory placeholder.
+watch(items, (newItems) => {
+  if (pendingMmsItem.value && newItems.some((it) => it.id === pendingMmsItem.value?.id)) {
+    pendingMmsItem.value = null
+  }
+})
+
 const isActive = ref(false)
 
 function applyRouteQuery() {
@@ -313,6 +543,8 @@ function applyRouteQuery() {
     detailLoading.value = false
     return
   }
+  // Clear in-memory pending MMS when navigating to a different thread
+  pendingMmsItem.value = null
   items.value = []
   detailLoading.value = true
   fetch()
@@ -333,14 +565,16 @@ onActivated(() => {
   applyRouteQuery()
   emitter.on('item_tags_updated', itemTagsUpdatedHandler)
   emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
-  emitter.on('sms_sent' as any, smsSentHandler)
 })
 
 onDeactivated(() => {
   isActive.value = false
   emitter.off('item_tags_updated', itemTagsUpdatedHandler)
   emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
-  emitter.off('sms_sent' as any, smsSentHandler)
+})
+
+onUnmounted(() => {
+  // nothing to clean up
 })
 </script>
 <style lang="scss">
@@ -493,21 +727,120 @@ onDeactivated(() => {
   padding-inline: 4px;
 }
 
+.chat-pending-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.6875rem;
+  color: var(--md-sys-color-on-surface-variant);
+  padding-inline: 4px;
+  margin-top: 2px;
+
+  &.failed {
+    color: var(--md-sys-color-error);
+  }
+
+  .pending-error-icon {
+    font-size: 14px;
+  }
+}
+
 .chat-input-bar {
   display: flex;
-  align-items: flex-end;
-  gap: 8px;
+  flex-direction: column;
   padding: 8px 16px 12px;
   border-top: 1px solid var(--md-sys-color-outline-variant);
 }
 
-.chat-input-field {
-  flex: 1;
+.chat-input-row {
+  display: flex;
+  align-items: flex-end;
+
+  .hidden-file-input {
+    display: none;
+  }
+
+  .chat-input-field {
+    flex: 1;
+  }
+
+  .btn-send {
+    margin-block-start: 4px;
+  }
 }
 
-.chat-send-btn {
+.chat-attachment-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 8px;
+}
+
+.chat-attachment-preview-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--md-sys-color-surface-container-high);
+  border-radius: 8px;
+  padding: 4px 8px;
+  max-width: 200px;
+}
+
+.chat-preview-thumb {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  border-radius: 4px;
   flex-shrink: 0;
-  margin-bottom: 4px;
+}
+
+.chat-preview-file {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  flex-shrink: 0;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.chat-preview-name {
+  font-size: 0.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-preview-remove {
+  flex-shrink: 0;
+}
+
+.chat-preview-size {
+  font-size: 0.6875rem;
+  color: var(--md-sys-color-on-surface-variant);
+  flex-shrink: 0;
+  &.warn {
+    color: var(--md-sys-color-error);
+    font-weight: 500;
+  }
+}
+
+.chat-size-warning {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--md-sys-color-error);
+  padding: 4px 0;
+}
+
+.chat-size-hint {
+  font-size: 0.75rem;
+  color: var(--md-sys-color-on-surface-variant);
+  padding: 4px 0;
 }
 
 .chat-bubble-with-actions {

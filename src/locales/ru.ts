@@ -45,6 +45,8 @@ export default {
   call: 'Звонок',
   send: 'Отправить',
   send_sms: 'Отправить SMS',
+  send_mms: 'Отправить MMS',
+  upload_failed: 'Ошибка загрузки',
   call_phone: 'Позвонить по телефону',
   device_info: 'Информация об устройстве',
   basic_info: 'Основная информация',

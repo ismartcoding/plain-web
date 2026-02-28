@@ -45,6 +45,8 @@ export default {
   call: 'Gọi',
   send: 'Gửi',
   send_sms: 'Gửi SMS',
+  send_mms: 'Gửi MMS',
+  upload_failed: 'Tải lên thất bại',
   call_phone: 'Gọi điện thoại',
   device_info: 'Thông tin thiết bị',
   basic_info: 'Thông tin cơ bản',

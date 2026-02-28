@@ -45,6 +45,8 @@ export default {
   call: '전화',
   send: '보내기',
   send_sms: '문자 보내기',
+  send_mms: 'MMS 보내기',
+  upload_failed: '업로드 실패',
   call_phone: '전화 걸기',
   device_info: '장치 정보',
   basic_info: '기본 정보',

@@ -431,6 +431,12 @@ export const sendSmsGQL = gql`
   }
 `
 
+export const sendMmsGQL = gql`
+  mutation sendMms($number: String!, $body: String!, $attachmentPaths: [String!]!, $threadId: String!) {
+    sendMms(number: $number, body: $body, attachmentPaths: $attachmentPaths, threadId: $threadId)
+  }
+`
+
 export const uninstallPackagesGQL = gql`
   mutation uninstallPackages($ids: [ID!]!) {
     uninstallPackages(ids: $ids)
@@ -590,5 +596,11 @@ export const updateBookmarkGroupGQL = gql`
 export const deleteBookmarkGroupGQL = gql`
   mutation deleteBookmarkGroup($id: ID!) {
     deleteBookmarkGroup(id: $id)
+  }
+`
+
+export const deleteFilesGQL = gql`
+  mutation deleteFiles($paths: [String!]!) {
+    deleteFiles(paths: $paths)
   }
 `

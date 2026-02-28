@@ -45,6 +45,8 @@ export default {
   call: 'कॉल',
   send: 'भेजें',
   send_sms: 'SMS भेजें',
+  send_mms: 'MMS भेजें',
+  upload_failed: 'अपलोड विफल',
   call_phone: 'फोन पर कॉल',
   device_info: 'डिवाइस जानकारी',
   basic_info: 'मौलिक जानकारी',

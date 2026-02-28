@@ -187,7 +187,8 @@ function openExport() {
 }
 
 const smsSentHandler = () => {
-  fetch()
+  // Delay refetch to give the Android OS time to persist the sent SMS
+  setTimeout(() => fetch(), 1500)
 }
 
 const isActive = ref(false)

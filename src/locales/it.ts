@@ -45,6 +45,8 @@ export default {
   call: 'Chiamata',
   send: 'Invia',
   send_sms: 'Invia SMS',
+  send_mms: 'Invia MMS',
+  upload_failed: 'Caricamento fallito',
   call_phone: 'Chiamata telefonica',
   device_info: 'Informazioni sul dispositivo',
   basic_info: 'Informazioni di base',

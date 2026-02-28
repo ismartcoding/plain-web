@@ -45,6 +45,8 @@ export default {
   call: 'Anruf',
   send: 'Senden',
   send_sms: 'SMS senden',
+  send_mms: 'MMS senden',
+  upload_failed: 'Upload fehlgeschlagen',
   call_phone: 'Telefonanruf',
   device_info: 'Geräteinformationen',
   basic_info: 'Grundlegende Informationen',
