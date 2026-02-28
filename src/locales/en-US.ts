@@ -46,6 +46,8 @@ export default {
   send: 'Send',
   send_sms: 'Send SMS',
   call_phone: 'Call phone',
+  send_to_phone_clipboard: 'Send to phone clipboard',
+  clipboard_text: 'Clipboard text',
   device_info: 'Device info',
   basic_info: 'Basic info',
   device_name: 'Device name',

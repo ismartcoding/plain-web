@@ -419,6 +419,12 @@ export const callGQL = gql`
   }
 `
 
+export const setClipGQL = gql`
+  mutation setClip($text: String!) {
+    setClip(text: $text)
+  }
+`
+
 export const sendSmsGQL = gql`
   mutation sendSms($number: String!, $body: String!) {
     sendSms(number: $number, body: $body)

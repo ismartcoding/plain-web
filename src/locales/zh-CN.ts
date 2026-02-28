@@ -46,6 +46,8 @@ export default {
   send: '发送',
   send_sms: '发送短信',
   call_phone: '打电话',
+  send_to_phone_clipboard: '发送到手机剪贴板',
+  clipboard_text: '剪贴板内容',
   device_info: '设备信息',
   basic_info: '基本信息',
   device_name: '设备名称',
