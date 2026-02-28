@@ -53,10 +53,13 @@
         :on-toggle-ui-mode="toggleUIMode"
         :on-upload-files="uploadFilesClick"
         :on-upload-dir="uploadDirClick"
-        :on-open-keyboard-shortcuts="openKeyboardShortcuts"
         :on-sort="sort"
+        :show-view-options="true"
+        :scroll-paging="mainStore.audiosScrollPaging"
+        :on-open-keyboard-shortcuts="openKeyboardShortcuts"
         @update:uploadMenuVisible="(v) => uploadMenuVisible = v"
         @update:moreMenuVisible="(v) => moreMenuVisible = v"
+        @update:scrollPaging="(v) => mainStore.audiosScrollPaging = v"
       />
     </div>
   </div>
@@ -122,7 +125,8 @@
     <div v-if="!loading && items.length === 0" class="no-data-placeholder">
       {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
     </div>
-    <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" :page-size="limit" :on-change-page-size="onChangePageSize" />
+    <v-pagination v-if="!scrollMode && total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" :page-size="limit" :on-change-page-size="onChangePageSize" />
+    <div v-if="scrollMode" ref="sentinel" class="scroll-sentinel"></div>
     <input ref="fileInput" style="display: none" type="file" accept="audio/*" multiple @change="uploadChanged" />
     <input ref="dirFileInput" style="display: none" type="file" accept="audio/*" multiple webkitdirectory mozdirectory directory @change="dirUploadChanged" />
   </div>
@@ -271,6 +275,52 @@ const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(
 const { addItemsToPlaylist, addToPlaylist, removeFromPlaylist, isInPlaylist } = useAddToPlaylist(items, clearSelection)
 const sortItems = getSortItems()
 const imageErrorIds = ref<string[]>([])
+const scrollMode = computed(() => mainStore.audiosScrollPaging)
+const noMore = ref(false)
+const sentinel = ref<HTMLElement | null>(null)
+
+function loadMore() {
+  if (noMore.value || loading.value || !scrollMode.value) return
+  page.value++
+  fetch()
+}
+
+let observer: IntersectionObserver | null = null
+function setupSentinelObserver() {
+  if (observer) {
+    observer.disconnect()
+    observer = null
+  }
+  if (!sentinel.value) return
+  observer = new IntersectionObserver(
+    (entries) => {
+      if (entries[0]?.isIntersecting) {
+        loadMore()
+      }
+    },
+    { rootMargin: '200px' }
+  )
+  observer.observe(sentinel.value)
+}
+
+watch(scrollMode, (val) => {
+  page.value = 1
+  items.value = []
+  noMore.value = false
+  if (val) {
+    setTimeout(setupSentinelObserver, 100)
+  } else {
+    observer?.disconnect()
+    observer = null
+  }
+  fetch()
+})
+
+watch(sentinel, (el) => {
+  if (el && scrollMode.value) {
+    setupSentinelObserver()
+  }
+})
 
 const { play, playPath, loading: playLoading, pause } = useAudioPlayer()
 
@@ -285,8 +335,15 @@ const { loading, fetch } = initLazyQuery({
       toast(t(error), 'error')
     } else {
       if (data) {
-        items.value = data.items
+        if (scrollMode.value && page.value > 1) {
+          items.value = items.value.concat(data.items)
+        } else {
+          items.value = data.items
+        }
         total.value = data.total
+        if (scrollMode.value) {
+          noMore.value = data.items.length < limit.value
+        }
       }
     }
   },
@@ -319,6 +376,9 @@ function sort(value: string) {
     return
   }
   sorting.value = true
+  page.value = 1
+  noMore.value = false
+  items.value = []
   audioSortBy.value = value
 }
 
@@ -469,6 +529,9 @@ onActivated(() => {
   emitter.on('upload_task_done', uploadTaskDoneHandler)
   window.addEventListener('keydown', pageKeyDown)
   window.addEventListener('keyup', pageKeyUp)
+  if (scrollMode.value) {
+    setTimeout(setupSentinelObserver, 100)
+  }
 })
 
 onDeactivated(() => {
@@ -479,6 +542,8 @@ onDeactivated(() => {
   emitter.off('upload_task_done', uploadTaskDoneHandler)
   window.removeEventListener('keydown', pageKeyDown)
   window.removeEventListener('keyup', pageKeyUp)
+  observer?.disconnect()
+  observer = null
 })
 </script>
 <style scoped lang="scss">

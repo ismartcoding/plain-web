@@ -18,6 +18,11 @@ export type MainState = {
   appSortBy: string
   fileSortBy: string
   imageSortBy: string
+  imagesGroupBy: string // '' | 'TAKEN_AT'
+  imagesScrollPaging: boolean
+  videosGroupBy: string // '' | 'TAKEN_AT'
+  videosScrollPaging: boolean
+  audiosScrollPaging: boolean
   pageSize: number
   videoSortBy: string
   audioSortBy: string
@@ -52,6 +57,11 @@ export const useMainStore = defineStore('main', {
       appSortBy: 'NAME_ASC',
       fileSortBy: 'NAME_ASC',
       imageSortBy: 'DATE_DESC',
+      imagesGroupBy: '',
+      imagesScrollPaging: false,
+      videosGroupBy: '',
+      videosScrollPaging: false,
+      audiosScrollPaging: false,
       pageSize: 50,
       videoSortBy: 'DATE_DESC',
       audioSortBy: 'DATE_DESC',

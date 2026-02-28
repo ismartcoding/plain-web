@@ -50,11 +50,19 @@
         :on-toggle-ui-mode="toggleUIMode"
         :on-upload-files="uploadFilesClick"
         :on-upload-dir="uploadDirClick"
-        :on-open-keyboard-shortcuts="openKeyboardShortcuts"
+        :hide-view-toggle="isGroupMode"
         :on-sort="sort"
+        :show-view-options="true"
+        :show-group-by="true"
+        :group-by-items="groupByItems"
+        :group-by="mainStore.imagesGroupBy"
+        :scroll-paging="mainStore.imagesScrollPaging"
+        :on-open-keyboard-shortcuts="openKeyboardShortcuts"
         :on-update-card-view="(value: boolean) => mainStore.imagesCardView = value"
         @update:uploadMenuVisible="(v) => uploadMenuVisible = v"
         @update:moreMenuVisible="(v) => moreMenuVisible = v"
+        @update:groupBy="(v) => mainStore.imagesGroupBy = v"
+        @update:scrollPaging="(v) => mainStore.imagesScrollPaging = v"
       />
     </div>
   </div>
@@ -71,11 +79,19 @@
       :sort-items="sortItems"
       :show-view-toggle="true"
       :card-view="mainStore.imagesCardView"
-      :on-open-keyboard-shortcuts="openKeyboardShortcuts"
+      :hide-view-toggle="isGroupMode"
       :on-sort="sort"
+      :show-view-options="true"
+      :show-group-by="true"
+      :group-by-items="groupByItems"
+      :group-by="mainStore.imagesGroupBy"
+      :scroll-paging="mainStore.imagesScrollPaging"
+      :on-open-keyboard-shortcuts="openKeyboardShortcuts"
       :on-update-card-view="(value: boolean) => mainStore.imagesCardView = value"
       @update:uploadMenuVisible="(v) => uploadMenuVisible = v"
       @update:moreMenuVisible="(v) => moreMenuVisible = v"
+      @update:groupBy="(v) => mainStore.imagesGroupBy = v"
+      @update:scrollPaging="(v) => mainStore.imagesScrollPaging = v"
     />
   </div>
 
@@ -89,41 +105,66 @@
   />
   <div class="scroll-content" @dragover.stop.prevent="fileDragEnter">
     <div v-show="dropping" class="drag-mask" @drop.stop.prevent="dropFiles2" @dragleave.stop.prevent="fileDragLeave">{{ $t('release_to_send_files') }}</div>
-    <div v-if="!mainStore.imagesCardView" class="media-grid" :class="{ 'select-mode': checked }">
-      <section
+
+    <!-- Grouped by taken time -->
+    <template v-if="isGroupMode">
+      <template v-if="loading && items.length === 0">
+        <div class="media-grid">
+          <section v-for="i in limit" :key="i" class="skeleton-image media-item"></section>
+        </div>
+      </template>
+      <div v-for="group in groupedItems" :key="group.date" class="image-group">
+        <div class="group-date-label">{{ group.dateLabel }}</div>
+        <div class="media-grid" :class="{ 'select-mode': checked }">
+          <MediaGridItem
+            v-for="{ item, idx } in group.entries"
+            :key="item.id"
+            :item="item"
+            :checked="checked"
+            :selected-ids="selectedIds"
+            :shift-effecting-ids="shiftEffectingIds"
+            :should-select="shouldSelect"
+            :data-type="dataType"
+            @item-click="(e) => handleItemClick(e, item, idx, view)"
+            @item-mouse-enter="(e) => handleMouseOverMode(e, idx)"
+            @toggle-select="(e) => toggleSelect(e, item, idx)"
+            @view="view(idx)"
+          >
+            <template #thumbnail>
+              <img class="image-thumb image" :src="getFileUrl(item.fileId, '&w=200&h=200')" onerror="this.src='/broken-image.png'" />
+            </template>
+            <template #info-right>{{ formatFileSize(item.size) }}</template>
+          </MediaGridItem>
+        </div>
+      </div>
+    </template>
+
+    <!-- Regular grid view -->
+    <div v-else-if="!mainStore.imagesCardView" class="media-grid" :class="{ 'select-mode': checked }">
+      <MediaGridItem
         v-for="(item, i) in items"
         :key="item.id"
-        class="media-item"
-        :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
-        @click.stop="handleItemClick($event, item, i, view)"
-        @mouseenter.stop="handleMouseOverMode($event, i)"
+        :item="item"
+        :checked="checked"
+        :selected-ids="selectedIds"
+        :shift-effecting-ids="shiftEffectingIds"
+        :should-select="shouldSelect"
+        :data-type="dataType"
+        @item-click="(e) => handleItemClick(e, item, i, view)"
+        @item-mouse-enter="(e) => handleMouseOverMode(e, i)"
+        @toggle-select="(e) => toggleSelect(e, item, i)"
+        @view="view(i)"
       >
-        <img class="image-thumb image" :src="getFileUrl(item.fileId, '&w=200&h=200')" onerror="this.src='/broken-image.png'" />
-        <v-icon-button v-if="shiftEffectingIds.includes(item.id)" class="btn-checkbox" @click.stop="toggleSelect($event, item, i)">
-            <i-material-symbols:check-circle-rounded v-if="shouldSelect" />
-            <i-material-symbols:check-circle-outline-rounded v-else />
-        </v-icon-button>
-        <v-icon-button v-else-if="selectedIds.includes(item.id)" class="btn-checkbox" @click.stop="toggleSelect($event, item, i)">
-            <i-material-symbols:check-circle-rounded />
-        </v-icon-button>
-        <template v-else>
-          <v-icon-button class="btn-checkbox" @click.stop="toggleSelect($event, item, i)">
-              <i-material-symbols:check-circle-rounded v-if="selectedIds.includes(item.id)" />
-              <i-material-symbols:check-circle-outline-rounded v-else />
-          </v-icon-button>
+        <template #thumbnail>
+          <img class="image-thumb image" :src="getFileUrl(item.fileId, '&w=200&h=200')" onerror="this.src='/broken-image.png'" />
         </template>
-        <v-icon-button v-if="checked" v-tooltip="$t('open')" class="btn-zoom sm" @click.stop="view(i)">
-            <i-material-symbols:zoom-in-rounded />
-        </v-icon-button>
-        <div class="info" :class="{ 'has-tags': item.tags.length > 0 }">
-          <item-tags :tags="item.tags" :type="dataType" />
-          <span class="right">{{ formatFileSize(item.size) }}</span>
-        </div>
-      </section>
+        <template #info-right>{{ formatFileSize(item.size) }}</template>
+      </MediaGridItem>
       <template v-if="loading && items.length === 0">
         <section v-for="i in limit" :key="i" class="skeleton-image media-item"></section>
       </template>
     </div>
+    <!-- Card list view -->
     <div v-else class="main-list media-list" :class="{ 'select-mode': checked }">
       <ImageListItem
         v-for="(item, i) in items"
@@ -158,7 +199,10 @@
     <div v-if="!loading && items.length === 0" class="no-data-placeholder">
       {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
     </div>
-    <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" :page-size="limit" :on-change-page-size="onChangePageSize" />
+    <v-pagination v-if="!scrollMode && total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" :page-size="limit" :on-change-page-size="onChangePageSize" />
+    <div v-if="scrollMode" ref="sentinel" class="scroll-sentinel">
+      <v-circular-progress v-if="loading && items.length > 0" indeterminate class="sm" />
+    </div>
     <input ref="fileInput" style="display: none" type="file" accept="image/*" multiple @change="uploadChanged" />
     <input ref="dirFileInput" style="display: none" type="file" accept="image/*" multiple webkitdirectory mozdirectory directory @change="dirUploadChanged" />
   </div>
@@ -194,13 +238,15 @@ import type { ISource } from '@/components/lightbox/types'
 import { openModal } from '@/components/modal'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { DataType, FEATURE } from '@/lib/data'
-import { getDirFromPath, getSortItems, isImage } from '@/lib/file'
+import { getDirFromPath, getImageSortItems, getImageGroupByItems, isImage } from '@/lib/file'
 import { useKeyEvents } from '@/hooks/key-events'
 import { generateDownloadFileName } from '@/lib/format'
 import { useMediaRestore, useMediaTrash } from '@/hooks/media-trash'
 import { hasFeature } from '@/lib/feature'
 import ImageListItem from '@/components/images/ImageListItem.vue'
 import MediaPageActions from '@/components/media/MediaPageActions.vue'
+import MediaGridItem from '@/components/media/MediaGridItem.vue'
+import { useGroupedScroll } from '@/hooks/grouped-scroll'
 import KeyboardShortcutsModal from '@/components/KeyboardShortcutsModal.vue'
 import { mediaKeyboardShortcuts } from '@/lib/shortcuts/media'
 
@@ -308,7 +354,17 @@ const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(
   gotoPage,
   trashInEditMode,
 )
-const sortItems = getSortItems()
+const sortItems = getImageSortItems()
+const groupByItems = getImageGroupByItems()
+const { noMore, sentinel, isGroupMode, scrollMode, groupedItems, setupSentinelObserver, teardownObserver, prefetchNext } = useGroupedScroll({
+  items,
+  getLoading: () => loading.value,
+  limit,
+  page,
+  doFetch: () => fetch(),
+  getScrollPaging: () => mainStore.imagesScrollPaging,
+  getGroupBy: () => mainStore.imagesGroupBy,
+})
 
 const sources = computed<ISource[]>(() => {
   return items.value.map((it: IImageItem) => ({
@@ -374,10 +430,31 @@ function sort(value: string) {
   if (imageSortBy.value === value) {
     return
   }
-  // only sort the last column
   sorting.value = true
+  page.value = 1
+  noMore.value = false
+  items.value = []
   imageSortBy.value = value
 }
+
+watch(
+  () => mainStore.imagesGroupBy,
+  () => {
+    page.value = 1
+    noMore.value = false
+    items.value = []
+    fetch()
+  }
+)
+
+watch(
+  () => mainStore.imagesScrollPaging,
+  () => {
+    page.value = 1
+    items.value = []
+    fetch()
+  }
+)
 
 const { loading, fetch } = initLazyQuery({
   handle: async (data: { images: IImage[]; imageCount: number }, error: string) => {
@@ -386,12 +463,18 @@ const { loading, fetch } = initLazyQuery({
       toast(t(error), 'error')
     } else {
       if (data) {
-        const list = []
-        for (const item of data.images) {
-          list.push({ ...item, fileId: getFileId(urlTokenKey.value, item.path, item.id) })
+        const list = data.images.map((item) => ({ ...item, fileId: getFileId(urlTokenKey.value, item.path, item.id) }))
+        if (scrollMode.value && page.value > 1) {
+          const existingIds = new Set(items.value.map((i) => i.id))
+          items.value = items.value.concat(list.filter((i) => !existingIds.has(i.id)))
+        } else {
+          items.value = list
         }
-        items.value = list
         total.value = data.imageCount
+        if (scrollMode.value) {
+          noMore.value = list.length < limit.value
+          prefetchNext()
+        }
       }
     }
   },
@@ -400,7 +483,7 @@ const { loading, fetch } = initLazyQuery({
     offset: (page.value - 1) * limit.value,
     limit: limit.value,
     query: q.value,
-    sortBy: imageSortBy.value,
+    sortBy: isGroupMode.value ? 'TAKEN_AT_DESC' : imageSortBy.value,
   }),
 })
 
@@ -482,6 +565,11 @@ function applyRouteQuery() {
   page.value = Number.isFinite(nextPage) && nextPage > 0 ? nextPage : 1
   q.value = decodeBase64(route.query.q?.toString() ?? '')
   parseQ(filter, q.value)
+  if (scrollMode.value) {
+    page.value = 1
+    noMore.value = false
+    items.value = []
+  }
   fetch()
 }
 
@@ -504,6 +592,9 @@ onActivated(() => {
   emitter.on('upload_task_done', uploadTaskDoneHandler)
   window.addEventListener('keydown', pageKeyDown)
   window.addEventListener('keyup', pageKeyUp)
+  if (scrollMode.value) {
+    setTimeout(setupSentinelObserver, 100)
+  }
 })
 
 onDeactivated(() => {
@@ -514,6 +605,7 @@ onDeactivated(() => {
   emitter.off('upload_task_done', uploadTaskDoneHandler)
   window.removeEventListener('keydown', pageKeyDown)
   window.removeEventListener('keyup', pageKeyUp)
+  teardownObserver()
 })
 </script>
 

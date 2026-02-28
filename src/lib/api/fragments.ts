@@ -196,6 +196,7 @@ export const imageFragment = gql`
     path
     size
     bucketId
+    takenAt
     createdAt
     updatedAt
     tags {
@@ -215,6 +216,7 @@ export const videoFragment = gql`
     bucketId
     createdAt
     updatedAt
+    takenAt
     tags {
       ...TagSubFragment
     }

@@ -109,6 +109,17 @@ export default {
     name_asc: '名称（从A到Z）',
     name_desc: '名称（从Z到A）',
   },
+  group_by: {
+    label: '分组方式',
+    none: '无',
+    taken_time: '拍摄时间',
+  },
+  paging: {
+    label: '翻页方式',
+    number: '页码翻页',
+    scroll: '无限滚动',
+  },
+  view_options: '显示选项',
   print: '打印',
   cancel: '取消',
   ok: '好的',

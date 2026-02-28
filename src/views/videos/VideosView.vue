@@ -47,14 +47,22 @@
         :sort-items="sortItems"
         :show-view-toggle="true"
         :card-view="mainStore.videosCardView"
+        :hide-view-toggle="isGroupMode"
         :on-toggle-ui-mode="toggleUIMode"
         :on-upload-files="uploadFilesClick"
         :on-upload-dir="uploadDirClick"
-        :on-open-keyboard-shortcuts="openKeyboardShortcuts"
         :on-sort="sort"
+        :show-view-options="true"
+        :show-group-by="true"
+        :group-by-items="groupByItems"
+        :group-by="mainStore.videosGroupBy"
+        :scroll-paging="mainStore.videosScrollPaging"
+        :on-open-keyboard-shortcuts="openKeyboardShortcuts"
         :on-update-card-view="(value: boolean) => mainStore.videosCardView = value"
         @update:uploadMenuVisible="(v) => uploadMenuVisible = v"
         @update:moreMenuVisible="(v) => moreMenuVisible = v"
+        @update:groupBy="(v) => mainStore.videosGroupBy = v"
+        @update:scrollPaging="(v) => mainStore.videosScrollPaging = v"
       />
     </div>
   </div>
@@ -71,11 +79,19 @@
       :sort-items="sortItems"
       :show-view-toggle="true"
       :card-view="mainStore.videosCardView"
-      :on-open-keyboard-shortcuts="openKeyboardShortcuts"
+      :hide-view-toggle="isGroupMode"
       :on-sort="sort"
+      :show-view-options="true"
+      :show-group-by="true"
+      :group-by-items="groupByItems"
+      :group-by="mainStore.videosGroupBy"
+      :scroll-paging="mainStore.videosScrollPaging"
+      :on-open-keyboard-shortcuts="openKeyboardShortcuts"
       :on-update-card-view="(value: boolean) => mainStore.videosCardView = value"
       @update:uploadMenuVisible="(v) => uploadMenuVisible = v"
       @update:moreMenuVisible="(v) => moreMenuVisible = v"
+      @update:groupBy="(v) => mainStore.videosGroupBy = v"
+      @update:scrollPaging="(v) => mainStore.videosScrollPaging = v"
     />
   </div>
   <all-checked-alert
@@ -88,38 +104,63 @@
   />
   <div class="scroll-content" @dragover.stop.prevent="fileDragEnter">
     <div v-show="dropping" class="drag-mask" @drop.stop.prevent="dropFiles2" @dragleave.stop.prevent="fileDragLeave">{{ $t('release_to_send_files') }}</div>
-    <div v-if="!mainStore.videosCardView" class="media-grid" :class="{ 'select-mode': checked }">
-      <section
+
+    <!-- Grouped by taken time -->
+    <template v-if="isGroupMode">
+      <template v-if="loading && items.length === 0">
+        <div class="media-grid">
+          <section v-for="i in limit" :key="i" class="skeleton-image media-item"></section>
+        </div>
+      </template>
+      <div v-for="group in groupedItems" :key="group.date" class="image-group">
+        <div class="group-date-label">{{ group.dateLabel }}</div>
+        <div class="media-grid" :class="{ 'select-mode': checked }">
+          <MediaGridItem
+            v-for="{ item, idx } in group.entries"
+            :key="item.id"
+            :item="item"
+            :checked="checked"
+            :selected-ids="selectedIds"
+            :shift-effecting-ids="shiftEffectingIds"
+            :should-select="shouldSelect"
+            :data-type="dataType"
+            @item-click="handleItemClick($event, item, idx, view)"
+            @item-mouse-enter="handleMouseOverMode($event, idx)"
+            @toggle-select="toggleSelect($event, item, idx)"
+            @view="view(idx)"
+          >
+            <template #thumbnail>
+              <img v-if="imageErrorIds.includes(item.id)" :src="`/ficons/${getFileExtension(item.path)}.svg`" class="image svg" />
+              <img v-else class="image image-thumb" :src="getFileUrl(item.fileId, '&w=200&h=200')" @error="onImageError(item.id)" />
+            </template>
+            <template #info-right>{{ formatSeconds(item.duration) }}</template>
+          </MediaGridItem>
+        </div>
+      </div>
+    </template>
+
+    <!-- Regular grid view -->
+    <div v-else-if="!mainStore.videosCardView" class="media-grid" :class="{ 'select-mode': checked }">
+      <MediaGridItem
         v-for="(item, i) in items"
         :key="item.id"
-        class="media-item"
-        :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
-        @click.stop="handleItemClick($event, item, i, view)"
-        @mouseenter.stop="handleMouseOverMode($event, i)"
+        :item="item"
+        :checked="checked"
+        :selected-ids="selectedIds"
+        :shift-effecting-ids="shiftEffectingIds"
+        :should-select="shouldSelect"
+        :data-type="dataType"
+        @item-click="handleItemClick($event, item, i, view)"
+        @item-mouse-enter="handleMouseOverMode($event, i)"
+        @toggle-select="toggleSelect($event, item, i)"
+        @view="view(i)"
       >
-        <img v-if="imageErrorIds.includes(item.id)" :src="`/ficons/${getFileExtension(item.path)}.svg`" class="image svg" />
-        <img v-else class="image image-thumb" :src="getFileUrl(item.fileId, '&w=200&h=200')" @error="onImageError(item.id)" />
-        <v-icon-button v-if="shiftEffectingIds.includes(item.id)" class="btn-checkbox" @click.stop="toggleSelect($event, item, i)">
-            <i-material-symbols:check-circle-rounded v-if="shouldSelect" />
-            <i-material-symbols:check-circle-outline-rounded v-else />
-        </v-icon-button>
-        <v-icon-button v-else-if="selectedIds.includes(item.id)" class="btn-checkbox" @click.stop="toggleSelect($event, item, i)">
-            <i-material-symbols:check-circle-rounded />
-        </v-icon-button>
-        <template v-else>
-          <v-icon-button class="btn-checkbox" @click.stop="toggleSelect($event, item, i)">
-              <i-material-symbols:check-circle-rounded v-if="selectedIds.includes(item.id)" />
-              <i-material-symbols:check-circle-outline-rounded v-else />
-          </v-icon-button>
+        <template #thumbnail>
+          <img v-if="imageErrorIds.includes(item.id)" :src="`/ficons/${getFileExtension(item.path)}.svg`" class="image svg" />
+          <img v-else class="image image-thumb" :src="getFileUrl(item.fileId, '&w=200&h=200')" @error="onImageError(item.id)" />
         </template>
-        <v-icon-button v-if="checked" v-tooltip="$t('open')" class="btn-zoom sm" @click.stop="view(i)">
-            <i-material-symbols:zoom-in-rounded />
-        </v-icon-button>
-        <div class="info" :class="{ 'has-tags': item.tags.length > 0 }">
-          <item-tags :tags="item.tags" :type="dataType" />
-          <span class="right">{{ ['SIZE_ASC', 'SIZE_DESC'].includes(videoSortBy) ? formatFileSize(item.size) : formatSeconds(item.duration) }}</span>
-        </div>
-      </section>
+        <template #info-right>{{ ['SIZE_ASC', 'SIZE_DESC'].includes(videoSortBy) ? formatFileSize(item.size) : formatSeconds(item.duration) }}</template>
+      </MediaGridItem>
       <template v-if="loading && items.length === 0">
         <section v-for="i in limit" :key="i" class="skeleton-image media-item"></section>
       </template>
@@ -160,7 +201,8 @@
     <div v-if="!loading && items.length === 0" class="no-data-placeholder">
       {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
     </div>
-    <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" :page-size="limit" :on-change-page-size="onChangePageSize" />
+    <v-pagination v-if="!scrollMode && total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" :page-size="limit" :on-change-page-size="onChangePageSize" />
+    <div v-if="scrollMode" ref="sentinel" class="scroll-sentinel"></div>
     <input ref="fileInput" style="display: none" type="file" accept="video/*" multiple @change="uploadChanged" />
     <input ref="dirFileInput" style="display: none" type="file" accept="video/*" multiple webkitdirectory mozdirectory directory @change="dirUploadChanged" />
   </div>
@@ -194,7 +236,7 @@ import type { ISource } from '@/components/lightbox/types'
 import { openModal } from '@/components/modal'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { DataType, FEATURE } from '@/lib/data'
-import { getDirFromPath, getSortItems, isVideo } from '@/lib/file'
+import { getDirFromPath, getSortItems, getVideoGroupByItems, isVideo } from '@/lib/file'
 import { useSearch } from '@/hooks/search'
 import { useKeyEvents } from '@/hooks/key-events'
 import { generateDownloadFileName } from '@/lib/format'
@@ -203,6 +245,8 @@ import { createBucketUploadTarget } from '@/hooks/media-upload'
 import { useMediaRestore, useMediaTrash } from '@/hooks/media-trash'
 import { hasFeature } from '@/lib/feature'
 import MediaPageActions from '@/components/media/MediaPageActions.vue'
+import MediaGridItem from '@/components/media/MediaGridItem.vue'
+import { useGroupedScroll } from '@/hooks/grouped-scroll'
 import KeyboardShortcutsModal from '@/components/KeyboardShortcutsModal.vue'
 import { mediaKeyboardShortcuts } from '@/lib/shortcuts/media'
 
@@ -308,6 +352,35 @@ const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(
 )
 const imageErrorIds = ref<string[]>([])
 const sortItems = getSortItems()
+const groupByItems = getVideoGroupByItems()
+const { noMore, sentinel, isGroupMode, scrollMode, groupedItems, setupSentinelObserver, teardownObserver, prefetchNext } = useGroupedScroll({
+  items,
+  getLoading: () => loading.value,
+  limit,
+  page,
+  doFetch: () => fetch(),
+  getScrollPaging: () => mainStore.videosScrollPaging,
+  getGroupBy: () => mainStore.videosGroupBy,
+})
+
+watch(
+  () => mainStore.videosGroupBy,
+  () => {
+    page.value = 1
+    noMore.value = false
+    items.value = []
+    fetch()
+  }
+)
+
+watch(
+  () => mainStore.videosScrollPaging,
+  () => {
+    page.value = 1
+    items.value = []
+    fetch()
+  }
+)
 
 const sources = computed<ISource[]>(() => {
   return items.value.map((it: IVideoItem) => ({
@@ -337,8 +410,17 @@ const { loading, fetch } = initLazyQuery({
         for (const item of data.videos) {
           list.push({ ...item, fileId: getFileId(urlTokenKey.value, item.path, item.id) })
         }
-        items.value = list
+        if (scrollMode.value && page.value > 1) {
+          const existingIds = new Set(items.value.map((i) => i.id))
+          items.value = items.value.concat(list.filter((i) => !existingIds.has(i.id)))
+        } else {
+          items.value = list
+        }
         total.value = data.videoCount
+        if (scrollMode.value) {
+          noMore.value = list.length < limit.value
+          prefetchNext()
+        }
       }
     }
   },
@@ -347,7 +429,7 @@ const { loading, fetch } = initLazyQuery({
     offset: (page.value - 1) * limit.value,
     limit: limit.value,
     query: q.value,
-    sortBy: videoSortBy.value,
+    sortBy: isGroupMode.value ? 'TAKEN_AT_DESC' : videoSortBy.value,
   }),
 })
 
@@ -410,6 +492,9 @@ function sort(value: string) {
     return
   }
   sorting.value = true
+  page.value = 1
+  noMore.value = false
+  items.value = []
   videoSortBy.value = value
 }
 
@@ -511,6 +596,9 @@ onActivated(() => {
   emitter.on('upload_task_done', uploadTaskDoneHandler)
   window.addEventListener('keydown', pageKeyDown)
   window.addEventListener('keyup', pageKeyUp)
+  if (scrollMode.value) {
+    setTimeout(setupSentinelObserver, 100)
+  }
 })
 
 onDeactivated(() => {
@@ -521,5 +609,6 @@ onDeactivated(() => {
   emitter.off('upload_task_done', uploadTaskDoneHandler)
   window.removeEventListener('keydown', pageKeyDown)
   window.removeEventListener('keyup', pageKeyUp)
+  teardownObserver()
 })
 </script>

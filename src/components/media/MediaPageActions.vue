@@ -21,7 +21,7 @@
       @click="onToggleUiMode"
     />
 
-    <v-dropdown v-if="!checked" v-model="moreMenu">
+    <v-dropdown v-if="!checked && !hideMoreMenu && !showViewOptions" v-model="moreMenu">
       <template #trigger>
         <v-icon-button v-tooltip="$t('sort')">
           <i-material-symbols:sort-rounded />
@@ -43,10 +43,26 @@
       </div>
     </v-dropdown>
 
+
+
     <ViewToggleButtons
-      v-if="showViewToggle && !isPhone"
+      v-if="showViewToggle && !isPhone && !hideViewToggle"
       :card-view="safeCardView"
       @update:card-view="(value: boolean) => onUpdateCardView(value)"
+    />
+
+    <ViewOptionsPanel
+      v-if="!checked && showViewOptions"
+      :show-group-by="showGroupBy"
+      :group-by-items="groupByItems"
+      :group-by="groupBy"
+      :scroll-paging="scrollPaging ?? false"
+      :sort-by="sortBy"
+      :sort-items="sortItems"
+      :on-open-keyboard-shortcuts="onOpenKeyboardShortcuts"
+      @update:groupBy="emit('update:groupBy', $event)"
+      @update:scrollPaging="emit('update:scrollPaging', $event)"
+      @update:sortBy="onSort($event)"
     />
   </template>
 
@@ -76,7 +92,7 @@
     </template>
 
     <ViewToggleButtons
-      v-else-if="showViewToggle"
+      v-else-if="showViewToggle && !hideViewToggle"
       :card-view="safeCardView"
       @update:card-view="(value: boolean) => onUpdateCardView(value)"
     />
@@ -87,11 +103,11 @@
 import { computed } from 'vue'
 import ViewToggleButtons from '@/components/ViewToggleButtons.vue'
 import UIModeToggleButton from '@/components/UIModeToggleButton.vue'
+import ViewOptionsPanel from '@/components/media/ViewOptionsPanel.vue'
 
 type UIMode = 'view' | 'edit'
-
 type SortItem = { label: string; value: string }
-
+type GroupByItem = { label: string; value: string }
 type Placement = 'top' | 'secondary'
 
 const props = defineProps<{
@@ -117,11 +133,23 @@ const props = defineProps<{
   onOpenKeyboardShortcuts?: () => void
   onSort: (value: string) => void
   onUpdateCardView?: (value: boolean) => void
+
+  hideMoreMenu?: boolean
+  hideViewToggle?: boolean
+
+  // ViewOptionsPanel
+  showViewOptions?: boolean
+  showGroupBy?: boolean
+  groupByItems?: GroupByItem[]
+  groupBy?: string
+  scrollPaging?: boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'update:uploadMenuVisible', value: boolean): void
   (e: 'update:moreMenuVisible', value: boolean): void
+  (e: 'update:groupBy', value: string): void
+  (e: 'update:scrollPaging', value: boolean): void
 }>()
 
 const uploadMenu = computed({

@@ -112,6 +112,17 @@ export default {
     name_asc: 'Name (A to Z)',
     name_desc: 'Name (Z to A)',
   },
+  group_by: {
+    label: 'Group By',
+    none: 'None',
+    taken_time: 'Taken Time',
+  },
+  paging: {
+    label: 'Paging',
+    number: 'Number paging',
+    scroll: 'Infinite scroll',
+  },
+  view_options: 'View Options',
   print: 'Print',
   cancel: 'Cancel',
   ok: 'OK',

@@ -164,10 +164,13 @@ export interface IAudio extends IMedia {
   duration: number
 }
 
-export type IImage = IMedia
+export interface IImage extends IMedia {
+  takenAt?: string
+}
 
 export interface IVideo extends IMedia {
   duration: number
+  takenAt?: string
 }
 
 export interface IPlaylistAudio {

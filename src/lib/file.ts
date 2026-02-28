@@ -70,6 +70,39 @@ export function getSortItems() {
   ]
 }
 
+export function getImageSortItems() {
+  return getSortItems()
+}
+
+export function getImageGroupByItems() {
+  return [
+    { label: 'group_by.none', value: '' },
+    { label: 'group_by.taken_time', value: 'TAKEN_AT' },
+  ]
+}
+
+export function getVideoGroupByItems() {
+  return [
+    { label: 'group_by.none', value: '' },
+    { label: 'group_by.taken_time', value: 'TAKEN_AT' },
+  ]
+}
+
+export function getGroupDateKey(takenAt: string | undefined | null, createdAt: string): string {
+  const d = takenAt ? new Date(takenAt) : new Date(createdAt)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+export function formatGroupDateLabel(dateKey: string): string {
+  // Parse as local noon to avoid DST/timezone boundary issues
+  return new Intl.DateTimeFormat(undefined, {
+    weekday: 'short',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  }).format(new Date(dateKey + 'T12:00:00'))
+}
+
 export async function getVideoData(videoFile: File): Promise<{ src: string; duration: number; thumbnail: string; width: number; height: number }> {
   return new Promise((resolve) => {
     const video = document.createElement('video')

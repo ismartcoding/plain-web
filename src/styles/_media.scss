@@ -215,3 +215,22 @@
     animation: rotate-icon 250ms ease-out forwards;
   }
 }
+
+.image-group {
+  margin-bottom: 8px;
+}
+
+.group-date-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+  padding: 12px 8px 6px;
+  user-select: none;
+}
+
+.scroll-sentinel {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0;
+  min-height: 1px;
+}
