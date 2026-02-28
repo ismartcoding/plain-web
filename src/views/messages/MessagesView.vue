@@ -10,6 +10,9 @@
         <span v-if="contactAddress" class="chat-header-address">{{ contactAddress }}</span>
       </div>
       <div class="chat-header-actions">
+        <v-icon-button v-tooltip="$t('export_sms')" @click.stop="openExport">
+          <i-material-symbols:download-rounded />
+        </v-icon-button>
         <v-icon-button v-tooltip="$t('call')" @click.stop="callContact">
           <i-material-symbols:call-outline-rounded />
         </v-icon-button>
@@ -116,6 +119,7 @@ import { useTags } from '@/hooks/tags'
 import emitter from '@/plugins/eventbus'
 import { openModal } from '@/components/modal'
 import SendSmsModal from '@/components/messages/SendSmsModal.vue'
+import ExportSmsModal from '@/components/messages/ExportSmsModal.vue'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { DataType } from '@/lib/data'
 import { callGQL, initMutation, sendSmsGQL } from '@/lib/api/mutation'
@@ -268,6 +272,14 @@ function addItemToTags(item: IMessage) {
 
 function openSendSms(number = '', body = '') {
   openModal(SendSmsModal, { number, body })
+}
+
+function openExport() {
+  openModal(ExportSmsModal, {
+    items: [...sortedItems.value],
+    contactName: contactName.value,
+    urlTokenKey: urlTokenKey.value,
+  })
 }
 
 function backToList() {

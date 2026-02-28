@@ -52,6 +52,7 @@ declare module 'vue' {
     EditContactModal: typeof import('./src/components/EditContactModal.vue')['default']
     EditToolbar: typeof import('./src/components/EditToolbar.vue')['default']
     EditValueModal: typeof import('./src/components/EditValueModal.vue')['default']
+    ExportSmsModal: typeof import('./src/components/messages/ExportSmsModal.vue')['default']
     FeedEntryActionButtons: typeof import('./src/components/feeds/FeedEntryActionButtons.vue')['default']
     FeedEntrySkeletonView: typeof import('./src/components/feeds/FeedEntrySkeletonView.vue')['default']
     FeedEntryToolbar: typeof import('./src/components/feeds/FeedEntryToolbar.vue')['default']

@@ -21,6 +21,9 @@
             {{ $t(item.label) }}
           </div>
         </v-dropdown>
+        <v-icon-button v-tooltip="$t('export_sms')" @click.stop="openExport">
+          <i-material-symbols:download-rounded />
+        </v-icon-button>
         <v-icon-button v-tooltip="$t('send_sms')" @click.stop="openSendSms()">
           <i-material-symbols:sms-outline-rounded />
         </v-icon-button>
@@ -86,13 +89,14 @@ import { useLeftSidebarResize } from '@/hooks/sidebar'
 import { storeToRefs } from 'pinia'
 import { openModal } from '@/components/modal'
 import SendSmsModal from '@/components/messages/SendSmsModal.vue'
+import ExportSmsModal from '@/components/messages/ExportSmsModal.vue'
 import { decodeBase64 } from '@/lib/strutil'
 import { useContactName } from '@/hooks/contacts'
 import emitter from '@/plugins/eventbus'
 import VirtualList from '@/components/virtualscroll'
 
 const mainStore = useMainStore()
-const { app } = storeToRefs(useTempStore())
+const { app, urlTokenKey } = storeToRefs(useTempStore())
 const sortMenuVisible = ref(false)
 const sortItems = [
   { label: 'sort_by.date_desc', value: 'DATE_DESC' },
@@ -170,6 +174,15 @@ function openSendSms() {
   openModal(SendSmsModal, {
     number: '',
     body: '',
+  })
+}
+
+function openExport() {
+  openModal(ExportSmsModal, {
+    items: [],
+    query: '',
+    contactName: '',
+    urlTokenKey: urlTokenKey.value,
   })
 }
 
