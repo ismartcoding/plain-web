@@ -143,6 +143,25 @@
       </div>
     </div>
 
+    <!-- Clipboard Card -->
+    <div class="card phone-card">
+      <div class="card-content">
+        <h5 class="card-title">{{ $t('send_to_phone_clipboard') }}</h5>
+        <div class="phone-input-row">
+          <v-text-field v-model="clipText" :label="$t('clipboard_text')" class="phone-input" :error="clipTextError" :error-text="$t('valid.required')" @keyup.enter="sendClipboard">
+            <template #trailing-icon>
+              <v-icon-button @click.prevent="pasteClipboardText">
+                <i-material-symbols:content-paste-rounded />
+              </v-icon-button>
+            </template>
+          </v-text-field>
+          <v-filled-button class="call-btn" :loading="setClipLoading" @click.prevent="sendClipboard">
+            {{ $t('send') }}
+          </v-filled-button>
+        </div>
+      </div>
+    </div>
+
     <!-- Phone Call Card -->
     <div class="card phone-card">
       <div class="card-content">
@@ -174,7 +193,7 @@ import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { sumBy } from 'lodash-es'
 import { useMainStore } from '@/stores/main'
-import { callGQL, initMutation } from '@/lib/api/mutation'
+import { callGQL, setClipGQL, initMutation } from '@/lib/api/mutation'
 import { replacePath } from '@/plugins/router'
 import type { IHomeStats, IStorageMount } from '@/lib/interfaces'
 import { buildQuery } from '@/lib/search'
@@ -240,6 +259,31 @@ const callPhone = () => {
 
 watch(callNumber, () => {
   callNumberError.value = false
+})
+
+const clipText = ref('')
+const clipTextError = ref(false)
+
+function pasteClipboardText() {
+  navigator.clipboard.readText().then((text) => {
+    clipText.value = text
+  })
+}
+
+const { mutate: mutateSetClip, loading: setClipLoading } = initMutation({
+  document: setClipGQL,
+})
+
+const sendClipboard = () => {
+  if (!clipText.value) {
+    clipTextError.value = true
+    return
+  }
+  mutateSetClip({ text: clipText.value })
+}
+
+watch(clipText, () => {
+  clipTextError.value = false
 })
 
 initQuery({

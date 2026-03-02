@@ -23,18 +23,18 @@
       >
         <template #leading-icon>
           <div class="leading-icons">
-            <button class="btn-icon" @click="sendImages">
+            <v-icon-button @click="sendImages">
               <i-material-symbols:image-outline-rounded />
-            </button>
-            <button class="btn-icon" @click="sendFiles">
+            </v-icon-button>
+            <v-icon-button @click="sendFiles">
               <i-material-symbols:folder-outline-rounded />
-            </button>
+            </v-icon-button>
           </div>
         </template>
         <template #trailing-icon>
-          <button class="btn-icon btn-send" :disable="createLoading" @click="handleSend">
+          <v-icon-button class="btn-send" :disabled="createLoading" @click="handleSend">
             <i-material-symbols:send-outline-rounded />
-          </button>
+          </v-icon-button>
         </template>
       </v-text-field>
     </div>

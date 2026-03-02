@@ -45,6 +45,8 @@ export default {
   call: 'அழை',
   send: 'அனுப்பு',
   send_sms: 'SMS அனுப்பு',
+  send_mms: 'MMS அனுப்பு',
+  upload_failed: 'பதிவேற்றம் தோல்வி',
   call_phone: 'போனில் அழை',
   device_info: 'கருவி தகவல்',
   basic_info: 'அடிப்படை தகவல்',

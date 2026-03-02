@@ -45,6 +45,8 @@ export default {
   call: 'Ara',
   send: 'Gönder',
   send_sms: 'SMS gönder',
+  send_mms: 'MMS Gönder',
+  upload_failed: 'Yükleme başarısız',
   call_phone: 'Telefonla ara',
   device_info: 'Cihaz bilgisi',
   basic_info: 'Temel bilgi',

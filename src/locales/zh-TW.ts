@@ -45,6 +45,8 @@ export default {
   call: '通話',
   send: '發送',
   send_sms: '發送簡訊',
+  send_mms: '傳送多媒體簡訊',
+  upload_failed: '上傳失敗',
   call_phone: '撥打電話',
   device_info: '裝置資訊',
   basic_info: '基本資訊',

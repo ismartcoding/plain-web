@@ -419,9 +419,21 @@ export const callGQL = gql`
   }
 `
 
+export const setClipGQL = gql`
+  mutation setClip($text: String!) {
+    setClip(text: $text)
+  }
+`
+
 export const sendSmsGQL = gql`
   mutation sendSms($number: String!, $body: String!) {
     sendSms(number: $number, body: $body)
+  }
+`
+
+export const sendMmsGQL = gql`
+  mutation sendMms($number: String!, $body: String!, $attachmentPaths: [String!]!, $threadId: String!) {
+    sendMms(number: $number, body: $body, attachmentPaths: $attachmentPaths, threadId: $threadId)
   }
 `
 
@@ -584,5 +596,11 @@ export const updateBookmarkGroupGQL = gql`
 export const deleteBookmarkGroupGQL = gql`
   mutation deleteBookmarkGroup($id: ID!) {
     deleteBookmarkGroup(id: $id)
+  }
+`
+
+export const deleteFilesGQL = gql`
+  mutation deleteFiles($paths: [String!]!) {
+    deleteFiles(paths: $paths)
   }
 `

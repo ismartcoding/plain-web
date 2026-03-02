@@ -45,6 +45,8 @@ export default {
   call: 'কল',
   send: 'পাঠান',
   send_sms: 'এসএমএস পাঠান',
+  send_mms: 'এমএমএস পাঠান',
+  upload_failed: 'আপলোড ব্যর্থ',
   call_phone: 'ফোনে কল',
   device_info: 'ডিভাইস তথ্য',
   basic_info: 'মৌলিক তথ্য',

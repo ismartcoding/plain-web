@@ -39,6 +39,7 @@ type Events = {
   screen_mirror_audio_granted: boolean
   bookmark_updated: any
   download_progress: any[]
+  sms_sent: undefined
 }
 
 const emitter: Emitter<Events> = mitt<Events>()

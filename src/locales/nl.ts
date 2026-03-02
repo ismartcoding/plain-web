@@ -45,6 +45,8 @@ export default {
   call: 'Oproep',
   send: 'Verzenden',
   send_sms: 'SMS verzenden',
+  send_mms: 'MMS verzenden',
+  upload_failed: 'Upload mislukt',
   call_phone: 'Telefoonoproep',
   device_info: 'Apparaatinformatie',
   basic_info: 'Basisinformatie',

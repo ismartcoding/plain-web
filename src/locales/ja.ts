@@ -45,6 +45,8 @@ export default {
   call: 'コール',
   send: '送信',
   send_sms: 'SMSを送信',
+  send_mms: 'MMS送信',
+  upload_failed: 'アップロード失敗',
   call_phone: '電話する',
   device_info: 'デバイス情報',
   basic_info: '基本情報',
