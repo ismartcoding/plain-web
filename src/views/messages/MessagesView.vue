@@ -841,6 +841,7 @@ onUnmounted(() => {
   font-size: 0.75rem;
   color: var(--md-sys-color-on-surface-variant);
   padding: 4px 0;
+  width: 100%;
 }
 
 .chat-bubble-with-actions {

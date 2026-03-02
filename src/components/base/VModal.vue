@@ -106,7 +106,7 @@ defineExpose({
 
 .v-modal-container {
   position: relative;
-  min-width: 360px;
+  min-width: 400px;
   max-width: 90vw;
   max-height: 90vh;
   background-color: var(--md-sys-color-surface-container-high, var(--md-sys-color-surface-variant));
