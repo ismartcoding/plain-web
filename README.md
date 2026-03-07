@@ -1,6 +1,6 @@
 # Plain Web
 
-This is web ui source code of [PlainApp](https://github.com/ismartcoding/plain-app).
+This is web ui source code of [PlainApp](https://github.com/plainhub/plain-app).
 
 PlainApp is an open-source app that lets you securely manage your phone from a web browser. Access files, media, contacts, SMS, calls, and more through a simple, easy-to-use interface on your desktop.
 

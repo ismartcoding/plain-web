@@ -54,6 +54,7 @@ const EventType: { [key: number]: string } = {
   14: 'screen_mirror_audio_granted',
   15: 'bookmark_updated',
   16: 'download_progress',
+  18: 'channels_updated',
 }
 
 async function connect() {

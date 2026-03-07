@@ -1,7 +1,7 @@
 import type { ApolloCache, DocumentNode } from '@apollo/client/core'
 import gql from 'graphql-tag'
 import { useMutation } from '@vue/apollo-composable'
-import { chatItemFragment, feedEntryFragment, feedFragment, fileFragment, noteFragment, playlistAudioFragment, tagFragment, bookmarkFragment, bookmarkGroupFragment } from './fragments'
+import { chatItemFragment, chatChannelFragment, feedEntryFragment, feedFragment, fileFragment, noteFragment, playlistAudioFragment, tagFragment, bookmarkFragment, bookmarkGroupFragment } from './fragments'
 import { logErrorMessages } from '@vue/apollo-util'
 import emitter from '@/plugins/eventbus'
 
@@ -125,6 +125,66 @@ export const sendChatItemGQL = gql`
 export const deleteChatItemGQL = gql`
   mutation deleteChatItem($id: ID!) {
     deleteChatItem(id: $id)
+  }
+`
+
+export const createChatChannelGQL = gql`
+  mutation createChatChannel($name: String!) {
+    createChatChannel(name: $name) {
+      ...ChatChannelFragment
+    }
+  }
+  ${chatChannelFragment}
+`
+
+export const updateChatChannelGQL = gql`
+  mutation updateChatChannel($id: ID!, $name: String!) {
+    updateChatChannel(id: $id, name: $name) {
+      ...ChatChannelFragment
+    }
+  }
+  ${chatChannelFragment}
+`
+
+export const deleteChatChannelGQL = gql`
+  mutation deleteChatChannel($id: ID!) {
+    deleteChatChannel(id: $id)
+  }
+`
+
+export const leaveChatChannelGQL = gql`
+  mutation leaveChatChannel($id: ID!) {
+    leaveChatChannel(id: $id)
+  }
+`
+
+export const addChatChannelMemberGQL = gql`
+  mutation addChatChannelMember($id: ID!, $peerId: String!) {
+    addChatChannelMember(id: $id, peerId: $peerId) {
+      ...ChatChannelFragment
+    }
+  }
+  ${chatChannelFragment}
+`
+
+export const removeChatChannelMemberGQL = gql`
+  mutation removeChatChannelMember($id: ID!, $peerId: String!) {
+    removeChatChannelMember(id: $id, peerId: $peerId) {
+      ...ChatChannelFragment
+    }
+  }
+  ${chatChannelFragment}
+`
+
+export const acceptChatChannelInviteGQL = gql`
+  mutation acceptChatChannelInvite($id: ID!) {
+    acceptChatChannelInvite(id: $id)
+  }
+`
+
+export const declineChatChannelInviteGQL = gql`
+  mutation declineChatChannelInvite($id: ID!) {
+    declineChatChannelInvite(id: $id)
   }
 `
 

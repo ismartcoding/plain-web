@@ -3,6 +3,7 @@ import { useLazyQuery, useQuery } from '@vue/apollo-composable'
 import type { DocumentParameter, OptionsParameter } from '@vue/apollo-composable/dist/useQuery'
 import {
   chatItemFragment,
+  chatChannelFragment,
   messageFragment,
   messageConversationFragment,
   contactFragment,
@@ -131,6 +132,15 @@ export const peersGQL = gql`
       updatedAt
     }
   }
+`
+
+export const chatChannelsGQL = gql`
+  query {
+    chatChannels {
+      ...ChatChannelFragment
+    }
+  }
+  ${chatChannelFragment}
 `
 
 export const fileInfoGQL = gql`

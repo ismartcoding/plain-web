@@ -77,3 +77,136 @@
     border-radius: 8px 0 8px 0;
   }
 }
+
+.chat-detail-card {
+  gap: 12px;
+
+  .key-value:last-child {
+    padding-block-end: 0;
+  }
+
+  .key {
+    color: var(--md-sys-color-on-surface-variant);
+    font-weight: 500;
+  }
+}
+
+.chat-section-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 16px 0 8px;
+}
+
+.chat-member-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.chat-member-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &.clickable {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background: var(--md-sys-color-surface-container-high);
+    }
+  }
+}
+
+.chat-member-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chat-member-name {
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-secondary-text {
+  font-size: 0.75rem;
+  color: var(--md-sys-color-on-surface-variant);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--md-sys-color-surface-container-highest);
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  text-transform: capitalize;
+
+  &.joined,
+  &.paired,
+  &.online,
+  &.connected {
+    background: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+  }
+
+  &.pending,
+  &.invite {
+    background: var(--md-sys-color-tertiary-container);
+    color: var(--md-sys-color-on-tertiary-container);
+  }
+
+  &.offline,
+  &.disconnected,
+  &.danger {
+    background: var(--md-sys-color-error-container);
+    color: var(--md-sys-color-on-error-container);
+  }
+}
+
+.chat-confirm-block {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: var(--pl-shape-m);
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+}
+
+.chat-confirm-icon {
+  flex-shrink: 0;
+  font-size: 1.25rem;
+  margin-top: 1px;
+}
+
+.chat-confirm-text {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}

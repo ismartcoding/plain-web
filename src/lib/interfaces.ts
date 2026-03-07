@@ -216,6 +216,7 @@ export interface IChatItem extends IData {
   id: string
   fromId: string
   toId: string
+  channelId: string
   createdAt: string
   content: string
   _content: any
@@ -230,6 +231,22 @@ export interface IPeer {
   status: string
   port: number
   deviceType: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface IChatChannelMember {
+  id: string
+  status: string
+}
+
+export interface IChatChannel {
+  id: string
+  name: string
+  owner: string
+  members: IChatChannelMember[]
+  version: number
+  status: string
   createdAt: string
   updatedAt: string
 }

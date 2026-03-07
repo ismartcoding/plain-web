@@ -45,7 +45,7 @@
     </template>
   </div>
   <ChatInput
-    v-if="!peer || peer.status === 'paired'"
+    v-if="isChannel || !peer || peer.status === 'paired'"
     v-model="chatText"
     :create-loading="sendLoading"
     @send-message="send"
@@ -66,16 +66,17 @@ import ChatImages from '@/components/chat/ChatImages.vue'
 import ChatLinkPreviews from '@/components/chat/ChatLinkPreviews.vue'
 import ChatFiles from '@/components/chat/ChatFiles.vue'
 import ChatInput from '@/components/ChatInput.vue'
-import { initQuery, initLazyQuery, chatItemsGQL, peersGQL } from '@/lib/api/query'
+import { initQuery, initLazyQuery, chatItemsGQL, peersGQL, chatChannelsGQL } from '@/lib/api/query'
 import { sendChatItemGQL, deleteChatItemGQL, initMutation, insertCache } from '@/lib/api/mutation'
 import { chatItemFragment } from '@/lib/api/fragments'
 import toast from '@/components/toaster'
 import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
-import type { IChatItem, IPeer } from '@/lib/interfaces'
+import type { IChatItem, IPeer, IChatChannel } from '@/lib/interfaces'
 import { useChatFilesUpload } from '@/hooks/upload'
 import { openModal } from '@/components/modal'
 import ChatInfoModal from './ChatInfoModal.vue'
+import ChannelInfoModal from './ChannelInfoModal.vue'
 import { encodeBase64, shortUUID, addLinksToURLs } from '@/lib/strutil'
 import { buildQuery } from '@/lib/search'
 import { replacePath } from '@/plugins/router'
@@ -109,6 +110,7 @@ const uploadToMessage = new Map<string, string>()
 const sendingAgg = reactive<Record<string, { uploaded: number; speed: number }>>({})
 const deleteId = ref('')
 const peers = ref<IPeer[]>([])
+const channels = ref<IChatChannel[]>([])
 const isActive = ref(false)
 const downloadProgress = reactive<Record<string, { downloaded: number; total: number; speed: number; status: string }>>({})
 
@@ -121,7 +123,7 @@ function getChatIdFromRoute(rawId: string) {
     if (!urlTokenKey.value) return 'local'
     const bits = sjcl.codec.base64.toBits(rawId)
     const decrypted = chachaDecrypt(urlTokenKey.value, bits)
-    if (decrypted.startsWith('peer:')) {
+    if (decrypted.startsWith('peer:') || decrypted.startsWith('channel:')) {
       return decrypted
     }
   } catch {
@@ -137,18 +139,26 @@ const routeId = computed(() => {
 })
 const chatId = computed(() => getChatIdFromRoute(routeId.value))
 const peerId = computed(() => (chatId.value.startsWith('peer:') ? chatId.value.slice(5) : ''))
+const channelId = computed(() => (chatId.value.startsWith('channel:') ? chatId.value.slice(8) : ''))
+const isChannel = computed(() => !!channelId.value)
 const { appDir } = app.value
 
 const peer = computed(() => peers.value.find((p) => p.id === peerId.value) ?? null)
+const channel = computed(() => channels.value.find((c) => c.id === channelId.value) ?? null)
 
 const pageTitle = computed(() => {
   if (chatId.value === 'local') return app.value?.deviceName ?? t('my_phone')
+  if (isChannel.value) return channel.value?.name ?? channelId.value
   return peer.value?.name ?? peerId.value
 })
 
 function getSenderName(chatItem: IChatItem) {
   if (chatItem.fromId === 'me') return t('me')
   if (chatId.value === 'local') return app.value?.deviceName ?? t('my_phone')
+  if (isChannel.value) {
+    const senderPeer = peers.value.find((p) => p.id === chatItem.fromId)
+    return senderPeer?.name ?? chatItem.fromId.substring(0, 8)
+  }
   return peer.value?.name ?? chatItem.fromId
 }
 
@@ -168,12 +178,21 @@ function getComponent(type: string) {
   return ({ images: ChatImages, files: ChatFiles, linkPreviews: ChatLinkPreviews } as any)[type]
 }
 
-// Load peers for sidebar title display
+// Load peers for sender name display
 initLazyQuery({
   handle: (data: { peers: IPeer[] }) => {
     if (data?.peers) peers.value = data.peers
   },
   document: peersGQL,
+  variables: () => ({}),
+}).fetch()
+
+// Load channels for channel title display
+initLazyQuery({
+  handle: (data: { chatChannels: IChatChannel[] }) => {
+    if (data?.chatChannels) channels.value = data.chatChannels.map((c: any) => ({ ...c }))
+  },
+  document: chatChannelsGQL,
   variables: () => ({}),
 }).fetch()
 
@@ -268,6 +287,7 @@ async function handleContentUpload(files: File[], contentType: string, options: 
     id: 'new_' + shortUUID(),
     fromId: 'me',
     toId: chatId.value,
+    channelId: channelId.value,
     createdAt: new Date().toISOString(),
     content: JSON.stringify(_content),
     _content,
@@ -302,6 +322,7 @@ function send() {
       id: tempId,
       fromId: 'me',
       toId: chatId.value,
+      channelId: channelId.value,
       createdAt: new Date().toISOString(),
       content: JSON.stringify({ type: 'text', value: { text: chatText.value } }),
       _content: { type: 'text', value: { text: chatText.value } },
@@ -344,10 +365,22 @@ function deleteMessage(id: string) {
 }
 
 function openChatInfo() {
-  openModal(ChatInfoModal, {
-    peer: peer.value,
-    onClear: clearMessages,
-  })
+  if (isChannel.value && channel.value) {
+    openModal(ChannelInfoModal, {
+      channel: channel.value,
+      peers: peers.value,
+      selfId: '', // web client doesn't have a peer id
+      onClear: clearMessages,
+      onDeleted: () => {
+        replacePath(store, '/chat')
+      },
+    })
+  } else {
+    openModal(ChatInfoModal, {
+      peer: peer.value,
+      onClear: clearMessages,
+    })
+  }
 }
 
 async function clearMessages(): Promise<void> {
@@ -398,8 +431,13 @@ onMounted(() => {
     const client = resolveClient('a')
     const items = []
     for (const item of data) {
-      const itemToId = item.toId === 'local' ? 'local' : `peer:${item.toId}`
-      if (itemToId !== chatId.value && item.fromId !== peerId.value) continue
+      let itemChatId: string
+      if (item.channelId) {
+        itemChatId = `channel:${item.channelId}`
+      } else {
+        itemChatId = item.toId === 'local' ? 'local' : `peer:${item.toId}`
+      }
+      if (itemChatId !== chatId.value && item.fromId !== peerId.value) continue
       let itemData = null
       if (item.data) {
         itemData = item.data
@@ -430,7 +468,10 @@ onMounted(() => {
   emitter.on('message_deleted', _handlers.message_deleted)
 
   _handlers.message_cleared = (toId: string) => {
-    const clearedChatId = toId === 'local' ? 'local' : `peer:${toId}`
+    let clearedChatId: string
+    if (toId === 'local') clearedChatId = 'local'
+    else if (toId.startsWith('channel:')) clearedChatId = toId
+    else clearedChatId = `peer:${toId}`
     if (clearedChatId !== chatId.value) return
     const client = resolveClient('a')
     client.cache.writeQuery({
@@ -485,6 +526,11 @@ onMounted(() => {
     Object.assign(downloadProgress, newProgress)
   }
   emitter.on('download_progress', _handlers.download_progress)
+
+  _handlers.channels_updated = (data: any[]) => {
+    if (data) channels.value = data.map((c: any) => ({ ...c }))
+  }
+  emitter.on('channels_updated', _handlers.channels_updated)
 })
 
 onUnmounted(() => {

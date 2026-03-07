@@ -60,6 +60,7 @@ export const chatItemFragment = gql`
     id
     fromId
     toId
+    channelId
     createdAt
     content
     _content @client
@@ -391,4 +392,27 @@ export const bookmarkGroupFragment = gql`
     createdAt
     updatedAt
   }
+`
+
+export const chatChannelMemberFragment = gql`
+  fragment ChatChannelMemberFragment on ChatChannelMember {
+    id
+    status
+  }
+`
+
+export const chatChannelFragment = gql`
+  fragment ChatChannelFragment on ChatChannel {
+    id
+    name
+    owner
+    members {
+      ...ChatChannelMemberFragment
+    }
+    version
+    status
+    createdAt
+    updatedAt
+  }
+  ${chatChannelMemberFragment}
 `

@@ -2,7 +2,7 @@
   <v-modal @close="close">
     <template #headline>{{ $t('chat_info') }}</template>
     <template #content>
-      <div v-if="peer" class="info-list">
+      <section v-if="peer" class="card chat-detail-card">
         <div class="key-value">
           <span class="key">{{ $t('ip_address') }}</span>
           <span class="value">{{ peer.ip }}</span>
@@ -17,10 +17,15 @@
         </div>
         <div class="key-value">
           <span class="key">{{ $t('status') }}</span>
-          <span class="value">{{ peer.status }}</span>
+          <span class="value">
+            <span class="chat-status-badge" :class="peer.status">{{ peer.status }}</span>
+          </span>
         </div>
+      </section>
+      <div v-if="confirming" class="chat-confirm-block">
+        <i-material-symbols:warning-outline-rounded class="chat-confirm-icon" />
+        <p class="chat-confirm-text">{{ $t('clear_messages_confirm') }}</p>
       </div>
-      <p v-if="confirming" class="confirm-text">{{ $t('clear_messages_confirm') }}</p>
     </template>
     <template #actions>
       <template v-if="confirming">
@@ -63,18 +68,3 @@ async function doClear() {
   }
 }
 </script>
-
-<style lang="scss" scoped>
-.info-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.confirm-text {
-  margin-top: 12px;
-  color: var(--md-sys-color-error);
-  font-size: 0.875rem;
-}
-</style>
