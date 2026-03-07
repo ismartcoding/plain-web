@@ -72,9 +72,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { PropType } from 'vue'
+import type { IChatChannel } from '@/lib/interfaces'
 import { popModal, openModal } from '@/components/modal'
 import { initMutation, deleteChatChannelGQL, leaveChatChannelGQL, addChatChannelMemberGQL, removeChatChannelMemberGQL } from '@/lib/api/mutation'
-import type { IChatChannel, IPeer } from '@/lib/interfaces'
+import type { IPeer } from '@/lib/interfaces'
 import RenameChannelModal from './RenameChannelModal.vue'
 
 const props = defineProps({
@@ -83,14 +84,17 @@ const props = defineProps({
   selfId: { type: String, default: '' },
   onClear: { type: Function as PropType<() => Promise<void>>, required: true },
   onDeleted: { type: Function as PropType<() => void>, default: () => {} },
+  onMemberUpdated: { type: Function as PropType<() => void>, default: () => {} },
 })
+
+const channel = ref({ ...props.channel })
 
 const confirmAction = ref('')
 const actionLoading = ref(false)
 
-const isOwner = computed(() => props.channel.owner === 'me')
+const isOwner = computed(() => channel.value.owner === 'me')
 
-const memberIds = computed(() => new Set(props.channel.members.map((m) => m.id)))
+const memberIds = computed(() => new Set(channel.value.members.map((m) => m.id)))
 
 const availablePeers = computed(() =>
   props.peers.filter((p) => p.status === 'paired' && !memberIds.value.has(p.id))
@@ -103,8 +107,8 @@ function getMemberName(peerId: string) {
 }
 
 function getOwnerName() {
-  const peer = props.peers.find((p) => p.id === props.channel.owner)
-  return peer?.name ?? props.channel.owner.substring(0, 8)
+  const peer = props.peers.find((p) => p.id === channel.value.owner)
+  return peer?.name ?? channel.value.owner.substring(0, 8)
 }
 
 const { mutate: mutateDelete, onDone: onDeleteDone } = initMutation({
@@ -115,12 +119,22 @@ const { mutate: mutateLeave, onDone: onLeaveDone } = initMutation({
   document: leaveChatChannelGQL,
 })
 
-const { mutate: mutateAddMember } = initMutation({
+const { mutate: mutateAddMember, onDone: onAddMemberDone } = initMutation({
   document: addChatChannelMemberGQL,
 })
 
-const { mutate: mutateRemoveMember } = initMutation({
+const { mutate: mutateRemoveMember, onDone: onRemoveMemberDone } = initMutation({
   document: removeChatChannelMemberGQL,
+})
+
+onAddMemberDone((r: any) => {
+  if (r.data?.addChatChannelMember) channel.value = { ...r.data.addChatChannelMember }
+  props.onMemberUpdated()
+})
+
+onRemoveMemberDone((r: any) => {
+  if (r.data?.removeChatChannelMember) channel.value = { ...r.data.removeChatChannelMember }
+  props.onMemberUpdated()
 })
 
 onDeleteDone(() => {
@@ -137,9 +151,9 @@ async function doConfirmedAction() {
   actionLoading.value = true
   try {
     if (confirmAction.value === 'delete') {
-      mutateDelete({ id: props.channel.id })
+      mutateDelete({ id: channel.value.id })
     } else if (confirmAction.value === 'leave') {
-      mutateLeave({ id: props.channel.id })
+      mutateLeave({ id: channel.value.id })
     } else if (confirmAction.value === 'clear') {
       await props.onClear()
       popModal()
@@ -150,15 +164,15 @@ async function doConfirmedAction() {
 }
 
 function addMember(peerId: string) {
-  mutateAddMember({ id: props.channel.id, peerId })
+  mutateAddMember({ id: channel.value.id, peerId })
 }
 
 function removeMember(peerId: string) {
-  mutateRemoveMember({ id: props.channel.id, peerId })
+  mutateRemoveMember({ id: channel.value.id, peerId })
 }
 
 function openRename() {
-  openModal(RenameChannelModal, { channel: props.channel })
+  openModal(RenameChannelModal, { channel: channel.value })
 }
 
 function close() {

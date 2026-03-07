@@ -27,3 +27,6 @@ coverage
 *.sln
 *.sw?
 .yarn
+# i18n pipeline temp files
+scripts/i18n-todo.json
+scripts/i18n-translated.json

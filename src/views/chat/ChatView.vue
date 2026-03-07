@@ -188,13 +188,14 @@ initLazyQuery({
 }).fetch()
 
 // Load channels for channel title display
-initLazyQuery({
+const channelsQuery = initLazyQuery({
   handle: (data: { chatChannels: IChatChannel[] }) => {
     if (data?.chatChannels) channels.value = data.chatChannels.map((c: any) => ({ ...c }))
   },
   document: chatChannelsGQL,
   variables: () => ({}),
-}).fetch()
+})
+channelsQuery.fetch()
 
 const { loading, refetch } = initQuery({
   handle: async (data: any, error: string) => {
@@ -373,6 +374,9 @@ function openChatInfo() {
       onClear: clearMessages,
       onDeleted: () => {
         replacePath(store, '/chat')
+      },
+      onMemberUpdated: () => {
+        channelsQuery.fetch()
       },
     })
   } else {

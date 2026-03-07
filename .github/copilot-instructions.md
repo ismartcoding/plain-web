@@ -126,3 +126,50 @@ function handleDelete(ids: string[]) {
 ```
 
 `InitMutationParams` only accepts `{ document, options }`. Do not pass `variables`, `handle`, or `context` to `initMutation`.
+
+---
+
+## i18n Translation Workflow
+
+### When to use
+Run this workflow any time new keys are added to `src/locales/en-US.ts`, or when you suspect other locales have untranslated (still-English) strings.
+
+### How to trigger
+Tell Copilot:
+> **"同步翻译"** or **"sync i18n translations"** or **"检查并补全多语言翻译"**
+
+Copilot will run the three-step pipeline below.
+
+### Three-step pipeline
+
+```bash
+# Step 1 – detect missing keys and untranslated (English) values
+node scripts/i18n-find-untranslated.mjs
+# → writes scripts/i18n-todo.json  (grouped by locale)
+
+# Step 2 – translate only the affected keys via Google Translate (free, no API key)
+node scripts/i18n-translate-todo.mjs
+# → writes scripts/i18n-translated.json
+# → writes scripts/i18n-stable.json  (loanwords / brand names that are intentionally same)
+
+# Step 3 – apply translations back into the locale files
+node scripts/i18n-apply-todo.mjs
+
+# Verify clean
+node scripts/i18n-find-untranslated.mjs
+# → should print "Total: 0 missing, 0 untranslated"
+```
+
+### Key design decisions
+- Only the **delta** (missing/untranslated keys) is sent for translation — never the whole file. This minimises token/API usage.
+- Keys where Google Translate returns the same value as English (loanwords, brand names, tech terms like "Skype", "Kernel", "Screenshot") are recorded in `scripts/i18n-stable.json` and skipped in future runs.
+- Placeholder variables like `{count}` are protected before translation and restored afterwards.
+- Intermediate files (`i18n-todo.json`, `i18n-translated.json`) are in `scripts/` and are gitignored artifacts.
+
+### Scripts location
+| Script | Purpose |
+|--------|---------|
+| `scripts/i18n-find-untranslated.mjs` | Detect missing / English-value keys → `i18n-todo.json` |
+| `scripts/i18n-translate-todo.mjs` | Translate via Google Translate → `i18n-translated.json` |
+| `scripts/i18n-apply-todo.mjs` | Apply translations into locale `.ts` files |
+| `scripts/i18n-stable.json` | Cache of keys correctly staying as English (auto-managed) |
