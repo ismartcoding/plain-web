@@ -107,20 +107,20 @@ export default {
     4: 'Dead',
     5: 'Over voltage',
     6: 'Unspecified failure',
-    7: 'Cold',
+    7: 'Cold'
   },
   battery_status: {
     1: 'Unknown',
     2: 'Charging',
     3: 'Discharging',
     4: 'Not charging',
-    5: 'Full',
+    5: 'Full'
   },
   battery_plugged: {
     0: 'Battery',
     1: 'AC',
     2: 'USB',
-    3: 'Wireless',
+    3: 'Wireless'
   },
   grant_permission: 'Grant permission',
   desktop_notification_permission_not_granted: 'Desktop notification permission is not granted.',
@@ -136,17 +136,17 @@ export default {
     size_asc: 'Smallest first',
     size_desc: 'Largest first',
     name_asc: 'Name (A to Z)',
-    name_desc: 'Name (Z to A)',
+    name_desc: 'Name (Z to A)'
   },
   group_by: {
     label: 'Group By',
     none: 'None',
-    taken_time: 'Taken Time',
+    taken_time: 'Taken Time'
   },
   paging: {
     label: 'Paging',
     number: 'Number paging',
-    scroll: 'Infinite scroll',
+    scroll: 'Infinite scroll'
   },
   view_options: 'View Options',
   print: 'Print',
@@ -182,17 +182,17 @@ export default {
   confirm_to_delete: 'Are you sure you want to delete these {count} items? This action cannot be undone.',
   valid: {
     string_min: 'At least {min} characters',
-    required: 'This field is required',
+    required: 'This field is required'
   },
   theme: {
     title: 'Theme',
     system: 'System default',
     light: 'Light',
-    dark: 'Dark',
+    dark: 'Dark'
   },
   language: {
     title: 'Language',
-    system: 'System default',
+    system: 'System default'
   },
   log_in: 'Log in',
   logging_in: 'Logging in',
@@ -201,7 +201,7 @@ export default {
     failed: 'Login failed, please make sure your phone is not in sleep mode.',
     rejected: 'Login request is rejected.',
     invalid_password: 'Wrong password.',
-    too_many_login_attempts: 'Too many login attempts. Please try again in 1 minute.',
+    too_many_login_attempts: 'Too many login attempts. Please try again in 1 minute.'
   },
   header_actions: {
     language: 'Change language',
@@ -209,7 +209,7 @@ export default {
     tasks: 'Tasks',
     audios: 'Audio',
     logout: 'Logout',
-    notifications: 'Notifications',
+    notifications: 'Notifications'
   },
   quick_actions: 'Quick Actions',
   page_title: {
@@ -232,7 +232,7 @@ export default {
     screen_mirror: 'Screen mirror',
     device_info: 'Device info',
     chat: 'Chat',
-    local_chat: 'Local chat',
+    local_chat: 'Local chat'
   },
   manufacturer: 'Manufacturer',
   mac_address: 'MAC address',
@@ -292,7 +292,7 @@ export default {
     1: 'Inbox',
     2: 'Sent',
     3: 'Drafts',
-    4: 'Outbox',
+    4: 'Outbox'
   },
   artist: 'Artist',
   sms_address: 'Address',
@@ -325,23 +325,23 @@ export default {
       17: 'Work mobile',
       18: 'Work pager',
       19: 'Assistant',
-      20: 'MMS',
+      20: 'MMS'
     },
     email_type: {
       1: 'Home',
       2: 'Work',
       3: 'Other',
-      4: 'Mobile',
+      4: 'Mobile'
     },
     address_type: {
       1: 'Home',
       2: 'Work',
-      3: 'Other',
+      3: 'Other'
     },
     event_type: {
       1: 'Anniversary',
       2: 'Other',
-      3: 'Birthday',
+      3: 'Birthday'
     },
     im_type: {
       0: 'AIM',
@@ -352,7 +352,7 @@ export default {
       5: 'Hangouts',
       6: 'ICQ',
       7: 'Jabber',
-      8: 'NetMeeting',
+      8: 'NetMeeting'
     },
     website_type: {
       1: 'Homepage',
@@ -361,8 +361,8 @@ export default {
       4: 'Home',
       5: 'Work',
       6: 'FTP',
-      7: 'Other',
-    },
+      7: 'Other'
+    }
   },
   call_type: {
     1: 'Incoming',
@@ -370,11 +370,11 @@ export default {
     3: 'Missed',
     4: 'Voicemail',
     5: 'Rejected',
-    6: 'Blocked',
+    6: 'Blocked'
   },
   app_type: {
     user: 'User',
-    system: 'System',
+    system: 'System'
   },
   first_name: 'First name',
   last_name: 'Last name',
@@ -399,7 +399,7 @@ export default {
     3: 'China telecom',
     4: 'China uicom virtual',
     5: 'China telecom virtual',
-    6: 'China mobile virtual',
+    6: 'China mobile virtual'
   },
   storage_free_total: '{free} available of {total}',
   current_path: 'Current path',
@@ -437,7 +437,7 @@ export default {
     paused: 'Paused',
     saving: 'Saving',
     done: 'Uploaded',
-    error: 'Upload failed',
+    error: 'Upload failed'
   },
   load_failed: 'Load {name} failed',
   network_error: 'Network error, can not connnect to the API',
@@ -666,5 +666,5 @@ export default {
   confirm_delete_bookmark: 'Are you sure you want to delete this bookmark?',
   confirm_delete_group: 'Are you sure you want to delete this group? Bookmarks in this group will be moved to ungrouped.',
   group_name: 'Group Name',
-  group_name_placeholder: 'Enter group name',
-}
+  group_name_placeholder: 'Enter group name'
+};
