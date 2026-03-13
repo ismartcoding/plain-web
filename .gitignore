@@ -30,3 +30,5 @@ coverage
 # i18n pipeline temp files
 scripts/i18n-todo.json
 scripts/i18n-translated.json
+# Crowdin staging directory (JSON intermediates; not committed)
+.crowdin/
