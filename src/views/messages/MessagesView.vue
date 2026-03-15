@@ -22,7 +22,10 @@
       <div v-if="detailLoading" class="chat-loading">
         <v-circular-progress indeterminate class="sm" />
       </div>
-      <template v-else>
+      <div v-if="loadingMore" class="chat-loading-more">
+        <v-circular-progress indeterminate class="sm" />
+      </div>
+      <template v-if="!detailLoading">
         <div v-for="(item, index) in sortedItems" :key="item.id" class="chat-message-wrapper">
           <div v-if="showDateSeparator(index)" class="chat-date-separator">
             <span>{{ formatDateLabel(item.date) }}</span>
@@ -191,6 +194,11 @@ let lastMmsSendBody = ''
 let lastMmsSendAddress = ''
 const { tags, fetch: fetchTags } = useTags(dataType)
 
+const PAGE_SIZE = 100
+const offset = ref(0)
+const noMoreOlder = ref(false)
+const loadingMore = ref(false)
+
 // MMS size constants — images are auto-compressed on the server, but
 // video/audio cannot be compressed and will fail if too large.
 const MMS_WARN_SIZE = 300 * 1024 // 300 KB — conservative carrier minimum
@@ -286,30 +294,64 @@ function scrollToBottom() {
 }
 
 function onScroll() {
-  // placeholder for future infinite scroll
+  if (!chatScrollRef.value || loadingMore.value || noMoreOlder.value || loading.value) return
+  if (chatScrollRef.value.scrollTop < 200) {
+    fetchMore()
+  }
 }
 
-const { loading, fetch } = initLazyQuery({
+const { loading, fetch: rawFetch } = initLazyQuery({
   handle: (data: { sms: IMessage[]; smsCount: number }, error: string) => {
-    detailLoading.value = false
     if (error) {
+      detailLoading.value = false
+      loadingMore.value = false
       toast(t(error), 'error')
     } else if (data) {
-      items.value = data.sms
-      // Clear the in-memory SMS pending item once the backend confirms the new message
-      if (pendingSmsItem.value && data.sms.length > pendingSmsPreCount) {
-        pendingSmsItem.value = null
+      if (loadingMore.value) {
+        const el = chatScrollRef.value
+        const prevScrollHeight = el?.scrollHeight ?? 0
+        const existingIds = new Set(items.value.map((i) => i.id))
+        const newItems = data.sms.filter((i) => !existingIds.has(i.id))
+        items.value = [...newItems, ...items.value]
+        if (data.sms.length < PAGE_SIZE) noMoreOlder.value = true
+        loadingMore.value = false
+        nextTick(() => {
+          if (el) {
+            el.scrollTop = el.scrollHeight - prevScrollHeight
+          }
+        })
+      } else {
+        detailLoading.value = false
+        items.value = data.sms
+        if (data.sms.length < PAGE_SIZE) noMoreOlder.value = true
+        if (pendingSmsItem.value && data.sms.length > pendingSmsPreCount) {
+          pendingSmsItem.value = null
+        }
+        scrollToBottom()
       }
-      scrollToBottom()
     }
   },
   document: smsGQL,
   variables: () => ({
-    offset: 0,
-    limit: 5000,
+    offset: offset.value,
+    limit: PAGE_SIZE,
     query: buildQuery([{ name: 'thread_id', op: '', value: threadId.value }]),
   }),
 })
+
+function fetch() {
+  offset.value = 0
+  noMoreOlder.value = false
+  loadingMore.value = false
+  rawFetch()
+}
+
+function fetchMore() {
+  if (loadingMore.value || noMoreOlder.value || loading.value) return
+  loadingMore.value = true
+  offset.value = items.value.length
+  rawFetch()
+}
 
 const { mutate: mutateCall } = initMutation({
   document: callGQL,
@@ -644,6 +686,12 @@ onUnmounted(() => {
   justify-content: center;
   align-items: center;
   flex: 1;
+}
+
+.chat-loading-more {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0;
 }
 
 .chat-date-separator {
