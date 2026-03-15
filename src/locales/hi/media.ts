@@ -1,0 +1,18 @@
+export default {
+  audio_player: 'ऑडियो प्लेयर',
+  music: 'म्यूजिक',
+  videos: 'वीडियोस',
+  images: 'इमेजेज',
+  audios: 'ऑडियो',
+  artist: 'आर्टिस्ट',
+  play: 'प्ले',
+  add_to_playlist: 'ऐड टू प्लेलिस्ट',
+  added_to_playlist: 'एडेड टू प्लेलिस्ट!',
+  view_origin_image: 'व्यू ओरिजिन इमेज',
+  mute: 'म्यूट',
+  unmute: 'अनम्यूट',
+  playlist: 'प्लेलिस्ट',
+  remove_from_playlist: 'प्लेलिस्ट से हटाएं',
+  play_pause_video: 'वीडियो बजाएं/रोकें',
+  pausing: 'रोक रहा है...',
+}

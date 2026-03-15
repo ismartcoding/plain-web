@@ -131,8 +131,37 @@ function handleDelete(ids: string[]) {
 
 ## i18n Translation Workflow
 
+### Locale file structure
+
+Locales are split into per-feature modules under `src/locales/<locale>/`:
+
+```
+src/locales/
+  en-US/
+    index.ts        # Auto-merges all sibling modules via import.meta.glob
+    common.ts       # Generic UI: cancel, ok, save, delete, yes, no, …
+    device.ts       # Device info & battery
+    messages.ts     # SMS / MMS
+    contacts.ts     # Contacts & calls
+    files.ts        # File management & storage
+    media.ts        # Audio / video / images
+    feeds.ts        # RSS subscriptions
+    search.ts       # Search filters
+    mirror.ts       # Screen mirror & remote control
+    chat.ts         # Chat & channels
+    apps.ts         # App management
+    bookmarks.ts    # Bookmarks
+    pomodoro.ts     # Pomodoro timer
+    login.ts        # Authentication
+    tags.ts         # Tags
+  zh-CN/
+    … (same modules)
+```
+
+When adding new i18n keys, add them to the **appropriate module file** (e.g. bookmark keys go in `bookmarks.ts`). The `index.ts` auto-discovers all sibling `.ts` modules — no need to update it.
+
 ### When to use
-Run this workflow any time new keys are added to `src/locales/en-US.ts`, or when you suspect other locales have untranslated (still-English) strings.
+Run this workflow any time new keys are added to `src/locales/en-US/` module files, or when you suspect other locales have untranslated (still-English) strings.
 
 ### How to trigger
 Tell Copilot:

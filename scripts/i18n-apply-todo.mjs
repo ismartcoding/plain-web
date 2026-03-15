@@ -1,12 +1,12 @@
 /**
  * i18n-apply-todo.mjs
  *
- * Reads scripts/i18n-translated.json and patches every locale file:
+ * Reads scripts/i18n-translated.json and patches every locale's module files:
  *   - Missing keys are inserted at their proper nested position
- *   - Keys that were still English are replaced in-place (line-level rewrite)
+ *   - Keys that were still English are replaced in-place
  *
- * The locale file is parsed and re-serialised with the same formatter
- * used across all i18n scripts so the output is consistent.
+ * Supports directory-based locales: src/locales/<locale>/{module}.ts
+ * Uses en-US modules to determine which module file a key belongs to.
  *
  * Usage:
  *   node scripts/i18n-apply-todo.mjs
@@ -16,9 +16,9 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 // ──────────────────────────────────────────────
-// Locale file helpers  (shared with other scripts)
+// Locale file helpers
 // ──────────────────────────────────────────────
-function loadLocale(file) {
+function loadSingleFile(file) {
   const src = fs.readFileSync(file, 'utf8')
   const out = ts.transpileModule(src, {
     compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 },
@@ -97,6 +97,22 @@ function formatObject(obj, indentLevel) {
 }
 
 // ──────────────────────────────────────────────
+// Build key → module mapping from en-US directory
+// ──────────────────────────────────────────────
+function getKeyToModuleMap(enUSDir) {
+  const map = {}
+  const moduleFiles = fs.readdirSync(enUSDir).filter(f => f.endsWith('.ts') && f !== 'index.ts')
+  for (const mf of moduleFiles) {
+    const obj = loadSingleFile(path.join(enUSDir, mf))
+    const modName = path.basename(mf, '.ts')
+    for (const key of Object.keys(obj)) {
+      map[key] = modName
+    }
+  }
+  return map
+}
+
+// ──────────────────────────────────────────────
 // Main
 // ──────────────────────────────────────────────
 const translatedFile = path.resolve('scripts/i18n-translated.json')
@@ -107,34 +123,49 @@ if (!fs.existsSync(translatedFile)) {
 
 const translated = JSON.parse(fs.readFileSync(translatedFile, 'utf8'))
 const localesDir = path.resolve('src/locales')
+const keyToModule = getKeyToModuleMap(path.join(localesDir, 'en-US'))
 
 let totalApplied = 0
 let totalFiles = 0
 
-for (const [file, { items }] of Object.entries(translated)) {
+for (const [locale, { items }] of Object.entries(translated)) {
   if (!items || items.length === 0) continue
 
-  const filePath = path.join(localesDir, file)
-  if (!fs.existsSync(filePath)) {
-    console.warn(`  Skip ${file} – file not found`)
+  const localeDir = path.join(localesDir, locale)
+  if (!fs.existsSync(localeDir)) {
+    console.warn(`  Skip ${locale} – directory not found`)
     continue
   }
 
-  const obj = loadLocale(filePath)
-  let changed = 0
-
+  // Group items by module
+  const moduleItems = {}
   for (const { key, translated: translatedValue } of items) {
     if (translatedValue == null) continue
-    setPath(obj, key, translatedValue)
-    changed++
+    const topKey = key.split('.')[0]
+    const mod = keyToModule[topKey] || 'common'
+    if (!moduleItems[mod]) moduleItems[mod] = []
+    moduleItems[mod].push({ key, translated: translatedValue })
   }
 
-  if (changed === 0) continue
+  let localeChanged = 0
 
-  fs.writeFileSync(filePath, `export default ${formatObject(obj, 0)}\n`, 'utf8')
-  console.log(`[${file}] applied ${changed} translations`)
-  totalApplied += changed
+  for (const [mod, modItems] of Object.entries(moduleItems)) {
+    const moduleFile = path.join(localeDir, `${mod}.ts`)
+    const obj = fs.existsSync(moduleFile) ? loadSingleFile(moduleFile) : {}
+
+    for (const { key, translated: translatedValue } of modItems) {
+      setPath(obj, key, translatedValue)
+      localeChanged++
+    }
+
+    fs.writeFileSync(moduleFile, `export default ${formatObject(obj, 0)}\n`, 'utf8')
+  }
+
+  if (localeChanged === 0) continue
+
+  console.log(`[${locale}] applied ${localeChanged} translations`)
+  totalApplied += localeChanged
   totalFiles++
 }
 
-console.log(`\n✓ ${totalApplied} keys applied across ${totalFiles} files`)
+console.log(`\n✓ ${totalApplied} keys applied across ${totalFiles} locales`)

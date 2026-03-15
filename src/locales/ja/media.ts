@@ -1,0 +1,18 @@
+export default {
+  audio_player: 'オーディオプレーヤー',
+  music: '音楽',
+  videos: 'ビデオ',
+  images: '画像',
+  audios: 'オーディオ',
+  artist: 'アーティスト',
+  play: '再生',
+  add_to_playlist: 'プレイリストに追加',
+  added_to_playlist: 'プレイリストに追加しました！',
+  view_origin_image: '元の画像を表示',
+  mute: 'ミュート',
+  unmute: 'ミュート解除',
+  playlist: 'プレイリスト',
+  remove_from_playlist: 'プレイリストから削除',
+  play_pause_video: 'ビデオを再生/一時停止',
+  pausing: '一時停止しています…',
+}

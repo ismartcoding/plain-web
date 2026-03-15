@@ -7,6 +7,8 @@
  *   - english : keys whose value is identical to en-US and looks like
  *               real English (not brand names, acronyms, or format-only)
  *
+ * Supports directory-based locales: src/locales/<locale>/{module}.ts
+ *
  * Usage:
  *   node scripts/i18n-find-untranslated.mjs
  */
@@ -17,12 +19,21 @@ import path from 'node:path'
 // ──────────────────────────────────────────────
 // Locale file helpers
 // ──────────────────────────────────────────────
-function loadLocale(file) {
+function loadSingleFile(file) {
   const src = fs.readFileSync(file, 'utf8')
   const out = ts.transpileModule(src, {
     compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 },
   }).outputText
   return new Function(out.replace(/export\s+default\s+/, 'return '))()
+}
+
+function loadLocaleDir(dir) {
+  const moduleFiles = fs.readdirSync(dir).filter(f => f.endsWith('.ts') && f !== 'index.ts')
+  const merged = {}
+  for (const mf of moduleFiles) {
+    Object.assign(merged, loadSingleFile(path.join(dir, mf)))
+  }
+  return merged
 }
 
 function isPlainObject(v) {
@@ -64,33 +75,19 @@ function looksLikeUntranslatedEnglish(value) {
 }
 
 // ──────────────────────────────────────────────
-// locale → Google Translate language code
+// Supported locale codes (directory name = Google Translate lang code)
 // ──────────────────────────────────────────────
-const langMap = {
-  'bn.ts': 'bn',
-  'de.ts': 'de',
-  'es.ts': 'es',
-  'fr.ts': 'fr',
-  'hi.ts': 'hi',
-  'it.ts': 'it',
-  'ja.ts': 'ja',
-  'ko.ts': 'ko',
-  'nl.ts': 'nl',
-  'pt.ts': 'pt',
-  'ru.ts': 'ru',
-  'ta.ts': 'ta',
-  'tr.ts': 'tr',
-  'vi.ts': 'vi',
-  'zh-CN.ts': 'zh-CN',
-  'zh-TW.ts': 'zh-TW',
-}
+const SUPPORTED_LOCALES = new Set([
+  'bn', 'de', 'es', 'fr', 'hi', 'it', 'ja', 'ko',
+  'nl', 'pt', 'ru', 'ta', 'tr', 'vi', 'zh-CN', 'zh-TW',
+])
 
 // ──────────────────────────────────────────────
 // Main
 // ──────────────────────────────────────────────
 const localesDir = path.resolve('src/locales')
-const baseFile = path.join(localesDir, 'en-US.ts')
-const baseFlat = flatten(loadLocale(baseFile))
+const baseDir = path.join(localesDir, 'en-US')
+const baseFlat = flatten(loadLocaleDir(baseDir))
 
 // Load stable cache (keys confirmed correct as English loanwords/brand names)
 const stableFile = path.resolve('scripts/i18n-stable.json')
@@ -98,19 +95,19 @@ const stable = fs.existsSync(stableFile)
   ? JSON.parse(fs.readFileSync(stableFile, 'utf8'))
   : {}
 
-const files = fs.readdirSync(localesDir).filter((f) => f.endsWith('.ts') && f !== 'en-US.ts')
+// Find locale directories (everything except en-US)
+const localeDirs = fs.readdirSync(localesDir).filter((d) => {
+  return d !== 'en-US' && fs.statSync(path.join(localesDir, d)).isDirectory() && SUPPORTED_LOCALES.has(d)
+})
 
 const todo = {}
 let totalMissing = 0
 let totalEnglish = 0
 
-for (const f of files) {
-  const lang = langMap[f]
-  if (!lang) continue
+for (const locale of localeDirs) {
+  const locFlat = flatten(loadLocaleDir(path.join(localesDir, locale)))
 
-  const locFlat = flatten(loadLocale(path.join(localesDir, f)))
-
-  const stableKeys = stable[f] ?? []
+  const stableKeys = stable[locale] ?? []
   const missing = []
   const english = []
 
@@ -126,10 +123,10 @@ for (const f of files) {
 
   if (missing.length + english.length === 0) continue
 
-  todo[f] = { lang, missing, english }
+  todo[locale] = { lang: locale, missing, english }
   totalMissing += missing.length
   totalEnglish += english.length
-  console.log(`${f}: ${missing.length} missing, ${english.length} untranslated (English)`)
+  console.log(`${locale}: ${missing.length} missing, ${english.length} untranslated (English)`)
 }
 
 const outFile = path.resolve('scripts/i18n-todo.json')

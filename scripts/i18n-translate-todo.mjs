@@ -76,14 +76,14 @@ async function main() {
   let totalFailed = 0
   let totalStable = 0
 
-  for (const [file, { lang, missing, english }] of Object.entries(todo)) {
+  for (const [locale, { lang, missing, english }] of Object.entries(todo)) {
     const allItems = [
       ...missing.map((i) => ({ ...i, src: 'missing' })),
       ...english.map((i) => ({ ...i, src: 'english' })),
     ]
 
     if (allItems.length === 0) continue
-    console.log(`\n[${file}] translating ${allItems.length} items → ${lang}`)
+    console.log(`\n[${locale}] translating ${allItems.length} items → ${lang}`)
 
     const results = []
 
@@ -106,9 +106,9 @@ async function main() {
         results.push({ key: batch[j].key, en: batch[j].en, translated: t, src: batch[j].src })
         // If translation === original English, record as "stable" (correct loanword/brand name)
         if (t.trim() === batch[j].en.trim()) {
-          stable[file] = stable[file] ?? []
-          if (!stable[file].includes(batch[j].key)) {
-            stable[file].push(batch[j].key)
+          stable[locale] = stable[locale] ?? []
+          if (!stable[locale].includes(batch[j].key)) {
+            stable[locale].push(batch[j].key)
             totalStable++
           }
         }
@@ -118,7 +118,7 @@ async function main() {
       if (i + BATCH_SIZE < allItems.length) await sleep(DELAY_MS)
     }
 
-    translated[file] = { lang, items: results }
+    translated[locale] = { lang, items: results }
     totalDone += results.length
     console.log()
   }

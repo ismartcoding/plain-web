@@ -1,0 +1,18 @@
+export default {
+  audio_player: 'Audio-speler',
+  music: 'Muziek',
+  videos: 'Video\'s',
+  images: 'Afbeeldingen',
+  audios: 'Audio',
+  artist: 'Artiest',
+  play: 'Afspelen',
+  add_to_playlist: 'Toevoegen aan afspeellijst',
+  added_to_playlist: 'Toegevoegd aan afspeellijst!',
+  view_origin_image: 'Originele afbeelding bekijken',
+  mute: 'Dempen',
+  unmute: 'Dempen opheffen',
+  playlist: 'Afspeellijst',
+  remove_from_playlist: 'Verwijderen van afspeellijst',
+  play_pause_video: 'Video afspelen/pauzeren',
+  pausing: 'Pauzeren…',
+}

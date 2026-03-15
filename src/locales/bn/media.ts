@@ -1,0 +1,18 @@
+export default {
+  audio_player: 'অডিও প্ল',
+  music: 'সংগীত',
+  videos: 'ভিডিও',
+  images: 'ছবি',
+  audios: 'অডিও',
+  artist: 'শিল্পী',
+  play: 'প্লে',
+  add_to_playlist: 'প্লেলিস্টে যোগ করুন',
+  added_to_playlist: 'প্লেলিস্টে যোগ করা হয়েছে!',
+  view_origin_image: 'মৌলিক চিত্র দেখুন',
+  mute: 'নিঃশব্দ করুন',
+  unmute: 'নিঃশব্দ বন্ধ করুন',
+  playlist: 'প্লেলিস্ট',
+  remove_from_playlist: 'প্লেলিস্ট থেকে সরান',
+  play_pause_video: 'ভিডিও প্লে/বিরতি',
+  pausing: 'বিরতি হচ্ছে...',
+}

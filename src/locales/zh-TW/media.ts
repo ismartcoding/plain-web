@@ -1,0 +1,18 @@
+export default {
+  audio_player: '音訊播放器',
+  music: '音樂',
+  videos: '影片',
+  images: '圖片',
+  audios: '音訊',
+  artist: '藝人',
+  play: '播放',
+  add_to_playlist: '新增到播放清單',
+  added_to_playlist: '已新增到播放清單！',
+  view_origin_image: '檢視原圖',
+  mute: '靜音',
+  unmute: '取消靜音',
+  pausing: '暫停中...',
+  playlist: '播放清單',
+  remove_from_playlist: '從播放清單中移除',
+  play_pause_video: '播放/暫停視頻',
+}

@@ -1,0 +1,18 @@
+export default {
+  audio_player: 'Lettore audio',
+  music: 'Musica',
+  videos: 'Video',
+  images: 'Immagini',
+  audios: 'Audio',
+  artist: 'Artista',
+  play: 'Riproduci',
+  add_to_playlist: 'Aggiungi alla playlist',
+  added_to_playlist: 'Aggiunto alla playlist!',
+  view_origin_image: 'Visualizza immagine originale',
+  mute: 'Disattiva audio',
+  unmute: 'Attiva audio',
+  playlist: 'Informazioni',
+  remove_from_playlist: 'Rimuovi dalla playlist',
+  play_pause_video: 'Riproduci/Pausa video',
+  pausing: 'Messa in pausa…',
+}

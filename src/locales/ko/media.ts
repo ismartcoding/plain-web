@@ -1,0 +1,18 @@
+export default {
+  audio_player: '오디오 플레이어',
+  music: '음악',
+  videos: '비디오',
+  images: '이미지',
+  audios: '오디오',
+  artist: '아티스트',
+  play: '재생',
+  add_to_playlist: '재생 목록에 추가',
+  added_to_playlist: '재생 목록에 추가되었습니다!',
+  view_origin_image: '원본 이미지 보기',
+  mute: '음소거',
+  unmute: '음소거 해제',
+  playlist: '재생 목록',
+  remove_from_playlist: '재생 목록에서 제거',
+  play_pause_video: '비디오 재생/일시 정지',
+  pausing: '일시 정지 중...',
+}

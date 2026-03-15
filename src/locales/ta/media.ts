@@ -1,0 +1,18 @@
+export default {
+  audio_player: 'ஆடியோ பிளேயர்',
+  music: 'இசை',
+  videos: 'வீடியோக்கள்',
+  images: 'படங்கள்',
+  audios: 'ஆடியோ',
+  artist: 'கலைஞர்',
+  play: 'பிளே',
+  add_to_playlist: 'பிளேலிஸ்டுக்கு சேர்க்க',
+  added_to_playlist: 'பிளேலிஸ்டுக்கு சேர்க்கப்பட்டது!',
+  view_origin_image: 'மூல புகைப்படத்தைக் காண்க',
+  mute: 'ஒலியை அணை',
+  unmute: 'ஒலியை இயக்கு',
+  playlist: 'பிளேலிஸ்டு',
+  remove_from_playlist: 'பிளேலிஸ்டுக்கு இல்லை செய்ய',
+  play_pause_video: 'வீடியோவை இயக்கு/இடைநிறுத்து',
+  pausing: 'இடைநிறுத்துகிறது...',
+}
