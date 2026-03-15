@@ -1,0 +1,18 @@
+export default {
+  audio_player: '音频播放器',
+  music: '音乐',
+  videos: '视频',
+  images: '图片',
+  audios: '音频',
+  artist: '艺术家',
+  play: '播放',
+  add_to_playlist: '加入播放列表',
+  added_to_playlist: '已加入播放列表！',
+  view_origin_image: '查看原图',
+  mute: '静音',
+  unmute: '取消静音',
+  pausing: '暂停中...',
+  playlist: '播放列表',
+  remove_from_playlist: '从播放列表中移除',
+  play_pause_video: '播放/暂停视频',
+}

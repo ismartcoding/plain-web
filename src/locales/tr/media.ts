@@ -1,0 +1,18 @@
+export default {
+  audio_player: 'Müzik ç',
+  music: 'Müzik',
+  videos: 'Videolar',
+  images: 'Resimler',
+  audios: 'Sesler',
+  artist: 'Sanatçı',
+  play: 'Oynat',
+  add_to_playlist: 'Oynatma listesine ekle',
+  added_to_playlist: 'Oynatma listesine eklendi!',
+  view_origin_image: 'Orijinal resmi görüntüle',
+  mute: 'Sessize al',
+  unmute: 'Sesi aç',
+  playlist: 'Çalma listesi',
+  remove_from_playlist: 'Oynatma listesinden kaldır',
+  play_pause_video: 'Video oynat/duraklat',
+  pausing: 'Duraklatılıyor...',
+}

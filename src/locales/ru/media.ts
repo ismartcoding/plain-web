@@ -1,0 +1,18 @@
+export default {
+  audio_player: 'Аудиоплеер',
+  music: 'Музыка',
+  videos: 'Видео',
+  images: 'Изображения',
+  audios: 'Аудио',
+  artist: 'Исполнитель',
+  play: 'Воспроизвести',
+  add_to_playlist: 'Добавить в плейлист',
+  added_to_playlist: 'Добавлено в плейлист!',
+  view_origin_image: 'Посмотреть исходное изображение',
+  mute: 'Выключить звук',
+  unmute: 'Включить звук',
+  playlist: 'Плейлист',
+  remove_from_playlist: 'Убрать из плейлиста',
+  play_pause_video: 'Воспроизвести/Пауза видео',
+  pausing: 'Пауза...',
+}

@@ -1,0 +1,18 @@
+export default {
+  audio_player: 'Audio player',
+  music: 'Music',
+  videos: 'Videos',
+  images: 'Images',
+  audios: 'Audio',
+  artist: 'Artist',
+  play: 'Play',
+  add_to_playlist: 'Add to playlist',
+  added_to_playlist: 'Added to playlist!',
+  view_origin_image: 'View origin image',
+  mute: 'Mute',
+  unmute: 'Unmute',
+  pausing: 'Pausing...',
+  playlist: 'Playlist',
+  remove_from_playlist: 'Remove from playlist',
+  play_pause_video: 'Play/Pause video',
+}

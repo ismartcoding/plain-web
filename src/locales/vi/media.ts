@@ -1,0 +1,18 @@
+export default {
+  audio_player: 'Trình phát âm thanh',
+  music: 'Âm nhạc',
+  videos: 'Video',
+  images: 'Hình ảnh',
+  audios: 'Âm thanh',
+  artist: 'Nghệ sĩ',
+  play: 'Phát',
+  add_to_playlist: 'Thêm vào danh sách phát',
+  added_to_playlist: 'Đã thêm vào danh sách phát!',
+  view_origin_image: 'Xem ảnh gốc',
+  mute: 'Tắt tiếng',
+  unmute: 'Bật tiếng',
+  playlist: 'Danh sách phát',
+  remove_from_playlist: 'Xóa khỏi danh sách phát',
+  play_pause_video: 'Phát/Tạm dừng video',
+  pausing: 'Đang tạm dừng...',
+}

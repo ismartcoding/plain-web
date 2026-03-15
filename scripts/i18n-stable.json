@@ -1,8 +1,8 @@
 {
-  "bn.ts": [
+  "bn": [
     "opengl_es"
   ],
-  "de.ts": [
+  "de": [
     "app_name",
     "screenshot",
     "export_format_text",
@@ -45,7 +45,7 @@
     "pause",
     "start"
   ],
-  "es.ts": [
+  "es": [
     "app_name",
     "hardware",
     "opengl_es",
@@ -65,7 +65,7 @@
     "phone_isp_type.4",
     "color"
   ],
-  "fr.ts": [
+  "fr": [
     "app_name",
     "types",
     "mirror_auto",
@@ -106,7 +106,7 @@
     "pause",
     "test"
   ],
-  "it.ts": [
+  "it": [
     "app_name",
     "hardware",
     "kernel",
@@ -114,13 +114,13 @@
     "audios",
     "nav_home"
   ],
-  "ja.ts": [
+  "ja": [
     "contact.im_type.1",
     "contact.im_type.3",
     "contact.im_type.7",
     "contact.im_type.8"
   ],
-  "ko.ts": [
+  "ko": [
     "opengl_es",
     "contact.im_type.1",
     "contact.im_type.2",
@@ -128,7 +128,7 @@
     "contact.im_type.7",
     "contact.im_type.8"
   ],
-  "nl.ts": [
+  "nl": [
     "app_name",
     "model",
     "hardware",
@@ -162,7 +162,7 @@
     "stop",
     "test"
   ],
-  "pt.ts": [
+  "pt": [
     "opengl_es",
     "status",
     "page_title.feeds",
@@ -179,19 +179,19 @@
     "tags",
     "volumes"
   ],
-  "ru.ts": [
+  "ru": [
     "contact.im_type.2",
     "contact.im_type.3",
     "contact.im_type.5",
     "contact.im_type.7",
     "contact.im_type.8"
   ],
-  "ta.ts": [
+  "ta": [
     "contact.im_type.5",
     "contact.im_type.7",
     "contact.im_type.8"
   ],
-  "tr.ts": [
+  "tr": [
     "model",
     "java_vm",
     "opengl_es",
@@ -205,7 +205,7 @@
     "contact.website_type.2",
     "test"
   ],
-  "vi.ts": [
+  "vi": [
     "app_name",
     "export_format_csv",
     "opengl_es",
@@ -215,13 +215,13 @@
     "contact.im_type.8",
     "contact.website_type.2"
   ],
-  "zh-CN.ts": [
+  "zh-CN": [
     "contact.im_type.1",
     "contact.im_type.3",
     "contact.im_type.7",
     "contact.im_type.8"
   ],
-  "zh-TW.ts": [
+  "zh-TW": [
     "contact.im_type.1",
     "contact.im_type.3",
     "contact.im_type.7",
