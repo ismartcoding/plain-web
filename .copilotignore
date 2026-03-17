@@ -1,0 +1,46 @@
+# Build outputs
+dist/
+dist-ssr/
+coverage/
+
+# Dependencies
+node_modules/
+.yarn/
+
+# IDE
+.idea/
+.vscode/
+
+# Generated types (auto-generated, not useful for AI context)
+components.d.ts
+
+# i18n pipeline artifacts
+scripts/i18n-todo.json
+scripts/i18n-translated.json
+.crowdin/
+
+# Non-English locales (AI should reference en-US only; translations are auto-generated)
+src/locales/zh-CN/
+src/locales/zh-TW/
+src/locales/de/
+src/locales/fr/
+src/locales/es/
+src/locales/it/
+src/locales/pt/
+src/locales/ru/
+src/locales/ja/
+src/locales/ko/
+src/locales/nl/
+src/locales/tr/
+src/locales/vi/
+src/locales/hi/
+src/locales/ta/
+src/locales/bn/
+
+# Static assets (icons, images — no code value)
+public/icons/
+public/ficons/
+src/assets/
+
+# Logs
+*.log
