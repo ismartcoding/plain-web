@@ -2,28 +2,27 @@
 
 > **Start here**: Read `docs/ARCHITECTURE.md` for project structure and directory map.
 
+## Code Standards (MUST follow for ALL changes)
+
+1. **Max 150 lines per file** — split into components/composables if exceeded.
+2. **Components first** — prefer extracting UI into reusable components over inlining.
+3. **All logic in composables** — pages/views only compose; no business logic, no data fetching, no mutations in `*View.vue` / `*Page.vue`.
+4. **Use existing UI components** — `v-modal`, `v-dropdown`, `v-icon-button`, `v-text-field`, `v-circular-progress`, etc. No custom styling when an existing component covers the need.
+5. **No duplicate code** — extract shared logic into `src/hooks/` composables or `src/lib/` utilities.
+6. **Pages only compose** — a view file imports composables + components, wires them together, nothing more.
+7. **AI-friendly / token-efficient** — keep files small and focused so AI tools can read and modify them with minimal context.
+
 ## UI Component Rules
 
-**Loading**: Use `<v-circular-progress indeterminate />`. Add `class="sm"` for inline use. Never use `<i-lucide:loader-circle class="spin" />`.
+**Loading**: Use `<v-circular-progress indeterminate />`. Add `class="sm"` for inline use.
 
-**Modals**: Use `<v-modal>` with slots `#headline`, `#content`, `#actions`. Never build custom modal overlays with raw divs/positioning. Use `<v-outlined-button>` for cancel, `<v-filled-button>` for primary actions.
+**Modals**: Use `<v-modal>` with slots `#headline`, `#content`, `#actions`. Use `<v-outlined-button>` for cancel, `<v-filled-button>` for primary actions.
 
-```vue
-<v-modal @close="$emit('close')">
-  <template #headline>{{ $t('title') }}</template>
-  <template #content><!-- form --></template>
-  <template #actions>
-    <v-outlined-button @click="$emit('close')">{{ $t('cancel') }}</v-outlined-button>
-    <v-filled-button :loading="saving" @click="save">{{ $t('save') }}</v-filled-button>
-  </template>
-</v-modal>
-```
-
-**Dropdowns**: Use `<v-dropdown>` with `#trigger` slot + `.dropdown-item` children. Never write bespoke popover HTML.
+**Dropdowns**: Use `<v-dropdown>` with `#trigger` slot + `.dropdown-item` children.
 
 ## Apollo & GraphQL Rules
 
-**Frozen objects**: Always spread Apollo response objects before storing in Pinia or emitting — `{ ...r.data.item }` or `.map(x => ({ ...x }))`. Apollo objects are frozen and non-extensible.
+**Frozen objects**: Always spread Apollo response objects before storing in Pinia or emitting — `{ ...r.data.item }` or `.map(x => ({ ...x }))`.
 
 **initMutation**: Call at setup level, not inside handlers. Only accepts `{ document, options }` — no `variables`, `handle`, or `context`.
 

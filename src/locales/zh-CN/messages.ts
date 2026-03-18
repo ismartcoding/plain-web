@@ -30,4 +30,5 @@ export default {
   },
   sms_address: '号码',
   type_a_reply: '输入回复...',
+  sms_notification_warning: '如需实时接收新短信，请在手机上打开 PlainApp → "电脑端管理" → 开启"通知管理"权限。',
 }
