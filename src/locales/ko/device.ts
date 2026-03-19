@@ -15,7 +15,7 @@ export default {
   build_number: '빌드 번호',
   baseband: '베이스밴드',
   kernel: '커널',
-  java_vm: 'Java VM',
+  java_vm: '자바 VM',
   opengl_es: 'OpenGL ES',
   uptime: '가동 시간',
   battery: '배터리',

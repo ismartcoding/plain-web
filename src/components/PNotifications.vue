@@ -89,152 +89,16 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
 import { formatDateTime, formatDateTimeFull } from '@/lib/format'
-import { useTempStore } from '@/stores/temp'
-import { storeToRefs } from 'pinia'
-import { initQuery, notificationsGQL } from '@/lib/api/query'
-import { initMutation, insertCache, cancelNotificationsGQL, replyNotificationGQL } from '@/lib/api/mutation'
-import toast from '@/components/toaster'
-import type { INotification } from '@/lib/interfaces'
-import { useI18n } from 'vue-i18n'
 import { noDataKey } from '@/lib/list'
-import { getFileUrlByPath } from '@/lib/api/file'
-import emitter from '@/plugins/eventbus'
-import { useApolloClient } from '@vue/apollo-composable'
-import { useMainStore } from '@/stores/main'
-import { useNotificationWarning } from '@/hooks/notification-warning'
-import { playNotificationSound } from '@/lib/notification-sound'
+import { useNotifications } from '@/hooks/notifications'
 
-const { resolveClient } = useApolloClient()
-const store = useMainStore()
-const { notificationSound } = storeToRefs(store)
-
-const { t } = useI18n()
-const { app, urlTokenKey } = storeToRefs(useTempStore())
-
-// Notification warning
-const { hasWarning: hasNotificationWarning, warningMessage: notificationWarningMessage, warningAction: notificationWarningAction } = useNotificationWarning()
-const notifications = ref<INotification[]>([])
-const { loading, refetch } = initQuery({
-  handle: (data: any, error: string) => {
-    if (error) {
-      toast(t(error), 'error')
-    } else {
-      if (data) {
-        notifications.value = data.notifications.map((it: any) => ({
-          ...it,
-          icon: getFileUrlByPath(urlTokenKey.value, 'pkgicon://' + it.appId),
-        }))
-      }
-    }
-  },
-  document: notificationsGQL,
-})
-
-const { mutate: cancelNotifications } = initMutation({
-  document: cancelNotificationsGQL,
-})
-
-const { mutate: replyNotification, loading: replySending, onDone: onReplyDone, onError: onReplyError } = initMutation({
-  document: replyNotificationGQL,
-})
-
-const replyingId = ref<string | null>(null)
-const replyingActionIndex = ref<number>(0)
-const replyText = ref('')
-
-function startReply(id: string, actionIndex: number) {
-  replyingId.value = id
-  replyingActionIndex.value = actionIndex
-  replyText.value = ''
-}
-
-function cancelReply() {
-  replyingId.value = null
-  replyText.value = ''
-}
-
-onReplyDone(() => {
-  cancelReply()
-})
-
-onReplyError(() => {
-  cancelReply()
-})
-
-function sendReply(id: string) {
-  const text = replyText.value.trim()
-  if (!text) return
-  replyNotification({ id, actionIndex: replyingActionIndex.value, text })
-}
-
-const deleteItem = (item: INotification) => {
-  cancelNotifications({ ids: [item.id] })
-}
-
-const clearAll = () => {
-  const ids = notifications.value.map((it) => it.id)
-  cancelNotifications({ ids })
-}
-
-onMounted(() => {
-  emitter.on('notification_created', async (data: INotification) => {
-    const client = resolveClient('a')
-    insertCache(client.cache, [{ ...data, __typename: 'Notification' }], notificationsGQL, null, true)
-    data.icon = getFileUrlByPath(urlTokenKey.value, 'pkgicon://' + data.appId)
-    if (notificationSound.value) {
-      playNotificationSound()
-    }
-    if ('Notification' in window && typeof Notification !== 'undefined') {
-      if (Notification.permission === 'granted') {
-        const notification = new Notification(data.title, {
-          body: data.body,
-          icon: data.icon,
-          silent: true,
-        })
-        notification.onclick = () => {
-          window.focus()
-          notification.close()
-        }
-      }
-    }
-  })
-
-  emitter.on('notification_updated', async (data: INotification) => {
-    const client = resolveClient('a')
-    const cache = client.cache
-    cache.evict({ id: cache.identify({ __typename: 'Notification', id: data.id }) })
-    insertCache(cache, [{ ...data, __typename: 'Notification' }], notificationsGQL, null, true)
-    data.icon = getFileUrlByPath(urlTokenKey.value, 'pkgicon://' + data.appId)
-    if (notificationSound.value) {
-      playNotificationSound()
-    }
-    if ('Notification' in window && typeof Notification !== 'undefined') {
-      if (Notification.permission === 'granted') {
-        const notification = new Notification(data.title, {
-          body: data.body,
-          icon: data.icon,
-          silent: true,
-        })
-        notification.onclick = () => {
-          window.focus()
-          notification.close()
-        }
-      }
-    }
-  })
-
-  emitter.on('notification_deleted', async (data: INotification) => {
-    const client = resolveClient('a')
-    const cache = client.cache
-    cache.evict({ id: cache.identify({ __typename: 'Notification', id: data.id }) })
-  })
-
-  emitter.on('notification_refreshed', async () => {
-    refetch()
-  })
-})
+const {
+  store, app, notificationSound, notifications, loading,
+  hasNotificationWarning, notificationWarningMessage, notificationWarningAction,
+  replyingId, replyText, replySending,
+  startReply, cancelReply, sendReply, deleteItem, clearAll,
+} = useNotifications()
 </script>
 
 <style lang="scss" scoped>

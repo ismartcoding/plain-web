@@ -50,12 +50,7 @@
         @cancel-uninstall="cancelUninstall"
       />
       <template v-if="loading && items.length === 0">
-        <AppSkeletonItem
-          v-for="i in 20"
-          :key="i"
-          :index="i"
-          :is-phone="isPhone"
-        />
+        <AppSkeletonItem v-for="i in 20" :key="i" :index="i" :is-phone="isPhone" />
       </template>
     </div>
     <div v-if="!loading && items.length === 0" class="no-data-placeholder">
@@ -67,258 +62,31 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onActivated, onDeactivated, ref, inject, watch } from 'vue'
-import toast from '@/components/toaster'
-import tapPhone from '@/plugins/tapphone'
-import { packagesGQL, initLazyQuery, packageStatusesGQL } from '@/lib/api/query'
-import { useRoute } from 'vue-router'
-import { replacePath } from '@/plugins/router'
-import { useMainStore } from '@/stores/main'
-import { useI18n } from 'vue-i18n'
+import { inject } from 'vue'
 import { noDataKey } from '@/lib/list'
-import type { IPackageItem, IPackage, IPackageStatus } from '@/lib/interfaces'
-import { decodeBase64 } from '@/lib/strutil'
-import { useSelectable } from '@/hooks/list'
-import { initMutation, uninstallPackageGQL, installPackageGQL } from '@/lib/api/mutation'
-import { useTempStore, type IUploadItem } from '@/stores/temp'
-import { storeToRefs } from 'pinia'
-import { useDownload, useDownloadItems } from '@/hooks/files'
-import { useFileUpload, useDragDropUpload } from '@/hooks/upload'
-import { deleteById } from '@/lib/array'
-import emitter from '@/plugins/eventbus'
-import { DataType } from '@/lib/data'
-import { getFileUrlByPath } from '@/lib/api/file'
-import { useKeyEvents } from '@/hooks/key-events'
 import { getSortItems } from '@/lib/file'
-import { generateDownloadFileName } from '@/lib/format'
 import AppsActionButtons from '@/components/apps/AppsActionButtons.vue'
 import AppSkeletonItem from '@/components/apps/AppSkeletonItem.vue'
 import AppListItem from '@/components/apps/AppListItem.vue'
+import { useAppsData } from './hooks/useAppsData'
+import { useAppsActions } from './hooks/useAppsActions'
 
 const isPhone = inject('isPhone') as boolean
-
-// Track packages being installed
-const installingPackages = ref<{ id: string; updatedAt: string; isNew: boolean }[]>([])
-
-const { app, urlTokenKey, uploads } = storeToRefs(useTempStore())
-const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload(uploads)
-const { dropping, fileDragEnter, fileDragLeave, dropFiles } = useDragDropUpload(uploads)
-
-const mainStore = useMainStore()
-const items = ref<IPackageItem[]>([])
-const { t } = useI18n()
-const { appSortBy } = storeToRefs(mainStore)
 const sortItems = getSortItems()
-const sorting = ref(false)
-
-const route = useRoute()
-const page = ref(parseInt(route.query.page?.toString() ?? '1'))
-const limit = computed(() => mainStore.pageSize)
-const q = ref('')
-const isActive = ref(false)
-let statusInterval: number | undefined
 
 const {
-  selectedIds,
-  allChecked,
-  realAllChecked,
-  selectRealAll,
-  allCheckedAlertVisible,
-  clearSelection,
-  toggleAllChecked,
-  toggleSelect,
-  total,
-  checked,
-  shiftEffectingIds,
-  handleItemClick,
-  handleMouseOver,
-  selectAll,
-  shouldSelect,
-} = useSelectable(items)
-const { downloadItems } = useDownloadItems(urlTokenKey, DataType.PACKAGE, clearSelection, () => generateDownloadFileName('apps'))
-const { downloadFile } = useDownload(urlTokenKey)
-const gotoPage = (page: number) => {
-  const q = route.query.q
-  replacePath(mainStore, q ? `/apps?page=${page}&q=${q}` : `/apps?page=${page}`)
-}
+  items, page, limit, q, loading, fetch, sorting, isActive, app, appSortBy,
+  selectedIds, allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible,
+  clearSelection, toggleAllChecked, toggleSelect, total, checked,
+  shiftEffectingIds, handleItemClick, handleMouseOver, shouldSelect,
+  gotoPage, onChangePageSize, sort, applyRouteQuery,
+  pageKeyDown, pageKeyUp,
+} = useAppsData()
 
-function onChangePageSize(size: number) {
-  mainStore.pageSize = size
-  const q = route.query.q
-  replacePath(mainStore, q ? `/apps?page=1&q=${q}` : `/apps?page=1`)
-}
-const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(total, limit, page, selectAll, clearSelection, gotoPage, () => {})
-
-const install = () => {
-  uploadFiles(app.value.downloadsDir)
-}
-
-const { mutate: installPackageMutate } = initMutation({
-  document: installPackageGQL,
-})
-
-const cancelUninstall = (item: IPackageItem) => {
-  item.isUninstalling = false
-}
-
-const { loading, fetch } = initLazyQuery({
-  handle: (data: { packages: IPackage[]; packageCount: number }, error: string) => {
-    sorting.value = false
-    if (error) {
-      toast(t(error), 'error')
-    } else {
-      if (data) {
-        items.value = data.packages.map((it: IPackage) => ({
-          ...it,
-          isUninstalling: false,
-          icon: getFileUrlByPath(urlTokenKey.value, 'pkgicon://' + it.id),
-        }))
-        total.value = data.packageCount
-      }
-    }
-  },
-  document: packagesGQL,
-  variables: () => ({
-    offset: (page.value - 1) * limit.value,
-    limit: limit.value,
-    query: q.value,
-    sortBy: appSortBy.value,
-  }),
-})
-
-function sort(value: string) {
-  if (appSortBy.value === value) {
-    return
-  }
-  sorting.value = true
-  appSortBy.value = value
-  gotoPage(1)
-}
-
-function applyRouteQuery() {
-  if (!isActive.value) return
-  page.value = parseInt(route.query.page?.toString() ?? '1')
-  q.value = decodeBase64(route.query.q?.toString() ?? '')
-  fetch()
-}
-
-const { mutate: uninstallMutate } = initMutation({
-  document: uninstallPackageGQL,
-})
-
-function uninstall(item: IPackageItem) {
-  item.isUninstalling = true
-  tapPhone(t('confirm_uninstallation_on_phone'))
-  uninstallMutate({ id: item.id })
-}
-
-function downloadApp(item: IPackageItem) {
-  downloadFile(item.path, `${item.name.replace(' ', '')}-${item.id}.apk`)
-}
-
-const { loading: fetchPackageStatusLoading, fetch: fetchPackageStatus } = initLazyQuery({
-  handle: (data: { packageStatuses: IPackageStatus[] }) => {
-    if (data) {
-      // Handle uninstalling packages
-      for (const item of data.packageStatuses) {
-        const installingPackage = installingPackages.value.find((it) => it.id === item.id)
-        if (installingPackage) {
-          const isNewInstalled = installingPackage.isNew && item.exist
-          const isUpgraded = !installingPackage.isNew && item.exist && installingPackage.updatedAt < item.updatedAt
-          if (isNewInstalled || isUpgraded) {
-              installingPackages.value = installingPackages.value.filter((it) => it.id !== item.id)
-              tapPhone('')
-              if (isNewInstalled) {
-                toast(t('app_installation_completed'))
-              } else {
-                toast(t('app_upgrade_completed'))
-              }
-              fetch()
-          }
-        } else if (!item.exist) {
-          // Package was uninstalled
-          deleteById(items.value as any, item.id)
-          tapPhone('')
-        }
-      }
-    }
-  },
-  document: packageStatusesGQL,
-  variables: () => ({
-    ids: [...items.value.filter((it) => it.isUninstalling).map((it) => it.id), ...installingPackages.value.map((it) => it.id)],
-  }),
-})
-
-const uploadTaskDoneHandler = (r: IUploadItem) => {
-  if (r.status === 'done') {
-    installPackageMutate({ path: r.dir + '/' + r.fileName })
-      .then((result) => {
-        tapPhone(t('confirm_installation_on_phone'))
-
-        if (result && result.data && result.data.installPackage) {
-          const { packageName, updatedAt, isNew } = result.data.installPackage
-
-          if (packageName) {
-            // Add to installing packages
-            installingPackages.value.push({ id: packageName, updatedAt, isNew })
-
-            // Set a timeout to remove the packageId from installing list after 60 seconds
-            setTimeout(() => {
-              if (installingPackages.value.some((it) => it.id === packageName)) {
-                installingPackages.value = installingPackages.value.filter((it) => it.id !== packageName)
-                tapPhone('')
-              }
-            }, 120000)
-          }
-        }
-      })
-      .catch((error) => {
-        tapPhone('')
-        toast(t('app_installation_failed') + ': ' + error.message, 'error')
-      })
-  }
-}
-
-function dropApkFiles(e: DragEvent) {
-  dropFiles(e, app.value.downloadsDir, (file) => file.name.endsWith('.apk'))
-}
-
-onActivated(() => {
-  isActive.value = true
-
-  if (statusInterval) {
-    clearInterval(statusInterval)
-    statusInterval = undefined
-  }
-  statusInterval = window.setInterval(() => {
-    if ((items.value.some((it) => it.isUninstalling) || installingPackages.value.length > 0) && !fetchPackageStatusLoading.value) {
-      fetchPackageStatus()
-    }
-  }, 1000)
-
-  applyRouteQuery()
-  emitter.on('upload_task_done', uploadTaskDoneHandler)
-  window.addEventListener('keydown', pageKeyDown)
-  window.addEventListener('keyup', pageKeyUp)
-})
-
-onDeactivated(() => {
-  isActive.value = false
-  if (statusInterval) {
-    clearInterval(statusInterval)
-    statusInterval = undefined
-  }
-  emitter.off('upload_task_done', uploadTaskDoneHandler)
-  window.removeEventListener('keydown', pageKeyDown)
-  window.removeEventListener('keyup', pageKeyUp)
-})
-
-watch(
-  () => route.fullPath,
-  () => {
-    applyRouteQuery()
-  }
-)
+const {
+  fileInput, uploadChanged, dropping, fileDragEnter, fileDragLeave,
+  downloadItems, install, uninstall, cancelUninstall, downloadApp, dropApkFiles,
+} = useAppsActions({ items, isActive, fetch, applyRouteQuery, clearSelection, pageKeyDown, pageKeyUp })
 </script>
 <style scoped lang="scss">
 :deep(.app-item) {

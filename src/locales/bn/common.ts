@@ -1,5 +1,5 @@
 export default {
-  app_name: 'PlainApp',
+  app_name: 'প্লেইনঅ্যাপ',
   link_copied: 'লিংক কপি করা হয়েছে',
   copy_link: 'লিংক কপি করুন',
   unwrap: 'আনওয়্যাপ',

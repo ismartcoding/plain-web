@@ -1,0 +1,50 @@
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { useTempStore } from '@/stores/temp'
+import { useMainStore } from '@/stores/main'
+import { chachaDecrypt } from '@/lib/api/crypto'
+import { encodeBase64 } from '@/lib/strutil'
+import { buildQuery } from '@/lib/search'
+import { replacePath } from '@/plugins/router'
+import * as sjcl from 'sjcl'
+
+function decryptChatId(rawId: string, key: sjcl.BitArray | null): string {
+  if (!rawId || !key) return 'local'
+  try {
+    const bits = sjcl.codec.base64.toBits(rawId)
+    const decrypted = chachaDecrypt(key, bits)
+    if (decrypted.startsWith('peer:') || decrypted.startsWith('channel:')) return decrypted
+  } catch {
+    // ignore malformed id
+  }
+  return 'local'
+}
+
+export function useChatRouteId() {
+  const route = useRoute()
+  const store = useMainStore()
+  const { urlTokenKey, app } = storeToRefs(useTempStore())
+
+  const routeId = computed(() => {
+    const qid = route.query.id
+    return typeof qid === 'string' ? qid : ''
+  })
+
+  const chatId = computed(() => decryptChatId(routeId.value, urlTokenKey.value))
+  const peerId = computed(() => (chatId.value.startsWith('peer:') ? chatId.value.slice(5) : ''))
+  const channelId = computed(() => (chatId.value.startsWith('channel:') ? chatId.value.slice(8) : ''))
+  const isChannel = computed(() => !!channelId.value)
+  const appDir = app.value?.appDir ?? ''
+
+  function openFolder() {
+    const q = buildQuery([
+      { name: 'parent', op: '', value: appDir },
+      { name: 'type', op: '', value: 'APP' },
+      { name: 'root_path', op: '', value: appDir },
+    ])
+    replacePath(store, `/files?q=${encodeBase64(q)}`)
+  }
+
+  return { chatId, peerId, channelId, isChannel, routeId, appDir, openFolder }
+}

@@ -163,58 +163,47 @@
 
 <script setup lang="ts">
 import emitter from '@/plugins/eventbus'
-import toast from '@/components/toaster'
-import tapPhone from '@/plugins/tapphone'
-import { onActivated, onDeactivated, ref, watch, computed } from 'vue'
+import { onActivated, onDeactivated, ref, watch } from 'vue'
 import MobileWarning from '@/assets/mobile-warning.svg'
-import { initLazyQuery, initQuery, screenMirrorControlEnabledGQL, screenMirrorStateGQL } from '@/lib/api/query'
-import { useI18n } from 'vue-i18n'
-import { initMutation, relaunchAppGQL, startScreenMirrorGQL, stopScreenMirrorGQL, updateScreenMirrorQualityGQL, requestScreenMirrorAudioGQL } from '@/lib/api/mutation'
-import type { ApolloError } from '@apollo/client/errors'
 import TouchPhone from '@/assets/touch-phone.svg'
-import { download } from '@/lib/api/file'
-import { WebRTCClient, type SignalingMessage } from '@/lib/webrtc-client'
-import { sendWebRTCSignaling } from '@/lib/webrtc-signaling'
 import { hasFeature } from '@/lib/feature'
 import { FEATURE } from '@/lib/data'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { useScreenMirrorControl, type ScreenMirrorControlAction } from '@/hooks/screen-mirror-control'
-import { openModal } from '@/components/modal'
-import AccessibilityGuideModal from '@/components/AccessibilityGuideModal.vue'
 import { useScreenRecording } from '@/hooks/screen-recording'
+import { useScreenMirrorMedia } from '@/hooks/screen-mirror-media'
+import { useScreenMirrorWebRTC } from '@/hooks/screen-mirror-webrtc-session'
+import { useScreenMirrorService } from '@/hooks/screen-mirror-service'
 
-let countIntervalId: number
-const { t } = useI18n()
 const { app } = storeToRefs(useTempStore())
 const mirroring = ref(false)
-const seconds = ref(0)
 const failed = ref(false)
 const connecting = ref(false)
 const videoRef = ref<HTMLVideoElement>()
-const qualityMenuVisible = ref(false)
-const qualityMode = ref('AUTO')
-const audioRequesting = ref(false)
-const controlEnabled = ref(false)
 const controlOverlayRef = ref<HTMLDivElement>()
-const accessibilityEnabled = ref(false)
 const isActive = ref(false)
-const paused = ref(false)
-const muted = ref(true)
-const isFullscreen = ref(false)
 
-const modeLabels: Record<string, string> = {
-  AUTO: 'mirror_auto',
-  HD: 'mirror_hd',
-  SMOOTH: 'mirror_smooth',
-}
-const modeLabel = computed(() => t(modeLabels[qualityMode.value] || 'mirror_auto'))
+const { recording, recordingTime, toggleRecording } = useScreenRecording(videoRef)
+const { paused, muted, isFullscreen, togglePlay, toggleMute, toggleFullscreen, onFullscreenChange, takeScreenshot } = useScreenMirrorMedia(videoRef)
 
-let webrtcClient: WebRTCClient | null = null
-let pendingStream: MediaStream | null = null
+const {
+  seconds, qualityMenuVisible, qualityMode, audioRequesting, controlEnabled,
+  modeLabel, clearCountInterval, relaunchApp, relaunchAppLoading,
+  stopService, stopServiceLoading, updateQualityLoading, setQualityMode,
+  requestAudioPermission, start, showLoading: serviceLoading,
+  toggleControl, screenMirroringHandler, appSocketConnectionChangedHandler, screenMirrorAudioGrantedHandler,
+} = useScreenMirrorService(mirroring, failed, recording, toggleRecording, () => startWebRTC(), () => cleanupWebRTC())
 
 const { attachOverlay, setupListeners, removeListeners, sendControl } = useScreenMirrorControl(videoRef, controlEnabled)
-const { recording, recordingTime, toggleRecording } = useScreenRecording(videoRef)
+
+const { pendingStream, initWebRTCClient, startWebRTC, webrtcSignalingHandler, cleanupWebRTC } =
+  useScreenMirrorWebRTC(videoRef, mirroring, failed, seconds, connecting, clearCountInterval)
+
+const showLoading = ref(false)
+watch([serviceLoading, connecting], () => {
+  showLoading.value = serviceLoading.value || connecting.value
+})
 
 const mirrorShortcuts = [
   { keys: ['Click'], description: 'mirror_tap' },
@@ -230,225 +219,25 @@ const sendNavAction = (action: Extract<ScreenMirrorControlAction, 'BACK' | 'HOME
   sendControl({ action })
 }
 
-const togglePlay = () => {
-  const video = videoRef.value
-  if (!video) return
-  if (video.paused) {
-    video.play().catch(() => undefined)
-    paused.value = false
-  } else {
-    video.pause()
-    paused.value = true
-  }
-}
-
-const toggleMute = () => {
-  const video = videoRef.value
-  if (!video) return
-  video.muted = !video.muted
-  muted.value = video.muted
-}
-
-const toggleFullscreen = () => {
-  const wrapper = document.querySelector('.video-wrapper')
-  if (!wrapper) return
-  if (document.fullscreenElement) {
-    document.exitFullscreen()
-  } else {
-    wrapper.requestFullscreen()
-  }
-}
-
-const onFullscreenChange = () => {
-  isFullscreen.value = !!document.fullscreenElement
-}
-
-const toggleControl = () => {
-  if (controlEnabled.value) {
-    controlEnabled.value = false
-    return
-  }
-  // Check if accessibility service is enabled on the phone
-  if (!accessibilityEnabled.value) {
-    openModal(AccessibilityGuideModal, {
-      onConfirm: () => {
-        fetchScreenMirrorControlEnabled()
-      },
-    })
-    return
-  }
-  controlEnabled.value = true
-}
-
-// When overlay element appears/disappears, attach/detach listeners
 watch(controlOverlayRef, (el) => {
   removeListeners()
   attachOverlay(el)
-  if (el) {
-    setupListeners()
-  }
+  if (el) setupListeners()
 })
 
-const screenMirroringHandler = async () => {
-  mirroring.value = true
-  failed.value = false
-  seconds.value = 0
-  clearInterval(countIntervalId)
-  startWebRTC()
-}
-
-const showLoading = computed(() =>  fetchStateLoading.value || startServiceLoading.value || relaunchAppLoading.value || stopServiceLoading.value || connecting.value)
-
-// When the video element appears in DOM, attach any pending stream
 watch(videoRef, (video) => {
-  if (video && pendingStream) {
-    video.srcObject = pendingStream
+  if (video && pendingStream.value) {
+    video.srcObject = pendingStream.value
     video.play().catch(() => undefined)
-    pendingStream = null
+    pendingStream.value = null
   }
 })
-
-const { mutate: relaunchApp, loading: relaunchAppLoading } = initMutation({
-  document: relaunchAppGQL,
-})
-
-const requestAudioPermission = () => {
-  if (audioRequesting.value) return
-  audioRequesting.value = true
-  tapPhone(t('confirm_mirror_audio_permission_on_phone'))
-  requestMirrorAudio()
-}
-
-const { mutate: requestMirrorAudio, onDone: requestMirrorAudioDone, onError: requestMirrorAudioError } = initMutation({
-  document: requestScreenMirrorAudioGQL,
-})
-
-requestMirrorAudioError((error: ApolloError) => {
-  audioRequesting.value = false
-  tapPhone('')
-  toast(t(error.message), 'error')
-})
-
-requestMirrorAudioDone((result: any) => {
-  const alreadyGranted = result?.data?.requestScreenMirrorAudio
-  if (alreadyGranted) {
-    audioRequesting.value = false
-    tapPhone('')
-    emitter.emit('refetch_app')
-  }
-})
-
-const screenMirrorAudioGrantedHandler = () => {
-  window.location.reload()
-}
-
-let pendingMode: string | null = null
-
-const { mutate: updateQuality, loading: updateQualityLoading, onDone: updateQualityDone } = initMutation({
-  document: updateScreenMirrorQualityGQL,
-})
-
-updateQualityDone(() => {
-  if (pendingMode != null) {
-    qualityMode.value = pendingMode
-    pendingMode = null
-  }
-  qualityMenuVisible.value = false
-})
-
-const setQualityMode = (mode: string) => {
-  pendingMode = mode
-  updateQuality({ mode })
-}
-
-const appSocketConnectionChangedHanlder = (connected: boolean) => {
-  if (connected) {
-    if (relaunchAppLoading.value) {
-      clearInterval(countIntervalId)
-      start()
-    }
-  }
-}
-
-const takeScreenshot = () => {
-  const video = videoRef.value
-  if (!video) {
-    return
-  }
-  const canvas = document.createElement('canvas')
-  canvas.width = video.videoWidth
-  canvas.height = video.videoHeight
-  const ctx = canvas.getContext('2d')
-  if (ctx) {
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-  }
-  const d = new Date()
-  const fileName = 'screenshot-' + [d.getFullYear(), d.getMonth() + 1, d.getDate(), d.getHours(), d.getMinutes(), d.getSeconds(), d.getMilliseconds()].join('') + '.png'
-  download(canvas.toDataURL(), fileName)
-}
-
-const initWebRTCClient = () => {
-  if (webrtcClient) {
-    webrtcClient.cleanup()
-  }
-
-  webrtcClient = new WebRTCClient({
-    sendSignaling: (message: SignalingMessage) => {
-      sendWebRTCSignaling(message)
-    },
-    onStream: (stream: MediaStream) => {
-      connecting.value = false
-      const video = videoRef.value
-      if (video) {
-        video.srcObject = stream
-        video.play().catch(() => undefined)
-        mirroring.value = true
-        failed.value = false
-        seconds.value = 0
-        clearInterval(countIntervalId)
-      } else {
-        // Video element not yet in DOM, store for later
-        pendingStream = stream
-        mirroring.value = true
-        failed.value = false
-        seconds.value = 0
-        clearInterval(countIntervalId)
-      }
-    },
-    onConnectionStateChange: (newState: RTCPeerConnectionState) => {
-      if (newState === 'connected') {
-        connecting.value = false
-      } else if (newState === 'failed' || newState === 'disconnected') {
-        connecting.value = false
-        failed.value = true
-      }
-    },
-    onError: (error: string) => {
-      connecting.value = false
-      toast(error, 'error')
-      failed.value = true
-    },
-  })
-}
-
-const startWebRTC = () => {
-  connecting.value = true
-  // Act as answerer: wait for offer from app.
-  webrtcClient?.startSession(true, false)
-}
-
-const webrtcSignalingHandler = async (message: SignalingMessage) => {
-  if (webrtcClient) {
-    await webrtcClient.handleSignalingMessage(message)
-  }
-}
-
 
 onActivated(() => {
   isActive.value = true
   emitter.on('screen_mirroring', screenMirroringHandler)
   emitter.on('webrtc_signaling', webrtcSignalingHandler)
-  emitter.on('app_socket_connection_changed', appSocketConnectionChangedHanlder)
+  emitter.on('app_socket_connection_changed', appSocketConnectionChangedHandler)
   emitter.on('screen_mirror_audio_granted', screenMirrorAudioGrantedHandler)
   document.addEventListener('fullscreenchange', onFullscreenChange)
   initWebRTCClient()
@@ -458,104 +247,10 @@ onDeactivated(() => {
   isActive.value = false
   emitter.off('screen_mirroring', screenMirroringHandler)
   emitter.off('webrtc_signaling', webrtcSignalingHandler)
-  emitter.off('app_socket_connection_changed', appSocketConnectionChangedHanlder)
+  emitter.off('app_socket_connection_changed', appSocketConnectionChangedHandler)
   emitter.off('screen_mirror_audio_granted', screenMirrorAudioGrantedHandler)
   document.removeEventListener('fullscreenchange', onFullscreenChange)
-  if (webrtcClient) {
-    webrtcClient.cleanup()
-    webrtcClient = null
-  }
-})
-
-const {
-  mutate: startService,
-  loading: startServiceLoading,
-  onDone: startServiceDone,
-  onError: startServiceError,
-} = initMutation({
-  document: startScreenMirrorGQL,
-})
-
-const { loading: fetchStateLoading } = initQuery({
-  handle: (data: { screenMirrorState: boolean; screenMirrorControlEnabled?: boolean; screenMirrorQuality?: { mode: string } }, error: string) => {
-    if (error) {
-      toast(t(error), 'error')
-    } else {
-      if (data?.screenMirrorQuality?.mode) {
-        qualityMode.value = data.screenMirrorQuality.mode
-      }
-      accessibilityEnabled.value = data?.screenMirrorControlEnabled === true
-      if (!data.screenMirrorState) {
-        mirroring.value = false
-        start()
-      } else {
-        startWebRTC()
-      }
-    }
-  },
-  options: {
-    fetchPolicy: 'no-cache',
-  },
-  document: screenMirrorStateGQL,
-})
-
-const { fetch: fetchScreenMirrorControlEnabled } = initLazyQuery({
-  handle: (data: { screenMirrorControlEnabled: boolean }) => {
-    if (data) {
-      accessibilityEnabled.value = data?.screenMirrorControlEnabled === true
-      if (accessibilityEnabled.value) {
-        controlEnabled.value = true
-      }
-    }
-  },
-  document: screenMirrorControlEnabledGQL,
-  variables: () => ({}),
-})
-
-const start = () => {
-  failed.value = false
-  startService({ audio: true })
-}
-
-startServiceError((error: ApolloError) => {
-  toast(t(error.message))
-  failed.value = true
-})
-
-startServiceDone(() => {
-  seconds.value = 30
-  countIntervalId = setInterval(() => {
-    seconds.value--
-    if (seconds.value <= 0) {
-      failed.value = true
-      clearInterval(countIntervalId)
-    }
-  }, 1000)
-})
-
-const {
-  mutate: stopService,
-  loading: stopServiceLoading,
-  onDone: stopServiceDone,
-  onError: stopServiceError,
-} = initMutation({
-  document: stopScreenMirrorGQL,
-})
-
-stopServiceError((error: ApolloError) => {
-  toast(t(error.message))
-})
-
-stopServiceDone(() => {
-  failed.value = true
-  mirroring.value = false
-  controlEnabled.value = false
-  if (recording.value) {
-    toggleRecording()
-  }
-  if (webrtcClient) {
-    webrtcClient.cleanup()
-  }
+  cleanupWebRTC()
 })
 </script>
 <style lang="scss" src="@/styles/screen-mirror.scss"></style>

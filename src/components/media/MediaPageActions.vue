@@ -1,6 +1,6 @@
 <template>
   <template v-if="placement === 'top'">
-    <v-dropdown v-if="uiMode === 'edit' && !filterTrash && (!isPhone || !checked)" v-model="uploadMenu">
+    <v-dropdown v-if="!filterTrash && (!isPhone || !checked)" v-model="uploadMenu">
       <template #trigger>
         <v-icon-button v-tooltip="$t('upload')">
           <i-material-symbols:upload-rounded />
@@ -13,13 +13,6 @@
         {{ $t('upload_folder') }}
       </div>
     </v-dropdown>
-
-    <UIModeToggleButton
-      v-if="!filterTrash"
-      :mode="uiMode"
-      :tooltip="uiMode === 'edit' ? $t('view') : $t('edit')"
-      @click="onToggleUiMode"
-    />
 
     <v-dropdown v-if="!checked && !hideMoreMenu && !showViewOptions" v-model="moreMenu">
       <template #trigger>
@@ -102,10 +95,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import ViewToggleButtons from '@/components/ViewToggleButtons.vue'
-import UIModeToggleButton from '@/components/UIModeToggleButton.vue'
 import ViewOptionsPanel from '@/components/media/ViewOptionsPanel.vue'
 
-type UIMode = 'view' | 'edit'
 type SortItem = { label: string; value: string }
 type GroupByItem = { label: string; value: string }
 type Placement = 'top' | 'secondary'
@@ -113,7 +104,6 @@ type Placement = 'top' | 'secondary'
 const props = defineProps<{
   placement: Placement
 
-  uiMode: UIMode
   filterTrash: boolean
   isPhone: boolean
   checked: boolean
@@ -127,7 +117,6 @@ const props = defineProps<{
   showViewToggle: boolean
   cardView?: boolean
 
-  onToggleUiMode?: () => void
   onUploadFiles?: () => void
   onUploadDir?: () => void
   onOpenKeyboardShortcuts?: () => void
@@ -164,7 +153,6 @@ const moreMenu = computed({
 
 const noop = () => {}
 
-const onToggleUiMode = props.onToggleUiMode ?? noop
 const onUploadFiles = props.onUploadFiles ?? noop
 const onUploadDir = props.onUploadDir ?? noop
 const onOpenKeyboardShortcuts = props.onOpenKeyboardShortcuts ?? noop

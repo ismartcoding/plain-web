@@ -77,232 +77,30 @@
 </template>
 
 <script setup lang="ts">
-import { inject, onActivated, onDeactivated, reactive, ref, computed, watch } from 'vue'
-import toast from '@/components/toaster'
-import { formatTimeAgo, formatDateTime } from '@/lib/format'
-import { notesGQL, initLazyQuery } from '@/lib/api/query'
-import { useRoute } from 'vue-router'
-import router, { replacePath } from '@/plugins/router'
-import { useMainStore } from '@/stores/main'
-import { useI18n } from 'vue-i18n'
-import type { INote, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IFilter } from '@/lib/interfaces'
-import { decodeBase64 } from '@/lib/strutil'
+import { inject } from 'vue'
 import { noDataKey } from '@/lib/list'
-import { useDelete, useSelectable } from '@/hooks/list'
-import emitter from '@/plugins/eventbus'
-import { useAddToTags, useTags } from '@/hooks/tags'
-import { deleteNotesGQL, exportNotesGQL, initMutation } from '@/lib/api/mutation'
-import { openModal } from '@/components/modal'
-import DeleteConfirm from '@/components/DeleteConfirm.vue'
-import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
-import gql from 'graphql-tag'
-import { DataType } from '@/lib/data'
-import { getSummary } from '@/lib/strutil'
-import { useSearch } from '@/hooks/search'
-import { truncate } from 'lodash-es'
-import { useKeyEvents } from '@/hooks/key-events'
 import VirtualList from '@/components/virtualscroll'
-import { downloadFromString } from '@/lib/api/file'
-import { useNotesRestore, useNotesTrash } from '@/hooks/notes'
 import NoteListItem from '@/components/notes/NoteListItem.vue'
+import { useNotesData } from './hooks/useNotesData'
+import { useNotesActions } from './hooks/useNotesActions'
 
 const isPhone = inject('isPhone') as boolean
-const mainStore = useMainStore()
-const items = ref<INote[]>([])
-const { t } = useI18n()
-const { parseQ } = useSearch()
-const filter = reactive<IFilter>({
-  tagIds: [],
-  trash: false,
-})
-const dataType = DataType.NOTE
-const route = useRoute()
-const page = ref(1)
-const limit = computed(() => mainStore.pageSize)
-const q = ref('')
-const { tags, fetch: fetchTags } = useTags(dataType)
-const {
-  selectedIds,
-  allChecked,
-  realAllChecked,
-  selectRealAll,
-  allCheckedAlertVisible,
-  clearSelection,
-  toggleAllChecked,
-  toggleSelect,
-  total,
-  checked,
-  shiftEffectingIds,
-  handleItemClick,
-  handleMouseOver,
-  selectAll,
-  shouldSelect,
-} = useSelectable(items)
-const { addToTags } = useAddToTags(dataType, tags)
-const gotoPage = (page: number) => {
-  const q = route.query.q
-  replacePath(mainStore, q ? `/notes?page=${page}&q=${q}` : `/notes?page=${page}`)
-}
 
-function onChangePageSize(size: number) {
-  mainStore.pageSize = size
-  const q = route.query.q
-  replacePath(mainStore, q ? `/notes?page=1&q=${q}` : `/notes?page=1`)
-}
-const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(total, limit, page, selectAll, clearSelection, gotoPage, () => {
+const {
+  items, filter, page, limit, q, loading, fetch, tags, dataType,
+  selectedIds, allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible,
+  clearSelection, toggleAllChecked, toggleSelect, total, checked,
+  shiftEffectingIds, handleItemClick, handleMouseOver, shouldSelect,
+  gotoPage, onChangePageSize,
+} = useNotesData(() => {
   deleteItems(selectedIds.value, realAllChecked.value, total.value, q.value)
 })
 
-const { loading, fetch } = initLazyQuery({
-  handle: (data: { notes: INote[]; noteCount: number }, error: string) => {
-    if (error) {
-      toast(t(error), 'error')
-    } else {
-      if (data) {
-        items.value = data.notes
-        total.value = data.noteCount
-      }
-    }
-  },
-  document: notesGQL,
-  variables: () => ({
-    offset: (page.value - 1) * limit.value,
-    limit: limit.value,
-    query: q.value,
-  }),
-})
-
-function addItemToTags(item: INote) {
-  openModal(UpdateTagRelationsModal, {
-    type: dataType,
-    tags: tags.value,
-    item: {
-      key: item.id,
-      title: '',
-      size: 0,
-    },
-    selected: tags.value.filter((it) => item.tags.some((t) => t.id === it.id)),
-  })
-}
-
-
-const { mutate: exportNotes, onDone: onExpored } = initMutation({
-  document: exportNotesGQL,
-})
-
-const exportNotes2 = () => {
-  exportNotes({ query: getQuery() })
-}
-
-const getQuery = () => {
-  let query = q.value
-  if (!realAllChecked.value) {
-    query = `ids:${selectedIds.value.join(',')}`
-  }
-  return query
-}
-
-onExpored((r: any) => {
-  downloadFromString(r.data.exportNotes, 'application/json', 'notes.json')
-})
-
-const { deleteItems } = useDelete(deleteNotesGQL, () => {
-  clearSelection()
-  fetch()
-})
-
-function deleteItem(item: INote) {
-  openModal(DeleteConfirm, {
-    id: item.id,
-    name: truncate(item.title, { length: 20 }),
-    gql: gql`
-      mutation DeleteNote($query: String!) {
-        deleteNotes(query: $query)
-      }
-    `,
-    variables: () => ({
-      query: `ids:${item.id}`,
-    }),
-    done: () => {
-      clearSelection()
-      total.value--
-    },
-    typeName: 'Note',
-  })
-}
-
-const { trashLoading, trash } = useNotesTrash(clearSelection, fetch)
-const { restoreLoading, restore } = useNotesRestore(clearSelection, fetch)
-
-function view(item: INote) {
-  replacePath(mainStore, viewUrl(item))
-}
-
-function viewUrl(item: INote) {
-  const q = router.currentRoute.value.query.q
-  if (q) {
-    return `/notes/${item.id}?q=${q}`
-  }
-
-  return `/notes/${item.id}`
-}
-
-function create() {
-  router.push(`/notes/create`)
-}
-
-const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
-  if (event.type === dataType) {
-    clearSelection()
-    fetch()
-  }
-}
-
-const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
-  if (event.type === dataType) {
-    fetch()
-  }
-}
-
-const isActive = ref(false)
-
-function applyRouteQuery() {
-  const nextPage = parseInt(route.query.page?.toString() ?? '1')
-  page.value = Number.isFinite(nextPage) && nextPage > 0 ? nextPage : 1
-  q.value = decodeBase64(route.query.q?.toString() ?? '')
-  parseQ(filter, q.value)
-  // trash field is required
-  if (filter.trash === undefined) {
-    filter.trash = false
-  }
-  fetch()
-}
-
-watch(
-  () => route.fullPath,
-  () => {
-    if (!isActive.value) return
-    applyRouteQuery()
-  }
-)
-
-onActivated(() => {
-  fetchTags()
-  isActive.value = true
-  applyRouteQuery()
-  emitter.on('item_tags_updated', itemTagsUpdatedHandler)
-  emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
-  window.addEventListener('keydown', pageKeyDown)
-  window.addEventListener('keyup', pageKeyUp)
-})
-
-onDeactivated(() => {
-  isActive.value = false
-  emitter.off('item_tags_updated', itemTagsUpdatedHandler)
-  emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
-  window.removeEventListener('keydown', pageKeyDown)
-  window.removeEventListener('keyup', pageKeyUp)
-})
+const {
+  addToTags, deleteItems, deleteItem, addItemToTags,
+  exportNotes2, getQuery, trashLoading, trash, restoreLoading, restore,
+  view, viewUrl, create,
+} = useNotesActions({ selectedIds, realAllChecked, q, total, tags, clearSelection, fetch })
 </script>
 <style lang="scss" scoped>
 .scroller {

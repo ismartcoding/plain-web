@@ -161,7 +161,10 @@ async function uploadDirect(upload: IUploadItem, replace: boolean, key: sjcl.Bit
     const data = new FormData()
     const v = bitArrayToUint8Array(chachaEncrypt(key, JSON.stringify({ dir: upload.dir, replace, isAppFile: upload.isAppFile ?? false, size: upload.file.size })))
     data.append('info', new Blob([v]))
-    data.append('file', upload.file)
+    // Explicitly pass the base filename to prevent browsers from including
+    // webkitRelativePath in the Content-Disposition filename parameter.
+    const baseName = upload.file.name.split('/').pop() || upload.file.name
+    data.append('file', upload.file, baseName)
 
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest()
@@ -351,7 +354,8 @@ async function uploadWithChunks(upload: IUploadItem, replace: boolean, key: sjcl
 
     // All chunks uploaded — merge on server
     upload.status = 'saving'
-    const filePath = upload.dir.endsWith('/') ? upload.dir + upload.file.name : upload.dir + '/' + upload.file.name
+    const baseName = upload.file.name.split('/').pop() || upload.file.name
+    const filePath = upload.dir.endsWith('/') ? upload.dir + baseName : upload.dir + '/' + baseName
 
     const result = await apollo.a.mutate({
       mutation: mergeChunksGQL,

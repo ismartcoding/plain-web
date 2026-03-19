@@ -184,135 +184,36 @@
 </template>
 
 <script setup lang="ts">
-import toast from '@/components/toaster'
-import { homeStatsGQL, initQuery } from '@/lib/api/query'
 import { formatFileSize } from '@/lib/format'
-import { inject, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { inject } from 'vue'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
-import { sumBy } from 'lodash-es'
 import { useMainStore } from '@/stores/main'
-import { callGQL, setClipGQL, initMutation } from '@/lib/api/mutation'
-import { replacePath } from '@/plugins/router'
-import type { IHomeStats, IStorageMount } from '@/lib/interfaces'
+import router, { replacePath } from '@/plugins/router'
 import { buildQuery } from '@/lib/search'
 import { encodeBase64 } from '@/lib/strutil'
-
-const isPhone = inject('isPhone') as boolean
-const { t } = useI18n()
-
-const mainStore = useMainStore()
-
-const { callNumber } = storeToRefs(mainStore)
-const callNumberError = ref(false)
+import { useHomeData, usePhoneAction, useClipboardAction } from '@/hooks/home'
 
 const { app, counter } = storeToRefs(useTempStore())
 
-const mounts = ref<IStorageMount[]>([])
+const { mounts } = useHomeData()
+const { callNumber, callNumberError, callLoading, pastePhoneNumber, callPhone } = usePhoneAction()
+const { clipText, clipTextError, setClipLoading, pasteClipboardText, sendClipboard } = useClipboardAction()
 
 function openTab(fullPath: string) {
-  replacePath(mainStore, fullPath)
+  router.push(fullPath)
 }
 
 function openFilesInternalStorage() {
   const internalRoot =
     mounts.value.find((m) => m.driveType === 'INTERNAL_STORAGE')?.mountPoint || app.value.internalStoragePath
-
   const q = buildQuery([
-    {
-      name: 'parent',
-      op: '',
-      value: internalRoot,
-    },
-    {
-      name: 'type',
-      op: '',
-      value: 'INTERNAL_STORAGE',
-    },
-    {
-      name: 'root_path',
-      op: '',
-      value: internalRoot,
-    },
+    { name: 'parent', op: '', value: internalRoot },
+    { name: 'type', op: '', value: 'INTERNAL_STORAGE' },
+    { name: 'root_path', op: '', value: internalRoot },
   ])
-  replacePath(mainStore, `/files?q=${encodeBase64(q)}`)
+  router.push(`/files?q=${encodeBase64(q)}`)
 }
-
-function pastePhoneNumber() {
-  navigator.clipboard.readText().then((text) => {
-    callNumber.value = text
-  })
-}
-
-const { mutate: mutateCall, loading: callLoading } = initMutation({
-  document: callGQL,
-})
-
-const callPhone = () => {
-  if (!callNumber.value) {
-    callNumberError.value = true
-    return
-  }
-  mutateCall({ number: callNumber.value })
-}
-
-watch(callNumber, () => {
-  callNumberError.value = false
-})
-
-const clipText = ref('')
-const clipTextError = ref(false)
-
-function pasteClipboardText() {
-  navigator.clipboard.readText().then((text) => {
-    clipText.value = text
-  })
-}
-
-const { mutate: mutateSetClip, loading: setClipLoading } = initMutation({
-  document: setClipGQL,
-})
-
-const sendClipboard = () => {
-  if (!clipText.value) {
-    clipTextError.value = true
-    return
-  }
-  mutateSetClip({ text: clipText.value })
-}
-
-watch(clipText, () => {
-  clipTextError.value = false
-})
-
-initQuery({
-  handle: (data: IHomeStats, error: string) => {
-    if (error) {
-      toast(t(error), 'error')
-    } else {
-      if (data) {
-        mounts.value = data.mounts ?? []
-
-        counter.value.messages = data.smsCount
-        counter.value.contacts = data.contactCount
-        counter.value.calls = data.callCount
-        counter.value.videos = data.videoCount
-        counter.value.images = data.imageCount
-        counter.value.audios = data.audioCount
-        counter.value.packages = data.packageCount
-        counter.value.notes = data.noteCount
-        counter.value.feedEntries = data.feedEntryCount
-
-        const vols = (data.mounts ?? []).filter((m) => (m.totalBytes ?? 0) > 0)
-        counter.value.total = sumBy(vols, (it) => it.totalBytes ?? 0)
-        counter.value.free = sumBy(vols, (it) => it.freeBytes ?? 0)
-      }
-    }
-  },
-  document: homeStatsGQL,
-  variables: null,
-})
 </script>
 
 <style lang="scss" scoped>

@@ -28,7 +28,6 @@
       :item="item"
       :filter="filter"
       :data-type="dataType"
-      :edit-mode="editMode"
       :animating-ids="animatingIds"
       :play-loading="playLoading"
       :play-path="playPath"
@@ -60,7 +59,7 @@
     :is-selected="selectedIds.includes(item.id)"
     :is-selecting="shiftEffectingIds.includes(item.id)"
     :checkbox-checked="shiftEffectingIds.includes(item.id) ? shouldSelect : selectedIds.includes(item.id)"
-    :show-checkbox="editMode"
+    :show-checkbox="true"
     @click="handleItemClick($event, item, index, () => play(item))"
     @mouseenter.stop="handleMouseOver($event, index)"
     @checkbox-click="(event: MouseEvent) => toggleSelect(event, item, index)"
@@ -94,7 +93,6 @@
         :item="item"
         :filter="filter"
         :data-type="dataType"
-        :edit-mode="editMode"
         :animating-ids="animatingIds"
         :play-loading="playLoading"
         :play-path="playPath"
@@ -129,7 +127,6 @@ interface Props {
   shiftEffectingIds: string[]
   shouldSelect: boolean
   isPhone: boolean
-  editMode: boolean
   imageErrorIds: string[]
   bucketsMap: Record<string, IBucket>
   filter: IFilter

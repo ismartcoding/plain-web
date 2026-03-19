@@ -9,7 +9,7 @@
 
     <div class="actions">
       <template v-if="isImage(current.name)">
-        <v-icon-button v-if="!current.viewOriginImage" v-tooltip="$t('view_origin_image')" @click="$emit('view-origin')">
+        <v-icon-button v-if="!current.viewOriginImage && !isHeic(current.name)" v-tooltip="$t('view_origin_image')" @click="$emit('view-origin')">
           <i-material-symbols:image-outline-rounded />
         </v-icon-button>
 
@@ -42,7 +42,7 @@
 </template>
 
 <script setup lang="ts">
-import { isImage } from '@/lib/file'
+import { isImage, isHeic } from '@/lib/file'
 import type { ISource } from './types'
 
 defineProps<{

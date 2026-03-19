@@ -30,4 +30,5 @@ export default {
   received: 'Ontvangen',
   attachments: 'Bijlagen',
   body: 'Lichaam',
+  sms_notification_warning: 'Om nieuwe sms-berichten in realtime te ontvangen, gaat u naar de PlainApp op uw telefoon → "Web op pc" → schakel de machtiging "Meldingen beheren" in.',
 }

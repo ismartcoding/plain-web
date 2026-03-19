@@ -22,7 +22,7 @@ function createUploadItem(file: File, dir: string, batchId: string, baseDir?: st
 function normalizeJoin(base: string, rel: string) {
   const b = (base || '').replace(/\/+$/g, '')
   const r = (rel || '').replace(/^\/+/, '')
-  return (b ? `${b}/${r}` : `/${r}`).replace(/\/+?/g, '/').replace(/\/+$/g, '')
+  return (b ? `${b}/${r}` : `/${r}`).replace(/\/+/g, '/').replace(/\/+$/g, '')
 }
 
 export const useFileUpload = (uploads: Ref<IUploadItem[]>) => {
