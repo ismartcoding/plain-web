@@ -57,12 +57,18 @@ export function useGroupedScroll<T extends MediaBase>(options: {
     options.doFetch()
   }
 
-  // Call this after each page of data is successfully appended to proactively
-  // fetch the next page before the user reaches the sentinel.
+  // Call this after each page of data is successfully appended.
+  // Only triggers the next load if the sentinel is still visible (user scrolled near the bottom).
+  // This prevents an infinite chain of fetches — at most one extra page is prefetched.
   function prefetchNext() {
-    if (noMore.value || !scrollMode.value) return
-    // Use a microtask delay so the loading state has been updated by the caller first
-    setTimeout(() => loadMore(), 0)
+    if (noMore.value || !scrollMode.value || !sentinel.value || !observer) return
+    // Check if the sentinel is currently intersecting (visible in or near the viewport).
+    // If not visible, let the IntersectionObserver handle subsequent loads naturally.
+    const rect = sentinel.value.getBoundingClientRect()
+    const rootMarginPx = 200
+    if (rect.top <= window.innerHeight + rootMarginPx) {
+      setTimeout(() => loadMore(), 0)
+    }
   }
 
   let observer: IntersectionObserver | null = null

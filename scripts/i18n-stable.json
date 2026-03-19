@@ -112,13 +112,18 @@
     "kernel",
     "opengl_es",
     "audios",
-    "nav_home"
+    "nav_home",
+    "contact.website_type.2"
   ],
   "ja": [
     "contact.im_type.1",
     "contact.im_type.3",
     "contact.im_type.7",
-    "contact.im_type.8"
+    "contact.im_type.8",
+    "app_name",
+    "contact.im_type.2",
+    "java_vm",
+    "opengl_es"
   ],
   "ko": [
     "opengl_es",
@@ -126,7 +131,8 @@
     "contact.im_type.2",
     "contact.im_type.3",
     "contact.im_type.7",
-    "contact.im_type.8"
+    "contact.im_type.8",
+    "app_name"
   ],
   "nl": [
     "app_name",
@@ -177,19 +183,30 @@
     "contact.im_type.8",
     "contact.website_type.2",
     "tags",
-    "volumes"
+    "volumes",
+    "app_name",
+    "contact.im_type.7",
+    "avatar"
   ],
   "ru": [
     "contact.im_type.2",
     "contact.im_type.3",
     "contact.im_type.5",
     "contact.im_type.7",
-    "contact.im_type.8"
+    "contact.im_type.8",
+    "app_name",
+    "contact.im_type.1",
+    "java_vm",
+    "opengl_es"
   ],
   "ta": [
     "contact.im_type.5",
     "contact.im_type.7",
-    "contact.im_type.8"
+    "contact.im_type.8",
+    "app_name",
+    "contact.im_type.1",
+    "contact.im_type.2",
+    "contact.im_type.3"
   ],
   "tr": [
     "model",
@@ -203,7 +220,10 @@
     "contact.im_type.7",
     "contact.im_type.8",
     "contact.website_type.2",
-    "test"
+    "test",
+    "app_name",
+    "avatar",
+    "export_format_csv"
   ],
   "vi": [
     "app_name",
@@ -213,18 +233,23 @@
     "contact.phone_number_type.15",
     "contact.im_type.1",
     "contact.im_type.8",
-    "contact.website_type.2"
+    "contact.website_type.2",
+    "contact.im_type.2"
   ],
   "zh-CN": [
     "contact.im_type.1",
     "contact.im_type.3",
     "contact.im_type.7",
-    "contact.im_type.8"
+    "contact.im_type.8",
+    "opengl_es",
+    "export_format_csv"
   ],
   "zh-TW": [
     "contact.im_type.1",
     "contact.im_type.3",
     "contact.im_type.7",
-    "contact.im_type.8"
+    "contact.im_type.8",
+    "app_name",
+    "opengl_es"
   ]
 }

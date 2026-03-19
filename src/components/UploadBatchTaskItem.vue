@@ -50,11 +50,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick } from 'vue'
+import { computed } from 'vue'
 import { formatFileSize } from '@/lib/format'
-import { pauseUpload, resumeUpload, retryUpload, removeUpload } from '@/lib/upload/upload-queue'
 import { useTempStore, type IUploadItem } from '@/stores/temp'
 import { useI18n } from 'vue-i18n'
+import {
+  canPauseItem, canResumeItem, canRetryItem, isPausingItem,
+  pauseItem, resumeItem, retryItem, removeItem,
+} from '@/hooks/upload-task'
 
 const props = defineProps<{
   batchId: string
@@ -64,109 +67,53 @@ const props = defineProps<{
 const tempStore = useTempStore()
 const { t } = useI18n()
 
-function keyOf(it: IUploadItem) {
-  return it.batchId || it.id
-}
-
-const title = computed(() => {
-  return `${t('upload')} (${props.uploads.length} ${t('files')})`
-})
-
+const title = computed(() => `${t('upload')} (${props.uploads.length} ${t('files')})`)
 const totalBytes = computed(() => props.uploads.reduce((acc, it) => acc + (it.file?.size || 0), 0))
 const uploadedBytes = computed(() => props.uploads.reduce((acc, it) => acc + (it.uploadedSize || 0), 0))
 const totalSpeed = computed(() => props.uploads.reduce((acc, it) => acc + (it.uploadSpeed || 0), 0))
-
 const errorCount = computed(() => props.uploads.filter((it) => it.status === 'error').length)
 const firstError = computed(() => props.uploads.find((it) => it.status === 'error')?.error || '')
 
 const batchStatus = computed(() => {
   const statuses = props.uploads.map((u) => u.status)
-  const completedStates = new Set(['done', 'canceled'])
   if (statuses.includes('error')) return 'error'
   if (statuses.includes('uploading')) return 'uploading'
   if (statuses.includes('saving')) return 'saving'
   if (statuses.includes('pending')) return 'pending'
   if (statuses.every((s) => s === 'paused')) return 'paused'
-  if (statuses.length > 0 && statuses.every((s) => completedStates.has(s))) return 'done'
+  if (statuses.length > 0 && statuses.every((s) => s === 'done' || s === 'canceled')) return 'done'
   return 'created'
 })
 
-const showProgress = computed(() => {
-  return ['uploading', 'pending', 'saving'].includes(String(batchStatus.value)) && uploadedBytes.value > 0
-})
-
-const progressPercent = computed(() => {
-  if (totalBytes.value <= 0) return 0
-  return Math.round((uploadedBytes.value / totalBytes.value) * 100)
-})
-
-const canPause = computed(() => props.uploads.some((it) => ['uploading', 'pending'].includes(it.status) && !it.pausing))
-const canResume = computed(() => props.uploads.some((it) => it.status === 'paused' && !it.pausing))
-const canRetry = computed(() => props.uploads.some((it) => it.status === 'error'))
-const isPausing = computed(() => props.uploads.some((it) => it.pausing === true))
+const showProgress = computed(() => ['uploading', 'pending', 'saving'].includes(String(batchStatus.value)) && uploadedBytes.value > 0)
+const progressPercent = computed(() => (totalBytes.value <= 0 ? 0 : Math.round((uploadedBytes.value / totalBytes.value) * 100)))
+const canPause = computed(() => props.uploads.some((it) => canPauseItem(it)))
+const canResume = computed(() => props.uploads.some((it) => canResumeItem(it)))
+const canRetry = computed(() => props.uploads.some((it) => canRetryItem(it)))
+const isPausing = computed(() => props.uploads.some((it) => isPausingItem(it)))
 
 async function pauseBatch() {
   for (const item of props.uploads) {
-    if (!['uploading', 'pending'].includes(item.status) || item.pausing) continue
-    item.pausing = true
-  }
-  await nextTick()
-
-  for (const item of props.uploads) {
-    if (!item.pausing) continue
-    if (item.xhr) {
-      try {
-        item.xhr.abort()
-      } catch {
-        // ignore
-      }
-    }
-    item.status = 'paused'
-    pauseUpload(item.id)
-    setTimeout(() => {
-      item.pausing = false
-    }, 1000)
+    if (canPauseItem(item)) await pauseItem(item)
   }
 }
 
 function resumeBatch() {
   for (const item of props.uploads) {
-    if (item.status !== 'paused' || item.pausing) continue
-    const ok = resumeUpload(item.id)
-    if (ok) item.status = 'uploading'
+    if (canResumeItem(item)) resumeItem(item)
   }
 }
 
 function retryBatch() {
   for (const item of props.uploads) {
-    if (item.status !== 'error') continue
-    const ok = retryUpload(item.id)
-    if (!ok) continue
-    item.status = 'uploading'
-    item.error = ''
-    item.uploadedSize = 0
-    item.uploadSpeed = 0
-    item.lastUploadedSize = 0
-    item.lastUpdateTime = undefined
+    if (canRetryItem(item)) retryItem(item)
   }
 }
 
 function removeBatch() {
-  for (const item of props.uploads) {
-    removeUpload(item.id)
-    if (item.xhr) {
-      try {
-        item.xhr.abort()
-      } catch {
-        // ignore
-      }
-    }
-    item.status = 'canceled'
-  }
-
+  for (const item of props.uploads) removeItem(item)
   for (let i = tempStore.uploads.length - 1; i >= 0; i--) {
-    const it = tempStore.uploads[i]
-    if (keyOf(it) === props.batchId) {
+    if ((tempStore.uploads[i].batchId || tempStore.uploads[i].id) === props.batchId) {
       tempStore.uploads.splice(i, 1)
     }
   }

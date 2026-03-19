@@ -30,4 +30,5 @@ export default {
   received: 'Reçu',
   attachments: 'Pièces jointes',
   body: 'Corps',
+  sms_notification_warning: 'Pour recevoir de nouveaux SMS en temps réel, accédez à PlainApp sur votre téléphone → "Web sur PC" → activez l\'autorisation "Gérer les notifications".',
 }

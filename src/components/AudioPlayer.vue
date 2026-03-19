@@ -20,7 +20,7 @@
         <button class="btn-icon" @click.stop="playNext">
           <i-material-symbols:skip-next-outline-rounded />
         </button>
-        <v-icon-button v-tooltip="$t('clear_list')" :loading="clearLoading" @click.prevent="clear">
+        <v-icon-button v-tooltip="$t('clear_list')" :loading="clearLoading" @click.prevent="clearPlaylist">
           <i-material-symbols:delete-forever-outline-rounded />
         </v-icon-button>
       </div>
@@ -55,251 +55,33 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
-import { useTempStore } from '@/stores/temp'
-import { storeToRefs } from 'pinia'
-import type { IPlaylistAudio } from '@/lib/interfaces'
-import { getFileUrlByPath } from '@/lib/api/file'
+import { ref } from 'vue'
 import { formatSeconds } from '@/lib/format'
-import { initMutation, playAudioGQL, updateAudioPlayModeGQL, deletePlaylistAudioGQL, clearAudioPlaylistGQL, reorderPlaylistAudiosGQL } from '@/lib/api/mutation'
-import { sample, remove } from 'lodash-es'
-import emitter from '@/plugins/eventbus'
 import { useMainStore } from '@/stores/main'
 import { fixUserSelect } from '@/hooks/text-selection'
 import { VueDraggable } from 'vue-draggable-plus'
+import { useAudioPlaylist } from '@/hooks/audio-player'
 
-const { app, urlTokenKey, audioPlaying } = storeToRefs(useTempStore())
 const store = useMainStore()
-
-const audios = computed<IPlaylistAudio[]>(() => {
-  return app.value?.audios ?? []
-})
-
-const playlistAudios = computed<IPlaylistAudio[]>({
-  get() {
-    return audios.value
-  },
-  set(value) {
-    app.value = { ...app.value, audios: value }
-  }
-})
-
-const current = ref<IPlaylistAudio | undefined>()
-const src = ref('')
-
-async function setCurrent() {
-  const { audioCurrent: c } = app.value
-  src.value = getFileUrlByPath(urlTokenKey.value, c)
-  current.value = audios.value.find((it) => it.path == c)
-}
-
-setCurrent()
-
-watch(() => app.value.audioCurrent, setCurrent)
-
-const {
-  mutate: play,
-  loading: playLoading,
-  onDone: playDone,
-  onError: playError,
-} = initMutation({
-  document: playAudioGQL,
-})
-
-const {
-  mutate: clear,
-  loading: clearLoading,
-  onDone: clearDone,
-  onError: clearError,
-} = initMutation({
-  document: clearAudioPlaylistGQL,
-})
-
-clearDone(() => {
-  app.value = { ...app.value, audioCurrent: '', audios: [] }
-})
-
-const {
-  mutate: updatePlayMode,
-  loading: updatePlayModeLoading,
-  onDone: updatePlayModeDone,
-  onError: updatePlayModeError,
-} = initMutation({
-  document: updateAudioPlayModeGQL,
-})
-
-
-const {
-  mutate: reorderPlaylistAudios,
-  loading: reorderLoading,
-  onDone: reorderDone,
-  onError: reorderError,
-} = initMutation({
-  document: reorderPlaylistAudiosGQL,
-})
-
-const {
-  mutate: deleteAudio,
-  loading: deleteAudioLoading,
-  onDone: deleteAudioDone,
-  onError: deleteAudioError,
-} = initMutation({
-  document: deletePlaylistAudioGQL,
-})
-
 const audioRef = ref<HTMLAudioElement>()
 
-async function onEnded() {
-  if (audios.value.length === 0) {
-    return
-  }
-
-  const mode = app.value.audioMode
-  if (mode === 'REPEAT') {
-    _playNext()
-  } else if (mode === 'REPEAT_ONE') {
-    audioRef.value?.play()
-  } else {
-    playRandom()
-  }
-}
-
-function playRandom() {
-  const c = sample(app.value.audios)
-  if (!c) return
-  
-  play({
-    path: c.path,
-  })
-
-  app.value = { ...app.value, audioCurrent: c.path }
-}
-
-function playPrev() {
-  if (audios.value.length === 0) {
-    return
-  }
-
-  if (app.value.audioMode === 'SHUFFLE') {
-    playRandom()
-  } else {
-    _playPrev()
-  }
-}
-
-function _playPrev() {
-  const index = audios.value.findIndex((it) => it.path === current.value?.path)
-  let c: IPlaylistAudio
-  if (index <= 0) {
-    c = audios.value[audios.value.length - 1]
-  } else {
-    c = audios.value[index - 1]
-  }
-
-  play({
-    path: c.path,
-  })
-
-  app.value = { ...app.value, audioCurrent: c.path }
-}
-
-function playNext() {
-  if (audios.value.length === 0) {
-    return
-  }
-
-  if (app.value.audioMode === 'SHUFFLE') {
-    playRandom()
-  } else {
-    _playNext()
-  }
-}
-
-function _play() {
-  audioRef.value?.play()
-}
-
-function _playNext() {
-  const index = audios.value.findIndex((it) => it.path === current.value?.path)
-  let c: IPlaylistAudio
-  if (index + 1 >= audios.value.length) {
-    c = audios.value[0]
-  } else {
-    c = audios.value[index + 1]
-  }
-
-  play({
-    path: c.path,
-  })
-
-  app.value = { ...app.value, audioCurrent: c.path }
-}
-
-function changeMode() {
-  let mode = app.value.audioMode
-  if (mode === 'REPEAT') {
-    mode = 'REPEAT_ONE'
-  } else if (mode === 'REPEAT_ONE') {
-    mode = 'SHUFFLE'
-  } else {
-    mode = 'REPEAT'
-  }
-  updatePlayMode({ mode })
-  app.value = { ...app.value, audioMode: mode }
-}
-
-function playItem(item: IPlaylistAudio) {
-  play({
-    path: item.path,
-  })
-
-  app.value = { ...app.value, audioCurrent: item.path }
-}
-
-playDone(() => {
-  _play()
-})
-
-function deleteItem(item: IPlaylistAudio) {
-  deleteAudio({
-    path: item.path,
-  })
-
-  const items = [...app.value.audios]
-  remove(items, (it) => it.path === item.path)
-  app.value = { ...app.value, audios: items }
-}
-
-function setDragData(dataTransfer: DataTransfer, dragEl: HTMLElement) {
-  dataTransfer.setData('text/plain', 'playlist-item')
-  dataTransfer.effectAllowed = 'move'
-}
-
-function onDragEnd() {
-  // Call reorderPlaylistAudios to update the order on the server
-  const paths = playlistAudios.value.map(item => item.path)
-  reorderPlaylistAudios({
-    paths: paths
-  })
-}
-
-onMounted(() => {
-  emitter.on('do_play_audio', () => {
-    setTimeout(_play, 500)
-  })
-
-  emitter.on('pause_audio', () => {
-    audioRef.value?.pause()
-  })
-
-  audioRef.value?.addEventListener('pause', function () {
-    audioPlaying.value = false
-  })
-
-  audioRef.value?.addEventListener('play', function () {
-    audioPlaying.value = true
-  })
-})
+const {
+  app,
+  audios,
+  playlistAudios,
+  current,
+  src,
+  clearLoading,
+  onEnded,
+  playPrev,
+  playNext,
+  changeMode,
+  playItem,
+  deleteItem,
+  clearPlaylist,
+  setDragData,
+  onDragEnd,
+} = useAudioPlaylist(audioRef)
 </script>
 
 <style lang="scss" scoped>

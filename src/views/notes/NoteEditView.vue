@@ -1,203 +1,86 @@
 <!-- eslint-disable vue/no-v-html -->
 <template>
-  <div class="top-app-bar">
-    <v-icon-button v-tooltip="$t('back')" @click.prevent="backToList">
-      <i-material-symbols:arrow-back-rounded />
-    </v-icon-button>
-    <div class="title">{{ id ? t('edit') : t('create') }} <span v-show="notSaved" class="state-point">*</span> <field-id v-if="note?.updatedAt" :id="getTime()" class="time" :raw="note" /></div>
-    <div class="actions">
-      <item-tags :tags="note?.tags" :type="dataType" :only-links="true" />
-      <template v-if="id">
-        <v-icon-button v-tooltip="$t('add_to_tags')" @click.prevent="addToTags">
-          <i-material-symbols:label-outline-rounded />
-        </v-icon-button>
-        <v-icon-button v-tooltip="$t('print')" @click.prevent="print">
-          <i-material-symbols:print-outline-rounded />
-        </v-icon-button>
-      </template>
+  <div class="note-edit-page">
+    <div class="top-app-bar">
+      <v-icon-button v-tooltip="$t('back')" @click.prevent="backToList">
+        <i-material-symbols:arrow-back-rounded />
+      </v-icon-button>
+      <div class="title">
+        <input v-model="title" class="title-input" :placeholder="$t('title')" maxlength="250" style="display: none;" />
+        <span v-show="notSaved" class="state-point">*</span>
+        <field-id v-if="note?.updatedAt" :id="getTime()" class="time" :raw="note" />
+      </div>
+      <div class="actions">
+        <item-tags :tags="note?.tags" :type="dataType" :only-links="true" />
+        <note-mode-toggle :mode="viewMode" @update:mode="setViewMode" />
+        <template v-if="id">
+          <v-icon-button v-tooltip="$t('add_to_tags')" @click.prevent="addToTags">
+            <i-material-symbols:label-outline-rounded />
+          </v-icon-button>
+          <v-icon-button v-tooltip="$t('print')" @click.prevent="print">
+            <i-material-symbols:print-outline-rounded />
+          </v-icon-button>
+        </template>
+      </div>
     </div>
-  </div>
-  <div class="panel-container">
-    <monaco-editor v-model="content" language="html" />
-    <div class="md-container" v-html="markdown"></div>
+    <div class="note-edit-container" :class="viewMode">
+      <div v-show="viewMode !== 'preview'" class="editor-pane">
+        <markdown-editor
+          ref="editorRef"
+          v-model="content"
+          :placeholder="$t('write_markdown')"
+          @paste-images="onPasteImages"
+        />
+        <div v-if="uploadingImage" class="upload-indicator">
+          <v-circular-progress indeterminate class="sm" /> {{ $t('uploading') }}
+        </div>
+      </div>
+      <div v-show="viewMode !== 'editor'" class="preview-pane md-container" v-html="markdown" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
-import { onMounted, onUnmounted, ref, watch } from 'vue'
-import toast from '@/components/toaster'
-import { useI18n } from 'vue-i18n'
-import { initLazyQuery, initQuery, noteGQL, tagsGQL } from '@/lib/api/query'
-import type { IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, INote, ITag } from '@/lib/interfaces'
-import { formatDateTime } from '@/lib/format'
-import { useMarkdown } from '@/hooks/markdown'
-import { initMutation, saveNoteGQL } from '@/lib/api/mutation'
-import { debounce, truncate } from 'lodash-es'
-import router, { replacePath, replacePathNoReload } from '@/plugins/router'
-import { useMainStore } from '@/stores/main'
-import { useTempStore } from '@/stores/temp'
-import { storeToRefs } from 'pinia'
-import { openModal } from '@/components/modal'
-import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
-import emitter from '@/plugins/eventbus'
+import { ref } from 'vue'
+import { useNoteEdit } from '@/hooks/note-edit'
+import type MarkdownEditorVue from '@/components/MarkdownEditor.vue'
+import NoteModeToggle from '@/components/notes/NoteModeToggle.vue'
 
-const mainStore = useMainStore()
+const editorRef = ref<InstanceType<typeof MarkdownEditorVue>>()
 
-const { t } = useI18n()
+const {
+  id, note, title, content, markdown, notSaved, dataType, viewMode, uploadingImage,
+  backToList, getTime, addToTags, print, handlePasteImages, setViewMode,
+} = useNoteEdit()
 
-const route = useRoute()
-const id = ref('')
-const note = ref<INote>()
-const content = ref('')
-const markdown = ref('')
-const notSaved = ref(false)
-
-const { app, urlTokenKey } = storeToRefs(useTempStore())
-
-function backToList() {
-  const q = router.currentRoute.value.query.q
-  let path = '/notes'
-  if (q) {
-    path += `?q=${q}`
-  }
-
-  replacePath(mainStore, path)
-}
-
-const { render } = useMarkdown(app, urlTokenKey)
-const saveContent = debounce(() => {
-  notSaved.value = false
-  save({
-    id: id.value,
-    input: {
-      content: content.value,
-      title: truncate(content.value, { length: 250, omission: '' }),
-    },
-  })
-}, 500)
-
-const watchContent = () => {
-  watch(content, async (value: string) => {
-    notSaved.value = true
-    markdown.value = await render(value)
-    saveContent()
-  })
-}
-
-const print = () => {
-  window.print()
-}
-
-const tags = ref<ITag[]>()
-const dataType = 'NOTE'
-initQuery({
-  handle: (data: { tags: ITag[] }, error: string) => {
-    if (error) {
-      toast(t(error), 'error')
-    } else {
-      if (data) {
-        tags.value = data.tags
-      }
-    }
-  },
-  document: tagsGQL,
-  variables: {
-    type: dataType,
-  },
-})
-
-const { fetch } = initLazyQuery({
-  handle: async (data: { note: INote }, error: string) => {
-    if (error) {
-      toast(t(error), 'error')
-    } else {
-      note.value = data.note
-      content.value = data.note.content
-      markdown.value = await render(content.value)
-      watchContent()
-    }
-  },
-  document: noteGQL,
-  variables: () => ({
-    id: id.value,
-  }),
-  options: {
-    fetchPolicy: 'no-cache',
-  },
-})
-
-const { mutate: save, onDone: saveDone } = initMutation({
-  document: saveNoteGQL,
-})
-
-saveDone((r: any) => {
-  note.value = r.data.saveNote
-  if (!id.value && note.value?.id) {
-    id.value = note.value?.id
-    replacePathNoReload(mainStore, `/notes/${id.value}`)
-  }
-})
-
-function getTime() {
-  const time = note?.value?.updatedAt
-  if (time) {
-    return `(${t('updated_at')}: ${formatDateTime(time)})`
-  }
-  return ''
-}
-
-function addToTags() {
-  openModal(UpdateTagRelationsModal, {
-    type: dataType,
-    tags: tags.value,
-    item: {
-      key: note.value?.id,
-      title: '',
-      size: 0,
-    },
-    selected: tags.value?.filter((it: ITag) => note.value?.tags.some((t) => t.id === it.id)),
-  })
-}
-
-const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
-  if (event.type === dataType) {
-    fetch()
+async function onPasteImages(files: File[]) {
+  const paths = await handlePasteImages(files)
+  for (const md of paths) {
+    editorRef.value?.insertText('\n' + md + '\n')
   }
 }
-
-const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
-  if (event.type === dataType) {
-    fetch()
-  }
-}
-
-onMounted(() => {
-  id.value = route.params.id as string
-  if (id.value === 'create') {
-    id.value = ''
-  }
-  if (id.value) {
-    fetch()
-  } else {
-    watchContent()
-  }
-  emitter.on('item_tags_updated', itemTagsUpdatedHandler)
-  emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
-})
-
-onUnmounted(() => {
-  emitter.off('item_tags_updated', itemTagsUpdatedHandler)
-  emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
-})
 </script>
-<style lang="scss" scoped>
-.panel-container {
-  display: flex;
-  flex-direction: row;
-  height: calc(100vh - 120px);
-}
 
+<style lang="scss" scoped>
+.title-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  font-weight: 500;
+  background: transparent;
+  color: var(--md-sys-color-on-surface);
+  padding: 4px 8px;
+  border-radius: 4px;
+  min-width: 200px;
+  &:focus {
+    background: var(--md-sys-color-surface-variant);
+  }
+  &::placeholder {
+    color: var(--md-sys-color-on-surface-variant);
+    opacity: 0.6;
+  }
+}
 .time {
   margin-left: 8px;
   font-size: 0.875rem;
@@ -207,16 +90,60 @@ onUnmounted(() => {
 .state-point {
   color: red;
 }
-
-.monaco-editor {
-  width: 50% !important;
-}
-.md-container {
-  width: 50%;
-  padding: 16px;
-  height: 100%;
+.note-edit-page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: calc(100dvh - 64px);
+  padding: 12px 16px 16px;
   box-sizing: border-box;
+  overflow: hidden;
+}
+.note-edit-container {
+  flex: 1;
+  min-height: 0;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--md-sys-color-surface);
+  &.editor .editor-pane {
+    display: block;
+  }
+  &.preview .preview-pane {
+    display: block;
+  }
+}
+.editor-pane {
+  height: 100%;
   position: relative;
+  overflow: hidden;
+}
+.preview-pane {
+  height: 100%;
+  padding: 20px 24px;
+  box-sizing: border-box;
   overflow-y: auto;
+  position: relative;
+}
+.upload-indicator {
+  position: absolute;
+  bottom: 8px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--md-sys-color-on-surface-variant);
+  background: var(--md-sys-color-surface-variant);
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+@media (max-width: 960px) {
+  .note-edit-page {
+    padding: 8px 10px 10px;
+  }
+  .preview-pane {
+    padding: 14px;
+  }
 }
 </style>

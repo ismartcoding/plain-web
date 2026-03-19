@@ -113,8 +113,8 @@
 import type { IContact } from '@/lib/interfaces'
 import { DataType } from '@/lib/data'
 import { formatDateTime, formatTimeAgo } from '@/lib/format'
-import { containsChinese } from '@/lib/strutil'
 import { getFileUrl } from '@/lib/api/file'
+import { getContactFullName } from '@/lib/contact/format'
 import ContactActionButtons from './ContactActionButtons.vue'
 
 interface Props {
@@ -165,24 +165,7 @@ function sendSms(id: string, number: string, index: number) {
 }
 
 function fullName(item: IContact) {
-  let name = ''
-  if (containsChinese(item.firstName) || containsChinese(item.lastName)) {
-    name = `${item.lastName}${item.middleName}${item.firstName}`
-  } else {
-    name = [item.firstName, item.middleName, item.lastName].filter((it) => it).join(' ')
-  }
-
-  const suffixComma = item.suffix ? `, ${item.suffix}` : ''
-  const fullName = `${item.prefix} ${name} ${suffixComma}`.trim()
-  if (fullName) {
-    return fullName
-  }
-
-  if (item.emails.length) {
-    return item.emails[0].value
-  }
-
-  return ''
+  return getContactFullName(item)
 }
 </script>
 

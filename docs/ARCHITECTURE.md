@@ -58,8 +58,13 @@ src/
 │   ├── ScreenMirrorView.vue   # WebRTC screen mirror
 │   └── {feature}/             # Feature pages (audios/, chat/, feeds/, etc.)
 │
-├── hooks/                     # Composable functions (24 files)
-│   ├── chat.ts                # Chat message handling
+├── hooks/                     # Composable functions
+│   ├── chat.ts                # Chat upload task queue
+│   ├── chat-route.ts          # Chat route ID decryption
+│   ├── chat-data.ts           # Chat peers/channels loading
+│   ├── chat-messages.ts       # Chat message CRUD + cache
+│   ├── chat-upload.ts         # Chat file/image upload + progress
+│   ├── chat-events.ts         # Chat real-time event bus handlers
 │   ├── feeds.ts               # RSS subscriptions
 │   ├── files.ts               # File operations
 │   ├── notes.ts               # Note CRUD

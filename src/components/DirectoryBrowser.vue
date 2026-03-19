@@ -59,7 +59,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import VolumeCard from '@/components/storage/VolumeCard.vue'
 import type { IStorageMount } from '@/lib/interfaces'
-import { formatFileSize } from '@/lib/format'
+import { sortMounts, buildUsbIndexMap, mountTitle as getMountTitle, storageUsedPercent, storageCountText } from '@/lib/storage'
 
 const { t } = useI18n()
 
@@ -82,55 +82,19 @@ const emit = defineEmits<{
   (e: 'enterDir', absPath: string): void
 }>()
 
-function driveRank(m: IStorageMount) {
-  if (m.driveType === 'INTERNAL_STORAGE') return 0
-  if (m.driveType === 'SDCARD') return 1
-  if (m.driveType === 'USB_STORAGE') return 2
-  if (m.driveType === 'APP') return 3
-  return 9
-}
-
-const sortedVolumes = computed(() =>
-  [...props.volumes].sort((a, b) => {
-    const da = driveRank(a)
-    const db = driveRank(b)
-    if (da !== db) return da - db
-    return (a.mountPoint || '').localeCompare(b.mountPoint || '')
-  })
-)
-
-const usbIndexMap = computed(() => {
-  const usbPoints = props.volumes
-    .filter((m) => m.driveType === 'USB_STORAGE')
-    .map((m) => m.mountPoint)
-    .filter(Boolean)
-  return new Map<string, number>(usbPoints.map((p, i) => [p, i + 1]))
-})
+const sortedVolumes = computed(() => sortMounts(props.volumes))
+const usbIndexMap = computed(() => buildUsbIndexMap(props.volumes))
 
 function mountTitle(m: IStorageMount): string {
-  if (m.driveType === 'INTERNAL_STORAGE') return t('internal_storage')
-  if (m.driveType === 'APP') return t('app_data')
-  if (m.driveType === 'SDCARD') return t('sdcard')
-  if (m.driveType === 'USB_STORAGE') {
-    const idx = usbIndexMap.value.get(m.mountPoint) ?? 1
-    return `${t('usb_storage')} ${idx}`
-  }
-  return m.name || m.mountPoint
+  return getMountTitle(m, usbIndexMap.value, t)
 }
 
 function mountUsedPercent(m: IStorageMount): number {
-  const total = Number(m.totalBytes || 0)
-  const used = Number(m.usedBytes || 0)
-  if (!total) return 0
-  const pct = (used / total) * 100
-  return Number.isFinite(pct) ? Math.max(0, Math.min(100, pct)) : 0
+  return storageUsedPercent(Number(m.freeBytes || 0), Number(m.totalBytes || 0))
 }
 
 function mountCount(m: IStorageMount): string {
-  const free = Number(m.freeBytes || 0)
-  const total = Number(m.totalBytes || 0)
-  if (!total) return ''
-  return t('storage_free_total', { free: formatFileSize(free), total: formatFileSize(total) })
+  return storageCountText(Number(m.freeBytes || 0), Number(m.totalBytes || 0), t)
 }
 
 const browserStyle = computed(() => {

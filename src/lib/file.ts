@@ -36,6 +36,11 @@ export function isSvg(name: string) {
   return v.endsWith('.svg')
 }
 
+export function isHeic(name: string) {
+  const v = name.toLowerCase()
+  return v.endsWith('.heic') || v.endsWith('.heif')
+}
+
 export function isVideo(name: string) {
   const v = name.toLowerCase()
   return videoExtensions.some((it) => v.endsWith(it))

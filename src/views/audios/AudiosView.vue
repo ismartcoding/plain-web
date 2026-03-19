@@ -1,130 +1,54 @@
 <template>
-  <div class="top-app-bar">
-    <v-checkbox touch-target="wrapper" :checked="allChecked" :indeterminate="!allChecked && checked" @change="toggleAllChecked" />
-    <div class="title">
-      <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
-      <span v-else>{{ $t('page_title.audios') }} ({{ total.toLocaleString() }})</span>
-      <template v-if="checked">
-        <template v-if="filter.trash">
-          <v-icon-button v-tooltip="$t('delete')" @click.stop="deleteItems(dataType, selectedIds, realAllChecked, total, q)">
-              <i-material-symbols:delete-forever-outline-rounded />
-          </v-icon-button>
-          <v-icon-button v-tooltip="$t('restore')" :loading="restoreLoading(getQuery())" @click.stop="restore(dataType, getQuery())">
-              <i-material-symbols:restore-from-trash-outline-rounded />
-          </v-icon-button>
-          <v-icon-button v-tooltip="$t('download')" @click.stop="downloadItems(realAllChecked, selectedIds, q)">
-              <i-material-symbols:download-rounded />
-          </v-icon-button>
-        </template>
-        <template v-else>
-          <template v-if="uiMode === 'edit'">
-            <v-icon-button v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)" v-tooltip="$t('move_to_trash')" :loading="trashLoading(getQuery())" @click.stop="trash(dataType, getQuery())">
-                <i-material-symbols:delete-outline-rounded />
-            </v-icon-button>
-            <v-icon-button v-else v-tooltip="$t('delete')" @click.stop="deleteItems(dataType, selectedIds, realAllChecked, total, q)">
-                <i-material-symbols:delete-forever-outline-rounded />
-            </v-icon-button>
-            <v-icon-button v-tooltip="$t('add_to_tags')" @click.stop="addToTags(selectedIds, realAllChecked, q)">
-                <i-material-symbols:label-outline-rounded />
-            </v-icon-button>
-          </template>
-          <v-icon-button v-tooltip="$t('download')" @click.stop="downloadItems(realAllChecked, selectedIds, q)">
-              <i-material-symbols:download-rounded />
-          </v-icon-button>
-          <v-icon-button v-if="uiMode !== 'edit'" v-tooltip="$t('add_to_playlist')" @click.stop="addItemsToPlaylist($event, selectedIds, realAllChecked, q)">
-              <i-material-symbols:playlist-add />
-          </v-icon-button>
-        </template>
-      </template>
-    </div>
-
-    <div class="actions">
-      <MediaPageActions
-        placement="top"
-        :ui-mode="uiMode"
-        :filter-trash="!!filter.trash"
-        :is-phone="isPhone"
-        :checked="checked"
-        :upload-menu-visible="uploadMenuVisible"
-        :more-menu-visible="moreMenuVisible"
-        :sort-by="audioSortBy"
-        :sort-items="sortItems"
-        :show-view-toggle="false"
-        :on-toggle-ui-mode="toggleUIMode"
-        :on-upload-files="uploadFilesClick"
-        :on-upload-dir="uploadDirClick"
-        :on-sort="sort"
-        :show-view-options="true"
-        :scroll-paging="mainStore.audiosScrollPaging"
+  <MediaToolbar
+    page-title="page_title.audios"
+    :selected-count="selectedIds.length"
+    :all-checked="allChecked" :checked="checked" :real-all-checked="realAllChecked" :total="total"
+    :filter-trash="!!filter.trash"
+    :can-trash="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)"
+    :restore-query-loading="restoreLoading(getQuery())" :trash-query-loading="trashLoading(getQuery())"
+    :limit="limit" :all-checked-alert-visible="allCheckedAlertVisible"
+    :show-secondary="false"
+    @toggle-all-checked="toggleAllChecked" @delete="deleteItems(dataType, selectedIds, realAllChecked, total, q)"
+    @restore="restore(dataType, getQuery())" @download="downloadItems(realAllChecked, selectedIds, q)"
+    @trash="trash(dataType, getQuery())" @add-to-tags="addToTags(selectedIds, realAllChecked, q)"
+    @select-real-all="selectRealAll" @clear-selection="clearSelection"
+  >
+    <template #extra-actions>
+      <v-icon-button v-tooltip="$t('add_to_playlist')" @click.stop="addItemsToPlaylist($event, selectedIds, realAllChecked, q)">
+        <i-material-symbols:playlist-add />
+      </v-icon-button>
+    </template>
+    <template #actions>
+      <MediaPageActions placement="top" :filter-trash="!!filter.trash" :is-phone="isPhone" :checked="checked"
+        :upload-menu-visible="uploadMenuVisible" :more-menu-visible="moreMenuVisible"
+        :sort-by="audioSortBy" :sort-items="sortItems" :show-view-toggle="false"
+        :on-upload-files="uploadFilesClick" :on-upload-dir="uploadDirClick"
+        :on-sort="sort" :show-view-options="true" :scroll-paging="mainStore.audiosScrollPaging"
         :on-open-keyboard-shortcuts="openKeyboardShortcuts"
-        @update:uploadMenuVisible="(v) => uploadMenuVisible = v"
-        @update:moreMenuVisible="(v) => moreMenuVisible = v"
+        @update:uploadMenuVisible="(v) => uploadMenuVisible = v" @update:moreMenuVisible="(v) => moreMenuVisible = v"
         @update:scrollPaging="(v) => mainStore.audiosScrollPaging = v"
       />
-    </div>
-  </div>
+    </template>
+  </MediaToolbar>
 
-  <all-checked-alert
-    :limit="limit"
-    :total="total"
-    :all-checked-alert-visible="allCheckedAlertVisible"
-    :real-all-checked="realAllChecked"
-    :select-real-all="selectRealAll"
-    :clear-selection="clearSelection"
-  />
   <div class="scroll-content" @dragover.stop.prevent="fileDragEnter">
     <div v-show="dropping" class="drag-mask" @drop.stop.prevent="dropFiles2" @dragleave.stop.prevent="fileDragLeave">{{ $t('release_to_send_files') }}</div>
     <div class="main-list" :class="{ 'select-mode': checked }">
-      <AudioListItem
-        v-for="(item, i) in items"
-        :key="item.id"
-        :item="item"
-        :index="i"
-        :is-phone="isPhone"
-        :selected-ids="selectedIds"
-        :shift-effecting-ids="shiftEffectingIds"
-        :should-select="shouldSelect"
-        :image-error-ids="imageErrorIds"
-        :buckets-map="bucketsMap"
-        :filter="filter"
-        :data-type="dataType"
-        :animating-ids="animatingIds"
-        :play-loading="playLoading"
-        :play-path="playPath"
-        :main-store="mainStore"
-        :app="app"
-        :handle-item-click="handleItemClick"
-        :handle-mouse-over="handleMouseOverMode"
-        :toggle-select="toggleSelect"
-        :on-image-error="onImageError"
-        :view-bucket="viewBucket"
-        :delete-item="deleteItem"
-        :restore="restore"
-        :download-file="downloadFile"
-        :trash="trash"
-        :handle-remove-from-playlist="handleRemoveFromPlaylist"
-        :add-to-playlist="handleAddToPlaylist"
-        :add-item-to-tags="addItemToTags"
-        :play="play"
-        :pause="pause"
-        :is-audio-playing="isAudioPlaying"
-        :is-in-playlist="isInPlaylist"
-        :restore-loading="restoreLoading"
-        :trash-loading="trashLoading"
-        :edit-mode="uiMode === 'edit'"
-      />
+      <AudioListItem v-for="(item, i) in items" :key="item.id" :item="item" :index="i" :is-phone="isPhone"
+        :selected-ids="selectedIds" :shift-effecting-ids="shiftEffectingIds" :should-select="shouldSelect"
+        :image-error-ids="imageErrorIds" :buckets-map="bucketsMap" :filter="filter" :data-type="dataType"
+        :animating-ids="animatingIds" :play-loading="playLoading" :play-path="playPath" :main-store="mainStore" :app="app"
+        :handle-item-click="handleItemClick" :handle-mouse-over="handleMouseOverMode" :toggle-select="toggleSelect"
+        :on-image-error="onImageError" :view-bucket="viewBucket" :delete-item="deleteItem" :restore="restore"
+        :download-file="downloadFile" :trash="trash" :handle-remove-from-playlist="handleRemoveFromPlaylist"
+        :add-to-playlist="handleAddToPlaylist" :add-item-to-tags="addItemToTags" :play="play" :pause="pause"
+        :is-audio-playing="isAudioPlaying" :is-in-playlist="isInPlaylist"
+        :restore-loading="restoreLoading" :trash-loading="trashLoading" />
       <template v-if="loading && items.length === 0">
-        <AudioSkeletonItem
-          v-for="i in 20"
-          :key="i"
-          :index="i"
-          :is-phone="isPhone"
-        />
+        <AudioSkeletonItem v-for="i in 20" :key="i" :index="i" :is-phone="isPhone" />
       </template>
     </div>
-    <div v-if="!loading && items.length === 0" class="no-data-placeholder">
-      {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
-    </div>
+    <div v-if="!loading && items.length === 0" class="no-data-placeholder">{{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}</div>
     <v-pagination v-if="!scrollMode && total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" :page-size="limit" :on-change-page-size="onChangePageSize" />
     <div v-if="scrollMode" ref="sentinel" class="scroll-sentinel"></div>
     <input ref="fileInput" style="display: none" type="file" accept="audio/*" multiple @change="uploadChanged" />
@@ -133,419 +57,104 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onActivated, onDeactivated, reactive, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { audiosGQL, initLazyQuery } from '@/lib/api/query'
-import { useRoute } from 'vue-router'
-import { replacePath } from '@/plugins/router'
+import type { IAudio } from '@/lib/interfaces'
+import { DataType, FEATURE } from '@/lib/data'
+import { getSortItems, isAudio } from '@/lib/file'
+import { hasFeature } from '@/lib/feature'
+import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
-import { useI18n } from 'vue-i18n'
-import type { IAudio, IBucket, IFilter, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IMediaItemsActionedEvent } from '@/lib/interfaces'
-import type { IUploadItem } from '@/stores/temp'
-import { storeToRefs } from 'pinia'
-import { decodeBase64 } from '@/lib/strutil'
-import { noDataKey } from '@/lib/list'
-import { useSearch } from '@/hooks/search'
 import { useAddToPlaylist, useAudioPlayer } from '@/hooks/audios'
-import { useSelectable } from '@/hooks/list'
-import emitter from '@/plugins/eventbus'
-import { useAddToTags } from '@/hooks/tags'
-import { useBuckets, useBucketsTags, useDeleteItems } from '@/hooks/media'
-import { useDownload, useDownloadItems } from '@/hooks/files'
-import { openModal } from '@/components/modal'
-import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
-import { DataType, FEATURE } from '@/lib/data'
-import { getDirFromPath, getSortItems, isAudio } from '@/lib/file'
-import { useKeyEvents } from '@/hooks/key-events'
-import { generateDownloadFileName } from '@/lib/format'
-import { useDragDropUpload, useFileUpload } from '@/hooks/upload'
-import { createBucketUploadTarget } from '@/hooks/media-upload'
-import { useMediaRestore, useMediaTrash } from '@/hooks/media-trash'
-import { hasFeature } from '@/lib/feature'
+import { useMediaPage } from '@/hooks/media-page'
 import MediaPageActions from '@/components/media/MediaPageActions.vue'
-import KeyboardShortcutsModal from '@/components/KeyboardShortcutsModal.vue'
-import { mediaKeyboardShortcuts } from '@/lib/shortcuts/media'
+import MediaToolbar from '@/components/media/MediaToolbar.vue'
 
-const isPhone = inject('isPhone') as boolean
-const mainStore = useMainStore()
-const { audioSortBy } = storeToRefs(mainStore)
+const mainStoreLocal = useMainStore()
+const { audioSortBy } = storeToRefs(mainStoreLocal)
+const { audioPlaying } = storeToRefs(useTempStore())
 const items = ref<IAudio[]>([])
-const { t } = useI18n()
-const { parseQ } = useSearch()
-const filter = reactive<IFilter>({
-  tagIds: [],
-  bucketId: undefined,
-})
-const { app, urlTokenKey, audioPlaying, uploads } = storeToRefs(useTempStore())
-const isAudioPlaying = (item: IAudio) => {
-  return audioPlaying.value && app.value?.audioCurrent === item.path
-}
-const animatingIds = ref<string[]>([])
-const uploadMenuVisible = ref(false)
-const moreMenuVisible = ref(false)
-
-type UIMode = 'view' | 'edit'
-const uiMode = computed<UIMode>({
-  get: () => (filter.trash ? 'edit' : (mainStore.pageUIMode.audios ?? 'view')),
-  set: (value) => {
-    if (filter.trash) return
-    mainStore.pageUIMode.audios = value
-  },
-})
-
-const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload(uploads)
-const { input: dirFileInput, upload: uploadDir, uploadChanged: dirUploadChanged } = useFileUpload(uploads)
-const { dropping, fileDragEnter, fileDragLeave, dropFiles } = useDragDropUpload(uploads)
-const sorting = ref(false)
-
-const dataType = DataType.AUDIO
-const route = useRoute()
-const page = ref(1)
-const limit = computed(() => mainStore.pageSize)
-const { tags, buckets, fetch: fetchBucketsTags } = useBucketsTags(dataType)
-const bucketsMap = computed(() => {
-  const map: Record<string, IBucket> = {}
-  buckets.value.forEach((it) => {
-    map[it.id] = it
-  })
-  return map
-})
-const q = ref('')
-const { addToTags } = useAddToTags(dataType, tags)
-const { deleteItems, deleteItem } = useDeleteItems()
-const { view: viewBucket } = useBuckets(dataType)
-const {
-  selectedIds,
-  allChecked,
-  realAllChecked,
-  selectRealAll,
-  allCheckedAlertVisible,
-  clearSelection,
-  toggleAllChecked,
-  toggleSelect,
-  total,
-  checked,
-  shiftEffectingIds,
-  handleItemClick,
-  handleMouseOver,
-  selectAll,
-  shouldSelect,
-} = useSelectable(items)
-const { downloadItems } = useDownloadItems(urlTokenKey, dataType, clearSelection, () => generateDownloadFileName('audios'))
-const { downloadFile } = useDownload(urlTokenKey)
-const gotoPage = (page: number) => {
-  const q = route.query.q
-  replacePath(mainStore, q ? `/audios?page=${page}&q=${q}` : `/audios?page=${page}`)
-}
-
-function onChangePageSize(size: number) {
-  mainStore.pageSize = size
-  const q = route.query.q
-  replacePath(mainStore, q ? `/audios?page=1&q=${q}` : `/audios?page=1`)
-}
-const selectAllInEditMode = () => {
-  if (uiMode.value !== 'edit') return
-  selectAll()
-}
-
-const clearSelectionInEditMode = () => {
-  if (uiMode.value !== 'edit') return
-  clearSelection()
-}
-
-const trashInEditMode = () => {
-  if (uiMode.value !== 'edit') return
-  if (hasFeature(FEATURE.MEDIA_TRASH, app.value.osVersion)) {
-    trash(dataType, getQuery())
-  } else {
-    deleteItems(dataType, selectedIds.value, realAllChecked.value, total.value, q.value)
-  }
-}
-
-const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(
-  total,
-  limit,
-  page,
-  selectAllInEditMode,
-  clearSelectionInEditMode,
-  gotoPage,
-  trashInEditMode,
-)
-const { addItemsToPlaylist, addToPlaylist, removeFromPlaylist, isInPlaylist } = useAddToPlaylist(items, clearSelection)
 const sortItems = getSortItems()
 const imageErrorIds = ref<string[]>([])
-const scrollMode = computed(() => mainStore.audiosScrollPaging)
+const animatingIds = ref<string[]>([])
+
+const scrollMode = computed(() => mainStoreLocal.audiosScrollPaging)
 const noMore = ref(false)
 const sentinel = ref<HTMLElement | null>(null)
 
-function loadMore() {
-  if (noMore.value || loading.value || !scrollMode.value) return
-  page.value++
-  fetch()
-}
-
 let observer: IntersectionObserver | null = null
 function setupSentinelObserver() {
-  if (observer) {
-    observer.disconnect()
-    observer = null
-  }
+  if (observer) { observer.disconnect(); observer = null }
   if (!sentinel.value) return
-  observer = new IntersectionObserver(
-    (entries) => {
-      if (entries[0]?.isIntersecting) {
-        loadMore()
-      }
-    },
-    { rootMargin: '200px' }
-  )
+  observer = new IntersectionObserver((entries) => { if (entries[0]?.isIntersecting) loadMore() }, { rootMargin: '200px' })
   observer.observe(sentinel.value)
+}
+function loadMore() {
+  if (noMore.value || loading.value || !scrollMode.value) return
+  mp.page.value++
+  fetch()
 }
 
 watch(scrollMode, (val) => {
-  page.value = 1
-  items.value = []
-  noMore.value = false
-  if (val) {
-    setTimeout(setupSentinelObserver, 100)
-  } else {
-    observer?.disconnect()
-    observer = null
-  }
+  mp.page.value = 1; items.value = []; noMore.value = false
+  if (val) setTimeout(setupSentinelObserver, 100)
+  else { observer?.disconnect(); observer = null }
   fetch()
 })
+watch(sentinel, (el) => { if (el && scrollMode.value) setupSentinelObserver() })
 
-watch(sentinel, (el) => {
-  if (el && scrollMode.value) {
-    setupSentinelObserver()
-  }
+const mp = useMediaPage({
+  dataType: DataType.AUDIO, routePath: 'audios',
+  items, sortByRef: audioSortBy, fileFilter: isAudio,
+  downloadName: 'audios', uploadModalId: 'upload-directory-picker-audios', uploadStorageKey: 'plainweb.uploadDir.audios',
+  doFetch: () => fetch(), getScrollMode: () => scrollMode.value,
+  setupScroll: () => setTimeout(setupSentinelObserver, 100),
+  teardownScroll: () => { observer?.disconnect(); observer = null },
+  onSort: () => { noMore.value = false },
 })
+const {
+  isPhone, mainStore, app, noDataKey,
+  filter, page, q, limit, dataType, uploadMenuVisible, moreMenuVisible,
+  fileInput, dirFileInput, uploadChanged, dirUploadChanged, dropping, fileDragEnter, fileDragLeave,
+  bucketsMap, addToTags, deleteItems, deleteItem, viewBucket,
+  selectedIds, allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible,
+  clearSelection, toggleAllChecked, toggleSelect, total, checked, shiftEffectingIds, handleItemClick, shouldSelect,
+  downloadItems, downloadFile, trashLoading, trash, restoreLoading, restore,
+  gotoPage, onChangePageSize, getQuery, sort, handleMouseOverMode,
+  openKeyboardShortcuts, addItemToTags, uploadFilesClick, uploadDirClick, dropFiles2,
+} = mp
 
+const isAudioPlaying = (item: IAudio) => audioPlaying.value && app.value?.audioCurrent === item.path
 const { play, playPath, loading: playLoading, pause } = useAudioPlayer()
+const { addItemsToPlaylist, addToPlaylist, removeFromPlaylist, isInPlaylist } = useAddToPlaylist(items, clearSelection)
+const onImageError = (id: string) => { imageErrorIds.value.push(id) }
 
-const onImageError = (id: string) => {
-  imageErrorIds.value.push(id)
+function handleRemoveFromPlaylist(e: MouseEvent, item: IAudio) {
+  animatingIds.value.push(item.id)
+  setTimeout(() => { removeFromPlaylist(e, item); setTimeout(() => { animatingIds.value = animatingIds.value.filter((id) => id !== item.id) }, 200) }, 150)
+}
+function handleAddToPlaylist(e: MouseEvent, item: IAudio) {
+  animatingIds.value.push(item.id)
+  setTimeout(() => { addToPlaylist(e, item); setTimeout(() => { animatingIds.value = animatingIds.value.filter((id) => id !== item.id) }, 200) }, 150)
 }
 
 const { loading, fetch } = initLazyQuery({
   handle: (data: { items: IAudio[]; total: number }, error: string) => {
-    sorting.value = false
-    if (error) {
-      toast(t(error), 'error')
-    } else {
-      if (data) {
-        if (scrollMode.value && page.value > 1) {
-          items.value = items.value.concat(data.items)
-        } else {
-          items.value = data.items
-        }
-        total.value = data.total
-        if (scrollMode.value) {
-          noMore.value = data.items.length < limit.value
-        }
-      }
+    mp.sorting.value = false
+    if (error) { toast(mp.q.value, 'error') } else if (data) {
+      if (scrollMode.value && page.value > 1) { items.value = items.value.concat(data.items) }
+      else { items.value = data.items }
+      total.value = data.total
+      if (scrollMode.value) { noMore.value = data.items.length < limit.value }
     }
   },
   document: audiosGQL,
-  variables: () => ({
-    offset: (page.value - 1) * limit.value,
-    limit: limit.value,
-    query: q.value,
-    sortBy: audioSortBy.value,
-  }),
-})
-
-const { trashLoading, trash } = useMediaTrash()
-const { restoreLoading, restore } = useMediaRestore()
-
-const uploadTarget = createBucketUploadTarget({
-  filter,
-  buckets,
-  picker: {
-    title: t('upload_select_destination'),
-    description: t('upload_select_destination_desc'),
-    initialPath: '',
-    modalId: 'upload-directory-picker-audios',
-    storageKey: 'plainweb.uploadDir.audios',
-  },
-})
-
-function sort(value: string) {
-  if (audioSortBy.value === value) {
-    return
-  }
-  sorting.value = true
-  page.value = 1
-  noMore.value = false
-  items.value = []
-  audioSortBy.value = value
-}
-
-function toggleUIMode() {
-  if (filter.trash) return
-  clearSelection()
-  uiMode.value = uiMode.value === 'edit' ? 'view' : 'edit'
-}
-
-function openKeyboardShortcuts() {
-  openModal(KeyboardShortcutsModal, {
-    title: t('keyboard_shortcuts'),
-    shortcuts: mediaKeyboardShortcuts,
-  })
-}
-
-function handleMouseOverMode(event: MouseEvent, index: number) {
-  if (uiMode.value !== 'edit') return
-  handleMouseOver(event, index)
-}
-
-async function uploadFilesClick() {
-  const dir = await uploadTarget.resolveTargetDir()
-  if (!dir) return
-  uploadFiles(dir)
-}
-
-async function uploadDirClick() {
-  const dir = await uploadTarget.resolveTargetDir()
-  if (!dir) return
-  uploadDir(dir)
-}
-
-function dropFiles2(e: DragEvent) {
-  dropFiles(e, uploadTarget.resolveTargetDir, (file) => isAudio(file.name))
-}
-
-const getQuery = () => {
-  let query = q.value
-  if (!realAllChecked.value) {
-    query = `ids:${selectedIds.value.join(',')}`
-  }
-
-  return query
-}
-
-const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
-  if (event.type === dataType) {
-    clearSelection()
-    fetch()
-  }
-}
-
-const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
-  if (event.type === dataType) {
-    fetch()
-  }
-}
-
-const mediaItemsActionedHandler = (event: IMediaItemsActionedEvent) => {
-  if (event.type === dataType) {
-    clearSelection()
-    fetch()
-  }
-}
-
-const uploadTaskDoneHandler = (r: IUploadItem) => {
-  if (r.status === 'done') {
-    // Check if uploaded file is an audio
-    if (isAudio(r.fileName)) {
-      // Check if the uploaded file matches current bucket filter or show all
-      const shouldRefresh = !filter.bucketId || buckets.value.some((bucket) => bucket.id === filter.bucketId && bucket.topItems.some((topItem) => r.dir.startsWith(getDirFromPath(topItem))))
-
-      if (shouldRefresh) {
-        // Delay to ensure the API returns latest data
-        setTimeout(() => {
-          fetch()
-        }, 1000)
-      }
-      
-      // Emit event to update sidebar count
-      emitter.emit('media_items_actioned', { type: dataType, action: 'upload', query: '' })
-    }
-  }
-}
-
-function addItemToTags(item: IAudio) {
-  const tagIds = item.tags.map((t) => t.id)
-  openModal(UpdateTagRelationsModal, {
-    type: dataType,
-    tags: tags.value,
-    item: {
-      key: item.id,
-      title: item.title,
-      size: item.size,
-    },
-    selected: tags.value.filter((it) => tagIds.includes(it.id)),
-  })
-}
-
-function handleRemoveFromPlaylist(e: MouseEvent, item: IAudio) {
-  animatingIds.value.push(item.id)
-  setTimeout(() => {
-    removeFromPlaylist(e, item)
-    setTimeout(() => {
-      animatingIds.value = animatingIds.value.filter((id) => id !== item.id)
-    }, 200)  // Delay clearing animation state to avoid jitter
-  }, 150) // Start add operation after 90-degree rotation
-}
-
-function handleAddToPlaylist(e: MouseEvent, item: IAudio) {
-  animatingIds.value.push(item.id)
-  setTimeout(() => {
-    addToPlaylist(e, item)
-    setTimeout(() => {
-      animatingIds.value = animatingIds.value.filter((id) => id !== item.id)
-    }, 200) // Delay clearing animation state to avoid jitter
-  }, 150) // Start add operation after 90-degree rotation
-}
-
-// Unified SearchFilters handler
-
-const isActive = ref(false)
-
-function applyRouteQuery() {
-  const nextPage = parseInt(route.query.page?.toString() ?? '1')
-  page.value = Number.isFinite(nextPage) && nextPage > 0 ? nextPage : 1
-  q.value = decodeBase64(route.query.q?.toString() ?? '')
-  parseQ(filter, q.value)
-  fetch()
-}
-
-watch(
-  () => route.fullPath,
-  () => {
-    if (!isActive.value) return
-    applyRouteQuery()
-  }
-)
-
-onActivated(() => {
-  fetchBucketsTags()
-  isActive.value = true
-  applyRouteQuery()
-  emitter.on('item_tags_updated', itemTagsUpdatedHandler)
-  emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
-  emitter.on('media_items_actioned', mediaItemsActionedHandler)
-  emitter.on('upload_task_done', uploadTaskDoneHandler)
-  window.addEventListener('keydown', pageKeyDown)
-  window.addEventListener('keyup', pageKeyUp)
-  if (scrollMode.value) {
-    setTimeout(setupSentinelObserver, 100)
-  }
-})
-
-onDeactivated(() => {
-  isActive.value = false
-  emitter.off('item_tags_updated', itemTagsUpdatedHandler)
-  emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
-  emitter.off('media_items_actioned', mediaItemsActionedHandler)
-  emitter.off('upload_task_done', uploadTaskDoneHandler)
-  window.removeEventListener('keydown', pageKeyDown)
-  window.removeEventListener('keyup', pageKeyUp)
-  observer?.disconnect()
-  observer = null
+  variables: () => ({ offset: (page.value - 1) * limit.value, limit: limit.value, query: q.value, sortBy: audioSortBy.value }),
 })
 </script>
+
 <style scoped lang="scss">
 :deep(.media-item) {
   grid-template-areas:
@@ -593,5 +202,4 @@ onDeactivated(() => {
     justify-content: end;
   }
 }
-
 </style>

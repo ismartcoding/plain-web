@@ -230,7 +230,7 @@ export const replacePathNoReload = (store: MainState, fullPath: string) => {
 }
 
 export const replacePath = (store: MainState, fullPath: string) => {
-  router.replace(fullPath)
+  router.push(fullPath)
 }
 
 export const pushPath = (fullPath: string) => {
