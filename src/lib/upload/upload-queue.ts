@@ -14,7 +14,7 @@ export interface IUploadTask {
 class UploadQueue {
   private queue: IUploadTask[] = []
   private running: Map<string, IUploadTask> = new Map()
-  private readonly maxConcurrent = 10
+  private readonly maxConcurrent = 3
 
   addTask(upload: IUploadItem, replace: boolean): string {
     const task: IUploadTask = {
@@ -142,16 +142,22 @@ class UploadQueue {
     this.running.set(task.id, task)
 
     try {
-      const result = await upload(task.upload, task.replace)
+      const result = await upload(task.upload, task.replace) as { error?: string } | undefined
 
       // Check if task was aborted during upload
       if (task.aborted) {
         return
       }
 
+      // Respect the status already set by upload() / uploadWithChunks().
+      // upload() may return { error } for some paths OR set upload.status
+      // directly for others (returning undefined). Check both.
       if (result?.error) {
         task.status = 'failed'
         task.upload.status = 'error'
+      } else if (task.upload.status === 'error') {
+        // uploadWithChunks set error status internally but returned undefined
+        task.status = 'failed'
       } else {
         task.status = 'completed'
         task.upload.status = 'done'

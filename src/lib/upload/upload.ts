@@ -8,7 +8,8 @@ import { uploadedChunksGQL } from '../api/query'
 import { mergeChunksGQL } from '../api/mutation'
 import apollo from '@/plugins/apollo'
 
-const CHUNK_SIZE = 200 * 1024 * 1024 // 200MB
+const CHUNK_SIZE = 5 * 1024 * 1024 // 5MB — balance between resume granularity and throughput
+const PARALLEL_CHUNKS = 3 // Upload 3 chunks in parallel per file
 const UPDATE_INTERVAL = 500 // 500ms
 
 export function getUploadUrl() {
@@ -140,8 +141,10 @@ export async function upload(upload: IUploadItem, replace: boolean) {
 
   try {
     if (upload.file.size > CHUNK_SIZE) {
+      // Chunked upload with parallel transfers and resume support
       return await uploadWithChunks(upload, replace, key)
     } else {
+      // Small files: direct upload (no chunking overhead)
       return await uploadDirect(upload, replace, key)
     }
   } catch (error: any) {
@@ -156,7 +159,7 @@ export async function upload(upload: IUploadItem, replace: boolean) {
 async function uploadDirect(upload: IUploadItem, replace: boolean, key: sjcl.BitArray) {
   try {
     const data = new FormData()
-    const v = bitArrayToUint8Array(chachaEncrypt(key, JSON.stringify({ dir: upload.dir, replace, isAppFile: upload.isAppFile ?? false })))
+    const v = bitArrayToUint8Array(chachaEncrypt(key, JSON.stringify({ dir: upload.dir, replace, isAppFile: upload.isAppFile ?? false, size: upload.file.size })))
     data.append('info', new Blob([v]))
     data.append('file', upload.file)
 
@@ -251,56 +254,102 @@ async function uploadWithChunks(upload: IUploadItem, replace: boolean, key: sjcl
     upload.isChunked = true
     const totalChunks = Math.ceil(upload.file.size / CHUNK_SIZE)
 
-    // Query uploaded chunks
-    const uploadedChunks = await getUploadedChunks(upload.fileId)
+    // Query uploaded chunks with sizes for verification
+    const verifiedChunks = await getUploadedChunks(upload.fileId, upload.file.size, totalChunks)
     if (upload.status === 'paused') {
       return { error: 'Upload paused' }
     }
 
-    upload.uploadedChunks = uploadedChunks
+    upload.uploadedChunks = [...verifiedChunks]
 
-    // Upload missing chunks
-    for (let i = 0; i < totalChunks; i++) {
-      if (uploadedChunks.includes(i)) {
-        // Update progress for already uploaded chunks
-        const chunkEndSize = Math.min((i + 1) * CHUNK_SIZE, upload.file.size)
-        updateUploadProgress(upload, chunkEndSize)
-        continue
-      }
-
-      if (upload.status === 'canceled' || upload.status === 'paused') {
-        return { error: 'Upload paused' }
-      }
-
-      const chunkData = createChunk(upload.file, i, CHUNK_SIZE)
-      const success = await uploadChunkWithRetry(upload, chunkData, key)
-
-      if (!success) {
-        if (upload.status === 'paused') {
-          return { error: 'Upload paused' }
-        }
-        upload.status = 'error'
-        upload.error = `Failed to upload chunk ${i} after multiple retries`
-        return
-      }
-
-      if (upload.status === 'paused') {
-        return { error: 'Upload paused' }
-      }
-
-      // Update progress for completed chunks
-      const chunkEndSize = chunkData.start + chunkData.chunk.size
-      updateUploadProgress(upload, chunkEndSize, true) // Force update for completed chunks
-
-      uploadedChunks.push(i)
-      upload.uploadedChunks = [...uploadedChunks]
+    // Calculate initial progress from already-uploaded chunks
+    let completedBytes = 0
+    for (const idx of verifiedChunks) {
+      const chunkEnd = Math.min((idx + 1) * CHUNK_SIZE, upload.file.size)
+      const chunkStart = idx * CHUNK_SIZE
+      completedBytes += chunkEnd - chunkStart
     }
+    updateUploadProgress(upload, completedBytes, true)
+    emitter.emit('upload_progress', upload)
+
+    // Build list of chunks that still need uploading
+    const pendingIndices: number[] = []
+    for (let i = 0; i < totalChunks; i++) {
+      if (!verifiedChunks.includes(i)) {
+        pendingIndices.push(i)
+      }
+    }
+
+    // Track per-chunk uploaded bytes for accurate progress
+    const chunkProgress = new Map<number, number>()
+
+    const recalcProgress = () => {
+      let total = completedBytes
+      for (const bytes of chunkProgress.values()) {
+        total += bytes
+      }
+      updateUploadProgress(upload, total)
+      emitter.emit('upload_progress', upload)
+    }
+
+    // Upload pending chunks with parallel workers
+    let cursor = 0
+    const errors: string[] = []
+
+    const uploadNextChunk = async (): Promise<void> => {
+      while (cursor < pendingIndices.length) {
+        if (upload.status === 'canceled' || upload.status === 'paused') return
+
+        const myIdx = cursor++
+        if (myIdx >= pendingIndices.length) return
+
+        const chunkIndex = pendingIndices[myIdx]
+        const chunkData = createChunk(upload.file, chunkIndex, CHUNK_SIZE)
+
+        const onProgress = (bytes: number) => {
+          chunkProgress.set(chunkIndex, bytes)
+          recalcProgress()
+        }
+
+        const success = await uploadChunkWithRetry(upload, chunkData, key, onProgress)
+
+        if (!success) {
+          if (upload.status === 'paused') return
+          errors.push(`chunk ${chunkIndex}`)
+          return
+        }
+
+        // Chunk completed — move its bytes to completedBytes
+        chunkProgress.delete(chunkIndex)
+        const chunkSize = chunkData.chunk.size
+        completedBytes += chunkSize
+        updateUploadProgress(upload, completedBytes, true)
+        emitter.emit('upload_progress', upload)
+
+        verifiedChunks.push(chunkIndex)
+        upload.uploadedChunks = [...verifiedChunks]
+      }
+    }
+
+    // Launch parallel workers
+    const workers = Math.min(PARALLEL_CHUNKS, pendingIndices.length)
+    const workerPromises: Promise<void>[] = []
+    for (let w = 0; w < workers; w++) {
+      workerPromises.push(uploadNextChunk())
+    }
+    await Promise.all(workerPromises)
 
     if (upload.status === 'canceled' || upload.status === 'paused') {
       return { error: 'Upload paused' }
     }
 
-    // Merge chunks
+    if (errors.length > 0) {
+      upload.status = 'error'
+      upload.error = `Failed to upload: ${errors.join(', ')}`
+      return
+    }
+
+    // All chunks uploaded — merge on server
     upload.status = 'saving'
     const filePath = upload.dir.endsWith('/') ? upload.dir + upload.file.name : upload.dir + '/' + upload.file.name
 
@@ -316,12 +365,22 @@ async function uploadWithChunks(upload: IUploadItem, replace: boolean, key: sjcl
     })
 
     if (result?.data?.mergeChunks) {
-      const returned = result.data.mergeChunks
+      const returned = result.data.mergeChunks as string
+      // Server returns "path_or_hash:size" — verify merged size matches original
+      const colonIdx = returned.lastIndexOf(':')
+      const serverValue = colonIdx > 0 ? returned.substring(0, colonIdx) : returned
+      const serverSize = colonIdx > 0 ? parseInt(returned.substring(colonIdx + 1), 10) : 0
+
+      if (serverSize > 0 && serverSize !== upload.file.size) {
+        upload.status = 'error'
+        upload.error = `Server merged size ${serverSize} != expected ${upload.file.size}`
+        return
+      }
+
       if (upload.isAppFile) {
-        // Server returns SHA-256 hash for app files; keep original local filename
-        upload.fileHash = returned
+        upload.fileHash = serverValue
       } else {
-        upload.fileName = returned
+        upload.fileName = serverValue
       }
       upload.status = 'done'
     } else {
@@ -337,15 +396,34 @@ async function uploadWithChunks(upload: IUploadItem, replace: boolean, key: sjcl
   }
 }
 
-// Get list of uploaded chunks
-async function getUploadedChunks(fileId: string): Promise<number[]> {
+// Get list of uploaded chunks, verified by size
+async function getUploadedChunks(fileId: string, fileSize: number, totalChunks: number): Promise<number[]> {
   try {
     const result = await apollo.a.query({
       query: uploadedChunksGQL,
       variables: { fileId },
       fetchPolicy: 'network-only',
     })
-    return result.data?.uploadedChunks ? [...result.data.uploadedChunks] : []
+    const raw: string[] = result.data?.uploadedChunks ? [...result.data.uploadedChunks] : []
+    const verified: number[] = []
+    for (const entry of raw) {
+      // Format: "index:size"
+      const parts = entry.split(':')
+      const index = parseInt(parts[0], 10)
+      const serverSize = parts.length > 1 ? parseInt(parts[1], 10) : -1
+      if (isNaN(index) || index < 0 || index >= totalChunks) continue
+
+      // Calculate expected chunk size
+      const chunkStart = index * CHUNK_SIZE
+      const expectedSize = Math.min(CHUNK_SIZE, fileSize - chunkStart)
+      if (serverSize > 0 && serverSize !== expectedSize) {
+        // Chunk is corrupt — skip it so it gets re-uploaded
+        console.warn(`Chunk ${index} size mismatch: server=${serverSize}, expected=${expectedSize}. Will re-upload.`)
+        continue
+      }
+      verified.push(index)
+    }
+    return verified
   } catch (error) {
     console.error('Failed to query uploaded chunks:', error)
     return []
@@ -364,14 +442,14 @@ function createChunk(file: File, index: number, chunkSize: number): IUploadChunk
   }
 }
 
-async function uploadChunkWithRetry(upload: IUploadItem, chunkData: IUploadChunk & { start: number; end: number }, key: sjcl.BitArray, maxRetries: number = 3): Promise<boolean> {
+async function uploadChunkWithRetry(upload: IUploadItem, chunkData: IUploadChunk & { start: number; end: number }, key: sjcl.BitArray, onProgress: (bytes: number) => void, maxRetries: number = 5): Promise<boolean> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     if (upload.status === 'canceled' || upload.status === 'paused') {
       return false
     }
 
     try {
-      const success = await uploadChunk(upload, chunkData, key)
+      const success = await uploadChunk(upload, chunkData, key, onProgress)
       if (success) {
         return true
       }
@@ -382,9 +460,10 @@ async function uploadChunkWithRetry(upload: IUploadItem, chunkData: IUploadChunk
 
       console.warn(`Chunk ${chunkData.index} upload failed on attempt ${attempt}`)
 
-      // Wait before retry
+      // Wait before retry with exponential backoff
       if (attempt < maxRetries) {
-        await waitWithPauseCheck(upload, Math.min(1000 * Math.pow(2, attempt - 1), 5000))
+        onProgress(0) // Reset progress for this chunk on retry
+        await waitWithPauseCheck(upload, Math.min(1000 * Math.pow(2, attempt - 1), 10000))
       }
     } catch (error: any) {
       if (upload.status === 'paused') {
@@ -394,7 +473,8 @@ async function uploadChunkWithRetry(upload: IUploadItem, chunkData: IUploadChunk
       console.warn(`Chunk ${chunkData.index} upload error on attempt ${attempt}:`, error.message)
 
       if (attempt < maxRetries) {
-        await waitWithPauseCheck(upload, Math.min(1000 * Math.pow(2, attempt - 1), 5000))
+        onProgress(0)
+        await waitWithPauseCheck(upload, Math.min(1000 * Math.pow(2, attempt - 1), 10000))
       }
     }
   }
@@ -414,12 +494,13 @@ async function waitWithPauseCheck(upload: IUploadItem, delay: number): Promise<v
   }
 }
 
-async function uploadChunk(upload: IUploadItem, chunkData: IUploadChunk & { start: number; end: number }, key: sjcl.BitArray): Promise<boolean> {
+async function uploadChunk(upload: IUploadItem, chunkData: IUploadChunk & { start: number; end: number }, key: sjcl.BitArray, onProgress: (bytes: number) => void): Promise<boolean> {
   return new Promise((resolve) => {
     const data = new FormData()
     const info = JSON.stringify({
       fileId: upload.fileId,
       index: chunkData.index,
+      size: chunkData.chunk.size,
     })
     const v = bitArrayToUint8Array(chachaEncrypt(key, info))
     data.append('info', new Blob([v]))
@@ -436,10 +517,7 @@ async function uploadChunk(upload: IUploadItem, chunkData: IUploadChunk & { star
             excludeSize = e.total - chunkData.chunk.size
           }
           if (e.loaded > excludeSize) {
-            const uploadedInThisChunk = e.loaded - excludeSize
-            const totalUploaded = chunkData.start + uploadedInThisChunk
-            updateUploadProgress(upload, totalUploaded)
-            emitter.emit('upload_progress', upload)
+            onProgress(e.loaded - excludeSize)
           }
         }
       },
@@ -449,15 +527,23 @@ async function uploadChunk(upload: IUploadItem, chunkData: IUploadChunk & { star
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4) {
           if (xhr.status === 201) {
-            emitter.emit('upload_progress', upload)
+            // Server returns "index:savedSize" — verify
+            const resp = xhr.responseText
+            const parts = resp.split(':')
+            if (parts.length === 2) {
+              const savedSize = parseInt(parts[1], 10)
+              if (savedSize !== chunkData.chunk.size) {
+                console.warn(`Chunk ${chunkData.index} size mismatch after upload: server=${savedSize}, expected=${chunkData.chunk.size}`)
+                resolve(false)
+                return
+              }
+            }
             resolve(true)
           } else if (xhr.status === 0) {
             console.log(`Chunk ${chunkData.index} upload was aborted`)
-            emitter.emit('upload_progress', upload)
             resolve(false)
           } else {
-            console.warn(`Chunk ${chunkData.index} upload failed with status ${xhr.status}`)
-            emitter.emit('upload_progress', upload)
+            console.warn(`Chunk ${chunkData.index} upload failed with status ${xhr.status}: ${xhr.responseText}`)
             resolve(false)
           }
         }
@@ -465,13 +551,11 @@ async function uploadChunk(upload: IUploadItem, chunkData: IUploadChunk & { star
 
     xhr.onerror = () => {
       console.warn(`Chunk ${chunkData.index} upload network error`)
-      emitter.emit('upload_progress', upload)
       resolve(false)
     }
 
     xhr.onabort = () => {
       console.log(`Chunk ${chunkData.index} upload was aborted`)
-      emitter.emit('upload_progress', upload)
       resolve(false)
     }
 
