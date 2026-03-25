@@ -12,6 +12,7 @@ export default {
   config: 'Configurazione',
   api_key: 'Chiave API',
   no_api_key: 'Nessuna chiave API',
+  app_files: "File dell'app",
   send_to_phone_clipboard: 'Invia agli appunti del telefono',
   clipboard_text: 'Testo degli appunti',
   channels: 'Canali',

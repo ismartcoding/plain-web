@@ -12,6 +12,7 @@ export default {
   config: 'Cấu hình',
   api_key: 'Khóa API',
   no_api_key: 'Không có khóa API',
+  app_files: 'Tệp ứng dụng',
   send_to_phone_clipboard: 'Gửi vào bảng nhớ tạm trên điện thoại',
   clipboard_text: 'Văn bản bảng nhớ tạm',
   channels: 'Kênh',

@@ -48,7 +48,6 @@
                 <i-lucide:monitor v-else />
               </span>
               <span class="title">{{ peer.name }}</span>
-              <span class="subtitle">{{ peer.ip }}</span>
             </li>
           </ul>
         </template>
@@ -95,14 +94,5 @@ const {
   display: flex;
   justify-content: center;
   padding: 16px;
-}
-
-.subtitle {
-  font-size: 0.75rem;
-  color: var(--md-sys-color-on-surface-variant);
-  margin-left: auto;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 </style>

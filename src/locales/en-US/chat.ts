@@ -32,4 +32,5 @@ export default {
   config: 'Config',
   api_key: 'API key',
   no_api_key: 'No api key',
+  app_files: 'App files',
 }

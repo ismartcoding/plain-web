@@ -1,5 +1,5 @@
 export default {
-  app_name: '简朴',
+  app_name: 'PlainApp',
   link_copied: '链接已复制',
   copy_link: '复制链接',
   unwrap: '不换行',
@@ -164,7 +164,7 @@ export default {
   no_task: '暂无任务',
   load_failed: '加载{name}失败',
   network_error: '网络异常，无法连接API',
-  web_access_disabled: '网页服务当前已禁用。请打开简朴 > 右上角 💻 图标 > "电脑浏览器访问"页面，并点击"启用"开关。',
+  web_access_disabled: '网页服务当前已禁用。请打开PlainApp > 右上角 💻 图标 > "电脑浏览器访问"页面，并点击"启用"开关。',
   select_first: '请先选择！',
   clear_list: '清空列表',
   tools: '工具',

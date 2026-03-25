@@ -26,6 +26,7 @@ export function useChatSidebar() {
   })
 
   const currentChatId = computed(() => {
+    if (router.currentRoute.value.path.includes('app-files')) return ''
     if (!currentEncryptedId.value) return 'local'
     if (!urlTokenKey.value) return ''
     try {

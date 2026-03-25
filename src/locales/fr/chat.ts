@@ -12,6 +12,7 @@ export default {
   config: 'Configuration',
   api_key: 'Clé API',
   no_api_key: 'Pas de clé API.',
+  app_files: "Fichiers de l'appli",
   send_to_phone_clipboard: 'Envoyer au presse-papier du téléphone',
   clipboard_text: 'Texte du presse-papiers',
   channels: 'Canaux',

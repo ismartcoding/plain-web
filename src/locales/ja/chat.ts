@@ -12,6 +12,7 @@ export default {
   config: '設定',
   api_key: 'APIキー',
   no_api_key: 'APIキーがありません。',
+  app_files: 'アプリファイル',
   send_to_phone_clipboard: '携帯電話のクリップボードに送信',
   clipboard_text: 'クリップボードのテキスト',
   channels: 'チャンネル',

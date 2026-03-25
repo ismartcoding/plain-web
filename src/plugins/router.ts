@@ -165,6 +165,14 @@ const router = createRouter({
           },
           meta: { group: 'chat', className: 'chat' },
         },
+        {
+          path: 'chat/app-files',
+          components: {
+            default: () => import('@/views/chat/AppFilesView.vue'),
+            LeftSidebar: () => import('@/views/chat/ChatSidebar.vue'),
+          },
+          meta: { group: 'chat', className: 'chat' },
+        },
       ],
     },
     {

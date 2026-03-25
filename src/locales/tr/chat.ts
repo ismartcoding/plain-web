@@ -12,6 +12,7 @@ export default {
   config: 'Yapılandırma',
   api_key: 'API anahtarı',
   no_api_key: 'API anahtarı yok',
+  app_files: 'Uygulama dosyaları',
   send_to_phone_clipboard: 'Telefon panosuna gönder',
   clipboard_text: 'Pano metni',
   channels: 'Kanallar',

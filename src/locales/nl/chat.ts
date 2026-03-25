@@ -12,6 +12,7 @@ export default {
   config: 'Configuratie',
   api_key: 'API-sleutel',
   no_api_key: 'Geen API-sleutel',
+  app_files: 'App-bestanden',
   send_to_phone_clipboard: 'Verzenden naar telefoonklembord',
   clipboard_text: 'Klembord tekst',
   channels: 'Kanalen',

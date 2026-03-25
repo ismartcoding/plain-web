@@ -32,4 +32,5 @@ export default {
   config: '配置',
   api_key: 'API密钥',
   no_api_key: '缺少 API 密钥',
+  app_files: '应用文件',
 }

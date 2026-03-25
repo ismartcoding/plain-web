@@ -45,17 +45,12 @@ export class WebRTCClient {
     this.pc = new RTCPeerConnection(config)
 
     this.pc.ontrack = (event: RTCTrackEvent) => {
-      // Minimize jitter buffer for real-time screen mirroring on LAN.
-      // Default jitter buffer adds 100-300ms; setting to 0 uses the minimum
-      // the browser can support (~20-50ms on a low-jitter LAN).
       try {
         const receiver = event.receiver as any
         if ('jitterBufferTarget' in receiver) {
           receiver.jitterBufferTarget = 0
         }
-      } catch (_) {
-        /* jitterBufferTarget not supported */
-      }
+      } catch (_) {}
 
       if (event.streams && event.streams.length > 0) {
         this.options.onStream(event.streams[0])
