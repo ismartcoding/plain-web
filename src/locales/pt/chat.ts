@@ -12,6 +12,7 @@ export default {
   config: 'Configuração',
   api_key: 'Chave da API',
   no_api_key: 'Sem chave da API',
+  app_files: 'Arquivos do app',
   send_to_phone_clipboard: 'Enviar para a área de transferência do telefone',
   clipboard_text: 'Texto da área de transferência',
   channels: 'Canais',

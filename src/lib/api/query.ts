@@ -134,6 +134,20 @@ export const peersGQL = gql`
   }
 `
 
+export const appFilesGQL = gql`
+  query appFiles($offset: Int!, $limit: Int!) {
+    appFiles(offset: $offset, limit: $limit) {
+      id
+      size
+      mimeType
+      fileName
+      createdAt
+      updatedAt
+    }
+    appFileCount
+  }
+`
+
 export const chatChannelsGQL = gql`
   query {
     chatChannels {

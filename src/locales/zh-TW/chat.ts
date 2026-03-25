@@ -12,6 +12,7 @@ export default {
   config: '設定',
   api_key: 'API金鑰',
   no_api_key: '無API金鑰',
+  app_files: '應用檔案',
   send_to_phone_clipboard: '傳送到手機剪貼簿',
   clipboard_text: '剪貼簿文本',
   channels: '頻道',

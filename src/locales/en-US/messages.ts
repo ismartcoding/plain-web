@@ -30,5 +30,5 @@ export default {
     4: 'Outbox',
   },
   sms_address: 'Address',
-  sms_notification_warning: 'To receive new SMS in real time, go to the PlainApp on your phone → "Web on PC" → enable "Manage Notifications" permission.',
+  sms_notification_warning: 'To receive new SMS in real time, go to the PlainApp on your phone → "Permission Settings" → enable "Manage Notifications" permission.',
 }

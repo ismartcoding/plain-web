@@ -4,8 +4,6 @@ import { storeToRefs } from 'pinia'
 import { useTempStore } from '@/stores/temp'
 import { useMainStore } from '@/stores/main'
 import { chachaDecrypt } from '@/lib/api/crypto'
-import { encodeBase64 } from '@/lib/strutil'
-import { buildQuery } from '@/lib/search'
 import { replacePath } from '@/plugins/router'
 import * as sjcl from 'sjcl'
 
@@ -38,12 +36,7 @@ export function useChatRouteId() {
   const appDir = app.value?.appDir ?? ''
 
   function openFolder() {
-    const q = buildQuery([
-      { name: 'parent', op: '', value: appDir },
-      { name: 'type', op: '', value: 'APP' },
-      { name: 'root_path', op: '', value: appDir },
-    ])
-    replacePath(store, `/files?q=${encodeBase64(q)}`)
+    replacePath(store, '/chat/app-files')
   }
 
   return { chatId, peerId, channelId, isChannel, routeId, appDir, openFolder }

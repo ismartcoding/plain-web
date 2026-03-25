@@ -12,6 +12,7 @@ export default {
   config: 'Конфигурация',
   api_key: 'API ключ',
   no_api_key: 'Нет API ключа',
+  app_files: 'Файлы приложения',
   send_to_phone_clipboard: 'Отправить в буфер обмена телефона',
   clipboard_text: 'Текст в буфере обмена',
   channels: 'Каналы',

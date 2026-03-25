@@ -12,6 +12,7 @@ export default {
   config: 'கட்டமை',
   api_key: 'API விசை',
   no_api_key: 'API விசை இல்லை',
+  app_files: 'பயன்பாடு கோப்புகள்',
   send_to_phone_clipboard: 'தொலைபேசி கிளிப்போர்டுக்கு அனுப்பவும்',
   clipboard_text: 'கிளிப்போர்டு உரை',
   channels: 'சேனல்கள்',
