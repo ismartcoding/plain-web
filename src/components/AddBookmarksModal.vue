@@ -117,11 +117,4 @@ function save() {
     opacity: 0.5;
   }
 }
-
-.help-text {
-  font-size: 0.8rem;
-  color: var(--md-sys-color-on-surface-variant);
-  line-height: 1.5;
-  margin-bottom: 8px;
-}
 </style>

@@ -2,7 +2,8 @@ import { isRef, type ComputedRef, type Ref } from 'vue'
 
 function isInputFocused() {
   const activeElement = document.activeElement
-  return activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'SELECT')
+  if (!activeElement) return false
+  return activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'SELECT' || (activeElement as HTMLElement).isContentEditable
 }
 
 export const useKeyEvents = (total: Ref<number>, limit: Ref<number> | ComputedRef<number> | number, page: Ref<number>, selectAll: () => void, clearSelection: () => void, gotoPage: (page: number) => void, deleteItems: () => void) => {

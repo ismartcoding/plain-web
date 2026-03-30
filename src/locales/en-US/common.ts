@@ -1,5 +1,6 @@
 export default {
   app_name: 'PlainApp',
+  or: 'or',
   link_copied: 'Link copied',
   copy_link: 'Copy link',
   unwrap: 'Unwrap',

@@ -36,7 +36,7 @@
     <div v-if="showProgress(item) || item.error" class="body">
       <div v-if="showProgress(item)" class="progress-info">
         <div class="progress-text">{{ formatFileSize(item.uploadedSize) }} ({{ formatUploadSpeed(item) }})</div>
-        <div class="progress-bar">
+        <div class="progress-track">
           <div class="progress-fill" :style="{ width: getProgressPercentage(item) + '%' }"></div>
         </div>
       </div>

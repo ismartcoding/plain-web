@@ -2,7 +2,7 @@
   <header class="header">
     <header-actions :logged-in="false" />
   </header>
-  <h1>{{ $t('app_name') }}</h1>
+  <h1>PlainApp</h1>
   <div class="login-block">
     <form v-show="!showConfirm" @submit.prevent="onSubmit">
       <div v-show="showError" class="alert alert-danger show" role="alert">

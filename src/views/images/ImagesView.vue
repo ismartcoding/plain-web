@@ -14,6 +14,7 @@
     @select-real-all="selectRealAll" @clear-selection="clearSelection"
   >
     <template #actions>
+      <ImageSearchButton />
       <MediaPageActions v-bind="actionsProps" placement="top"
         :on-upload-files="uploadFilesClick" :on-upload-dir="uploadDirClick"
       />
@@ -93,6 +94,7 @@ import ImageListItem from '@/components/images/ImageListItem.vue'
 import MediaPageActions from '@/components/media/MediaPageActions.vue'
 import MediaGridItem from '@/components/media/MediaGridItem.vue'
 import MediaToolbar from '@/components/media/MediaToolbar.vue'
+import ImageSearchButton from '@/components/ai/ImageSearchButton.vue'
 
 const { imageSortBy } = storeToRefs(useMainStore())
 const items = ref<IImageItem[]>([])

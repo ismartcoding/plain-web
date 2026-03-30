@@ -14,6 +14,8 @@
 
 ## UI Component Rules
 
+**No `confirm()`/`alert()`/`prompt()`** — Never use browser dialog methods. Use inline confirmation UI: replace the action button with confirm text + OK/Cancel buttons in place.
+
 **Loading**: Use `<v-circular-progress indeterminate />`. Add `class="sm"` for inline use.
 
 **Modals**: Use `<v-modal>` with slots `#headline`, `#content`, `#actions`. Use `<v-outlined-button>` for cancel, `<v-filled-button>` for primary actions.

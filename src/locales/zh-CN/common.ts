@@ -1,5 +1,6 @@
 export default {
   app_name: 'PlainApp',
+  or: '或',
   link_copied: '链接已复制',
   copy_link: '复制链接',
   unwrap: '不换行',
