@@ -8,7 +8,6 @@ export default {
   clear_messages_confirm: 'Weet u zeker dat u alle berichten wilt wissen? Deze actie kan niet ongedaan worden gemaakt.',
   messages_cleared: 'Berichten gewist!',
   new_chat: 'Nieuwe chat',
-  ai: 'AI',
   config: 'Configuratie',
   api_key: 'API-sleutel',
   no_api_key: 'Geen API-sleutel',

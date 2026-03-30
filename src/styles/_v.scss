@@ -28,3 +28,36 @@
     color: var(--md-sys-color-on-primary);
   }
 }
+
+.btn-block {
+  width: 100%;
+}
+
+.progress-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--md-sys-color-surface-container-high);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--md-sys-color-primary);
+  transition: width 0.3s;
+}
+
+.surface-card {
+  background: var(--md-sys-color-surface-container-low);
+  border-radius: var(--pl-shape-m);
+  padding: 14px 16px;
+}
+
+.loading-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0;
+  font-size: 0.875rem;
+  color: var(--md-sys-color-on-surface-variant);
+}

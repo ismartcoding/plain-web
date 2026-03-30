@@ -664,3 +664,22 @@ export const deleteFilesGQL = gql`
     deleteFiles(paths: $paths)
   }
 `
+
+// Image Search mutations
+export const enableImageSearchGQL = gql`
+  mutation { enableImageSearch }
+`
+
+export const disableImageSearchGQL = gql`
+  mutation { disableImageSearch }
+`
+
+export const startImageIndexGQL = gql`
+  mutation startImageIndex($force: Boolean) {
+    startImageIndex(force: $force)
+  }
+`
+
+export const cancelImageIndexGQL = gql`
+  mutation { cancelImageIndex }
+`

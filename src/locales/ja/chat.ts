@@ -8,7 +8,6 @@ export default {
   clear_messages_confirm: 'すべてのメッセージを削除しますか？この操作は取り消せません。',
   messages_cleared: 'メッセージを削除しました！',
   new_chat: '新しいチャット',
-  ai: 'AI',
   config: '設定',
   api_key: 'APIキー',
   no_api_key: 'APIキーがありません。',

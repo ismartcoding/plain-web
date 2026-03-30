@@ -378,6 +378,17 @@ export interface IFavoriteFolder {
   alias?: string | null
 }
 
+export interface IImageSearchStatus {
+  status: string
+  downloadProgress: number
+  errorMessage: string
+  modelSize: number
+  modelDir: string
+  isIndexing: boolean
+  totalImages: number
+  indexedImages: number
+}
+
 export interface IApp {
   usbConnected: boolean
   urlToken: string

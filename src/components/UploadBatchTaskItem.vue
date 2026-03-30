@@ -36,7 +36,7 @@
         <div class="progress-text">
           {{ formatFileSize(uploadedBytes) }} / {{ formatFileSize(totalBytes) }} ({{ formatFileSize(totalSpeed) }}/s)
         </div>
-        <div class="progress-bar">
+        <div class="progress-track">
           <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
         </div>
       </div>

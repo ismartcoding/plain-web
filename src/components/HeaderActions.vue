@@ -114,7 +114,7 @@ function changeLang(loc: string) {
   menuVisible.value = false
   locale.value = loc
   localStorage.setItem('locale', loc)
-  document.title = t('app_name')
+  document.title = 'PlainApp'
 }
 
 function logout() {

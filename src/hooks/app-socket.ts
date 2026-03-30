@@ -19,7 +19,7 @@ const EventType: { [key: number]: string } = {
 
 export function useAppSocket() {
   const { t } = useI18n()
-  document.title = t('app_name')
+  document.title = 'PlainApp'
 
   const wsStatus = ref('')
   const tapPhoneMessage = ref('')

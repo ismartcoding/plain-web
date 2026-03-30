@@ -106,3 +106,8 @@
         background-color: rgba(255, 255, 255, 0.08);
     }
 }
+
+.v-outlined-button.danger {
+  color: var(--md-sys-color-error);
+  border-color: var(--md-sys-color-error);
+}

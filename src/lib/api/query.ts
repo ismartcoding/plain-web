@@ -280,6 +280,21 @@ export const imagesGQL = gql`
   ${imageFragment}
 `
 
+export const imageSearchStatusGQL = gql`
+  query {
+    imageSearchStatus {
+      status
+      downloadProgress
+      errorMessage
+      modelSize
+      modelDir
+      isIndexing
+      totalImages
+      indexedImages
+    }
+  }
+`
+
 export const videosGQL = gql`
   query videos($offset: Int!, $limit: Int!, $query: String!, $sortBy: FileSortBy!) {
     videos(offset: $offset, limit: $limit, query: $query, sortBy: $sortBy) {

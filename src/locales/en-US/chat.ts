@@ -28,7 +28,6 @@ export default {
   channel_invite: 'Channel invite',
   channel_invite_desc: 'You have been invited to join "{name}".',
   new_chat: 'New chat',
-  ai: 'AI',
   config: 'Config',
   api_key: 'API key',
   no_api_key: 'No api key',
