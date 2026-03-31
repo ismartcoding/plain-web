@@ -7,6 +7,7 @@ import { visit, type VariableDefinitionNode } from 'graphql'
 import { getApiBaseUrl, getApiHeaders } from './api'
 import { chachaEncrypt, chachaDecrypt, arrayBufferToBitArray, bitArrayToUint8Array } from './crypto'
 import { tokenToKey } from './file'
+import { wrapWithReplayProtection } from './time-sync'
 
 export const createHttpLink = (linkOptions: HttpOptions = {}) => {
   const { uri = `${getApiBaseUrl()}/graphql`, print = defaultPrinter, includeExtensions, headers, includeUnusedVariables = false } = linkOptions
@@ -74,7 +75,8 @@ export const createHttpLink = (linkOptions: HttpOptions = {}) => {
       const doIt = async () => {
         const startTime = performance.now()
         const key = tokenToKey(token)
-        ;(options as any).body = bitArrayToUint8Array(chachaEncrypt(key, json))
+        const payload = wrapWithReplayProtection(json)
+        ;(options as any).body = bitArrayToUint8Array(chachaEncrypt(key, payload))
         const encryptTime = performance.now()
         Promise.race([fetch(chosenURI, options), new Promise((_, reject) => setTimeout(() => reject(new Error('connection_timeout')), 30000))])
           .then(async (response: any) => {
