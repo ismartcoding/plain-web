@@ -7,7 +7,7 @@ import type { IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, INote, ITag } from 
 import { formatDateTime } from '@/lib/format'
 import { useMarkdown } from '@/hooks/markdown'
 import { initMutation, saveNoteGQL } from '@/lib/api/mutation'
-import { debounce } from 'lodash-es'
+import { debounce } from '@/lib/array'
 import router, { replacePath, replacePathNoReload } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'

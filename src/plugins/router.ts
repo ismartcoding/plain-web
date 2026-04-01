@@ -121,16 +121,6 @@ const router = createRouter({
           meta: { group: 'files', className: 'files' },
         },
         {
-          path: 'json-viewer',
-          component: () => import('@/views/JsonViewerView.vue'),
-          meta: { group: 'json_viewer' },
-        },
-        {
-          path: 'qrcode-generator',
-          component: () => import('@/views/QrCodeGeneratorView.vue'),
-          meta: { group: 'qrcode_generator' },
-        },
-        {
           path: 'screen-mirror',
           component: () => import('@/views/ScreenMirrorView.vue'),
           meta: { group: 'screen_mirror' },
