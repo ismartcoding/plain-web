@@ -1,4 +1,4 @@
-import { trimStart } from 'lodash-es'
+
 
 export function isIP(v: string): boolean {
   if (!isIP4(v)) {
@@ -27,7 +27,7 @@ export function isIPWithOptionalPort(v: string): boolean {
     let port = ''
     if (v.includes(']:') && v.startsWith('[')) {
       const split = v.split(']:')
-      ip = trimStart(split[0], '[')
+      ip = split[0].replace(/^\[+/, '')
       port = split[1]
     } else {
       const split = v.split(':')
@@ -74,7 +74,7 @@ export function isNetWithOptionalPort(v: string): boolean {
     let port = ''
     if (v.includes(']:') && v.startsWith('[')) {
       const split = v.split(']:')
-      ip = trimStart(split[0], '[')
+      ip = split[0].replace(/^\[+/, '')
       port = split[1]
     } else {
       const split = v.split(':')
@@ -119,7 +119,7 @@ export function isIPNet(v: string): boolean {
 export function isDomain(v: string, wildcard: boolean): boolean {
   let vv = v
   if (wildcard) {
-    vv = trimStart(v, '*.')
+    vv = v.replace(/^[*.]+/, '')
   }
 
   if (/[a-z0-9]{2}/.test(vv)) {

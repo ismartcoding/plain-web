@@ -22,8 +22,7 @@ import type { ITag, ITagRelationStub } from '@/lib/interfaces'
 import emitter from '@/plugins/eventbus'
 import { ref, type PropType } from 'vue'
 import { popModal } from './modal'
-import { difference } from 'lodash'
-import { remove } from 'lodash-es'
+import { arrayRemove } from '@/lib/array'
 
 const props = defineProps({
   type: { type: String, required: true },
@@ -45,7 +44,7 @@ onDone(() => {
 
 function onTagSelect(item: ITag) {
   if (selectedTags.value.includes(item)) {
-    remove(selectedTags.value, (it: ITag) => it.id === item.id)
+    arrayRemove(selectedTags.value, (it: ITag) => it.id === item.id)
   } else {
     selectedTags.value.push(item)
   }
@@ -56,9 +55,9 @@ const doAction = () => {
   const oldTagIds = props.selected.map((it: ITag) => it.id)
   mutate({
     type: props.type,
-    addTagIds: difference(tagIds, oldTagIds),
+    addTagIds: tagIds.filter((id: string) => !oldTagIds.includes(id)),
     item: props.item,
-    removeTagIds: difference(oldTagIds, tagIds),
+    removeTagIds: oldTagIds.filter((id: string) => !tagIds.includes(id)),
   })
 }
 </script>

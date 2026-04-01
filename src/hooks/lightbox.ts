@@ -17,7 +17,7 @@ import { useDownload, useRename } from '@/hooks/files'
 import { getFileName } from '@/lib/api/file'
 import { useDeleteItems } from '@/hooks/media'
 import { DataType } from '@/lib/data'
-import { remove } from 'lodash-es'
+import { arrayRemove } from '@/lib/array'
 import DeleteFileConfirm from '@/components/DeleteFileConfirm.vue'
 import EditValueModal from '@/components/EditValueModal.vue'
 
@@ -440,14 +440,14 @@ export function useLightboxEvents(
   const mediaItemsActionedHandler = (event: IMediaItemsActionedEvent) => {
     const query = `ids:${current.value?.data?.id}`
     if (['delete', 'trash', 'restore'].includes(event.action) && event.query === query) {
-      remove(tempStore.lightbox.sources, (it: ISource) => `ids:${it.data?.id}` === event.query)
+      arrayRemove(tempStore.lightbox.sources, (it: ISource) => `ids:${it.data?.id}` === event.query)
       navigateAfterRemove()
     }
   }
 
   const fileDeletedHandler = (event: IFileDeletedEvent) => {
     if (event.item.path === current.value?.data?.path) {
-      remove(tempStore.lightbox.sources, (it: ISource) => it.path === event.item.path)
+      arrayRemove(tempStore.lightbox.sources, (it: ISource) => it.path === event.item.path)
       navigateAfterRemove()
     }
   }

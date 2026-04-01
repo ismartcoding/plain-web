@@ -61,13 +61,6 @@ export function useTextFile() {
   }
   const language = computed(() => LANG_MAP[extension.value] || 'plaintext')
 
-  const editorOptions = computed(() => ({
-    fontSize: 14, lineHeight: 22, tabSize: 2,
-    wordWrap: 'on', lineNumbers: 'on',
-    minimap: { enabled: true },
-    scrollBeyondLastLine: false, automaticLayout: true,
-  }))
-
   const fileId = computed(() => String(route.query.id ?? '').trim())
   const decryptedPath = ref('')
   const isEditing = computed(() => route.name === 'text-edit')
@@ -211,7 +204,7 @@ export function useTextFile() {
   return {
     loading, error, content, draft, fileName, fileSize, lastModified,
     jsonData, renderedMarkdown, showRawText, textWrap, saving,
-    isJsonFile, isMarkdownFile, canToggleView, language, editorOptions,
+    isJsonFile, isMarkdownFile, canToggleView, language,
     isEditing, dirty, displayTitle, statusText, canEdit, showSavedPulse,
     retry, openEditor, openViewer, toggleViewMode, toggleTextWrap,
     downloadFile, save,

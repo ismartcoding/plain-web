@@ -4,7 +4,7 @@ import { openModal } from '@/components/modal'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import gql from 'graphql-tag'
-import { truncate } from 'lodash-es'
+import { truncateText } from '@/lib/array'
 import { useDelete } from '@/hooks/list'
 import { useAddToTags } from '@/hooks/tags'
 import { deleteNotesGQL, exportNotesGQL, initMutation } from '@/lib/api/mutation'
@@ -75,7 +75,7 @@ export function useNotesActions(opts: UseNotesActionsOptions) {
   function deleteItem(item: INote) {
     openModal(DeleteConfirm, {
       id: item.id,
-      name: truncate(item.title, { length: 20 }),
+      name: truncateText(item.title, 20),
       gql: gql`
         mutation DeleteNote($query: String!) {
           deleteNotes(query: $query)
