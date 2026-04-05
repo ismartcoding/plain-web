@@ -69,7 +69,7 @@
       </section>
 
       <section v-else-if="isEditing" class="editor">
-        <MonacoEditor v-model="draft" :language="language" :options="editorOptions" height="100%" />
+        <CodeEditor v-model="draft" :language="language" />
       </section>
 
       <section v-else class="viewer">
@@ -90,13 +90,12 @@
 <script setup lang="ts">
 import { formatDateTime, formatFileSize, formatTimeAgo } from '@/lib/format'
 import JsonViewer from '@/components/jsonviewer/json-viewer.vue'
-import MonacoEditor from '@/components/MonacoEditor.vue'
 import { useTextFile } from '@/hooks/text-file'
 
 const {
   loading, error, content, draft, fileName, fileSize, lastModified,
   jsonData, renderedMarkdown, showRawText, textWrap, saving,
-  isJsonFile, isMarkdownFile, canToggleView, language, editorOptions,
+  isJsonFile, isMarkdownFile, canToggleView, language,
   isEditing, dirty, displayTitle, statusText, canEdit, showSavedPulse,
   retry, openEditor, openViewer, toggleViewMode, toggleTextWrap,
   downloadFile, save,

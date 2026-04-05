@@ -25,19 +25,19 @@
         </v-icon-button>
       </div>
       <section class="list-items">
-        <VueDraggable 
-          v-model="playlistAudios" 
-          handle=".item-number"
-          :set-data="setDragData"
-          @end="onDragEnd"
-        >
           <div 
             v-for="(item, index) in playlistAudios" 
             :key="item.path"
             class="item" 
-            :class="{ selected: item.path === current?.path }" 
+            :class="{ selected: item.path === current?.path, 'drag-over': dragOverIndex === index }" 
+            draggable="true"
             @click.stop="playItem(item)" 
             @mousedown="fixUserSelect"
+            @dragstart="onDragStart(index, $event)"
+            @dragover.prevent="onDragOver(index)"
+            @dragleave="onDragLeave"
+            @drop.prevent="onDrop(index)"
+            @dragend="onDragEndLocal"
           >
             <div class="item-number">{{ index + 1 }}</div>
             <div class="content">
@@ -48,7 +48,6 @@
               <i-material-symbols:playlist-remove class="playlist-remove-icon" />
             </button>
           </div>
-        </VueDraggable>
       </section>
     </div>
   </div>
@@ -59,7 +58,6 @@ import { ref } from 'vue'
 import { formatSeconds } from '@/lib/format'
 import { useMainStore } from '@/stores/main'
 import { fixUserSelect } from '@/hooks/text-selection'
-import { VueDraggable } from 'vue-draggable-plus'
 import { useAudioPlaylist } from '@/hooks/audio-player'
 
 const store = useMainStore()
@@ -79,9 +77,41 @@ const {
   playItem,
   deleteItem,
   clearPlaylist,
-  setDragData,
-  onDragEnd,
+  onReorder,
 } = useAudioPlaylist(audioRef)
+
+const dragIndex = ref(-1)
+const dragOverIndex = ref(-1)
+
+function onDragStart(index: number, e: DragEvent) {
+  dragIndex.value = index
+  e.dataTransfer!.effectAllowed = 'move'
+  e.dataTransfer!.setData('text/plain', String(index))
+}
+
+function onDragOver(index: number) {
+  dragOverIndex.value = index
+}
+
+function onDragLeave() {
+  dragOverIndex.value = -1
+}
+
+function onDrop(toIndex: number) {
+  dragOverIndex.value = -1
+  const fromIndex = dragIndex.value
+  if (fromIndex < 0 || fromIndex === toIndex) return
+  const items = [...playlistAudios.value]
+  const [moved] = items.splice(fromIndex, 1)
+  items.splice(toIndex, 0, moved)
+  playlistAudios.value = items
+  onReorder()
+}
+
+function onDragEndLocal() {
+  dragIndex.value = -1
+  dragOverIndex.value = -1
+}
 </script>
 
 <style lang="scss" scoped>
@@ -171,11 +201,11 @@ const {
   transform: scale(0.95);
 }
 
-.sortable-drag {
-  opacity: 0.8;
+.item[draggable="true"]:active {
+  opacity: 0.6;
 }
 
-.sortable-ghost {
-  opacity: 0.3;
+.item.drag-over {
+  border-top: 2px solid var(--md-sys-color-primary);
 }
 </style>

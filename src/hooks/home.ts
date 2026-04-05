@@ -6,7 +6,6 @@ import { useMainStore } from '@/stores/main'
 import { callGQL, setClipGQL, initMutation } from '@/lib/api/mutation'
 import { homeStatsGQL, initQuery } from '@/lib/api/query'
 import toast from '@/components/toaster'
-import { sumBy } from 'lodash-es'
 import type { IHomeStats, IStorageMount } from '@/lib/interfaces'
 
 export function useHomeData() {
@@ -32,8 +31,8 @@ export function useHomeData() {
         counter.value.notes = data.noteCount
         counter.value.feedEntries = data.feedEntryCount
         const vols = (data.mounts ?? []).filter((m) => (m.totalBytes ?? 0) > 0)
-        counter.value.total = sumBy(vols, (it) => it.totalBytes ?? 0)
-        counter.value.free = sumBy(vols, (it) => it.freeBytes ?? 0)
+        counter.value.total = vols.reduce((sum, it) => sum + (it.totalBytes ?? 0), 0)
+        counter.value.free = vols.reduce((sum, it) => sum + (it.freeBytes ?? 0), 0)
       }
     },
     document: homeStatsGQL,

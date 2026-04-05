@@ -9,7 +9,7 @@ import { download, encryptUrlParams, getFileId, getFileName, getFileUrl } from '
 import type { ISource } from '@/components/lightbox/types'
 import { encodeBase64 } from '@/lib/strutil'
 import { buildQuery, parseQuery, type IFilterField } from '@/lib/search'
-import { findIndex, remove } from 'lodash-es'
+import { arrayRemove } from '@/lib/array'
 import { getApiBaseUrl } from '@/lib/api/api'
 import type { IApp, IFileFilter, IStorageMount } from '@/lib/interfaces'
 import type sjcl from 'sjcl'
@@ -28,7 +28,7 @@ export const useCreateDir = (urlTokenKey: Ref<sjcl.BitArray | null>, items: Ref<
         options: {
           update: async (_: ApolloCache<any>, data: any) => {
             const d = data.data.createDir
-            remove(items.value, (it: IFile) => it.path === d.path)
+            arrayRemove(items.value, (it: IFile) => it.path === d.path)
             items.value.unshift(enrichFile(d, urlTokenKey.value))
           },
         },
@@ -113,7 +113,7 @@ export const useView = (sources: Ref<ISource[]>, ivView: (sources: ISource[], i:
           duration: 0,
           data: f,
         }))
-      const index = findIndex(sources.value, (it: ISource) => it.path === f.path)
+      const index = sources.value.findIndex((it: ISource) => it.path === f.path)
       ivView(sources.value, index)
     },
   }
@@ -152,7 +152,7 @@ export const useCopyPaste = (items: Ref<IFile[]>, isCut: Ref<boolean>, selectedF
   const onDone = () => {
     if (isCut.value) {
       for (const file of selectedFiles.value) {
-        remove(items.value, (it: IFile) => it.path === file.path)
+        arrayRemove(items.value, (it: IFile) => it.path === file.path)
       }
     }
 

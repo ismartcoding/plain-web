@@ -35,7 +35,7 @@ import { useField, useForm } from 'vee-validate'
 import { array } from 'yup'
 import { ref, type PropType } from 'vue'
 import { popModal } from './modal'
-import { remove } from 'lodash-es'
+import { arrayRemove } from '@/lib/array'
 
 const { handleSubmit } = useForm()
 const mode = ref('add_to_tags')
@@ -81,7 +81,7 @@ onRemoved(onDone)
 
 function onTagSelect(item: ITag) {
   if (selectedTags.value.includes(item)) {
-    remove(selectedTags.value, (it: ITag) => it.id === item.id)
+    arrayRemove(selectedTags.value, (it: ITag) => it.id === item.id)
   } else {
     selectedTags.value.push(item)
   }

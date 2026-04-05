@@ -16,7 +16,7 @@ import { useFilesKeyEvents } from '@/hooks/key-events'
 import { initLazyQuery, recentFilesGQL } from '@/lib/api/query'
 import emitter from '@/plugins/eventbus'
 import type { IFileDeletedEvent, IFileRenamedEvent } from '@/lib/interfaces'
-import { remove } from 'lodash-es'
+import { arrayRemove } from '@/lib/array'
 import { getIsPhone } from '@/hooks/device'
 
 export function useFilesRecent() {
@@ -80,7 +80,7 @@ export function useFilesRecent() {
   }
 
   const uploadTaskDoneHandler = (r: IUploadItem) => { if (r.status === 'done') setTimeout(() => fetch(), 1000) }
-  const fileDeletedHandler = (event: IFileDeletedEvent) => { remove(items.value, (it: IFile) => it.id === event.item.id); clearSelection() }
+  const fileDeletedHandler = (event: IFileDeletedEvent) => { arrayRemove(items.value, (it: IFile) => it.id === event.item.id); clearSelection() }
   const fileRenamedHandler = (_event: IFileRenamedEvent) => fetch()
 
   onActivated(() => {
