@@ -1,7 +1,7 @@
 <template>
   <v-modal @close="popModal">
     <template #content>
-      {{ $t('confirm_to_delete_name', { name: truncate(files.map((it) => it.name).join(', '), { length: 200 }) }) }}
+      {{ $t('confirm_to_delete_name', { name: truncateText(files.map((it) => it.name).join(', '), 200) }) }}
     </template>
     <template #actions>
       <v-outlined-button @click="popModal">{{ $t('cancel') }}</v-outlined-button>
@@ -17,7 +17,7 @@ import type { PropType } from 'vue'
 import type { IFile } from '@/lib/file'
 import { initMutation } from '@/lib/api/mutation'
 import { popModal } from './modal'
-import { truncate } from 'lodash-es'
+import { truncateText } from '@/lib/array'
 
 const props = defineProps({
   onDone: {

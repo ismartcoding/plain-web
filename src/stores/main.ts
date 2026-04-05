@@ -27,8 +27,6 @@ export type MainState = {
   videoSortBy: string
   audioSortBy: string
   conversationSortBy: string
-  json: string // data in jsonViewer
-  qrCode: string // data in qrCode Generator
   callNumber: string
   feedEntryFontSize: number // font size for feed entry content
   searchHistory: Record<string, string[]>
@@ -66,8 +64,6 @@ export const useMainStore = defineStore('main', {
       videoSortBy: 'DATE_DESC',
       audioSortBy: 'DATE_DESC',
       conversationSortBy: 'DATE_DESC',
-      json: '',
-      qrCode: '',
       callNumber: '',
       feedEntryFontSize: 16, // default font size
       searchHistory: {},

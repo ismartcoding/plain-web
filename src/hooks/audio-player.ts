@@ -4,7 +4,7 @@ import { storeToRefs } from 'pinia'
 import type { IPlaylistAudio } from '@/lib/interfaces'
 import { getFileUrlByPath } from '@/lib/api/file'
 import { initMutation, playAudioGQL, updateAudioPlayModeGQL, deletePlaylistAudioGQL, clearAudioPlaylistGQL, reorderPlaylistAudiosGQL } from '@/lib/api/mutation'
-import { sample, remove } from 'lodash-es'
+import { sample, arrayRemove } from '@/lib/array'
 import emitter from '@/plugins/eventbus'
 
 export function useAudioPlaylist(audioRef: Ref<HTMLAudioElement | undefined>) {
@@ -98,16 +98,11 @@ export function useAudioPlaylist(audioRef: Ref<HTMLAudioElement | undefined>) {
   function deleteItem(item: IPlaylistAudio) {
     deleteAudio({ path: item.path })
     const items = [...app.value.audios]
-    remove(items, (it) => it.path === item.path)
+    arrayRemove(items, (it) => it.path === item.path)
     app.value = { ...app.value, audios: items }
   }
 
-  function setDragData(dataTransfer: DataTransfer) {
-    dataTransfer.setData('text/plain', 'playlist-item')
-    dataTransfer.effectAllowed = 'move'
-  }
-
-  function onDragEnd() {
+  function onReorder() {
     reorderPlaylistAudios({ paths: playlistAudios.value.map((item) => item.path) })
   }
 
@@ -137,7 +132,6 @@ export function useAudioPlaylist(audioRef: Ref<HTMLAudioElement | undefined>) {
     playItem,
     deleteItem,
     clearPlaylist,
-    setDragData,
-    onDragEnd,
+    onReorder,
   }
 }

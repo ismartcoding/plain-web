@@ -4,16 +4,15 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, shallowRef } from 'vue'
-import { EditorView, keymap, placeholder as cmPlaceholder, lineNumbers } from '@codemirror/view'
-import { EditorState, type Extension } from '@codemirror/state'
+import { EditorView, keymap, placeholder as cmPlaceholder, lineNumbers, ViewPlugin, Decoration, type DecorationSet } from '@codemirror/view'
+import { EditorState, type Extension, RangeSetBuilder } from '@codemirror/state'
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
 import { languages } from '@codemirror/language-data'
 import { defaultKeymap, indentWithTab, history, historyKeymap } from '@codemirror/commands'
-import { bracketMatching, indentOnInput, syntaxHighlighting, defaultHighlightStyle, HighlightStyle } from '@codemirror/language'
+import { bracketMatching, indentOnInput, syntaxHighlighting, defaultHighlightStyle, syntaxTree } from '@codemirror/language'
 import { closeBrackets, closeBracketsKeymap, autocompletion, type CompletionContext, type Completion } from '@codemirror/autocomplete'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search'
-import { tags } from '@lezer/highlight'
 import emitter from '@/plugins/eventbus'
 
 const props = defineProps<{
@@ -51,19 +50,44 @@ const darkThemeOverride = EditorView.theme({
   '&.cm-focused': { outline: 'none' },
 })
 
-const mdHighlight = HighlightStyle.define([
-  { tag: tags.heading1, fontWeight: 'bold', fontSize: '1.6em' },
-  { tag: tags.heading2, fontWeight: 'bold', fontSize: '1.4em' },
-  { tag: tags.heading3, fontWeight: 'bold', fontSize: '1.2em' },
-  { tag: tags.heading4, fontWeight: 'bold', fontSize: '1.1em' },
-  { tag: tags.strong, fontWeight: 'bold' },
-  { tag: tags.emphasis, fontStyle: 'italic' },
-  { tag: tags.strikethrough, textDecoration: 'line-through' },
-  { tag: tags.link, color: '#0969da', textDecoration: 'underline' },
-  { tag: tags.url, color: '#0969da' },
-  { tag: tags.monospace, fontFamily: 'monospace', backgroundColor: 'rgba(128,128,128,0.1)', borderRadius: '3px', padding: '1px 3px' },
-  { tag: tags.quote, color: '#6a737d', fontStyle: 'italic' },
-])
+const mdHeadingClasses: Record<string, Decoration> = {
+  ATXHeading1: Decoration.mark({ class: 'cm-md-h1' }),
+  ATXHeading2: Decoration.mark({ class: 'cm-md-h2' }),
+  ATXHeading3: Decoration.mark({ class: 'cm-md-h3' }),
+  ATXHeading4: Decoration.mark({ class: 'cm-md-h4' }),
+}
+
+function buildMdDecos(view: EditorView): DecorationSet {
+  const builder = new RangeSetBuilder<Decoration>()
+  for (const { from, to } of view.visibleRanges) {
+    syntaxTree(view.state).iterate({
+      from, to,
+      enter(node) {
+        const deco = mdHeadingClasses[node.name]
+        if (deco) builder.add(node.from, node.to, deco)
+      },
+    })
+  }
+  return builder.finish()
+}
+
+const mdHeadingPlugin = ViewPlugin.fromClass(
+  class {
+    decorations: DecorationSet
+    constructor(view: EditorView) { this.decorations = buildMdDecos(view) }
+    update(update: { docChanged: boolean; viewportChanged: boolean; view: EditorView }) {
+      if (update.docChanged || update.viewportChanged) this.decorations = buildMdDecos(update.view)
+    }
+  },
+  { decorations: (v) => v.decorations },
+)
+
+const mdHeadingTheme = EditorView.theme({
+  '.cm-md-h1': { fontWeight: 'bold', fontSize: '1.6em' },
+  '.cm-md-h2': { fontWeight: 'bold', fontSize: '1.4em' },
+  '.cm-md-h3': { fontWeight: 'bold', fontSize: '1.2em' },
+  '.cm-md-h4': { fontWeight: 'bold', fontSize: '1.1em' },
+})
 
 function mdCompletions(context: CompletionContext) {
   const before = context.matchBefore(/[#\-\*\!\[\`\|>]?[\w]*/)
@@ -108,7 +132,8 @@ function getExtensions(): Extension[] {
     markdown({ base: markdownLanguage, codeLanguages: languages }),
     autocompletion({ override: [mdCompletions], activateOnTyping: true }),
     syntaxHighlighting(defaultHighlightStyle),
-    syntaxHighlighting(mdHighlight),
+    mdHeadingPlugin,
+    mdHeadingTheme,
     keymap.of([...defaultKeymap, ...historyKeymap, ...closeBracketsKeymap, ...searchKeymap, indentWithTab]),
     EditorView.lineWrapping,
     EditorView.updateListener.of((update) => {

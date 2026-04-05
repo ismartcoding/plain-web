@@ -10,7 +10,7 @@ import { getFileUrlByPath } from '@/lib/api/file'
 import { initMutation, setTempValueGQL, addFavoriteFolderGQL } from '@/lib/api/mutation'
 import emitter from '@/plugins/eventbus'
 import toast from '@/components/toaster'
-import { remove } from 'lodash-es'
+import { arrayRemove } from '@/lib/array'
 import type sjcl from 'sjcl'
 
 interface UseFilesActionsOptions {
@@ -57,7 +57,7 @@ export function useFilesActions(opts: UseFilesActionsOptions) {
   })
 
   const onDeleted = (files: IFile[]) => {
-    files.forEach((f) => { remove(items.value, (it: IFile) => it.id === f.id) })
+    files.forEach((f) => { arrayRemove(items.value, (it: IFile) => it.id === f.id) })
     total.value = items.value.length
     clearSelection()
     refetchMounts()

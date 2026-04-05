@@ -1,4 +1,4 @@
-import { without, keys } from 'lodash-es'
+
 
 export interface IQueryGroup {
   length: number
@@ -22,7 +22,7 @@ const INVERT: any = {
   nin: 'in',
 }
 const NUMBER_OPS = ['>', '>=', '<', '<=']
-const GROUP_TYPES = without(keys(INVERT), 'in', 'nin')
+const GROUP_TYPES = Object.keys(INVERT).filter((k: string) => k !== 'in' && k !== 'nin')
 
 export function splitInGroup(s: string) {
   return s.match(GROUP_DELIMITER)
