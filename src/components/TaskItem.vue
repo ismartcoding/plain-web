@@ -7,30 +7,19 @@
       </span>
       <span class="size">{{ formatFileSize(item.file.size) }}</span>
       <div class="icon task-actions">
-        <!-- Pause button -->
-        <button v-if="canPause(item)" v-tooltip="$t('pause')" class="btn-icon pause-btn" @click="() => pauseTask(props.item)">
+        <v-icon-button v-if="canPause(item)" v-tooltip="$t('pause')" class="pause-btn" @click="() => pauseTask(props.item)">
           <i-material-symbols:pause-rounded />
-        </button>
-
-        <!-- Pausing button -->
-        <button v-if="isPausing(item)" v-tooltip="$t('pausing')" class="btn-icon pausing-btn" disabled>
-          <v-circular-progress indeterminate class="sm"/>
-        </button>
-
-        <!-- Resume button -->
-        <button v-if="canResume(item)" v-tooltip="$t('resume')" class="btn-icon resume-btn" @click="() => resumeTask(props.item)">
+        </v-icon-button>
+        <v-icon-button v-if="isPausing(item)" v-tooltip="$t('pausing')" :loading="true" class="pausing-btn" />
+        <v-icon-button v-if="canResume(item)" v-tooltip="$t('resume')" class="resume-btn" @click="() => resumeTask(props.item)">
           <i-material-symbols:play-arrow-rounded />
-        </button>
-
-        <!-- Retry button -->
-        <button v-if="canRetry(item)" v-tooltip="$t('retry')" class="btn-icon retry-btn" @click="() => retryTask(props.item)">
+        </v-icon-button>
+        <v-icon-button v-if="canRetry(item)" v-tooltip="$t('retry')" class="retry-btn" @click="() => retryTask(props.item)">
           <i-material-symbols:refresh-rounded />
-        </button>
-
-        <!-- Cancel/Remove button -->
-        <button v-tooltip="$t('remove')" class="btn-icon remove-btn" @click="() => removeTask(props.item)">
+        </v-icon-button>
+        <v-icon-button v-tooltip="$t('remove')" class="remove-btn" @click="() => removeTask(props.item)">
           <i-material-symbols:close-rounded />
-        </button>
+        </v-icon-button>
       </div>
     </div>
     <div v-if="showProgress(item) || item.error" class="body">

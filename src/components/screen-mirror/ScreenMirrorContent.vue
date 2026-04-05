@@ -32,8 +32,6 @@
 
 <script setup lang="ts">
 import type { ComponentPublicInstance } from 'vue'
-import MobileWarning from '@/assets/mobile-warning.svg'
-import TouchPhone from '@/assets/touch-phone.svg'
 
 defineProps<{
   showLoading: boolean
@@ -87,7 +85,7 @@ defineEmits<{ (e: 'start'): void }>()
 }
 
 .prompt-icon {
-  width: 160px;
+  width: 240px;
   margin-bottom: 8px;
   :deep(svg) { fill: var(--md-sys-color-primary); width: 100%; height: auto; }
   &--warning :deep(svg) { fill: var(--md-sys-color-on-surface-variant); }

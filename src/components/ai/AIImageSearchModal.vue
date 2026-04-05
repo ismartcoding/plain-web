@@ -9,18 +9,11 @@
       <AISearchSetupView
         v-else-if="status.status === 'UNAVAILABLE' || status.status === 'ERROR'"
         :status="status"
-        :enable-loading="enableLoading"
-        @activate="enable" @upload-done="onUploadDone"
       />
 
       <AISearchActiveView
         v-else
-        :status="status" :index-progress="indexProgress"
-        :start-index-loading="startIndexLoading"
-        :cancel-index-loading="cancelIndexLoading"
-        :disable-loading="disableLoading"
-        @start-index="startIndex" @cancel-index="cancelIndex"
-        @cancel-download="disable" @delete="disable"
+        :status="status"
       />
     </template>
     <template #actions>
@@ -30,24 +23,13 @@
 </template>
 
 <script setup lang="ts">
-import { useImageSearch } from '@/hooks/image-search'
+import { useImageSearchStatus } from '@/hooks/ai/use-image-search-status'
 import AISearchSetupView from './AISearchSetupView.vue'
 import AISearchActiveView from './AISearchActiveView.vue'
 
 defineEmits<{ close: [] }>()
-const { status, enable, disable, startIndex, cancelIndex, indexProgress, refetch, enableLoading, startIndexLoading, cancelIndexLoading, disableLoading } = useImageSearch()
-
-function onUploadDone() {
-  enable()
-  refetch()
-}
+const { status } = useImageSearchStatus()
 </script>
-
-<style lang="scss">
-.modal-ai-search {
-  max-width: 440px;
-}
-</style>
 
 <style lang="scss" scoped>
 .ai-modal-loading {

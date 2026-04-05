@@ -14,7 +14,7 @@ const EventType: { [key: number]: string } = {
   7: 'notification_created', 8: 'notification_updated', 9: 'notification_deleted',
   10: 'notification_refreshed', 11: 'pomodoro_action', 12: 'pomodoro_settings_update',
   13: 'message_cleared', 14: 'screen_mirror_audio_granted', 15: 'bookmark_updated',
-  16: 'download_progress', 18: 'channels_updated',
+  16: 'download_progress', 18: 'channels_updated', 19: 'image_search_updated',
 }
 
 export function useAppSocket() {

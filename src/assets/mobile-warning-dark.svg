@@ -1,10 +1,10 @@
 <svg viewBox="110 70 180 270" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="6" />
-      <feOffset dx="0" dy="8" />
+    <filter id="shadow-dark" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="7" />
+      <feOffset dx="0" dy="10" />
       <feComponentTransfer>
-        <feFuncA type="linear" slope="0.1" />
+        <feFuncA type="linear" slope="0.34" />
       </feComponentTransfer>
       <feMerge>
         <feMergeNode />
@@ -21,7 +21,7 @@
 
       @keyframes breathe {
         0%, 100% { opacity: 0.2; transform: scale(1); }
-        50% { opacity: 0.4; transform: scale(1.15); }
+        50% { opacity: 0.42; transform: scale(1.15); }
       }
 
       @keyframes icon-float {
@@ -35,22 +35,21 @@
     </style>
   </defs>
 
-  <g filter="url(#shadow)">
-    <rect x="135" y="80" width="130" height="240" rx="32" fill="#FFFFFF" />
-    <rect x="142" y="87" width="116" height="226" rx="26" fill="#FBFBFD" />
+  <g filter="url(#shadow-dark)">
+    <rect x="135" y="80" width="130" height="240" rx="32" fill="#17181C" />
+    <rect x="142" y="87" width="116" height="226" rx="26" fill="#23262D" />
   </g>
 
-  <rect x="180" y="98" width="40" height="10" rx="5" fill="#E5E5EA" />
+  <rect x="180" y="98" width="40" height="10" rx="5" fill="#5A6272" opacity="0.9" />
 
   <g class="btn-container">
-    <circle class="breathe-circle" cx="200" cy="260" r="38" fill="#FF9500" />
+    <circle class="breathe-circle" cx="200" cy="260" r="38" fill="#FF9F0A" />
 
-    <rect x="155" y="235" width="90" height="50" rx="25" fill="#FF9500" />
+    <rect x="155" y="235" width="90" height="50" rx="25" fill="#FF9F0A" />
 
     <g class="alert-icon">
-      <rect x="198" y="248" width="4" height="14" rx="2" fill="white" />
-      <circle cx="200" cy="270" r="2.5" fill="white" />
+      <rect x="198" y="248" width="4" height="14" rx="2" fill="#FFFFFF" />
+      <circle cx="200" cy="270" r="2.5" fill="#FFFFFF" />
     </g>
   </g>
-
 </svg>

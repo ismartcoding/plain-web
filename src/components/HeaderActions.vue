@@ -2,9 +2,9 @@
   <div class="q-action">
     <v-dropdown v-model="menuVisible">
       <template #trigger>
-        <button id="menu-ref" v-tooltip="t('settings')" class="btn-icon">
+        <v-icon-button id="menu-ref" v-tooltip="t('settings')">
           <i-lucide:ellipsis-vertical />
-        </button>
+        </v-icon-button>
       </template>
 
       <!-- Quick Actions Section -->

@@ -1,27 +1,27 @@
 <template>
   <div class="action-buttons">
-    <button v-tooltip="$t('add_to_tags')" class="btn-icon sm" style="margin-inline-start: 16px" @click.prevent="$emit('addToTags')">
+    <v-icon-button v-tooltip="$t('add_to_tags')" class="sm" style="margin-inline-start: 16px" @click.prevent="$emit('addToTags')">
       <i-material-symbols:label-outline-rounded />
-    </button>
+    </v-icon-button>
     <v-icon-button v-tooltip="$t('sync_content')" :loading="syncContentLoading" @click.prevent="$emit('syncContent')">
       <i-material-symbols:sync-rounded />
     </v-icon-button>
     <a v-tooltip="$t('view_original_article')" :href="entryUrl" class="btn-icon" target="_blank">
-      <button class="btn-icon sm">
+      <v-icon-button class="sm">
         <i-material-symbols:open-in-new-rounded />
-      </button>
+      </v-icon-button>
     </a>
-    <button v-tooltip="$t('save_to_notes')" class="btn-icon sm" @click.prevent="$emit('saveToNotes')">
+    <v-icon-button v-tooltip="$t('save_to_notes')" class="sm" @click.prevent="$emit('saveToNotes')">
       <i-material-symbols:add-notes-outline-rounded />
-    </button>
-    <button v-tooltip="$t('print')" class="btn-icon sm" @click.prevent="$emit('print')">
+    </v-icon-button>
+    <v-icon-button v-tooltip="$t('print')" class="sm" @click.prevent="$emit('print')">
       <i-material-symbols:print-outline-rounded />
-    </button>
+    </v-icon-button>
     <v-dropdown v-model="fontSizeMenuVisible">
       <template #trigger>
-        <button v-tooltip="$t('font_size')" class="btn-icon sm">
+        <v-icon-button v-tooltip="$t('font_size')" class="sm">
           <i-material-symbols:format-size-rounded />
-        </button>
+        </v-icon-button>
       </template>
       <div class="dropdown-item" @click="$emit('decreaseFontSize')">
         <i-material-symbols:text-decrease-rounded />
