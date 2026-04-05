@@ -6,9 +6,9 @@
       </li>
     </ul>
     <div class="actions">
-      <button type="button" :disabled="loading" class="btn" @click="save">
-        {{ $t(loading ? 'saving' : 'save') }}
-      </button>
+      <v-filled-button :loading="loading" class="btn-sm" @click="save">
+        {{ $t('save') }}
+      </v-filled-button>
     </div>
   </div>
 </template>

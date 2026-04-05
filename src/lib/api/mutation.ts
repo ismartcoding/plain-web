@@ -674,6 +674,10 @@ export const disableImageSearchGQL = gql`
   mutation { disableImageSearch }
 `
 
+export const cancelImageDownloadGQL = gql`
+  mutation { cancelImageDownload }
+`
+
 export const startImageIndexGQL = gql`
   mutation startImageIndex($force: Boolean) {
     startImageIndex(force: $force)

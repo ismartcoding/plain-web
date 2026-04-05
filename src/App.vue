@@ -14,7 +14,6 @@
   </Teleport>
 </template>
 <script setup lang="ts">
-import TouchPhone from '@/assets/touch-phone.svg'
 import { useAppSocket } from '@/hooks/app-socket'
 
 const { wsStatus, tapPhoneMessage, closeTapPhone } = useAppSocket()

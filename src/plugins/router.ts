@@ -178,6 +178,12 @@ const router = createRouter({
       meta: { requiresAuth: false },
     },
     {
+      name: 'ux',
+      path: '/ux',
+      component: () => import('@/views/UxView.vue'),
+      meta: { requiresAuth: false },
+    },
+    {
       name: 'text-edit',
       path: '/text-edit',
       component: () => import('@/views/TextFileView.vue'),

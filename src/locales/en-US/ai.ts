@@ -19,6 +19,7 @@ export default {
   'ai.indexed_count': '{count} photos indexed',
   'ai.rescan': 'Rescan',
   'ai.cancel_download': 'Cancel Download',
+  'ai.cancel_upload': 'Cancel Upload',
   'ai.stop_scan': 'Stop Scan',
   'ai.unload_model': 'Remove AI model and clear all indexed data',
   'ai.confirm_delete': 'Remove AI model and all indexed data?',

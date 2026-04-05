@@ -1,10 +1,10 @@
 <svg viewBox="110 70 180 270" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="6" />
-      <feOffset dx="0" dy="8" />
+    <filter id="shadow-dark" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="7" />
+      <feOffset dx="0" dy="10" />
       <feComponentTransfer>
-        <feFuncA type="linear" slope="0.1" />
+        <feFuncA type="linear" slope="0.35" />
       </feComponentTransfer>
       <feMerge>
         <feMergeNode />
@@ -15,8 +15,8 @@
     <style>
       @keyframes finger-slide {
         0% { transform: translate(120px, 150px); opacity: 0; }
-        20% { transform: translate(0, 0); opacity: 0.6; }
-        40%, 60% { transform: translate(0, 0) scale(0.85); opacity: 0.8; }
+        20% { transform: translate(0, 0); opacity: 0.55; }
+        40%, 60% { transform: translate(0, 0) scale(0.85); opacity: 0.85; }
         80% { transform: translate(0, 0); opacity: 0; }
         100% { transform: translate(120px, 150px); opacity: 0; }
       }
@@ -33,7 +33,7 @@
 
       @keyframes ripple-out {
         0%, 45% { transform: scale(0.5); opacity: 0; }
-        50% { opacity: 0.3; }
+        50% { opacity: 0.36; }
         75%, 100% { transform: scale(2); opacity: 0; }
       }
 
@@ -44,22 +44,22 @@
     </style>
   </defs>
 
-  <g filter="url(#shadow)">
-    <rect x="135" y="80" width="130" height="240" rx="32" fill="#FFFFFF" />
-    <rect x="142" y="87" width="116" height="226" rx="26" fill="#FBFBFD" />
+  <g filter="url(#shadow-dark)">
+    <rect x="135" y="80" width="130" height="240" rx="32" fill="#17181C" />
+    <rect x="142" y="87" width="116" height="226" rx="26" fill="#23262D" />
   </g>
 
-  <rect x="180" y="98" width="40" height="10" rx="5" fill="#E5E5EA" />
+  <rect x="180" y="98" width="40" height="10" rx="5" fill="#5A6272" opacity="0.9" />
 
-  <circle class="ripple" cx="200" cy="260" r="25" fill="#007AFF" />
+  <circle class="ripple" cx="200" cy="260" r="25" fill="#4F97FF" />
 
   <g class="btn-unit">
-    <rect x="155" y="235" width="90" height="50" rx="25" fill="#007AFF" />
-    <path class="check-icon" d="M188 260 l8 8 l14 -14" stroke="white" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+    <rect x="155" y="235" width="90" height="50" rx="25" fill="#4F97FF" />
+    <path class="check-icon" d="M188 260 l8 8 l14 -14" stroke="#FFFFFF" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" />
   </g>
 
   <g class="touch-point">
-    <circle cx="200" cy="260" r="24" fill="#007AFF" opacity="0.5" />
-    <circle cx="200" cy="260" r="12" fill="white" opacity="0.4" />
+    <circle cx="200" cy="260" r="24" fill="#4F97FF" opacity="0.45" />
+    <circle cx="200" cy="260" r="12" fill="#FFFFFF" opacity="0.35" />
   </g>
 </svg>

@@ -19,9 +19,9 @@
 
     <v-dropdown v-model="menuVisible" align="top-right-to-bottom-right" :class="{ 'menu-open': menuVisible }" @click.stop>
       <template #trigger>
-        <button class="btn-icon icon more-trigger">
+        <v-icon-button class="icon more-trigger">
           <i-material-symbols:more-vert />
-        </button>
+        </v-icon-button>
       </template>
       <div
         class="dropdown-item"

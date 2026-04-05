@@ -41,7 +41,6 @@
   <div v-if="showWarning" class="tips">{{ $t('browser_warning') }}</div>
 </template>
 <script setup lang="ts">
-import TouchPhone from '@/assets/touch-phone.svg'
 import { useLogin } from '@/hooks/login'
 
 const showWarning = window.location.protocol === 'http:' ? false : !(window.navigator as any).userAgentData
@@ -85,7 +84,7 @@ h1 {
 
     *:is(svg) {
       width: 120px;
-      margin-inline-start: 24px;
+      height: auto;
       fill: var(--md-sys-color-primary);
     }
   }

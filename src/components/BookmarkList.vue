@@ -1,9 +1,9 @@
 <template>
   <div class="quick-content-main">
     <div class="top-app-bar">
-      <button v-tooltip="$t('close')" class="btn-icon" @click="store.quick = ''">
+      <v-icon-button v-tooltip="$t('close')" @click="store.quick = ''">
         <i-lucide:x />
-      </button>
+      </v-icon-button>
       <div class="title">{{ $t('bookmarks') }}</div>
       <div class="actions">
         <v-dropdown v-model="sortMenuVisible">
@@ -55,9 +55,9 @@
         <div class="empty-content">
           <i-lucide:bookmark class="empty-icon" />
           <div class="empty-text">{{ $t('no_bookmarks') }}</div>
-          <button class="btn-primary" @click="openAddDialog('')">
+          <v-filled-button @click="openAddDialog('')">
             {{ $t('add_bookmarks') }}
-          </button>
+          </v-filled-button>
         </div>
       </div>
 
@@ -90,9 +90,9 @@
             <span class="group-name">{{ group.name }}</span>
             <v-dropdown v-model="groupMenus[group.id]" align="top-right-to-bottom-right" @click.stop>
               <template #trigger>
-                <button class="btn-icon icon more-trigger">
+                <v-icon-button class="icon more-trigger">
                   <i-material-symbols:more-vert />
-                </button>
+                </v-icon-button>
               </template>
               <div class="dropdown-item" @click="openAddDialog(group.id); groupMenus[group.id] = false">
                 {{ $t('add_bookmarks') }}
@@ -264,16 +264,7 @@ function onBookmarkUpdated(updated: Bookmark) {
       opacity: 0.7;
     }
 
-    .btn-primary {
-      padding: 8px 20px;
-      border-radius: 20px;
-      background: var(--md-sys-color-primary);
-      color: var(--md-sys-color-on-primary);
-      font-size: 0.875rem;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
-    }
+
   }
 }
 

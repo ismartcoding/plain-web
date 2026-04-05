@@ -9,25 +9,19 @@
       <span class="count">{{ uploads.length }} {{ $t('files') }}</span>
 
       <div class="icon task-actions">
-        <button v-if="canPause" v-tooltip="$t('pause')" class="btn-icon pause-btn" @click="pauseBatch">
+        <v-icon-button v-if="canPause" v-tooltip="$t('pause')" class="pause-btn" @click="pauseBatch">
           <i-material-symbols:pause-rounded />
-        </button>
-
-        <button v-if="isPausing" v-tooltip="$t('pausing')" class="btn-icon pausing-btn" disabled>
-          <v-circular-progress indeterminate class="sm" />
-        </button>
-
-        <button v-if="canResume" v-tooltip="$t('resume')" class="btn-icon resume-btn" @click="resumeBatch">
+        </v-icon-button>
+        <v-icon-button v-if="isPausing" v-tooltip="$t('pausing')" :loading="true" class="pausing-btn" />
+        <v-icon-button v-if="canResume" v-tooltip="$t('resume')" class="resume-btn" @click="resumeBatch">
           <i-material-symbols:play-arrow-rounded />
-        </button>
-
-        <button v-if="canRetry" v-tooltip="$t('retry')" class="btn-icon retry-btn" @click="retryBatch">
+        </v-icon-button>
+        <v-icon-button v-if="canRetry" v-tooltip="$t('retry')" class="retry-btn" @click="retryBatch">
           <i-material-symbols:refresh-rounded />
-        </button>
-
-        <button v-tooltip="$t('remove')" class="btn-icon remove-btn" @click="removeBatch">
+        </v-icon-button>
+        <v-icon-button v-tooltip="$t('remove')" class="remove-btn" @click="removeBatch">
           <i-material-symbols:close-rounded />
-        </button>
+        </v-icon-button>
       </div>
     </div>
 

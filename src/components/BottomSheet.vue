@@ -3,9 +3,9 @@
     <div class="bottom-sheet-container" @click.stop>
       <!-- Header -->
       <div class="bottom-sheet-header">
-        <button class="btn-icon" @click="closeSheet">
+        <v-icon-button @click="closeSheet">
           <i-lucide:x />
-        </button>
+        </v-icon-button>
         <h2 class="bottom-sheet-title">{{ title }}</h2>
         <div class="bottom-sheet-placeholder"></div>
       </div>

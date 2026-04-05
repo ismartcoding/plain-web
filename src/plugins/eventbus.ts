@@ -41,6 +41,7 @@ type Events = {
   download_progress: any[]
   channels_updated: any[]
   sms_sent: undefined
+  image_search_updated: any
 }
 
 const emitter: Emitter<Events> = mitt<Events>()
