@@ -27,7 +27,7 @@
   <div class="scroll-content" @dragover.stop.prevent="fileDragEnter">
     <div v-show="dropping" class="drag-mask" @drop.stop.prevent="dropFiles2" @dragleave.stop.prevent="fileDragLeave">{{ $t('release_to_send_files') }}</div>
 
-    <template v-if="isGroupMode">
+    <template v-if="effectiveIsGroupMode">
       <template v-if="loading && items.length === 0">
         <div class="media-grid"><section v-for="i in limit" :key="i" class="skeleton-image media-item"></section></div>
       </template>
@@ -127,6 +127,8 @@ const { noMore, sentinel, isGroupMode, scrollMode, groupedItems, setupSentinelOb
   doFetch: () => fetch(), getScrollPaging: () => mainStore.imagesScrollPaging, getGroupBy: () => mainStore.imagesGroupBy,
 })
 
+const effectiveIsGroupMode = computed(() => isGroupMode.value && !filter.text)
+
 watch(() => mainStore.imagesGroupBy, () => { page.value = 1; noMore.value = false; items.value = []; fetch() })
 watch(() => mainStore.imagesScrollPaging, () => { page.value = 1; items.value = []; fetch() })
 
@@ -144,7 +146,7 @@ const { loading, fetch } = initLazyQuery({
     }
   },
   document: imagesGQL,
-  variables: () => ({ offset: (page.value - 1) * limit.value, limit: limit.value, query: q.value, sortBy: isGroupMode.value ? 'TAKEN_AT_DESC' : imageSortBy.value }),
+  variables: () => ({ offset: (page.value - 1) * limit.value, limit: limit.value, query: q.value, sortBy: effectiveIsGroupMode.value ? 'TAKEN_AT_DESC' : imageSortBy.value }),
 })
 
 const sources = computed<ISource[]>(() => items.value.map((it: IImageItem) => ({

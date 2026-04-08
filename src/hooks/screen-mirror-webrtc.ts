@@ -1,6 +1,7 @@
 import { ref, type Ref } from 'vue'
 import { WebRTCClient, type SignalingMessage } from '@/lib/webrtc-client'
 import { sendWebRTCSignaling } from '@/lib/webrtc-signaling'
+import { getPhoneIp } from '@/lib/api/api'
 
 /**
  * Manages a single WebRTC session for screen mirroring.
@@ -46,7 +47,7 @@ export function useScreenMirrorWebRTC(
       },
       onError: () => onDisconnected(),
     })
-    client.startSession(true, false)
+    client.startSession(true, false, getPhoneIp())
     flushQueue()
   }
 

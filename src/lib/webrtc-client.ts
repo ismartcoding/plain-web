@@ -10,6 +10,7 @@ export interface SignalingMessage {
   sdpMid?: string
   sdpMLineIndex?: number
   candidate?: string
+  phoneIp?: string
 }
 
 export interface WebRTCClientOptions {
@@ -31,7 +32,7 @@ export class WebRTCClient {
     this.options = options
   }
 
-  async startSession(enableAudio: boolean, asOfferer: boolean = true): Promise<void> {
+  async startSession(enableAudio: boolean, asOfferer: boolean = true, phoneIp?: string): Promise<void> {
     this.audioEnabled = enableAudio
     this.cleanup()
     this.remoteDescriptionSet = false
@@ -102,7 +103,7 @@ export class WebRTCClient {
       }
     } else {
       // Notify the remote side that we are ready to receive an offer
-      this.options.sendSignaling({ type: 'ready' })
+      this.options.sendSignaling({ type: 'ready', phoneIp })
     }
   }
 
