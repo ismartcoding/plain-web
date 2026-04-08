@@ -17,3 +17,11 @@ export function getWebSocketBaseUrl() {
 export function getApiBaseUrl() {
   return `${window.location.protocol}\/\/${getApiHost()}`
 }
+
+export function getPhoneIp(): string {
+  try {
+    return new URL(`http://${getApiHost()}`).hostname
+  } catch {
+    return getApiHost().split(':')[0]
+  }
+}
