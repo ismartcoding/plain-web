@@ -126,7 +126,7 @@ export default {
   type: 'Loại',
   time: 'Thời gian',
   browser_warning: 'Đề xuất sử dụng phiên bản mới nhất của trình duyệt web Chrome',
-  no_permission: 'Không có quyền. Vui lòng điều chỉnh trong Ứng dụng > "Web trên máy tính" để bật quyền và làm mới trang.',
+  no_permission: 'Không có quyền. Vui lòng vào APP > "Cài đặt Web" để bật quyền và làm mới trang.',
   no_data: 'Không có dữ liệu.',
   loading: 'Đang tải...',
   duration: 'Thời lượng',

@@ -23,7 +23,7 @@ export function useAppSocket() {
 
   const wsStatus = ref('')
   const tapPhoneMessage = ref('')
-  let retryConnectTimeout = 0
+  let retryConnectTimeout: ReturnType<typeof setTimeout> | undefined
   let ws: WebSocket
   let retryTime = 1000
 
@@ -50,7 +50,7 @@ export function useAppSocket() {
         const type = EventType[r.type]
         try {
           const json = chachaDecrypt(key, r.data)
-          emitter.emit(type, json ? JSON.parse(json) : null)
+          emitter.emit(type as any, json ? JSON.parse(json) : null)
           console.log(`ws.onmessage: ${type}, ${json}`)
         } catch (ex) { console.error(ex) }
         wsStatus.value = ''

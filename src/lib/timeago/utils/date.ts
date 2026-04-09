@@ -27,7 +27,7 @@ export function toDate(input?: Date | string | number): Date {
     .replace(/(\d)T(\d)/, '$1 $2')
     .replace(/Z/, ' UTC') // 2017-2-5T3:57:52Z -> 2017-2-5 3:57:52UTC
     .replace(/([+-]\d\d):?(\d\d)/, ' $1$2') // -04:00 -> -0400
-  return new Date(input)
+  return new Date(input!)
 }
 
 /**
@@ -94,7 +94,7 @@ export function formatDiff(diff: number, localeFunc: LocaleFunc): string {
  * @param relativeDate
  * @returns {number}
  */
-export function diffSec(date: TDate, relativeDate: TDate): number {
+export function diffSec(date: TDate, relativeDate?: TDate): number {
   const relDate = relativeDate ? toDate(relativeDate) : new Date()
   return (+relDate - +toDate(date)) / 1000
 }

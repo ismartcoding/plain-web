@@ -1,7 +1,6 @@
 import type { ISource } from '@/components/lightbox/types'
 import type { IFile } from '@/lib/file'
 import { defineStore } from 'pinia'
-import type sjcl from 'sjcl'
 import type { IApp } from '@/lib/interfaces'
 
 export interface IUploadItem {
@@ -57,7 +56,7 @@ export interface IDataCounter {
 // data will be lost when page refreshed, or the data use different way to store data
 export type TempState = {
   app: IApp // store the appFragment result
-  urlTokenKey: sjcl.BitArray | null
+  urlTokenKey: Uint8Array | null
   uploads: IUploadItem[]
   selectedFiles: IFile[]
   audioPlaying: boolean

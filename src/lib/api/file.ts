@@ -1,7 +1,6 @@
 import { arrayBufferToHex } from '../strutil'
 import { getApiBaseUrl } from './api'
 import { chachaEncrypt, bitArrayToBase64 } from './crypto'
-import * as sjcl from 'sjcl'
 
 declare global {
   interface Window {
@@ -22,7 +21,7 @@ export function getFileUrl(id: string, query: string = '') {
   return `${getApiBaseUrl()}/fs?id=${encodeURIComponent(id)}${query}`
 }
 
-export function getFileUrlByPath(key: sjcl.BitArray | null, path: string) {
+export function getFileUrlByPath(key: Uint8Array | null, path: string) {
   if (!path || !key) {
     return ''
   }
@@ -71,11 +70,11 @@ export async function getFileHash(f: File) {
   return arrayBufferToHex(await crypto.subtle.digest('SHA-256', await f.arrayBuffer()))
 }
 
-export function tokenToKey(token: string) {
-  return sjcl.codec.base64.toBits(token)
+export function tokenToKey(token: string): Uint8Array {
+  return Uint8Array.from(atob(token), (c) => c.charCodeAt(0))
 }
 
-export function encryptUrlParams(key: sjcl.BitArray | null, params: string) {
+export function encryptUrlParams(key: Uint8Array | null, params: string) {
   if (!key) {
     return ''
   }
@@ -90,7 +89,7 @@ export function encryptUrlParams(key: sjcl.BitArray | null, params: string) {
  * @param peerFileId - the raw peer-side encrypted file ID (from `fsid:<id>` URI)
  */
 export function getPeerProxyUrl(
-  urlTokenKey: sjcl.BitArray | null,
+  urlTokenKey: Uint8Array | null,
   peer: { ip: string; port: number },
   peerFileId: string,
   query: string = '',
@@ -114,7 +113,7 @@ export function getFinalPath(appDir: string, path: string) {
   return path
 }
 
-export function getFileId(key: sjcl.BitArray | null, path: string, mediaId: string = '') {
+export function getFileId(key: Uint8Array | null, path: string, mediaId: string = '') {
   if (!path || !key) {
     return ''
   }

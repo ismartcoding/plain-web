@@ -141,7 +141,7 @@ export default {
   type: '类型',
   time: '时间',
   browser_warning: '推荐使用最新版的Chrome浏览器',
-  no_permission: '没有权限，请到手机应用 > "电脑网页"里面打开权限并刷新页面重试。',
+  no_permission: '没有权限，请到手机应用 > "Web 设置"里面打开权限并刷新页面重试。',
   no_data: '没有数据。',
   loading: '加载中...',
   duration: '时长',

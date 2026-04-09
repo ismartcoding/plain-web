@@ -26,7 +26,6 @@ import type { IMessage } from '@/lib/interfaces'
 import { formatDateTime } from '@/lib/format'
 import { noDataKey } from '@/lib/list'
 import MessageChatBubble from './MessageChatBubble.vue'
-import type sjcl from 'sjcl'
 
 const props = defineProps<{
   items: IMessage[]
@@ -34,7 +33,7 @@ const props = defineProps<{
   loading: boolean
   loadingMore: boolean
   permissions: string[]
-  urlTokenKey: sjcl.BitArray | null
+  urlTokenKey: Uint8Array | null
 }>()
 
 defineEmits<{

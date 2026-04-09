@@ -16,8 +16,9 @@
 </template>
 <script setup lang="ts">
 import { useForm } from 'vee-validate'
+import { toTypedSchema } from '@vee-validate/zod'
+import { z } from 'zod'
 import { onMounted, ref, type PropType, nextTick } from 'vue'
-import * as yup from 'yup'
 import type { OperationVariables } from '@apollo/client/core'
 import { popModal } from './modal'
 
@@ -39,9 +40,9 @@ const props = defineProps({
 })
 
 const { errors, handleSubmit, defineField } = useForm({
-  validationSchema: yup.object({
-    name: yup.string().required(),
-  }),
+  validationSchema: toTypedSchema(z.object({
+    name: z.string({ required_error: 'valid.required' }).min(1, 'valid.required'),
+  })),
   initialValues: {
     name: props.value ?? '',
   },

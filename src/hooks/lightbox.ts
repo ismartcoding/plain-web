@@ -274,7 +274,7 @@ export function useLightboxFileActions(
   current: Ref<ISource | undefined>,
   fileInfo: Ref<any>,
   tagsMap: Map<string, ITag[]>,
-  urlTokenKey: Ref<string>,
+  urlTokenKey: Ref<Uint8Array | null>,
   refetchInfo: () => void,
   isPhone: boolean,
   lightboxInfoVisible: Ref<boolean>,

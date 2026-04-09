@@ -5,12 +5,11 @@ import type { IFileFilter } from '@/lib/interfaces'
 import { useMainStore } from '@/stores/main'
 import { replacePath } from '@/plugins/router'
 import type { ISource } from '@/components/lightbox/types'
-import type sjcl from 'sjcl'
 
 interface UseFilesNavigationOptions {
   filter: IFileFilter
   rootDir: ComputedRef<string>
-  urlTokenKey: Ref<sjcl.BitArray | null>
+  urlTokenKey: Ref<Uint8Array | null>
   buildQ: (filter: IFileFilter) => string
   clearSelection: () => void
   view: (items: IFile[], f: IFile) => void

@@ -125,7 +125,9 @@ export async function getVideoData(videoFile: File): Promise<{ src: string; dura
       canvas.width = 200 // Set the desired width
       canvas.height = 200 // Set the desired height
       const canvasContext = canvas.getContext('2d')
-      canvasContext.drawImage(video, cropX, cropY, squareSize, squareSize, 0, 0, canvas.width, canvas.height)
+      if (canvasContext) {
+        canvasContext.drawImage(video, cropX, cropY, squareSize, squareSize, 0, 0, canvas.width, canvas.height)
+      }
 
       const thumbnail = canvas.toDataURL()
 
@@ -175,7 +177,7 @@ export function getDirFromPath(path: string) {
   return index === -1 ? '' : path.substring(0, index)
 }
 
-export function enrichFile(item: IFile, urlTokenKey: sjcl.BitArray | null) {
+export function enrichFile(item: IFile, urlTokenKey: Uint8Array | null) {
   const name = getFileName(item.path)
   const extension = item.isDir ? '' : getFileExtension(name)
   const hasFileId = !item.isDir && (isImage(name) || isVideo(name))

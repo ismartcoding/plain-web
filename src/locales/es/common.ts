@@ -127,7 +127,7 @@ export default {
   type: 'Tipo',
   time: 'Hora',
   browser_warning: 'Se sugiere usar la última versión del navegador web Chrome',
-  no_permission: 'Sin permiso. Por favor, ve a APP > "Web en PC" para habilitar los permisos y actualiza la página.',
+  no_permission: 'Sin permiso. Por favor, ve a APP > "Configuración Web" para habilitar los permisos y actualiza la página.',
   no_data: 'No hay datos.',
   loading: 'Cargando...',
   duration: 'Duración',

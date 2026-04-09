@@ -126,7 +126,7 @@ export default {
   type: 'Tür',
   time: 'Zaman',
   browser_warning: 'Chrome web tarayıcısının en son sürümünü kullanmanızı önerir',
-  no_permission: 'İzin yok. Lütfen İZİNLER > "PC Üzerinden Web"e gidin ve izinleri etkinleştirin, sayfayı yenileyin.',
+  no_permission: 'İzin yok. Lütfen APP > "Web Ayarları"na gidin, izinleri etkinleştirin ve sayfayı yenileyin.',
   no_data: 'Veri yok.',
   loading: 'Yükleniyor...',
   duration: 'Süre',

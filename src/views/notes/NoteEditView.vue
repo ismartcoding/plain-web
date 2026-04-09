@@ -106,6 +106,9 @@ async function onPasteImages(files: File[]) {
   border-radius: 14px;
   overflow: hidden;
   background: var(--md-sys-color-surface);
+  &.preview {
+    border: none;
+  }
   &.editor .editor-pane {
     display: block;
   }

@@ -1,4 +1,5 @@
 <script lang="ts">
+// @ts-ignore
 import JsonBox from '../json-box.vue'
 import { h } from 'vue'
 

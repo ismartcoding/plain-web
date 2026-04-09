@@ -127,7 +127,7 @@ export default {
   type: 'タイプ',
   time: '時間',
   browser_warning: '最新版のChromeウェブブラウザを使用することをお勧めします。',
-  no_permission: '権限がありません。アプリケーションの[PC上のWeb]で権限を有効にしてページをリフレッシュしてください。',
+  no_permission: '権限がありません。APP > 「Web設定」で権限を有効にしてページをリフレッシュしてください。',
   no_data: 'データがありません。',
   loading: '読み込み中...',
   duration: '時間',

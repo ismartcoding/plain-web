@@ -13,7 +13,6 @@ import { deleteById } from '@/lib/array'
 import emitter from '@/plugins/eventbus'
 import { DataType } from '@/lib/data'
 import { generateDownloadFileName } from '@/lib/format'
-import type sjcl from 'sjcl'
 
 interface UseAppsActionsOptions {
   items: Ref<IPackageItem[]>

@@ -30,5 +30,5 @@ export default {
   received: 'Ricevuto',
   attachments: 'Allegati',
   body: 'Corpo',
-  sms_notification_warning: 'Per ricevere nuovi SMS in tempo reale, vai su PlainApp sul tuo telefono → "Web su PC" → abilita l\'autorizzazione "Gestisci notifiche".',
+  sms_notification_warning: 'Per ricevere nuovi SMS in tempo reale, vai su PlainApp sul tuo telefono → "Impostazioni Web" → abilita l\'autorizzazione "Gestisci notifiche".',
 }

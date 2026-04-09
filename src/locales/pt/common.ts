@@ -125,7 +125,7 @@ export default {
   from: 'De',
   type: 'Tipo',
   browser_warning: 'Sugere-se o uso da versão mais recente do navegador Chrome',
-  no_permission: 'Sem permissão. Por favor, vá para APP > "Web no PC" para habilitar as permissões e atualize a página.',
+  no_permission: 'Sem permissão. Por favor, vá para APP > "Configurações Web" para habilitar as permissões e atualize a página.',
   no_data: 'Sem dados.',
   loading: 'Carregando...',
   duration: 'Duração',

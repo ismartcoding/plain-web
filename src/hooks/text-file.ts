@@ -10,7 +10,6 @@ import apollo from '@/plugins/apollo'
 import { appGQL } from '@/lib/api/query'
 import { tokenToKey } from '@/lib/api/file'
 import { chachaDecrypt } from '@/lib/api/crypto'
-import * as sjcl from 'sjcl'
 
 export function useTextFile() {
   const { t } = useI18n()
@@ -98,7 +97,7 @@ export function useTextFile() {
   function tryDecryptPathFromID(id: string) {
     try {
       if (!id || !urlTokenKey.value) return ''
-      const bits = sjcl.codec.base64.toBits(id)
+      const bits = tokenToKey(id)
       const decrypted = chachaDecrypt(urlTokenKey.value, bits)
       if (decrypted.startsWith('{')) {
         try { return JSON.parse(decrypted).path || '' } catch { return '' }
@@ -207,6 +206,6 @@ export function useTextFile() {
     isJsonFile, isMarkdownFile, canToggleView, language,
     isEditing, dirty, displayTitle, statusText, canEdit, showSavedPulse,
     retry, openEditor, openViewer, toggleViewMode, toggleTextWrap,
-    downloadFile, save,
+    downloadFile, save, isLoggedIn,
   }
 }

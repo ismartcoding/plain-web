@@ -98,7 +98,7 @@ const {
   isJsonFile, isMarkdownFile, canToggleView, language,
   isEditing, dirty, displayTitle, statusText, canEdit, showSavedPulse,
   retry, openEditor, openViewer, toggleViewMode, toggleTextWrap,
-  downloadFile, save,
+  downloadFile, save, isLoggedIn,
 } = useTextFile()
 </script>
 

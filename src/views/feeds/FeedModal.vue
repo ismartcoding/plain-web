@@ -37,8 +37,9 @@
 import { initMutation, updateFeedGQL } from '@/lib/api/mutation'
 import type { IFeed } from '@/lib/interfaces'
 import { useField, useForm } from 'vee-validate'
+import { toTypedSchema } from '@vee-validate/zod'
+import { z } from 'zod'
 import { nextTick, ref, type PropType } from 'vue'
-import { string } from 'yup'
 import { popModal } from '@/components/modal'
 
 
@@ -59,7 +60,7 @@ const props = defineProps({
 const { mutate, loading, onDone } = initMutation({
   document: updateFeedGQL,
 })
-const { value: inputValue, errorMessage: valueError } = useField('inputValue', string().required())
+const { value: inputValue, errorMessage: valueError } = useField('inputValue', toTypedSchema(z.string({ required_error: 'valid.required' }).min(1, 'valid.required')))
 inputValue.value = props.data?.name ?? ''
 fetchContent.value = props.data?.fetchContent ?? false
 

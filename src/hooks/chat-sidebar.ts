@@ -6,12 +6,11 @@ import { storeToRefs } from 'pinia'
 import { replacePath } from '@/plugins/router'
 import { initLazyQuery, peersGQL, chatChannelsGQL } from '@/lib/api/query'
 import type { IPeer, IChatChannel } from '@/lib/interfaces'
-import { getFileId } from '@/lib/api/file'
+import { getFileId, tokenToKey } from '@/lib/api/file'
 import { chachaDecrypt } from '@/lib/api/crypto'
 import { openModal } from '@/components/modal'
 import CreateChannelModal from '@/views/chat/CreateChannelModal.vue'
 import emitter from '@/plugins/eventbus'
-import * as sjcl from 'sjcl'
 
 export function useChatSidebar() {
   const router = useRouter()
@@ -30,7 +29,7 @@ export function useChatSidebar() {
     if (!currentEncryptedId.value) return 'local'
     if (!urlTokenKey.value) return ''
     try {
-      const bits = sjcl.codec.base64.toBits(currentEncryptedId.value)
+      const bits = tokenToKey(currentEncryptedId.value)
       const decrypted = chachaDecrypt(urlTokenKey.value, bits)
       if (decrypted.startsWith('peer:') || decrypted.startsWith('channel:')) return decrypted
       return 'local'

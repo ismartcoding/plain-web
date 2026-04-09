@@ -2,7 +2,6 @@ import type { ApolloCache, DocumentNode } from '@apollo/client/core'
 import gql from 'graphql-tag'
 import { useMutation } from '@vue/apollo-composable'
 import { chatItemFragment, chatChannelFragment, feedEntryFragment, feedFragment, fileFragment, noteFragment, playlistAudioFragment, tagFragment, bookmarkFragment, bookmarkGroupFragment } from './fragments'
-import { logErrorMessages } from '@vue/apollo-util'
 import emitter from '@/plugins/eventbus'
 
 export class InitMutationParams {
@@ -26,7 +25,7 @@ export function initMutation(params: InitMutationParams, handleError = true) {
           emitter.emit('toast', message)
         }
       }
-      logErrorMessages(error)
+      console.error('[Apollo]', error.graphQLErrors?.map((e: any) => e.message).join('\n') || error.message || error)
     })
   }
 

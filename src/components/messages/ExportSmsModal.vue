@@ -37,14 +37,13 @@
 import type { PropType } from 'vue'
 import type { IMessage } from '@/lib/interfaces'
 import { popModal } from '@/components/modal'
-import type sjcl from 'sjcl'
 import { formats, useExportSms } from '@/hooks/export-sms'
 
 const props = defineProps({
   items: { type: Array as PropType<IMessage[]>, default: () => [] },
   query: { type: String as PropType<string | null>, default: null },
   contactName: { type: String, default: '' },
-  urlTokenKey: { type: Object as PropType<sjcl.BitArray | null>, default: null },
+  urlTokenKey: { type: Object as PropType<Uint8Array | null>, default: null },
 })
 
 const { selectedFormat, exporting, progressText, doExport } = useExportSms(props)

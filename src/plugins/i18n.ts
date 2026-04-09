@@ -16,16 +16,6 @@ import ta from '@/locales/ta'
 import ko from '@/locales/ko'
 import tr from '@/locales/tr'
 import vi from '@/locales/vi'
-import { setLocale } from 'yup'
-
-setLocale({
-  mixed: {
-    required: 'valid.required',
-  },
-  string: {
-    min: 'valid.string_min',
-  },
-})
 
 export default createI18n({
   legacy: false,

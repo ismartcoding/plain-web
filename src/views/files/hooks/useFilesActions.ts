@@ -11,7 +11,6 @@ import { initMutation, setTempValueGQL, addFavoriteFolderGQL } from '@/lib/api/m
 import emitter from '@/plugins/eventbus'
 import toast from '@/components/toaster'
 import { arrayRemove } from '@/lib/array'
-import type sjcl from 'sjcl'
 
 interface UseFilesActionsOptions {
   items: Ref<IFile[]>
@@ -20,7 +19,7 @@ interface UseFilesActionsOptions {
   clearSelection: () => void
   filter: IFileFilter
   rootDir: ComputedRef<string>
-  urlTokenKey: Ref<sjcl.BitArray | null>
+  urlTokenKey: Ref<Uint8Array | null>
   t: (key: string, args?: any) => string
   fetch: () => void
   refetchMounts: () => void

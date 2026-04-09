@@ -4,13 +4,13 @@ import { storeToRefs } from 'pinia'
 import { useTempStore } from '@/stores/temp'
 import { useMainStore } from '@/stores/main'
 import { chachaDecrypt } from '@/lib/api/crypto'
+import { tokenToKey } from '@/lib/api/file'
 import { replacePath } from '@/plugins/router'
-import * as sjcl from 'sjcl'
 
-function decryptChatId(rawId: string, key: sjcl.BitArray | null): string {
+function decryptChatId(rawId: string, key: Uint8Array | null): string {
   if (!rawId || !key) return 'local'
   try {
-    const bits = sjcl.codec.base64.toBits(rawId)
+    const bits = tokenToKey(rawId)
     const decrypted = chachaDecrypt(key, bits)
     if (decrypted.startsWith('peer:') || decrypted.startsWith('channel:')) return decrypted
   } catch {

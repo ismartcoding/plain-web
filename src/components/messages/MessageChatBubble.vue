@@ -44,11 +44,10 @@ import type { IMessage } from '@/lib/interfaces'
 import { formatDateTime, formatTime } from '@/lib/format'
 import { addLinksToURLs } from '@/lib/strutil'
 import { getFileUrlByPath } from '@/lib/api/file'
-import type sjcl from 'sjcl'
 
 const props = defineProps<{
   item: IMessage
-  urlTokenKey: sjcl.BitArray | null
+  urlTokenKey: Uint8Array | null
 }>()
 
 defineEmits<{

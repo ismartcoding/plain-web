@@ -56,13 +56,13 @@ const modifiedIsOpen = ref(false)
 const { content, placement, show } = toRefs(props)
 
 const { isOpen, open, close } = usePopper({
-  emit,
-  placement,
+  emit: emit as (event: string, ...args: any[]) => void,
+  placement: placement as any,
   popperNode,
   triggerNode,
 })
 
-const { hasContent } = useContent(slots, popperNode, content)
+const { hasContent } = useContent(slots as any, popperNode as any, content)
 
 const manualMode = computed(() => show.value !== null)
 const invalid = computed(() => !hasContent.value)

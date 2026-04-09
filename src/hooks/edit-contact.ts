@@ -2,7 +2,8 @@ import { reactive, ref, type PropType } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { gql } from '@apollo/client/core'
 import { useField, useForm } from 'vee-validate'
-import { string } from 'yup'
+import { toTypedSchema } from '@vee-validate/zod'
+import { z } from 'zod'
 import { initMutation } from '@/lib/api/mutation'
 import { contactFragment } from '@/lib/api/fragments'
 import { types } from '@/lib/contact/contact'
@@ -39,7 +40,7 @@ export function useEditContact(data: IContact | undefined, sources: any[], done:
     options: { update: () => done() },
   })
 
-  const { resetField } = useField('inputValue', string().test('required', () => 'valid.required', () => true).test('target-value', () => 'invalid_value', () => true))
+  const { resetField } = useField('inputValue', toTypedSchema(z.any()))
 
   // Initialize form data
   const copyContentItems = (items: any[], newItems: any[]) => {

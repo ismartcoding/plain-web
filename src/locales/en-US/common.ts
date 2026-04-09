@@ -143,7 +143,7 @@ export default {
   type: 'Type',
   time: 'Time',
   browser_warning: 'Suggest to use the lastest version of Chrome web browser',
-  no_permission: 'No permission. Please go to APP > "Permission Settings" to enable the permissions and refresh the page.',
+  no_permission: 'No permission. Please go to APP > "Web Settings" to enable the permissions and refresh the page.',
   no_data: 'No data.',
   loading: 'Loading...',
   duration: 'Duration',

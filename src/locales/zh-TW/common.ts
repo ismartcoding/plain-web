@@ -128,7 +128,7 @@ export default {
   type: '類型',
   time: '時間',
   browser_warning: '建議使用最新版本的Chrome瀏覽器',
-  no_permission: '無權限。請前往APP > 「網頁版」啟用權限並重新整理頁面。',
+  no_permission: '無權限。請前往APP > 「Web 設定」啟用權限並重新整理頁面。',
   no_data: '無資料。',
   loading: '載入中...',
   duration: '時長',

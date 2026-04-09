@@ -12,7 +12,7 @@
     <button class="btn-icon" :disabled="!isNextActive" @click.prevent="next">
       <i-material-symbols:skip-next-outline-rounded />
     </button>
-    <template v-if="onChangePageSize">
+    <template v-if="onChangePageSize != null">
       <span class="page-size-divider"></span>
       <select class="page-size-select" :value="pageSize" @change="handlePageSizeChange">
         <option v-for="size in pageSizeOptions" :key="size" :value="size">{{ size }}</option>
@@ -130,8 +130,6 @@ function next(): void {
 
 function handlePageSizeChange(event: Event): void {
   const size = Number((event.target as HTMLSelectElement).value)
-  if (props.onChangePageSize) {
-    props.onChangePageSize(size)
-  }
+  props.onChangePageSize?.(size)
 }
 </script>

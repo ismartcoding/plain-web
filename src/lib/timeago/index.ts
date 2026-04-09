@@ -3,7 +3,7 @@ import { register } from './register'
 import type { LocaleFunc } from './interface'
 
 Object.keys(Languages).forEach((locale: string) => {
-  register(locale, Languages[locale] as LocaleFunc)
+  register(locale, (Languages as Record<string, LocaleFunc>)[locale])
 })
 
 export { format } from './format'

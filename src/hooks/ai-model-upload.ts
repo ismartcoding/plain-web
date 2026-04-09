@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getUploadUrl } from '@/lib/upload/upload'
 import { chachaEncrypt, bitArrayToUint8Array } from '@/lib/api/crypto'
-import * as sjcl from 'sjcl'
+import { tokenToKey } from '@/lib/api/file'
 import toast from '@/components/toaster'
 
 const ACCEPTED = new Set(['mobileclip_s2_image.tflite', 'mobileclip_s2_text.tflite', 'tokenizer.json'])
@@ -27,7 +27,7 @@ export function useAIModelUpload() {
     uploading.value = true
     uploadProgress.value = 0
     const token = localStorage.getItem('auth_token') ?? ''
-    const key = sjcl.codec.base64.toBits(token)
+    const key = tokenToKey(token)
     const clientId = localStorage.getItem('client_id') ?? ''
     const totalBytes = valid.reduce((s, f) => s + f.size, 0)
     let completedBytes = 0
@@ -73,7 +73,7 @@ function validateFiles(files: FileList): File[] | null {
 }
 
 function uploadSingleFile(
-  file: File, dir: string, key: sjcl.BitArray, clientId: string,
+  file: File, dir: string, key: Uint8Array, clientId: string,
   onProgress: (loaded: number) => void,
 ): Promise<void> {
   return new Promise((resolve, reject) => {

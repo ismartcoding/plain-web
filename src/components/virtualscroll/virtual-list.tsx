@@ -117,7 +117,7 @@ export default defineComponent({
 
     const getUniqueIdFromDataSources = () => {
       const { dataKey, dataSources = [] } = props
-      return dataSources.map((dataSource: any) => (typeof dataKey === 'function' ? dataKey(dataSource) : dataSource[dataKey as string]))
+      return dataSources.map((dataSource: any) => (typeof dataKey === 'function' ? dataKey(dataSource) : dataSource[(dataKey as string) ?? '']))
     }
     const onRangeChanged = (newRange: any) => {
       range.value = newRange
@@ -169,7 +169,7 @@ export default defineComponent({
       for (let index = start; index <= end; index++) {
         const dataSource = dataSources[index]
         if (dataSource) {
-          const uniqueKey = typeof dataKey === 'function' ? dataKey(dataSource) : dataSource[dataKey]
+          const uniqueKey = typeof dataKey === 'function' ? dataKey(dataSource) : (dataSource as any)[dataKey as string]
           if (typeof uniqueKey === 'string' || typeof uniqueKey === 'number') {
             slots.push(<Item index={index} event={EVENT_TYPE.ITEM} horizontal={isHorizontal} uniqueKey={uniqueKey} source={dataSource} component={itemSlot} onItemResize={onItemResized} />)
           } else {

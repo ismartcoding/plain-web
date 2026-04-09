@@ -16,8 +16,9 @@
 </template>
 <script setup lang="ts">
 import { useField, useForm } from 'vee-validate'
+import { toTypedSchema } from '@vee-validate/zod'
+import { z } from 'zod'
 import { nextTick, ref, type PropType, onMounted } from 'vue'
-import { string } from 'yup'
 import { popModal } from './modal'
 
 const { handleSubmit } = useForm()
@@ -33,7 +34,7 @@ const props = defineProps({
   value: { type: String, default: '' },
 })
 
-const { value: inputValue, resetField, errorMessage: valueError } = useField('inputValue', string().required())
+const { value: inputValue, resetField, errorMessage: valueError } = useField('inputValue', toTypedSchema(z.string({ required_error: 'valid.required' }).min(1, 'valid.required')))
 const doAction = handleSubmit(() => {
   props.do(String(inputValue.value || ''))
   popModal()

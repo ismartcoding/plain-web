@@ -127,7 +127,7 @@ export default {
   type: '유형',
   time: '시간',
   browser_warning: 'Chrome 웹 브라우저의 최신 버전을 사용하는 것이 좋습니다.',
-  no_permission: '권한 없음. APP > "PC에서 웹"으로 이동하여 권한을 활성화하고 페이지를 새로 고칩니다.',
+  no_permission: '권한 없음. APP > "Web 설정"으로 이동하여 권한을 활성화하고 페이지를 새로 고칩니다.',
   no_data: '데이터 없음.',
   loading: '로딩 중...',
   duration: '기간',
