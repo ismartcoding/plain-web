@@ -40,7 +40,7 @@ export function usePomodoro() {
   const currentRound = ref(1)
   const completedToday = ref(0)
 
-  let timer: number | null = null
+  let timer: ReturnType<typeof setInterval> | null = null
 
   // Timer core
   function initTimer(phase: 'work' | 'shortBreak' | 'longBreak') {

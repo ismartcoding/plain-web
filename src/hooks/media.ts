@@ -63,11 +63,11 @@ function isIAudio(object: any): object is IAudio {
 }
 
 export const useBuckets = (type: DataType) => {
-  const path = {
+  const path = ({
     AUDIO: 'audios',
     IMAGE: 'images',
     VIDEO: 'videos',
-  }[type]
+  } as Record<string, string>)[type as string]
   return {
     view(mainStore: MainState, id: string) {
       const q = buildQuery([

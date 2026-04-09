@@ -1,12 +1,12 @@
 import { ref } from 'vue'
 import { useField, useForm } from 'vee-validate'
-import { string } from 'yup'
+import { toTypedSchema } from '@vee-validate/zod'
+import { z } from 'zod'
 import { useI18n } from 'vue-i18n'
 import router from '@/plugins/router'
 import { sha512, hashToKey, chachaEncrypt, chachaDecrypt, bitArrayToUint8Array } from '@/lib/api/crypto'
 import { getApiBaseUrl, getApiHeaders, getWebSocketBaseUrl } from '@/lib/api/api'
 import { getAccurateAgent } from '@/lib/agent/agent'
-import { arrayBuffertoBits } from '@/lib/api/sjcl-arraybuffer'
 import { randomUUID } from '@/lib/strutil'
 import { tokenToKey } from '@/lib/api/file'
 
@@ -20,7 +20,7 @@ export function useLogin() {
   const showPasswordInput = ref(false)
   let ws: WebSocket
 
-  const { value: password, errorMessage: passwordError } = useField('password', string().required())
+  const { value: password, errorMessage: passwordError } = useField('password', toTypedSchema(z.string({ required_error: 'valid.required' }).min(1, 'valid.required')))
 
   async function initRequest() {
     const token = localStorage.getItem('auth_token') ?? ''
@@ -67,7 +67,7 @@ export function useLogin() {
         ws.send(bitArrayToUint8Array(enc))
       }
       ws.onmessage = async (event: MessageEvent) => {
-        const d = chachaDecrypt(key, arrayBuffertoBits(await event.data.arrayBuffer()))
+        const d = chachaDecrypt(key, new Uint8Array(await event.data.arrayBuffer()))
         const r = JSON.parse(d)
         if (r.status === 'PENDING') { showConfirm.value = true }
         else { localStorage.setItem('auth_token', r.token); ws.close(); window.location.href = router.currentRoute.value.query['redirect']?.toString() ?? '/' }

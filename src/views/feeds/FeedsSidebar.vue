@@ -4,7 +4,7 @@
       {{ $t('page_title.feeds') }}
     </template>
     <template #actions>
-      <v-icon-button id="add-feed-ref" v-tooltip="t('add_subscription')" @click="() => (addMenuVisible = true)">
+      <v-icon-button id="add-feed-ref" v-tooltip="$t('add_subscription')" @click="() => (addMenuVisible = true)">
         <i-material-symbols:add-rounded />
       </v-icon-button>
     </template>

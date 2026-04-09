@@ -30,5 +30,5 @@ export default {
   received: 'பெற்றது',
   attachments: 'இணைப்புகள்',
   body: 'உடல்',
-  sms_notification_warning: 'நிகழ்நேரத்தில் புதிய SMS பெற, உங்கள் ஃபோனில் உள்ள PlainApp க்குச் செல்லவும் → "Permission Settings" → "Nage Notifications" அனுமதியை இயக்கவும்.',
+  sms_notification_warning: 'நிகழ்நேரத்தில் புதிய SMS பெற, உங்கள் ྃபோனில் உள்ள PlainApp க்குச் செல்லவும் → "இணைய அமைப்புகள்" → "அறிவிப்புகளை நிர்வகி" அனுமதியை இயக்கவும்.',
 }

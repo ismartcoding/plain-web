@@ -30,5 +30,5 @@ export default {
   received: 'Đã nhận',
   attachments: 'Tệp đính kèm',
   body: 'Thân hình',
-  sms_notification_warning: 'Để nhận SMS mới trong thời gian thực, hãy truy cập PlainApp trên điện thoại của bạn → "Web trên PC" → bật quyền "Quản lý thông báo".',
+  sms_notification_warning: 'Để nhận SMS mới trong thời gian thực, hãy truy cập PlainApp trên điện thoại của bạn → "Cài đặt Web" → bật quyền "Quản lý thông báo".',
 }

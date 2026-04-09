@@ -127,7 +127,7 @@ export default {
   type: 'Typ',
   time: 'Zeit',
   browser_warning: 'Empfohlen wird die Verwendung der neuesten Version des Chrome Webbrowsers',
-  no_permission: 'Keine Berechtigung. Bitte gehen Sie zu APP > "Web auf PC", um die Berechtigungen zu aktivieren, und aktualisieren Sie die Seite.',
+  no_permission: 'Keine Berechtigung. Bitte gehen Sie zu APP > "Web-Einstellungen", um die Berechtigungen zu aktivieren, und aktualisieren Sie die Seite.',
   no_data: 'Keine Daten.',
   loading: 'Laden...',
   duration: 'Dauer',

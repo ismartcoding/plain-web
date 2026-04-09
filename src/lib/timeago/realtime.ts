@@ -64,7 +64,7 @@ export function render(nodes: HTMLElement | HTMLElement[] | NodeList, locale?: s
   const nodeList: HTMLElement[] = Object.prototype.isPrototypeOf.call(NodeList.prototype, nodes) ? nodes : [nodes]
 
   nodeList.forEach((node: HTMLElement) => {
-    run(node, getDateAttribute(node), getLocale(locale), opts || {})
+    run(node, getDateAttribute(node), getLocale(locale ?? ''), opts || {})
   })
 
   return nodeList

@@ -32,7 +32,8 @@ import { addToTagsGQL, initMutation, removeFromTagsGQL } from '@/lib/api/mutatio
 import type { ITag } from '@/lib/interfaces'
 import emitter from '@/plugins/eventbus'
 import { useField, useForm } from 'vee-validate'
-import { array } from 'yup'
+import { toTypedSchema } from '@vee-validate/zod'
+import { z } from 'zod'
 import { ref, type PropType } from 'vue'
 import { popModal } from './modal'
 import { arrayRemove } from '@/lib/array'
@@ -48,7 +49,7 @@ const props = defineProps({
 
 const { value: selectedTags, errorMessage } = useField<ITag[]>(
   'selectedTags',
-  array().test('required', 'valid.required', (value: any) => value.length),
+  toTypedSchema(z.array(z.any()).min(1, 'valid.required')),
   {
     initialValue: [],
   }

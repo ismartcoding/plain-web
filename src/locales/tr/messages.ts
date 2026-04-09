@@ -30,5 +30,5 @@ export default {
   received: 'Kabul edilmiş',
   attachments: 'Ekler',
   body: 'Vücut',
-  sms_notification_warning: 'Yeni SMS\'i gerçek zamanlı olarak almak için telefonunuzdaki PlainApp\'e gidin → "PC\'de Web" → "Bildirimleri Yönet" iznini etkinleştirin.',
+  sms_notification_warning: 'Yeni SMS\'i gerçek zamanlı olarak almak için telefonunuzdaki PlainApp\'e gidin → "Web Ayarları" → "Bildirimleri Yönet" iznini etkinleştirin.',
 }

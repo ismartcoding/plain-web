@@ -3,7 +3,7 @@ import emitter from '@/plugins/eventbus'
 import { arrayBufferToHex } from '../strutil'
 import { getApiBaseUrl } from '../api/api'
 import { chachaEncrypt, bitArrayToUint8Array } from '../api/crypto'
-import * as sjcl from 'sjcl'
+import { tokenToKey } from '../api/file'
 import { uploadedChunksGQL } from '../api/query'
 import { mergeChunksGQL } from '../api/mutation'
 import apollo from '@/plugins/apollo'
@@ -134,7 +134,7 @@ export async function generateFileId(file: File) {
 
 export async function upload(upload: IUploadItem, replace: boolean) {
   const token = localStorage.getItem('auth_token') ?? ''
-  const key = sjcl.codec.base64.toBits(token)
+  const key = tokenToKey(token)
 
   // Initialize upload status
   initializeUpload(upload)
@@ -156,7 +156,7 @@ export async function upload(upload: IUploadItem, replace: boolean) {
   }
 }
 
-async function uploadDirect(upload: IUploadItem, replace: boolean, key: sjcl.BitArray) {
+async function uploadDirect(upload: IUploadItem, replace: boolean, key: Uint8Array) {
   try {
     const data = new FormData()
     const v = bitArrayToUint8Array(chachaEncrypt(key, JSON.stringify({ dir: upload.dir, replace, isAppFile: upload.isAppFile ?? false, size: upload.file.size })))
@@ -243,7 +243,7 @@ async function uploadDirect(upload: IUploadItem, replace: boolean, key: sjcl.Bit
   }
 }
 
-async function uploadWithChunks(upload: IUploadItem, replace: boolean, key: sjcl.BitArray) {
+async function uploadWithChunks(upload: IUploadItem, replace: boolean, key: Uint8Array) {
   try {
     // Generate file ID
     if (!upload.fileId) {
@@ -446,7 +446,7 @@ function createChunk(file: File, index: number, chunkSize: number): IUploadChunk
   }
 }
 
-async function uploadChunkWithRetry(upload: IUploadItem, chunkData: IUploadChunk & { start: number; end: number }, key: sjcl.BitArray, onProgress: (bytes: number) => void, maxRetries: number = 5): Promise<boolean> {
+async function uploadChunkWithRetry(upload: IUploadItem, chunkData: IUploadChunk & { start: number; end: number }, key: Uint8Array, onProgress: (bytes: number) => void, maxRetries: number = 5): Promise<boolean> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     if (upload.status === 'canceled' || upload.status === 'paused') {
       return false
@@ -498,7 +498,7 @@ async function waitWithPauseCheck(upload: IUploadItem, delay: number): Promise<v
   }
 }
 
-async function uploadChunk(upload: IUploadItem, chunkData: IUploadChunk & { start: number; end: number }, key: sjcl.BitArray, onProgress: (bytes: number) => void): Promise<boolean> {
+async function uploadChunk(upload: IUploadItem, chunkData: IUploadChunk & { start: number; end: number }, key: Uint8Array, onProgress: (bytes: number) => void): Promise<boolean> {
   return new Promise((resolve) => {
     const data = new FormData()
     const info = JSON.stringify({

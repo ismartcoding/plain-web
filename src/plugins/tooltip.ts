@@ -1,7 +1,7 @@
 import type { Directive, Plugin } from 'vue'
 
 declare global {
-  var showTooltipTimeout: number
+  var showTooltipTimeout: ReturnType<typeof setTimeout>
 }
 
 const plugin: Plugin = {

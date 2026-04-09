@@ -114,7 +114,7 @@ export const createHttpLink = (linkOptions: HttpOptions = {}) => {
           })
 
         return () => {
-          if (controller) controller.abort()
+          if (controller && controller !== true) controller.abort()
         }
       }
       doIt()

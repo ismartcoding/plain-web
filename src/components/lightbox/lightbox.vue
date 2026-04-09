@@ -144,7 +144,7 @@ const { zoomIn, zoomOut, rotateLeft, rotateRight, resize, onDblclick, onWheel } 
   useLightboxTransform(imgWrapperState, imgState, status)
 
 const { closeDialog, changeIndex, onNext, onPrev } =
-  useLightboxNavigation(tempStore, imgIndex, current, imgWrapperState, status, tagsMap, loadTags, loadInfo, toRef(props, 'loop'), emit)
+  useLightboxNavigation(tempStore, imgIndex, current, imgWrapperState, status, tagsMap, loadTags, loadInfo, toRef(props, 'loop'), emit as (event: string, ...args: any[]) => void)
 
 const { downloadFile, deleteFile, renameFile, addToTags, handleActionSuccess, viewOrigin: viewOriginAction } =
   useLightboxFileActions(current, fileInfo, tagsMap, urlTokenKey, refetchInfo, isPhone, lightboxInfoVisible)
@@ -155,7 +155,7 @@ const viewOrigin = () => {
 }
 
 const { onLoad, onError, onPlaying, onPause, onVolumeChange } =
-  useLightboxEvents(tempStore, current, video, status, imgState, imgIndex, setImgSize, refetchInfo, updateViewOriginImageState, closeDialog, onNext, onPrev, changeIndex, emit)
+  useLightboxEvents(tempStore, current, video, status, imgState, imgIndex, setImgSize, refetchInfo, updateViewOriginImageState, closeDialog, onNext, onPrev, changeIndex, emit as (event: string, ...args: any[]) => void)
 
 const { onMouseDown, onMouseMove, onMouseUp, onTouchStart, onTouchMove, onTouchEnd } =
   useLightboxMouseTouch(imgWrapperState, imgState, status)

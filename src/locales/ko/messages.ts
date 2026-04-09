@@ -30,5 +30,5 @@ export default {
   received: '받았다',
   attachments: '첨부파일',
   body: '몸',
-  sms_notification_warning: '새 SMS를 실시간으로 받으려면 휴대폰에서 PlainApp → "PC의 웹" → "알림 관리" 권한을 활성화하세요.',
+  sms_notification_warning: '새 SMS를 실시간으로 받으려면 휴대폰에서 PlainApp → "Web 설정" → "알림 관리" 권한을 활성화하세요.',
 }

@@ -12,9 +12,8 @@ import { buildQuery, parseQuery, type IFilterField } from '@/lib/search'
 import { arrayRemove } from '@/lib/array'
 import { getApiBaseUrl } from '@/lib/api/api'
 import type { IApp, IFileFilter, IStorageMount } from '@/lib/interfaces'
-import type sjcl from 'sjcl'
 
-export const useCreateDir = (urlTokenKey: Ref<sjcl.BitArray | null>, items: Ref<IFile[]>) => {
+export const useCreateDir = (urlTokenKey: Ref<Uint8Array | null>, items: Ref<IFile[]>) => {
   const createPath = ref('')
 
   return {
@@ -69,7 +68,7 @@ export const useMounts = () => {
   return { mounts, refetch }
 }
 
-export const useDownload = (urlTokenKey: Ref<sjcl.BitArray | null>) => {
+export const useDownload = (urlTokenKey: Ref<Uint8Array | null>) => {
   return {
     async downloadFile(path: string, fileName?: string) {
       const name = fileName || getFileName(path)
@@ -211,7 +210,7 @@ export function getFileDir(fileName: string) {
   return dir
 }
 
-export const useDownloadItems = (urlTokenKey: Ref<sjcl.BitArray | null>, type: string, clearSelection: () => void, fileName: string | (() => string)) => {
+export const useDownloadItems = (urlTokenKey: Ref<Uint8Array | null>, type: string, clearSelection: () => void, fileName: string | (() => string)) => {
   const { t } = useI18n()
 
   return {

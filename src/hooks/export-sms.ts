@@ -7,7 +7,6 @@ import { formatDateTime } from '@/lib/format'
 import toast from '@/components/toaster'
 import { smsGQL } from '@/lib/api/query'
 import { useApolloClient } from '@vue/apollo-composable'
-import type sjcl from 'sjcl'
 
 export const formats = [
   { value: 'json', labelKey: 'export_format_json' },
@@ -27,7 +26,7 @@ export function useExportSms(props: {
   items: IMessage[]
   query: string | null
   contactName: string
-  urlTokenKey: sjcl.BitArray | null
+  urlTokenKey: Uint8Array | null
 }) {
   const { t } = useI18n()
   const { resolveClient } = useApolloClient()

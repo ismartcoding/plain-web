@@ -1,5 +1,4 @@
 @use 'base';
-@use 'katex';
 @use 'animation';
 @use 'card';
 @use 'alert';
@@ -442,6 +441,12 @@
 
 .media-grid .image-thumb,
 .image-container .image-thumb {
+  object-fit: cover;
+  object-position: center;
+  position: static;
+  transform: none;
+  left: auto;
+  min-width: auto;
   &:hover {
     cursor: pointer;
   }

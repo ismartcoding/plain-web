@@ -1,6 +1,7 @@
 import { nextTick, onMounted, onBeforeUnmount, ref, computed, type Ref } from 'vue'
 import { useForm } from 'vee-validate'
-import { object, string } from 'yup'
+import { toTypedSchema } from '@vee-validate/zod'
+import { z } from 'zod'
 import { popModal } from '@/components/modal'
 import { initMutation, sendSmsGQL, sendMmsGQL } from '@/lib/api/mutation'
 import { initLazyQuery, contactsGQL } from '@/lib/api/query'
@@ -35,7 +36,7 @@ export function useSendSms(initialNumber: string, initialBody: string) {
   const phoneFieldRef = ref<HTMLElement>()
 
   const { errors, defineField, handleSubmit } = useForm({
-    validationSchema: object({ number: string().trim().required(), body: string().trim().required() }),
+    validationSchema: toTypedSchema(z.object({ number: z.string({ required_error: 'valid.required' }).trim().min(1, 'valid.required'), body: z.string({ required_error: 'valid.required' }).trim().min(1, 'valid.required') })),
     initialValues: { number: initialNumber, body: initialBody },
   })
   const [number] = defineField('number')

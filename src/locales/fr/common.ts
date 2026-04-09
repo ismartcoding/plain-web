@@ -127,7 +127,7 @@ export default {
   type: 'Tapez',
   time: 'Heure',
   browser_warning: 'Il est recommandé d\'utiliser la dernière version du navigateur web Chrome.',
-  no_permission: 'Pas de permission. Veuillez accéder à APP > "Web en PC" pour activer les autorisations et actualisez la page.',
+  no_permission: 'Pas de permission. Veuillez accéder à APP > "Paramètres Web" pour activer les autorisations et actualisez la page.',
   no_data: 'Pas de données.',
   loading: 'Chargement en cours...',
   duration: 'Durée',

@@ -41,7 +41,8 @@
   </g>
 
   <rect x="180" y="98" width="40" height="10" rx="5" fill="#5A6272" opacity="0.9" />
-
+  <rect x="160" y="135" width="80" height="6" rx="3" fill="#687080" opacity="0.5" />
+  <rect x="160" y="150" width="50" height="6" rx="3" fill="#687080" opacity="0.3" />
   <g class="btn-container">
     <circle class="breathe-circle" cx="200" cy="260" r="38" fill="#FF9F0A" />
 
