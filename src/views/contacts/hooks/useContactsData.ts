@@ -60,9 +60,7 @@ export function useContactsData() {
 
   const { loading, fetch } = initLazyQuery({
     handle: (data: { contacts: IContact[]; contactCount: number }, error: string) => {
-      if (error) {
-        toast(t(error), 'error')
-      } else if (data) {
+      if (data) {
         items.value = data.contacts
         selectable.total.value = data.contactCount
       }
@@ -77,9 +75,7 @@ export function useContactsData() {
 
   initQuery({
     handle: (data: { contactSources: IContactSource[] }, error: string) => {
-      if (error) {
-        toast(t(error), 'error')
-      } else if (data) {
+      if (data) {
         sources.value = data.contactSources
       }
     },

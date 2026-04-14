@@ -1,9 +1,8 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useMainStore } from '@/stores/main'
 import { useBookmarksStore, type Bookmark, type BookmarkGroup } from '@/stores/bookmarks'
 import { initLazyQuery, bookmarksGQL } from '@/lib/api/query'
-import { initMutation, updateCache, deleteCache } from '@/lib/api/mutation'
+import { initMutation } from '@/lib/api/mutation'
 import {
   addBookmarksGQL,
   updateBookmarkGQL,
@@ -26,65 +25,14 @@ export function useBookmarkOperations() {
 
   // Mutations
   const { mutate: mutateRecordClick } = initMutation({ document: recordBookmarkClickGQL })
-  const { mutate: mutateAddBookmarks } = initMutation({
-    document: addBookmarksGQL,
-    options: {
-      update(cache: any, res: any) {
-        if (res.data?.addBookmarks?.length) {
-          const q: any = cache.readQuery({ query: bookmarksGQL })
-          if (q) {
-            cache.writeQuery({
-              query: bookmarksGQL,
-              data: { ...q, bookmarks: q.bookmarks.concat(res.data.addBookmarks) },
-            })
-          }
-        }
-      },
-    },
-  })
-  const { mutate: mutateUpdateBookmark } = initMutation({
-    document: updateBookmarkGQL,
-    options: {
-      update(cache: any, res: any) {
-        if (res.data?.updateBookmark) {
-          updateCache(cache, res.data.updateBookmark, bookmarksGQL, 'bookmarks')
-        }
-      },
-    },
-  })
-  const { mutate: mutateDeleteBookmarks } = initMutation({
-    document: deleteBookmarksGQL,
-    options: {
-      update(cache: any, _res: any, { variables }: any) {
-        if (variables?.ids) {
-          deleteCache(cache, variables.ids, bookmarksGQL, 'bookmarks')
-        }
-      },
-    },
-  })
-  const { mutate: mutateUpdateGroup } = initMutation({
-    document: updateBookmarkGroupGQL,
-    options: {
-      update(cache: any, res: any) {
-        if (res.data?.updateBookmarkGroup) {
-          updateCache(cache, res.data.updateBookmarkGroup, bookmarksGQL, 'bookmarkGroups')
-        }
-      },
-    },
-  })
-  const { mutate: mutateDeleteGroup } = initMutation({
-    document: deleteBookmarkGroupGQL,
-    options: {
-      update(cache: any, _res: any, { variables }: any) {
-        if (variables?.id) {
-          deleteCache(cache, variables.id, bookmarksGQL, 'bookmarkGroups')
-        }
-      },
-    },
-  })
+  const { mutate: mutateAddBookmarks } = initMutation({ document: addBookmarksGQL })
+  const { mutate: mutateUpdateBookmark } = initMutation({ document: updateBookmarkGQL })
+  const { mutate: mutateDeleteBookmarks } = initMutation({ document: deleteBookmarksGQL })
+  const { mutate: mutateUpdateGroup } = initMutation({ document: updateBookmarkGroupGQL })
+  const { mutate: mutateDeleteGroup } = initMutation({ document: deleteBookmarkGroupGQL })
 
   // Query
-  const { fetch: fetchBookmarks, refetch: refetchBookmarks } = initLazyQuery({
+  const { fetch: fetchBookmarks } = initLazyQuery({
     handle(data: any, error: string) {
       loading.value = false
       if (!error && data) {
@@ -171,7 +119,7 @@ export function useBookmarkOperations() {
 
   function reloadBookmarks() {
     loading.value = true
-    refetchBookmarks()
+    fetchBookmarks()
   }
 
   function doExport() {

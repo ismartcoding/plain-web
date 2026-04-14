@@ -12,10 +12,9 @@
   </v-modal>
 </template>
 <script setup lang="ts">
-import gql from 'graphql-tag'
 import type { PropType } from 'vue'
 import type { IFile } from '@/lib/file'
-import { initMutation } from '@/lib/api/mutation'
+import { initMutation, deleteFilesGQL } from '@/lib/api/mutation'
 import { popModal } from './modal'
 import { truncateText } from '@/lib/array'
 
@@ -35,11 +34,7 @@ const {
   loading,
   onDone: onDeleteFilesDone,
 } = initMutation({
-  document: gql`
-    mutation DeleteFiles($paths: [String!]!) {
-      deleteFiles(paths: $paths)
-    }
-  `,
+  document: deleteFilesGQL,
 })
 
 function doDelete() {

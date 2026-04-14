@@ -1,118 +1,82 @@
-import type { ApolloCache, DocumentNode } from '@apollo/client/core'
-import gql from 'graphql-tag'
-import { useMutation } from '@vue/apollo-composable'
-import { chatItemFragment, chatChannelFragment, feedEntryFragment, feedFragment, fileFragment, noteFragment, playlistAudioFragment, tagFragment, bookmarkFragment, bookmarkGroupFragment } from './fragments'
+import { ref } from 'vue'
+import { gqlFetch, GqlError } from './gql-client'
+import {
+  chatItemFragment,
+  chatChannelFragment,
+  feedEntryFragment,
+  feedFragment,
+  fileFragment,
+  noteFragment,
+  playlistAudioFragment,
+  tagFragment,
+  bookmarkFragment,
+  bookmarkGroupFragment,
+  contactFragment,
+} from './fragments'
 import emitter from '@/plugins/eventbus'
 
-export class InitMutationParams {
-  document!: DocumentNode
-  options?: any = {}
+// --- Mutation Wrapper ---
+
+export interface InitMutationParams {
+  document: string
 }
+
 export function initMutation(params: InitMutationParams, handleError = true) {
-  const r = useMutation(params.document, {
-    clientId: 'a',
-    ...params.options,
-  })
+  const loading = ref(false)
+  const doneCallbacks: Array<(result: any) => void> = []
+  const errorCallbacks: Array<(error: any) => void> = []
 
-  if (handleError) {
-    r.onError((error) => {
-      if (error.networkError?.message === 'connection_timeout') {
-        emitter.emit('toast', 'connection_timeout')
-      } else {
-        const gqlMessage = error.graphQLErrors?.[0]?.message
-        const message = gqlMessage || error.message
-        if (message) {
-          emitter.emit('toast', message)
-        }
+  async function mutate(variables?: any): Promise<any> {
+    loading.value = true
+    try {
+      const r = await gqlFetch(params.document, variables)
+      if (r.errors?.length) {
+        const message = r.errors[0].message
+        if (handleError) emitter.emit('toast', message)
+        const err = new GqlError(message)
+        for (const cb of errorCallbacks) cb(err)
+        return undefined
       }
-      console.error('[Apollo]', error.graphQLErrors?.map((e: any) => e.message).join('\n') || error.message || error)
-    })
+      for (const cb of doneCallbacks) cb(r)
+      return r
+    } catch (e: any) {
+      const message = e instanceof GqlError ? e.message : 'network_error'
+      if (handleError) emitter.emit('toast', message)
+      for (const cb of errorCallbacks) cb(e)
+      return undefined
+    } finally {
+      loading.value = false
+    }
   }
 
-  return r
+  function onDone(fn: (result: any) => void) {
+    doneCallbacks.push(fn)
+    return { off: () => { const i = doneCallbacks.indexOf(fn); if (i >= 0) doneCallbacks.splice(i, 1) } }
+  }
+
+  function onError(fn: (error: any) => void) {
+    errorCallbacks.push(fn)
+    return { off: () => { const i = errorCallbacks.indexOf(fn); if (i >= 0) errorCallbacks.splice(i, 1) } }
+  }
+
+  return { mutate, loading, onDone, onError }
 }
 
-export async function runMutation<TVariables extends Record<string, any> | undefined>(
-  mutate: (variables?: TVariables) => Promise<any>,
-  onDone: (fn: (...args: any[]) => void) => { off: () => void },
-  onError: (fn: (...args: any[]) => void) => { off: () => void },
-  variables?: TVariables
+/**
+ * Wrap mutate into a Promise<boolean>.
+ * Returns true on success, false on error.
+ */
+export async function runMutation(
+  mutate: (variables?: any) => Promise<any>,
+  variables?: any,
 ): Promise<boolean> {
-  return await new Promise<boolean>((resolve) => {
-    let doneSub: { off: () => void } | null = null
-    let errorSub: { off: () => void } | null = null
-
-    const cleanup = () => {
-      doneSub?.off()
-      errorSub?.off()
-      doneSub = null
-      errorSub = null
-    }
-
-    doneSub = onDone(() => {
-      cleanup()
-      resolve(true)
-    })
-
-    errorSub = onError(() => {
-      cleanup()
-      resolve(false)
-    })
-
-    mutate(variables).catch(() => {
-      // Errors are handled via onError callbacks.
-    })
-  })
+  const result = await mutate(variables)
+  return result != null
 }
 
-export function insertCache(cache: ApolloCache<any>, data: any, query: DocumentNode, variables?: any, reversed: boolean = false) {
-  const q: any = cache.readQuery({ query, variables })
-  const key = Object.keys(q)[0]
-  const obj: Record<string, any> = {}
-  if (key === 'files') {
-    obj[key] = {
-      ...q[key],
-      items: reversed ? data.concat(q[key]['items']) : q[key]['items'].concat(data),
-    }
-  } else {
-    obj[key] = reversed ? data.concat(q[key]) : q[key].concat(data)
-  }
-  cache.writeQuery({ query, variables, data: obj })
-}
+// --- GraphQL Mutation Definitions ---
 
-/**
- * Update one or more items (matched by `id`) inside a cached array query.
- * `data` can be a single object or an array of objects; each must have an `id` field.
- * Works for flat array queries (e.g. bookmarks, bookmarkGroups).
- */
-export function updateCache(cache: ApolloCache<any>, data: any | any[], query: DocumentNode, key: string, variables?: any) {
-  const q: any = cache.readQuery({ query, variables })
-  if (!q) return
-  const updates: any[] = Array.isArray(data) ? data : [data]
-  const updateMap = new Map(updates.map((item) => [item.id, item]))
-  const obj: Record<string, any> = {
-    ...q,
-    [key]: (q[key] as any[]).map((item: any) => (updateMap.has(item.id) ? { ...item, ...updateMap.get(item.id) } : item)),
-  }
-  cache.writeQuery({ query, variables, data: obj })
-}
-
-/**
- * Remove items by id from a cached array query.
- * `ids` is a string or array of strings.
- */
-export function deleteCache(cache: ApolloCache<any>, ids: string | string[], query: DocumentNode, key: string, variables?: any) {
-  const q: any = cache.readQuery({ query, variables })
-  if (!q) return
-  const idSet = new Set(Array.isArray(ids) ? ids : [ids])
-  const obj: Record<string, any> = {
-    ...q,
-    [key]: (q[key] as any[]).filter((item: any) => !idSet.has(item.id)),
-  }
-  cache.writeQuery({ query, variables, data: obj })
-}
-
-export const sendChatItemGQL = gql`
+export const sendChatItemGQL = `
   mutation sendChatItem($toId: String!, $content: String!) {
     sendChatItem(toId: $toId, content: $content) {
       ...ChatItemFragment
@@ -121,13 +85,13 @@ export const sendChatItemGQL = gql`
   ${chatItemFragment}
 `
 
-export const deleteChatItemGQL = gql`
+export const deleteChatItemGQL = `
   mutation deleteChatItem($id: ID!) {
     deleteChatItem(id: $id)
   }
 `
 
-export const createChatChannelGQL = gql`
+export const createChatChannelGQL = `
   mutation createChatChannel($name: String!) {
     createChatChannel(name: $name) {
       ...ChatChannelFragment
@@ -136,7 +100,7 @@ export const createChatChannelGQL = gql`
   ${chatChannelFragment}
 `
 
-export const updateChatChannelGQL = gql`
+export const updateChatChannelGQL = `
   mutation updateChatChannel($id: ID!, $name: String!) {
     updateChatChannel(id: $id, name: $name) {
       ...ChatChannelFragment
@@ -145,19 +109,19 @@ export const updateChatChannelGQL = gql`
   ${chatChannelFragment}
 `
 
-export const deleteChatChannelGQL = gql`
+export const deleteChatChannelGQL = `
   mutation deleteChatChannel($id: ID!) {
     deleteChatChannel(id: $id)
   }
 `
 
-export const leaveChatChannelGQL = gql`
+export const leaveChatChannelGQL = `
   mutation leaveChatChannel($id: ID!) {
     leaveChatChannel(id: $id)
   }
 `
 
-export const addChatChannelMemberGQL = gql`
+export const addChatChannelMemberGQL = `
   mutation addChatChannelMember($id: ID!, $peerId: String!) {
     addChatChannelMember(id: $id, peerId: $peerId) {
       ...ChatChannelFragment
@@ -166,7 +130,7 @@ export const addChatChannelMemberGQL = gql`
   ${chatChannelFragment}
 `
 
-export const removeChatChannelMemberGQL = gql`
+export const removeChatChannelMemberGQL = `
   mutation removeChatChannelMember($id: ID!, $peerId: String!) {
     removeChatChannelMember(id: $id, peerId: $peerId) {
       ...ChatChannelFragment
@@ -175,19 +139,19 @@ export const removeChatChannelMemberGQL = gql`
   ${chatChannelFragment}
 `
 
-export const acceptChatChannelInviteGQL = gql`
+export const acceptChatChannelInviteGQL = `
   mutation acceptChatChannelInvite($id: ID!) {
     acceptChatChannelInvite(id: $id)
   }
 `
 
-export const declineChatChannelInviteGQL = gql`
+export const declineChatChannelInviteGQL = `
   mutation declineChatChannelInvite($id: ID!) {
     declineChatChannelInvite(id: $id)
   }
 `
 
-export const createDirGQL = gql`
+export const createDirGQL = `
   mutation createDir($path: String!) {
     createDir(path: $path) {
       ...FileFragment
@@ -196,7 +160,7 @@ export const createDirGQL = gql`
   ${fileFragment}
 `
 
-export const writeTextFileGQL = gql`
+export const writeTextFileGQL = `
   mutation writeTextFile($path: String!, $content: String!, $overwrite: Boolean!) {
     writeTextFile(path: $path, content: $content, overwrite: $overwrite) {
       ...FileFragment
@@ -205,25 +169,25 @@ export const writeTextFileGQL = gql`
   ${fileFragment}
 `
 
-export const renameFileGQL = gql`
+export const renameFileGQL = `
   mutation renameFile($path: String!, $name: String!) {
     renameFile(path: $path, name: $name)
   }
 `
 
-export const copyFileGQL = gql`
+export const copyFileGQL = `
   mutation copyFile($src: String!, $dst: String!, $overwrite: Boolean!) {
     copyFile(src: $src, dst: $dst, overwrite: $overwrite)
   }
 `
 
-export const moveFileGQL = gql`
+export const moveFileGQL = `
   mutation moveFile($src: String!, $dst: String!, $overwrite: Boolean!) {
     moveFile(src: $src, dst: $dst, overwrite: $overwrite)
   }
 `
 
-export const playAudioGQL = gql`
+export const playAudioGQL = `
   mutation playAudio($path: String!) {
     playAudio(path: $path) {
       ...PlaylistAudioFragment
@@ -232,37 +196,37 @@ export const playAudioGQL = gql`
   ${playlistAudioFragment}
 `
 
-export const updateAudioPlayModeGQL = gql`
+export const updateAudioPlayModeGQL = `
   mutation updateAudioPlayMode($mode: MediaPlayMode!) {
     updateAudioPlayMode(mode: $mode)
   }
 `
 
-export const deletePlaylistAudioGQL = gql`
+export const deletePlaylistAudioGQL = `
   mutation deletePlaylistAudio($path: String!) {
     deletePlaylistAudio(path: $path)
   }
 `
 
-export const addPlaylistAudiosGQL = gql`
+export const addPlaylistAudiosGQL = `
   mutation addPlaylistAudios($query: String!) {
     addPlaylistAudios(query: $query)
   }
 `
 
-export const clearAudioPlaylistGQL = gql`
+export const clearAudioPlaylistGQL = `
   mutation clearAudioPlaylist {
     clearAudioPlaylist
   }
 `
 
-export const reorderPlaylistAudiosGQL = gql`
+export const reorderPlaylistAudiosGQL = `
   mutation reorderPlaylistAudios($paths: [String!]!) {
     reorderPlaylistAudios(paths: $paths)
   }
 `
 
-export const deleteMediaItemsGQL = gql`
+export const deleteMediaItemsGQL = `
   mutation deleteMediaItems($type: DataType!, $query: String!) {
     deleteMediaItems(type: $type, query: $query) {
       type
@@ -271,7 +235,7 @@ export const deleteMediaItemsGQL = gql`
   }
 `
 
-export const trashMediaItemsGQL = gql`
+export const trashMediaItemsGQL = `
   mutation trashMediaItems($type: DataType!, $query: String!) {
     trashMediaItems(type: $type, query: $query) {
       type
@@ -280,7 +244,7 @@ export const trashMediaItemsGQL = gql`
   }
 `
 
-export const restoreMediaItemsGQL = gql`
+export const restoreMediaItemsGQL = `
   mutation restoreMediaItems($type: DataType!, $query: String!) {
     restoreMediaItems(type: $type, query: $query) {
       type
@@ -289,25 +253,25 @@ export const restoreMediaItemsGQL = gql`
   }
 `
 
-export const removeFromTagsGQL = gql`
+export const removeFromTagsGQL = `
   mutation removeFromTags($type: DataType!, $tagIds: [ID!]!, $query: String!) {
     removeFromTags(type: $type, tagIds: $tagIds, query: $query)
   }
 `
 
-export const addToTagsGQL = gql`
+export const addToTagsGQL = `
   mutation addToTags($type: DataType!, $tagIds: [ID!]!, $query: String!) {
     addToTags(type: $type, tagIds: $tagIds, query: $query)
   }
 `
 
-export const updateTagRelationsGQL = gql`
+export const updateTagRelationsGQL = `
   mutation updateTagRelations($type: DataType!, $item: TagRelationStub!, $addTagIds: [ID!]!, $removeTagIds: [ID!]!) {
     updateTagRelations(type: $type, item: $item, addTagIds: $addTagIds, removeTagIds: $removeTagIds)
   }
 `
 
-export const createTagGQL = gql`
+export const createTagGQL = `
   mutation createTag($type: DataType!, $name: String!) {
     createTag(type: $type, name: $name) {
       ...TagFragment
@@ -316,7 +280,7 @@ export const createTagGQL = gql`
   ${tagFragment}
 `
 
-export const updateTagGQL = gql`
+export const updateTagGQL = `
   mutation updateTag($id: ID!, $name: String!) {
     updateTag(id: $id, name: $name) {
       ...TagFragment
@@ -325,13 +289,13 @@ export const updateTagGQL = gql`
   ${tagFragment}
 `
 
-export const deleteTagGQL = gql`
+export const deleteTagGQL = `
   mutation deleteTag($id: ID!) {
     deleteTag(id: $id)
   }
 `
 
-export const addFavoriteFolderGQL = gql`
+export const addFavoriteFolderGQL = `
   mutation addFavoriteFolder($rootPath: String!, $fullPath: String!) {
     addFavoriteFolder(rootPath: $rootPath, fullPath: $fullPath) {
       rootPath
@@ -340,7 +304,7 @@ export const addFavoriteFolderGQL = gql`
   }
 `
 
-export const removeFavoriteFolderGQL = gql`
+export const removeFavoriteFolderGQL = `
   mutation removeFavoriteFolder($fullPath: String!) {
     removeFavoriteFolder(fullPath: $fullPath) {
       rootPath
@@ -350,7 +314,7 @@ export const removeFavoriteFolderGQL = gql`
   }
 `
 
-export const setFavoriteFolderAliasGQL = gql`
+export const setFavoriteFolderAliasGQL = `
   mutation setFavoriteFolderAlias($fullPath: String!, $alias: String!) {
     setFavoriteFolderAlias(fullPath: $fullPath, alias: $alias) {
       rootPath
@@ -360,7 +324,7 @@ export const setFavoriteFolderAliasGQL = gql`
   }
 `
 
-export const saveNoteGQL = gql`
+export const saveNoteGQL = `
   mutation saveNote($id: ID!, $input: NoteInput!) {
     saveNote(id: $id, input: $input) {
       ...NoteFragment
@@ -369,43 +333,43 @@ export const saveNoteGQL = gql`
   ${noteFragment}
 `
 
-export const deleteNotesGQL = gql`
+export const deleteNotesGQL = `
   mutation deleteNotes($query: String!) {
     deleteNotes(query: $query)
   }
 `
 
-export const trashNotesGQL = gql`
+export const trashNotesGQL = `
   mutation trashNotes($query: String!) {
     trashNotes(query: $query)
   }
 `
 
-export const restoreNotesGQL = gql`
+export const restoreNotesGQL = `
   mutation restoreNotes($query: String!) {
     restoreNotes(query: $query)
   }
 `
 
-export const deleteFeedEntriesGQL = gql`
+export const deleteFeedEntriesGQL = `
   mutation deleteFeedEntries($query: String!) {
     deleteFeedEntries(query: $query)
   }
 `
 
-export const deleteCallsGQL = gql`
+export const deleteCallsGQL = `
   mutation deleteCalls($query: String!) {
     deleteCalls(query: $query)
   }
 `
 
-export const deleteContactsGQL = gql`
+export const deleteContactsGQL = `
   mutation deleteContacts($query: String!) {
     deleteContacts(query: $query)
   }
 `
 
-export const createFeedGQL = gql`
+export const createFeedGQL = `
   mutation createFeed($url: String!, $fetchContent: Boolean!) {
     createFeed(url: $url, fetchContent: $fetchContent) {
       ...FeedFragment
@@ -414,37 +378,37 @@ export const createFeedGQL = gql`
   ${feedFragment}
 `
 
-export const importFeedsGQL = gql`
+export const importFeedsGQL = `
   mutation importFeeds($content: String!) {
     importFeeds(content: $content)
   }
 `
 
-export const exportFeedsGQL = gql`
+export const exportFeedsGQL = `
   mutation exportFeeds {
     exportFeeds
   }
 `
 
-export const exportNotesGQL = gql`
+export const exportNotesGQL = `
   mutation exportNotes($query: String!) {
     exportNotes(query: $query)
   }
 `
 
-export const relaunchAppGQL = gql`
+export const relaunchAppGQL = `
   mutation relaunchApp {
     relaunchApp
   }
 `
 
-export const deleteFeedGQL = gql`
+export const deleteFeedGQL = `
   mutation deleteFeed($id: ID!) {
     deleteFeed(id: $id)
   }
 `
 
-export const updateFeedGQL = gql`
+export const updateFeedGQL = `
   mutation updateFeed($id: ID!, $name: String!, $fetchContent: Boolean!) {
     updateFeed(id: $id, name: $name, fetchContent: $fetchContent) {
       ...FeedFragment
@@ -453,13 +417,13 @@ export const updateFeedGQL = gql`
   ${feedFragment}
 `
 
-export const syncFeedsGQL = gql`
+export const syncFeedsGQL = `
   mutation syncFeeds($id: ID) {
     syncFeeds(id: $id)
   }
 `
 
-export const syncFeedContentGQL = gql`
+export const syncFeedContentGQL = `
   mutation syncFeedContent($id: ID!) {
     syncFeedContent(id: $id) {
       ...FeedEntryFragment
@@ -472,43 +436,43 @@ export const syncFeedContentGQL = gql`
   ${feedEntryFragment}
 `
 
-export const callGQL = gql`
+export const callGQL = `
   mutation call($number: String!) {
     call(number: $number)
   }
 `
 
-export const setClipGQL = gql`
+export const setClipGQL = `
   mutation setClip($text: String!) {
     setClip(text: $text)
   }
 `
 
-export const sendSmsGQL = gql`
+export const sendSmsGQL = `
   mutation sendSms($number: String!, $body: String!) {
     sendSms(number: $number, body: $body)
   }
 `
 
-export const sendMmsGQL = gql`
+export const sendMmsGQL = `
   mutation sendMms($number: String!, $body: String!, $attachmentPaths: [String!]!, $threadId: String!) {
     sendMms(number: $number, body: $body, attachmentPaths: $attachmentPaths, threadId: $threadId)
   }
 `
 
-export const uninstallPackagesGQL = gql`
+export const uninstallPackagesGQL = `
   mutation uninstallPackages($ids: [ID!]!) {
     uninstallPackages(ids: $ids)
   }
 `
 
-export const uninstallPackageGQL = gql`
+export const uninstallPackageGQL = `
   mutation uninstallPackages($id: ID!) {
     uninstallPackages(ids: [$id])
   }
 `
 
-export const installPackageGQL = gql`
+export const installPackageGQL = `
   mutation installPackage($path: String!) {
     installPackage(path: $path) {
       packageName
@@ -518,25 +482,25 @@ export const installPackageGQL = gql`
   }
 `
 
-export const startScreenMirrorGQL = gql`
+export const startScreenMirrorGQL = `
   mutation startScreenMirror($audio: Boolean!) {
     startScreenMirror(audio: $audio)
   }
 `
 
-export const requestScreenMirrorAudioGQL = gql`
+export const requestScreenMirrorAudioGQL = `
   mutation requestScreenMirrorAudio {
     requestScreenMirrorAudio
   }
 `
 
-export const stopScreenMirrorGQL = gql`
+export const stopScreenMirrorGQL = `
   mutation stopScreenMirror {
     stopScreenMirror
   }
 `
 
-export const setTempValueGQL = gql`
+export const setTempValueGQL = `
   mutation setTempValue($key: String!, $value: String!) {
     setTempValue(key: $key, value: $value) {
       key
@@ -545,66 +509,67 @@ export const setTempValueGQL = gql`
   }
 `
 
-export const cancelNotificationsGQL = gql`
+export const cancelNotificationsGQL = `
   mutation cancelNotifications($ids: [ID!]!) {
     cancelNotifications(ids: $ids)
   }
 `
 
-export const replyNotificationGQL = gql`
+export const replyNotificationGQL = `
   mutation replyNotification($id: ID!, $actionIndex: Int!, $text: String!) {
     replyNotification(id: $id, actionIndex: $actionIndex, text: $text)
   }
 `
 
-export const updateScreenMirrorQualityGQL = gql`
+export const updateScreenMirrorQualityGQL = `
   mutation updateScreenMirrorQuality($mode: ScreenMirrorMode!) {
     updateScreenMirrorQuality(mode: $mode)
   }
 `
 
-export const sendWebRtcSignalingGQL = gql`
+export const sendWebRtcSignalingGQL = `
   mutation sendWebRtcSignaling($payload: WebRtcSignalingMessage!) {
     sendWebRtcSignaling(payload: $payload)
   }
 `
 
-export const saveFeedEntriesToNotesGQL = gql`
+export const saveFeedEntriesToNotesGQL = `
   mutation saveFeedEntriesToNotes($query: String!) {
     saveFeedEntriesToNotes(query: $query)
   }
 `
-export const mergeChunksGQL = gql`
+
+export const mergeChunksGQL = `
   mutation mergeChunks($fileId: String!, $totalChunks: Int!, $path: String!, $replace: Boolean!, $isAppFile: Boolean!) {
     mergeChunks(fileId: $fileId, totalChunks: $totalChunks, path: $path, replace: $replace, isAppFile: $isAppFile)
   }
 `
 
-export const startPomodoroGQL = gql`
+export const startPomodoroGQL = `
   mutation startPomodoro($timeLeft: Int!) {
     startPomodoro(timeLeft: $timeLeft)
   }
 `
 
-export const stopPomodoroGQL = gql`
+export const stopPomodoroGQL = `
   mutation stopPomodoro {
     stopPomodoro
   }
 `
 
-export const pausePomodoroGQL = gql`
+export const pausePomodoroGQL = `
   mutation pausePomodoro {
     pausePomodoro
   }
 `
 
-export const sendScreenMirrorControlGQL = gql`
+export const sendScreenMirrorControlGQL = `
   mutation sendScreenMirrorControl($input: ScreenMirrorControlInput!) {
     sendScreenMirrorControl(input: $input)
   }
 `
 
-export const addBookmarksGQL = gql`
+export const addBookmarksGQL = `
   mutation addBookmarks($urls: [String!]!, $groupId: String!) {
     addBookmarks(urls: $urls, groupId: $groupId) {
       ...BookmarkFragment
@@ -613,7 +578,7 @@ export const addBookmarksGQL = gql`
   ${bookmarkFragment}
 `
 
-export const updateBookmarkGQL = gql`
+export const updateBookmarkGQL = `
   mutation updateBookmark($id: ID!, $input: BookmarkInput!) {
     updateBookmark(id: $id, input: $input) {
       ...BookmarkFragment
@@ -622,19 +587,19 @@ export const updateBookmarkGQL = gql`
   ${bookmarkFragment}
 `
 
-export const deleteBookmarksGQL = gql`
+export const deleteBookmarksGQL = `
   mutation deleteBookmarks($ids: [ID!]!) {
     deleteBookmarks(ids: $ids)
   }
 `
 
-export const recordBookmarkClickGQL = gql`
+export const recordBookmarkClickGQL = `
   mutation recordBookmarkClick($id: ID!) {
     recordBookmarkClick(id: $id)
   }
 `
 
-export const createBookmarkGroupGQL = gql`
+export const createBookmarkGroupGQL = `
   mutation createBookmarkGroup($name: String!) {
     createBookmarkGroup(name: $name) {
       ...BookmarkGroupFragment
@@ -643,7 +608,7 @@ export const createBookmarkGroupGQL = gql`
   ${bookmarkGroupFragment}
 `
 
-export const updateBookmarkGroupGQL = gql`
+export const updateBookmarkGroupGQL = `
   mutation updateBookmarkGroup($id: ID!, $name: String!, $collapsed: Boolean!, $sortOrder: Int!) {
     updateBookmarkGroup(id: $id, name: $name, collapsed: $collapsed, sortOrder: $sortOrder) {
       ...BookmarkGroupFragment
@@ -652,37 +617,78 @@ export const updateBookmarkGroupGQL = gql`
   ${bookmarkGroupFragment}
 `
 
-export const deleteBookmarkGroupGQL = gql`
+export const deleteBookmarkGroupGQL = `
   mutation deleteBookmarkGroup($id: ID!) {
     deleteBookmarkGroup(id: $id)
   }
 `
 
-export const deleteFilesGQL = gql`
+export const deleteFilesGQL = `
   mutation deleteFiles($paths: [String!]!) {
     deleteFiles(paths: $paths)
   }
 `
 
-// Image Search mutations
-export const enableImageSearchGQL = gql`
+export const enableImageSearchGQL = `
   mutation { enableImageSearch }
 `
 
-export const disableImageSearchGQL = gql`
+export const disableImageSearchGQL = `
   mutation { disableImageSearch }
 `
 
-export const cancelImageDownloadGQL = gql`
+export const cancelImageDownloadGQL = `
   mutation { cancelImageDownload }
 `
 
-export const startImageIndexGQL = gql`
+export const startImageIndexGQL = `
   mutation startImageIndex($force: Boolean) {
     startImageIndex(force: $force)
   }
 `
 
-export const cancelImageIndexGQL = gql`
+export const cancelImageIndexGQL = `
   mutation { cancelImageIndex }
+`
+
+export const createContactGQL = `
+  mutation createContact($input: ContactInput!) {
+    createContact(input: $input) {
+      ...ContactFragment
+    }
+  }
+  ${contactFragment}
+`
+
+export const updateContactGQL = `
+  mutation updateContact($id: ID!, $input: ContactInput!) {
+    updateContact(id: $id, input: $input) {
+      ...ContactFragment
+    }
+  }
+  ${contactFragment}
+`
+
+export const deleteContactGQL = `
+  mutation DeleteContact($query: String!) {
+    deleteContacts(query: $query)
+  }
+`
+
+export const deleteCallGQL = `
+  mutation DeleteCall($query: String!) {
+    deleteCalls(query: $query)
+  }
+`
+
+export const deleteNoteGQL = `
+  mutation DeleteNote($query: String!) {
+    deleteNotes(query: $query)
+  }
+`
+
+export const deleteFeedEntryGQL = `
+  mutation deleteFeedEntry($query: String!) {
+    deleteFeedEntries(query: $query)
+  }
 `

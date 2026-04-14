@@ -1,5 +1,4 @@
 import { ref, type Ref } from 'vue'
-import type { ApolloCache, ApolloError } from '@apollo/client/core'
 import { copyFileGQL, createDirGQL, initMutation, moveFileGQL, renameFileGQL } from '@/lib/api/mutation'
 import { enrichFile, isAudio, isImage, isVideo, type IFile } from '@/lib/file'
 import { initQuery, mountsGQL } from '@/lib/api/query'
@@ -22,16 +21,15 @@ export const useCreateDir = (urlTokenKey: Ref<Uint8Array | null>, items: Ref<IFi
       return { path: createPath.value + '/' + value }
     },
     createMutation() {
-      return initMutation({
-        document: createDirGQL,
-        options: {
-          update: async (_: ApolloCache<any>, data: any) => {
-            const d = data.data.createDir
-            arrayRemove(items.value, (it: IFile) => it.path === d.path)
-            items.value.unshift(enrichFile(d, urlTokenKey.value))
-          },
-        },
+      const m = initMutation({ document: createDirGQL })
+      m.onDone((r: any) => {
+        const d = r?.data?.createDir
+        if (d) {
+          arrayRemove(items.value, (it: IFile) => it.path === d.path)
+          items.value.unshift(enrichFile(d, urlTokenKey.value))
+        }
       })
+      return m
     },
   }
 }
@@ -141,8 +139,8 @@ export const useCopyPaste = (items: Ref<IFile[]>, isCut: Ref<boolean>, selectedF
 
   const { t } = useI18n()
 
-  const onError = (error: ApolloError) => {
-    toast(t(error.message))
+  const onError = (error: any) => {
+    toast(t(error?.message ?? 'error'))
   }
 
   copyError(onError)

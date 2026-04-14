@@ -1,7 +1,7 @@
 import { initMutation, restoreNotesGQL, trashNotesGQL } from '@/lib/api/mutation'
 import { DataType } from '@/lib/data'
 import emitter from '@/plugins/eventbus'
-import type { FetchResult } from '@apollo/client'
+
 import { reactive } from 'vue'
 
 export const useNotesTrash = (clearSelection: () => void, fetch: () => void) => {
@@ -11,7 +11,7 @@ export const useNotesTrash = (clearSelection: () => void, fetch: () => void) => 
 
   const loading = reactive(new Map())
 
-  onTrashed((r: FetchResult<any, Record<string, any>, Record<string, any>>) => {
+  onTrashed((r: any) => {
     loading.delete(r.data.trashNotes)
     clearSelection()
     fetch()
@@ -37,7 +37,7 @@ export const useNotesRestore = (clearSelection: () => void, fetch: () => void) =
 
   const loading = reactive(new Map())
 
-  onRestored((r: FetchResult<any, Record<string, any>, Record<string, any>>) => {
+  onRestored((r: any) => {
     loading.delete(r.data.restoreNotes)
     clearSelection()
     fetch()

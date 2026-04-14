@@ -1,5 +1,5 @@
 import { ref, onUnmounted, type Ref } from 'vue'
-import apollo from '@/plugins/apollo'
+import { gqlFetch } from '@/lib/api/gql-client'
 import { sendScreenMirrorControlGQL } from '@/lib/api/mutation'
 
 /**
@@ -38,14 +38,9 @@ export type ScreenMirrorControlAction =
   | 'KEY'
 
 function sendControl(event: ScreenMirrorControlEvent) {
-  apollo.a
-    .mutate({
-      mutation: sendScreenMirrorControlGQL,
-      variables: { input: event },
-    })
-    .catch((error) => {
-      console.error('Failed to send screen mirror control:', error)
-    })
+  gqlFetch(sendScreenMirrorControlGQL, { input: event }).catch((error) => {
+    console.error('Failed to send screen mirror control:', error)
+  })
 }
 
 /**

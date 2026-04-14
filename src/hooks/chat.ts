@@ -1,16 +1,16 @@
 // use upload queue instead of calling upload directly
 import { addUploadTask } from '@/lib/upload/upload-queue'
-import { sendChatItemGQL, insertCache } from '@/lib/api/mutation'
+import { sendChatItemGQL } from '@/lib/api/mutation'
 import type { IChatItem } from '@/lib/interfaces'
 import type { IUploadItem } from '@/stores/temp'
-import apollo from '@/plugins/apollo'
-import { chatItemsGQL } from '@/lib/api/query'
+import { gqlFetch } from '@/lib/api/gql-client'
 import emitter from '@/plugins/eventbus'
 
 interface IChatTask {
   uploads: IUploadItem[]
   item: IChatItem
   toId: string
+  onSent?: (sentItem: any) => void
 }
 
 export const useTasks = () => {
@@ -42,11 +42,10 @@ export const useTasks = () => {
       })
     })
 
-    const res = await apollo.a.mutate({ mutation: sendChatItemGQL, variables: { toId: task.toId, content: JSON.stringify({ type: c.type, value: { items } }) } })
-    const cache = apollo.a.cache
-    cache.evict({ id: cache.identify({ __typename: 'ChatItem', id: task.item.id }) })
+    const res = await gqlFetch(sendChatItemGQL, { toId: task.toId, content: JSON.stringify({ type: c.type, value: { items } }) })
     if (res?.data?.sendChatItem) {
-      insertCache(cache, res.data.sendChatItem, chatItemsGQL, { id: task.toId })
+      const rawItems: any[] = Array.isArray(res.data.sendChatItem) ? res.data.sendChatItem : [res.data.sendChatItem]
+      if (rawItems.length) task.onSent?.(rawItems[0])
     }
   }
 
@@ -74,9 +73,9 @@ export const useTasks = () => {
   }
 
   return {
-    async enqueue(item: IChatItem, uploads: IUploadItem[], toId: string) {
+    async enqueue(item: IChatItem, uploads: IUploadItem[], toId: string, onSent?: (sentItem: any) => void) {
       ensureSubscribed()
-      const task: IChatTask = { item, uploads, toId }
+      const task: IChatTask = { item, uploads, toId, onSent }
       activeTasks.set(item.id, task)
       // start all uploads immediately; concurrency is controlled by upload-queue (maxConcurrent)
       uploads.forEach((u) => addUploadTask(u, false))

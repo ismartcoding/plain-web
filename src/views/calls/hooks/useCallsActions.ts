@@ -3,18 +3,18 @@ import type { ICall, ITag } from '@/lib/interfaces'
 import { openModal } from '@/components/modal'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
-import gql from 'graphql-tag'
-import { callGQL, initMutation } from '@/lib/api/mutation'
+import { callGQL, deleteCallsGQL, initMutation } from '@/lib/api/mutation'
 import emitter from '@/plugins/eventbus'
 import { DataType } from '@/lib/data'
 
 interface UseCallsActionsOptions {
+  items: Ref<ICall[]>
   tags: Ref<ITag[]>
   total: Ref<number>
 }
 
 export function useCallsActions(opts: UseCallsActionsOptions) {
-  const { tags, total } = opts
+  const { items, tags, total } = opts
   const dataType = DataType.CALL
 
   const callId = ref('')
@@ -38,14 +38,11 @@ export function useCallsActions(opts: UseCallsActionsOptions) {
     openModal(DeleteConfirm, {
       id: item.id,
       name: item.number,
-      gql: gql`
-        mutation DeleteCall($query: String!) {
-          deleteCalls(query: $query)
-        }
-      `,
+      gql: deleteCallsGQL,
       variables: () => ({ query: `ids:${item.id}` }),
       typeName: 'Call',
       done: () => {
+        items.value = items.value.filter((it) => it.id !== item.id)
         total.value--
         if (item.tags.length) emitter.emit('refetch_tags', dataType)
         emitter.emit('calls_deleted')

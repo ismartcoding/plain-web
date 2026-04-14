@@ -1,7 +1,7 @@
 import { initMutation, trashMediaItemsGQL, restoreMediaItemsGQL } from '@/lib/api/mutation'
 import { DataType, FEATURE } from '@/lib/data'
 import emitter from '@/plugins/eventbus'
-import type { FetchResult } from '@apollo/client'
+
 import { reactive, computed, ref, type Ref } from 'vue'
 import { hasFeature } from '@/lib/feature'
 import type { ISource } from '@/components/lightbox/types'
@@ -13,7 +13,7 @@ export const useMediaTrash = () => {
 
   const loading = reactive(new Map())
 
-  onTrashed((r: FetchResult<any, Record<string, any>, Record<string, any>>) => {
+  onTrashed((r: any) => {
     const { type, query } = r.data.trashMediaItems
     loading.delete(query)
     emitter.emit('refetch_tags', type)
@@ -38,7 +38,7 @@ export const useMediaRestore = () => {
 
   const loading = reactive(new Map())
 
-  onRestored((r: FetchResult<any, Record<string, any>, Record<string, any>>) => {
+  onRestored((r: any) => {
     const { type, query } = r.data.restoreMediaItems
     loading.delete(query)
     emitter.emit('refetch_tags', type)

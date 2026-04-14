@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import MainView from '@/views/MainView.vue'
 import type { MainState } from '@/stores/main'
+import i18n from '@/plugins/i18n'
 
 const router = createRouter({
   strict: true,
@@ -217,6 +218,12 @@ router.beforeEach(async (to, from) => {
 })
 
 router.afterEach((to, from) => {
+  // Dynamic page title
+  const group = (to.meta.group as string) || ''
+  const titleKey = `page_title.${group}`
+  const title = group ? String((i18n.global as any).t(titleKey)) : ''
+  document.title = title && title !== titleKey ? `${title} - PlainApp` : 'PlainApp'
+
   setTimeout(() => {
     const a = document.getElementsByClassName('main')[0]
     if (a) {

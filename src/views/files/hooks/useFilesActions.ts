@@ -50,10 +50,10 @@ export function useFilesActions(opts: UseFilesActionsOptions) {
   const { loading: downloadLoading, mutate: setTempValue, onDone: setTempValueDone } = initMutation({ document: setTempValueGQL })
   setTempValueDone((r: any) => { downloadFiles(r.data.setTempValue.key); clearSelection() })
 
-  const { mutate: addFavoriteFolderMutation } = initMutation({
+  const { mutate: addFavoriteFolderMutation, onDone: addFavDone } = initMutation({
     document: addFavoriteFolderGQL,
-    options: { update: () => { emitter.emit('refetch_app') } },
   })
+  addFavDone(() => emitter.emit('refetch_app'))
 
   const onDeleted = (files: IFile[]) => {
     files.forEach((f) => { arrayRemove(items.value, (it: IFile) => it.id === f.id) })

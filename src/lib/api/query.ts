@@ -1,7 +1,5 @@
-import gql from 'graphql-tag'
-import { useLazyQuery, useQuery } from '@vue/apollo-composable'
-// @ts-ignore
-import type { DocumentParameter, OptionsParameter } from '@vue/apollo-composable/dist/useQuery'
+import { ref, watch, type Ref } from 'vue'
+import { gqlFetch, GqlError } from './gql-client'
 import {
   chatItemFragment,
   chatChannelFragment,
@@ -25,93 +23,88 @@ import {
   bookmarkFragment,
   bookmarkGroupFragment,
 } from './fragments'
-import type { ApolloQueryResult } from '@apollo/client'
 
-export class InitQueryParams<TResult> {
-  handle!: (data: TResult, error: string) => void
-  document!: DocumentParameter<TResult, undefined>
-  variables?: any = null
-  options?: OptionsParameter<TResult, null> = {}
+// --- Query Wrappers ---
+
+function getErrorMessage(e: any): string {
+  if (e instanceof GqlError) {
+    if (e.status === 403) return 'web_access_disabled'
+    return e.message
+  }
+  return 'network_error'
+}
+
+function resolveVars(variables: any): Record<string, any> | undefined {
+  if (!variables) return undefined
+  return typeof variables === 'function' ? variables() : variables
+}
+
+export interface InitQueryParams<TResult> {
+  handle: (data: TResult, error: string) => void
+  document: string
+  variables?: any
+  options?: any
 }
 
 export function initQuery<TResult = any>(params: InitQueryParams<TResult>) {
-  const { result, onResult, refetch, loading, variables } = useQuery(params.document, params.variables, () => ({
-    clientId: 'a',
-    ...(typeof params.options === 'function' ? params.options() : params.options),
-  }))
+  const loading = ref(false)
+  const result = ref<TResult>()
 
-  if (result.value) {
-    params.handle(result.value, '')
+  async function execute(vars?: Record<string, any>) {
+    loading.value = true
+    try {
+      const v = vars ?? resolveVars(params.variables)
+      const r = await gqlFetch<TResult>(params.document, v)
+      if (r.errors?.length) {
+        params.handle(r.data, r.errors[0].message)
+      } else {
+        result.value = r.data
+        params.handle(r.data, '')
+      }
+    } catch (e: any) {
+      params.handle(undefined as any, getErrorMessage(e))
+    } finally {
+      loading.value = false
+    }
   }
 
-  onResult((r) => {
-    let error = ''
-    if (r.error) {
-      if (r.error?.networkError) {
-        if ((r.error?.networkError as any)?.response?.status === 403) {
-          error = 'web_access_disabled'
-        } else {
-          error = 'network_error'
-        }
-      } else {
-        error = r.error?.message
-      }
-    }
-    if (error || r.data) {
-      params.handle(r.data, error)
-    }
-  })
+  execute()
 
-  return { result, onResult, refetch, loading, variables }
+  if (typeof params.variables === 'function') {
+    watch(params.variables, () => execute(), { deep: true })
+  }
+
+  return { loading, result, refetch: execute }
 }
 
 export function initLazyQuery<TResult = any>(params: InitQueryParams<TResult>) {
-  const { result, onResult, load, loading, variables, refetch } = useLazyQuery(params.document, params.variables, () => ({
-    clientId: 'a',
-    ...(typeof params.options === 'function' ? params.options() : params.options),
-  }))
+  const loading = ref(false)
+  const result = ref<TResult>()
 
-  // if (result.value) {
-  //   params.handle(result.value, '')
-  // }
-
-  let first = true
-
-  onResult((r: ApolloQueryResult<any>) => {
-    let error = ''
-    if (r.error) {
-      if (r.error?.networkError) {
-        error = 'network_error'
+  async function doFetch(vars?: Record<string, any>) {
+    loading.value = true
+    try {
+      const v = vars ?? resolveVars(params.variables)
+      const r = await gqlFetch<TResult>(params.document, v)
+      if (r.errors?.length) {
+        params.handle(r.data, r.errors[0].message)
       } else {
-        error = r.error?.message
+        result.value = r.data
+        params.handle(r.data, '')
       }
+    } catch (e: any) {
+      params.handle(undefined as any, getErrorMessage(e))
+    } finally {
+      loading.value = false
     }
-    if (error || r.data) {
-      params.handle(r.data, error)
-    }
-  })
-
-  return {
-    result,
-    onResult,
-    load,
-    loading,
-    variables,
-    refetch,
-    fetch: () => {
-      if (first) {
-        first = false
-        load()
-      } else {
-        // Pass the latest variables to refetch() to avoid replaying stale cached results
-        // (e.g., after an error, clicking a different item should query with updated variables)
-        refetch(typeof params.variables === 'function' ? params.variables() : undefined)
-      }
-    },
   }
+
+  return { loading, result, fetch: doFetch }
 }
 
-export const chatItemsGQL = gql`
+// --- GraphQL Query Definitions ---
+
+export const chatItemsGQL = `
   query ($id: String!) {
     chatItems(id: $id) {
       ...ChatItemFragment
@@ -120,7 +113,7 @@ export const chatItemsGQL = gql`
   ${chatItemFragment}
 `
 
-export const peersGQL = gql`
+export const peersGQL = `
   query {
     peers {
       id
@@ -135,7 +128,7 @@ export const peersGQL = gql`
   }
 `
 
-export const appFilesGQL = gql`
+export const appFilesGQL = `
   query appFiles($offset: Int!, $limit: Int!) {
     appFiles(offset: $offset, limit: $limit) {
       id
@@ -149,7 +142,7 @@ export const appFilesGQL = gql`
   }
 `
 
-export const chatChannelsGQL = gql`
+export const chatChannelsGQL = `
   query {
     chatChannels {
       ...ChatChannelFragment
@@ -158,7 +151,7 @@ export const chatChannelsGQL = gql`
   ${chatChannelFragment}
 `
 
-export const fileInfoGQL = gql`
+export const fileInfoGQL = `
   query ($id: ID!, $path: String!, $fileName: String!) {
     fileInfo(id: $id, path: $path, fileName: $fileName) {
       ... on FileInfo {
@@ -200,7 +193,7 @@ export const fileInfoGQL = gql`
   ${tagSubFragment}
 `
 
-export const smsGQL = gql`
+export const smsGQL = `
   query sms($offset: Int!, $limit: Int!, $query: String!) {
     sms(offset: $offset, limit: $limit, query: $query) {
       ...MessageFragment
@@ -210,7 +203,7 @@ export const smsGQL = gql`
   ${messageFragment}
 `
 
-export const smsConversationsGQL = gql`
+export const smsConversationsGQL = `
   query smsConversations($offset: Int!, $limit: Int!, $query: String!) {
     smsConversations(offset: $offset, limit: $limit, query: $query) {
       ...MessageConversationFragment
@@ -220,7 +213,7 @@ export const smsConversationsGQL = gql`
   ${messageConversationFragment}
 `
 
-export const contactsGQL = gql`
+export const contactsGQL = `
   query contacts($offset: Int!, $limit: Int!, $query: String!) {
     contacts(offset: $offset, limit: $limit, query: $query) {
       ...ContactFragment
@@ -230,7 +223,7 @@ export const contactsGQL = gql`
   ${contactFragment}
 `
 
-export const homeStatsGQL = gql`
+export const homeStatsGQL = `
   query {
     smsCount(query: "")
     contactCount(query: "")
@@ -252,7 +245,7 @@ export const homeStatsGQL = gql`
   }
 `
 
-export const contactSourcesGQL = gql`
+export const contactSourcesGQL = `
   query {
     contactSources {
       name
@@ -261,7 +254,7 @@ export const contactSourcesGQL = gql`
   }
 `
 
-export const callsGQL = gql`
+export const callsGQL = `
   query calls($offset: Int!, $limit: Int!, $query: String!) {
     calls(offset: $offset, limit: $limit, query: $query) {
       ...CallFragment
@@ -271,7 +264,7 @@ export const callsGQL = gql`
   ${callFragment}
 `
 
-export const imagesGQL = gql`
+export const imagesGQL = `
   query images($offset: Int!, $limit: Int!, $query: String!, $sortBy: FileSortBy!) {
     images(offset: $offset, limit: $limit, query: $query, sortBy: $sortBy) {
       ...ImageFragment
@@ -281,7 +274,7 @@ export const imagesGQL = gql`
   ${imageFragment}
 `
 
-export const imageSearchStatusGQL = gql`
+export const imageSearchStatusGQL = `
   query {
     imageSearchStatus {
       status
@@ -296,7 +289,7 @@ export const imageSearchStatusGQL = gql`
   }
 `
 
-export const videosGQL = gql`
+export const videosGQL = `
   query videos($offset: Int!, $limit: Int!, $query: String!, $sortBy: FileSortBy!) {
     videos(offset: $offset, limit: $limit, query: $query, sortBy: $sortBy) {
       ...VideoFragment
@@ -306,7 +299,7 @@ export const videosGQL = gql`
   ${videoFragment}
 `
 
-export const audiosGQL = gql`
+export const audiosGQL = `
   query audios($offset: Int!, $limit: Int!, $query: String!, $sortBy: FileSortBy!) {
     items: audios(offset: $offset, limit: $limit, query: $query, sortBy: $sortBy) {
       ...AudioFragment
@@ -316,7 +309,7 @@ export const audiosGQL = gql`
   ${audioFragment}
 `
 
-export const filesGQL = gql`
+export const filesGQL = `
   query files($root: String!, $offset: Int!, $limit: Int!, $query: String!, $sortBy: FileSortBy!) {
     files(root: $root, offset: $offset, limit: $limit, query: $query, sortBy: $sortBy) {
       ...FileFragment
@@ -325,7 +318,7 @@ export const filesGQL = gql`
   ${fileFragment}
 `
 
-export const recentFilesGQL = gql`
+export const recentFilesGQL = `
   query recentFiles {
     recentFiles {
       ...FileFragment
@@ -334,7 +327,7 @@ export const recentFilesGQL = gql`
   ${fileFragment}
 `
 
-export const mountsGQL = gql`
+export const mountsGQL = `
   query {
     mounts {
       id
@@ -353,7 +346,7 @@ export const mountsGQL = gql`
   }
 `
 
-export const appGQL = gql`
+export const appGQL = `
   query {
     app {
       ...AppFragment
@@ -362,7 +355,7 @@ export const appGQL = gql`
   ${appFragment}
 `
 
-export const tagsGQL = gql`
+export const tagsGQL = `
   query tags($type: DataType!) {
     tags(type: $type) {
       ...TagFragment
@@ -371,7 +364,7 @@ export const tagsGQL = gql`
   ${tagFragment}
 `
 
-export const mediaBucketsGQL = gql`
+export const mediaBucketsGQL = `
   query mediaBuckets($type: DataType!) {
     mediaBuckets(type: $type) {
       id
@@ -382,7 +375,7 @@ export const mediaBucketsGQL = gql`
   }
 `
 
-export const notesGQL = gql`
+export const notesGQL = `
   query notes($offset: Int!, $limit: Int!, $query: String!) {
     notes(offset: $offset, limit: $limit, query: $query) {
       id
@@ -399,7 +392,7 @@ export const notesGQL = gql`
   ${tagSubFragment}
 `
 
-export const noteGQL = gql`
+export const noteGQL = `
   query note($id: ID!) {
     note(id: $id) {
       ...NoteFragment
@@ -408,7 +401,7 @@ export const noteGQL = gql`
   ${noteFragment}
 `
 
-export const feedsGQL = gql`
+export const feedsGQL = `
   query {
     feeds {
       ...FeedFragment
@@ -417,7 +410,7 @@ export const feedsGQL = gql`
   ${feedFragment}
 `
 
-export const feedEntriesGQL = gql`
+export const feedEntriesGQL = `
   query feedEntries($offset: Int!, $limit: Int!, $query: String!) {
     items: feedEntries(offset: $offset, limit: $limit, query: $query) {
       id
@@ -439,7 +432,7 @@ export const feedEntriesGQL = gql`
   ${tagSubFragment}
 `
 
-export const feedsTagsGQL = gql`
+export const feedsTagsGQL = `
   query feedsTags($type: DataType!) {
     tags(type: $type) {
       ...TagFragment
@@ -452,7 +445,7 @@ export const feedsTagsGQL = gql`
   ${tagFragment}
 `
 
-export const bucketsTagsGQL = gql`
+export const bucketsTagsGQL = `
   query bucketsTags($type: DataType!) {
     tags(type: $type) {
       ...TagFragment
@@ -467,7 +460,7 @@ export const bucketsTagsGQL = gql`
   ${tagFragment}
 `
 
-export const feedEntryGQL = gql`
+export const feedEntryGQL = `
   query feedEntry($id: ID!) {
     feedEntry(id: $id) {
       ...FeedEntryFragment
@@ -480,35 +473,35 @@ export const feedEntryGQL = gql`
   ${feedEntryFragment}
 `
 
-export const imageCountGQL = gql`
+export const imageCountGQL = `
   query {
     total: imageCount(query: "")
     trash: imageCount(query: "trash:true")
   }
 `
 
-export const audioCountGQL = gql`
+export const audioCountGQL = `
   query {
     total: audioCount(query: "")
     trash: audioCount(query: "trash:true")
   }
 `
 
-export const videoCountGQL = gql`
+export const videoCountGQL = `
   query {
     total: videoCount(query: "")
     trash: videoCount(query: "trash:true")
   }
 `
 
-export const packageCountGQL = gql`
+export const packageCountGQL = `
   query {
     total: packageCount(query: "")
     system: packageCount(query: "type:system")
   }
 `
 
-export const feedEntryCountGQL = gql`
+export const feedEntryCountGQL = `
   query {
     total: feedEntryCount(query: "")
     today: feedEntryCount(query: "today:true")
@@ -519,13 +512,13 @@ export const feedEntryCountGQL = gql`
   }
 `
 
-export const contactCountGQL = gql`
+export const contactCountGQL = `
   query {
     total: contactCount(query: "")
   }
 `
 
-export const callCountGQL = gql`
+export const callCountGQL = `
   query {
     total: callCount(query: "")
     incoming: callCount(query: "type:1")
@@ -534,7 +527,7 @@ export const callCountGQL = gql`
   }
 `
 
-export const smsCountGQL = gql`
+export const smsCountGQL = `
   query {
     total: smsCount(query: "")
     inbox: smsCount(query: "type:1")
@@ -543,14 +536,14 @@ export const smsCountGQL = gql`
   }
 `
 
-export const noteCountGQL = gql`
+export const noteCountGQL = `
   query {
     total: noteCount(query: "")
     trash: noteCount(query: "trash:true")
   }
 `
 
-export const packagesGQL = gql`
+export const packagesGQL = `
   query packages($offset: Int!, $limit: Int!, $query: String!, $sortBy: FileSortBy!) {
     packages(offset: $offset, limit: $limit, query: $query, sortBy: $sortBy) {
       ...PackageFragment
@@ -560,7 +553,7 @@ export const packagesGQL = gql`
   ${packageFragment}
 `
 
-export const packageStatusesGQL = gql`
+export const packageStatusesGQL = `
   query packageStatuses($ids: [ID!]!) {
     packageStatuses(ids: $ids) {
       id
@@ -570,7 +563,7 @@ export const packageStatusesGQL = gql`
   }
 `
 
-export const screenMirrorStateGQL = gql`
+export const screenMirrorStateGQL = `
   query {
     screenMirrorState
     screenMirrorControlEnabled
@@ -581,13 +574,13 @@ export const screenMirrorStateGQL = gql`
   }
 `
 
-export const screenMirrorControlEnabledGQL = gql`
+export const screenMirrorControlEnabledGQL = `
   query {
     screenMirrorControlEnabled
   }
 `
 
-export const screenMirrorQualityGQL = gql`
+export const screenMirrorQualityGQL = `
   query {
     screenMirrorQuality {
       mode
@@ -595,7 +588,7 @@ export const screenMirrorQualityGQL = gql`
   }
 `
 
-export const notificationsGQL = gql`
+export const notificationsGQL = `
   query {
     notifications {
       ...NotificationFragment
@@ -604,7 +597,7 @@ export const notificationsGQL = gql`
   ${notificationFragment}
 `
 
-export const deviceInfoGQL = gql`
+export const deviceInfoGQL = `
   query {
     deviceInfo {
       ...DeviceInfoFragment
@@ -623,13 +616,13 @@ export const deviceInfoGQL = gql`
   ${deviceInfoFragment}
 `
 
-export const uploadedChunksGQL = gql`
+export const uploadedChunksGQL = `
   query uploadedChunks($fileId: String!) {
     uploadedChunks(fileId: $fileId)
   }
 `
 
-export const pomodoroSettingsGQL = gql`
+export const pomodoroSettingsGQL = `
   query {
     pomodoroSettings {
       workDuration
@@ -642,7 +635,7 @@ export const pomodoroSettingsGQL = gql`
   }
 `
 
-export const pomodoroTodayAndSettingsGQL = gql`
+export const pomodoroTodayAndSettingsGQL = `
   query {
     pomodoroToday {
       date
@@ -665,7 +658,7 @@ export const pomodoroTodayAndSettingsGQL = gql`
   }
 `
 
-export const bookmarksGQL = gql`
+export const bookmarksGQL = `
   query {
     bookmarks {
       ...BookmarkFragment

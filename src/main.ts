@@ -1,12 +1,10 @@
-import { createApp, provide, h } from 'vue'
-import { ApolloClients } from '@vue/apollo-composable'
+import { createApp } from 'vue'
 import App from './App.vue'
 import './registerServiceWorker'
 import router from './plugins/router'
 import '@/styles/main.scss'
 import 'katex/dist/katex.min.css'
 import { createPinia } from 'pinia'
-import apollo from './plugins/apollo'
 import VueClickAway from './plugins/clickaway'
 import VueTooltip from './plugins/tooltip'
 import VueRipple from './plugins/ripple'
@@ -19,13 +17,7 @@ if (!clientId) {
   localStorage.setItem('client_id', shortUUID())
 }
 
-
-createApp({
-  setup() {
-    provide(ApolloClients, apollo)
-  },
-  render: () => h(App),
-})
+createApp(App)
   .use(VueClickAway)
   .use(VueTooltip)
   .use(VueRipple)

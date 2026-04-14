@@ -6,7 +6,7 @@ import { download, getFileUrlByPath } from '@/lib/api/file'
 import { formatDateTime } from '@/lib/format'
 import toast from '@/components/toaster'
 import { smsGQL } from '@/lib/api/query'
-import { useApolloClient } from '@vue/apollo-composable'
+import { gqlFetch } from '@/lib/api/gql-client'
 
 export const formats = [
   { value: 'json', labelKey: 'export_format_json' },
@@ -29,7 +29,6 @@ export function useExportSms(props: {
   urlTokenKey: Uint8Array | null
 }) {
   const { t } = useI18n()
-  const { resolveClient } = useApolloClient()
 
   const selectedFormat = ref('json')
   const exporting = ref(false)
@@ -54,13 +53,8 @@ export function useExportSms(props: {
   async function loadMessages(): Promise<IMessage[]> {
     if (props.items.length > 0) return props.items
     progressText.value = t('export_loading_messages')
-    const client = resolveClient('a')
-    const result = await client.query({
-      query: smsGQL,
-      variables: { offset: 0, limit: 100000, query: props.query ?? '' },
-      fetchPolicy: 'network-only',
-    })
-    return result.data?.sms ?? []
+    const result = await gqlFetch<{ sms: IMessage[] }>(smsGQL, { offset: 0, limit: 100000, query: props.query ?? '' })
+    return result?.data?.sms ?? []
   }
 
   function buildMessageContent(zip: any, sorted: IMessage[], format: string) {

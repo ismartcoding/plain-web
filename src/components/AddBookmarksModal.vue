@@ -31,7 +31,6 @@ import { useI18n } from 'vue-i18n'
 import type { BookmarkGroup } from '@/stores/bookmarks'
 import { initMutation } from '@/lib/api/mutation'
 import { addBookmarksGQL } from '@/lib/api/mutation'
-import { bookmarksGQL } from '@/lib/api/query'
 
 const props = defineProps<{
   defaultGroupId: string
@@ -62,19 +61,6 @@ const validUrls = computed(() => {
 
 const { mutate: mutateAdd, onDone: onAddDone, loading: saving } = initMutation({
   document: addBookmarksGQL,
-  options: {
-    update(cache: any, res: any) {
-      if (res.data?.addBookmarks?.length) {
-        const q: any = cache.readQuery({ query: bookmarksGQL })
-        if (q) {
-          cache.writeQuery({
-            query: bookmarksGQL,
-            data: { ...q, bookmarks: q.bookmarks.concat(res.data.addBookmarks) },
-          })
-        }
-      }
-    },
-  },
 })
 
 onAddDone((r: any) => {

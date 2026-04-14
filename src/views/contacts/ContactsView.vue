@@ -86,7 +86,7 @@ const {
 const {
   callId, callIndex, callLoading, call, sendSms,
   addItemToTags, deleteItem, edit, create,
-} = useContactsActions({ tags, total, sources, fetch })
+} = useContactsActions({ items, tags, total, sources, fetch })
 </script>
 <style lang="scss" scoped>
 .list-unstyled {

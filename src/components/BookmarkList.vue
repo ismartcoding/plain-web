@@ -219,8 +219,9 @@ function startEdit(b: Bookmark) {
   editBookmark.value = { ...b }
 }
 
-function onBookmarksAdded() {
+function onBookmarksAdded(items: Bookmark[]) {
   addDialogVisible.value = false
+  bmStore.addBookmarks(items)
 }
 
 function onBookmarkUpdated(updated: Bookmark) {

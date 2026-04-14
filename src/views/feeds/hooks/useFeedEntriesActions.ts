@@ -3,12 +3,11 @@ import type { Ref, ComputedRef } from 'vue'
 import { openModal } from '@/components/modal'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
-import gql from 'graphql-tag'
 import { useI18n } from 'vue-i18n'
 import toast from '@/components/toaster'
 import { useDelete } from '@/hooks/list'
 import { useAddToTags } from '@/hooks/tags'
-import { deleteFeedEntriesGQL, initMutation, saveFeedEntriesToNotesGQL, syncFeedsGQL } from '@/lib/api/mutation'
+import { deleteFeedEntriesGQL, initMutation, saveFeedEntriesToNotesGQL, syncFeedsGQL, deleteFeedEntryGQL } from '@/lib/api/mutation'
 import { useFeeds } from '@/hooks/feeds'
 import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
@@ -78,14 +77,11 @@ export function useFeedEntriesActions(opts: UseFeedEntriesActionsOptions) {
     openModal(DeleteConfirm, {
       id: item.id,
       name: item.title,
-      gql: gql`
-        mutation deleteFeedEntry($query: String!) {
-          deleteFeedEntries(query: $query)
-        }
-      `,
+      gql: deleteFeedEntryGQL,
       variables: () => ({ query: `ids:${item.id}` }),
       typeName: 'FeedEntry',
       done: () => {
+        items.value = items.value.filter((it) => it.id !== item.id)
         clearSelection()
         total.value--
         if (item.tags.length) emitter.emit('refetch_tags', dataType)

@@ -1,11 +1,9 @@
 import { reactive, ref, type PropType } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { gql } from '@apollo/client/core'
 import { useField, useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import { z } from 'zod'
-import { initMutation } from '@/lib/api/mutation'
-import { contactFragment } from '@/lib/api/fragments'
+import { initMutation, createContactGQL, updateContactGQL } from '@/lib/api/mutation'
 import { types } from '@/lib/contact/contact'
 import { popModal, pushModal } from '@/components/modal'
 import PromptModal from '@/components/PromptModal.vue'
@@ -31,14 +29,14 @@ export function useEditContact(data: IContact | undefined, sources: any[], done:
   const addFieldMenuVisible = ref(false)
 
   const { mutate: create, loading: createLoading, onDone: createDone } = initMutation({
-    document: gql`mutation createContact($input: ContactInput!) { createContact(input: $input) { ...ContactFragment } } ${contactFragment}`,
-    options: { update: () => done() },
+    document: createContactGQL,
   })
+  createDone(() => { done(); popModal() })
 
   const { mutate: edit, loading: editLoading, onDone: editDone } = initMutation({
-    document: gql`mutation updateContact($id: ID!, $input: ContactInput!) { updateContact(id: $id, input: $input) { ...ContactFragment } } ${contactFragment}`,
-    options: { update: () => done() },
+    document: updateContactGQL,
   })
+  editDone(() => { done(); popModal() })
 
   const { resetField } = useField('inputValue', toTypedSchema(z.any()))
 
@@ -82,9 +80,6 @@ export function useEditContact(data: IContact | undefined, sources: any[], done:
     if (data) { edit({ id: data.id, input: editItem }) }
     else { editItem.source = sources?.[0]?.name ?? ''; create({ input: editItem }) }
   })
-
-  createDone(() => popModal())
-  editDone(() => popModal())
 
   return {
     editItem, complexName, addFieldMenuVisible, createLoading, editLoading, types,

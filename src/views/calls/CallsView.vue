@@ -75,7 +75,7 @@ const {
   gotoPage, onChangePageSize,
 } = useCallsData()
 
-const { callId, callLoading, call, addItemToTags, deleteItem } = useCallsActions({ tags, total })
+const { callId, callLoading, call, addItemToTags, deleteItem } = useCallsActions({ items, tags, total })
 </script>
 <style scoped lang="scss">
 :deep(.call-item) {

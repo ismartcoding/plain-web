@@ -73,7 +73,7 @@ const {
   send, deleteMessage, clearMessages, refetch,
 } = useChatMessages(chatId, channelId)
 
-const { doUploadFiles, doUploadImages, sendLongMessageAsFile, sendingText, downloadProgress } = useChatUpload(chatId, channelId, appDir, scrollBottom, chatText)
+const { doUploadFiles, doUploadImages, sendLongMessageAsFile, sendingText, downloadProgress } = useChatUpload(chatId, channelId, appDir, scrollBottom, chatText, chatItems)
 
 const isActive = ref(false)
 

@@ -6,12 +6,12 @@ import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import EditContactModal from '@/components/EditContactModal.vue'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import SendSmsModal from '@/components/messages/SendSmsModal.vue'
-import gql from 'graphql-tag'
-import { callGQL, initMutation } from '@/lib/api/mutation'
+import { callGQL, deleteContactsGQL, initMutation } from '@/lib/api/mutation'
 import emitter from '@/plugins/eventbus'
 import { DataType } from '@/lib/data'
 
 interface UseContactsActionsOptions {
+  items: Ref<IContact[]>
   tags: Ref<ITag[]>
   total: Ref<number>
   sources: Ref<IContactSource[]>
@@ -19,7 +19,7 @@ interface UseContactsActionsOptions {
 }
 
 export function useContactsActions(opts: UseContactsActionsOptions) {
-  const { tags, total, sources, fetch } = opts
+  const { items, tags, total, sources, fetch } = opts
   const dataType = DataType.CONTACT
 
   const callId = ref('')
@@ -41,14 +41,11 @@ export function useContactsActions(opts: UseContactsActionsOptions) {
     openModal(DeleteConfirm, {
       id: item.id,
       name: fullName(item),
-      gql: gql`
-        mutation DeleteContact($query: String!) {
-          deleteContacts(query: $query)
-        }
-      `,
+      gql: deleteContactsGQL,
       variables: () => ({ query: `ids:${item.id}` }),
       typeName: 'Contact',
       done: () => {
+        items.value = items.value.filter((it) => it.id !== item.id)
         total.value--
         if (item.tags.length) emitter.emit('refetch_tags', dataType)
       },

@@ -19,14 +19,13 @@ import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import { z } from 'zod'
 import { onMounted, ref, type PropType, nextTick } from 'vue'
-import type { OperationVariables } from '@apollo/client/core'
 import { popModal } from './modal'
 
 const inputRef = ref<HTMLInputElement>()
 
 const props = defineProps({
   getVariables: {
-    type: Function as PropType<(value: string) => OperationVariables>,
+    type: Function as PropType<(value: string) => Record<string, any>>,
     required: true,
   },
   title: { type: String, required: true },
