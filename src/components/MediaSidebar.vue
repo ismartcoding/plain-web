@@ -29,14 +29,13 @@
 <script setup lang="ts">
 import type { PropType } from 'vue'
 import { DataType } from '@/lib/data'
-import type { DocumentNode } from 'graphql'
 import { hasFeature } from '@/lib/feature'
 import { FEATURE } from '@/lib/data'
 import { useMediaSidebar } from '@/hooks/media-sidebar'
 
 const props = defineProps({
   type: { type: String as PropType<DataType>, required: true },
-  gql: { type: Object as PropType<DocumentNode>, required: true },
+  gql: { type: String, required: true },
 })
 
 const { app, total, totalTrash, trash, selectedTagId, selectedBucketId, viewAll, viewTrash } = useMediaSidebar(props.type as DataType, props.gql)

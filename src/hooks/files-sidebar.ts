@@ -42,15 +42,15 @@ export function useFilesSidebar() {
   const selectedFavorite = ref<LinkItem | null>(null)
 
   // Mutations
-  const { mutate: removeFavoriteFolderMutation } = initMutation({
+  const { mutate: removeFavoriteFolderMutation, onDone: onRemoveDone } = initMutation({
     document: removeFavoriteFolderGQL,
-    options: { update: () => emitter.emit('refetch_app') },
   })
+  onRemoveDone(() => emitter.emit('refetch_app'))
 
-  const { mutate: setAliasMutation } = initMutation({
+  const { mutate: setAliasMutation, onDone: onAliasDone } = initMutation({
     document: setFavoriteFolderAliasGQL,
-    options: { update: () => emitter.emit('refetch_app') },
   })
+  onAliasDone(() => emitter.emit('refetch_app'))
 
   function showFavoriteMenu(item: LinkItem) {
     selectedFavorite.value = item
@@ -70,10 +70,11 @@ export function useFilesSidebar() {
     if (!item) return
     const current = app.value.favoriteFolders?.find((f) => f.fullPath === item.fullPath)
     const currentAlias = (current?.alias || '').trim()
-    const mutationFactory = () => initMutation({
-      document: setFavoriteFolderAliasGQL,
-      options: { update: () => emitter.emit('refetch_app') },
-    })
+    const mutationFactory = () => {
+      const m = initMutation({ document: setFavoriteFolderAliasGQL })
+      m.onDone(() => emitter.emit('refetch_app'))
+      return m
+    }
     openModal(EditValueModal, {
       title: t('name'), placeholder: item.title || '',
       value: currentAlias || '', mutation: mutationFactory,

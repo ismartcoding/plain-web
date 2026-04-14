@@ -105,8 +105,7 @@ export function useLightboxQueries(
   }
 
   const {
-    load: loadInfo,
-    refetch: refetchInfo,
+    fetch: loadInfo,
   } = initLazyQuery({
     handle: (data: any, error: string) => {
       if (!error && data) {
@@ -123,7 +122,7 @@ export function useLightboxQueries(
   })
 
   const tagsMap = new Map<string, ITag[]>()
-  const { load: loadTags } = initLazyQuery({
+  const { fetch: loadTags } = initLazyQuery({
     handle: (data: any, _error: string) => {
       if (data) {
         tagsMap.set(current.value?.type ?? '', data.tags)
@@ -135,7 +134,7 @@ export function useLightboxQueries(
     }),
   })
 
-  return { loadInfo, refetchInfo, updateViewOriginImageState, tagsMap, loadTags }
+  return { loadInfo, refetchInfo: loadInfo, updateViewOriginImageState, tagsMap, loadTags }
 }
 
 export function useLightboxTransform(

@@ -1,6 +1,4 @@
-import gql from 'graphql-tag'
-
-export const tagFragment = gql`
+export const tagFragment = `
   fragment TagFragment on Tag {
     id
     name
@@ -8,14 +6,14 @@ export const tagFragment = gql`
   }
 `
 
-export const tagSubFragment = gql`
+export const tagSubFragment = `
   fragment TagSubFragment on Tag {
     id
     name
   }
 `
 
-export const playlistAudioFragment = gql`
+export const playlistAudioFragment = `
   fragment PlaylistAudioFragment on PlaylistAudio {
     title
     artist
@@ -24,7 +22,7 @@ export const playlistAudioFragment = gql`
   }
 `
 
-export const appFragment = gql`
+export const appFragment = `
   fragment AppFragment on App {
     usbConnected
     urlToken
@@ -55,7 +53,8 @@ export const appFragment = gql`
   }
   ${playlistAudioFragment}
 `
-export const chatItemFragment = gql`
+
+export const chatItemFragment = `
   fragment ChatItemFragment on ChatItem {
     id
     fromId
@@ -63,7 +62,6 @@ export const chatItemFragment = gql`
     channelId
     createdAt
     content
-    _content @client
     data {
       ... on MessageImages {
         ids
@@ -78,7 +76,7 @@ export const chatItemFragment = gql`
   }
 `
 
-export const messageFragment = gql`
+export const messageFragment = `
   fragment MessageFragment on Message {
     id
     body
@@ -101,7 +99,7 @@ export const messageFragment = gql`
   ${tagSubFragment}
 `
 
-export const messageConversationFragment = gql`
+export const messageConversationFragment = `
   fragment MessageConversationFragment on MessageConversation {
     id
     address
@@ -111,7 +109,8 @@ export const messageConversationFragment = gql`
     read
   }
 `
-export const contactFragment = gql`
+
+export const contactFragment = `
   fragment ContactFragment on Contact {
     id
     suffix
@@ -156,7 +155,8 @@ export const contactFragment = gql`
     type
   }
 `
-export const callFragment = gql`
+
+export const callFragment = `
   fragment CallFragment on Call {
     id
     name
@@ -178,7 +178,7 @@ export const callFragment = gql`
   ${tagSubFragment}
 `
 
-export const fileFragment = gql`
+export const fileFragment = `
   fragment FileFragment on File {
     path
     isDir
@@ -190,7 +190,7 @@ export const fileFragment = gql`
   }
 `
 
-export const imageFragment = gql`
+export const imageFragment = `
   fragment ImageFragment on Image {
     id
     title
@@ -207,7 +207,7 @@ export const imageFragment = gql`
   ${tagSubFragment}
 `
 
-export const videoFragment = gql`
+export const videoFragment = `
   fragment VideoFragment on Video {
     id
     title
@@ -225,7 +225,7 @@ export const videoFragment = gql`
   ${tagSubFragment}
 `
 
-export const audioFragment = gql`
+export const audioFragment = `
   fragment AudioFragment on Audio {
     id
     title
@@ -244,7 +244,7 @@ export const audioFragment = gql`
   ${tagSubFragment}
 `
 
-export const noteFragment = gql`
+export const noteFragment = `
   fragment NoteFragment on Note {
     id
     title
@@ -259,7 +259,7 @@ export const noteFragment = gql`
   ${tagSubFragment}
 `
 
-export const feedFragment = gql`
+export const feedFragment = `
   fragment FeedFragment on Feed {
     id
     name
@@ -270,7 +270,7 @@ export const feedFragment = gql`
   }
 `
 
-export const feedEntryFragment = gql`
+export const feedEntryFragment = `
   fragment FeedEntryFragment on FeedEntry {
     id
     title
@@ -291,7 +291,7 @@ export const feedEntryFragment = gql`
   ${tagSubFragment}
 `
 
-export const packageFragment = gql`
+export const packageFragment = `
   fragment PackageFragment on Package {
     id
     name
@@ -311,7 +311,7 @@ export const packageFragment = gql`
   }
 `
 
-export const notificationFragment = gql`
+export const notificationFragment = `
   fragment NotificationFragment on Notification {
     id
     onlyOnce
@@ -327,7 +327,7 @@ export const notificationFragment = gql`
   }
 `
 
-export const deviceInfoFragment = gql`
+export const deviceInfoFragment = `
   fragment DeviceInfoFragment on DeviceInfo {
     deviceName
     releaseBuildVersion
@@ -367,7 +367,7 @@ export const deviceInfoFragment = gql`
   }
 `
 
-export const bookmarkFragment = gql`
+export const bookmarkFragment = `
   fragment BookmarkFragment on Bookmark {
     id
     url
@@ -383,7 +383,7 @@ export const bookmarkFragment = gql`
   }
 `
 
-export const bookmarkGroupFragment = gql`
+export const bookmarkGroupFragment = `
   fragment BookmarkGroupFragment on BookmarkGroup {
     id
     name
@@ -394,14 +394,14 @@ export const bookmarkGroupFragment = gql`
   }
 `
 
-export const chatChannelMemberFragment = gql`
+export const chatChannelMemberFragment = `
   fragment ChatChannelMemberFragment on ChatChannelMember {
     id
     status
   }
 `
 
-export const chatChannelFragment = gql`
+export const chatChannelFragment = `
   fragment ChatChannelFragment on ChatChannel {
     id
     name

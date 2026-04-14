@@ -1,6 +1,5 @@
 import { ref } from 'vue'
 import { initLazyQuery } from '@/lib/api/query'
-import gql from 'graphql-tag'
 import { contactFragment } from '@/lib/api/fragments'
 import type { IContact } from '@/lib/interfaces'
 import { getContactFullName } from '@/lib/contact/format'
@@ -14,7 +13,7 @@ function normalizePhone(phone: string): string {
 
 const fullName = getContactFullName
 
-const allContactsGQL = gql`
+const allContactsGQL = `
   query allContacts {
     contacts(offset: 0, limit: 10000, query: "") {
       ...ContactFragment

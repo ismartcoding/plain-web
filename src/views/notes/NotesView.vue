@@ -100,7 +100,7 @@ const {
   addToTags, deleteItems, deleteItem, addItemToTags,
   exportNotes2, getQuery, trashLoading, trash, restoreLoading, restore,
   view, viewUrl, create,
-} = useNotesActions({ selectedIds, realAllChecked, q, total, tags, clearSelection, fetch })
+} = useNotesActions({ items, selectedIds, realAllChecked, q, total, tags, clearSelection, fetch })
 </script>
 <style lang="scss" scoped>
 .scroller {

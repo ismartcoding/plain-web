@@ -6,7 +6,7 @@ import { chachaEncrypt, bitArrayToUint8Array } from '../api/crypto'
 import { tokenToKey } from '../api/file'
 import { uploadedChunksGQL } from '../api/query'
 import { mergeChunksGQL } from '../api/mutation'
-import apollo from '@/plugins/apollo'
+import { gqlFetch } from '../api/gql-client'
 
 const CHUNK_SIZE = 5 * 1024 * 1024 // 5MB — balance between resume granularity and throughput
 const PARALLEL_CHUNKS = 3 // Upload 3 chunks in parallel per file
@@ -357,15 +357,12 @@ async function uploadWithChunks(upload: IUploadItem, replace: boolean, key: Uint
     const baseName = upload.file.name.split('/').pop() || upload.file.name
     const filePath = upload.dir.endsWith('/') ? upload.dir + baseName : upload.dir + '/' + baseName
 
-    const result = await apollo.a.mutate({
-      mutation: mergeChunksGQL,
-      variables: {
-        fileId: upload.fileId,
-        totalChunks,
-        path: filePath,
-        replace: replace,
-        isAppFile: upload.isAppFile ?? false,
-      },
+    const result = await gqlFetch(mergeChunksGQL, {
+      fileId: upload.fileId,
+      totalChunks,
+      path: filePath,
+      replace: replace,
+      isAppFile: upload.isAppFile ?? false,
     })
 
     if (result?.data?.mergeChunks) {
@@ -403,11 +400,7 @@ async function uploadWithChunks(upload: IUploadItem, replace: boolean, key: Uint
 // Get list of uploaded chunks, verified by size
 async function getUploadedChunks(fileId: string, fileSize: number, totalChunks: number): Promise<number[]> {
   try {
-    const result = await apollo.a.query({
-      query: uploadedChunksGQL,
-      variables: { fileId },
-      fetchPolicy: 'network-only',
-    })
+    const result = await gqlFetch(uploadedChunksGQL, { fileId })
     const raw: string[] = result.data?.uploadedChunks ? [...result.data.uploadedChunks] : []
     const verified: number[] = []
     for (const entry of raw) {

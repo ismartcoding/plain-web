@@ -1,12 +1,10 @@
 import { ref, reactive, onMounted, onUnmounted, type ComputedRef, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useApolloClient } from '@vue/apollo-composable'
-import { chatItemsGQL } from '@/lib/api/query'
-import { insertCache } from '@/lib/api/mutation'
 import type { IChatItem } from '@/lib/interfaces'
 import type { IUploadItem } from '@/stores/temp'
 import { useChatFilesUpload } from '@/hooks/upload'
 import { useTasks } from '@/hooks/chat'
+import { normalizeChatItem } from '@/hooks/chat-events'
 import { shortUUID } from '@/lib/strutil'
 import { formatFileSize } from '@/lib/format'
 import { getVideoData, getImageData, isVideo } from '@/lib/file'
@@ -18,10 +16,10 @@ export function useChatUpload(
   appDir: string,
   scrollBottom: () => void,
   chatText: Ref<string>,
+  chatItems: Ref<IChatItem[]>,
 ) {
   const { t } = useI18n()
   const { getUploads } = useChatFilesUpload()
-  const { resolveClient } = useApolloClient()
   const { enqueue: enqueueTask } = useTasks()
 
   const uploading = ref<IUploadItem[]>([])
@@ -59,8 +57,11 @@ export function useChatUpload(
     const _content = { type: contentType, value: { items: valueItems } }
     const item: IChatItem = {
       id: 'new_' + shortUUID(), fromId: 'me', toId: chatId.value, channelId: channelId.value,
-      createdAt: new Date().toISOString(), content: JSON.stringify(_content), _content, __typename: 'ChatItem',
-      data: { __typename: contentType === 'images' ? 'MessageImages' : 'MessageFiles', ids: uploads.map((it) => URL.createObjectURL(it.file)) },
+      createdAt: new Date().toISOString(), 
+      content: JSON.stringify(_content), 
+      _content, 
+      __typename: 'ChatItem',
+      data: { ids: uploads.map((it) => URL.createObjectURL(it.file)) },
     }
 
     messageUploads[item.id] = uploads
@@ -70,8 +71,16 @@ export function useChatUpload(
       speed: uploads.reduce((s, u) => s + (u.uploadSpeed || 0), 0),
     }
     uploading.value = [...uploading.value, ...uploads]
-    enqueueTask(item, uploads, chatId.value)
-    insertCache(resolveClient('a').cache, item, chatItemsGQL, { id: chatId.value })
+    const tempId = item.id
+    chatItems.value = [...chatItems.value, item]
+    enqueueTask(item, uploads, chatId.value, (sentItem) => {
+      const normalized = normalizeChatItem(sentItem)
+      chatItems.value = chatItems.value.filter((i) => i.id !== tempId)
+      if (!chatItems.value.some((i) => i.id === normalized.id)) {
+        chatItems.value = [...chatItems.value, normalized]
+      }
+      scrollBottom()
+    })
     scrollBottom()
   }
 

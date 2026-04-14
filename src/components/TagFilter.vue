@@ -100,6 +100,7 @@ function deleteTag(item: ITag) {
     name: item.name,
     gql: deleteTagGQL,
     typeName: 'Tag',
+    done: () => { tags.value = tags.value.filter((t) => t.id !== item.id) },
   })
 }
 
@@ -108,14 +109,9 @@ function add() {
     title: t('add_tag'),
     placeholder: t('name'),
     mutation: () => {
-      return initMutation({
-        document: createTagGQL,
-        options: {
-          update: () => {
-            refetch()
-          },
-        },
-      })
+      const m = initMutation({ document: createTagGQL })
+      m.onDone(() => refetch())
+      return m
     },
     getVariables: (value: string) => {
       return { type: props.type, name: value }

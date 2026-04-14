@@ -102,7 +102,10 @@ export function useFeedsSidebar() {
   function editFeed(item: IFeed) { openModal(FeedModal, { data: item }) }
 
   function deleteFeed(item: IFeed) {
-    openModal(DeleteConfirm, { id: item.id, name: item.name, gql: deleteFeedGQL, typeName: 'Feed', done: () => replacePath(mainStore, `/feeds`) })
+    openModal(DeleteConfirm, {
+      id: item.id, name: item.name, gql: deleteFeedGQL, typeName: 'Feed',
+      done: () => { feeds.value = feeds.value.filter((f) => f.id !== item.id); replacePath(mainStore, `/feeds`) },
+    })
   }
 
   const actionItems: IDropdownItem[] = [

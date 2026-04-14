@@ -8,7 +8,7 @@ import {
   initMutation, relaunchAppGQL, startScreenMirrorGQL, stopScreenMirrorGQL,
   updateScreenMirrorQualityGQL, requestScreenMirrorAudioGQL,
 } from '@/lib/api/mutation'
-import type { ApolloError } from '@apollo/client/errors'
+import type { GqlError } from '@/lib/api/gql-client'
 import { openModal } from '@/components/modal'
 import AccessibilityGuideModal from '@/components/AccessibilityGuideModal.vue'
 
@@ -76,10 +76,10 @@ export function useScreenMirrorService() {
       if (--seconds.value <= 0) { state.value = 'failed'; clearInterval(countdownTimer) }
     }, 1000)
   })
-  onStartError((e: ApolloError) => { toast(t(e.message), 'error'); state.value = 'failed' })
+  onStartError((e: GqlError) => { toast(t(e.message), 'error'); state.value = 'failed' })
   const stop = () => stopMirror()
   onStopDone(() => { fullReset(); cleanupFn() })
-  onStopError((e: ApolloError) => toast(t(e.message), 'error'))
+  onStopError((e: GqlError) => toast(t(e.message), 'error'))
 
   // Quality
   let pendingMode: string | null = null
@@ -96,11 +96,11 @@ export function useScreenMirrorService() {
   onAudioDone((r: any) => {
     if (r?.data?.requestScreenMirrorAudio) { audioRequesting.value = false; tapPhone(''); emitter.emit('refetch_app') }
   })
-  onAudioError((e: ApolloError) => { audioRequesting.value = false; tapPhone(''); toast(t(e.message), 'error') })
+  onAudioError((e: GqlError) => { audioRequesting.value = false; tapPhone(''); toast(t(e.message), 'error') })
 
   // Relaunch
   const relaunchApp = () => { relaunchPending = true; fullReset(); cleanupFn(); relaunchMutate() }
-  onRelaunchError((e: ApolloError) => { relaunchPending = false; toast(t(e.message), 'error') })
+  onRelaunchError((e: GqlError) => { relaunchPending = false; toast(t(e.message), 'error') })
 
   // Control toggle
   const { fetch: fetchControlEnabled } = initLazyQuery({

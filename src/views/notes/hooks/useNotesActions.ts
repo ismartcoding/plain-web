@@ -3,11 +3,10 @@ import type { INote, ITag } from '@/lib/interfaces'
 import { openModal } from '@/components/modal'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
-import gql from 'graphql-tag'
 import { truncateText } from '@/lib/array'
 import { useDelete } from '@/hooks/list'
 import { useAddToTags } from '@/hooks/tags'
-import { deleteNotesGQL, exportNotesGQL, initMutation } from '@/lib/api/mutation'
+import { deleteNotesGQL, exportNotesGQL, initMutation, deleteNoteGQL } from '@/lib/api/mutation'
 import { useNotesRestore, useNotesTrash } from '@/hooks/notes'
 import router, { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
@@ -16,6 +15,7 @@ import type { Ref } from 'vue'
 import JSZip from 'jszip'
 
 interface UseNotesActionsOptions {
+  items: Ref<INote[]>
   selectedIds: Ref<string[]>
   realAllChecked: Ref<boolean>
   q: Ref<string>
@@ -26,7 +26,7 @@ interface UseNotesActionsOptions {
 }
 
 export function useNotesActions(opts: UseNotesActionsOptions) {
-  const { selectedIds, realAllChecked, q, total, tags, clearSelection, fetch } = opts
+  const { items, selectedIds, realAllChecked, q, total, tags, clearSelection, fetch } = opts
   const mainStore = useMainStore()
   const dataType = DataType.NOTE
 
@@ -76,13 +76,9 @@ export function useNotesActions(opts: UseNotesActionsOptions) {
     openModal(DeleteConfirm, {
       id: item.id,
       name: truncateText(item.title, 20),
-      gql: gql`
-        mutation DeleteNote($query: String!) {
-          deleteNotes(query: $query)
-        }
-      `,
+      gql: deleteNoteGQL,
       variables: () => ({ query: `ids:${item.id}` }),
-      done: () => { clearSelection(); total.value-- },
+      done: () => { items.value = items.value.filter((it) => it.id !== item.id); clearSelection(); total.value-- },
       typeName: 'Note',
     })
   }

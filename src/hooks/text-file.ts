@@ -6,7 +6,7 @@ import { storeToRefs } from 'pinia'
 import { useMarkdown } from '@/hooks/markdown'
 import { getApiBaseUrl } from '@/lib/api/api'
 import { initMutation, runMutation, writeTextFileGQL } from '@/lib/api/mutation'
-import apollo from '@/plugins/apollo'
+import { gqlFetch } from '@/lib/api/gql-client'
 import { appGQL } from '@/lib/api/query'
 import { tokenToKey } from '@/lib/api/file'
 import { chachaDecrypt } from '@/lib/api/crypto'
@@ -85,7 +85,7 @@ export function useTextFile() {
   async function ensureUrlTokenKey() {
     if (urlTokenKey.value || !isLoggedIn.value) return
     try {
-      const r = await apollo.a.query({ query: appGQL, fetchPolicy: 'network-only' as any })
+      const r = await gqlFetch(appGQL)
       const newToken = r?.data?.app?.urlToken
       if (newToken) {
         urlTokenKey.value = tokenToKey(newToken)
@@ -170,7 +170,7 @@ export function useTextFile() {
 
   async function save() {
     if (!canEdit.value || !isEditing.value || !decryptedPath.value || saving.value || !dirty.value) return
-    const ok = await runMutation(writeTextFile, onWriteDone, onWriteError, { path: decryptedPath.value, content: draft.value, overwrite: true })
+    const ok = await runMutation(writeTextFile, { path: decryptedPath.value, content: draft.value, overwrite: true })
     if (!ok) return
     await applyTextContent(draft.value, false)
     showSavedPulse.value = true

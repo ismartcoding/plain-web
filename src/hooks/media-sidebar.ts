@@ -7,12 +7,11 @@ import type { IFilter, IMediaItemsActionedEvent } from '@/lib/interfaces'
 import { storeToRefs } from 'pinia'
 import { useTempStore } from '@/stores/temp'
 import { DataType } from '@/lib/data'
-import type { DocumentNode } from 'graphql'
 import { initLazyQuery } from '@/lib/api/query'
 import { buildQuery } from '@/lib/search'
 import emitter from '@/plugins/eventbus'
 
-export function useMediaSidebar(type: DataType, gql: DocumentNode) {
+export function useMediaSidebar(type: DataType, gql: string) {
   const mainStore = useMainStore()
   const { counter, app } = storeToRefs(useTempStore())
   const { parseQ } = useSearch()

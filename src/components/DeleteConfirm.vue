@@ -12,9 +12,7 @@
 </template>
 <script setup lang="ts">
 import type { PropType } from 'vue'
-import type { DocumentNode } from 'graphql'
 import { initMutation } from '@/lib/api/mutation'
-import type { ApolloCache } from '@apollo/client/core'
 import { popModal } from './modal'
 import { getFileUrl } from '@/lib/api/file'
 
@@ -22,7 +20,7 @@ const props = defineProps({
   id: { type: String, required: true },
   name: { type: String, default: '' },
   image: { type: String, default: '' },
-  gql: { type: Object as PropType<DocumentNode>, required: true },
+  gql: { type: String, required: true },
   typeName: { type: String, required: true },
   done: {
     type: Function as PropType<() => void>,
@@ -36,13 +34,6 @@ const props = defineProps({
 
 const { mutate, loading, onDone } = initMutation({
   document: props.gql,
-  options: {
-    update: (cache: ApolloCache<any>) => {
-      if (props.typeName !== 'Application') {
-        cache.evict({ id: cache.identify({ __typename: props.typeName, id: props.id }) })
-      }
-    },
-  },
 })
 
 function doDelete() {

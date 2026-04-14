@@ -4,7 +4,6 @@ import { useI18n } from 'vue-i18n'
 import toast from '@/components/toaster'
 import { openModal } from '@/components/modal'
 import DeleteItemsConfirm from '@/components/DeleteItemsConfirm.vue'
-import type { DocumentNode } from 'graphql'
 
 export const useSelectable = (items: Ref<IData[]>) => {
   const allChecked = ref(false)
@@ -155,7 +154,7 @@ export const useSelectable = (items: Ref<IData[]>) => {
   }
 }
 
-export const useDelete = (gql: DocumentNode, done: () => void) => {
+export const useDelete = (gql: string, done: () => void) => {
   const { t } = useI18n()
 
   return {

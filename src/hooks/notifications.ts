@@ -4,18 +4,16 @@ import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/stores/main'
 import { initQuery, notificationsGQL } from '@/lib/api/query'
-import { initMutation, insertCache, cancelNotificationsGQL, replyNotificationGQL } from '@/lib/api/mutation'
+import { initMutation, cancelNotificationsGQL, replyNotificationGQL } from '@/lib/api/mutation'
 import toast from '@/components/toaster'
 import type { INotification } from '@/lib/interfaces'
 import { getFileUrlByPath } from '@/lib/api/file'
 import emitter from '@/plugins/eventbus'
-import { useApolloClient } from '@vue/apollo-composable'
 import { useNotificationWarning } from '@/hooks/notification-warning'
 import { playNotificationSound } from '@/lib/notification-sound'
 
 export function useNotifications() {
   const { t } = useI18n()
-  const { resolveClient } = useApolloClient()
   const store = useMainStore()
   const { notificationSound } = storeToRefs(store)
   const { app, urlTokenKey } = storeToRefs(useTempStore())
@@ -25,8 +23,7 @@ export function useNotifications() {
 
   const { loading, refetch } = initQuery({
     handle: (data: any, error: string) => {
-      if (error) toast(t(error), 'error')
-      else if (data) {
+      if (data) {
         notifications.value = data.notifications.map((it: any) => ({ ...it, icon: getFileUrlByPath(urlTokenKey.value, 'pkgicon://' + it.appId) }))
       }
     },
@@ -65,25 +62,20 @@ export function useNotifications() {
   }
 
   onMounted(() => {
-    emitter.on('notification_created', async (data: INotification) => {
-      const client = resolveClient('a')
-      insertCache(client.cache, [{ ...data, __typename: 'Notification' }], notificationsGQL, null, true)
+    emitter.on('notification_created', async (data: any) => {
       data.icon = getFileUrlByPath(urlTokenKey.value, 'pkgicon://' + data.appId)
+      notifications.value = [{ ...data }, ...notifications.value]
       showDesktopNotification(data)
     })
 
-    emitter.on('notification_updated', async (data: INotification) => {
-      const client = resolveClient('a')
-      const cache = client.cache
-      cache.evict({ id: cache.identify({ __typename: 'Notification', id: data.id }) })
-      insertCache(cache, [{ ...data, __typename: 'Notification' }], notificationsGQL, null, true)
+    emitter.on('notification_updated', async (data: any) => {
       data.icon = getFileUrlByPath(urlTokenKey.value, 'pkgicon://' + data.appId)
+      notifications.value = notifications.value.map((n) => n.id === data.id ? { ...data } : n)
       showDesktopNotification(data)
     })
 
-    emitter.on('notification_deleted', async (data: INotification) => {
-      const client = resolveClient('a')
-      client.cache.evict({ id: client.cache.identify({ __typename: 'Notification', id: data.id }) })
+    emitter.on('notification_deleted', async (data: any) => {
+      notifications.value = notifications.value.filter((n) => n.id !== data.id)
     })
 
     emitter.on('notification_refreshed', async () => refetch())

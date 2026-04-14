@@ -1,14 +1,13 @@
 import { ref, reactive, watch, type ComputedRef, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useApolloClient } from '@vue/apollo-composable'
-import type { ApolloCache } from '@apollo/client/core'
 import { initQuery, chatItemsGQL } from '@/lib/api/query'
-import { sendChatItemGQL, deleteChatItemGQL, initMutation, insertCache } from '@/lib/api/mutation'
+import { sendChatItemGQL, deleteChatItemGQL, initMutation } from '@/lib/api/mutation'
 import toast from '@/components/toaster'
 import type { IChatItem } from '@/lib/interfaces'
 import { shortUUID } from '@/lib/strutil'
 import { useTasks } from '@/hooks/chat'
 import { useChatEvents } from '@/hooks/chat-events'
+import { normalizeChatItem } from '@/hooks/chat-events'
 
 export function useChatMessages(chatId: ComputedRef<string>, channelId: ComputedRef<string>) {
   const { t } = useI18n()
@@ -30,7 +29,7 @@ export function useChatMessages(chatId: ComputedRef<string>, channelId: Computed
       if (error) {
         toast(t(error), 'error')
       } else if (data) {
-        chatItems.value = data.chatItems
+        chatItems.value = data.chatItems.map(normalizeChatItem)
         if (!initialized) { scrollBottom(); initialized = true }
       }
     },
@@ -40,21 +39,24 @@ export function useChatMessages(chatId: ComputedRef<string>, channelId: Computed
 
   const { mutate: sendMutate, loading: sendLoading, onDone: sendDone } = initMutation({
     document: sendChatItemGQL,
-    options: {
-      update: (cache: ApolloCache<any>, data: any) => {
-        insertCache(cache, data.data.sendChatItem, chatItemsGQL, { id: chatId.value })
-      },
-    },
   })
-  sendDone(() => scrollBottom())
+  sendDone((r: any) => {
+    if (r?.data?.sendChatItem) {
+      const rawItems: any[] = Array.isArray(r.data.sendChatItem) ? r.data.sendChatItem : [r.data.sendChatItem]
+      const existingIds = new Set(chatItems.value.map((i) => i.id))
+      const newItems = rawItems.map(normalizeChatItem).filter((i) => !existingIds.has(i.id))
+      if (newItems.length) {
+        chatItems.value = [...chatItems.value, ...newItems]
+      }
+    }
+    scrollBottom()
+  })
 
-  const { mutate: deleteItem, loading: deleteLoading } = initMutation({
+  const { mutate: deleteItem, loading: deleteLoading, onDone: deleteDone } = initMutation({
     document: deleteChatItemGQL,
-    options: {
-      update: (cache: ApolloCache<any>) => {
-        cache.evict({ id: cache.identify({ __typename: 'ChatItem', id: deleteId.value }) })
-      },
-    },
+  })
+  deleteDone(() => {
+    chatItems.value = chatItems.value.filter((i) => i.id !== deleteId.value)
   })
 
   function send(chatText: Ref<string>) {
@@ -66,7 +68,7 @@ export function useChatMessages(chatId: ComputedRef<string>, channelId: Computed
       content: JSON.stringify({ type: 'text', value: { text: chatText.value } }),
       _content: { type: 'text', value: { text: chatText.value } },
       __typename: 'ChatItem',
-      data: { __typename: 'MessageText', ids: [] },
+      data: { ids: [] },
     }
     chatItems.value = [...chatItems.value, tempItem]
     chatText.value = ''

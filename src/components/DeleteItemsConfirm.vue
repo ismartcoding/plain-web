@@ -13,10 +13,9 @@
 import { initMutation } from '@/lib/api/mutation'
 import { popModal } from './modal'
 import type { PropType } from 'vue'
-import type { DocumentNode } from 'graphql'
 
 const props = defineProps({
-  gql: { type: Object as PropType<DocumentNode>, required: true },
+  gql: { type: String, required: true },
   count: { type: Number, required: true },
   done: {
     type: Function as PropType<() => void>,

@@ -27,9 +27,8 @@
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Bookmark, BookmarkGroup } from '@/stores/bookmarks'
-import { initMutation, updateCache } from '@/lib/api/mutation'
+import { initMutation } from '@/lib/api/mutation'
 import { updateBookmarkGQL } from '@/lib/api/mutation'
-import { bookmarksGQL } from '@/lib/api/query'
 
 const props = defineProps<{
   bookmark: Bookmark
@@ -53,13 +52,6 @@ const groupOptions = computed(() => [
 
 const { mutate, loading, onDone } = initMutation({
   document: updateBookmarkGQL,
-  options: {
-    update(cache: any, res: any) {
-      if (res.data?.updateBookmark) {
-        updateCache(cache, res.data.updateBookmark, bookmarksGQL, 'bookmarks')
-      }
-    },
-  },
 })
 
 onDone((result: any) => {
