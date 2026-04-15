@@ -23,6 +23,8 @@ export function keyOptionsForGroup(group: string, hasHistory: boolean): string[]
       return withHistory(['type'])
     case 'files':
       return withHistory(['file_size'])
+    case 'docs':
+      return withHistory(['file_size'])
     case 'messages':
       return withHistory(['type', 'tag'])
     case 'calls':
@@ -60,7 +62,7 @@ export function valueOptionsForGroup(opts: {
     ]
   }
 
-  if (opts.group === 'files') {
+  if (opts.group === 'files' || opts.group === 'docs') {
     base.file_size = fileSizeOptions(opts.t)
   }
 

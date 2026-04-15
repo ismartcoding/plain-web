@@ -65,9 +65,20 @@ export function useHeaderSearchQuery() {
     return fields.length === 0 ? '' : encodeBase64(buildQuery(fields))
   }
 
+  function buildNextDocsQ(currentEncodedQ: string, fileSize: string | undefined, textValue: string) {
+    const fields = parseCurrentFields(currentEncodedQ).filter((f) => !['text', 'file_size'].includes(f.name))
+    if (fileSize) {
+      const { op, value } = splitOpValue(fileSize)
+      if (value) fields.push({ name: 'file_size', op, value })
+    }
+    const v = textValue.trim()
+    if (v) fields.push({ name: 'text', op: '', value: v })
+    return fields.length === 0 ? '' : encodeBase64(buildQuery(fields))
+  }
+
   return {
     buildMediaQ, copyMediaFilter, parseMediaQ,
     buildFilesQ, parseFilesQ,
-    buildNextQ, buildNextMediaQ, buildNextMessagesQ, buildNextCallsQ, buildNextFeedsQ,
+    buildNextQ, buildNextMediaQ, buildNextMessagesQ, buildNextCallsQ, buildNextFeedsQ, buildNextDocsQ,
   }
 }

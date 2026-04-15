@@ -123,6 +123,7 @@ export default {
     trash: 'Trash',
     screen_mirror: 'Screen mirror',
     device_info: 'Device info',
+    docs: 'Documents',
     chat: 'Chat',
     local_chat: 'Local chat',
   },

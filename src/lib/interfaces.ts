@@ -173,6 +173,21 @@ export interface IVideo extends IMedia {
   takenAt?: string
 }
 
+export interface IDoc {
+  id: string
+  name: string
+  path: string
+  extension: string
+  size: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface IDocExtGroup {
+  ext: string
+  count: number
+}
+
 export interface IPlaylistAudio {
   title: string
   artist: string

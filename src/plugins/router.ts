@@ -93,6 +93,14 @@ const router = createRouter({
           meta: { group: 'audios' },
         },
         {
+          path: 'docs',
+          components: {
+            default: () => import('@/views/docs/DocsView.vue'),
+            LeftSidebar: () => import('@/views/docs/DocsSidebar.vue'),
+          },
+          meta: { group: 'docs' },
+        },
+        {
           path: 'notes/:id',
           component: () => import('@/views/notes/NoteEditView.vue'),
           meta: { group: 'notes' },

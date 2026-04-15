@@ -67,10 +67,12 @@ import { hasFeature } from '@/lib/feature'
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
-import { useAddToPlaylist, useAudioPlayer } from '@/hooks/audios'
+import { useAddToPlaylist, useAudioPlayer } from './hooks/useAudiosHooks'
 import { useMediaPage } from '@/hooks/media-page'
 import MediaPageActions from '@/components/media/MediaPageActions.vue'
 import MediaToolbar from '@/components/media/MediaToolbar.vue'
+import AudioListItem from './AudioListItem.vue'
+import AudioSkeletonItem from './AudioSkeletonItem.vue'
 
 const mainStoreLocal = useMainStore()
 const { audioSortBy } = storeToRefs(mainStoreLocal)

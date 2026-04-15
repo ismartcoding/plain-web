@@ -259,6 +259,18 @@ export const noteFragment = `
   ${tagSubFragment}
 `
 
+export const docFragment = `
+  fragment DocFragment on Doc {
+    id
+    name
+    path
+    extension
+    size
+    createdAt
+    updatedAt
+  }
+`
+
 export const feedFragment = `
   fragment FeedFragment on Feed {
     id
