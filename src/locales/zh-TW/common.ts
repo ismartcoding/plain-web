@@ -211,6 +211,7 @@ export default {
   reset_font_size: '重置字體大小',
   removed: '已刪除',
   added: '已新增',
+  favorites: '我的最愛',
   add_to_favorites: '加入我的最愛',
   remove_from_favorites: '從我的最愛中移除',
   start_time: '開始時間',

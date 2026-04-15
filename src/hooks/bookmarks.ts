@@ -51,7 +51,7 @@ export function useBookmarkOperations() {
 
   // Actions
   function openBookmark(b: Bookmark) {
-    window.open(b.url, '_blank')
+    if (/^https?:\/\//i.test(b.url)) window.open(b.url, '_blank')
     mutateRecordClick({ id: b.id })
   }
 

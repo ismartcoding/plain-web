@@ -3,9 +3,11 @@
     <div @click.prevent.stop="toggleDropdown">
       <slot name="trigger"></slot>
     </div>
-    <div ref="menuRef" class="dropdown-menu" :class="{ 'is-open': modelValue }" :style="menuStyle">
-      <slot></slot>
-    </div>
+    <teleport to="body">
+      <div ref="menuRef" class="v-dropdown-portal dropdown-menu" :class="{ 'is-open': modelValue }" :style="menuStyle">
+        <slot></slot>
+      </div>
+    </teleport>
   </div>
 </template>
 
@@ -45,7 +47,8 @@ const containerRef = ref<HTMLElement | null>(null)
 const menuRef = ref<HTMLElement | null>(null)
 const contentHeight = ref(0)
 const windowHeight = ref(window.innerHeight)
-const menuPosition = ref({ top: 0, bottom: 0 })
+const windowWidth = ref(window.innerWidth)
+const menuPosition = ref({ top: 0, bottom: 0, left: 0, right: 0 })
 
 const menuStyle = computed<CSSProperties>(() => {
   // Check if content fits in viewport
@@ -59,72 +62,59 @@ const menuStyle = computed<CSSProperties>(() => {
   // Check if we should position above the trigger when space is insufficient below
   const shouldPositionAbove = spaceBelow < Math.min(contentHeight.value, props.maxHeight) && spaceAbove > spaceBelow
 
-  // Base styles
+  // Base styles — use fixed positioning so the menu escapes any overflow:hidden ancestors
   const styles: CSSProperties = {
+    position: 'fixed',
     maxHeight: needsScrolling ? `${maxHeight}px` : 'none',
     overflowY: needsScrolling ? 'auto' : 'visible',
   }
 
-  // Position based on alignment
+  const { top, bottom, left, right } = menuPosition.value
+
+  // Position based on alignment (all values are viewport-relative px)
   switch (props.align) {
     case 'top-left-to-bottom-left':
+      styles.left = `${left}px`
       if (shouldPositionAbove) {
-        // Switch to bottom-left-to-top-left when space is insufficient below
-        styles.left = '0'
-        styles.bottom = '100%'
-        styles.marginBottom = '8px'
+        styles.bottom = `${bottom + 8}px`
       } else {
-        styles.left = '0'
-        styles.top = '100%'
-        styles.marginTop = '8px'
+        styles.top = `${top + 8}px`
       }
       break
     case 'top-right-to-bottom-right':
+      styles.right = `${windowWidth.value - right}px`
       if (shouldPositionAbove) {
-        // Switch to bottom-right-to-top-right when space is insufficient below
-        styles.right = '0'
-        styles.bottom = '100%'
-        styles.marginBottom = '8px'
+        styles.bottom = `${bottom + 8}px`
       } else {
-        styles.right = '0'
-        styles.top = '100%'
-        styles.marginTop = '8px'
+        styles.top = `${top + 8}px`
       }
       break
     case 'top-left-to-top-right':
-      styles.left = '100%'
-      styles.top = '0'
-      styles.marginLeft = '8px'
+      styles.left = `${right + 8}px`
+      styles.top = `${top}px`
       break
     case 'bottom-left-to-bottom-right':
-      styles.left = '100%'
-      styles.top = '100%'
-      styles.marginLeft = '0'
-      styles.marginTop = '0'
+      styles.left = `${right + 8}px`
+      styles.top = `${bottom}px`
       break
     case 'top-right-to-top-left':
-      styles.right = '100%'
-      styles.top = '0'
-      styles.marginRight = '8px'
+      styles.right = `${windowWidth.value - left + 8}px`
+      styles.top = `${top}px`
       break
     case 'bottom-left-to-top-left':
-      styles.left = '0'
-      styles.bottom = '100%'
-      styles.marginBottom = '8px'
+      styles.left = `${left}px`
+      styles.bottom = `${bottom + 8}px`
       break
     case 'bottom-right-to-top-right':
-      styles.right = '0'
-      styles.bottom = '100%'
-      styles.marginBottom = '8px'
+      styles.right = `${windowWidth.value - right}px`
+      styles.bottom = `${bottom + 8}px`
       break
     default:
-      // Default positioning with auto above placement
+      styles.left = `${left}px`
       if (shouldPositionAbove) {
-        styles.bottom = '100%'
-        styles.marginBottom = '8px'
+        styles.bottom = `${bottom + 8}px`
       } else {
-        styles.top = '100%'
-        styles.marginTop = '8px'
+        styles.top = `${top + 8}px`
       }
   }
 
@@ -154,6 +144,8 @@ const updatePosition = () => {
     menuPosition.value = {
       top: rect.bottom,
       bottom: windowHeight.value - rect.top,
+      left: rect.left,
+      right: rect.right,
     }
   }
 }
@@ -196,6 +188,7 @@ const calculateOptimalWidth = () => {
 
 const handleResize = () => {
   windowHeight.value = window.innerHeight
+  windowWidth.value = window.innerWidth
   updatePosition()
   if (props.modelValue) {
     updateContentHeight()
@@ -203,14 +196,24 @@ const handleResize = () => {
 }
 
 const handleClickOutside = (event: MouseEvent) => {
-  if (containerRef.value && !containerRef.value.contains(event.target as Node) && props.modelValue) {
+  const target = event.target as Node
+  if (
+    containerRef.value && !containerRef.value.contains(target) &&
+    menuRef.value && !menuRef.value.contains(target) &&
+    props.modelValue
+  ) {
     emit('update:modelValue', false)
   }
 }
 
 const handleGlobalClick = (event: MouseEvent) => {
   // Close dropdown on any click, even if event.stopPropagation() was called
-  if (props.modelValue && containerRef.value && !containerRef.value.contains(event.target as Node)) {
+  const target = event.target as Node
+  if (
+    props.modelValue &&
+    containerRef.value && !containerRef.value.contains(target) &&
+    menuRef.value && !menuRef.value.contains(target)
+  ) {
     emit('update:modelValue', false)
   }
 }
@@ -248,37 +251,38 @@ onUnmounted(() => {
 .v-dropdown-container {
   position: relative;
   display: inline-block;
+}
+</style>
 
-  .dropdown-menu {
-    display: none;
-    position: absolute;
-    background-color: var(--md-sys-color-surface-container);
-    border-radius: 4px;
-    box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 6px 0px;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    z-index: 100;
+<style lang="scss">
+.v-dropdown-portal {
+  display: none;
+  background-color: var(--md-sys-color-surface-container);
+  border-radius: 4px;
+  box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 6px 0px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  z-index: 1050;
+  white-space: nowrap;
+
+  & > * {
     white-space: nowrap;
+  }
 
-    & > * {
-      white-space: nowrap;
-    }
+  &.is-open {
+    display: block;
+  }
 
-    &.is-open {
-      display: block;
-    }
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
 
-    &::-webkit-scrollbar {
-      width: 6px;
-    }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
 
-    &::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: var(--md-sys-color-outline);
-      border-radius: 3px;
-    }
+  &::-webkit-scrollbar-thumb {
+    background: var(--md-sys-color-outline);
+    border-radius: 3px;
   }
 }
 </style>

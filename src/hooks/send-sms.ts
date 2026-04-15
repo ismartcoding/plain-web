@@ -1,7 +1,4 @@
-import { nextTick, onMounted, onBeforeUnmount, ref, computed, type Ref } from 'vue'
-import { useForm } from 'vee-validate'
-import { toTypedSchema } from '@vee-validate/zod'
-import { z } from 'zod'
+import { nextTick, onMounted, onBeforeUnmount, ref, computed, reactive } from 'vue'
 import { popModal } from '@/components/modal'
 import { initMutation, sendSmsGQL, sendMmsGQL } from '@/lib/api/mutation'
 import { initLazyQuery, contactsGQL } from '@/lib/api/query'
@@ -24,23 +21,19 @@ export function useSendSms(initialNumber: string, initialBody: string) {
   const { t } = useI18n()
   const { app } = storeToRefs(useTempStore())
 
+  const number = ref(initialNumber)
+  const body = ref(initialBody)
+  const errors = reactive({ number: '', body: '' })
+  const numberRef = ref<HTMLInputElement>()
   const pendingFiles = ref<File[]>([])
   const fileInputRef = ref<HTMLInputElement>()
   const mmsUploading = ref(false)
-  const numberRef = ref<HTMLInputElement>()
 
   // Contact picker
   const showContactPicker = ref(false)
   const allContacts = ref<IContact[]>([])
   const selectedContactName = ref('')
   const phoneFieldRef = ref<HTMLElement>()
-
-  const { errors, defineField, handleSubmit } = useForm({
-    validationSchema: toTypedSchema(z.object({ number: z.string({ required_error: 'valid.required' }).trim().min(1, 'valid.required'), body: z.string({ required_error: 'valid.required' }).trim().min(1, 'valid.required') })),
-    initialValues: { number: initialNumber, body: initialBody },
-  })
-  const [number] = defineField('number')
-  const [body] = defineField('body')
 
   const filteredContacts = computed(() => {
     const contacts = allContacts.value.filter((c) => c.phoneNumbers.length > 0)
@@ -114,28 +107,22 @@ export function useSendSms(initialNumber: string, initialBody: string) {
 
   const cancel = () => popModal()
 
-  const submit = handleSubmit(async () => {
-    if (pendingFiles.value.length > 0) {
+  async function submit() {
+    const numberOk = !!number.value?.trim()
+    const bodyOk = !!body.value?.trim()
+    errors.number = numberOk ? '' : 'valid.required'
+    errors.body = bodyOk ? '' : 'valid.required'
+
+    if (pendingFiles.value.length > 0 && numberOk) {
       mmsUploading.value = true
       try {
         const attachmentPaths = await uploadAttachments()
         mutateMms({ number: number.value, body: body.value || '', attachmentPaths, threadId: '' })
       } catch (e: any) { toast(e.message || t('upload_failed'), 'error') } finally { mmsUploading.value = false }
-    } else {
+    } else if (numberOk && bodyOk) {
       mutate({ number: number.value, body: body.value })
     }
-  }, () => {
-    if (pendingFiles.value.length > 0 && number.value?.trim()) {
-      const doSend = async () => {
-        mmsUploading.value = true
-        try {
-          const attachmentPaths = await uploadAttachments()
-          mutateMms({ number: number.value, body: body.value || '', attachmentPaths, threadId: '' })
-        } catch (e: any) { toast(e.message || t('upload_failed'), 'error') } finally { mmsUploading.value = false }
-      }
-      doSend()
-    }
-  })
+  }
 
   onDone(() => { emitter.emit('sms_sent'); popModal() })
   onMmsDone(() => { tapPhone(t('confirm_mms_on_phone')); popModal() })

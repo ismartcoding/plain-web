@@ -208,6 +208,7 @@ export default {
   reset_font_size: 'ফন্ট সাইজ রিসেট করুন',
   removed: 'সরানো হয়েছে',
   added: 'যোগ করা হয়েছে',
+  favorites: 'প্রিয়',
   add_to_favorites: 'প্রিয়তে যোগ করুন',
   remove_from_favorites: 'প্রিয় থেকে সরান',
   start_time: 'শুরুর সময়',

@@ -204,6 +204,7 @@ export default {
   reset_font_size: 'Réinitialiser la taille de police',
   removed: 'Supprimé',
   added: 'Ajouté',
+  favorites: 'Favoris',
   add_to_favorites: 'Ajouter aux favoris',
   remove_from_favorites: 'Retirer des favoris',
   start_time: 'Heure de début',

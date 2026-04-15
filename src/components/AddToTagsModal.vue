@@ -31,29 +31,19 @@
 import { addToTagsGQL, initMutation, removeFromTagsGQL } from '@/lib/api/mutation'
 import type { ITag } from '@/lib/interfaces'
 import emitter from '@/plugins/eventbus'
-import { useField, useForm } from 'vee-validate'
-import { toTypedSchema } from '@vee-validate/zod'
-import { z } from 'zod'
 import { ref, type PropType } from 'vue'
 import { popModal } from './modal'
 import { arrayRemove } from '@/lib/array'
 
-const { handleSubmit } = useForm()
 const mode = ref('add_to_tags')
+const selectedTags = ref<ITag[]>([])
+const errorMessage = ref('')
 
 const props = defineProps({
   type: { type: String, required: true },
   tags: { type: Array as PropType<Array<ITag>>, default: () => [] },
   query: { type: String, required: true },
 })
-
-const { value: selectedTags, errorMessage } = useField<ITag[]>(
-  'selectedTags',
-  toTypedSchema(z.array(z.any()).min(1, 'valid.required')),
-  {
-    initialValue: [],
-  }
-)
 
 const {
   mutate: removeFromTags,
@@ -88,7 +78,9 @@ function onTagSelect(item: ITag) {
   }
 }
 
-const doAction = handleSubmit(() => {
+function doAction() {
+  if (selectedTags.value.length === 0) { errorMessage.value = 'valid.required'; return }
+  errorMessage.value = ''
   if (mode.value === 'add_to_tags') {
     addToTags({
       type: props.type,
@@ -102,7 +94,7 @@ const doAction = handleSubmit(() => {
       query: props.query,
     })
   }
-})
+}
 </script>
 <style lang="scss" scoped>
 .button-group {

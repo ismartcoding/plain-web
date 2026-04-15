@@ -204,6 +204,7 @@ export default {
   reset_font_size: 'எழுத்து அளவு மீட்டமை',
   removed: 'அகற்றப்பட்டது',
   added: 'சேர்க்கப்பட்டது',
+  favorites: 'விருப்பங்கள்',
   add_to_favorites: 'விருப்பங்களில் சேர்க்கவும்',
   remove_from_favorites: 'விருப்பங்களிலிருந்து நீக்கவும்',
   start_time: 'தொடக்க நேரம்',

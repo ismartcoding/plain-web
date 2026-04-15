@@ -204,6 +204,7 @@ export default {
   reset_font_size: 'Schriftgröße zurücksetzen',
   removed: 'Entfernt',
   added: 'Hinzugefügt',
+  favorites: 'Favoriten',
   add_to_favorites: 'Zu Favoriten hinzufügen',
   remove_from_favorites: 'Aus Favoriten entfernen',
   start_time: 'Startzeit',

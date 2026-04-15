@@ -173,6 +173,7 @@ export default {
   sending: '전송 중...',
   removed: '제거됨',
   added: '추가됨',
+  favorites: '즐겨찾기',
   add_to_favorites: '즐겨찾기에 추가',
   remove_from_favorites: '즐겨찾기에서 제거',
   color: '색상',

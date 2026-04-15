@@ -173,6 +173,7 @@ export default {
   sending: 'Đang gửi…',
   removed: 'Đã xóa',
   added: 'Đã thêm',
+  favorites: 'Yêu thích',
   add_to_favorites: 'Thêm vào yêu thích',
   remove_from_favorites: 'Xóa khỏi yêu thích',
   color: 'Màu sắc',

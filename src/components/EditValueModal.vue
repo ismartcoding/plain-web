@@ -15,10 +15,7 @@
   </v-modal>
 </template>
 <script setup lang="ts">
-import { useForm } from 'vee-validate'
-import { toTypedSchema } from '@vee-validate/zod'
-import { z } from 'zod'
-import { onMounted, ref, type PropType, nextTick } from 'vue'
+import { onMounted, ref, reactive, type PropType, nextTick } from 'vue'
 import { popModal } from './modal'
 
 const inputRef = ref<HTMLInputElement>()
@@ -38,18 +35,10 @@ const props = defineProps({
   },
 })
 
-const { errors, handleSubmit, defineField } = useForm({
-  validationSchema: toTypedSchema(z.object({
-    name: z.string({ required_error: 'valid.required' }).min(1, 'valid.required'),
-  })),
-  initialValues: {
-    name: props.value ?? '',
-  },
-})
-const [name] = defineField('name')
+const name = ref(props.value ?? '')
+const errors = reactive({ name: '' })
 
 const { mutate, loading, onDone } = props.mutation()
-name.value = props.value ?? ''
 
 function cancel() {
   popModal()
@@ -60,7 +49,6 @@ onMounted(async () => {
   requestAnimationFrame(() => {
     setTimeout(() => {
       try {
-        // Blur current focused element and focus input
         if (document.activeElement && document.activeElement !== document.body) {
           (document.activeElement as HTMLElement).blur()
         }
@@ -72,12 +60,14 @@ onMounted(async () => {
   })
 })
 
-const doAction = handleSubmit(() => {
-  mutate(props.getVariables(name.value ?? ''))
-})
+function doAction() {
+  if (!name.value?.trim()) { errors.name = 'valid.required'; return }
+  errors.name = ''
+  mutate(props.getVariables(name.value))
+}
 
 onDone(() => {
-  props.done?.call(this, name.value!)
+  props.done?.call(undefined, name.value!)
   popModal()
 })
 </script>

@@ -197,6 +197,7 @@ export default {
   failed: 'Failed',
   removed: 'Removed',
   added: 'Added',
+  favorites: 'Favorites',
   add_to_favorites: 'Add to favorites',
   remove_from_favorites: 'Remove from favorites',
   color: 'Color',

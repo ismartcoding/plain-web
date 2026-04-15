@@ -204,6 +204,7 @@ export default {
   reset_font_size: 'Yazı tipi boyutunu sıfırla',
   removed: 'Kaldırıldı',
   added: 'Eklendi',
+  favorites: 'Favoriler',
   add_to_favorites: 'Favorilere ekle',
   remove_from_favorites: 'Favorilerden kaldır',
   start_time: 'Başlangıç zamanı',
