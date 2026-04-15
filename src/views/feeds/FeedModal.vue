@@ -36,17 +36,14 @@
 <script setup lang="ts">
 import { initMutation, updateFeedGQL } from '@/lib/api/mutation'
 import type { IFeed } from '@/lib/interfaces'
-import { useField, useForm } from 'vee-validate'
-import { toTypedSchema } from '@vee-validate/zod'
-import { z } from 'zod'
 import { nextTick, ref, type PropType } from 'vue'
 import { popModal } from '@/components/modal'
 
-
-const { handleSubmit } = useForm()
-
 const inputRef = ref<HTMLInputElement>()
 const fetchContent = ref(false)
+const inputValue = ref('')
+const valueError = ref('')
+
 function toggleFetchContent(e: Event) {
   fetchContent.value = (e.target as HTMLInputElement).checked
 }
@@ -60,7 +57,6 @@ const props = defineProps({
 const { mutate, loading, onDone } = initMutation({
   document: updateFeedGQL,
 })
-const { value: inputValue, errorMessage: valueError } = useField('inputValue', toTypedSchema(z.string({ required_error: 'valid.required' }).min(1, 'valid.required')))
 inputValue.value = props.data?.name ?? ''
 fetchContent.value = props.data?.fetchContent ?? false
 
@@ -81,9 +77,11 @@ fetchContent.value = props.data?.fetchContent ?? false
   })
 })()
 
-const doAction = handleSubmit(() => {
+function doAction() {
+  if (!inputValue.value?.trim()) { valueError.value = 'valid.required'; return }
+  valueError.value = ''
   mutate({ id: props.data?.id, name: inputValue.value, fetchContent: fetchContent.value })
-})
+}
 
 onDone(() => {
   popModal()

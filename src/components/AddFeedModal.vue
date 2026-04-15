@@ -23,18 +23,15 @@
   </v-modal>
 </template>
 <script setup lang="ts">
-import { useField, useForm } from 'vee-validate'
-import { toTypedSchema } from '@vee-validate/zod'
-import { z } from 'zod'
 import { nextTick, ref, type PropType, onMounted } from 'vue'
 import { popModal } from './modal'
 import { createFeedGQL, initMutation } from '@/lib/api/mutation'
 
-
-const { handleSubmit } = useForm()
-
 const inputRef = ref<HTMLInputElement>()
 const fetchContent = ref(false)
+const inputValue = ref('')
+const valueError = ref('')
+
 function toggleFetchContent(e: Event) {
   fetchContent.value = (e.target as HTMLInputElement).checked
 }
@@ -48,12 +45,6 @@ const props = defineProps({
 const { mutate, loading, onDone } = initMutation({
   document: createFeedGQL,
 })
-const { value: inputValue, resetField, errorMessage: valueError } = useField('inputValue', toTypedSchema(z.string({ required_error: 'valid.required' }).min(1, 'valid.required')))
-resetField()
-
-function cancel() {
-  popModal()
-}
 
 // Focus management
 onMounted(async () => {
@@ -72,12 +63,18 @@ onMounted(async () => {
   })
 })
 
-const doAction = handleSubmit(() => {
-  mutate({ url: inputValue.value ?? '', fetchContent: fetchContent.value })
-})
+function cancel() {
+  popModal()
+}
+
+function doAction() {
+  if (!inputValue.value?.trim()) { valueError.value = 'valid.required'; return }
+  valueError.value = ''
+  mutate({ url: inputValue.value, fetchContent: fetchContent.value })
+}
 
 onDone(() => {
-  props.done?.call(this)
+  props.done?.call(undefined)
   popModal()
 })
 </script>

@@ -1,6 +1,5 @@
 import type { IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IFileDeletedEvent, IFileRenamedEvent, IMediaItemsActionedEvent, INotesActionedEvent } from '@/lib/interfaces'
 import type { IUploadItem } from '@/stores/temp'
-import mitt, { type Emitter } from 'mitt'
 import type { SignalingMessage } from '@/lib/webrtc-client'
 
 type Events = {
@@ -44,6 +43,31 @@ type Events = {
   image_search_updated: any
 }
 
-const emitter: Emitter<Events> = mitt<Events>()
+type Handler<T = any> = (event: T) => void
+
+function createEmitter<E extends Record<string, any>>() {
+  const all = new Map<keyof E, Set<Handler>>()
+
+  function on<K extends keyof E>(type: K, handler: Handler<E[K]>) {
+    const s = all.get(type)
+    if (s) s.add(handler)
+    else all.set(type, new Set([handler]))
+  }
+
+  function off<K extends keyof E>(type: K, handler?: Handler<E[K]>) {
+    if (handler) all.get(type)?.delete(handler)
+    else all.delete(type)
+  }
+
+  function emit<K extends keyof E>(type: K, event: E[K]): void
+  function emit<K extends keyof E>(type: undefined extends E[K] ? K : never): void
+  function emit(type: any, event?: any) {
+    all.get(type)?.forEach((h) => h(event))
+  }
+
+  return { on, off, emit }
+}
+
+const emitter = createEmitter<Events>()
 
 export default emitter

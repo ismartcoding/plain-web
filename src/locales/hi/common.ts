@@ -173,6 +173,7 @@ export default {
   sending: 'भेज रहा हूँ…',
   removed: 'हटाया गया',
   added: 'जोड़ा गया',
+  favorites: 'पसंदीदा',
   add_to_favorites: 'पसंदीदा में जोड़ें',
   remove_from_favorites: 'पसंदीदा से हटाएं',
   color: 'रंग',

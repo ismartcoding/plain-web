@@ -17,7 +17,7 @@
         :label="t('password')"
         type="password"
         class="form-control"
-        :error="passwordError"
+        :error="!!passwordError"
         autocomplete="current-password"
         :error-text="passwordError ? $t(passwordError) : ''"
         @keydown.enter="onSubmit"

@@ -1,8 +1,5 @@
-import { reactive, ref, type PropType } from 'vue'
+import { reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useField, useForm } from 'vee-validate'
-import { toTypedSchema } from '@vee-validate/zod'
-import { z } from 'zod'
 import { initMutation, createContactGQL, updateContactGQL } from '@/lib/api/mutation'
 import { types } from '@/lib/contact/contact'
 import { popModal, pushModal } from '@/components/modal'
@@ -11,7 +8,6 @@ import type { IContact, IContactContentItem, IContactPhoneNumber } from '@/lib/i
 
 export function useEditContact(data: IContact | undefined, sources: any[], done: () => void) {
   const { t } = useI18n()
-  const { handleSubmit } = useForm()
 
   const editItem = reactive({
     firstName: '', middleName: '', lastName: '', prefix: '', suffix: '',
@@ -38,9 +34,6 @@ export function useEditContact(data: IContact | undefined, sources: any[], done:
   })
   editDone(() => { done(); popModal() })
 
-  const { resetField } = useField('inputValue', toTypedSchema(z.any()))
-
-  // Initialize form data
   const copyContentItems = (items: any[], newItems: any[]) => {
     items.splice(0, items.length)
     for (const item of newItems) items.push({ label: item.label, value: item.value, type: item.type })
@@ -56,7 +49,6 @@ export function useEditContact(data: IContact | undefined, sources: any[], done:
     copyContentItems(editItem.ims, data.ims)
   } else {
     Object.assign(editItem, { firstName: '', middleName: '', lastName: '', prefix: '', suffix: '', notes: '', phoneNumbers: [{ type: 2, value: '', label: '' }], emails: [], addresses: [], websites: [], events: [], ims: [] })
-    resetField()
   }
 
   const onTypeChanged = (item: any) => {
@@ -76,10 +68,10 @@ export function useEditContact(data: IContact | undefined, sources: any[], done:
   const addField = (items: any[]) => { items.push({ type: 1, value: '', label: '' }); addFieldMenuVisible.value = false }
   const deleteField = (items: any[], index: number) => { items.splice(index, 1) }
 
-  const doAction = handleSubmit(() => {
+  function doAction() {
     if (data) { edit({ id: data.id, input: editItem }) }
     else { editItem.source = sources?.[0]?.name ?? ''; create({ input: editItem }) }
-  })
+  }
 
   return {
     editItem, complexName, addFieldMenuVisible, createLoading, editLoading, types,

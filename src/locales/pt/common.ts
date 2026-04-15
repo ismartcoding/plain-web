@@ -203,6 +203,7 @@ export default {
   reset_font_size: 'Redefinir tamanho da fonte',
   removed: 'Removido',
   added: 'Adicionado',
+  favorites: 'Favoritos',
   add_to_favorites: 'Adicionar aos favoritos',
   remove_from_favorites: 'Remover dos favoritos',
   time: 'Hora',

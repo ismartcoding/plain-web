@@ -204,6 +204,7 @@ export default {
   reset_font_size: 'Lettergrootte resetten',
   removed: 'Verwijderd',
   added: 'Toegevoegd',
+  favorites: 'Favorieten',
   add_to_favorites: 'Toevoegen aan favorieten',
   remove_from_favorites: 'Verwijderen uit favorieten',
   start_time: 'Starttijd',

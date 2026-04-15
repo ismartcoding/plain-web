@@ -1,6 +1,6 @@
 <template>
   <teleport to="body">
-    <div class="v-modal-backdrop" @click="handleBackdropClick">
+    <div class="v-modal-backdrop" @mousedown="onBackdropMousedown" @click="handleBackdropClick">
       <div class="v-modal-container" :class="modalId ? `modal-${modalId}` : ''" @click.stop>
         <div class="v-modal-content">
           <!-- Headline slot -->
@@ -49,10 +49,17 @@ const emit = defineEmits<{
 }>()
 
 // 处理背景点击
+let mousedownOnBackdrop = false
+
+const onBackdropMousedown = (event: MouseEvent) => {
+  mousedownOnBackdrop = event.target === event.currentTarget
+}
+
 const handleBackdropClick = () => {
-  if (props.backgroundClose) {
+  if (props.backgroundClose && mousedownOnBackdrop) {
     emit('close')
   }
+  mousedownOnBackdrop = false
 }
 
 // 处理ESC键

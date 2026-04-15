@@ -204,6 +204,7 @@ export default {
   reset_font_size: 'フォントサイズをリセット',
   removed: '削除されました',
   added: '追加されました',
+  favorites: 'お気に入り',
   add_to_favorites: 'お気に入りに追加',
   remove_from_favorites: 'お気に入りから削除',
   start_time: '開始時刻',

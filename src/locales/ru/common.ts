@@ -204,6 +204,7 @@ export default {
   reset_font_size: 'Сбросить размер шрифта',
   removed: 'Удалено',
   added: 'Добавлено',
+  favorites: 'Избранное',
   add_to_favorites: 'Добавить в избранное',
   remove_from_favorites: 'Удалить из избранного',
   start_time: 'Время начала',

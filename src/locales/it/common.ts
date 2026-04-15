@@ -173,6 +173,7 @@ export default {
   sending: 'Invio…',
   removed: 'Rimosso',
   added: 'Aggiunto',
+  favorites: 'Preferiti',
   add_to_favorites: 'Aggiungi ai preferiti',
   remove_from_favorites: 'Rimuovi dai preferiti',
   color: 'Colore',
