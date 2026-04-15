@@ -132,6 +132,17 @@
       </div>
     </div>
 
+    <div class="card feature-card" @click="openTab('/docs')">
+      <div class="card-icon">
+        <i-lucide:file-text />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span class="title">{{ $t('page_title.docs') }}</span>
+        </div>
+      </div>
+    </div>
+
     <div class="card feature-card" @click="openTab('/device-info')">
       <div class="card-icon">
         <i-lucide:smartphone />

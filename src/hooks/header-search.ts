@@ -45,7 +45,7 @@ export function useHeaderSearch(props: {
   const {
     buildMediaQ, copyMediaFilter, parseMediaQ,
     buildFilesQ, parseFilesQ,
-    buildNextQ, buildNextMediaQ, buildNextMessagesQ, buildNextCallsQ, buildNextFeedsQ,
+    buildNextQ, buildNextMediaQ, buildNextMessagesQ, buildNextCallsQ, buildNextFeedsQ, buildNextDocsQ,
   } = useHeaderSearchQuery()
 
   const mediaLocalFilter: IFilter = reactive({ tagIds: [] })
@@ -55,6 +55,7 @@ export function useHeaderSearch(props: {
   const routeGroup = computed(() => String(router.currentRoute.value.meta?.group ?? ''))
   const showMediaFilters = computed(() => ['audios', 'videos', 'images'].includes(routeGroup.value))
   const showFilesFilters = computed(() => routeGroup.value === 'files')
+  const showDocsFilters = computed(() => routeGroup.value === 'docs')
   const showAppsFilters = computed(() => routeGroup.value === 'apps')
   const showMessagesFilters = computed(() => routeGroup.value === 'messages')
   const showCallsFilters = computed(() => routeGroup.value === 'calls')
@@ -103,7 +104,7 @@ export function useHeaderSearch(props: {
   const { uiTokens, onUiTokensChange } = useHeaderSearchTokens(
     routeGroup, text, mediaLocalFilter, filesLocalFilter, callsLocal,
     mediaTags, mediaBuckets, messageTags, feeds,
-    showMediaFilters, showFilesFilters, showAppsFilters, showMessagesFilters, showCallsFilters, showFeedsFilters,
+    showMediaFilters, showFilesFilters, showAppsFilters, showMessagesFilters, showCallsFilters, showFeedsFilters, showDocsFilters,
   )
 
   // Route sync
@@ -151,6 +152,7 @@ export function useHeaderSearch(props: {
       if (showMediaFilters.value) { replaceCurrentRouteQ(buildNextMediaQ(currentEncodedQ.value, { ...mediaLocalFilter, text: text.value })); return }
       if (showAppsFilters.value) { replaceCurrentRouteQ(buildNextMediaQ(currentEncodedQ.value, { tagIds: [], type: mediaLocalFilter.type, text: text.value })); return }
       if (showFilesFilters.value) { replaceCurrentRouteQ(buildFilesQ({ ...filesLocalFilter, text: text.value })); return }
+      if (showDocsFilters.value) { replaceCurrentRouteQ(buildNextDocsQ(currentEncodedQ.value, filesLocalFilter.fileSize, text.value)); return }
       if (showMessagesFilters.value) { replaceCurrentRouteQ(buildNextMessagesQ(currentEncodedQ.value, mediaLocalFilter.type, mediaLocalFilter.tagIds ?? [], text.value)); return }
       if (showCallsFilters.value) { replaceCurrentRouteQ(buildNextCallsQ(currentEncodedQ.value, mediaLocalFilter.type, callsLocal.duration, callsLocal.startTime, text.value)); return }
       if (showFeedsFilters.value) { replaceCurrentRouteQ(buildNextFeedsQ(currentEncodedQ.value, mediaLocalFilter.feedId, text.value)); return }

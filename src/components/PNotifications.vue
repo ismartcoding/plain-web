@@ -7,26 +7,26 @@
       <div class="title">
         {{ $t('header_actions.notifications') }} ({{ notifications.length }})
         <div v-if="hasNotificationWarning" class="warning-indicator">
-          <popper>
-            <button class="btn-icon warning-icon">
-              <i-material-symbols:warning-outline />
-            </button>
-            <template #content>
-              <div class="warning-dropdown">
-                <div class="warning-content">
-                  <i-material-symbols:error-outline-rounded />
-                  <div class="warning-text">
-                    {{ $t(notificationWarningMessage) }}
-                  </div>
-                </div>
-                <div v-if="notificationWarningAction" class="warning-actions">
-                  <v-filled-button class="btn-sm" @click="notificationWarningAction.action()">
-                    {{ $t(notificationWarningAction.text) }}
-                  </v-filled-button>
+          <v-dropdown v-model="warningMenuVisible">
+            <template #trigger>
+              <button class="btn-icon warning-icon">
+                <i-material-symbols:warning-outline />
+              </button>
+            </template>
+            <div class="warning-dropdown">
+              <div class="warning-content">
+                <i-material-symbols:error-outline-rounded />
+                <div class="warning-text">
+                  {{ $t(notificationWarningMessage) }}
                 </div>
               </div>
-            </template>
-          </popper>
+              <div v-if="notificationWarningAction" class="warning-actions">
+                <v-filled-button class="btn-sm" @click="notificationWarningAction.action()">
+                  {{ $t(notificationWarningAction.text) }}
+                </v-filled-button>
+              </div>
+            </div>
+          </v-dropdown>
         </div>
       </div>
       <div class="actions">
@@ -48,12 +48,12 @@
       <section v-if="notifications.length" class="list-items">
         <div v-for="item in notifications" :key="item.id" class="item">
           <div class="title">
-            <popper>
-              <img width="20" height="20" :src="item.icon" />
-              <template #content>
-                <pre class="view-raw">{{ item }}</pre>
+            <v-dropdown :model-value="openIconId === item.id" @update:model-value="(v: boolean) => openIconId = v ? item.id : ''">\n
+              <template #trigger>
+                <img width="20" height="20" :src="item.icon" />
               </template>
-            </popper>
+              <pre class="view-raw">{{ item }}</pre>
+            </v-dropdown>
             <span class="name">{{ item.appName }}</span>
             <time v-tooltip="formatDateTimeFull(item.time)" class="time nowrap">{{ formatDateTime(item.time) }}</time>
           </div>
@@ -89,9 +89,13 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { formatDateTime, formatDateTimeFull } from '@/lib/format'
 import { noDataKey } from '@/lib/list'
 import { useNotifications } from '@/hooks/notifications'
+
+const warningMenuVisible = ref(false)
+const openIconId = ref('')
 
 const {
   store, app, notificationSound, notifications, loading,

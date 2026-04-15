@@ -32,7 +32,7 @@
       <span v-tooltip="formatDateTime(item.updatedAt)">{{ formatTimeAgo(item.updatedAt) }}</span>
     </div>
     
-            <FileActionButtons
+    <FileActionButtons
           :item="item"
           :can-paste="canPaste"
           @download-dir="downloadDir"

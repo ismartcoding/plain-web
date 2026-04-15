@@ -22,6 +22,7 @@ import {
   deviceInfoFragment,
   bookmarkFragment,
   bookmarkGroupFragment,
+  docFragment,
 } from './fragments'
 
 // --- Query Wrappers ---
@@ -484,6 +485,26 @@ export const audioCountGQL = `
   query {
     total: audioCount(query: "")
     trash: audioCount(query: "trash:true")
+  }
+`
+
+export const docsGQL = `
+  query docs($offset: Int!, $limit: Int!, $query: String!, $sortBy: FileSortBy!) {
+    items: docs(offset: $offset, limit: $limit, query: $query, sortBy: $sortBy) {
+      ...DocFragment
+    }
+    total: docCount(query: $query)
+  }
+  ${docFragment}
+`
+
+export const docCountGQL = `
+  query {
+    total: docCount(query: "")
+    extGroups: docExtGroups {
+      ext
+      count
+    }
   }
 `
 

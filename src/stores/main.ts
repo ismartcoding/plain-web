@@ -26,6 +26,7 @@ export type MainState = {
   pageSize: number
   videoSortBy: string
   audioSortBy: string
+  docSortBy: string
   conversationSortBy: string
   callNumber: string
   feedEntryFontSize: number // font size for feed entry content
@@ -63,6 +64,7 @@ export const useMainStore = defineStore('main', {
       pageSize: 50,
       videoSortBy: 'DATE_DESC',
       audioSortBy: 'DATE_DESC',
+      docSortBy: 'DATE_DESC',
       conversationSortBy: 'DATE_DESC',
       callNumber: '',
       feedEntryFontSize: 16, // default font size

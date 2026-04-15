@@ -121,6 +121,7 @@ export default {
     trash: '回收站',
     screen_mirror: '屏幕镜像',
     device_info: '设备信息',
+    docs: '文档',
     chat: '聊天',
     local_chat: '本机聊天',
   },

@@ -20,6 +20,7 @@ export function useHeaderSearchTokens(
   showMessagesFilters: Ref<boolean>,
   showCallsFilters: Ref<boolean>,
   showFeedsFilters: Ref<boolean>,
+  showDocsFilters: Ref<boolean>,
 ) {
   const uiTokens = computed<UiToken[]>(() => {
     const tokens: UiToken[] = []
@@ -42,6 +43,11 @@ export function useHeaderSearchTokens(
     }
 
     if (showFilesFilters.value) {
+      if (filesLocalFilter.fileSize) tokens.push({ key: 'file_size', value: filesLocalFilter.fileSize })
+      return tokens
+    }
+
+    if (showDocsFilters.value) {
       if (filesLocalFilter.fileSize) tokens.push({ key: 'file_size', value: filesLocalFilter.fileSize })
       return tokens
     }
@@ -96,6 +102,12 @@ export function useHeaderSearchTokens(
     }
 
     if (showFilesFilters.value) {
+      filesLocalFilter.fileSize = tokens.find((it) => it.key === 'file_size')?.value
+      filesLocalFilter.text = text.value
+      return
+    }
+
+    if (showDocsFilters.value) {
       filesLocalFilter.fileSize = tokens.find((it) => it.key === 'file_size')?.value
       filesLocalFilter.text = text.value
       return
