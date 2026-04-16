@@ -72,7 +72,7 @@
 <script setup lang="ts">
 import type { PropType } from 'vue'
 import type { IChatChannel, IPeer } from '@/lib/interfaces'
-import { useChannelInfo } from '@/hooks/channel-info'
+import { useChannelInfo } from './hooks/channel-info'
 
 const props = defineProps({
   channel: { type: Object as PropType<IChatChannel>, required: true },

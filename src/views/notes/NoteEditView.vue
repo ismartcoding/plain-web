@@ -44,7 +44,7 @@
 import { ref } from 'vue'
 import { useNoteEdit } from '@/hooks/note-edit'
 import type MarkdownEditorVue from '@/components/MarkdownEditor.vue'
-import NoteModeToggle from '@/components/notes/NoteModeToggle.vue'
+import NoteModeToggle from '@/views/notes/NoteModeToggle.vue'
 
 const editorRef = ref<InstanceType<typeof MarkdownEditorVue>>()
 

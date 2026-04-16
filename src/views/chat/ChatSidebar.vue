@@ -78,7 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import { useChatSidebar } from '@/hooks/chat-sidebar'
+import { useChatSidebar } from './hooks/chat-sidebar'
 
 const {
   currentChatId, loading,

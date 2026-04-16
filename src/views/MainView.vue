@@ -106,7 +106,7 @@
 <script setup lang="ts">
 import { inject } from 'vue'
 import HeaderSearch from '@/components/HeaderSearch.vue'
-import BookmarkList from '@/components/BookmarkList.vue'
+import BookmarkList from '@/views/bookmarks/BookmarkList.vue'
 import { useMainView } from '@/hooks/main-view'
 
 const isTablet = inject('isTablet')

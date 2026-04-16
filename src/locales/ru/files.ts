@@ -18,6 +18,7 @@ export default {
   download_as_zip: 'Скачать как ZIP',
   show_hidden: 'Показать скрытые',
   select_mode: 'Режим выбора',
+  ext: 'Расширение',
   file_size: 'Размер файла',
   invalid_file_signature: 'Недопустимая подпись файла',
   upload_status: {

@@ -18,5 +18,6 @@ export default {
   search_file_size_greater_than_1gb: '1GB 초과',
   search_file_size_less_than_1mb: '1MB 미만',
   search_file_size_less_than_100kb: '100KB 미만',
+  search_filter_by_ext: '파일 확장자로 필터',
   search_no_results: '결과 없음',
 }

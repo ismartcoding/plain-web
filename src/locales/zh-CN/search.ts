@@ -18,5 +18,6 @@ export default {
   search_file_size_greater_than_1gb: '大于 1GB',
   search_file_size_less_than_1mb: '小于 1MB',
   search_file_size_less_than_100kb: '小于 100KB',
+  search_filter_by_ext: '按文件扩展名过滤',
   search_no_results: '没有结果',
 }

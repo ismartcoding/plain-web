@@ -44,14 +44,14 @@ import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import type { IMessage, ITag } from '@/lib/interfaces'
 import { openModal } from '@/components/modal'
-import ExportSmsModal from '@/components/messages/ExportSmsModal.vue'
+import ExportSmsModal from '@/views/messages/ExportSmsModal.vue'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { DataType } from '@/lib/data'
 import { useMessageThread } from '@/hooks/message-thread'
 import { useMessageSend } from '@/hooks/message-send'
-import MessageChatHeader from '@/components/messages/MessageChatHeader.vue'
-import MessageChatList from '@/components/messages/MessageChatList.vue'
-import MessageChatInput from '@/components/messages/MessageChatInput.vue'
+import MessageChatHeader from '@/views/messages/MessageChatHeader.vue'
+import MessageChatList from '@/views/messages/MessageChatList.vue'
+import MessageChatInput from '@/views/messages/MessageChatInput.vue'
 
 const mainStore = useMainStore()
 const { app, urlTokenKey } = storeToRefs(useTempStore())

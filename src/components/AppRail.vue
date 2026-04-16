@@ -61,28 +61,41 @@
 
     <div class="rail-spacer"></div>
 
-    <div v-if="app?.battery" v-tooltip="$t('battery_left', { percentage: app.battery })" class="rail-battery">
+    <div v-if="app?.battery" class="rail-battery" @mouseenter="batteryHover = true" @mouseleave="batteryHover = false">
       <svg class="battery-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="1" y="6.5" width="18" height="11" rx="2" ry="2" />
         <line x1="23" y1="10" x2="23" y2="14" />
         <rect x="2.5" y="8" :width="14 * (app.battery / 100)" height="8" rx="1" fill="currentColor" stroke="none" />
       </svg>
       <div class="rail-label">{{ app.battery }}%</div>
+      <div v-if="batteryHover" class="battery-popup">
+        <div class="battery-popup-device">{{ app.deviceName || $t('my_phone') }}</div>
+        <template v-if="recentPagesList.length">
+          <router-link v-for="page in recentPagesList" :key="page.path" :to="page.path" class="battery-popup-page">
+            {{ page.title }}
+          </router-link>
+        </template>
+      </div>
     </div>
   </nav>
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount } from 'vue'
+import { onBeforeUnmount, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 
 const { app } = storeToRefs(useTempStore())
+const { t } = useI18n()
 
 const store = useMainStore()
 const router = useRouter()
+
+const batteryHover = ref(false)
+const recentPagesList = computed(() => store.recentPages.slice(0, 5))
 
 function isActive(prefix: string) {
   try {
@@ -106,11 +119,16 @@ function lastRoute(defaultPath: string, group: string) {
   }
 }
 
-// Persist last visited route per group into MainState
+// Persist last visited route per group and track recent pages
 const removeAfterEach = router.afterEach((to) => {
   const group = (to.meta?.group || '') as string
   if (group) {
     store.lastRoutes[group] = to.fullPath
+    const titleKey = `page_title.${group}`
+    const title = t(titleKey)
+    if (title && title !== titleKey) {
+      store.addRecentPage({ path: to.fullPath, title, time: Date.now() })
+    }
   }
 })
 
@@ -200,10 +218,51 @@ onBeforeUnmount(() => {
   gap: 4px;
   padding: 8px 0;
   color: var(--md-sys-color-on-surface-variant);
+  position: relative;
+  cursor: default;
 }
 
 .battery-svg {
   width: 24px;
   height: 24px;
+}
+
+.battery-popup {
+  position: absolute;
+  right: 68px;
+  bottom: 0;
+  background: var(--md-sys-color-surface-container-high);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 12px;
+  padding: 12px;
+  min-width: 180px;
+  max-width: 240px;
+  z-index: 100;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.battery-popup-device {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.battery-popup-page {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--md-sys-color-on-surface-variant);
+  padding: 4px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--md-sys-color-primary);
+  }
 }
 </style>

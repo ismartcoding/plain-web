@@ -80,7 +80,7 @@
 import { inject } from 'vue'
 import { noDataKey } from '@/lib/list'
 import VirtualList from '@/components/virtualscroll'
-import NoteListItem from '@/components/notes/NoteListItem.vue'
+import NoteListItem from '@/views/notes/NoteListItem.vue'
 import { useNotesData } from './hooks/useNotesData'
 import { useNotesActions } from './hooks/useNotesActions'
 

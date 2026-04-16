@@ -65,12 +65,13 @@ export function useHeaderSearchQuery() {
     return fields.length === 0 ? '' : encodeBase64(buildQuery(fields))
   }
 
-  function buildNextDocsQ(currentEncodedQ: string, fileSize: string | undefined, textValue: string) {
-    const fields = parseCurrentFields(currentEncodedQ).filter((f) => !['text', 'file_size'].includes(f.name))
+  function buildNextDocsQ(currentEncodedQ: string, fileSize: string | undefined, ext: string, textValue: string) {
+    const fields = parseCurrentFields(currentEncodedQ).filter((f) => !['text', 'file_size', 'ext'].includes(f.name))
     if (fileSize) {
       const { op, value } = splitOpValue(fileSize)
       if (value) fields.push({ name: 'file_size', op, value })
     }
+    if (ext) fields.push({ name: 'ext', op: '', value: ext })
     const v = textValue.trim()
     if (v) fields.push({ name: 'text', op: '', value: v })
     return fields.length === 0 ? '' : encodeBase64(buildQuery(fields))

@@ -23,7 +23,7 @@ const router = createRouter({
           name: 'home',
           path: '',
           components: {
-            default: () => import('@/views/HomeView.vue'),
+            default: () => import('@/views/home/HomeView.vue'),
           },
           meta: { group: 'home' },
         },
@@ -131,12 +131,12 @@ const router = createRouter({
         },
         {
           path: 'screen-mirror',
-          component: () => import('@/views/ScreenMirrorView.vue'),
+          component: () => import('@/views/screen-mirror/ScreenMirrorView.vue'),
           meta: { group: 'screen_mirror' },
         },
         {
           path: 'device-info',
-          component: () => import('@/views/DeviceInfoView.vue'),
+          component: () => import('@/views/device-info/DeviceInfoView.vue'),
           meta: { group: 'device_info' },
         },
         {
@@ -167,7 +167,7 @@ const router = createRouter({
         {
           path: 'chat/app-files',
           components: {
-            default: () => import('@/views/chat/AppFilesView.vue'),
+            default: () => import('@/views/app-files/AppFilesView.vue'),
             LeftSidebar: () => import('@/views/chat/ChatSidebar.vue'),
           },
           meta: { group: 'chat', className: 'chat' },
@@ -177,25 +177,25 @@ const router = createRouter({
     {
       name: 'login',
       path: '/login',
-      component: () => import('@/views/LoginView.vue'),
+      component: () => import('@/views/login/LoginView.vue'),
       meta: { requiresAuth: false },
     },
     {
       name: 'text-file',
       path: '/text-file',
-      component: () => import('@/views/TextFileView.vue'),
+      component: () => import('@/views/text-file/TextFileView.vue'),
       meta: { requiresAuth: false },
     },
     {
       name: 'ux',
       path: '/ux',
-      component: () => import('@/views/UxView.vue'),
+      component: () => import('@/views/ux/UxView.vue'),
       meta: { requiresAuth: false },
     },
     {
       name: 'text-edit',
       path: '/text-edit',
-      component: () => import('@/views/TextFileView.vue'),
+      component: () => import('@/views/text-file/TextFileView.vue'),
       meta: { requiresAuth: true },
     },
   ],

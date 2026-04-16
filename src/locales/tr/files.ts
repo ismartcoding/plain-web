@@ -18,6 +18,7 @@ export default {
   download_as_zip: 'ZIP olarak indir',
   show_hidden: 'Gizli öğeleri göster',
   select_mode: 'Seçim modu',
+  ext: 'Uzantı',
   file_size: 'Dosya boyutu',
   invalid_file_signature: 'Geçersiz dosya imzası',
   upload_status: {

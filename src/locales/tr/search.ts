@@ -18,5 +18,6 @@ export default {
   search_file_size_greater_than_1gb: '1GB üzeri',
   search_file_size_less_than_1mb: '1MB altı',
   search_file_size_less_than_100kb: '100KB altı',
+  search_filter_by_ext: 'Dosya uzantısına göre filtrele',
   search_no_results: 'Sonuç yok',
 }

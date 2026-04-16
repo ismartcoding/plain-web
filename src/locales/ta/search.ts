@@ -18,5 +18,6 @@ export default {
   search_file_size_greater_than_1gb: '1GB-ஐ விட பெரியது',
   search_file_size_less_than_1mb: '1MB-ஐ விட சிறியது',
   search_file_size_less_than_100kb: '100KB-ஐ விட சிறியது',
+  search_filter_by_ext: 'கோப்பு நீட்டிப்பால் வடிகட்டு',
   search_no_results: 'முடிவுகள் இல்லை',
 }

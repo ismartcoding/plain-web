@@ -29,9 +29,9 @@
 import { ref } from 'vue'
 import { formatTime, formatDateTimeFull, formatDate } from '@/lib/format'
 import { addLinksToURLs } from '@/lib/strutil'
-import ChatImages from '@/components/chat/ChatImages.vue'
-import ChatLinkPreviews from '@/components/chat/ChatLinkPreviews.vue'
-import ChatFiles from '@/components/chat/ChatFiles.vue'
+import ChatImages from './ChatImages.vue'
+import ChatLinkPreviews from './ChatLinkPreviews.vue'
+import ChatFiles from './ChatFiles.vue'
 import type { IChatItem, IPeer } from '@/lib/interfaces'
 
 const props = defineProps<{

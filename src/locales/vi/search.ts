@@ -18,5 +18,6 @@ export default {
   search_file_size_greater_than_1gb: 'Lớn hơn 1GB',
   search_file_size_less_than_1mb: 'Nhỏ hơn 1MB',
   search_file_size_less_than_100kb: 'Nhỏ hơn 100KB',
+  search_filter_by_ext: 'Lọc theo phần mở rộng tệp',
   search_no_results: 'Không có kết quả',
 }

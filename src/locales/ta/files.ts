@@ -18,6 +18,7 @@ export default {
   download_as_zip: 'ZIP ஆக பதிவிறக்குக',
   show_hidden: 'மறைக்கப்பட்டதைக் காட்டு',
   select_mode: 'முறையை தேர்ந்தெடு',
+  ext: 'நீட்டிப்பு',
   file_size: 'கோப்பு அளவு',
   invalid_file_signature: 'தவறான கோப்பு கையொப்பம்',
   upload_status: {
