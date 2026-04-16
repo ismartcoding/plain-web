@@ -4,7 +4,7 @@ import toast from '@/components/toaster'
 import { useI18n } from 'vue-i18n'
 import { feedEntryGQL, initLazyQuery, initQuery, tagsGQL } from '@/lib/api/query'
 import type { IFeedEntryDetail, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, ITag } from '@/lib/interfaces'
-import { useMarkdown } from '@/hooks/markdown'
+import { useSafeMarkdown } from '@/hooks/markdown'
 import { openModal } from '@/components/modal'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import emitter from '@/plugins/eventbus'
@@ -28,7 +28,7 @@ export function useFeedEntry() {
   const { app, urlTokenKey } = storeToRefs(useTempStore())
   const mainStore = useMainStore()
 
-  const { render } = useMarkdown(app, urlTokenKey)
+  const { render } = useSafeMarkdown(app, urlTokenKey)
   const { loading, fetch } = initLazyQuery({
     handle: async (data: { feedEntry: IFeedEntryDetail }, error: string) => {
       if (error) toast(t(error), 'error')

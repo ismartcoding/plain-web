@@ -277,6 +277,9 @@ export interface IImageItem extends IImage {
 export interface IVideoItem extends IVideo {
   fileId: string
 }
+export interface IAudioItem extends IAudio {
+  fileId: string
+}
 
 export interface IFeed extends IData {
   id: string
@@ -378,6 +381,7 @@ export interface IHomeStats {
   contactCount: number
   smsCount: number
   noteCount: number
+  docCount: number
   mediaCount: number
   feedEntryCount: number
   videoCount: number

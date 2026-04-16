@@ -68,3 +68,33 @@ export const useMarkdown = (app: Ref<{ appDir: string }>, urlTokenKey: Ref<Uint8
   }
 }
 
+/**
+ * Safe variant for untrusted external content (e.g. RSS feed entries).
+ * Raw HTML pass-through is disabled (html: false) to prevent XSS.
+ * All other markdown features are enabled.
+ */
+export const useSafeMarkdown = (app: Ref<{ appDir: string }>, urlTokenKey: Ref<Uint8Array | null>) => {
+  const md = new MarkdownIt()
+    .use(subscript).use(superscript).use(footnote).use(deflist)
+    .use(abbreviation).use(insert).use(mark)
+    .use(texmath, { engine: katex as any, delimiters: 'dollars', katexOptions: { throwOnError: false, output: 'html', errorColor: '#cc0000' } })
+    .use(tasklists, { enabled: true })
+  // html: false — strips raw HTML from external feed content, blocking XSS
+  md.set({ html: false, xhtmlOut: true, breaks: true, linkify: true, typographer: true })
+
+  const replace = (link: string) => {
+    if (link.startsWith('app://')) {
+      return getFileUrlByPath(urlTokenKey.value, app.value.appDir + '/' + link.replace('app://', ''))
+    }
+    return link
+  }
+
+  return {
+    render: async (source: string) => {
+      const dom = parseDocument(md.render(source), { recognizeCDATA: true, recognizeSelfClosing: true })
+      await replaceNodes(dom.children, replace)
+      return renderNodes(dom.children)
+    },
+  }
+}
+
