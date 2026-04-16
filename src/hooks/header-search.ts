@@ -51,6 +51,7 @@ export function useHeaderSearch(props: {
   const mediaLocalFilter: IFilter = reactive({ tagIds: [] })
   const filesLocalFilter: IFileFilter = reactive({ showHidden: false, type: '', rootPath: '', parent: '', text: '', fileSize: undefined })
   const callsLocal = reactive({ duration: '', startTime: '' })
+  const docsExt = ref('')
 
   const routeGroup = computed(() => String(router.currentRoute.value.meta?.group ?? ''))
   const showMediaFilters = computed(() => ['audios', 'videos', 'images'].includes(routeGroup.value))
@@ -105,6 +106,7 @@ export function useHeaderSearch(props: {
     routeGroup, text, mediaLocalFilter, filesLocalFilter, callsLocal,
     mediaTags, mediaBuckets, messageTags, feeds,
     showMediaFilters, showFilesFilters, showAppsFilters, showMessagesFilters, showCallsFilters, showFeedsFilters, showDocsFilters,
+    docsExt,
   )
 
   // Route sync
@@ -126,6 +128,7 @@ export function useHeaderSearch(props: {
     callsLocal.duration = df ? `${df.op}${df.value}` : ''
     const sf = fields.find((it) => it.name === 'start_time')
     callsLocal.startTime = sf ? `${sf.op}${sf.value}` : ''
+    docsExt.value = fields.find((it) => it.name === 'ext')?.value ?? ''
     const decoded = decodedQuery(currentEncodedQ.value)
     parseMediaQ(mediaLocalFilter, decoded)
     parseFilesQ(filesLocalFilter, decoded)
@@ -152,7 +155,7 @@ export function useHeaderSearch(props: {
       if (showMediaFilters.value) { replaceCurrentRouteQ(buildNextMediaQ(currentEncodedQ.value, { ...mediaLocalFilter, text: text.value })); return }
       if (showAppsFilters.value) { replaceCurrentRouteQ(buildNextMediaQ(currentEncodedQ.value, { tagIds: [], type: mediaLocalFilter.type, text: text.value })); return }
       if (showFilesFilters.value) { replaceCurrentRouteQ(buildFilesQ({ ...filesLocalFilter, text: text.value })); return }
-      if (showDocsFilters.value) { replaceCurrentRouteQ(buildNextDocsQ(currentEncodedQ.value, filesLocalFilter.fileSize, text.value)); return }
+      if (showDocsFilters.value) { replaceCurrentRouteQ(buildNextDocsQ(currentEncodedQ.value, filesLocalFilter.fileSize, docsExt.value, text.value)); return }
       if (showMessagesFilters.value) { replaceCurrentRouteQ(buildNextMessagesQ(currentEncodedQ.value, mediaLocalFilter.type, mediaLocalFilter.tagIds ?? [], text.value)); return }
       if (showCallsFilters.value) { replaceCurrentRouteQ(buildNextCallsQ(currentEncodedQ.value, mediaLocalFilter.type, callsLocal.duration, callsLocal.startTime, text.value)); return }
       if (showFeedsFilters.value) { replaceCurrentRouteQ(buildNextFeedsQ(currentEncodedQ.value, mediaLocalFilter.feedId, text.value)); return }

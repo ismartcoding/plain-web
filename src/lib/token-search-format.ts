@@ -8,6 +8,7 @@ export function keyLabel(t: ComposerTranslation, key: string) {
   const map: Record<string, string> = {
     tag: 'tag', bucket: 'folder', type: 'type', feed_id: 'feed',
     duration: 'duration', start_time: 'start_time', history: 'search_key_history', file_size: 'file_size',
+    ext: 'ext',
   }
   return map[key] ? t(map[key]) : key
 }
@@ -16,7 +17,7 @@ export function keyDescription(t: ComposerTranslation, key: string) {
   const map: Record<string, string> = {
     tag: 'search_filter_by_tag', bucket: 'search_filter_by_folder',
     file_size: 'search_filter_by_file_size', duration: 'search_filter_by_duration',
-    start_time: 'search_filter_by_start_time',
+    start_time: 'search_filter_by_start_time', ext: 'search_filter_by_ext',
   }
   return map[key] ? t(map[key]) : ''
 }

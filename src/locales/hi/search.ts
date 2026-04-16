@@ -18,5 +18,6 @@ export default {
   search_file_size_greater_than_1gb: '1GB से अधिक',
   search_file_size_less_than_1mb: '1MB से कम',
   search_file_size_less_than_100kb: '100KB से कम',
+  search_filter_by_ext: 'फ़ाइल एक्सटेंशन द्वारा फ़िल्टर करें',
   search_no_results: 'कोई परिणाम नहीं',
 }

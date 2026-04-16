@@ -45,17 +45,17 @@
 <script setup lang="ts">
 import { ref, computed, onActivated, onDeactivated } from 'vue'
 import { formatDate } from '@/lib/format'
-import ChatInput from '@/components/ChatInput.vue'
+import ChatInput from './ChatInput.vue'
 import ChatMessageItem from './ChatMessageItem.vue'
 import { useMainStore } from '@/stores/main'
 import { openModal } from '@/components/modal'
 import ChatInfoModal from './ChatInfoModal.vue'
 import ChannelInfoModal from './ChannelInfoModal.vue'
 import { replacePath } from '@/plugins/router'
-import { useChatRouteId } from '@/hooks/chat-route'
-import { useChatData } from '@/hooks/chat-data'
-import { useChatMessages } from '@/hooks/chat-messages'
-import { useChatUpload } from '@/hooks/chat-upload'
+import { useChatRouteId } from './hooks/chat-route'
+import { useChatData } from './hooks/chat-data'
+import { useChatMessages } from './hooks/chat-messages'
+import { useChatUpload } from './hooks/chat-upload'
 import type { IChatItem } from '@/lib/interfaces'
 
 const store = useMainStore()

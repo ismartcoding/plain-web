@@ -63,6 +63,7 @@ export default defineConfig({
     svgLoader(),
     Components({
       resolvers: [IconsResolver()],
+      dirs: ['src/components', 'src/views'],
     }),
     Icons(),
   ],

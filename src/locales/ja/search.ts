@@ -18,5 +18,6 @@ export default {
   search_file_size_greater_than_1gb: '1GBより大きい',
   search_file_size_less_than_1mb: '1MB未満',
   search_file_size_less_than_100kb: '100KB未満',
+  search_filter_by_ext: 'ファイル拡張子でフィルタ',
   search_no_results: '結果なし',
 }

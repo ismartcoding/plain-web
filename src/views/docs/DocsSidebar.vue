@@ -27,7 +27,7 @@ import { ref, watch } from 'vue'
 import router, { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { decodeBase64, encodeBase64 } from '@/lib/strutil'
-import { buildQuery } from '@/lib/search'
+import { buildQuery, parseQuery } from '@/lib/search'
 import { initLazyQuery, docCountGQL } from '@/lib/api/query'
 import type { IDocExtGroup } from '@/lib/interfaces'
 
@@ -61,8 +61,10 @@ function viewAll() {
 }
 
 function viewByExt(value: string) {
-  const q = buildQuery([{ name: 'ext', op: '', value }])
-  replacePath(mainStore, `/docs?q=${encodeBase64(q)}`)
+  const currentQ = decodeBase64(router.currentRoute.value.query.q?.toString() ?? '')
+  const fields = currentQ ? parseQuery(currentQ).filter((f) => f.name !== 'ext') : []
+  fields.push({ name: 'ext', op: '', value })
+  replacePath(mainStore, `/docs?q=${encodeBase64(buildQuery(fields))}`)
 }
 
 updateActive()

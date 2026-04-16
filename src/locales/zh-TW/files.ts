@@ -18,6 +18,7 @@ export default {
   download_as_zip: '打包下載',
   show_hidden: '顯示隱藏',
   select_mode: '選擇模式',
+  ext: '副檔名',
   file_size: '檔案大小',
   invalid_file_signature: '無效的檔案簽章',
   upload_status: {

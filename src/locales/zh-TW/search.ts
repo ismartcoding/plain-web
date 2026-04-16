@@ -18,5 +18,6 @@ export default {
   search_file_size_greater_than_1gb: '大於 1GB',
   search_file_size_less_than_1mb: '小於 1MB',
   search_file_size_less_than_100kb: '小於 100KB',
+  search_filter_by_ext: '依副檔名篩選',
   search_no_results: '沒有結果',
 }

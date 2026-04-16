@@ -60,7 +60,7 @@
 <script setup lang="ts">
 import { inject } from 'vue'
 import { noDataKey } from '@/lib/list'
-import CallListItem from '@/components/calls/CallListItem.vue'
+import CallListItem from '@/views/calls/CallListItem.vue'
 import { useCallsData } from './hooks/useCallsData'
 import { useCallsActions } from './hooks/useCallsActions'
 

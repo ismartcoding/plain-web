@@ -18,6 +18,7 @@ export default {
   download_as_zip: 'Tải xuống dạng ZIP',
   show_hidden: 'Hiển thị ẩn',
   select_mode: 'Chế độ chọn',
+  ext: 'Phần mở rộng',
   file_size: 'Kích thước tệp',
   invalid_file_signature: 'Chữ ký tệp không hợp lệ',
   upload_status: {

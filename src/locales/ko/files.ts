@@ -18,6 +18,7 @@ export default {
   download_as_zip: 'ZIP으로 다운로드',
   show_hidden: '숨은 항목 표시',
   select_mode: '선택 모드',
+  ext: '확장자',
   file_size: '파일 크기',
   invalid_file_signature: '잘못된 파일 서명',
   upload_status: {

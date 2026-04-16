@@ -68,7 +68,7 @@
 <script setup lang="ts">
 import { inject } from 'vue'
 import { noDataKey } from '@/lib/list'
-import ContactListItem from '@/components/contacts/ContactListItem.vue'
+import ContactListItem from '@/views/contacts/ContactListItem.vue'
 import { useContactsData } from './hooks/useContactsData'
 import { useContactsActions } from './hooks/useContactsActions'
 

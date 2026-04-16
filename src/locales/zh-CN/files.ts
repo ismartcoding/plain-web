@@ -18,6 +18,7 @@ export default {
   download_as_zip: '打包下载',
   show_hidden: '显示隐藏项',
   select_mode: '选择模式',
+  ext: '扩展名',
   file_size: '文件大小',
   invalid_file_signature: '文件签名不一致',
   upload_status: {

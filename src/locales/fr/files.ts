@@ -18,6 +18,7 @@ export default {
   download_as_zip: 'Télécharger en ZIP',
   show_hidden: 'Afficher les fichiers cachés',
   select_mode: 'Mode de sélection',
+  ext: 'Extension',
   file_size: 'Taille du fichier',
   invalid_file_signature: 'Signature de fichier non valide',
   upload_status: {

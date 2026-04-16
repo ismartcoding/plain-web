@@ -65,9 +65,9 @@
 import { inject } from 'vue'
 import { noDataKey } from '@/lib/list'
 import { getSortItems } from '@/lib/file'
-import AppsActionButtons from '@/components/apps/AppsActionButtons.vue'
-import AppSkeletonItem from '@/components/apps/AppSkeletonItem.vue'
-import AppListItem from '@/components/apps/AppListItem.vue'
+import AppsActionButtons from '@/views/apps/AppsActionButtons.vue'
+import AppSkeletonItem from '@/views/apps/AppSkeletonItem.vue'
+import AppListItem from '@/views/apps/AppListItem.vue'
 import { useAppsData } from './hooks/useAppsData'
 import { useAppsActions } from './hooks/useAppsActions'
 

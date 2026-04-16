@@ -18,6 +18,7 @@ export default {
   download_as_zip: 'ZIP হিসেবে ডাউনলোড করুন',
   show_hidden: 'গোপন দেখান',
   select_mode: 'মোড নির্বাচন করুন',
+  ext: 'এক্সটেনশন',
   file_size: 'ফাইলের আকার',
   invalid_file_signature: 'অবৈধ ফাইল স্বাক্ষর',
   upload_status: {

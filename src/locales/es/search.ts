@@ -18,5 +18,6 @@ export default {
   search_file_size_greater_than_1gb: 'Mayor que 1GB',
   search_file_size_less_than_1mb: 'Menor que 1MB',
   search_file_size_less_than_100kb: 'Menor que 100KB',
+  search_filter_by_ext: 'Filtrar por extensión de archivo',
   search_no_results: 'Sin resultados',
 }

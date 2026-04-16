@@ -18,5 +18,6 @@ export default {
   search_file_size_greater_than_1gb: 'Больше 1 ГБ',
   search_file_size_less_than_1mb: 'Меньше 1 МБ',
   search_file_size_less_than_100kb: 'Меньше 100 КБ',
+  search_filter_by_ext: 'Фильтр по расширению файла',
   search_no_results: 'Нет результатов',
 }

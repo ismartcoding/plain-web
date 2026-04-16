@@ -7,12 +7,12 @@
         <div class="title-row">
           <div class="left">
             <span class="icon" aria-hidden="true">
-              <popper>
-                <i-lucide:hard-drive />
-                <template #content>
-                  <pre class="view-raw">{{ data }}</pre>
+              <v-dropdown v-model="infoOpen">
+                <template #trigger>
+                  <i-lucide:hard-drive />
                 </template>
-              </popper>
+                <pre class="view-raw">{{ data }}</pre>
+              </v-dropdown>
             </span>
             <span class="title">{{ title }}</span>
             <span v-if="driveType" class="chip">{{ driveType }}</span>
@@ -38,7 +38,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps({
   title: { type: String, required: true },
@@ -53,6 +53,8 @@ const props = defineProps({
 })
 
 defineEmits<{ (e: 'click'): void }>()
+
+const infoOpen = ref(false)
 
 const usedPercentClamped = computed(() => {
   const pct = Number(props.usedPercent || 0)

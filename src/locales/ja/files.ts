@@ -18,6 +18,7 @@ export default {
   download_as_zip: 'ZIPとしてダウンロード',
   show_hidden: '非表示を表示',
   select_mode: '選択モード',
+  ext: '拡張子',
   file_size: 'ファイルサイズ',
   invalid_file_signature: '無効なファイル署名',
   upload_status: {

@@ -21,6 +21,7 @@ export function useHeaderSearchTokens(
   showCallsFilters: Ref<boolean>,
   showFeedsFilters: Ref<boolean>,
   showDocsFilters: Ref<boolean>,
+  docsExt: Ref<string>,
 ) {
   const uiTokens = computed<UiToken[]>(() => {
     const tokens: UiToken[] = []
@@ -48,6 +49,7 @@ export function useHeaderSearchTokens(
     }
 
     if (showDocsFilters.value) {
+      if (docsExt.value) tokens.push({ key: 'ext', value: docsExt.value })
       if (filesLocalFilter.fileSize) tokens.push({ key: 'file_size', value: filesLocalFilter.fileSize })
       return tokens
     }
@@ -108,6 +110,7 @@ export function useHeaderSearchTokens(
     }
 
     if (showDocsFilters.value) {
+      docsExt.value = tokens.find((it) => it.key === 'ext')?.value ?? ''
       filesLocalFilter.fileSize = tokens.find((it) => it.key === 'file_size')?.value
       filesLocalFilter.text = text.value
       return

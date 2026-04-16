@@ -27,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import FeedEntryToolbar from '@/components/feeds/FeedEntryToolbar.vue'
+import FeedEntryToolbar from '@/views/feeds/FeedEntryToolbar.vue'
 import { useFeedEntry } from '@/hooks/feed-entry'
 
 const {

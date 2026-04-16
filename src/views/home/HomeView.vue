@@ -1,0 +1,366 @@
+<template>
+  <div class="grids">
+    <router-link to="/audios" class="card feature-card">
+      <div class="card-icon">
+        <i-lucide:music />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span v-if="counter.audios !== undefined && counter.audios >= 0" class="count">{{ counter.audios.toLocaleString() }}</span>
+          <span class="title">{{ $t('audios') }}</span>
+        </div>
+      </div>
+    </router-link>
+
+    <router-link to="/images" class="card feature-card">
+      <div class="card-icon">
+        <i-lucide:image />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span v-if="counter.images !== undefined && counter.images >= 0" class="count">{{ counter.images.toLocaleString() }}</span>
+          <span class="title">{{ $t('images') }}</span>
+        </div>
+      </div>
+    </router-link>
+
+    <router-link to="/videos" class="card feature-card">
+      <div class="card-icon">
+        <i-lucide:video />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span v-if="counter.videos !== undefined && counter.videos >= 0" class="count">{{ counter.videos.toLocaleString() }}</span>
+          <span class="title">{{ $t('videos') }}</span>
+        </div>
+      </div>
+    </router-link>
+
+    <div class="card feature-card" @click="openFilesInternalStorage">
+      <div class="card-icon">
+        <i-lucide:folder />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span class="title">{{ $t('files') }}</span>
+        </div>
+        <div v-if="counter.total >= 0" class="storage-info">
+          {{ $t('storage_free_total', { free: formatFileSize(counter.free), total: formatFileSize(counter.total) }) }}
+        </div>
+      </div>
+    </div>
+
+    <router-link v-if="app.channel !== 'GOOGLE'" to="/apps" class="card feature-card">
+      <div class="card-icon">
+        <i-lucide:layout-grid />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span v-if="counter.packages !== undefined && counter.packages >= 0" class="count">{{ counter.packages.toLocaleString() }}</span>
+          <span class="title">{{ $t('apps') }}</span>
+        </div>
+      </div>
+    </router-link>
+
+    <router-link to="/notes" class="card feature-card">
+      <div class="card-icon">
+        <i-lucide:notebook-pen />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span v-if="counter.notes !== undefined && counter.notes >= 0" class="count">{{ counter.notes.toLocaleString() }}</span>
+          <span class="title">{{ $t('page_title.notes') }}</span>
+        </div>
+      </div>
+    </router-link>
+
+    <router-link to="/feeds" class="card feature-card">
+      <div class="card-icon">
+        <i-lucide:rss />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span v-if="counter.feedEntries !== undefined && counter.feedEntries >= 0" class="count">{{ counter.feedEntries.toLocaleString() }}</span>
+          <span class="title">{{ $t('page_title.feeds') }}</span>
+        </div>
+      </div>
+    </router-link>
+
+    <router-link v-if="app.channel !== 'GOOGLE'" to="/messages" class="card feature-card">
+      <div class="card-icon">
+        <i-lucide:message-square-text />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span v-if="counter.messages !== undefined && counter.messages >= 0" class="count">{{ counter.messages.toLocaleString() }}</span>
+          <span class="title">{{ $t('messages') }}</span>
+        </div>
+      </div>
+    </router-link>
+
+    <router-link v-if="app.channel !== 'GOOGLE'" to="/calls" class="card feature-card">
+      <div class="card-icon">
+        <i-material-symbols:call-log-outline-rounded />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span v-if="counter.calls !== undefined && counter.calls >= 0" class="count">{{ counter.calls.toLocaleString() }}</span>
+          <span class="title">{{ $t('calls') }}</span>
+        </div>
+      </div>
+    </router-link>
+
+    <router-link to="/contacts" class="card feature-card">
+      <div class="card-icon">
+        <i-lucide:contact-round />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span v-if="counter.contacts !== undefined && counter.contacts >= 0" class="count">{{ counter.contacts.toLocaleString() }}</span>
+          <span class="title">{{ $t('contacts') }}</span>
+        </div>
+      </div>
+    </router-link>
+
+    <!-- Tools Section Cards -->
+    <router-link to="/screen-mirror" class="card feature-card">
+      <div class="card-icon">
+        <i-material-symbols:screen-record-rounded />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span class="title">{{ $t('screen_mirror') }}</span>
+        </div>
+      </div>
+    </router-link>
+
+    <router-link to="/docs" class="card feature-card">
+      <div class="card-icon">
+        <i-lucide:file-text />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span class="title">{{ $t('page_title.docs') }}</span>
+        </div>
+      </div>
+    </router-link>
+
+    <router-link to="/device-info" class="card feature-card">
+      <div class="card-icon">
+        <i-lucide:smartphone />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span class="title">{{ $t('device_info') }}</span>
+        </div>
+      </div>
+    </router-link>
+
+    <!-- Clipboard Card -->
+    <div class="card phone-card">
+      <div class="card-content">
+        <h5 class="card-title">{{ $t('send_to_phone_clipboard') }}</h5>
+        <div class="phone-input-row">
+          <v-text-field v-model="clipText" :label="$t('clipboard_text')" class="phone-input" :error="clipTextError" :error-text="$t('valid.required')" @keyup.enter="sendClipboard">
+            <template #trailing-icon>
+              <v-icon-button @click.prevent="pasteClipboardText">
+                <i-material-symbols:content-paste-rounded />
+              </v-icon-button>
+            </template>
+          </v-text-field>
+          <v-filled-button class="call-btn" :loading="setClipLoading" @click.prevent="sendClipboard">
+            {{ $t('send') }}
+          </v-filled-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phone Call Card -->
+    <div class="card phone-card">
+      <div class="card-content">
+        <h5 class="card-title">{{ $t('call_phone') }}</h5>
+        <div class="phone-input-row">
+          <v-text-field v-model="callNumber" type="tel" :label="$t('phone_number')" class="phone-input" :error="callNumberError" :error-text="$t('valid.required')" @keyup.enter="callPhone">
+            <template #trailing-icon>
+              <v-icon-button @click.prevent="pastePhoneNumber">
+                <i-material-symbols:content-paste-rounded />
+              </v-icon-button>
+            </template>
+          </v-text-field>
+          <v-filled-button class="call-btn" :disabled="callLoading" @click.prevent="callPhone">
+            {{ $t('call') }}
+          </v-filled-button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { formatFileSize } from '@/lib/format'
+import { inject } from 'vue'
+import { useTempStore } from '@/stores/temp'
+import { storeToRefs } from 'pinia'
+import { useMainStore } from '@/stores/main'
+import router from '@/plugins/router'
+import { buildQuery } from '@/lib/search'
+import { encodeBase64 } from '@/lib/strutil'
+import { useHomeData, usePhoneAction, useClipboardAction } from './home'
+
+const { app, counter } = storeToRefs(useTempStore())
+
+const { mounts } = useHomeData()
+const { callNumber, callNumberError, callLoading, pastePhoneNumber, callPhone } = usePhoneAction()
+const { clipText, clipTextError, setClipLoading, pasteClipboardText, sendClipboard } = useClipboardAction()
+
+function openFilesInternalStorage() {
+  const internalRoot =
+    mounts.value.find((m) => m.driveType === 'INTERNAL_STORAGE')?.mountPoint || app.value.internalStoragePath
+  const q = buildQuery([
+    { name: 'parent', op: '', value: internalRoot },
+    { name: 'type', op: '', value: 'INTERNAL_STORAGE' },
+    { name: 'root_path', op: '', value: internalRoot },
+  ])
+  router.push(`/files?q=${encodeBase64(q)}`)
+}
+</script>
+
+<style lang="scss" scoped>
+.grids {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.feature-card {
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .card-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 8px;
+
+    svg {
+      width: 32px;
+      height: 32px;
+      color: var(--md-sys-color-primary);
+    }
+  }
+
+  .card-content {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .card-title-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin: 0;
+
+      .count {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--md-sys-color-primary);
+      }
+
+      .title {
+        font-size: 0.875rem;
+        text-transform: capitalize;
+        color: var(--md-sys-color-on-surface);
+      }
+    }
+
+    .storage-info {
+      font-size: 0.75rem;
+      color: var(--md-sys-color-on-surface-variant);
+      margin-top: 4px;
+    }
+
+    .count {
+      font-size: 0.875rem;
+      color: var(--md-sys-color-on-surface-variant);
+    }
+  }
+}
+
+.phone-card {
+  grid-column: span 2;
+  min-height: 144px;
+  .card-title {
+    text-align: left;
+  }
+  .card-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 12px;
+
+    svg {
+      width: 32px;
+      height: 32px;
+      color: var(--md-sys-color-primary);
+    }
+  }
+
+  .card-content {
+    text-align: left;
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 500;
+      margin: 0 0 16px 0;
+      text-transform: none;
+      color: var(--md-sys-color-on-surface);
+    }
+
+    .phone-input-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+
+      .phone-input {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .call-btn {
+        margin-top: 8px;
+        min-width: 80px;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .grids {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    padding: 12px;
+    margin-block-end: 24px;
+  }
+
+  .phone-card {
+    grid-column: span 2;
+  }
+}
+</style>
