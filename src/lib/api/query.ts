@@ -234,6 +234,7 @@ export const homeStatsGQL = `
     videoCount(query: "")
     packageCount(query: "")
     noteCount(query: "")
+    docCount(query: "")
     feedEntryCount(query: "")
     mounts {
       id

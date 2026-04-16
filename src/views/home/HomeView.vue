@@ -36,7 +36,19 @@
       </div>
     </router-link>
 
-    <div class="card feature-card" @click="openFilesInternalStorage">
+    <router-link to="/docs" class="card feature-card">
+      <div class="card-icon">
+        <i-lucide:file-text />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span v-if="counter.docs !== undefined && counter.docs >= 0" class="count">{{ counter.docs.toLocaleString() }}</span>
+          <span class="title">{{ $t('page_title.docs') }}</span>
+        </div>
+      </div>
+    </router-link>
+
+    <router-link :to="filesPath" class="card feature-card">
       <div class="card-icon">
         <i-lucide:folder />
       </div>
@@ -48,7 +60,7 @@
           {{ $t('storage_free_total', { free: formatFileSize(counter.free), total: formatFileSize(counter.total) }) }}
         </div>
       </div>
-    </div>
+    </router-link>
 
     <router-link v-if="app.channel !== 'GOOGLE'" to="/apps" class="card feature-card">
       <div class="card-icon">
@@ -122,7 +134,6 @@
       </div>
     </router-link>
 
-    <!-- Tools Section Cards -->
     <router-link to="/screen-mirror" class="card feature-card">
       <div class="card-icon">
         <i-material-symbols:screen-record-rounded />
@@ -134,29 +145,6 @@
       </div>
     </router-link>
 
-    <router-link to="/docs" class="card feature-card">
-      <div class="card-icon">
-        <i-lucide:file-text />
-      </div>
-      <div class="card-content">
-        <div class="card-title-row">
-          <span class="title">{{ $t('page_title.docs') }}</span>
-        </div>
-      </div>
-    </router-link>
-
-    <router-link to="/device-info" class="card feature-card">
-      <div class="card-icon">
-        <i-lucide:smartphone />
-      </div>
-      <div class="card-content">
-        <div class="card-title-row">
-          <span class="title">{{ $t('device_info') }}</span>
-        </div>
-      </div>
-    </router-link>
-
-    <!-- Clipboard Card -->
     <div class="card phone-card">
       <div class="card-content">
         <h5 class="card-title">{{ $t('send_to_phone_clipboard') }}</h5>
@@ -175,7 +163,6 @@
       </div>
     </div>
 
-    <!-- Phone Call Card -->
     <div class="card phone-card">
       <div class="card-content">
         <h5 class="card-title">{{ $t('call_phone') }}</h5>
@@ -193,16 +180,26 @@
         </div>
       </div>
     </div>
+
+
+    <router-link to="/device-info" class="card feature-card">
+      <div class="card-icon">
+        <i-lucide:smartphone />
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <span class="title">{{ $t('device_info') }}</span>
+        </div>
+      </div>
+    </router-link>
   </div>
 </template>
 
 <script setup lang="ts">
 import { formatFileSize } from '@/lib/format'
-import { inject } from 'vue'
+import { computed, inject } from 'vue'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
-import { useMainStore } from '@/stores/main'
-import router from '@/plugins/router'
 import { buildQuery } from '@/lib/search'
 import { encodeBase64 } from '@/lib/strutil'
 import { useHomeData, usePhoneAction, useClipboardAction } from './home'
@@ -213,16 +210,15 @@ const { mounts } = useHomeData()
 const { callNumber, callNumberError, callLoading, pastePhoneNumber, callPhone } = usePhoneAction()
 const { clipText, clipTextError, setClipLoading, pasteClipboardText, sendClipboard } = useClipboardAction()
 
-function openFilesInternalStorage() {
-  const internalRoot =
-    mounts.value.find((m) => m.driveType === 'INTERNAL_STORAGE')?.mountPoint || app.value.internalStoragePath
+const filesPath = computed(() => {
+  const internalRoot = mounts.value.find((m) => m.driveType === 'INTERNAL_STORAGE')?.mountPoint || app.value.internalStoragePath
   const q = buildQuery([
     { name: 'parent', op: '', value: internalRoot },
     { name: 'type', op: '', value: 'INTERNAL_STORAGE' },
     { name: 'root_path', op: '', value: internalRoot },
   ])
-  router.push(`/files?q=${encodeBase64(q)}`)
-}
+  return `/files?q=${encodeBase64(q)}`
+})
 </script>
 
 <style lang="scss" scoped>

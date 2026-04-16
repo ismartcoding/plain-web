@@ -252,12 +252,6 @@ export const replacePath = (store: MainState, fullPath: string) => {
   router.push(fullPath)
 }
 
-export const pushPath = (fullPath: string) => {
-  setTimeout(() => {
-    router.push(fullPath)
-  }, 0) // Fix the bug if the page is initialized first time, click the view link won't redirect to new page, it just open a new tab.
-}
-
 export const getRouteName = (fullPath: string) => {
   return router.resolve(fullPath).meta.group
 }

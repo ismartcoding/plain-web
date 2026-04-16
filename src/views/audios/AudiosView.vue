@@ -60,10 +60,11 @@
 import { computed, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { audiosGQL, initLazyQuery } from '@/lib/api/query'
-import type { IAudio } from '@/lib/interfaces'
+import type { IAudio, IAudioItem } from '@/lib/interfaces'
 import { DataType, FEATURE } from '@/lib/data'
 import { getSortItems, isAudio } from '@/lib/file'
 import { hasFeature } from '@/lib/feature'
+import { getFileId } from '@/lib/api/file'
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
@@ -77,7 +78,7 @@ import AudioSkeletonItem from './AudioSkeletonItem.vue'
 const mainStoreLocal = useMainStore()
 const { audioSortBy } = storeToRefs(mainStoreLocal)
 const { audioPlaying } = storeToRefs(useTempStore())
-const items = ref<IAudio[]>([])
+const items = ref<IAudioItem[]>([])
 const sortItems = getSortItems()
 const imageErrorIds = ref<string[]>([])
 const animatingIds = ref<string[]>([])
@@ -117,7 +118,7 @@ const mp = useMediaPage({
   onSort: () => { noMore.value = false },
 })
 const {
-  isPhone, mainStore, app, noDataKey,
+  isPhone, mainStore, app, urlTokenKey, noDataKey,
   filter, page, q, limit, dataType, uploadMenuVisible, moreMenuVisible,
   fileInput, dirFileInput, uploadChanged, dirUploadChanged, dropping, fileDragEnter, fileDragLeave,
   bucketsMap, addToTags, deleteItems, deleteItem, viewBucket,
@@ -128,16 +129,16 @@ const {
   openKeyboardShortcuts, addItemToTags, uploadFilesClick, uploadDirClick, dropFiles2,
 } = mp
 
-const isAudioPlaying = (item: IAudio) => audioPlaying.value && app.value?.audioCurrent === item.path
+const isAudioPlaying = (item: IAudioItem) => audioPlaying.value && app.value?.audioCurrent === item.path
 const { play, playPath, loading: playLoading, pause } = useAudioPlayer()
 const { addItemsToPlaylist, addToPlaylist, removeFromPlaylist, isInPlaylist } = useAddToPlaylist(items, clearSelection)
 const onImageError = (id: string) => { imageErrorIds.value.push(id) }
 
-function handleRemoveFromPlaylist(e: MouseEvent, item: IAudio) {
+function handleRemoveFromPlaylist(e: MouseEvent, item: IAudioItem) {
   animatingIds.value.push(item.id)
   setTimeout(() => { removeFromPlaylist(e, item); setTimeout(() => { animatingIds.value = animatingIds.value.filter((id) => id !== item.id) }, 200) }, 150)
 }
-function handleAddToPlaylist(e: MouseEvent, item: IAudio) {
+function handleAddToPlaylist(e: MouseEvent, item: IAudioItem) {
   animatingIds.value.push(item.id)
   setTimeout(() => { addToPlaylist(e, item); setTimeout(() => { animatingIds.value = animatingIds.value.filter((id) => id !== item.id) }, 200) }, 150)
 }
@@ -146,8 +147,9 @@ const { loading, fetch } = initLazyQuery({
   handle: (data: { items: IAudio[]; total: number }, error: string) => {
     mp.sorting.value = false
     if (error) { toast(mp.q.value, 'error') } else if (data) {
-      if (scrollMode.value && page.value > 1) { items.value = items.value.concat(data.items) }
-      else { items.value = data.items }
+      const list = data.items.map((it) => ({ ...it, fileId: getFileId(urlTokenKey.value, it.path, it.id) }))
+      if (scrollMode.value && page.value > 1) { items.value = items.value.concat(list) }
+      else { items.value = list }
       total.value = data.total
       if (scrollMode.value) { noMore.value = data.items.length < limit.value }
     }

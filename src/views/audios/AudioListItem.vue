@@ -13,7 +13,7 @@
     </div>
     <div class="image">
       <img v-if="imageErrorIds.includes(item.id)" :src="`/ficons/${getFileExtension(item.path)}.svg`" class="svg" />
-      <img v-else class="image-thumb" :src="getFileUrl(item.albumFileId, '&w=200&h=200')" @error="onImageError(item.id)" />
+      <img v-else class="image-thumb" :src="getFileUrl(item.fileId, '&w=200&h=200')" @error="onImageError(item.id)" />
     </div>
     <div class="title">{{ item.title }}</div>
     <div class="subtitle">
@@ -67,7 +67,7 @@
     <template #image>
       <div class="image">
         <img v-if="imageErrorIds.includes(item.id)" :src="`/ficons/${getFileExtension(item.path)}.svg`" class="svg" />
-        <img v-else class="image-thumb" :src="getFileUrl(item.albumFileId, '&w=200&h=200')" @error="onImageError(item.id)" />
+        <img v-else class="image-thumb" :src="getFileUrl(item.fileId, '&w=200&h=200')" @error="onImageError(item.id)" />
       </div>
     </template>
 
@@ -115,13 +115,13 @@
 </template>
 
 <script setup lang="ts">
-import type { IAudio, IBucket, IFilter } from '@/lib/interfaces'
+import type { IAudioItem, IBucket, IFilter } from '@/lib/interfaces'
 import { DataType } from '@/lib/data'
 import { formatFileSize, formatSeconds, formatDateTime, formatTimeAgo } from '@/lib/format'
 import { getFileUrl, getFileExtension } from '@/lib/api/file'
 
 interface Props {
-  item: IAudio
+  item: IAudioItem
   index: number
   selectedIds: string[]
   shiftEffectingIds: string[]

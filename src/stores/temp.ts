@@ -47,6 +47,7 @@ export interface IDataCounter {
   packagesSystem: number
   notes: number
   notesTrash: number
+  docs: number
   feedEntries: number
   feedEntriesToday: number
   total: number
@@ -88,6 +89,7 @@ export const useTempStore = defineStore('temp', {
         packagesSystem: -1,
         notes: -1,
         notesTrash: -1,
+        docs: -1,
         feedEntries: -1,
         feedEntriesToday: -1,
         total: -1,

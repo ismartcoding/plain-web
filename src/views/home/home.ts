@@ -29,6 +29,7 @@ export function useHomeData() {
         counter.value.audios = data.audioCount
         counter.value.packages = data.packageCount
         counter.value.notes = data.noteCount
+        counter.value.docs = data.docCount
         counter.value.feedEntries = data.feedEntryCount
         const vols = (data.mounts ?? []).filter((m) => (m.totalBytes ?? 0) > 0)
         counter.value.total = vols.reduce((sum, it) => sum + (it.totalBytes ?? 0), 0)
