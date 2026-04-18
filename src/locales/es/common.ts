@@ -83,7 +83,7 @@ export default {
   header_actions: {
     language: 'Cambiar idioma',
     theme: 'Cambiar tema',
-    tasks: 'Tareas',
+    uploads: 'Tareas',
     audios: 'Audio',
     logout: 'Cerrar sesión',
     notifications: 'Notificaciones',
@@ -234,6 +234,10 @@ export default {
   },
   owner: 'Dueño',
   unsaved_changes_warning: 'Tienes cambios sin guardar. ¿Estás seguro de que quieres salir?',
-  customize_sidebar: 'Customize sidebar',
-  drag_to_reorder: 'Drag to reorder',
+  customize_sidebar: 'Personalizar barra lateral',
+  drag_to_reorder: 'Arrastrar para reordenar',
+  exclude_directories: 'Excluir directorios',
+  excluded_dirs_hint: 'Los archivos en estos directorios se ocultarán en las vistas de medios.',
+  add_excluded_dir: 'Agregar directorio',
+  no_excluded_dirs: 'No hay directorios excluidos.',
 }

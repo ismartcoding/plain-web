@@ -82,7 +82,7 @@ export default {
   header_actions: {
     language: 'மொழி மாற்று',
     theme: 'தீம் மாற்று',
-    tasks: 'பணிகள்',
+    uploads: 'பணிகள்',
     audios: 'ஆடியோ',
     logout: 'வெளியேறு',
     notifications: 'அறிவிப்புகள்',
@@ -234,6 +234,10 @@ export default {
     scroll: 'எல்லையற்ற சுருள்',
   },
   owner: 'உரிமையாளர்',
-  customize_sidebar: 'Customize sidebar',
-  drag_to_reorder: 'Drag to reorder',
+  customize_sidebar: 'சைட்பார் தனிப்பயனாக்கவும்',
+  drag_to_reorder: 'மீளமைக்க இழுக்கவும்',
+  exclude_directories: 'கோப்புறைகளை தவிர்க்கவும்',
+  excluded_dirs_hint: 'இந்த கோப்புறைகளில் உள்ள கோப்புகள் மீடியா பார்வைகளில் மறைக்கப்படும்.',
+  add_excluded_dir: 'கோப்புறை சேர்க்கவும்',
+  no_excluded_dirs: 'எந்த கோப்புறைகளும் தவிர்க்கப்படவில்லை.',
 }

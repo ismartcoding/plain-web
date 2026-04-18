@@ -1,7 +1,7 @@
 <template>
   <section class="doc-item selectable-card-skeleton">
     <div class="start">
-      <div class="skeleton-checkbox"></div>
+      <div class="skeleton-checkbox checkbox"></div>
       <span class="number">{{ index }}</span>
     </div>
     <div class="doc-icon">

@@ -7,7 +7,7 @@
   }
 }
 
-.skeleton-text, .skeleton-checkbox {
+.skeleton-text, .skeleton-checkbox::before {
   background-color: var(--md-sys-color-surface-container);
   border-radius: 4px;
 }
@@ -24,12 +24,20 @@
 }
 
 .skeleton-checkbox {
-  width: 20px;
-  height: 20px;
-  margin: 10px;
+  width: 40px;
+  height: 40px;
+  display: inline-block;
+  &::before {
+    content: '';
+    display: block;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    margin: 10px;
+  }
 }
 
-.skeleton-checkbox,
+.skeleton-checkbox::before,
 .skeleton-image,
 .skeleton-action-square,
 .skeleton-text {

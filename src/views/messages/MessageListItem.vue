@@ -24,6 +24,7 @@
       @add-item-to-tags="addItemToTags"
       @send-sms="sendSms"
       @call="call"
+      @hide="hide"
     />
     <div class="info">
       <span :class="{ 'text-red': item.type === 5 }">{{ $t(`message_type.${item.type}`) }}</span>
@@ -72,6 +73,7 @@
         @add-item-to-tags="addItemToTags"
         @send-sms="sendSms"
         @call="call"
+        @hide="hide"
       />
     </template>
   </ListItemPhone>
@@ -110,6 +112,7 @@ const emit = defineEmits<{
   addItemToTags: [item: IMessage]
   sendSms: [item: IMessage]
   call: [item: IMessage]
+  hide: [item: IMessage]
 }>()
 
 function addItemToTags(item: IMessage) {
@@ -122,6 +125,10 @@ function call(item: IMessage) {
 
 function sendSms(item: IMessage) {
   emit('sendSms', item)
+}
+
+function hide(item: IMessage) {
+  emit('hide', item)
 }
 
 function onView(index: number, item: IMessage) {

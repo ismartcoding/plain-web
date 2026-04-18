@@ -31,4 +31,8 @@ export default {
   },
   sms_address: 'Address',
   sms_notification_warning: 'To receive new SMS in real time, go to the PlainApp on your phone → "Web Settings" → enable "Manage Notifications" permission.',
+  hide_conversation: 'Hide Conversation',
+  hidden_conversations: 'Hidden Conversations',
+  no_hidden_conversations: 'No hidden conversations',
+  unhide: 'Unhide',
 }

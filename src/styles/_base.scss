@@ -206,6 +206,7 @@ pre {
   user-select: none;
 
   &:hover {
+    text-decoration: none;
     background-color: var(--md-sys-color-surface-variant);
   }
 

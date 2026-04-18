@@ -2,7 +2,7 @@
   <left-sidebar>
     <template #body>
       <ul class="nav">
-        <li :class="{ active: !selectedTagId && !type }" @click.prevent="viewAll">
+        <li :class="{ active: !selectedTagId && !type && !isHidden }" @click.prevent="viewAll">
           <span class="icon" aria-hidden="true"><i-lucide:layout-grid /></span>
           <span class="title">{{ $t('all') }}</span>
           <span v-if="counter.messages >= 0" class="count">{{ counter.messages.toLocaleString() }}</span>
@@ -15,6 +15,10 @@
           </span>
           <span class="title">{{ $t(`message_type.${t}`) }}</span>
           <span v-if="getTypeCount(t) >= 0" class="count">{{ getTypeCount(t).toLocaleString() }}</span>
+        </li>
+        <li :class="{ active: isHidden }" @click.prevent="viewHidden">
+          <span class="icon" aria-hidden="true"><i-material-symbols:visibility-off-outline-rounded /></span>
+          <span class="title">{{ $t('hidden_conversations') }}</span>
         </li>
       </ul>
       <tag-filter type="SMS" :selected="selectedTagId" />
@@ -41,6 +45,7 @@ const filter = reactive<IFilter>({
   tagIds: [],
 })
 const type = ref('')
+const isHidden = ref(false)
 const selectedTagId = ref('')
 const typesCount = ref<Map<string, number>>(new Map())
 
@@ -67,6 +72,7 @@ function updateActive() {
   parseQ(filter, q)
   type.value = filter.type ?? ''
   selectedTagId.value = filter.tagIds.length === 1 ? filter.tagIds[0] : ''
+  isHidden.value = router.currentRoute.value.path === '/messages/hidden'
   if (type.value) {
     selectedTagId.value = ''
   }
@@ -95,5 +101,9 @@ function openByType(type: string) {
 
 function viewAll() {
   replacePath(mainStore, '/messages')
+}
+
+function viewHidden() {
+  replacePath(mainStore, '/messages/hidden')
 }
 </script>

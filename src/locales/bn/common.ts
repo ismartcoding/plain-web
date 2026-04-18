@@ -85,7 +85,7 @@ export default {
   header_actions: {
     language: 'ভাষা পরিবর্তন করুন',
     theme: 'থিম পরিবর্তন করুন',
-    tasks: 'কার্যসমূহ',
+    uploads: 'কার্যসমূহ',
     audios: 'অডিও',
     logout: 'লগআউট',
     notifications: 'বিজ্ঞপ্তি',
@@ -238,6 +238,10 @@ export default {
     scroll: 'অসীম স্ক্রল',
   },
   owner: 'মালিক',
-  customize_sidebar: 'Customize sidebar',
-  drag_to_reorder: 'Drag to reorder',
+  customize_sidebar: 'সাইডবার কাস্টমাইজ করুন',
+  drag_to_reorder: 'পুনঃক্রমিত করতে ড্র্যাগ করুন',
+  exclude_directories: 'ডিরেক্টরি বাদ দিন',
+  excluded_dirs_hint: 'এই ডিরেক্টরিগুলির ফাইলগুলি মিডিয়া ভিউ থেকে লুকানো হবে।',
+  add_excluded_dir: 'ডিরেক্টরি যোগ করুন',
+  no_excluded_dirs: 'কোনও ডিরেক্টরি বাদ দেওয়া হয়নি।',
 }

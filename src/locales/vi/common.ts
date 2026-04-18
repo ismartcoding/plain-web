@@ -82,7 +82,7 @@ export default {
   header_actions: {
     language: 'Thay đổi ngôn ngữ',
     theme: 'Thay đổi chủ đề',
-    tasks: 'Nhiệm vụ',
+    uploads: 'Nhiệm vụ',
     audios: 'Âm thanh',
     logout: 'Đăng xuất',
     notifications: 'Thông báo',
@@ -234,6 +234,10 @@ export default {
     scroll: 'Cuộn vô hạn',
   },
   owner: 'Người sở hữu',
-  customize_sidebar: 'Customize sidebar',
-  drag_to_reorder: 'Drag to reorder',
+  customize_sidebar: 'Tùy chỉnh thanh bên',
+  drag_to_reorder: 'Kéo để sắp xếp lại',
+  exclude_directories: 'Loại trừ thư mục',
+  excluded_dirs_hint: 'Các tệp trong các thư mục này sẽ bị ẩn khỏi chế độ xem phương tiện.',
+  add_excluded_dir: 'Thêm thư mục',
+  no_excluded_dirs: 'Không có thư mục nào bị loại trừ.',
 }

@@ -88,7 +88,7 @@
               :class="{ expanded: !group.collapsed }"
             />
             <span class="group-name">{{ group.name }}</span>
-            <v-dropdown v-model="groupMenus[group.id]" align="top-right-to-bottom-right" @click.stop>
+            <v-dropdown v-model="groupMenus[group.id]" @click.stop>
               <template #trigger>
                 <v-icon-button class="icon more-trigger">
                   <i-material-symbols:more-vert />

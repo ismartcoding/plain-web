@@ -82,7 +82,7 @@ export default {
   header_actions: {
     language: 'भाषा बदले',
     theme: 'थीम बदले ',
-    tasks: 'टास्क',
+    uploads: 'टास्क',
     audios: 'ऑडियो',
     logout: 'लॉगआउट',
     notifications: 'नोटिफिकेशन्स',
@@ -234,6 +234,10 @@ export default {
     scroll: 'अनंत स्क्रॉल',
   },
   owner: 'मालिक',
-  customize_sidebar: 'Customize sidebar',
-  drag_to_reorder: 'Drag to reorder',
+  customize_sidebar: 'साइडबार कस्टमाइज़ करें',
+  drag_to_reorder: 'पुनःक्रमित करने के लिए खींचें',
+  exclude_directories: 'डायरेक्टरी को बाहर करें',
+  excluded_dirs_hint: 'इन डायरेक्टरी में फ़ाइलें मीडिया दृश्य से छिपाई जाएंगी।',
+  add_excluded_dir: 'डायरेक्टरी जोड़ें',
+  no_excluded_dirs: 'कोई डायरेक्टरी बाहर नहीं की गई।',
 }

@@ -4,8 +4,7 @@
     <template #content>
       <div class="features-list">
         <div v-if="enabledIds.length > 1" class="drag-hint">
-          <i-lucide:grip-vertical class="drag-hint-icon" />
-          <span>{{ $t('drag_to_reorder') }}</span>
+          {{ $t('drag_to_reorder') }}
         </div>
         <div
           v-for="(item, idx) in displayList"
@@ -50,7 +49,7 @@ const { app } = storeToRefs(useTempStore())
 const available = computed(() => getAvailableFeatures(app.value?.channel ?? ''))
 
 const enabledIds = ref<string[]>(
-  store.railFeatures.filter((id) => available.value.some((f) => f.id === id))
+  store.railFeatures.filter((id: string) => available.value.some((f) => f.id === id))
 )
 
 const displayList = computed(() => {

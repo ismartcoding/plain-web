@@ -43,7 +43,11 @@ export function useMediaSidebar(type: DataType, gql: string) {
       else if (type === DataType.AUDIO) { counter.value.audios = data.total; counter.value.audiosTrash = data.trash }
     },
     document: gql,
-    variables: () => ({}),
+    variables: () => {
+      const dirs = mainStore.excludedDirs
+      const dirParts = dirs.map((d) => (d.includes(' ') ? `excluded_dir:"${d}"` : `excluded_dir:${d}`))
+      return { query: dirParts.join(' ') }
+    },
   })
 
   function updateActive() {

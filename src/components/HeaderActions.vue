@@ -10,9 +10,9 @@
       <!-- Quick Actions Section -->
       <div v-if="isTablet" class="dropdown-section">
         <div class="dropdown-section-title">{{ t('quick_actions') }}</div>
-        <div v-if="hasTasks || store.quick === 'task'" class="dropdown-item" :class="{ selected: store.quick === 'task' }" @click="toggleQuick('task')">
+        <div v-if="hasTasks || store.quick === 'upload'" class="dropdown-item" :class="{ selected: store.quick === 'upload' }" @click="toggleQuick('upload')">
           <i-material-symbols:format-list-numbered-rounded />
-          {{ t('header_actions.tasks') }}
+          {{ t('header_actions.uploads') }}
         </div>
         <div v-if="app.channel !== 'GOOGLE'" class="dropdown-item" :class="{ selected: store.quick === 'notification' }" @click="toggleQuick('notification')">
           <i-material-symbols:notifications-outline-rounded />

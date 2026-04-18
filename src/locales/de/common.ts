@@ -83,7 +83,7 @@ export default {
   header_actions: {
     language: 'Sprache ändern',
     theme: 'Thema ändern',
-    tasks: 'Aufgaben',
+    uploads: 'Aufgaben',
     audios: 'Audio',
     logout: 'Abmelden',
     notifications: 'Benachrichtigungen',
@@ -234,6 +234,10 @@ export default {
   },
   owner: 'Eigentümer',
   unsaved_changes_warning: 'Sie haben nicht gespeicherte Änderungen. Sind Sie sicher, dass Sie den Vorgang beenden möchten?',
-  customize_sidebar: 'Customize sidebar',
-  drag_to_reorder: 'Drag to reorder',
+  customize_sidebar: 'Seitenleiste anpassen',
+  drag_to_reorder: 'Zum Neuanordnen ziehen',
+  exclude_directories: 'Verzeichnisse ausschließen',
+  excluded_dirs_hint: 'Dateien in diesen Verzeichnissen werden in der Medienansicht ausgeblendet.',
+  add_excluded_dir: 'Verzeichnis hinzufügen',
+  no_excluded_dirs: 'Keine Verzeichnisse ausgeschlossen.',
 }

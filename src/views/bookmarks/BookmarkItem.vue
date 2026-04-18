@@ -17,7 +17,7 @@
       <div class="bookmark-url">{{ displayDomain }}</div>
     </div>
 
-    <v-dropdown v-model="menuVisible" align="top-right-to-bottom-right" :class="{ 'menu-open': menuVisible }" @click.stop>
+    <v-dropdown v-model="menuVisible" :class="{ 'menu-open': menuVisible }" @click.stop>
       <template #trigger>
         <v-icon-button class="icon more-trigger">
           <i-material-symbols:more-vert />

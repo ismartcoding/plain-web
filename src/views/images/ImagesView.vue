@@ -132,6 +132,13 @@ const effectiveIsGroupMode = computed(() => isGroupMode.value && !filter.text)
 watch(() => mainStore.imagesGroupBy, () => { page.value = 1; noMore.value = false; items.value = []; fetch() })
 watch(() => mainStore.imagesScrollPaging, () => { page.value = 1; items.value = []; fetch() })
 
+const effectiveQ = computed(() => {
+  const dirs = mainStore.excludedDirs
+  if (!dirs.length) return q.value
+  const dirParts = dirs.map((d) => (d.includes(' ') ? `excluded_dir:"${d}"` : `excluded_dir:${d}`))
+  return [q.value, ...dirParts].filter(Boolean).join(' ')
+})
+
 const { loading, fetch } = initLazyQuery({
   handle: async (data: { images: IImage[]; imageCount: number }, error: string) => {
     mp.sorting.value = false
@@ -146,7 +153,7 @@ const { loading, fetch } = initLazyQuery({
     }
   },
   document: imagesGQL,
-  variables: () => ({ offset: (page.value - 1) * limit.value, limit: limit.value, query: q.value, sortBy: effectiveIsGroupMode.value ? 'TAKEN_AT_DESC' : imageSortBy.value }),
+  variables: () => ({ offset: (page.value - 1) * limit.value, limit: limit.value, query: effectiveQ.value, sortBy: effectiveIsGroupMode.value ? 'TAKEN_AT_DESC' : imageSortBy.value }),
 })
 
 const sources = computed<ISource[]>(() => items.value.map((it: IImageItem) => ({

@@ -1,9 +1,11 @@
 .button-group {
-  display: flex;
+  display: inline-flex;
   border-radius: var(--md-shape-corner-full, 9999px);
-  border: 1px solid var(--md-sys-color-outline, #79747e);
+  background: var(--md-sys-color-surface-container-high);
   overflow: hidden;
-  height: 32px;
+  height: 36px;
+  padding: 3px;
+  gap: 2px;
 
   button {
     flex: 1;
@@ -12,16 +14,16 @@
     justify-content: center;
     background: none;
     border: none;
+    border-radius: var(--md-shape-corner-full, 9999px);
     padding: 0 16px;
     cursor: pointer;
-    color: var(--md-sys-color-on-surface);
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: 0.875rem;
+    font-weight: 500;
     transition:
       background-color 0.2s,
       color 0.2s;
-  }
-
-  button:not(:last-child) {
-    border-right: 1px solid var(--md-sys-color-outline, #79747e);
+    white-space: nowrap;
   }
 
   button.selected {
@@ -30,6 +32,6 @@
   }
 
   button:hover:not(.selected) {
-    background-color: var(--md-sys-color-surface-variant);
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
   }
 }

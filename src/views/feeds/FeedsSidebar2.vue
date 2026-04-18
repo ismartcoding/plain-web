@@ -139,7 +139,7 @@ const {
   .title {
     grid-area: title;
     display: flex;
-    .v-checkbox {
+    .checkbox {
       margin-inline-start: 4px;
     }
     .text {

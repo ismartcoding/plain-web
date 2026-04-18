@@ -3,7 +3,7 @@ import { useMainStore } from '@/stores/main'
 import { useRouter } from 'vue-router'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
-import { appGQL, initQuery } from '@/lib/api/query'
+import { initQuery, appGQL } from '@/lib/api/query'
 import emitter from '@/plugins/eventbus'
 import { tokenToKey } from '@/lib/api/file'
 import type { IApp, IMediaItemsActionedEvent } from '@/lib/interfaces'
@@ -34,7 +34,8 @@ export function useMainView() {
 
   function getSidebar2CacheKey() {
     const route = router.currentRoute.value
-    return (route.meta.group ?? '') + (route.query.q ?? '')
+    const matchedPath = route.matched[route.matched.length - 1]?.path ?? ''
+    return (route.meta.group ?? '') + matchedPath + (route.query.q ?? '')
   }
 
   function toggleQuick(name: string) {
@@ -90,7 +91,7 @@ export function useMainView() {
     emitter.off('media_items_actioned', mediaItemsActionedHandler)
   })
 
-  // Restore persisted state
+  // Restore persisted state from localStorage
   const localState = localStorage.getItem('main_state')
   if (localState) {
     const json = JSON.parse(localState)

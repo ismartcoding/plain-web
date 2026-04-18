@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   or: 'or',
+  hide: 'Hide',
   link_copied: 'Link copied',
   copy_link: 'Copy link',
   unwrap: 'Unwrap',
@@ -98,7 +99,7 @@ export default {
   header_actions: {
     language: 'Change language',
     theme: 'Change theme',
-    tasks: 'Tasks',
+    uploads: 'Uploads',
     audios: 'Audio',
     logout: 'Logout',
     notifications: 'Notifications',
@@ -238,4 +239,8 @@ export default {
   reset_font_size: 'Reset font size',
   customize_sidebar: 'Customize sidebar',
   drag_to_reorder: 'Drag to reorder',
+  exclude_directories: 'Exclude Directories',
+  excluded_dirs_hint: 'Files in these directories will be hidden from media views.',
+  add_excluded_dir: 'Add directory',
+  no_excluded_dirs: 'No directories excluded.',
 }

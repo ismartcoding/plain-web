@@ -454,6 +454,18 @@ export const sendSmsGQL = `
   }
 `
 
+export const hideConversationGQL = `
+  mutation hideConversation($id: String!, $date: Long!) {
+    hideConversation(id: $id, date: $date)
+  }
+`
+
+export const unhideConversationGQL = `
+  mutation unhideConversation($id: String!) {
+    unhideConversation(id: $id)
+  }
+`
+
 export const sendMmsGQL = `
   mutation sendMms($number: String!, $body: String!, $attachmentPaths: [String!]!, $threadId: String!) {
     sendMms(number: $number, body: $body, attachmentPaths: $attachmentPaths, threadId: $threadId)

@@ -21,6 +21,9 @@
       <v-icon-button v-tooltip="$t('export_sms')" @click.stop="$emit('export')">
         <i-material-symbols:download-rounded />
       </v-icon-button>
+      <v-icon-button v-tooltip="$t('hide_conversation')" @click.stop="$emit('hide')">
+        <i-material-symbols:visibility-off-outline-rounded />
+      </v-icon-button>
       <v-icon-button v-tooltip="$t('call')" @click.stop="$emit('call')">
         <i-material-symbols:call-outline-rounded />
       </v-icon-button>
@@ -39,6 +42,7 @@ defineProps<{
 defineEmits<{
   back: []
   export: []
+  hide: []
   call: []
 }>()
 

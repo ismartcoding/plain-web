@@ -76,8 +76,9 @@ import AudioListItem from './AudioListItem.vue'
 import AudioSkeletonItem from './AudioSkeletonItem.vue'
 
 const mainStoreLocal = useMainStore()
+const tempStoreLocal = useTempStore()
 const { audioSortBy } = storeToRefs(mainStoreLocal)
-const { audioPlaying } = storeToRefs(useTempStore())
+const { audioPlaying } = storeToRefs(tempStoreLocal)
 const items = ref<IAudioItem[]>([])
 const sortItems = getSortItems()
 const imageErrorIds = ref<string[]>([])
@@ -130,6 +131,12 @@ const {
 } = mp
 
 const isAudioPlaying = (item: IAudioItem) => audioPlaying.value && app.value?.audioCurrent === item.path
+const effectiveQ = computed(() => {
+  const dirs = mainStoreLocal.excludedDirs
+  if (!dirs.length) return q.value
+  const dirParts = dirs.map((d) => (d.includes(' ') ? `excluded_dir:"${d}"` : `excluded_dir:${d}`))
+  return [q.value, ...dirParts].filter(Boolean).join(' ')
+})
 const { play, playPath, loading: playLoading, pause } = useAudioPlayer()
 const { addItemsToPlaylist, addToPlaylist, removeFromPlaylist, isInPlaylist } = useAddToPlaylist(items, clearSelection)
 const onImageError = (id: string) => { imageErrorIds.value.push(id) }
@@ -147,15 +154,15 @@ const { loading, fetch } = initLazyQuery({
   handle: (data: { items: IAudio[]; total: number }, error: string) => {
     mp.sorting.value = false
     if (error) { toast(mp.q.value, 'error') } else if (data) {
-      const list = data.items.map((it) => ({ ...it, fileId: getFileId(urlTokenKey.value, it.path, it.id) }))
-      if (scrollMode.value && page.value > 1) { items.value = items.value.concat(list) }
-      else { items.value = list }
+      const raw = data.items.map((it) => ({ ...it, fileId: getFileId(urlTokenKey.value, it.path, it.id) }))
+      if (scrollMode.value && page.value > 1) { items.value = items.value.concat(raw) }
+      else { items.value = raw }
       total.value = data.total
       if (scrollMode.value) { noMore.value = data.items.length < limit.value }
     }
   },
   document: audiosGQL,
-  variables: () => ({ offset: (page.value - 1) * limit.value, limit: limit.value, query: q.value, sortBy: audioSortBy.value }),
+  variables: () => ({ offset: (page.value - 1) * limit.value, limit: limit.value, query: effectiveQ.value, sortBy: audioSortBy.value }),
 })
 </script>
 

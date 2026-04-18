@@ -82,7 +82,7 @@ export default {
   header_actions: {
     language: 'Dili değiştir',
     theme: 'Temayı değiştir',
-    tasks: 'Görevler',
+    uploads: 'Görevler',
     audios: 'Sesler',
     logout: 'Çıkış yap',
     notifications: 'Bildirimler',
@@ -234,6 +234,10 @@ export default {
     scroll: 'Sonsuz kaydırma',
   },
   owner: 'Mal sahibi',
-  customize_sidebar: 'Customize sidebar',
-  drag_to_reorder: 'Drag to reorder',
+  customize_sidebar: 'Sidebar\'ı özelleştir',
+  drag_to_reorder: 'Sürükleyerek yeniden sırala',
+  exclude_directories: 'Dizinleri hariç tut',
+  excluded_dirs_hint: 'Bu dizinlerdeki dosyalar medya görünümlerinde gizlenecektir.',
+  add_excluded_dir: 'Dizin ekle',
+  no_excluded_dirs: 'Hariç tutulan dizin yok.',
 }

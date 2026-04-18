@@ -83,7 +83,7 @@ export default {
   header_actions: {
     language: 'Изменить язык',
     theme: 'Изменить тему',
-    tasks: 'Задачи',
+    uploads: 'Задачи',
     audios: 'Аудио',
     logout: 'Выйти',
     notifications: 'Уведомления',
@@ -234,6 +234,10 @@ export default {
   paused: 'Приостановлено',
   failed: 'Неуспешный',
   unsaved_changes_warning: 'У вас есть несохраненные изменения. Вы уверены, что хотите выйти?',
-  customize_sidebar: 'Customize sidebar',
-  drag_to_reorder: 'Drag to reorder',
+  customize_sidebar: 'Настроить боковую панель',
+  drag_to_reorder: 'Перетащите для изменения порядка',
+  exclude_directories: 'Исключить директории',
+  excluded_dirs_hint: 'Файлы в этих директориях будут скрыты в медиавидах.',
+  add_excluded_dir: 'Добавить директорию',
+  no_excluded_dirs: 'Нет исключенных директорий.',
 }

@@ -57,12 +57,12 @@
         <header-actions :logged-in="true" @toggle-quick="toggleQuick" />
 
         <v-icon-button
-          v-if="hasTasks || store.quick === 'task'"
-          v-tooltip="$t('header_actions.tasks')"
+          v-if="hasTasks || store.quick === 'upload'"
+          v-tooltip="$t('header_actions.uploads')"
           class="q-action"
           toggle
-          :class="{ selected: store.quick === 'task' }"
-          @click="toggleQuick('task')"
+          :class="{ selected: store.quick === 'upload' }"
+          @click="toggleQuick('upload')"
         >
           <i-material-symbols:format-list-numbered-rounded />
         </v-icon-button>
@@ -91,7 +91,7 @@
       </div>
       <transition name="width">
         <div v-show="store.quick" class="quick-content" :style="{ width: store.quickContentWidth + 'px' }">
-          <task-list v-show="store.quick === 'task'" />
+          <upload-list v-show="store.quick === 'upload'" />
           <audio-player v-show="store.quick === 'audio'" />
           <p-notifications v-show="store.quick === 'notification'" />
           <pomodoro-timer v-show="store.quick === 'pomodoro'" />

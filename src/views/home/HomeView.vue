@@ -1,149 +1,59 @@
 <template>
   <div class="grids">
-    <router-link to="/audios" class="card feature-card">
-      <div class="card-icon">
-        <i-lucide:music />
-      </div>
-      <div class="card-content">
-        <div class="card-title-row">
-          <span v-if="counter.audios !== undefined && counter.audios >= 0" class="count">{{ counter.audios.toLocaleString() }}</span>
-          <span class="title">{{ $t('audios') }}</span>
-        </div>
-      </div>
-    </router-link>
+    <FeatureCard to="/audios" :title="$t('audios')" :count="counter.audios">
+      <template #icon><i-lucide:music /></template>
+    </FeatureCard>
 
-    <router-link to="/images" class="card feature-card">
-      <div class="card-icon">
-        <i-lucide:image />
-      </div>
-      <div class="card-content">
-        <div class="card-title-row">
-          <span v-if="counter.images !== undefined && counter.images >= 0" class="count">{{ counter.images.toLocaleString() }}</span>
-          <span class="title">{{ $t('images') }}</span>
-        </div>
-      </div>
-    </router-link>
+    <FeatureCard to="/images" :title="$t('images')" :count="counter.images">
+      <template #icon><i-lucide:image /></template>
+    </FeatureCard>
 
-    <router-link to="/videos" class="card feature-card">
-      <div class="card-icon">
-        <i-lucide:video />
-      </div>
-      <div class="card-content">
-        <div class="card-title-row">
-          <span v-if="counter.videos !== undefined && counter.videos >= 0" class="count">{{ counter.videos.toLocaleString() }}</span>
-          <span class="title">{{ $t('videos') }}</span>
-        </div>
-      </div>
-    </router-link>
+    <FeatureCard to="/videos" :title="$t('videos')" :count="counter.videos">
+      <template #icon><i-lucide:video /></template>
+    </FeatureCard>
 
-    <router-link to="/docs" class="card feature-card">
-      <div class="card-icon">
-        <i-lucide:file-text />
-      </div>
-      <div class="card-content">
-        <div class="card-title-row">
-          <span v-if="counter.docs !== undefined && counter.docs >= 0" class="count">{{ counter.docs.toLocaleString() }}</span>
-          <span class="title">{{ $t('page_title.docs') }}</span>
-        </div>
-      </div>
-    </router-link>
+    <FeatureCard to="/docs" :title="$t('page_title.docs')" :count="counter.docs">
+      <template #icon><i-lucide:file-text /></template>
+    </FeatureCard>
 
-    <router-link :to="filesPath" class="card feature-card">
-      <div class="card-icon">
-        <i-lucide:folder />
+    <FeatureCard :to="filesPath" :title="$t('files')">
+      <template #icon><i-lucide:folder /></template>
+      <div v-if="counter.total >= 0" class="storage-info">
+        {{ $t('storage_free_total', { free: formatFileSize(counter.free), total: formatFileSize(counter.total) }) }}
       </div>
-      <div class="card-content">
-        <div class="card-title-row">
-          <span class="title">{{ $t('files') }}</span>
-        </div>
-        <div v-if="counter.total >= 0" class="storage-info">
-          {{ $t('storage_free_total', { free: formatFileSize(counter.free), total: formatFileSize(counter.total) }) }}
-        </div>
-      </div>
-    </router-link>
+    </FeatureCard>
 
-    <router-link v-if="app.channel !== 'GOOGLE'" to="/apps" class="card feature-card">
-      <div class="card-icon">
-        <i-lucide:layout-grid />
-      </div>
-      <div class="card-content">
-        <div class="card-title-row">
-          <span v-if="counter.packages !== undefined && counter.packages >= 0" class="count">{{ counter.packages.toLocaleString() }}</span>
-          <span class="title">{{ $t('apps') }}</span>
-        </div>
-      </div>
-    </router-link>
+    <FeatureCard v-if="app.channel !== 'GOOGLE'" to="/apps" :title="$t('apps')" :count="counter.packages">
+      <template #icon><i-lucide:layout-grid /></template>
+    </FeatureCard>
 
-    <router-link to="/notes" class="card feature-card">
-      <div class="card-icon">
-        <i-lucide:notebook-pen />
-      </div>
-      <div class="card-content">
-        <div class="card-title-row">
-          <span v-if="counter.notes !== undefined && counter.notes >= 0" class="count">{{ counter.notes.toLocaleString() }}</span>
-          <span class="title">{{ $t('page_title.notes') }}</span>
-        </div>
-      </div>
-    </router-link>
+    <FeatureCard to="/notes" :title="$t('page_title.notes')" :count="counter.notes">
+      <template #icon><i-lucide:notebook-pen /></template>
+    </FeatureCard>
 
-    <router-link to="/feeds" class="card feature-card">
-      <div class="card-icon">
-        <i-lucide:rss />
-      </div>
-      <div class="card-content">
-        <div class="card-title-row">
-          <span v-if="counter.feedEntries !== undefined && counter.feedEntries >= 0" class="count">{{ counter.feedEntries.toLocaleString() }}</span>
-          <span class="title">{{ $t('page_title.feeds') }}</span>
-        </div>
-      </div>
-    </router-link>
+    <FeatureCard to="/feeds" :title="$t('page_title.feeds')" :count="counter.feedEntries">
+      <template #icon><i-lucide:rss /></template>
+    </FeatureCard>
 
-    <router-link v-if="app.channel !== 'GOOGLE'" to="/messages" class="card feature-card">
-      <div class="card-icon">
-        <i-lucide:message-square-text />
-      </div>
-      <div class="card-content">
-        <div class="card-title-row">
-          <span v-if="counter.messages !== undefined && counter.messages >= 0" class="count">{{ counter.messages.toLocaleString() }}</span>
-          <span class="title">{{ $t('messages') }}</span>
-        </div>
-      </div>
-    </router-link>
+    <FeatureCard v-if="app.channel !== 'GOOGLE'" to="/messages" :title="$t('messages')" :count="counter.messages">
+      <template #icon><i-lucide:message-square-text /></template>
+    </FeatureCard>
 
-    <router-link v-if="app.channel !== 'GOOGLE'" to="/calls" class="card feature-card">
-      <div class="card-icon">
-        <i-material-symbols:call-log-outline-rounded />
-      </div>
-      <div class="card-content">
-        <div class="card-title-row">
-          <span v-if="counter.calls !== undefined && counter.calls >= 0" class="count">{{ counter.calls.toLocaleString() }}</span>
-          <span class="title">{{ $t('calls') }}</span>
-        </div>
-      </div>
-    </router-link>
+    <FeatureCard v-if="app.channel !== 'GOOGLE'" to="/calls" :title="$t('calls')" :count="counter.calls">
+      <template #icon><i-material-symbols:call-log-outline-rounded /></template>
+    </FeatureCard>
 
-    <router-link to="/contacts" class="card feature-card">
-      <div class="card-icon">
-        <i-lucide:contact-round />
-      </div>
-      <div class="card-content">
-        <div class="card-title-row">
-          <span v-if="counter.contacts !== undefined && counter.contacts >= 0" class="count">{{ counter.contacts.toLocaleString() }}</span>
-          <span class="title">{{ $t('contacts') }}</span>
-        </div>
-      </div>
-    </router-link>
+    <FeatureCard to="/contacts" :title="$t('contacts')" :count="counter.contacts">
+      <template #icon><i-lucide:contact-round /></template>
+    </FeatureCard>
 
-    <router-link to="/screen-mirror" class="card feature-card">
-      <div class="card-icon">
-        <i-material-symbols:screen-record-rounded />
-      </div>
-      <div class="card-content">
-        <div class="card-title-row">
-          <span class="title">{{ $t('screen_mirror') }}</span>
-        </div>
-      </div>
-    </router-link>
+    <FeatureCard to="/screen-mirror" :title="$t('screen_mirror')">
+      <template #icon><i-material-symbols:screen-record-rounded /></template>
+    </FeatureCard>
+
+    <FeatureCard to="/device-info" :title="$t('device_info')">
+      <template #icon><i-lucide:smartphone /></template>
+    </FeatureCard>
 
     <div class="card phone-card">
       <div class="card-content">
@@ -163,51 +73,24 @@
       </div>
     </div>
 
-    <div class="card phone-card">
-      <div class="card-content">
-        <h5 class="card-title">{{ $t('call_phone') }}</h5>
-        <div class="phone-input-row">
-          <v-text-field v-model="callNumber" type="tel" :label="$t('phone_number')" class="phone-input" :error="callNumberError" :error-text="$t('valid.required')" @keyup.enter="callPhone">
-            <template #trailing-icon>
-              <v-icon-button @click.prevent="pastePhoneNumber">
-                <i-material-symbols:content-paste-rounded />
-              </v-icon-button>
-            </template>
-          </v-text-field>
-          <v-filled-button class="call-btn" :disabled="callLoading" @click.prevent="callPhone">
-            {{ $t('call') }}
-          </v-filled-button>
-        </div>
-      </div>
-    </div>
-
-
-    <router-link to="/device-info" class="card feature-card">
-      <div class="card-icon">
-        <i-lucide:smartphone />
-      </div>
-      <div class="card-content">
-        <div class="card-title-row">
-          <span class="title">{{ $t('device_info') }}</span>
-        </div>
-      </div>
-    </router-link>
+    <CallPhoneCard />
   </div>
 </template>
 
 <script setup lang="ts">
 import { formatFileSize } from '@/lib/format'
-import { computed, inject } from 'vue'
+import { computed } from 'vue'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { buildQuery } from '@/lib/search'
 import { encodeBase64 } from '@/lib/strutil'
-import { useHomeData, usePhoneAction, useClipboardAction } from './home'
+import { useHomeData, useClipboardAction } from './home'
+import CallPhoneCard from './CallPhoneCard.vue'
+import FeatureCard from './FeatureCard.vue'
 
 const { app, counter } = storeToRefs(useTempStore())
 
 const { mounts } = useHomeData()
-const { callNumber, callNumberError, callLoading, pastePhoneNumber, callPhone } = usePhoneAction()
 const { clipText, clipTextError, setClipLoading, pasteClipboardText, sendClipboard } = useClipboardAction()
 
 const filesPath = computed(() => {
@@ -230,7 +113,7 @@ const filesPath = computed(() => {
   padding: 16px;
 }
 
-.feature-card {
+:deep(.feature-card) {
   cursor: pointer;
   text-decoration: none;
   transition:
@@ -291,32 +174,12 @@ const filesPath = computed(() => {
       color: var(--md-sys-color-on-surface-variant);
       margin-top: 4px;
     }
-
-    .count {
-      font-size: 0.875rem;
-      color: var(--md-sys-color-on-surface-variant);
-    }
   }
 }
 
 .phone-card {
   grid-column: span 2;
   min-height: 144px;
-  .card-title {
-    text-align: left;
-  }
-  .card-icon {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 12px;
-
-    svg {
-      width: 32px;
-      height: 32px;
-      color: var(--md-sys-color-primary);
-    }
-  }
 
   .card-content {
     text-align: left;

@@ -1,7 +1,6 @@
-import { nextTick, onMounted, onBeforeUnmount, ref, computed, reactive } from 'vue'
+import { nextTick, onMounted, ref, computed, reactive } from 'vue'
 import { popModal } from '@/components/modal'
 import { initMutation, sendSmsGQL, sendMmsGQL } from '@/lib/api/mutation'
-import { initLazyQuery, contactsGQL } from '@/lib/api/query'
 import tapPhone from '@/plugins/tapphone'
 import { upload as uploadFile } from '@/lib/upload/upload'
 import { shortUUID } from '@/lib/strutil'
@@ -14,6 +13,7 @@ import { storeToRefs } from 'pinia'
 import toast from '@/components/toaster'
 import { useI18n } from 'vue-i18n'
 import { formatFileSize } from '@/lib/format'
+import { useContactPicker } from '@/hooks/contact-picker'
 
 export const MMS_WARN_SIZE = 300 * 1024
 
@@ -29,52 +29,11 @@ export function useSendSms(initialNumber: string, initialBody: string) {
   const fileInputRef = ref<HTMLInputElement>()
   const mmsUploading = ref(false)
 
-  // Contact picker
-  const showContactPicker = ref(false)
-  const allContacts = ref<IContact[]>([])
-  const selectedContactName = ref('')
-  const phoneFieldRef = ref<HTMLElement>()
-
-  const filteredContacts = computed(() => {
-    const contacts = allContacts.value.filter((c) => c.phoneNumbers.length > 0)
-    const q = (number.value || '').trim().toLowerCase()
-    if (!q) return contacts
-    return contacts.filter(
-      (c) => getContactFullName(c).toLowerCase().includes(q) || c.phoneNumbers.some((p) => (p.normalizedNumber || p.value).toLowerCase().includes(q)),
-    )
-  })
-
-  const { loading: contactsLoading, fetch: fetchContacts } = initLazyQuery({
-    handle: (data: { contacts: IContact[] }, error: string) => { if (!error && data) allContacts.value = data.contacts },
-    document: contactsGQL,
-    variables: () => ({ offset: 0, limit: 5000, query: '' }),
-  })
-
-  function toggleContactPicker() {
-    showContactPicker.value = !showContactPicker.value
-    if (showContactPicker.value && allContacts.value.length === 0) fetchContacts()
-  }
-
-  function onNumberInput() {
-    selectedContactName.value = ''
-    if (allContacts.value.length > 0 && number.value?.trim()) showContactPicker.value = true
-  }
-
-  function onNumberFocus() {
-    if (allContacts.value.length > 0 && number.value?.trim()) showContactPicker.value = true
-  }
-
-  function selectContactNumber(phone: string, contact: IContact) {
-    number.value = phone
-    selectedContactName.value = getContactFullName(contact)
-    showContactPicker.value = false
-  }
-
-  function clearSelectedContact() { selectedContactName.value = ''; number.value = '' }
-
-  function handleClickOutside(e: MouseEvent) {
-    if (phoneFieldRef.value && !phoneFieldRef.value.contains(e.target as Node)) showContactPicker.value = false
-  }
+  const {
+    showContactPicker, selectedContactName, filteredContacts, contactsLoading,
+    toggleContactPicker, onNumberInput, onNumberFocus, selectContactNumber, clearSelectedContact,
+    getContactFullName,
+  } = useContactPicker(() => number.value || '')
 
   // File handling
   const totalPendingSize = computed(() => pendingFiles.value.reduce((s, f) => s + f.size, 0))
@@ -128,7 +87,6 @@ export function useSendSms(initialNumber: string, initialBody: string) {
   onMmsDone(() => { tapPhone(t('confirm_mms_on_phone')); popModal() })
 
   onMounted(async () => {
-    document.addEventListener('click', handleClickOutside, true)
     await nextTick()
     requestAnimationFrame(() => {
       setTimeout(() => {
@@ -140,14 +98,17 @@ export function useSendSms(initialNumber: string, initialBody: string) {
     })
   })
 
-  onBeforeUnmount(() => { document.removeEventListener('click', handleClickOutside, true) })
-
   return {
     number, body, errors, pendingFiles, fileInputRef, mmsUploading, numberRef,
-    showContactPicker, selectedContactName, phoneFieldRef, filteredContacts, contactsLoading,
+    showContactPicker, selectedContactName, filteredContacts, contactsLoading,
     loading, mmsLoading, totalPendingSize, hasLargeNonImageFile,
-    cancel, submit, toggleContactPicker, onNumberInput, onNumberFocus,
-    selectContactNumber, clearSelectedContact, openFilePicker, onFileSelected,
+    cancel, submit, toggleContactPicker,
+    onNumberInput: () => onNumberInput(number.value || ''),
+    onNumberFocus: () => onNumberFocus(number.value || ''),
+    selectContactNumber: (phone: string, contact: IContact) =>
+      selectContactNumber(phone, contact, (n) => { number.value = n }),
+    clearSelectedContact: () => clearSelectedContact(() => { number.value = '' }),
+    openFilePicker, onFileSelected,
     removePendingFile, filePreviewUrl, getContactFullName, formatFileSize,
   }
 }

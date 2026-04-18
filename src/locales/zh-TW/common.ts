@@ -84,7 +84,7 @@ export default {
   header_actions: {
     language: '更改語言',
     theme: '更改主題',
-    tasks: '任務',
+    uploads: '任務',
     audios: '音訊',
     logout: '登出',
     notifications: '通知',
@@ -235,6 +235,10 @@ export default {
   },
   owner: '擁有者',
   unsaved_changes_warning: '您有未儲存的變更。您確定要退出嗎？',
-  customize_sidebar: 'Customize sidebar',
-  drag_to_reorder: 'Drag to reorder',
+  customize_sidebar: '自訂側邊欄',
+  drag_to_reorder: '拖曳以重新排序',
+  exclude_directories: '排除目錄',
+  excluded_dirs_hint: '這些目錄中的檔案將在媒體視圖中隱藏。',
+  add_excluded_dir: '新增目錄',
+  no_excluded_dirs: '沒有排除的目錄。',
 }

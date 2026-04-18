@@ -82,7 +82,7 @@ export default {
   header_actions: {
     language: 'Mudar idioma',
     theme: 'Mudar tema',
-    tasks: 'Tarefas',
+    uploads: 'Tarefas',
     audios: 'Áudio',
     logout: 'Sair',
     notifications: 'Notificações',
@@ -234,6 +234,10 @@ export default {
     scroll: 'Rolagem infinita',
   },
   owner: 'Proprietário',
-  customize_sidebar: 'Customize sidebar',
-  drag_to_reorder: 'Drag to reorder',
+  customize_sidebar: 'Personalizar barra lateral',
+  drag_to_reorder: 'Arrastar para reordenar',
+  exclude_directories: 'Excluir diretórios',
+  excluded_dirs_hint: 'Arquivos nesses diretórios serão ocultos nas visualizações de mídia.',
+  add_excluded_dir: 'Adicionar diretório',
+  no_excluded_dirs: 'Nenhum diretório excluído.',
 }

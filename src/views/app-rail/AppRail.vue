@@ -36,7 +36,8 @@ import RailSettingsPopup from './RailSettingsPopup.vue'
 
 const store = useMainStore()
 const router = useRouter()
-const { app } = storeToRefs(useTempStore())
+const tempStore = useTempStore()
+const { app } = storeToRefs(tempStore)
 
 const availableFeatures = computed(() => getAvailableFeatures(app.value?.channel ?? ''))
 
