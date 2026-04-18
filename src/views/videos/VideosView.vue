@@ -138,21 +138,28 @@ watch(() => mainStore.videosScrollPaging, () => { page.value = 1; items.value = 
 
 const onImageError = (id: string) => { imageErrorIds.value.push(id) }
 
+const effectiveQ = computed(() => {
+  const dirs = mainStore.excludedDirs
+  if (!dirs.length) return q.value
+  const dirParts = dirs.map((d) => (d.includes(' ') ? `excluded_dir:"${d}"` : `excluded_dir:${d}`))
+  return [q.value, ...dirParts].filter(Boolean).join(' ')
+})
+
 const { loading, fetch } = initLazyQuery({
   handle: async (data: { videos: IVideo[]; videoCount: number }, error: string) => {
     mp.sorting.value = false
     if (error) { toast(mp.q.value, 'error') } else if (data) {
-      const list = data.videos.map((it) => ({ ...it, fileId: getFileId(urlTokenKey.value, it.path, it.id) }))
+      const raw = data.videos.map((it) => ({ ...it, fileId: getFileId(urlTokenKey.value, it.path, it.id) }))
       if (scrollMode.value && page.value > 1) {
         const existingIds = new Set(items.value.map((i) => i.id))
-        items.value = items.value.concat(list.filter((i) => !existingIds.has(i.id)))
-      } else { items.value = list }
+        items.value = items.value.concat(raw.filter((i) => !existingIds.has(i.id)))
+      } else { items.value = raw }
       total.value = data.videoCount
-      if (scrollMode.value) { noMore.value = list.length < limit.value; prefetchNext() }
+      if (scrollMode.value) { noMore.value = raw.length < limit.value; prefetchNext() }
     }
   },
   document: videosGQL,
-  variables: () => ({ offset: (page.value - 1) * limit.value, limit: limit.value, query: q.value, sortBy: effectiveIsGroupMode.value ? 'TAKEN_AT_DESC' : videoSortBy.value }),
+  variables: () => ({ offset: (page.value - 1) * limit.value, limit: limit.value, query: effectiveQ.value, sortBy: effectiveIsGroupMode.value ? 'TAKEN_AT_DESC' : videoSortBy.value }),
 })
 
 const sources = computed<ISource[]>(() => items.value.map((it: IVideoItem) => ({

@@ -14,8 +14,9 @@ import toast from '@/components/toaster'
 export function useFilesData() {
   const { t } = useI18n()
   const mainStore = useMainStore()
+  const tempStore = useTempStore()
   const { fileSortBy } = storeToRefs(mainStore)
-  const { urlTokenKey } = storeToRefs(useTempStore())
+  const { urlTokenKey } = storeToRefs(tempStore)
   const route = useRoute()
   const { parseQ, buildQ } = useSearch()
 
@@ -55,9 +56,12 @@ export function useFilesData() {
       if (error) {
         toast(t(error), 'error')
       } else {
+        const dirs = mainStore.excludedDirs
         const list: IFile[] = []
         for (const item of data.files) {
-          list.push(enrichFile(item, urlTokenKey.value))
+          const f = enrichFile(item, urlTokenKey.value)
+          if (dirs.length && dirs.some((d) => f.path.startsWith(d))) continue
+          list.push(f)
         }
         items.value = list
         totalRef.value = list.length

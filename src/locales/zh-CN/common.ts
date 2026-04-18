@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   or: '或',
+  hide: '隐藏',
   link_copied: '链接已复制',
   copy_link: '复制链接',
   unwrap: '不换行',
@@ -96,7 +97,7 @@ export default {
   header_actions: {
     language: '更改语言',
     theme: '更改主题',
-    tasks: '任务列表',
+    uploads: '上传列表',
     audios: '音频',
     logout: '退出登录',
     notifications: '通知',
@@ -238,4 +239,8 @@ export default {
   notification_sound_off: '通知声音已关闭',
   customize_sidebar: '自定义侧边栏',
   drag_to_reorder: '拖拽排序',
+  exclude_directories: '排除目录',
+  excluded_dirs_hint: '这些目录中的文件将在媒体视图中隐藏。',
+  add_excluded_dir: '添加目录',
+  no_excluded_dirs: '没有排除的目录。',
 }

@@ -1,249 +1,187 @@
 <template>
-  <div ref="containerRef" class="v-dropdown-container">
-    <div @click.prevent.stop="toggleDropdown">
-      <slot name="trigger"></slot>
+  <div ref="containerRef" class="v-dropdown-container" :class="{ 'is-block': fullWidth }">
+    <div @click.prevent.stop="toggle">
+      <slot name="trigger" />
     </div>
     <teleport to="body">
-      <div ref="menuRef" class="v-dropdown-portal dropdown-menu" :class="{ 'is-open': modelValue }" :style="menuStyle">
-        <slot></slot>
+      <div
+        v-if="modelValue"
+        ref="menuRef"
+        class="v-dropdown-portal dropdown-menu is-open"
+        :style="style"
+      >
+        <slot />
       </div>
     </teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import type { CSSProperties } from 'vue'
 
 const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-  maxHeight: {
-    type: Number,
-    default: 300,
-  },
-  align: {
-    type: String,
-    default: 'top-right-to-bottom-right',
-    validator: (value: string) =>
-      [
-        'top-left-to-bottom-left', // Default: menu's top-left to trigger's bottom-left
-        'top-right-to-bottom-right', // Menu's top-right to trigger's bottom-right
-        'top-right-to-top-left', // Menu's top-right to trigger's top-left
-        'top-left-to-top-right', // Menu's top-left to trigger's top-right
-        'bottom-left-to-bottom-right', // Menu's bottom-left to trigger's bottom-right
-        'bottom-left-to-top-left', // Menu's bottom-left to trigger's top-left (above the trigger)
-        'bottom-right-to-top-right', // Menu's bottom-right to trigger's top-right (above the trigger)
-      ].includes(value),
-  },
+  modelValue: { type: Boolean, default: false },
+  maxHeight: { type: Number, default: 400 },
+  // Kept for backward compatibility — positioning is now fully automatic.
+  align: { type: String, default: '' },
+  // 'auto': prefer beside trigger; 'below': always place below/above
+  strategy: { type: String, default: 'auto' },
+  // Make the container block-level (full parent width)
+  fullWidth: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['update:modelValue'])
 
+const EDGE_MARGIN = 16 // minimum clearance from viewport edges
+const TRIGGER_GAP = 8  // gap between trigger element and menu
 const containerRef = ref<HTMLElement | null>(null)
 const menuRef = ref<HTMLElement | null>(null)
-const contentHeight = ref(0)
-const windowHeight = ref(window.innerHeight)
-const windowWidth = ref(window.innerWidth)
-const menuPosition = ref({ top: 0, bottom: 0, left: 0, right: 0 })
+const style = ref<CSSProperties>({ position: 'fixed', visibility: 'hidden' })
 
-const menuStyle = computed<CSSProperties>(() => {
-  // Check if content fits in viewport
-  const spaceBelow = windowHeight.value - menuPosition.value.top
-  const spaceAbove = menuPosition.value.bottom
-  const needsScrolling = contentHeight.value > spaceBelow && contentHeight.value > props.maxHeight
+/**
+ * Compute the optimal position for the dropdown menu.
+ *
+ * Strategy:
+ *   1. Prefer placing the menu BESIDE the trigger (left or right) when there
+ *      is enough horizontal room for the menu width.
+ *   2. In horizontal placement the vertical anchor is chosen independently:
+ *      - Enough space below trigger → open DOWNWARD (top = trigger.bottom)
+ *      - Enough space above trigger → open UPWARD  (bottom = trigger.top)
+ *      - Else use whichever side has more room.
+ *      This gives true diagonal alignment in all four corners with obstacle
+ *      detection, e.g. a trigger at the bottom of the viewport correctly
+ *      opens upward even when placed horizontally.
+ *   3. If neither horizontal side has room, fall back to VERTICAL placement
+ *      (below or above the trigger, left-aligned with the trigger).
+ *   4. All positions are clamped to the viewport with EDGE_MARGIN clearance.
+ */
+function computePosition() {
+  const container = containerRef.value
+  const menu = menuRef.value
+  if (!container || !menu) return
 
-  // Calculate max height for dropdown
-  let maxHeight = needsScrolling ? Math.min(props.maxHeight, spaceBelow) : 'auto'
+  const t = container.getBoundingClientRect()
+  const m = menu.getBoundingClientRect()
+  const ww = window.innerWidth
+  const wh = window.innerHeight
+  const mw = m.width || 200
+  const mh = Math.min(m.height || 100, props.maxHeight)
 
-  // Check if we should position above the trigger when space is insufficient below
-  const shouldPositionAbove = spaceBelow < Math.min(contentHeight.value, props.maxHeight) && spaceAbove > spaceBelow
+  // Available space on each side, after accounting for trigger gap and edge margin.
+  const spaceRight = ww - t.right - TRIGGER_GAP - EDGE_MARGIN
+  const spaceLeft = t.left - TRIGGER_GAP - EDGE_MARGIN
+  const spaceBelow = wh - t.bottom - TRIGGER_GAP - EDGE_MARGIN
+  const spaceAbove = t.top - TRIGGER_GAP - EDGE_MARGIN
 
-  // Base styles — use fixed positioning so the menu escapes any overflow:hidden ancestors
-  const styles: CSSProperties = {
+  const s: CSSProperties = {
     position: 'fixed',
-    maxHeight: needsScrolling ? `${maxHeight}px` : 'none',
-    overflowY: needsScrolling ? 'auto' : 'visible',
+    overflowY: 'auto',
+    zIndex: '9999',
+    visibility: 'visible',
   }
 
-  const { top, bottom, left, right } = menuPosition.value
+  const fitsRight = spaceRight >= mw
+  const fitsLeft = spaceLeft >= mw
 
-  // Position based on alignment (all values are viewport-relative px)
-  switch (props.align) {
-    case 'top-left-to-bottom-left':
-      styles.left = `${left}px`
-      if (shouldPositionAbove) {
-        styles.bottom = `${bottom + 8}px`
+  if (props.strategy !== 'below' && (fitsRight || fitsLeft)) {
+    // ── Horizontal placement (beside the trigger) ──────────────────────────
+    // Choose the side with more available space, prefer right when equal.
+    if (fitsRight && spaceRight >= spaceLeft) {
+      s.left = `${t.right + TRIGGER_GAP}px`
+    } else {
+      s.right = `${ww - t.left + TRIGGER_GAP}px`
+    }
+
+    // Vertical anchor: prefer downward; fall back to upward; best-effort last.
+    if (spaceBelow >= mh) {
+      s.top = `${t.bottom}px`
+      s.maxHeight = `${Math.min(props.maxHeight, wh - EDGE_MARGIN - t.bottom)}px`
+    } else if (spaceAbove >= mh) {
+      s.bottom = `${wh - t.top}px`
+      s.maxHeight = `${Math.min(props.maxHeight, t.top - EDGE_MARGIN)}px`
+    } else {
+      if (spaceBelow >= spaceAbove) {
+        s.top = `${t.bottom}px`
+        s.maxHeight = `${Math.max(wh - EDGE_MARGIN - t.bottom, 80)}px`
       } else {
-        styles.top = `${top + 8}px`
+        s.bottom = `${wh - t.top}px`
+        s.maxHeight = `${Math.max(t.top - EDGE_MARGIN, 80)}px`
       }
-      break
-    case 'top-right-to-bottom-right':
-      styles.right = `${windowWidth.value - right}px`
-      if (shouldPositionAbove) {
-        styles.bottom = `${bottom + 8}px`
-      } else {
-        styles.top = `${top + 8}px`
-      }
-      break
-    case 'top-left-to-top-right':
-      styles.left = `${right + 8}px`
-      styles.top = `${top}px`
-      break
-    case 'bottom-left-to-bottom-right':
-      styles.left = `${right + 8}px`
-      styles.top = `${bottom}px`
-      break
-    case 'top-right-to-top-left':
-      styles.right = `${windowWidth.value - left + 8}px`
-      styles.top = `${top}px`
-      break
-    case 'bottom-left-to-top-left':
-      styles.left = `${left}px`
-      styles.bottom = `${bottom + 8}px`
-      break
-    case 'bottom-right-to-top-right':
-      styles.right = `${windowWidth.value - right}px`
-      styles.bottom = `${bottom + 8}px`
-      break
-    default:
-      styles.left = `${left}px`
-      if (shouldPositionAbove) {
-        styles.bottom = `${bottom + 8}px`
-      } else {
-        styles.top = `${top + 8}px`
-      }
+    }
+  } else {
+    // ── Vertical placement (below or above the trigger) ────────────────────
+    if (spaceBelow >= spaceAbove) {
+      s.top = `${t.bottom + TRIGGER_GAP}px`
+      s.maxHeight = `${Math.max(wh - EDGE_MARGIN - t.bottom - TRIGGER_GAP, 80)}px`
+    } else {
+      s.bottom = `${wh - t.top + TRIGGER_GAP}px`
+      s.maxHeight = `${Math.max(t.top - TRIGGER_GAP - EDGE_MARGIN, 80)}px`
+    }
+    // Horizontal: left-align with trigger; clamp to viewport.
+    const maxLeft = ww - mw - EDGE_MARGIN
+    s.left = `${Math.max(EDGE_MARGIN, Math.min(t.left, maxLeft))}px`
   }
 
-  return styles
-})
+  style.value = s
+}
 
-const toggleDropdown = () => {
-  // Send event to notify other dropdowns to close
+watch(
+  () => props.modelValue,
+  async (open) => {
+    if (open) {
+      // Phase 1 — render invisible so the browser lays out natural dimensions.
+      style.value = {
+        position: 'fixed',
+        visibility: 'hidden',
+        maxHeight: `${props.maxHeight}px`,
+        overflowY: 'auto',
+        zIndex: '9999',
+      }
+      await nextTick() // wait for v-if to mount the element
+      computePosition() // Phase 2 — measure & apply final position.
+    }
+  },
+)
+
+function toggle() {
   if (!props.modelValue) {
-    // Only send close event when we're about to open this dropdown
     document.dispatchEvent(new CustomEvent('dropdown-toggle', { detail: { exclude: containerRef.value } }))
   }
   emit('update:modelValue', !props.modelValue)
 }
 
-const handleDropdownToggle = (event: Event) => {
-  // Close current dropdown if the event is from another dropdown
-  const customEvent = event as CustomEvent
-  if ((customEvent.detail?.exclude === null || customEvent.detail?.exclude !== containerRef.value) && props.modelValue) {
+function onClickOutside(e: MouseEvent) {
+  if (!props.modelValue) return
+  const target = e.target as Node
+  if (!containerRef.value?.contains(target) && !menuRef.value?.contains(target)) {
     emit('update:modelValue', false)
   }
 }
 
-const updatePosition = () => {
-  if (containerRef.value) {
-    const rect = containerRef.value.getBoundingClientRect()
-    menuPosition.value = {
-      top: rect.bottom,
-      bottom: windowHeight.value - rect.top,
-      left: rect.left,
-      right: rect.right,
-    }
-  }
-}
-
-const updateContentHeight = () => {
-  if (menuRef.value) {
-    // Temporarily remove max-height to measure full content height
-    const originalStyle = menuRef.value.style.maxHeight
-    menuRef.value.style.maxHeight = 'none'
-    contentHeight.value = menuRef.value.scrollHeight
-    menuRef.value.style.maxHeight = originalStyle
-
-    // Calculate the optimal width based on content
-    calculateOptimalWidth()
-  }
-}
-
-const calculateOptimalWidth = () => {
-  if (menuRef.value && containerRef.value) {
-    // Reset width to auto to get natural content width
-    menuRef.value.style.width = 'auto'
-
-    // Get the natural width of the menu
-    const menuWidth = menuRef.value.scrollWidth
-
-    // Check all child elements to ensure we get the maximum width needed
-    let maxChildWidth = 0
-    Array.from(menuRef.value.children).forEach((child) => {
-      const childWidth = (child as HTMLElement).scrollWidth
-      maxChildWidth = Math.max(maxChildWidth, childWidth)
-    })
-
-    // Use the larger of the menu width or max child width
-    const finalWidth = Math.max(menuWidth, maxChildWidth)
-
-    // Add a small padding (10px) to ensure text fits comfortably
-    menuRef.value.style.width = `${finalWidth + 10}px`
-  }
-}
-
-const handleResize = () => {
-  windowHeight.value = window.innerHeight
-  windowWidth.value = window.innerWidth
-  updatePosition()
-  if (props.modelValue) {
-    updateContentHeight()
-  }
-}
-
-const handleClickOutside = (event: MouseEvent) => {
-  const target = event.target as Node
-  if (
-    containerRef.value && !containerRef.value.contains(target) &&
-    menuRef.value && !menuRef.value.contains(target) &&
-    props.modelValue
-  ) {
+function onDropdownToggle(e: Event) {
+  const ev = e as CustomEvent
+  if (ev.detail?.exclude !== containerRef.value && props.modelValue) {
     emit('update:modelValue', false)
   }
 }
 
-const handleGlobalClick = (event: MouseEvent) => {
-  // Close dropdown on any click, even if event.stopPropagation() was called
-  const target = event.target as Node
-  if (
-    props.modelValue &&
-    containerRef.value && !containerRef.value.contains(target) &&
-    menuRef.value && !menuRef.value.contains(target)
-  ) {
-    emit('update:modelValue', false)
-  }
+function onResize() {
+  if (props.modelValue) computePosition()
 }
-
-watch(
-  () => props.modelValue,
-  async (isOpen) => {
-    if (isOpen) {
-      updatePosition()
-      await nextTick()
-      updateContentHeight()
-      // Also need to calculate optimal width after content has rendered
-      await nextTick()
-      calculateOptimalWidth()
-    }
-  }
-)
 
 onMounted(() => {
-  window.addEventListener('resize', handleResize)
-  document.addEventListener('click', handleClickOutside)
-  document.addEventListener('click', handleGlobalClick, { capture: true })
-  document.addEventListener('dropdown-toggle', handleDropdownToggle as EventListener)
+  document.addEventListener('click', onClickOutside, { capture: true })
+  document.addEventListener('dropdown-toggle', onDropdownToggle as EventListener)
+  window.addEventListener('resize', onResize)
+  window.addEventListener('scroll', onResize, true)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('resize', handleResize)
-  document.removeEventListener('click', handleClickOutside)
-  document.removeEventListener('click', handleGlobalClick, { capture: true })
-  document.removeEventListener('dropdown-toggle', handleDropdownToggle as EventListener)
+  document.removeEventListener('click', onClickOutside, { capture: true })
+  document.removeEventListener('dropdown-toggle', onDropdownToggle as EventListener)
+  window.removeEventListener('resize', onResize)
+  window.removeEventListener('scroll', onResize, true)
 })
 </script>
 
@@ -251,6 +189,10 @@ onUnmounted(() => {
 .v-dropdown-container {
   position: relative;
   display: inline-block;
+
+  &.is-block {
+    display: block;
+  }
 }
 </style>
 

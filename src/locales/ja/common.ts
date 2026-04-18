@@ -83,7 +83,7 @@ export default {
   header_actions: {
     language: '言語を変更',
     theme: 'テーマを変更',
-    tasks: 'タスク',
+    uploads: 'タスク',
     audios: 'オーディオ',
     logout: 'ログアウト',
     notifications: '通知',
@@ -234,6 +234,10 @@ export default {
   },
   owner: '所有者',
   unsaved_changes_warning: '未保存の変更があります。終了してもよろしいですか?',
-  customize_sidebar: 'Customize sidebar',
-  drag_to_reorder: 'Drag to reorder',
+  customize_sidebar: 'サイドバーをカスタマイズ',
+  drag_to_reorder: '並べ替えるにはドラッグ',
+  exclude_directories: 'ディレクトリを除外',
+  excluded_dirs_hint: 'これらのディレクトリ内のファイルはメディアビューから非表示になります。',
+  add_excluded_dir: 'ディレクトリを追加',
+  no_excluded_dirs: '除外されたディレクトリはありません。',
 }

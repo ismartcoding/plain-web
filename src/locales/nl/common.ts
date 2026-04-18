@@ -82,7 +82,7 @@ export default {
   header_actions: {
     language: 'Taal wijzigen',
     theme: 'Thema wijzigen',
-    tasks: 'Taken',
+    uploads: 'Taken',
     audios: 'Audio',
     logout: 'Uitloggen',
     notifications: 'Meldingen',
@@ -234,6 +234,10 @@ export default {
     scroll: 'Oneindige scroll',
   },
   owner: 'Eigenaar',
-  customize_sidebar: 'Customize sidebar',
-  drag_to_reorder: 'Drag to reorder',
+  customize_sidebar: 'Sidebar aanpassen',
+  drag_to_reorder: 'Slepen om te herschikken',
+  exclude_directories: 'Mappen uitsluiten',
+  excluded_dirs_hint: 'Bestanden in deze mappen worden verborgen in mediaviews.',
+  add_excluded_dir: 'Map toevoegen',
+  no_excluded_dirs: 'Geen mappen uitgesloten.',
 }

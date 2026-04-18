@@ -1,9 +1,11 @@
 import { defineStore } from 'pinia'
-import { DEFAULT_RAIL_FEATURES } from '@/views/app-rail/features'
+
+const DEFAULT_RAIL_FEATURES = ['files', 'audios', 'images', 'videos', 'chat']
 
 // data will be stored to local storage
 export type MainState = {
   railFeatures: string[]
+  excludedDirs: string[]
   fileShowHidden: boolean
   chatTexts: Record<string, string>
   quick: string
@@ -40,6 +42,7 @@ export const useMainStore = defineStore('main', {
   state: () =>
     ({
       railFeatures: [...DEFAULT_RAIL_FEATURES],
+      excludedDirs: [] as string[],
       fileShowHidden: false,
       chatTexts: {},
       quick: '',

@@ -6,12 +6,13 @@ import { useMainStore } from '@/stores/main'
 import { callGQL, setClipGQL, initMutation } from '@/lib/api/mutation'
 import { homeStatsGQL, initQuery } from '@/lib/api/query'
 import toast from '@/components/toaster'
-import type { IHomeStats, IStorageMount } from '@/lib/interfaces'
+import type { IHomeStats, IStorageMount, IContact } from '@/lib/interfaces'
+import { useContactPicker } from '@/hooks/contact-picker'
 
 export function useHomeData() {
   const { t } = useI18n()
   const mainStore = useMainStore()
-  const { callNumber } = storeToRefs(mainStore)
+  const { excludedDirs } = storeToRefs(mainStore)
   const { counter } = storeToRefs(useTempStore())
   const mounts = ref<IStorageMount[]>([])
 
@@ -37,7 +38,10 @@ export function useHomeData() {
       }
     },
     document: homeStatsGQL,
-    variables: null,
+    variables: () => {
+      const parts = excludedDirs.value.map((d) => (d.includes(' ') ? `excluded_dir:"${d}"` : `excluded_dir:${d}`))
+      return { mediaQuery: parts.join(' ') }
+    },
   })
 
   return { mounts }
@@ -50,6 +54,12 @@ export function usePhoneAction() {
 
   const { mutate: mutateCall, loading: callLoading } = initMutation({ document: callGQL })
 
+  const {
+    showContactPicker, selectedContactName, filteredContacts, contactsLoading,
+    toggleContactPicker, onNumberInput, onNumberFocus, selectContactNumber, clearSelectedContact,
+    getContactFullName,
+  } = useContactPicker(() => callNumber.value || '')
+
   function pastePhoneNumber() {
     navigator.clipboard.readText().then((text) => { callNumber.value = text })
   }
@@ -61,7 +71,17 @@ export function usePhoneAction() {
 
   watch(callNumber, () => { callNumberError.value = false })
 
-  return { callNumber, callNumberError, callLoading, pastePhoneNumber, callPhone }
+  return {
+    callNumber, callNumberError, callLoading, pastePhoneNumber, callPhone,
+    showContactPicker, selectedContactName, filteredContacts, contactsLoading,
+    toggleContactPicker,
+    onNumberInput: () => onNumberInput(callNumber.value || ''),
+    onNumberFocus: () => onNumberFocus(callNumber.value || ''),
+    selectContactNumber: (phone: string, contact: IContact) =>
+      selectContactNumber(phone, contact, (n) => { callNumber.value = n }),
+    clearSelectedContact: () => clearSelectedContact(() => { callNumber.value = '' }),
+    getContactFullName,
+  }
 }
 
 export function useClipboardAction() {

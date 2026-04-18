@@ -83,7 +83,7 @@ export default {
   header_actions: {
     language: '언어 변경',
     theme: '테마 변경',
-    tasks: '작업',
+    uploads: '작업',
     audios: '오디오',
     logout: '로그아웃',
     notifications: '알림',
@@ -234,6 +234,10 @@ export default {
   },
   owner: '소유자',
   unsaved_changes_warning: '저장되지 않은 변경사항이 있습니다. 종료하시겠습니까?',
-  customize_sidebar: 'Customize sidebar',
-  drag_to_reorder: 'Drag to reorder',
+  customize_sidebar: '사이드바 사용자 정의',
+  drag_to_reorder: '드래그하여 재정렬',
+  exclude_directories: '디렉토리 제외',
+  excluded_dirs_hint: '이 디렉토리의 파일은 미디어 보기에서 숨겨집니다.',
+  add_excluded_dir: '디렉토리 추가',
+  no_excluded_dirs: '제외된 디렉토리가 없습니다.',
 }

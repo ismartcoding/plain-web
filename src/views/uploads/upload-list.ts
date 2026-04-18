@@ -54,7 +54,7 @@ function completedTasksList(uploads: Upload[]): TaskListItem[] {
     .map(([batchId, uploads]) => ({ id: batchId, kind: 'upload_batch' as const, batchId, uploads }))
 }
 
-export function useTaskList() {
+export function useUploadList() {
   const tempStore = useTempStore()
   const store = useMainStore()
   const { t } = useI18n()
@@ -79,7 +79,7 @@ export function useTaskList() {
   }
 
   watch(() => tempStore.uploads, (newUploads) => {
-    store.quick = 'task'
+    store.quick = 'upload'
     const created = newUploads.filter((item) => item.status === 'created')
     if (created.length === 0) return
     const batches = new Map<string, typeof newUploads>()

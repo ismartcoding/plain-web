@@ -4,7 +4,7 @@
       <button v-tooltip="$t('close')" class="btn-icon" @click="store.quick = ''">
         <i-lucide:x />
       </button>
-      <div class="title">{{ $t('header_actions.tasks') }}</div>
+      <div class="title">{{ $t('header_actions.uploads') }}</div>
     </div>
 
     <div class="quick-content-body">
@@ -33,9 +33,9 @@
 <script setup lang="ts">
 import VirtualList from '@/components/virtualscroll'
 import UploadBatchTaskItem from '@/components/UploadBatchTaskItem.vue'
-import { useTaskList } from './task-list'
+import { useUploadList } from './upload-list'
 
-const { store, filterType, types, listItemsRef, visibleTasks, chooseFilterType, getLabel } = useTaskList()
+const { store, filterType, types, listItemsRef, visibleTasks, chooseFilterType, getLabel } = useUploadList()
 </script>
 
 <style scoped lang="scss">

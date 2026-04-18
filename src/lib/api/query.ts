@@ -225,13 +225,13 @@ export const contactsGQL = `
 `
 
 export const homeStatsGQL = `
-  query {
+  query homeStats($mediaQuery: String!) {
     smsCount(query: "")
     contactCount(query: "")
     callCount(query: "")
-    imageCount(query: "")
-    audioCount(query: "")
-    videoCount(query: "")
+    imageCount(query: $mediaQuery)
+    audioCount(query: $mediaQuery)
+    videoCount(query: $mediaQuery)
     packageCount(query: "")
     noteCount(query: "")
     docCount(query: "")
@@ -476,15 +476,15 @@ export const feedEntryGQL = `
 `
 
 export const imageCountGQL = `
-  query {
-    total: imageCount(query: "")
+  query imageCount($query: String!) {
+    total: imageCount(query: $query)
     trash: imageCount(query: "trash:true")
   }
 `
 
 export const audioCountGQL = `
-  query {
-    total: audioCount(query: "")
+  query audioCount($query: String!) {
+    total: audioCount(query: $query)
     trash: audioCount(query: "trash:true")
   }
 `
@@ -510,8 +510,8 @@ export const docCountGQL = `
 `
 
 export const videoCountGQL = `
-  query {
-    total: videoCount(query: "")
+  query videoCount($query: String!) {
+    total: videoCount(query: $query)
     trash: videoCount(query: "trash:true")
   }
 `
@@ -556,6 +556,15 @@ export const smsCountGQL = `
     sent: smsCount(query: "type:2")
     drafts: smsCount(query: "type:3")
   }
+`
+
+export const hiddenConversationsGQL = `
+  query {
+    hiddenConversations {
+      ...MessageConversationFragment
+    }
+  }
+  ${messageConversationFragment}
 `
 
 export const noteCountGQL = `

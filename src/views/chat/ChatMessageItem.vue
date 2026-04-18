@@ -2,7 +2,7 @@
 <template>
   <div class="chat-item">
     <div v-if="showDate" class="date">{{ formatDate(data.createdAt) }}</div>
-    <v-dropdown v-model="open" align="top-left-to-bottom-left">
+    <v-dropdown v-model="open">
       <template #trigger>
         <div class="chat-title">
           <span class="name">{{ senderName }}</span>

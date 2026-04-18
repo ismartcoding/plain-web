@@ -7,6 +7,7 @@
       @back="backToList"
       @export="openExport"
       @call="send.callContact"
+      @hide="hideConversation"
     />
     <MessageChatList
       v-model:scroll-ref="chatScrollRef"
@@ -52,6 +53,7 @@ import { useMessageSend } from '@/hooks/message-send'
 import MessageChatHeader from '@/views/messages/MessageChatHeader.vue'
 import MessageChatList from '@/views/messages/MessageChatList.vue'
 import MessageChatInput from '@/views/messages/MessageChatInput.vue'
+import { initMutation, hideConversationGQL } from '@/lib/api/mutation'
 
 const mainStore = useMainStore()
 const { app, urlTokenKey } = storeToRefs(useTempStore())
@@ -92,6 +94,13 @@ function addItemToTags(item: IMessage) {
     item: { key: item.id, title: '', size: 0 },
     selected: thread.tags.value.filter((it) => item.tags?.some((t: ITag) => t.id === it.id)),
   })
+}
+
+const { mutate: mutateHideConversation } = initMutation({ document: hideConversationGQL })
+
+function hideConversation() {
+  mutateHideConversation({ id: threadId.value, date: Date.now() })
+  backToList()
 }
 
 function openExport() {

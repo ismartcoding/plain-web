@@ -119,7 +119,7 @@
         </div>
       </div>
       <div class="form-row" style="display: block; position: relative">
-        <v-dropdown v-model="addFieldMenuVisible" placement="auto" align="top-left-to-bottom-left">
+        <v-dropdown v-model="addFieldMenuVisible" placement="auto">
           <template #trigger>
             <v-outlined-button>{{ $t('add_field') }}</v-outlined-button>
           </template>

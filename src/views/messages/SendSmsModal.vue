@@ -4,57 +4,38 @@
       {{ pendingFiles.length > 0 ? $t('send_mms') : $t('send_sms') }}
     </template>
     <template #content>
-      <div class="form-row phone-field-wrapper" ref="phoneFieldRef">
-        <v-text-field
-          ref="numberRef"
-          v-model="number"
-          type="tel"
-          :label="$t('phone_number')"
-          :error="!!errors.number"
-          :error-text="errors.number ? $t(errors.number) : ''"
-          @input="onNumberInput"
-          @focus="onNumberFocus"
+      <div class="form-row">
+        <ContactPickerDropdown
+          v-model="showContactPicker"
+          :contacts="filteredContacts"
+          :loading="contactsLoading"
+          @select="selectContactNumber"
         >
-          <template #trailing-icon>
-            <v-icon-button v-tooltip="$t('select_contact')" @click.prevent="toggleContactPicker">
-              <i-material-symbols:contact-page-outline-rounded />
-            </v-icon-button>
+          <template #default="{ toggle }">
+            <v-text-field
+              ref="numberRef"
+              v-model="number"
+              type="tel"
+              :label="$t('phone_number')"
+              :error="!!errors.number"
+              :error-text="errors.number ? $t(errors.number) : ''"
+              @input="onNumberInput"
+              @focus="onNumberFocus"
+            >
+              <template #trailing-icon>
+                <v-icon-button v-tooltip="$t('select_contact')" @click.prevent="toggle">
+                  <i-material-symbols:contact-page-outline-rounded />
+                </v-icon-button>
+              </template>
+            </v-text-field>
           </template>
-        </v-text-field>
+        </ContactPickerDropdown>
         <div v-if="selectedContactName" class="selected-contact-hint">
           <i-material-symbols:person-outline-rounded />
           <span>{{ selectedContactName }}</span>
           <v-icon-button class="clear-contact" @click="clearSelectedContact">
             <i-material-symbols:close-rounded />
           </v-icon-button>
-        </div>
-        <div v-if="showContactPicker" class="contact-dropdown">
-          <div v-if="contactsLoading" class="contact-dropdown-loading">
-            <v-circular-progress indeterminate class="sm" />
-          </div>
-          <template v-else>
-            <div class="contact-dropdown-list">
-              <template v-for="contact in filteredContacts" :key="contact.id">
-                <div
-                  v-for="(phone, pi) in contact.phoneNumbers"
-                  :key="pi"
-                  class="contact-dropdown-item"
-                  @click="selectContactNumber(phone.normalizedNumber || phone.value, contact)"
-                >
-                  <div class="contact-dropdown-info">
-                    <span class="contact-dropdown-name">{{ getContactFullName(contact) }}</span>
-                    <span v-if="contact.phoneNumbers.length > 1" class="contact-dropdown-type">
-                      {{ phone.type > 0 ? $t(`contact.phone_number_type.${phone.type}`) : '' }}
-                    </span>
-                  </div>
-                  <span class="contact-dropdown-number">{{ phone.normalizedNumber || phone.value }}</span>
-                </div>
-              </template>
-              <div v-if="filteredContacts.length === 0" class="contact-dropdown-empty">
-                {{ $t('no_data') }}
-              </div>
-            </div>
-          </template>
         </div>
       </div>
       <div class="form-row">
@@ -97,6 +78,7 @@
 
 <script setup lang="ts">
 import { useSendSms, MMS_WARN_SIZE } from '@/hooks/send-sms'
+import ContactPickerDropdown from '@/components/ContactPickerDropdown.vue'
 
 const props = defineProps({
   number: { type: String, default: '' },
@@ -105,11 +87,11 @@ const props = defineProps({
 
 const {
   number, body, errors, pendingFiles, fileInputRef, mmsUploading, numberRef,
-  showContactPicker, selectedContactName, phoneFieldRef, filteredContacts, contactsLoading,
+  showContactPicker, selectedContactName, filteredContacts, contactsLoading,
   loading, mmsLoading, totalPendingSize, hasLargeNonImageFile,
-  cancel, submit, toggleContactPicker, onNumberInput, onNumberFocus,
+  cancel, submit, onNumberInput, onNumberFocus,
   selectContactNumber, clearSelectedContact, openFilePicker, onFileSelected,
-  removePendingFile, filePreviewUrl, getContactFullName, formatFileSize,
+  removePendingFile, filePreviewUrl, formatFileSize,
 } = useSendSms(props.number, props.body)
 </script>
 
@@ -188,10 +170,6 @@ const {
   padding: 4px 0;
 }
 
-.phone-field-wrapper {
-  position: relative;
-}
-
 .selected-contact-hint {
   display: flex;
   align-items: center;
@@ -215,80 +193,5 @@ const {
     flex-shrink: 0;
   }
 }
-
-.contact-dropdown {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 100%;
-  z-index: 10;
-  margin-top: -8px;
-  background: var(--md-sys-color-surface-container);
-  border: 1px solid var(--md-sys-color-outline-variant);
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  overflow: hidden;
-}
-
-.contact-dropdown-loading {
-  display: flex;
-  justify-content: center;
-  padding: 20px;
-}
-
-.contact-dropdown-list {
-  max-height: 240px;
-  overflow-y: auto;
-  padding: 4px 0;
-}
-
-.contact-dropdown-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 16px;
-  cursor: pointer;
-  transition: background 0.15s;
-
-  &:hover {
-    background: var(--md-sys-color-surface-container-high);
-  }
-}
-
-.contact-dropdown-info {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.contact-dropdown-name {
-  font-size: 0.875rem;
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.contact-dropdown-type {
-  font-size: 0.6875rem;
-  color: var(--md-sys-color-on-surface-variant);
-}
-
-.contact-dropdown-number {
-  font-size: 0.8125rem;
-  color: var(--md-sys-color-on-surface-variant);
-  flex-shrink: 0;
-  font-variant-numeric: tabular-nums;
-}
-
-.contact-dropdown-empty {
-  padding: 20px;
-  text-align: center;
-  font-size: 0.875rem;
-  color: var(--md-sys-color-on-surface-variant);
-}
 </style>
+
