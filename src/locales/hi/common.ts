@@ -234,4 +234,6 @@ export default {
     scroll: 'अनंत स्क्रॉल',
   },
   owner: 'मालिक',
+  customize_sidebar: 'Customize sidebar',
+  drag_to_reorder: 'Drag to reorder',
 }

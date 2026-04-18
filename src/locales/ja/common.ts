@@ -234,4 +234,6 @@ export default {
   },
   owner: '所有者',
   unsaved_changes_warning: '未保存の変更があります。終了してもよろしいですか?',
+  customize_sidebar: 'Customize sidebar',
+  drag_to_reorder: 'Drag to reorder',
 }

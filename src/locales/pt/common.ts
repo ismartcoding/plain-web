@@ -234,4 +234,6 @@ export default {
     scroll: 'Rolagem infinita',
   },
   owner: 'Proprietário',
+  customize_sidebar: 'Customize sidebar',
+  drag_to_reorder: 'Drag to reorder',
 }

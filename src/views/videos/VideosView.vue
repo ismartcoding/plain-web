@@ -39,7 +39,7 @@
             @toggle-select="toggleSelect($event, item, idx)" @view="view(idx)">
             <template #thumbnail>
               <img v-if="imageErrorIds.includes(item.id)" :src="`/ficons/${getFileExtension(item.path)}.svg`" class="image svg" />
-              <img v-else class="image image-thumb" :src="getFileUrl(item.fileId, '&w=200&h=200')" @error="onImageError(item.id)" />
+              <img v-else class="image image-thumb" :src="getFileUrl(item.fileId, '&w=512&h=512')" @error="onImageError(item.id)" />
             </template>
             <template #info-right>{{ formatSeconds(item.duration) }}</template>
           </MediaGridItem>
@@ -54,7 +54,7 @@
         @toggle-select="toggleSelect($event, item, i)" @view="view(i)">
         <template #thumbnail>
           <img v-if="imageErrorIds.includes(item.id)" :src="`/ficons/${getFileExtension(item.path)}.svg`" class="image svg" />
-          <img v-else class="image image-thumb" :src="getFileUrl(item.fileId, '&w=200&h=200')" @error="onImageError(item.id)" />
+          <img v-else class="image image-thumb" :src="getFileUrl(item.fileId, '&w=512&h=512')" @error="onImageError(item.id)" />
         </template>
         <template #info-right>{{ ['SIZE_ASC', 'SIZE_DESC'].includes(videoSortBy) ? formatFileSize(item.size) : formatSeconds(item.duration) }}</template>
       </MediaGridItem>

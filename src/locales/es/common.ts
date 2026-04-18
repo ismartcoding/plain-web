@@ -234,4 +234,6 @@ export default {
   },
   owner: 'Dueño',
   unsaved_changes_warning: 'Tienes cambios sin guardar. ¿Estás seguro de que quieres salir?',
+  customize_sidebar: 'Customize sidebar',
+  drag_to_reorder: 'Drag to reorder',
 }

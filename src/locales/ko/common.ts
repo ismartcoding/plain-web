@@ -234,4 +234,6 @@ export default {
   },
   owner: '소유자',
   unsaved_changes_warning: '저장되지 않은 변경사항이 있습니다. 종료하시겠습니까?',
+  customize_sidebar: 'Customize sidebar',
+  drag_to_reorder: 'Drag to reorder',
 }

@@ -234,4 +234,6 @@ export default {
     scroll: 'Sonsuz kaydırma',
   },
   owner: 'Mal sahibi',
+  customize_sidebar: 'Customize sidebar',
+  drag_to_reorder: 'Drag to reorder',
 }

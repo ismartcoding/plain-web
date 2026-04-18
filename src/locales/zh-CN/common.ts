@@ -236,4 +236,6 @@ export default {
   settings_saved: '设置已保存',
   notification_sound_on: '通知声音已开启',
   notification_sound_off: '通知声音已关闭',
+  customize_sidebar: '自定义侧边栏',
+  drag_to_reorder: '拖拽排序',
 }

@@ -235,4 +235,6 @@ export default {
   },
   owner: '擁有者',
   unsaved_changes_warning: '您有未儲存的變更。您確定要退出嗎？',
+  customize_sidebar: 'Customize sidebar',
+  drag_to_reorder: 'Drag to reorder',
 }

@@ -234,4 +234,6 @@ export default {
   paused: 'Приостановлено',
   failed: 'Неуспешный',
   unsaved_changes_warning: 'У вас есть несохраненные изменения. Вы уверены, что хотите выйти?',
+  customize_sidebar: 'Customize sidebar',
+  drag_to_reorder: 'Drag to reorder',
 }

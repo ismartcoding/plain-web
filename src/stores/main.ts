@@ -1,7 +1,9 @@
 import { defineStore } from 'pinia'
+import { DEFAULT_RAIL_FEATURES } from '@/views/app-rail/features'
 
 // data will be stored to local storage
 export type MainState = {
+  railFeatures: string[]
   fileShowHidden: boolean
   chatTexts: Record<string, string>
   quick: string
@@ -37,6 +39,7 @@ export type MainState = {
 export const useMainStore = defineStore('main', {
   state: () =>
     ({
+      railFeatures: [...DEFAULT_RAIL_FEATURES],
       fileShowHidden: false,
       chatTexts: {},
       quick: '',

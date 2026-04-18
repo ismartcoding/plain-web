@@ -234,4 +234,6 @@ export default {
     scroll: 'Cuộn vô hạn',
   },
   owner: 'Người sở hữu',
+  customize_sidebar: 'Customize sidebar',
+  drag_to_reorder: 'Drag to reorder',
 }
