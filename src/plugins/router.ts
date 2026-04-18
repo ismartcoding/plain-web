@@ -140,6 +140,21 @@ const router = createRouter({
           meta: { group: 'device_info' },
         },
         {
+          path: 'settings',
+          components: {
+            default: () => import('@/views/settings/SettingsView.vue'),
+            LeftSidebar: () => import('@/views/settings/SettingsSidebar.vue'),
+          },
+          meta: { group: 'settings' },
+          children: [
+            {
+              path: '',
+              component: () => import('@/views/settings/CommonView.vue'),
+              meta: { group: 'settings' },
+            },
+          ],
+        },
+        {
           path: 'feeds',
           components: {
             LeftSidebar: () => import('@/views/feeds/FeedsSidebar.vue'),

@@ -1,0 +1,47 @@
+import type { Component } from 'vue'
+import ILucideFolder from '~icons/lucide/folder'
+import ILucideMusic from '~icons/lucide/music'
+import ILucideImage from '~icons/lucide/image'
+import ILucideVideo from '~icons/lucide/video'
+import ILucideBot from '~icons/lucide/bot'
+import ILucideFileText from '~icons/lucide/file-text'
+import ILucideLayoutGrid from '~icons/lucide/layout-grid'
+import ILucideNotebookPen from '~icons/lucide/notebook-pen'
+import ILucideRss from '~icons/lucide/rss'
+import ILucideMessageSquareText from '~icons/lucide/message-square-text'
+import IMaterialSymbolsCallLogOutlineRounded from '~icons/material-symbols/call-log-outline-rounded'
+import ILucideContactRound from '~icons/lucide/contact-round'
+import IMaterialSymbolsScreenRecordRounded from '~icons/material-symbols/screen-record-rounded'
+import ILucideSmartphone from '~icons/lucide/smartphone'
+
+export interface Feature {
+  id: string
+  group: string
+  defaultPath: string
+  icon: Component
+  titleKey: string
+  requireNonGoogle?: boolean
+}
+
+export const ALL_FEATURES: Feature[] = [
+  { id: 'files', group: 'files', defaultPath: '/files/recent', icon: ILucideFolder, titleKey: 'page_title.files' },
+  { id: 'audios', group: 'audios', defaultPath: '/audios', icon: ILucideMusic, titleKey: 'page_title.audios' },
+  { id: 'images', group: 'images', defaultPath: '/images', icon: ILucideImage, titleKey: 'page_title.images' },
+  { id: 'videos', group: 'videos', defaultPath: '/videos', icon: ILucideVideo, titleKey: 'page_title.videos' },
+  { id: 'chat', group: 'chat', defaultPath: '/chat', icon: ILucideBot, titleKey: 'page_title.chat' },
+  { id: 'docs', group: 'docs', defaultPath: '/docs', icon: ILucideFileText, titleKey: 'page_title.docs' },
+  { id: 'apps', group: 'apps', defaultPath: '/apps', icon: ILucideLayoutGrid, titleKey: 'page_title.apps', requireNonGoogle: true },
+  { id: 'notes', group: 'notes', defaultPath: '/notes', icon: ILucideNotebookPen, titleKey: 'page_title.notes' },
+  { id: 'feeds', group: 'feeds', defaultPath: '/feeds', icon: ILucideRss, titleKey: 'page_title.feeds' },
+  { id: 'messages', group: 'messages', defaultPath: '/messages', icon: ILucideMessageSquareText, titleKey: 'page_title.messages', requireNonGoogle: true },
+  { id: 'calls', group: 'calls', defaultPath: '/calls', icon: IMaterialSymbolsCallLogOutlineRounded, titleKey: 'page_title.calls', requireNonGoogle: true },
+  { id: 'contacts', group: 'contacts', defaultPath: '/contacts', icon: ILucideContactRound, titleKey: 'page_title.contacts' },
+  { id: 'screen_mirror', group: 'screen_mirror', defaultPath: '/screen-mirror', icon: IMaterialSymbolsScreenRecordRounded, titleKey: 'page_title.screen_mirror' },
+  { id: 'device_info', group: 'device_info', defaultPath: '/device-info', icon: ILucideSmartphone, titleKey: 'device_info' },
+]
+
+export const DEFAULT_RAIL_FEATURES = ['files', 'audios', 'images', 'videos', 'chat']
+
+export function getAvailableFeatures(channel: string): Feature[] {
+  return ALL_FEATURES.filter((f) => !(f.requireNonGoogle && channel === 'GOOGLE'))
+}

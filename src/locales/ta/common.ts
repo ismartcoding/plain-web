@@ -234,4 +234,6 @@ export default {
     scroll: 'எல்லையற்ற சுருள்',
   },
   owner: 'உரிமையாளர்',
+  customize_sidebar: 'Customize sidebar',
+  drag_to_reorder: 'Drag to reorder',
 }

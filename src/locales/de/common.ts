@@ -234,4 +234,6 @@ export default {
   },
   owner: 'Eigentümer',
   unsaved_changes_warning: 'Sie haben nicht gespeicherte Änderungen. Sind Sie sicher, dass Sie den Vorgang beenden möchten?',
+  customize_sidebar: 'Customize sidebar',
+  drag_to_reorder: 'Drag to reorder',
 }

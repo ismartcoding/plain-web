@@ -234,4 +234,6 @@ export default {
     scroll: 'Oneindige scroll',
   },
   owner: 'Eigenaar',
+  customize_sidebar: 'Customize sidebar',
+  drag_to_reorder: 'Drag to reorder',
 }

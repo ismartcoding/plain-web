@@ -238,4 +238,6 @@ export default {
     scroll: 'অসীম স্ক্রল',
   },
   owner: 'মালিক',
+  customize_sidebar: 'Customize sidebar',
+  drag_to_reorder: 'Drag to reorder',
 }

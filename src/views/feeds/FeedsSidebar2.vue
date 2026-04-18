@@ -64,7 +64,7 @@
             <v-icon-button v-tooltip="$t('actions')" style="display: none">
               <i-material-symbols:more-vert />
             </v-icon-button>
-            <img v-if="item.image" class="image" :src="getFileUrl(item.image, '&w=200&h=200')" />
+            <img v-if="item.image" class="image" :src="getFileUrl(item.image, '&w=512&h=512')" />
           </article>
         </a>
       </template>

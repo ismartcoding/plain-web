@@ -4,80 +4,52 @@
       <span class="brand-logo" aria-hidden="true"></span>
     </router-link>
 
-    <router-link
-      v-tooltip="$t('page_title.files')"
-      :to="lastRoute('/files/recent', 'files')"
-      class="rail-item"
-      :class="{ active: isActive('/files') }"
-      aria-label="Files"
-    >
-      <i-lucide:folder />
-      <div class="rail-label">{{ $t('page_title.files') }}</div>
-    </router-link>
-
-    <router-link
-      v-tooltip="$t('page_title.audios')"
-      :to="lastRoute('/audios', 'audios')"
-      class="rail-item"
-      :class="{ active: isActive('/audios') }"
-      aria-label="Audios"
-    >
-      <i-lucide:music />
-      <div class="rail-label">{{ $t('page_title.audios') }}</div>
-    </router-link>
-
-    <router-link
-      v-tooltip="$t('page_title.images')"
-      :to="lastRoute('/images', 'images')"
-      class="rail-item"
-      :class="{ active: isActive('/images') }"
-      aria-label="Images"
-    >
-      <i-lucide:image />
-      <div class="rail-label">{{ $t('page_title.images') }}</div>
-    </router-link>
-
-    <router-link
-      v-tooltip="$t('page_title.videos')"
-      :to="lastRoute('/videos', 'videos')"
-      class="rail-item"
-      :class="{ active: isActive('/videos') }"
-      aria-label="Videos"
-    >
-      <i-lucide:video />
-      <div class="rail-label">{{ $t('page_title.videos') }}</div>
-    </router-link>
-
-    <router-link
-      v-tooltip="$t('page_title.chat')"
-      :to="lastRoute('/chat', 'chat')"
-      class="rail-item"
-      :class="{ active: isActive('/chat') }"
-      aria-label="Chat"
-    >
-      <i-lucide:bot />
-      <div class="rail-label">{{ $t('page_title.chat') }}</div>
-    </router-link>
+    <div class="rail-items">
+      <router-link
+        v-for="feat in railFeatures"
+        :key="feat.id"
+        v-tooltip="$t(feat.titleKey)"
+        :to="lastRoute(feat.defaultPath, feat.group)"
+        class="rail-item"
+        :class="{ active: isActive(feat) }"
+        :aria-label="$t(feat.titleKey)"
+      >
+        <component :is="feat.icon" />
+        <div class="rail-label">{{ $t(feat.titleKey) }}</div>
+      </router-link>
+    </div>
 
     <div class="rail-spacer"></div>
 
-    <RailBattery />
+    <RailSettingsPopup />
   </nav>
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount } from 'vue'
+import { computed, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMainStore } from '@/stores/main'
-import RailBattery from './RailBattery.vue'
+import { useTempStore } from '@/stores/temp'
+import { storeToRefs } from 'pinia'
+import { ALL_FEATURES, getAvailableFeatures, type Feature } from './features'
+import RailSettingsPopup from './RailSettingsPopup.vue'
 
 const store = useMainStore()
 const router = useRouter()
+const { app } = storeToRefs(useTempStore())
 
-function isActive(prefix: string) {
+const availableFeatures = computed(() => getAvailableFeatures(app.value?.channel ?? ''))
+
+const railFeatures = computed<Feature[]>(() =>
+  store.railFeatures
+    .map((id) => ALL_FEATURES.find((f) => f.id === id))
+    .filter((f): f is Feature => !!f && availableFeatures.value.some((a) => a.id === f.id))
+)
+
+function isActive(feat: Feature) {
   try {
     const path = router.currentRoute.value.path
-    if (prefix === '/') return path === '/'
+    const prefix = '/' + feat.group.replace('_', '-')
     return path.startsWith(prefix)
   } catch {
     return false
@@ -96,7 +68,6 @@ function lastRoute(defaultPath: string, group: string) {
   }
 }
 
-// Persist last visited route per group
 const removeAfterEach = router.afterEach((to) => {
   const group = (to.meta?.group || '') as string
   if (group) {
@@ -128,6 +99,7 @@ onBeforeUnmount(() => {
   height: 40px;
   margin: 4px 0 10px;
   color: var(--md-sys-color-on-surface-variant);
+  flex-shrink: 0;
 }
 
 .rail-brand:hover {
@@ -144,6 +116,21 @@ onBeforeUnmount(() => {
   background-size: contain;
 }
 
+.rail-items {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  width: 100%;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 .rail-item {
   width: 56px;
   height: 72px;
@@ -156,11 +143,14 @@ onBeforeUnmount(() => {
   margin: 6px 0;
   gap: 4px;
   text-decoration: none;
-}
+  flex-shrink: 0;
+  padding-inline: 4px;
+  word-break: break-all;
 
-.rail-item svg {
-  width: 22px;
-  height: 22px;
+  svg {
+    width: 22px;
+    height: 22px;
+  }
 }
 
 .rail-label {
@@ -176,6 +166,7 @@ onBeforeUnmount(() => {
 }
 
 .rail-spacer {
-  flex: 1;
+  flex-shrink: 0;
+  height: 8px;
 }
 </style>

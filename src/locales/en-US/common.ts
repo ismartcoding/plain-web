@@ -236,4 +236,6 @@ export default {
   decrease_font_size: 'Decrease font size',
   font_size: 'Font size',
   reset_font_size: 'Reset font size',
+  customize_sidebar: 'Customize sidebar',
+  drag_to_reorder: 'Drag to reorder',
 }

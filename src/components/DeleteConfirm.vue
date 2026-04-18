@@ -2,7 +2,7 @@
   <v-modal @close="popModal">
     <template #content>
       <div class="title">{{ $t('confirm_to_delete_name', { name: name }) }}</div>
-      <div class="image"><img v-if="image" :src="getFileUrl(image, '&w=200&h=200')" alt="" class="image-thumb" onerror="this.style.display='none'" /></div>
+      <div class="image"><img v-if="image" :src="getFileUrl(image, '&w=512&h=512')" alt="" class="image-thumb" onerror="this.style.display='none'" /></div>
     </template>
     <template #actions>
       <v-outlined-button @click="popModal">{{ $t('cancel') }}</v-outlined-button>

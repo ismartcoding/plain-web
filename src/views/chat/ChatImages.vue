@@ -39,7 +39,7 @@ function getPreview(source: ISource) {
   // During active download there is no local file yet — use peer proxy if available
   if (props.downloadInfo && isActiveStatus(props.downloadInfo.status)) {
     if (props.peer && source.path.startsWith('fsid:')) {
-      return getPeerProxyUrl(tempStore.urlTokenKey, props.peer, source.path.slice(4), '&w=200&h=200')
+      return getPeerProxyUrl(tempStore.urlTokenKey, props.peer, source.path.slice(4), '&w=512&h=512')
     }
     return ''
   }
@@ -48,7 +48,7 @@ function getPreview(source: ISource) {
     return source.src
   }
 
-  return `${source.src}&w=200&h=200`
+  return `${source.src}&w=512&h=512`
 }
 
 function view(index: number) {
