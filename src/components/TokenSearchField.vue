@@ -10,6 +10,7 @@
       @focus="onFocus"
       @blur="onBlur"
       @keydown="onKeydown"
+      @paste="onPaste"
       @input="onInput"
     ></div>
 
@@ -139,7 +140,7 @@ const {
   keyItems, valueItems,
   openKeyMenu, selectKey, selectValue, applyCustomStartTime,
   emitHistoryDelete, emitHistoryClear, emitEnter,
-  onKeydown, onInput, onFocus, onBlur, onMouseDownRoot,
+  onKeydown, onInput, onPaste, onFocus, onBlur, onMouseDownRoot,
 } = useTokenSearch(props, emit)
 
 defineExpose({ focus: () => editableRef.value?.focus() })

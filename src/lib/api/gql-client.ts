@@ -10,11 +10,25 @@ export interface GqlResult<T = any> {
   errors?: Array<{ message: string; path?: string[] }>
 }
 
-/**
- * Execute a GraphQL operation over encrypted HTTP transport.
- * Handles encryption/decryption, timeout, auth errors.
- */
+// Deduplicate concurrent identical requests (same query + variables).
+// If an identical request is already in-flight, callers share the same promise.
+const pendingRequests = new Map<string, Promise<GqlResult<any>>>()
+
 export async function gqlFetch<T = any>(query: string, variables?: Record<string, any>): Promise<GqlResult<T>> {
+  const dedupeKey = JSON.stringify({ query, variables })
+  const pending = pendingRequests.get(dedupeKey)
+  if (pending) return pending as Promise<GqlResult<T>>
+
+  const promise = doGqlFetch<T>(query, variables)
+  pendingRequests.set(dedupeKey, promise)
+  try {
+    return await promise
+  } finally {
+    pendingRequests.delete(dedupeKey)
+  }
+}
+
+async function doGqlFetch<T = any>(query: string, variables?: Record<string, any>): Promise<GqlResult<T>> {
   const url = `${getApiBaseUrl()}/graphql`
   const token = localStorage.getItem('auth_token') ?? ''
   const key = tokenToKey(token)

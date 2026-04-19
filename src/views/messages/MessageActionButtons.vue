@@ -9,8 +9,8 @@
     <v-icon-button v-tooltip="$t('make_a_phone_call')" :loading="callLoading && callId === item.id" @click.stop="call">
       <i-material-symbols:call-outline-rounded />
     </v-icon-button>
-    <v-icon-button v-tooltip="$t('hide')" @click.stop="hide">
-      <i-material-symbols:visibility-off-outline-rounded />
+    <v-icon-button v-tooltip="$t('archive_conversation')" @click.stop="archive">
+      <i-material-symbols:archive-outline-rounded />
     </v-icon-button>
   </div>
 </template>
@@ -30,7 +30,7 @@ const emit = defineEmits<{
   addItemToTags: [item: IMessage]
   sendSms: [item: IMessage]
   call: [item: IMessage]
-  hide: [item: IMessage]
+  archive: [item: IMessage]
 }>()
 
 function addItemToTags() {
@@ -45,7 +45,7 @@ function sendSms() {
   emit('sendSms', props.item)
 }
 
-function hide() {
-  emit('hide', props.item)
+function archive() {
+  emit('archive', props.item)
 }
 </script> 

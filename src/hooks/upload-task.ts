@@ -34,6 +34,12 @@ export function formatUploadSpeed(item: IUploadItem): string {
 }
 
 function abortXhr(item: IUploadItem) {
+  if (item.xhrs && item.xhrs.size > 0) {
+    for (const xhr of item.xhrs) {
+      try { xhr.abort() } catch { /* ignore */ }
+    }
+    item.xhrs.clear()
+  }
   if (item.xhr) {
     try { item.xhr.abort() } catch { /* ignore */ }
   }

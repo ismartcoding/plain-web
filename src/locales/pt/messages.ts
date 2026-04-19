@@ -31,4 +31,8 @@ export default {
   attachments: 'Anexos',
   body: 'Corpo',
   sms_notification_warning: 'Para receber novos SMS em tempo real, acesse PlainApp em seu telefone → "Configurações Web" → habilite a permissão "Gerenciar notificações".',
+  archive_conversation: 'Arquivar conversa',
+  archived: 'Arquivado',
+  no_archived_conversations: 'Nenhuma conversa arquivada',
+  unarchive: 'Desarquivar',
 }

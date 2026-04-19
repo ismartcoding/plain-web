@@ -1,11 +1,9 @@
 import { onActivated, onDeactivated, ref, computed, watch } from 'vue'
-import toast from '@/components/toaster'
-import { initLazyQuery, smsConversationsGQL } from '@/lib/api/query'
 import { useRoute } from 'vue-router'
 import { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
-import { useI18n } from 'vue-i18n'
+import { useSmsStore } from '@/stores/sms'
 import type { IMessageConversation } from '@/lib/interfaces'
 import { useLeftSidebarResize } from '@/hooks/sidebar'
 import { storeToRefs } from 'pinia'
@@ -14,6 +12,9 @@ import SendSmsModal from '@/views/messages/SendSmsModal.vue'
 import ExportSmsModal from '@/views/messages/ExportSmsModal.vue'
 import { decodeBase64 } from '@/lib/strutil'
 import { useContactName } from '@/hooks/contacts'
+import { useSelectable } from '@/hooks/list'
+import type { IData } from '@/lib/interfaces'
+import type { Ref } from 'vue'
 import emitter from '@/plugins/eventbus'
 
 export const sortItems = [
@@ -24,17 +25,18 @@ export const sortItems = [
 export function useMessagesSidebar() {
   const mainStore = useMainStore()
   const { app, urlTokenKey } = storeToRefs(useTempStore())
-  const { t } = useI18n()
   const route = useRoute()
+  const smsStore = useSmsStore()
+  const { conversations, noMore } = storeToRefs(smsStore)
+
+  const isArchived = computed(() => route.path.startsWith('/messages/archived'))
+  const loading = computed(() => isArchived.value ? smsStore.archivedLoading : smsStore.normalLoading)
+
   const sortMenuVisible = ref(false)
-  const page = ref(1)
-  const limit = 50
-  const total = ref(0)
-  const noMore = ref(false)
-  const conversations = ref<IMessageConversation[]>([])
   const { loadContacts, getDisplayName } = useContactName()
 
   const sortedConversations = computed(() => {
+    if (isArchived.value) return conversations.value
     const list = [...conversations.value]
     switch (mainStore.conversationSortBy) {
       case 'DATE_ASC':
@@ -54,27 +56,24 @@ export function useMessagesSidebar() {
     (width: number) => { mainStore.sidebar2Width = width },
   )
 
-  const q = ref('')
+  const selectable = useSelectable(sortedConversations as unknown as Ref<IData[]>)
 
-  const { loading, fetch } = initLazyQuery({
-    handle: (data: { smsConversations: IMessageConversation[]; smsConversationCount: number }, error: string) => {
-      if (error) toast(t(error), 'error')
-      else if (data) {
-        if (data.smsConversations.length < limit) noMore.value = true
-        conversations.value = page.value === 1 ? data.smsConversations : conversations.value.concat(data.smsConversations)
-        total.value = data.smsConversationCount
-      }
-    },
-    document: smsConversationsGQL,
-    variables: () => ({ offset: (page.value - 1) * limit, limit, query: q.value }),
+  // Initialize from store's current value (handles component remount without keep-alive)
+  selectable.total.value = smsStore.conversationCount
+  watch(() => smsStore.conversationCount, (count) => {
+    selectable.total.value = count
   })
 
   function loadMore() {
     if (noMore.value || loading.value) return
-    page.value++
+    smsStore.fetchMoreConversations()
   }
 
   function openConversation(item: IMessageConversation) {
+    if (isArchived.value) {
+      replacePath(mainStore, `/messages/archived/${item.id}`)
+      return
+    }
     const query = route.query.q
     const path = query ? `/messages/${item.id}?q=${query}` : `/messages/${item.id}`
     replacePath(mainStore, path)
@@ -86,17 +85,30 @@ export function useMessagesSidebar() {
     openModal(ExportSmsModal, { items: [], query: '', contactName: '', urlTokenKey: urlTokenKey.value })
   }
 
-  const smsSentHandler = () => { setTimeout(() => fetch(), 1500) }
   const isActive = ref(false)
 
-  function applyRouteQuery() {
-    q.value = decodeBase64(route.query.q?.toString() ?? '')
-    page.value = 1
-    noMore.value = false
-    fetch()
+  function archiveConversations(ids: string[]) {
+    smsStore.archiveConversations(ids)
+    selectable.clearSelection()
   }
 
-  watch(() => route.query.q, () => { if (isActive.value) applyRouteQuery() })
+  function unarchiveConversations(ids: string[]) {
+    smsStore.unarchiveConversations(ids)
+    selectable.clearSelection()
+  }
+
+  function applyRouteQuery() {
+    if (isArchived.value) {
+      smsStore.fetchArchived()
+    } else {
+      const q = decodeBase64(route.query.q?.toString() ?? '')
+      smsStore.fetchConversations(q)
+    }
+  }
+
+  const smsSentHandler = () => { setTimeout(() => applyRouteQuery(), 1500) }
+
+  watch(() => route.query.q, () => { if (isActive.value && !isArchived.value) applyRouteQuery() })
 
   onActivated(() => {
     isActive.value = true
@@ -111,9 +123,11 @@ export function useMessagesSidebar() {
   })
 
   return {
-    mainStore, app, route, sortMenuVisible,
-    total, noMore, conversations, sortedConversations, loading,
+    mainStore, app, route, isArchived,
+    sortMenuVisible, noMore, conversations, sortedConversations, loading,
     getDisplayName, resizeWidth,
     loadMore, openConversation, openSendSms, openExport,
+    archiveConversations, unarchiveConversations,
+    ...selectable,
   }
 }

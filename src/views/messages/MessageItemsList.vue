@@ -18,7 +18,7 @@
         @add-item-to-tags="addItemToTags"
         @send-sms="sendSms"
         @call="call"
-        @hide="hide"
+        @archive="archive"
       />
     </div>
     <template v-if="loading && items.length === 0">
@@ -54,7 +54,7 @@ const emit = defineEmits<{
   sendSms: [item: IMessage]
   call: [item: IMessage]
   viewItem: [item: IMessage]
-  hide: [item: IMessage]
+  archive: [item: IMessage]
 }>()
 
 function addItemToTags(item: IMessage) {
@@ -69,8 +69,8 @@ function call(item: IMessage) {
   emit('call', item)
 }
 
-function hide(item: IMessage) {
-  emit('hide', item)
+function archive(item: IMessage) {
+  emit('archive', item)
 }
 
 function onView(index: number) {

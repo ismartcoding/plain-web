@@ -454,15 +454,15 @@ export const sendSmsGQL = `
   }
 `
 
-export const hideConversationGQL = `
-  mutation hideConversation($id: String!, $date: Long!) {
-    hideConversation(id: $id, date: $date)
+export const archiveConversationGQL = `
+  mutation archiveConversation($id: String!, $date: Long!) {
+    archiveConversation(id: $id, date: $date)
   }
 `
 
-export const unhideConversationGQL = `
-  mutation unhideConversation($id: String!) {
-    unhideConversation(id: $id)
+export const unarchiveConversationGQL = `
+  mutation unarchiveConversation($id: String!) {
+    unarchiveConversation(id: $id)
   }
 `
 
@@ -554,6 +554,12 @@ export const saveFeedEntriesToNotesGQL = `
 export const mergeChunksGQL = `
   mutation mergeChunks($fileId: String!, $totalChunks: Int!, $path: String!, $replace: Boolean!, $isAppFile: Boolean!) {
     mergeChunks(fileId: $fileId, totalChunks: $totalChunks, path: $path, replace: $replace, isAppFile: $isAppFile)
+  }
+`
+
+export const deleteChunksGQL = `
+  mutation deleteChunks($fileId: String!) {
+    deleteChunks(fileId: $fileId)
   }
 `
 

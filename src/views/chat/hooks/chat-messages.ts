@@ -1,4 +1,4 @@
-import { ref, reactive, watch, type ComputedRef, type Ref } from 'vue'
+import { ref, watch, type ComputedRef, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { initQuery, chatItemsGQL } from '@/lib/api/query'
 import { sendChatItemGQL, deleteChatItemGQL, initMutation } from '@/lib/api/mutation'
@@ -13,7 +13,6 @@ export function useChatMessages(chatId: ComputedRef<string>, channelId: Computed
   const { t } = useI18n()
   const scrollContainer = ref<HTMLDivElement>()
   const chatItems = ref<IChatItem[]>([])
-  const menuVisible = reactive<Record<string, boolean>>({})
   const { cancel: cancelTask } = useTasks()
   const deleteId = ref('')
   let initialized = false
@@ -96,10 +95,10 @@ export function useChatMessages(chatId: ComputedRef<string>, channelId: Computed
   // Real-time event bus handlers for message CRUD
   useChatEvents(chatId, chatItems, scrollBottom)
 
-  watch(chatId, () => { initialized = false; chatItems.value = []; refetch(); scrollBottom() })
+  watch(chatId, () => { initialized = false; chatItems.value = []; scrollBottom() })
 
   return {
-    chatItems, loading, sendLoading, deleteLoading, menuVisible,
+    chatItems, loading, sendLoading, deleteLoading,
     scrollContainer, scrollBottom,
     send, deleteMessage, clearMessages, refetch,
   }

@@ -5,12 +5,31 @@ import { getApiBaseUrl } from '../api/api'
 import { chachaEncrypt, bitArrayToUint8Array } from '../api/crypto'
 import { tokenToKey } from '../api/file'
 import { uploadedChunksGQL } from '../api/query'
-import { mergeChunksGQL } from '../api/mutation'
+import { mergeChunksGQL, deleteChunksGQL } from '../api/mutation'
 import { gqlFetch } from '../api/gql-client'
 
 const CHUNK_SIZE = 5 * 1024 * 1024 // 5MB — balance between resume granularity and throughput
 const PARALLEL_CHUNKS = 3 // Upload 3 chunks in parallel per file
 const UPDATE_INTERVAL = 500 // 500ms
+const MAX_CONCURRENT_CHUNKS = 4 // Global limit across ALL concurrent file uploads
+
+// Global chunk upload concurrency limiter.
+// When multiple files upload simultaneously (3 files × 3 workers = 9 requests),
+// the phone server can be overwhelmed. This caps total in-flight chunk uploads.
+let activeChunkUploads = 0
+
+async function acquireChunkSlot(upload: IUploadItem): Promise<boolean> {
+  while (activeChunkUploads >= MAX_CONCURRENT_CHUNKS) {
+    if (upload.status === 'paused' || upload.status === 'canceled') return false
+    await new Promise<void>((resolve) => setTimeout(resolve, 200))
+  }
+  activeChunkUploads++
+  return true
+}
+
+function releaseChunkSlot() {
+  activeChunkUploads = Math.max(0, activeChunkUploads - 1)
+}
 
 export function getUploadUrl() {
   return `${getApiBaseUrl()}/upload`
@@ -51,10 +70,7 @@ function updateUploadProgress(upload: IUploadItem, newSize: number, forceUpdate:
     const timeDiffSec = (currentTime - upload.lastUpdateTime!) / 1000
     const sizeDiff = newSize - (upload.lastUploadedSize || 0)
 
-    if (sizeDiff > 0 && timeDiffSec > 0) {
-      upload.uploadSpeed = Math.round(sizeDiff / timeDiffSec)
-    }
-
+    upload.uploadSpeed = sizeDiff > 0 && timeDiffSec > 0 ? Math.round(sizeDiff / timeDiffSec) : 0
     upload.lastUpdateTime = currentTime
     upload.lastUploadedSize = newSize
     return
@@ -306,31 +322,44 @@ async function uploadWithChunks(upload: IUploadItem, replace: boolean, key: Uint
         const myIdx = cursor++
         if (myIdx >= pendingIndices.length) return
 
+        // Wait for a global chunk upload slot to avoid overwhelming the server
+        if (!(await acquireChunkSlot(upload))) return
+
         const chunkIndex = pendingIndices[myIdx]
         const chunkData = createChunk(upload.file, chunkIndex, CHUNK_SIZE)
 
         const onProgress = (bytes: number) => {
-          chunkProgress.set(chunkIndex, bytes)
-          recalcProgress()
+          // Only increase — never decrease. When a chunk retry starts, the
+          // new XHR reports progress from 0. Without this guard the total
+          // would drop, making the progress bar visibly go backward.
+          const prev = chunkProgress.get(chunkIndex) || 0
+          if (bytes > prev) {
+            chunkProgress.set(chunkIndex, bytes)
+            recalcProgress()
+          }
         }
 
-        const success = await uploadChunkWithRetry(upload, chunkData, key, onProgress)
+        try {
+          const success = await uploadChunkWithRetry(upload, chunkData, key, onProgress)
 
-        if (!success) {
-          if (upload.status === 'paused') return
-          errors.push(`chunk ${chunkIndex}`)
-          return
+          if (!success) {
+            if (upload.status === 'paused') return
+            errors.push(`chunk ${chunkIndex}`)
+            return
+          }
+
+          // Chunk completed — move its bytes to completedBytes
+          chunkProgress.delete(chunkIndex)
+          const chunkSize = chunkData.chunk.size
+          completedBytes += chunkSize
+          updateUploadProgress(upload, completedBytes, true)
+          emitter.emit('upload_progress', upload)
+
+          verifiedChunks.push(chunkIndex)
+          upload.uploadedChunks = [...verifiedChunks]
+        } finally {
+          releaseChunkSlot()
         }
-
-        // Chunk completed — move its bytes to completedBytes
-        chunkProgress.delete(chunkIndex)
-        const chunkSize = chunkData.chunk.size
-        completedBytes += chunkSize
-        updateUploadProgress(upload, completedBytes, true)
-        emitter.emit('upload_progress', upload)
-
-        verifiedChunks.push(chunkIndex)
-        upload.uploadedChunks = [...verifiedChunks]
       }
     }
 
@@ -402,24 +431,38 @@ async function getUploadedChunks(fileId: string, fileSize: number, totalChunks: 
   try {
     const result = await gqlFetch(uploadedChunksGQL, { fileId })
     const raw: string[] = result.data?.uploadedChunks ? [...result.data.uploadedChunks] : []
+    if (raw.length === 0) return []
+
     const verified: number[] = []
+    let mismatchCount = 0
     for (const entry of raw) {
       // Format: "index:size"
       const parts = entry.split(':')
       const index = parseInt(parts[0], 10)
       const serverSize = parts.length > 1 ? parseInt(parts[1], 10) : -1
-      if (isNaN(index) || index < 0 || index >= totalChunks) continue
+      if (isNaN(index) || index < 0 || index >= totalChunks) {
+        mismatchCount++
+        continue
+      }
 
       // Calculate expected chunk size
       const chunkStart = index * CHUNK_SIZE
       const expectedSize = Math.min(CHUNK_SIZE, fileSize - chunkStart)
       if (serverSize > 0 && serverSize !== expectedSize) {
-        // Chunk is corrupt — skip it so it gets re-uploaded
         console.warn(`Chunk ${index} size mismatch: server=${serverSize}, expected=${expectedSize}. Will re-upload.`)
+        mismatchCount++
         continue
       }
       verified.push(index)
     }
+
+    // All server chunks are stale (e.g. from a previous upload with a different
+    // chunk size). Delete them to free disk space and avoid confusion.
+    if (verified.length === 0 && mismatchCount > 0) {
+      console.warn(`All ${mismatchCount} server chunks are stale for ${fileId}. Deleting.`)
+      await gqlFetch(deleteChunksGQL, { fileId })
+    }
+
     return verified
   } catch (error) {
     console.error('Failed to query uploaded chunks:', error)
@@ -459,7 +502,9 @@ async function uploadChunkWithRetry(upload: IUploadItem, chunkData: IUploadChunk
 
       // Wait before retry with exponential backoff
       if (attempt < maxRetries) {
-        onProgress(0) // Reset progress for this chunk on retry
+        // Don't reset onProgress(0) here — it causes the progress bar to go
+        // backward while waiting. The retry's XHR progress events will
+        // naturally overwrite the old chunk progress value.
         await waitWithPauseCheck(upload, Math.min(1000 * Math.pow(2, attempt - 1), 10000))
       }
     } catch (error: any) {
@@ -470,7 +515,6 @@ async function uploadChunkWithRetry(upload: IUploadItem, chunkData: IUploadChunk
       console.warn(`Chunk ${chunkData.index} upload error on attempt ${attempt}:`, error.message)
 
       if (attempt < maxRetries) {
-        onProgress(0)
         await waitWithPauseCheck(upload, Math.min(1000 * Math.pow(2, attempt - 1), 10000))
       }
     }
@@ -523,6 +567,7 @@ async function uploadChunk(upload: IUploadItem, chunkData: IUploadChunk & { star
 
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4) {
+          upload.xhrs?.delete(xhr)
           if (xhr.status === 201) {
             // Server returns "index:savedSize" — verify
             const resp = xhr.responseText
@@ -547,11 +592,13 @@ async function uploadChunk(upload: IUploadItem, chunkData: IUploadChunk & { star
     }
 
     xhr.onerror = () => {
+      upload.xhrs?.delete(xhr)
       console.warn(`Chunk ${chunkData.index} upload network error`)
       resolve(false)
     }
 
     xhr.onabort = () => {
+      upload.xhrs?.delete(xhr)
       console.log(`Chunk ${chunkData.index} upload was aborted`)
       resolve(false)
     }
@@ -559,9 +606,13 @@ async function uploadChunk(upload: IUploadItem, chunkData: IUploadChunk & { star
     try {
       xhr.open('POST', getUploadChunkUrl(), true)
       xhr.setRequestHeader('c-id', localStorage.getItem('client_id') ?? '')
-      xhr.send(data)
+      // Track this XHR in the set BEFORE sending, so pause can abort it
+      if (!upload.xhrs) upload.xhrs = new Set()
+      upload.xhrs.add(xhr)
       upload.xhr = xhr
+      xhr.send(data)
     } catch (ex: any) {
+      upload.xhrs?.delete(xhr)
       console.warn(`Chunk ${chunkData.index} upload exception:`, ex.message)
       resolve(false)
     }

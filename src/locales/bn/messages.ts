@@ -31,4 +31,8 @@ export default {
   attachments: 'সংযুক্তি',
   body: 'শরীর',
   sms_notification_warning: 'রিয়েল টাইমে নতুন এসএমএস পেতে, আপনার ফোনের PlainApp এ যান → "ওয়েব সেটিংস" → "বিজ্ঞপ্তিগুলি পরিচালনা করুন" অনুমতি সক্রিয় করুন।',
+  archive_conversation: 'কথোপকথন সংরক্ষণ করুন',
+  archived: 'সংরক্ষিত',
+  no_archived_conversations: 'কোনো সংরক্ষিত কথোপকথন নেই',
+  unarchive: 'সংরক্ষণ বাতিল করুন',
 }

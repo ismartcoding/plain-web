@@ -50,7 +50,11 @@ export function useNotifications() {
   onReplyError(() => cancelReply())
 
   const deleteItem = (item: INotification) => cancelNotifications({ ids: [item.id] })
-  const clearAll = () => cancelNotifications({ ids: notifications.value.map((it) => it.id) })
+  const clearAll = () => {
+    const ids = notifications.value.map((it) => it.id)
+    notifications.value = []
+    cancelNotifications({ ids })
+  }
 
   // Desktop notification + sound helper
   function showDesktopNotification(data: INotification) {

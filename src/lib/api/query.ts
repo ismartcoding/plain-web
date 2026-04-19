@@ -1,4 +1,4 @@
-import { ref, watch, type Ref } from 'vue'
+import { ref, watch, nextTick, getCurrentInstance, onActivated, onDeactivated, type Ref } from 'vue'
 import { gqlFetch, GqlError } from './gql-client'
 import {
   chatItemFragment,
@@ -72,7 +72,19 @@ export function initQuery<TResult = any>(params: InitQueryParams<TResult>) {
   execute()
 
   if (typeof params.variables === 'function') {
-    watch(params.variables, () => execute(), { deep: true })
+    // Guard watcher so deactivated keep-alive instances don't fire queries
+    // when the shared reactive route changes.
+    // nextTick defers execution until after KeepAlive lifecycle hooks complete.
+    let active = true
+    const inst = getCurrentInstance()
+    if (inst) {
+      onDeactivated(() => { active = false })
+      onActivated(() => { active = true })
+    }
+    watch(params.variables, async () => {
+      await nextTick()
+      if (active) execute()
+    }, { deep: true })
   }
 
   return { loading, result, refetch: execute }
@@ -551,16 +563,18 @@ export const callCountGQL = `
 
 export const smsCountGQL = `
   query {
-    total: smsCount(query: "")
-    inbox: smsCount(query: "type:1")
-    sent: smsCount(query: "type:2")
-    drafts: smsCount(query: "type:3")
+    smsAllCounts {
+      total
+      inbox
+      sent
+      drafts
+    }
   }
 `
 
-export const hiddenConversationsGQL = `
+export const archivedConversationsGQL = `
   query {
-    hiddenConversations {
+    archivedConversations {
       ...MessageConversationFragment
     }
   }

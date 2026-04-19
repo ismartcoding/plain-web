@@ -102,7 +102,7 @@ export function useSendSms(initialNumber: string, initialBody: string) {
     number, body, errors, pendingFiles, fileInputRef, mmsUploading, numberRef,
     showContactPicker, selectedContactName, filteredContacts, contactsLoading,
     loading, mmsLoading, totalPendingSize, hasLargeNonImageFile,
-    cancel, submit, toggleContactPicker,
+    cancel, submit,
     onNumberInput: () => onNumberInput(number.value || ''),
     onNumberFocus: () => onNumberFocus(number.value || ''),
     selectContactNumber: (phone: string, contact: IContact) =>

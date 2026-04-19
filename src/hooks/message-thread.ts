@@ -12,7 +12,7 @@ import { createPendingSms, createPendingMms } from '@/lib/message-helpers'
 
 const PAGE_SIZE = 100
 
-export function useMessageThread(threadId: Ref<string>, chatScrollRef: Ref<HTMLElement | undefined>) {
+export function useMessageThread(threadId: Ref<string>, chatScrollRef: Ref<HTMLElement | undefined>, isArchived?: Ref<boolean>) {
   const { t } = useI18n()
   const { loadContacts, getContactName, getDisplayName } = useContactName()
   const { tags, fetch: fetchTags } = useTags(DataType.SMS)
@@ -73,7 +73,11 @@ export function useMessageThread(threadId: Ref<string>, chatScrollRef: Ref<HTMLE
       }
     },
     document: smsGQL,
-    variables: () => ({ offset: offset.value, limit: PAGE_SIZE, query: buildQuery([{ name: 'thread_id', op: '', value: threadId.value }]) }),
+    variables: () => {
+      const fields = [{ name: 'thread_id', op: '', value: threadId.value }]
+      if (isArchived?.value) fields.push({ name: 'archived', op: '', value: '1' })
+      return { offset: offset.value, limit: PAGE_SIZE, query: buildQuery(fields) }
+    },
   })
 
   function fetch() { offset.value = 0; noMoreOlder.value = false; loadingMore.value = false; rawFetch() }

@@ -31,4 +31,8 @@ export default {
   sms_address: '号码',
   type_a_reply: '输入回复...',
   sms_notification_warning: '如需实时接收新短信，请在手机上打开 PlainApp → "Web 设置" → 开启"管理通知"权限。',
+  archive_conversation: '归档对话',
+  archived: '已归档',
+  no_archived_conversations: '无已归档对话',
+  unarchive: '取消归档',
 }
