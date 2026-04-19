@@ -7,7 +7,7 @@ import { chachaDecrypt } from '@/lib/api/crypto'
 import { tokenToKey } from '@/lib/api/file'
 import { replacePath } from '@/plugins/router'
 
-function decryptChatId(rawId: string, key: Uint8Array | null): string {
+export function decryptChatId(rawId: string, key: Uint8Array | null): string {
   if (!rawId || !key) return 'local'
   try {
     const bits = tokenToKey(rawId)

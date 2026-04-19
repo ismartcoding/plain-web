@@ -140,6 +140,7 @@ export function useMediaPage(options: MediaPageOptions) {
     items.value = []
     options.onSort?.()
     sortByRef.value = value
+    doFetch()
   }
 
   async function uploadFilesClick() { const dir = await uploadTarget.resolveTargetDir(); if (dir) uploadFiles(dir) }

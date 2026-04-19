@@ -43,8 +43,19 @@ class UploadQueue {
       task.upload.status = 'paused'
       task.aborted = true
 
-      // Force abort current xhr if exists
-      if (task.upload.xhr) {
+      // Abort ALL active XHRs (parallel chunk uploads)
+      if (task.upload.xhrs && task.upload.xhrs.size > 0) {
+        console.log(`pauseTask: Aborting ${task.upload.xhrs.size} active xhr(s) for task ${taskId}`)
+        for (const xhr of task.upload.xhrs) {
+          try {
+            xhr.abort()
+          } catch (error) {
+            console.warn(`pauseTask: Error aborting xhr for task ${taskId}:`, error)
+          }
+        }
+        task.upload.xhrs.clear()
+      } else if (task.upload.xhr) {
+        // Fallback for direct (non-chunked) uploads
         console.log(`pauseTask: Aborting xhr for task ${taskId}`)
         try {
           task.upload.xhr.abort()
@@ -102,7 +113,15 @@ class UploadQueue {
 
     if (task.status === 'running') {
       task.aborted = true
-      task.upload.xhr?.abort()
+      // Abort all active XHRs
+      if (task.upload.xhrs && task.upload.xhrs.size > 0) {
+        for (const xhr of task.upload.xhrs) {
+          try { xhr.abort() } catch (_) { /* ignore */ }
+        }
+        task.upload.xhrs.clear()
+      } else {
+        task.upload.xhr?.abort()
+      }
       this.running.delete(taskId)
     }
 

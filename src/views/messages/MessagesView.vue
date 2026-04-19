@@ -7,7 +7,7 @@
       @back="backToList"
       @export="openExport"
       @call="send.callContact"
-      @hide="hideConversation"
+      @archive="archiveConversation"
     />
     <MessageChatList
       v-model:scroll-ref="chatScrollRef"
@@ -37,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import { onActivated, onDeactivated, ref, watch } from 'vue'
+import { computed, onActivated, onDeactivated, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
@@ -53,15 +53,16 @@ import { useMessageSend } from '@/hooks/message-send'
 import MessageChatHeader from '@/views/messages/MessageChatHeader.vue'
 import MessageChatList from '@/views/messages/MessageChatList.vue'
 import MessageChatInput from '@/views/messages/MessageChatInput.vue'
-import { initMutation, hideConversationGQL } from '@/lib/api/mutation'
+import { initMutation, archiveConversationGQL } from '@/lib/api/mutation'
 
 const mainStore = useMainStore()
 const { app, urlTokenKey } = storeToRefs(useTempStore())
 const route = useRoute()
 const threadId = ref('')
 const chatScrollRef = ref<HTMLElement>()
+const isArchived = computed(() => route.path.startsWith('/messages/archived'))
 
-const thread = useMessageThread(threadId, chatScrollRef)
+const thread = useMessageThread(threadId, chatScrollRef, isArchived)
 
 const send = useMessageSend(
   () => app.value.appDir,
@@ -96,10 +97,10 @@ function addItemToTags(item: IMessage) {
   })
 }
 
-const { mutate: mutateHideConversation } = initMutation({ document: hideConversationGQL })
+const { mutate: mutateArchiveConversation } = initMutation({ document: archiveConversationGQL })
 
-function hideConversation() {
-  mutateHideConversation({ id: threadId.value, date: Date.now() })
+function archiveConversation() {
+  mutateArchiveConversation({ id: threadId.value, date: Date.now() })
   backToList()
 }
 

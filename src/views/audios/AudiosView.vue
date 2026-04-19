@@ -116,7 +116,9 @@ const mp = useMediaPage({
   doFetch: () => fetch(), getScrollMode: () => scrollMode.value,
   setupScroll: () => setTimeout(setupSentinelObserver, 100),
   teardownScroll: () => { observer?.disconnect(); observer = null },
-  onSort: () => { noMore.value = false },
+  onSort: () => { 
+    noMore.value = false 
+  },
 })
 const {
   isPhone, mainStore, app, urlTokenKey, noDataKey,

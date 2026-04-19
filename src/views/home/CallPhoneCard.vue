@@ -25,9 +25,6 @@
                   <v-icon-button @click.prevent="pastePhoneNumber">
                     <i-material-symbols:content-paste-rounded />
                   </v-icon-button>
-                  <v-icon-button v-tooltip="$t('select_contact')" @click.prevent="toggle">
-                    <i-material-symbols:contact-page-outline-rounded />
-                  </v-icon-button>
                 </template>
               </v-text-field>
             </template>

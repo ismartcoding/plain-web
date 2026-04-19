@@ -2,7 +2,7 @@
   <left-sidebar>
     <template #body>
       <ul class="nav">
-        <li :class="{ active: !selectedTagId && !type && !isHidden }" @click.prevent="viewAll">
+        <li :class="{ active: !selectedTagId && !type && !isArchived }" @click.prevent="viewAll">
           <span class="icon" aria-hidden="true"><i-lucide:layout-grid /></span>
           <span class="title">{{ $t('all') }}</span>
           <span v-if="counter.messages >= 0" class="count">{{ counter.messages.toLocaleString() }}</span>
@@ -16,9 +16,9 @@
           <span class="title">{{ $t(`message_type.${t}`) }}</span>
           <span v-if="getTypeCount(t) >= 0" class="count">{{ getTypeCount(t).toLocaleString() }}</span>
         </li>
-        <li :class="{ active: isHidden }" @click.prevent="viewHidden">
-          <span class="icon" aria-hidden="true"><i-material-symbols:visibility-off-outline-rounded /></span>
-          <span class="title">{{ $t('hidden_conversations') }}</span>
+        <li :class="{ active: isArchived }" @click.prevent="viewArchived">
+          <span class="icon" aria-hidden="true"><i-material-symbols:archive-outline-rounded /></span>
+          <span class="title">{{ $t('archived') }}</span>
         </li>
       </ul>
       <tag-filter type="SMS" :selected="selectedTagId" />
@@ -34,33 +34,21 @@ import { useSearch } from '@/hooks/search'
 import type { IFilter } from '@/lib/interfaces'
 import { decodeBase64, encodeBase64 } from '@/lib/strutil'
 import { buildQuery } from '@/lib/search'
-import { initLazyQuery, smsCountGQL } from '@/lib/api/query'
 import { useTempStore } from '@/stores/temp'
+import { useSmsStore } from '@/stores/sms'
 import { storeToRefs } from 'pinia'
 
 const mainStore = useMainStore()
 const { counter } = storeToRefs(useTempStore())
+const smsStore = useSmsStore()
+const { typesCount } = storeToRefs(smsStore)
 const { parseQ } = useSearch()
 const filter = reactive<IFilter>({
   tagIds: [],
 })
 const type = ref('')
-const isHidden = ref(false)
+const isArchived = ref(false)
 const selectedTagId = ref('')
-const typesCount = ref<Map<string, number>>(new Map())
-
-const { fetch } = initLazyQuery({
-  handle: (data: { total: number; inbox: number; sent: number; drafts: number }) => {
-    if (data) {
-      counter.value.messages = data.total
-      typesCount.value.set('1', data.inbox)
-      typesCount.value.set('2', data.sent)
-      typesCount.value.set('3', data.drafts)
-    }
-  },
-  document: smsCountGQL,
-  variables: () => ({}),
-})
 
 function getTypeCount(id: string) {
   return typesCount.value.get(id) ?? -1
@@ -72,11 +60,11 @@ function updateActive() {
   parseQ(filter, q)
   type.value = filter.type ?? ''
   selectedTagId.value = filter.tagIds.length === 1 ? filter.tagIds[0] : ''
-  isHidden.value = router.currentRoute.value.path === '/messages/hidden'
+  isArchived.value = router.currentRoute.value.path.startsWith('/messages/archived')
   if (type.value) {
     selectedTagId.value = ''
   }
-  fetch()
+  smsStore.fetchCounts()
 }
 
 updateActive()
@@ -103,7 +91,7 @@ function viewAll() {
   replacePath(mainStore, '/messages')
 }
 
-function viewHidden() {
-  replacePath(mainStore, '/messages/hidden')
+function viewArchived() {
+  replacePath(mainStore, '/messages/archived')
 }
 </script>

@@ -21,13 +21,7 @@
               :error-text="errors.number ? $t(errors.number) : ''"
               @input="onNumberInput"
               @focus="onNumberFocus"
-            >
-              <template #trailing-icon>
-                <v-icon-button v-tooltip="$t('select_contact')" @click.prevent="toggle">
-                  <i-material-symbols:contact-page-outline-rounded />
-                </v-icon-button>
-              </template>
-            </v-text-field>
+            />
           </template>
         </ContactPickerDropdown>
         <div v-if="selectedContactName" class="selected-contact-hint">

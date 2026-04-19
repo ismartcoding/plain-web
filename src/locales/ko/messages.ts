@@ -31,4 +31,8 @@ export default {
   attachments: '첨부파일',
   body: '몸',
   sms_notification_warning: '새 SMS를 실시간으로 받으려면 휴대폰에서 PlainApp → "Web 설정" → "알림 관리" 권한을 활성화하세요.',
+  archive_conversation: '대화 보관',
+  archived: '보관됨',
+  no_archived_conversations: '보관된 대화 없음',
+  unarchive: '보관 취소',
 }

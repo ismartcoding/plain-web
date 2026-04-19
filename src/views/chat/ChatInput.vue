@@ -15,7 +15,7 @@
         @drop.prevent="dropFiles"
         @dragenter.prevent="fileDragEnter"
         @dragleave.prevent="fileDragLeave"
-        @keydown.enter.exact.prevent="handleSend"
+        @keydown.enter.exact="onEnterKey"
         @keydown.enter.shift.exact.prevent="$emit('update:modelValue', modelValue + '\n')"
         @keydown.enter.ctrl.exact.prevent="$emit('update:modelValue', modelValue + '\n')"
         @keydown.enter.alt.exact.prevent="$emit('update:modelValue', modelValue + '\n')"
@@ -69,6 +69,12 @@ const displayDragMask = ref(false)
 
 function handleSend() {
   emit('send-message', '')
+}
+
+function onEnterKey(e: KeyboardEvent) {
+  if (e.isComposing) return
+  e.preventDefault()
+  handleSend()
 }
 
 function uploadFilesChanged(e: Event) {

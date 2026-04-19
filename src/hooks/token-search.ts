@@ -149,6 +149,20 @@ export function useTokenSearch(
   function emitEnter() { closeMenu(); emit('enter') }
   function onInput() { syncOut() }
 
+  function onPaste(e: ClipboardEvent) {
+    e.preventDefault()
+    const text = e.clipboardData?.getData('text/plain') ?? ''
+    const sel = window.getSelection()
+    if (!sel || sel.rangeCount === 0) return
+    const range = sel.getRangeAt(0)
+    range.deleteContents()
+    range.insertNode(document.createTextNode(text))
+    range.collapse(false)
+    sel.removeAllRanges()
+    sel.addRange(range)
+    syncOut()
+  }
+
   // --- Event handlers ---
   function onKeydown(e: KeyboardEvent) {
     if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); openKeyMenu(); return }
@@ -227,6 +241,6 @@ export function useTokenSearch(
     keyItems, valueItems,
     openKeyMenu, selectKey, selectValue, closeMenu, applyCustomStartTime,
     emitHistoryDelete, emitHistoryClear, emitEnter,
-    onKeydown, onInput, onFocus, onBlur, onMouseDownRoot,
+    onKeydown, onInput, onPaste, onFocus, onBlur, onMouseDownRoot,
   }
 }

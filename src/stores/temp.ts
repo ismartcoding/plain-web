@@ -17,6 +17,7 @@ export interface IUploadItem {
   error: string
   pausing?: boolean
   xhr?: XMLHttpRequest
+  xhrs?: Set<XMLHttpRequest>
   fileId?: string
   fileHash?: string
   isAppFile?: boolean

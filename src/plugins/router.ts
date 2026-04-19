@@ -36,6 +36,23 @@ const router = createRouter({
           meta: { group: 'messages', className: 'messages' },
         },
         {
+          path: 'messages/archived',
+          components: {
+            LeftSidebar: () => import('@/views/messages/MessagesSidebar.vue'),
+            LeftSidebar2: () => import('@/views/messages/MessagesSidebar2.vue'),
+          },
+          meta: { group: 'messages', className: 'messages' },
+        },
+        {
+          path: 'messages/archived/:threadId',
+          components: {
+            default: () => import('@/views/messages/MessagesView.vue'),
+            LeftSidebar: () => import('@/views/messages/MessagesSidebar.vue'),
+            LeftSidebar2: () => import('@/views/messages/MessagesSidebar2.vue'),
+          },
+          meta: { group: 'messages', className: 'messages' },
+        },
+        {
           path: 'messages/:threadId',
           components: {
             default: () => import('@/views/messages/MessagesView.vue'),
