@@ -62,6 +62,8 @@ export const chatItemFragment = `
     channelId
     createdAt
     content
+    status
+    statusData
     data {
       ... on MessageImages {
         ids

@@ -33,4 +33,8 @@ export default {
   decline_invite: 'Reddetmek',
   channel_invite: 'Kanal daveti',
   channel_invite_desc: '"{name}" grubuna katılmaya davet edildiniz.',
+  send_failed: 'Gönderme başarısız',
+  delivery_status: 'Teslimat durumu',
+  delivery_status_summary: '{delivered} / {total} teslim edildi',
+  delivery_failed: 'Hata',
 }

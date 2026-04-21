@@ -33,4 +33,8 @@ export default {
   decline_invite: 'गिरावट',
   channel_invite: 'चैनल आमंत्रण',
   channel_invite_desc: 'आपको "{नाम}" में शामिल होने के लिए आमंत्रित किया गया है।',
+  send_failed: 'भेजने में विफल',
+  delivery_status: 'डिलीवरी स्थिति',
+  delivery_status_summary: '{delivered} / {total} डिलीवर हुए',
+  delivery_failed: 'त्रुटि',
 }

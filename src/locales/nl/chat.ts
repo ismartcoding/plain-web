@@ -32,4 +32,8 @@ export default {
   decline_invite: 'Afwijzen',
   channel_invite: 'Kanaaluitnodiging',
   channel_invite_desc: 'U bent uitgenodigd om deel te nemen aan "{naam}".',
+  send_failed: 'Verzenden mislukt',
+  delivery_status: 'Bezorgstatus',
+  delivery_status_summary: '{delivered} / {total} bezorgd',
+  delivery_failed: 'Fout',
 }

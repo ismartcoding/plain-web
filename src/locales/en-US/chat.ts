@@ -32,4 +32,8 @@ export default {
   api_key: 'API key',
   no_api_key: 'No api key',
   app_files: 'App files',
+  send_failed: 'Failed to send',
+  delivery_status: 'Delivery Status',
+  delivery_status_summary: '{delivered} / {total} delivered',
+  delivery_failed: 'Error',
 }

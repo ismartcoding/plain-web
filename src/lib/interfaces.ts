@@ -237,6 +237,8 @@ export interface IChatItem extends IData {
   _content: any
   __typename: string
   data: any
+  status?: string
+  statusData?: string
 }
 
 export interface IPeer {

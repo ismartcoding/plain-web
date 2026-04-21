@@ -33,4 +33,8 @@ export default {
   decline_invite: 'Отклонить',
   channel_invite: 'Приглашение на канал',
   channel_invite_desc: 'Вас пригласили присоединиться к "{name}".',
+  send_failed: 'Ошибка отправки',
+  delivery_status: 'Статус доставки',
+  delivery_status_summary: '{delivered} / {total} доставлено',
+  delivery_failed: 'Ошибка',
 }

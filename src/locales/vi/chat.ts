@@ -33,4 +33,8 @@ export default {
   decline_invite: 'Sự suy sụp',
   channel_invite: 'Mời kênh',
   channel_invite_desc: 'Bạn đã được mời tham gia "{name}".',
+  send_failed: 'Gửi thất bại',
+  delivery_status: 'Trạng thái gửi',
+  delivery_status_summary: '{delivered} / {total} đã gửi',
+  delivery_failed: 'Lỗi',
 }

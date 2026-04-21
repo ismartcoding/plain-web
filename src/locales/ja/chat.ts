@@ -32,4 +32,8 @@ export default {
   decline_invite: '衰退',
   channel_invite: 'チャンネルへの招待',
   channel_invite_desc: '「{name}」への参加に招待されました。',
+  send_failed: '送信失敗',
+  delivery_status: '配信状態',
+  delivery_status_summary: '{delivered} / {total} 件配信済み',
+  delivery_failed: 'エラー',
 }

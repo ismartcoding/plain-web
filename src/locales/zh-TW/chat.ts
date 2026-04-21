@@ -33,4 +33,8 @@ export default {
   decline_invite: '衰退',
   channel_invite: '頻道邀請',
   channel_invite_desc: '您已被邀請加入「{name}」。',
+  send_failed: '傳送失敗',
+  delivery_status: '傳送狀態',
+  delivery_status_summary: '{delivered} / {total} 已送達',
+  delivery_failed: '錯誤',
 }
