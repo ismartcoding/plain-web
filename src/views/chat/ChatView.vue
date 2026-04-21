@@ -29,6 +29,7 @@
         :download-info="downloadProgress[chatItem.id] ?? null"
         :peer="peer"
         @delete="deleteMessage"
+        @retry="handleRetry"
       />
     </template>
   </div>
@@ -51,6 +52,7 @@ import { useMainStore } from '@/stores/main'
 import { openModal } from '@/components/modal'
 import ChatInfoModal from './ChatInfoModal.vue'
 import ChannelInfoModal from './ChannelInfoModal.vue'
+import ChatDeliveryStatusModal from './ChatDeliveryStatusModal.vue'
 import { replacePath } from '@/plugins/router'
 import { useChatRouteId } from './hooks/chat-route'
 import { useChatData } from './hooks/chat-data'
@@ -70,7 +72,7 @@ const chatText = computed({
 const {
   chatItems, loading, sendLoading, deleteLoading,
   scrollContainer, scrollBottom,
-  send, deleteMessage, clearMessages, refetch,
+  send, retryMessage, deleteMessage, clearMessages, refetch,
 } = useChatMessages(chatId, channelId)
 
 const { doUploadFiles, doUploadImages, sendLongMessageAsFile, sendingText, downloadProgress } = useChatUpload(chatId, channelId, appDir, scrollBottom, chatText, chatItems)
@@ -92,8 +94,14 @@ function handleSend() {
   }
 }
 
-function openChatInfo() {
-  if (isChannel.value && channel.value) {
+function handleRetry(id: string, statusData?: string) {
+  openModal(ChatDeliveryStatusModal, {
+    onResend: () => retryMessage(id),
+    statusData,
+  })
+}
+
+function openChatInfo() {  if (isChannel.value && channel.value) {
     openModal(ChannelInfoModal, {
       channel: channel.value, peers: peers.value, selfId: '',
       onClear: clearMessages,

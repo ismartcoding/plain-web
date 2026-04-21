@@ -33,4 +33,8 @@ export default {
   decline_invite: 'প্রত্যাখ্যান',
   channel_invite: 'চ্যানেলের আমন্ত্রণ',
   channel_invite_desc: 'আপনাকে "{name}" এ যোগদানের জন্য আমন্ত্রণ জানানো হয়েছে।',
+  send_failed: 'পাঠানো ব্যর্থ হয়েছে',
+  delivery_status: 'ডেলিভারি স্ট্যাটাস',
+  delivery_status_summary: '{delivered} / {total} ডেলিভার হয়েছে',
+  delivery_failed: 'ত্রুটি',
 }

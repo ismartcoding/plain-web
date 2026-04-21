@@ -33,4 +33,8 @@ export default {
   decline_invite: 'Declino',
   channel_invite: 'Invito al canale',
   channel_invite_desc: 'Sei stato invitato a unirti a "{name}".',
+  send_failed: 'Invio fallito',
+  delivery_status: 'Stato consegna',
+  delivery_status_summary: '{delivered} / {total} consegnati',
+  delivery_failed: 'Errore',
 }

@@ -56,6 +56,83 @@
   .sending {
     margin-left: 4px;
   }
+
+  .send-error {
+    margin-left: 4px;
+    color: var(--md-sys-color-error);
+    font-size: 0.875rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    vertical-align: middle;
+
+    &:hover {
+      text-decoration: underline;
+    }
+
+    .send-error-icon {
+      width: 12px;
+      height: 12px;
+      flex-shrink: 0;
+    }
+  }
+}
+
+.delivery-summary {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 0.875rem;
+  margin: 0 0 12px;
+}
+
+.delivery-result-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.delivery-result-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 0;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  }
+
+  .delivery-icon {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+
+    &.delivered {
+      color: var(--md-sys-color-primary);
+    }
+
+    &.failed {
+      color: var(--md-sys-color-error);
+    }
+  }
+
+  .delivery-peer-name {
+    font-weight: 500;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .delivery-error-text {
+    color: var(--md-sys-color-error);
+    font-size: 0.8rem;
+    word-break: break-word;
+  }
+}
+
+.delivery-error-single {
+  color: var(--md-sys-color-error);
+  font-size: 0.875rem;
+  margin: 0;
 }
 
 .image-container .media-item {

@@ -33,4 +33,8 @@ export default {
   decline_invite: 'நிராகரி',
   channel_invite: 'சேனல் அழைப்பு',
   channel_invite_desc: '"{name}" இல் சேர நீங்கள் அழைக்கப்பட்டுள்ளீர்கள்.',
+  send_failed: 'அனுப்புவதில் தோல்வி',
+  delivery_status: 'வழங்கல் நிலை',
+  delivery_status_summary: '{delivered} / {total} வழங்கப்பட்டது',
+  delivery_failed: 'பிழை',
 }

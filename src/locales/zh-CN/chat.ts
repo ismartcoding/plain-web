@@ -33,4 +33,8 @@ export default {
   api_key: 'API密钥',
   no_api_key: '缺少 API 密钥',
   app_files: '应用文件',
+  send_failed: '发送失败',
+  delivery_status: '发送状态',
+  delivery_status_summary: '{delivered} / {total} 已送达',
+  delivery_failed: '错误',
 }

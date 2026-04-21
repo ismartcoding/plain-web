@@ -33,4 +33,8 @@ export default {
   decline_invite: 'Abfall',
   channel_invite: 'Kanaleinladung',
   channel_invite_desc: 'Sie wurden eingeladen, „{name}“ beizutreten.',
+  send_failed: 'Senden fehlgeschlagen',
+  delivery_status: 'Lieferstatus',
+  delivery_status_summary: '{delivered} / {total} zugestellt',
+  delivery_failed: 'Fehler',
 }

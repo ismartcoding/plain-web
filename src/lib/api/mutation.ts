@@ -91,6 +91,14 @@ export const deleteChatItemGQL = `
   }
 `
 
+export const retryChatItemGQL = `
+  mutation retryChatItem($id: ID!) {
+    retryChatItem(id: $id) {
+      ...ChatItemFragment
+    }
+  }
+  ${chatItemFragment}
+`
 export const createChatChannelGQL = `
   mutation createChatChannel($name: String!) {
     createChatChannel(name: $name) {

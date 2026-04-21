@@ -33,4 +33,8 @@ export default {
   decline_invite: '감소',
   channel_invite: '채널 초대',
   channel_invite_desc: '"{name}"에 가입하도록 초대되었습니다.',
+  send_failed: '전송 실패',
+  delivery_status: '전송 상태',
+  delivery_status_summary: '{delivered} / {total} 전달됨',
+  delivery_failed: '오류',
 }
