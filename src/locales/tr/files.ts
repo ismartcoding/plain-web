@@ -48,4 +48,5 @@ export default {
   formatted_view: 'Biçimlendirilmiş görünüm',
   delete_file: 'Dosyayı sil',
   invalid_file_path: 'Geçersiz dosya yolu',
+  file_types: 'Dosya türleri',
 }

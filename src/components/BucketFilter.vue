@@ -1,5 +1,5 @@
 <template>
-  <div class="section-title">
+  <div v-if="sortedBuckets.length" class="section-title">
     {{ $t('folders') }}
     <v-icon-button v-tooltip="isCollapsed ? $t('expand_all') : $t('collapse_all')" @click.prevent="toggleCollapsed">
       <i-material-symbols:expand-more-rounded v-if="isCollapsed" />

@@ -48,4 +48,5 @@ export default {
   formatted_view: 'Formatted view',
   invalid_file_path: 'Invalid file path',
   delete_file: 'Delete file',
+  file_types: 'File types',
 }

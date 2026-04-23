@@ -48,4 +48,5 @@ export default {
   formatted_view: '格式化视图',
   invalid_file_path: '无效的文件路径',
   delete_file: '删除文件',
+  file_types: '文件类型',
 }

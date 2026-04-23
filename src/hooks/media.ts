@@ -67,6 +67,7 @@ export const useBuckets = (type: DataType) => {
     AUDIO: 'audios',
     IMAGE: 'images',
     VIDEO: 'videos',
+    DOC: 'docs',
   } as Record<string, string>)[type as string]
   return {
     view(mainStore: MainState, id: string) {

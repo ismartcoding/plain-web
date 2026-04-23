@@ -175,12 +175,14 @@ export interface IVideo extends IMedia {
 
 export interface IDoc {
   id: string
-  name: string
+  title: string
   path: string
   extension: string
   size: number
+  bucketId: string
   createdAt: string
   updatedAt: string
+  tags: ITag[]
 }
 
 export interface IDocExtGroup {

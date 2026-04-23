@@ -48,4 +48,5 @@ export default {
   formatted_view: 'ফর্ম্যাটড দেখান',
   delete_file: 'ফাইল মুছুন',
   invalid_file_path: 'অবৈধ ফাইল পাথ',
+  file_types: 'ফাইলের ধরন',
 }

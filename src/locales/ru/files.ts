@@ -48,4 +48,5 @@ export default {
   formatted_view: 'Форматированный вид',
   delete_file: 'Удалить файл',
   invalid_file_path: 'Неверный путь к файлу',
+  file_types: 'Типы файлов',
 }

@@ -9,6 +9,7 @@ export enum DataType {
   NOTE = 'NOTE',
   BOOK = 'BOOK',
   FEED_ENTRY = 'FEED_ENTRY',
+  DOC = 'DOC',
 }
 
 export enum FEATURE {

@@ -15,15 +15,26 @@
       <img :src="`/ficons/${item.extension}.svg`" class="svg" @error="onIconError" />
     </div>
 
-    <div class="title">{{ item.name }}</div>
+    <div class="title">{{ item.title }}</div>
 
     <div class="subtitle">
       <span>{{ formatFileSize(item.size) }}</span>
       <span v-tooltip="formatDateTimeFull(item.updatedAt)">{{ formatTimeAgo(item.updatedAt) }}</span>
+      <a v-if="bucketsMap[item.bucketId]" @click.stop.prevent="viewBucket(mainStore, item.bucketId)">{{ bucketsMap[item.bucketId]?.name }}</a>
+      <item-tags :tags="item.tags" :type="dataType" :only-links="true" />
     </div>
 
     <DocActionButtons
       :item="item"
+      :filter="filter"
+      :app="app"
+      :data-type="dataType"
+      :trash-loading="trashLoading"
+      :restore-loading="restoreLoading"
+      :trash="trash"
+      :restore="restore"
+      :delete-item="deleteItem"
+      :add-item-to-tags="addItemToTags"
       @download-file="$emit('download-file', $event)"
       @delete-item="$emit('delete-item', $event)"
       @open-file="$emit('open-file', $event)"
@@ -34,9 +45,13 @@
 </template>
 
 <script setup lang="ts">
-import type { IDoc } from '@/lib/interfaces'
+import type { IDoc, IFilter, IApp, IBucket } from '@/lib/interfaces'
+import { DataType } from '@/lib/data'
 import { formatFileSize, formatDateTimeFull, formatTimeAgo } from '@/lib/format'
 import DocActionButtons from './DocActionButtons.vue'
+import { useMainStore } from '@/stores/main'
+
+const mainStore = useMainStore()
 
 defineProps<{
   item: IDoc
@@ -44,6 +59,17 @@ defineProps<{
   selectedIds: string[]
   shiftEffectingIds: string[]
   shouldSelect: boolean
+  filter: IFilter
+  app: IApp
+  dataType: DataType
+  trashLoading: (query: string) => boolean
+  restoreLoading: (query: string) => boolean
+  trash: (dataType: DataType, query: string) => void
+  restore: (dataType: DataType, query: string) => void
+  deleteItem: (dataType: DataType, item: any) => void
+  bucketsMap: Record<string, IBucket>
+  viewBucket: (store: any, bucketId: string) => void
+  addItemToTags: (item: IDoc) => void
   handleItemClick: (event: MouseEvent, item: IDoc, index: number, callback: () => void) => void
   handleMouseOver: (event: MouseEvent, index: number) => void
   toggleSelect: (event: MouseEvent, item: IDoc, index: number) => void

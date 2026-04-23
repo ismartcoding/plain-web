@@ -25,37 +25,28 @@ export function useDocsActions(
   copyDone(() => fetch())
 
   function openFile(item: IDoc) {
-    if (isTextFile(item.name)) {
+    if (isTextFile(item.title)) {
       const fileId = getFileId(urlTokenKey.value, item.path)
       window.open(`/text-file?id=${encodeURIComponent(fileId)}`, '_blank')
-    } else if (canOpenInBrowser(item.name)) {
+    } else if (canOpenInBrowser(item.title)) {
       const url = getFileUrlByPath(urlTokenKey.value, item.path)
       if (url) window.open(url, '_blank')
     } else {
-      downloadFile(item.path, item.name)
+      downloadFile(item.path, item.title)
     }
   }
 
   function deleteItem(item: IDoc) {
     openModal(DeleteFileConfirm, {
-      files: [{ path: item.path, name: item.name }] as unknown as IFile[],
+      files: [{ path: item.path, name: item.title }] as unknown as IFile[],
       onDone: () => { arrayRemove(items.value, (it: IDoc) => it.id === item.id) },
-    })
-  }
-
-  function deleteSelected() {
-    const docs = items.value.filter((it) => selectedIds.value.includes(it.id))
-    if (docs.length === 0) return
-    openModal(DeleteFileConfirm, {
-      files: docs.map((it) => ({ path: it.path, name: it.name })) as unknown as IFile[],
-      onDone: () => { clearSelection(); fetch() },
     })
   }
 
   function renameItem(item: IDoc) {
     openModal(EditValueModal, {
       title: t('rename'),
-      value: item.name,
+      value: item.title,
       mutation: () => initMutation({ document: renameFileGQL }),
       getVariables: (name: string) => ({ path: item.path, name }),
       done: () => fetch(),
@@ -64,16 +55,10 @@ export function useDocsActions(
 
   function duplicateItem(item: IDoc) {
     const dir = item.path.substring(0, item.path.lastIndexOf('/'))
-    const ext = item.name.includes('.') ? '.' + item.name.split('.').pop()! : ''
-    const base = item.name.slice(0, item.name.length - ext.length)
+    const ext = item.title.includes('.') ? '.' + item.title.split('.').pop()! : ''
+    const base = item.title.slice(0, item.title.length - ext.length)
     copyMutate({ src: item.path, dst: `${dir}/${base}_copy${ext}`, overwrite: false })
   }
 
-  function downloadSelected() {
-    items.value
-      .filter((it) => selectedIds.value.includes(it.id))
-      .forEach((it) => downloadFile(it.path, it.name))
-  }
-
-  return { downloadFile, openFile, deleteItem, deleteSelected, renameItem, duplicateItem, downloadSelected }
+  return { downloadFile, openFile, deleteItem, renameItem, duplicateItem }
 }

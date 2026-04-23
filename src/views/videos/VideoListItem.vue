@@ -36,8 +36,8 @@
       :trash-loading="trashLoading"
     />
     <div class="time">
-      <span v-tooltip="formatDateTime(item.createdAt)">
-        {{ formatTimeAgo(item.createdAt) }}
+      <span v-tooltip="formatDateTime(item.updatedAt)">
+        {{ formatTimeAgo(item.updatedAt) }}
       </span>
     </div>
   </section>
@@ -69,7 +69,7 @@
         <a @click.stop.prevent="viewBucket(mainStore, item.bucketId)">{{ bucketsMap[item.bucketId]?.name }}</a>
         <item-tags :tags="item.tags" :type="dataType" :only-links="true" />
       </div>
-      <div class="subtitle">{{ formatTimeAgo(item.createdAt) }}</div>
+      <div class="subtitle">{{ formatTimeAgo(item.updatedAt) }}</div>
     </template>
     
     <template #actions>
