@@ -86,6 +86,7 @@ declare module 'vue' {
     EditValueModal: typeof import('./src/components/EditValueModal.vue')['default']
     ExcludedDirsModal: typeof import('./src/views/app-rail/ExcludedDirsModal.vue')['default']
     ExportSmsModal: typeof import('./src/views/messages/ExportSmsModal.vue')['default']
+    ExtFilter: typeof import('./src/components/ExtFilter.vue')['default']
     FeatureCard: typeof import('./src/views/home/FeatureCard.vue')['default']
     FeedEntryActionButtons: typeof import('./src/views/feeds/FeedEntryActionButtons.vue')['default']
     FeedEntrySkeletonView: typeof import('./src/views/feeds/FeedEntrySkeletonView.vue')['default']

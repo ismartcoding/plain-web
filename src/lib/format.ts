@@ -30,6 +30,9 @@ export function formatDateTimeFull(str: string) {
 }
 
 export function formatTimeAgo(str: string) {
+  if (str === '1970-01-01T00:00:00Z') {
+    return ''
+  }
   return format(new Date(str), getLocale().replace('-', '_'))
 }
 

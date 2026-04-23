@@ -1,14 +1,14 @@
 import router, { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
-import { computed, onMounted, onUnmounted, reactive, ref, watch, type PropType } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useSearch } from '@/hooks/search'
 import { decodeBase64, encodeBase64 } from '@/lib/strutil'
-import type { IFilter, IMediaItemsActionedEvent } from '@/lib/interfaces'
+import type { IDocExtGroup, IFilter, IMediaItemsActionedEvent } from '@/lib/interfaces'
 import { storeToRefs } from 'pinia'
 import { useTempStore } from '@/stores/temp'
 import { DataType } from '@/lib/data'
 import { initLazyQuery } from '@/lib/api/query'
-import { buildQuery } from '@/lib/search'
+import { buildQuery, parseQuery } from '@/lib/search'
 import emitter from '@/plugins/eventbus'
 
 export function useMediaSidebar(type: DataType, gql: string) {
@@ -20,11 +20,13 @@ export function useMediaSidebar(type: DataType, gql: string) {
   const trash = ref(false)
   const selectedTagId = ref('')
   const selectedBucketId = ref('')
+  const selectedExt = ref('')
 
   const total = computed(() => {
     if (type === DataType.IMAGE) return counter.value?.images ?? -1
     if (type === DataType.VIDEO) return counter.value?.videos ?? -1
     if (type === DataType.AUDIO) return counter.value?.audios ?? -1
+    if (type === DataType.DOC) return counter.value?.docs ?? -1
     return -1
   })
 
@@ -32,15 +34,22 @@ export function useMediaSidebar(type: DataType, gql: string) {
     if (type === DataType.IMAGE) return counter.value?.imagesTrash ?? -1
     if (type === DataType.VIDEO) return counter.value?.videosTrash ?? -1
     if (type === DataType.AUDIO) return counter.value?.audiosTrash ?? -1
+    if (type === DataType.DOC) return counter.value?.docsTrash ?? -1
     return -1
   })
 
+  const extGroups = computed<IDocExtGroup[]>(() => {
+    if (type !== DataType.DOC) return []
+    return counter.value?.docExtGroups ?? []
+  })
+
   const { fetch } = initLazyQuery({
-    handle: (data: { total: number; trash: number }) => {
+    handle: (data: { total: number; trash: number; extGroups?: IDocExtGroup[] }) => {
       if (!data) return
       if (type === DataType.IMAGE) { counter.value.images = data.total; counter.value.imagesTrash = data.trash }
       else if (type === DataType.VIDEO) { counter.value.videos = data.total; counter.value.videosTrash = data.trash }
       else if (type === DataType.AUDIO) { counter.value.audios = data.total; counter.value.audiosTrash = data.trash }
+      else if (type === DataType.DOC) { counter.value.docs = data.total; counter.value.docsTrash = data.trash; counter.value.docExtGroups = data.extGroups ?? [] }
     },
     document: gql,
     variables: () => {
@@ -59,8 +68,13 @@ export function useMediaSidebar(type: DataType, gql: string) {
     selectedTagId.value = filter.tagIds.length === 1 ? filter.tagIds[0] : ''
     trash.value = filter.trash ?? false
     selectedBucketId.value = filter.bucketId ?? ''
+    if (type === DataType.DOC) {
+      const fields = parseQuery(q)
+      const extField = fields.find((f) => f.name === 'ext')
+      selectedExt.value = extField?.value ?? ''
+    }
     if (selectedTagId.value && selectedBucketId.value) selectedTagId.value = ''
-    if (trash.value) { selectedBucketId.value = ''; selectedTagId.value = '' }
+    if (trash.value) { selectedBucketId.value = ''; selectedTagId.value = ''; selectedExt.value = '' }
   }
 
   updateActive()
@@ -72,9 +86,13 @@ export function useMediaSidebar(type: DataType, gql: string) {
 
   function viewAll() { replacePath(mainStore, `/${group.value}`) }
 
+  function viewByExt(ext: string) {
+    replacePath(mainStore, `/${group.value}?q=${encodeBase64(buildQuery([{ name: 'ext', op: '', value: ext }]))}`)
+  }
+
   const mediaItemsActionedHandler = (event: IMediaItemsActionedEvent) => { if (event.type === type) fetch() }
   onMounted(() => emitter.on('media_items_actioned', mediaItemsActionedHandler))
   onUnmounted(() => emitter.off('media_items_actioned', mediaItemsActionedHandler))
 
-  return { app, total, totalTrash, trash, selectedTagId, selectedBucketId, viewAll, viewTrash }
+  return { app, total, totalTrash, trash, selectedTagId, selectedBucketId, selectedExt, extGroups, viewAll, viewTrash, viewByExt }
 }

@@ -1,5 +1,6 @@
 import type { ISource } from '@/components/lightbox/types'
 import type { IFile } from '@/lib/file'
+import type { IDocExtGroup } from '@/lib/interfaces'
 import { defineStore } from 'pinia'
 import type { IApp } from '@/lib/interfaces'
 
@@ -49,6 +50,8 @@ export interface IDataCounter {
   notes: number
   notesTrash: number
   docs: number
+  docsTrash: number
+  docExtGroups: IDocExtGroup[]
   feedEntries: number
   feedEntriesToday: number
   total: number
@@ -91,6 +94,8 @@ export const useTempStore = defineStore('temp', {
         notes: -1,
         notesTrash: -1,
         docs: -1,
+        docsTrash: -1,
+        docExtGroups: [],
         feedEntries: -1,
         feedEntriesToday: -1,
         total: -1,

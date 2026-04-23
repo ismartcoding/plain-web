@@ -51,6 +51,13 @@ export function isAudio(name: string) {
   return audioExtensions.some((it) => v.endsWith(it))
 }
 
+const docExtensions = ['.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.pdf', '.txt', '.md', '.csv', '.json', '.xml', '.js', '.ts', '.py', '.java', '.kt', '.swift', '.c', '.cpp', '.h', '.cs', '.go', '.rs', '.rb', '.sh', '.yaml', '.yml', '.toml', '.ini', '.cfg', '.log']
+
+export function isDoc(name: string) {
+  const v = name.toLowerCase()
+  return docExtensions.some((it) => v.endsWith(it))
+}
+
 export function isRaw(name: string) {
   const v = name.toLowerCase()
   return rawExtensions.some((it) => v.endsWith(it))

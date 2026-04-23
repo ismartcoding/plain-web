@@ -1,60 +1,98 @@
 <template>
   <div class="actions">
-    <v-icon-button v-tooltip="$t('download')" class="sm" @click.stop="$emit('download-file', item.path)">
-      <i-material-symbols:download-rounded />
-    </v-icon-button>
+    <template v-if="filter.trash">
+      <v-icon-button v-tooltip="$t('delete')" class="sm" @click.stop="deleteItem(dataType, item)">
+        <i-material-symbols:delete-forever-outline-rounded />
+      </v-icon-button>
+      <v-icon-button v-tooltip="$t('restore')" class="sm" :loading="restoreLoading(`ids:${item.id}`)" @click.stop="restore(dataType, `ids:${item.id}`)">
+        <i-material-symbols:restore-from-trash-outline-rounded />
+      </v-icon-button>
+      <v-icon-button v-tooltip="$t('download')" class="sm" @click.stop="$emit('download-file', item.path)">
+        <i-material-symbols:download-rounded />
+      </v-icon-button>
+    </template>
+    <template v-else>
+      <v-icon-button
+        v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)"
+        v-tooltip="$t('move_to_trash')"
+        class="sm"
+        :loading="trashLoading(`ids:${item.id}`)"
+        @click.stop="trash(dataType, `ids:${item.id}`)"
+      >
+        <i-material-symbols:delete-outline-rounded />
+      </v-icon-button>
+      <v-icon-button v-else v-tooltip="$t('delete')" class="sm" @click.stop="$emit('delete-item', item)">
+        <i-material-symbols:delete-forever-outline-rounded />
+      </v-icon-button>
+      <v-icon-button v-tooltip="$t('download')" class="sm" @click.stop="$emit('download-file', item.path)">
+        <i-material-symbols:download-rounded />
+      </v-icon-button>
+      <v-icon-button v-tooltip="$t('add_to_tags')" class="sm" @click.stop="addItemToTags(item)">
+        <i-material-symbols:label-outline-rounded />
+      </v-icon-button>
 
-    <v-icon-button v-tooltip="$t('delete')" class="sm" @click.stop="$emit('delete-item', item)">
-      <i-material-symbols:delete-forever-outline-rounded />
-    </v-icon-button>
+      <v-dropdown v-model="infoVisible">
+        <template #trigger>
+          <v-icon-button v-tooltip="$t('info')" class="sm">
+            <i-material-symbols:info-outline-rounded />
+          </v-icon-button>
+        </template>
+        <section class="card card-info">
+          <div class="key-value vertical">
+            <div class="key">{{ $t('path') }}</div>
+            <div class="value">{{ item.path }}</div>
+          </div>
+          <div class="key-value">
+            <div class="key">{{ $t('size') }}</div>
+            <div class="value">{{ formatFileSize(item.size) }}</div>
+          </div>
+          <div class="key-value">
+            <div class="key">{{ $t('updated_at') }}</div>
+            <div class="value">{{ formatDateTimeFull(item.updatedAt) }}</div>
+          </div>
+        </section>
+      </v-dropdown>
 
-    <v-dropdown v-model="infoVisible">
-      <template #trigger>
-        <v-icon-button v-tooltip="$t('info')" class="sm">
-          <i-material-symbols:info-outline-rounded />
-        </v-icon-button>
-      </template>
-      <section class="card card-info">
-        <div class="key-value vertical">
-          <div class="key">{{ $t('path') }}</div>
-          <div class="value">{{ item.path }}</div>
+      <v-dropdown v-model="moreVisible">
+        <template #trigger>
+          <v-icon-button v-tooltip="$t('actions')" class="sm">
+            <i-material-symbols:more-vert />
+          </v-icon-button>
+        </template>
+        <div class="dropdown-item" @click.stop="$emit('open-file', item); moreVisible = false">
+          {{ $t('open') }}
         </div>
-        <div class="key-value">
-          <div class="key">{{ $t('size') }}</div>
-          <div class="value">{{ formatFileSize(item.size) }}</div>
+        <div class="dropdown-item" @click.stop="$emit('rename-item', item); moreVisible = false">
+          {{ $t('rename') }}
         </div>
-        <div class="key-value">
-          <div class="key">{{ $t('updated_at') }}</div>
-          <div class="value">{{ formatDateTimeFull(item.updatedAt) }}</div>
+        <div class="dropdown-item" @click.stop="$emit('duplicate-item', item); moreVisible = false">
+          {{ $t('duplicate') }}
         </div>
-      </section>
-    </v-dropdown>
-
-    <v-dropdown v-model="moreVisible">
-      <template #trigger>
-        <v-icon-button v-tooltip="$t('actions')" class="sm">
-          <i-material-symbols:more-vert />
-        </v-icon-button>
-      </template>
-      <div class="dropdown-item" @click.stop="$emit('open-file', item); moreVisible = false">
-        {{ $t('open') }}
-      </div>
-      <div class="dropdown-item" @click.stop="$emit('rename-item', item); moreVisible = false">
-        {{ $t('rename') }}
-      </div>
-      <div class="dropdown-item" @click.stop="$emit('duplicate-item', item); moreVisible = false">
-        {{ $t('duplicate') }}
-      </div>
-    </v-dropdown>
+      </v-dropdown>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { IDoc } from '@/lib/interfaces'
+import type { IDoc, IFilter } from '@/lib/interfaces'
+import type { IApp } from '@/lib/interfaces'
+import { DataType, FEATURE } from '@/lib/data'
+import { hasFeature } from '@/lib/feature'
 import { formatFileSize, formatDateTimeFull } from '@/lib/format'
 
-defineProps<{ item: IDoc }>()
+const props = defineProps<{
+  item: IDoc
+  filter: IFilter
+  app: IApp
+  dataType: DataType
+  trashLoading: (query: string) => boolean
+  restoreLoading: (query: string) => boolean
+  trash: (dataType: DataType, query: string) => void
+  restore: (dataType: DataType, query: string) => void
+  deleteItem: (dataType: DataType, item: any) => void
+  addItemToTags: (item: IDoc) => void
+}>()
 
 defineEmits<{
   'download-file': [path: string]

@@ -1,48 +1,34 @@
 <template>
-  <div class="top-app-bar">
-    <v-checkbox touch-target="wrapper" :checked="allChecked" :indeterminate="!allChecked && checked" @change="toggleAllChecked" />
-    <div class="title">
-      <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
-      <span v-else>{{ $t('page_title.docs') }} ({{ total.toLocaleString() }})</span>
-      <template v-if="checked">
-        <v-icon-button v-tooltip="$t('delete')" @click.stop="deleteSelected">
-          <i-material-symbols:delete-forever-outline-rounded />
-        </v-icon-button>
-        <v-icon-button v-tooltip="$t('download')" @click.stop="downloadSelected">
-          <i-material-symbols:download-rounded />
-        </v-icon-button>
-      </template>
-    </div>
-    <div v-if="!checked" class="actions">
-      <v-dropdown v-model="uploadMenuVisible">
-        <template #trigger>
-          <v-icon-button v-tooltip="$t('upload')">
-            <i-material-symbols:upload-rounded />
-          </v-icon-button>
-        </template>
-        <div class="dropdown-item" @click.stop="uploadFilesClick(); uploadMenuVisible = false">{{ $t('upload_files') }}</div>
-        <div class="dropdown-item" @click.stop="uploadDirClick(); uploadMenuVisible = false">{{ $t('upload_folder') }}</div>
-      </v-dropdown>
-      <v-dropdown v-model="sortMenuVisible">
-        <template #trigger>
-          <v-icon-button v-tooltip="$t('sort')" :loading="sorting">
-            <i-material-symbols:sort-rounded />
-          </v-icon-button>
-        </template>
-        <div v-for="item in sortItems" :key="item.value" class="dropdown-item" :class="{ selected: item.value === docSortBy }" @click="sort(item.value); sortMenuVisible = false">
-          {{ $t(item.label) }}
-        </div>
-      </v-dropdown>
-    </div>
-  </div>
-
-  <all-checked-alert :limit="limit" :total="total" :all-checked-alert-visible="allCheckedAlertVisible"
-    :real-all-checked="realAllChecked" :select-real-all="selectRealAll" :clear-selection="clearSelection" />
+  <MediaToolbar
+    page-title="page_title.docs"
+    :selected-count="selectedIds.length"
+    :all-checked="allChecked" :checked="checked" :real-all-checked="realAllChecked" :total="total"
+    :filter-trash="!!filter.trash"
+    :can-trash="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)"
+    :restore-query-loading="restoreLoading(getQuery())" :trash-query-loading="trashLoading(getQuery())"
+    :limit="limit" :all-checked-alert-visible="allCheckedAlertVisible"
+    :show-secondary="false"
+    @toggle-all-checked="toggleAllChecked" @delete="deleteItems(dataType, selectedIds, realAllChecked, total, q)"
+    @restore="restore(dataType, getQuery())" @download="downloadItems(realAllChecked, selectedIds, q)"
+    @trash="trash(dataType, getQuery())" @add-to-tags="addToTags(selectedIds, realAllChecked, q)"
+    @select-real-all="selectRealAll" @clear-selection="clearSelection"
+  >
+    <template #actions>
+      <MediaPageActions placement="top" :filter-trash="!!filter.trash" :is-phone="isPhone" :checked="checked"
+        :upload-menu-visible="uploadMenuVisible" :more-menu-visible="moreMenuVisible"
+        :sort-by="docSortBy" :sort-items="sortItems" :show-view-toggle="false"
+        :on-upload-files="uploadFilesClick" :on-upload-dir="uploadDirClick"
+        :on-sort="sort" :show-view-options="true" :scroll-paging="mainStore.docsScrollPaging"
+        :on-open-keyboard-shortcuts="openKeyboardShortcuts"
+        @update:uploadMenuVisible="(v: boolean) => uploadMenuVisible = v"
+        @update:moreMenuVisible="(v: boolean) => moreMenuVisible = v"
+        @update:scrollPaging="(v: boolean) => mainStore.docsScrollPaging = v"
+      />
+    </template>
+  </MediaToolbar>
 
   <div class="scroll-content" @dragover.stop.prevent="fileDragEnter">
-    <div v-show="dropping" class="drag-mask" @drop.stop.prevent="dropFilesOnDocs" @dragleave.stop.prevent="fileDragLeave">
-      {{ $t('release_to_send_files') }}
-    </div>
+    <div v-show="dropping" class="drag-mask" @drop.stop.prevent="dropFiles2" @dragleave.stop.prevent="fileDragLeave">{{ $t('release_to_send_files') }}</div>
     <div class="main-list" :class="{ 'select-mode': checked }">
       <template v-if="loading && items.length === 0">
         <DocSkeletonItem v-for="i in 20" :key="i" :index="i" />
@@ -55,11 +41,22 @@
         :selected-ids="selectedIds"
         :shift-effecting-ids="shiftEffectingIds"
         :should-select="shouldSelect"
+        :filter="filter"
+        :app="app"
+        :data-type="dataType"
+        :trash-loading="trashLoading"
+        :restore-loading="restoreLoading"
+        :trash="trash"
+        :restore="restore"
+        :delete-item="deleteDocItemInTrash"
+        :buckets-map="bucketsMap"
+        :view-bucket="viewBucket"
+        :add-item-to-tags="addItemToTags"
         :handle-item-click="handleItemClick"
-        :handle-mouse-over="handleMouseOver"
+        :handle-mouse-over="handleMouseOverMode"
         :toggle-select="toggleSelect"
         @download-file="downloadFile"
-        @delete-item="deleteItem"
+        @delete-item="deleteDocItem"
         @open-file="openFile"
         @rename-item="renameItem"
         @duplicate-item="duplicateItem"
@@ -68,74 +65,119 @@
     <div v-if="!loading && items.length === 0" class="no-data-placeholder">
       {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
     </div>
-    <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" :page-size="limit" :on-change-page-size="onChangePageSize" />
+    <v-pagination v-if="!scrollMode && total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" :page-size="limit" :on-change-page-size="onChangePageSize" />
+    <div v-if="scrollMode" ref="sentinel" class="scroll-sentinel"></div>
+    <input ref="fileInput" style="display: none" type="file" multiple accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.txt,.md,.csv,.json,.xml,.js,.ts,.py,.java,.kt,.swift,.c,.cpp,.h,.cs,.go,.rs,.rb,.sh,.yaml,.yml,.toml,.ini,.cfg,.log" @change="uploadChanged" />
+    <input ref="dirFileInput" style="display: none" type="file" multiple webkitdirectory mozdirectory directory @change="dirUploadChanged" />
   </div>
-
-  <input ref="fileInput" style="display: none" type="file" multiple accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.txt,.md,.csv,.json,.xml,.js,.ts,.py,.java,.kt,.swift,.c,.cpp,.h,.cs,.go,.rs,.rb,.sh,.yaml,.yml,.toml,.ini,.cfg,.log" @change="uploadChanged" />
-  <input ref="dirFileInput" style="display: none" type="file" multiple webkitdirectory mozdirectory directory @change="dirUploadChanged" />
 </template>
 
 <script setup lang="ts">
-import { onActivated, onDeactivated, ref } from 'vue'
-import { noDataKey } from '@/lib/list'
-import { getSortItems } from '@/lib/file'
-import { useTempStore } from '@/stores/temp'
-import { useI18n } from 'vue-i18n'
+import { computed, ref, watch } from 'vue'
+import toast from '@/components/toaster'
+import { docsGQL, initLazyQuery } from '@/lib/api/query'
+import { deleteMediaItemsGQL } from '@/lib/api/mutation'
+import type { IDoc } from '@/lib/interfaces'
+import { DataType, FEATURE } from '@/lib/data'
+import { getSortItems, isDoc } from '@/lib/file'
+import { hasFeature } from '@/lib/feature'
 import { storeToRefs } from 'pinia'
+import { useMainStore } from '@/stores/main'
+import { useMediaPage } from '@/hooks/media-page'
+import { openModal } from '@/components/modal'
+import DeleteConfirm from '@/components/DeleteConfirm.vue'
+import emitter from '@/plugins/eventbus'
+import MediaPageActions from '@/components/media/MediaPageActions.vue'
+import MediaToolbar from '@/components/media/MediaToolbar.vue'
 import DocListItem from './DocListItem.vue'
 import DocSkeletonItem from './DocSkeletonItem.vue'
-import { useDocsData } from './hooks/useDocsData'
 import { useDocsActions } from './hooks/useDocsActions'
-import { useFileUpload, useDragDropUpload } from '@/hooks/upload'
-import { pickUploadDir } from '@/lib/upload/pick-upload-dir'
-import emitter from '@/plugins/eventbus'
 
+const mainStoreLocal = useMainStore()
+const { docSortBy } = storeToRefs(mainStoreLocal)
+const items = ref<IDoc[]>([])
 const sortItems = getSortItems()
-const sortMenuVisible = ref(false)
-const uploadMenuVisible = ref(false)
-const { urlTokenKey, uploads } = storeToRefs(useTempStore())
-const { t } = useI18n()
 
+const scrollMode = computed(() => mainStoreLocal.docsScrollPaging)
+const noMore = ref(false)
+const sentinel = ref<HTMLElement | null>(null)
+
+let observer: IntersectionObserver | null = null
+function setupSentinelObserver() {
+  if (observer) { observer.disconnect(); observer = null }
+  if (!sentinel.value) return
+  observer = new IntersectionObserver((entries) => { if (entries[0]?.isIntersecting) loadMore() }, { rootMargin: '200px' })
+  observer.observe(sentinel.value)
+}
+function loadMore() {
+  if (noMore.value || loading.value || !scrollMode.value) return
+  mp.page.value++
+  fetch()
+}
+
+watch(scrollMode, (val) => {
+  mp.page.value = 1; items.value = []; noMore.value = false
+  if (val) setTimeout(setupSentinelObserver, 100)
+  else { observer?.disconnect(); observer = null }
+  fetch()
+})
+watch(sentinel, (el) => { if (el && scrollMode.value) setupSentinelObserver() })
+
+const mp = useMediaPage({
+  dataType: DataType.DOC, routePath: 'docs',
+  items, sortByRef: docSortBy, fileFilter: isDoc,
+  downloadName: 'docs', uploadModalId: 'upload-directory-picker-docs', uploadStorageKey: 'plainweb.uploadDir.docs',
+  doFetch: () => fetch(), getScrollMode: () => scrollMode.value,
+  setupScroll: () => setTimeout(setupSentinelObserver, 100),
+  teardownScroll: () => { observer?.disconnect(); observer = null },
+  onSort: () => { noMore.value = false },
+})
 const {
-  items, page, limit, q, loading, fetch, sorting, isActive,
-  app, docSortBy, selectedIds, allChecked, realAllChecked, selectRealAll,
-  allCheckedAlertVisible, clearSelection, toggleAllChecked, toggleSelect, total, checked,
-  shiftEffectingIds, handleItemClick, handleMouseOver, shouldSelect,
-  gotoPage, onChangePageSize, sort, applyRouteQuery,
-} = useDocsData()
+  isPhone, mainStore, app, urlTokenKey, noDataKey,
+  filter, page, q, limit, dataType, uploadMenuVisible, moreMenuVisible,
+  fileInput, dirFileInput, uploadChanged, dirUploadChanged, dropping, fileDragEnter, fileDragLeave,
+  addToTags, deleteItems, bucketsMap, viewBucket, addItemToTags: addItemToTagsRaw,
+  selectedIds, allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible,
+  clearSelection, toggleAllChecked, toggleSelect, total, checked, shiftEffectingIds, handleItemClick, shouldSelect,
+  downloadItems, downloadFile, trashLoading, trash, restoreLoading, restore,
+  gotoPage, onChangePageSize, getQuery, sort, handleMouseOverMode,
+  openKeyboardShortcuts, uploadFilesClick, uploadDirClick, dropFiles2,
+} = mp
 
-const { downloadFile, openFile, deleteItem, deleteSelected, renameItem, duplicateItem, downloadSelected } =
-  useDocsActions(items, selectedIds, clearSelection, fetch, urlTokenKey)
-
-const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload(uploads)
-const { input: dirFileInput, upload: uploadDirFiles, uploadChanged: dirUploadChanged } = useFileUpload(uploads)
-const { dropping, fileDragEnter, fileDragLeave, dropFiles } = useDragDropUpload(uploads)
-
-async function resolveUploadDir() {
-  return pickUploadDir({
-    title: t('upload_select_destination'),
-    description: t('upload_select_destination_desc'),
-    modalId: 'upload-directory-picker-docs',
-    storageKey: 'plainweb.uploadDir.docs',
+function deleteDocItemInTrash(dt: DataType, item: IDoc) {
+  openModal(DeleteConfirm, {
+    id: item.id,
+    name: item.title,
+    gql: deleteMediaItemsGQL,
+    variables: () => ({ type: dt, query: `ids:${item.id}` }),
+    typeName: 'Doc',
+    done: () => {
+      emitter.emit('media_items_actioned', { type: dt, action: 'delete', id: item.id, query: `ids:${item.id}` })
+    },
   })
 }
 
-async function uploadFilesClick() { const dir = await resolveUploadDir(); if (dir) uploadFiles(dir) }
-async function uploadDirClick() { const dir = await resolveUploadDir(); if (dir) uploadDirFiles(dir) }
-function dropFilesOnDocs(e: DragEvent) { dropFiles(e, resolveUploadDir, () => true) }
-
-const onUploadDone = () => { setTimeout(() => fetch(), 1000) }
-
-onActivated(() => {
-  isActive.value = true
-  applyRouteQuery()
-  emitter.on('upload_task_done', onUploadDone)
+const { loading, fetch } = initLazyQuery({
+  handle: (data: { items: IDoc[]; total: number }, error: string) => {
+    mp.sorting.value = false
+    if (error) {
+      toast(error, 'error')
+    } else if (data) {
+      const raw = data.items
+      if (scrollMode.value && page.value > 1) { items.value = items.value.concat(raw) } else { items.value = raw }
+      total.value = data.total
+      if (scrollMode.value) { noMore.value = data.items.length < limit.value }
+    }
+  },
+  document: docsGQL,
+  variables: () => ({ offset: (page.value - 1) * limit.value, limit: limit.value, query: q.value, sortBy: docSortBy.value }),
 })
 
-onDeactivated(() => {
-  isActive.value = false
-  emitter.off('upload_task_done', onUploadDone)
-})
+const { openFile, deleteItem: deleteDocItem, renameItem, duplicateItem } = useDocsActions(items, selectedIds, clearSelection, fetch, urlTokenKey)
+
+function addItemToTags(item: IDoc) {
+  addItemToTagsRaw({ id: item.id, title: item.title, size: item.size, tags: item.tags })
+}
 </script>
 
 <style scoped lang="scss">

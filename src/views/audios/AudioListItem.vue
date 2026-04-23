@@ -47,8 +47,8 @@
     />
     <div class="artist">{{ item.artist }}</div>
     <div class="time">
-      <span v-tooltip="formatDateTime(item.createdAt)">
-        {{ formatTimeAgo(item.createdAt) }}
+      <span v-tooltip="formatDateTime(item.updatedAt)">
+        {{ formatTimeAgo(item.updatedAt) }}
       </span>
     </div>
   </section>

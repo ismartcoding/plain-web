@@ -48,4 +48,5 @@ export default {
   formatted_view: 'Xem định dạng',
   delete_file: 'Xóa tệp',
   invalid_file_path: 'Đường dẫn tệp không hợp lệ',
+  file_types: 'Loại tệp',
 }

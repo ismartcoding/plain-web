@@ -27,6 +27,7 @@ export type MainState = {
   videosGroupBy: string // '' | 'TAKEN_AT'
   videosScrollPaging: boolean
   audiosScrollPaging: boolean
+  docsScrollPaging: boolean
   pageSize: number
   videoSortBy: string
   audioSortBy: string
@@ -67,6 +68,7 @@ export const useMainStore = defineStore('main', {
       videosGroupBy: '',
       videosScrollPaging: false,
       audiosScrollPaging: false,
+      docsScrollPaging: false,
       pageSize: 50,
       videoSortBy: 'DATE_DESC',
       audioSortBy: 'DATE_DESC',

@@ -264,13 +264,18 @@ export const noteFragment = `
 export const docFragment = `
   fragment DocFragment on Doc {
     id
-    name
+    title
     path
     extension
     size
+    bucketId
     createdAt
     updatedAt
+    tags {
+      ...TagSubFragment
+    }
   }
+  ${tagSubFragment}
 `
 
 export const feedFragment = `

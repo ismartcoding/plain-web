@@ -48,4 +48,5 @@ export default {
   formatted_view: 'Gevormde weergave',
   delete_file: 'Bestand verwijderen',
   invalid_file_path: 'Ongeldig bestandspad',
+  file_types: 'Bestandstypen',
 }

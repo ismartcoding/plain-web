@@ -48,4 +48,5 @@ export default {
   formatted_view: '서식이 지정된 보기',
   delete_file: '파일 삭제',
   invalid_file_path: '잘못된 파일 경로',
+  file_types: '파일 유형',
 }

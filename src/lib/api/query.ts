@@ -512,8 +512,9 @@ export const docsGQL = `
 `
 
 export const docCountGQL = `
-  query {
-    total: docCount(query: "")
+  query docCount($query: String!) {
+    total: docCount(query: $query)
+    trash: docCount(query: "trash:true")
     extGroups: docExtGroups {
       ext
       count

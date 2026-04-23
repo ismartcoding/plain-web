@@ -48,4 +48,5 @@ export default {
   formatted_view: 'フォーマットされた表示',
   delete_file: 'ファイルを削除',
   invalid_file_path: '無効なファイルパス',
+  file_types: 'ファイル種類',
 }
