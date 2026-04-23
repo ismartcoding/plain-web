@@ -3,7 +3,7 @@
     <v-checkbox touch-target="wrapper" :checked="allChecked" :indeterminate="!allChecked && checked" @change="toggleAllChecked" />
     <div class="title">
       <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
-      <div v-else class="breadcrumb">
+      <div v-else ref="breadcrumbEl" class="breadcrumb">
         <template v-for="(item, index) in breadcrumbPaths" :key="item.path">
           <template v-if="index === 0">
             <span v-if="item.path === filter.parent" v-tooltip="getPageStats()">{{ item.name }} ({{ total }})</span>
@@ -61,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref } from 'vue'
+import { computed, inject, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useTempStore } from '@/stores/temp'
@@ -117,6 +117,12 @@ const onExtensionImageError = (id: string) => { extensionImageErrorIds.value.pus
 
 // --- Breadcrumb ---
 const { breadcrumbPaths, getPageStats } = useFilesBreadcrumb(filter, rootDir, app, mounts, t)
+const breadcrumbEl = ref<HTMLElement | null>(null)
+watch(breadcrumbPaths, () => {
+  nextTick(() => {
+    if (breadcrumbEl.value) breadcrumbEl.value.scrollLeft = breadcrumbEl.value.scrollWidth
+  })
+}, { immediate: true })
 
 // --- Navigation ---
 const { navigateToDir, toggleShowHidden, clickItem, viewItem } = useFilesNavigation({
@@ -173,9 +179,12 @@ const actionButtonProps = computed(() => ({
 
 <style lang="scss" scoped>
 .breadcrumb {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  overflow: hidden;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  scrollbar-width: none; // Firefox
+  &::-webkit-scrollbar { display: none; } // Chrome/Safari
 
   .sep {
     flex-shrink: 0;
@@ -183,12 +192,8 @@ const actionButtonProps = computed(() => ({
   }
 
   a, span:not(.sep) {
-    max-width: 300px;
-    overflow: hidden;
-    display: inline-block;
-    text-overflow: ellipsis;
     white-space: nowrap;
-    flex-shrink: 1;
+    flex-shrink: 0;
   }
 }
 .main-files {

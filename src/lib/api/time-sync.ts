@@ -9,6 +9,7 @@ const serverTimeOffset = (window as any).__SERVER_TIME__
   : 0
 
 function getSyncedTimestamp(): number {
+  console.log(`Server time offset: ${serverTimeOffset} ms`)
   return Date.now() + serverTimeOffset
 }
 
