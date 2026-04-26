@@ -1,0 +1,110 @@
+import type { Component } from 'vue'
+import ILucideClipboard from '~icons/lucide/clipboard'
+import ILucidePhoneCall from '~icons/lucide/phone-call'
+import { ALL_FEATURES, type Feature } from '@/views/app-rail/features'
+
+export type HomeFeatureCountKey =
+  | 'audios'
+  | 'images'
+  | 'videos'
+  | 'docs'
+  | 'packages'
+  | 'notes'
+  | 'feedEntries'
+  | 'messages'
+  | 'calls'
+  | 'contacts'
+
+export interface HomeFeature extends Feature {
+  sectionType: 'feature'
+  countKey?: HomeFeatureCountKey
+}
+
+export interface HomePanelFeature {
+  id: string
+  icon: Component
+  titleKey: string
+  sectionType: 'clipboard' | 'call_phone'
+}
+
+export type HomeSectionFeature = HomeFeature | HomePanelFeature
+
+export const DEFAULT_HOME_FEATURES = [
+  'audios',
+  'images',
+  'videos',
+  'docs',
+  'files',
+  'apps',
+  'notes',
+  'feeds',
+  'messages',
+  'calls',
+  'contacts',
+  'screen_mirror',
+  'device_info',
+  'clipboard',
+  'call_phone',
+]
+
+const HOME_FEATURE_IDS = new Set(DEFAULT_HOME_FEATURES.filter((id) => id !== 'clipboard' && id !== 'call_phone'))
+
+const HOME_FEATURE_COUNT_KEYS: Partial<Record<string, HomeFeatureCountKey>> = {
+  audios: 'audios',
+  images: 'images',
+  videos: 'videos',
+  docs: 'docs',
+  apps: 'packages',
+  notes: 'notes',
+  feeds: 'feedEntries',
+  messages: 'messages',
+  calls: 'calls',
+  contacts: 'contacts',
+}
+
+const HOME_PANEL_FEATURES: HomePanelFeature[] = [
+  { id: 'clipboard', icon: ILucideClipboard, titleKey: 'send_to_phone_clipboard', sectionType: 'clipboard' },
+  { id: 'call_phone', icon: ILucidePhoneCall, titleKey: 'call_phone', sectionType: 'call_phone' },
+]
+
+export function getAvailableHomeFeatures(channel: string): HomeSectionFeature[] {
+  const routeFeatures = ALL_FEATURES
+    .filter((feature) => HOME_FEATURE_IDS.has(feature.id))
+    .filter((feature) => !(feature.requireNonGoogle && channel === 'GOOGLE'))
+    .map((feature) => ({
+      ...feature,
+      sectionType: 'feature' as const,
+      countKey: HOME_FEATURE_COUNT_KEYS[feature.id],
+    }))
+
+  const featureMap = new Map<string, HomeSectionFeature>([
+    ...routeFeatures.map((feature) => [feature.id, feature] as const),
+    ...HOME_PANEL_FEATURES.map((feature) => [feature.id, feature] as const),
+  ])
+
+  return DEFAULT_HOME_FEATURES
+    .map((id) => featureMap.get(id))
+    .filter((feature): feature is HomeSectionFeature => !!feature)
+}
+
+export function normalizeHomeFeatures(ids: string[], availableIds: string[]): string[] {
+  const availableSet = new Set(availableIds)
+  const result: string[] = []
+  const seen = new Set<string>()
+
+  for (const id of ids) {
+    if (!availableSet.has(id) || seen.has(id)) continue
+    seen.add(id)
+    result.push(id)
+  }
+
+  if (result.length === 0) {
+    for (const id of DEFAULT_HOME_FEATURES) {
+      if (!availableSet.has(id) || seen.has(id)) continue
+      seen.add(id)
+      result.push(id)
+    }
+  }
+
+  return result
+}

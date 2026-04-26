@@ -6,10 +6,10 @@ export async function pickUploadDir(options: {
   description?: string
   initialPath?: string
   modalId?: string
-  storageKey?: string
+  getValue?: () => string
+  setValue?: (v: string) => void
 }): Promise<string | undefined> {
-  const storageKey = String(options.storageKey || '').trim()
-  const saved = storageKey ? String(localStorage.getItem(storageKey) || '').trim() : ''
+  const saved = options.getValue ? String(options.getValue() || '').trim() : ''
 
   const selected = await promptModal<string>(DirectoryPickerModal, {
     title: options.title,
@@ -22,9 +22,7 @@ export async function pickUploadDir(options: {
   const v = selected.trim()
   if (!v) return
 
-  if (storageKey) {
-    localStorage.setItem(storageKey, v)
-  }
+  options.setValue?.(v)
 
   return v
 }

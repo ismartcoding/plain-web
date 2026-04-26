@@ -1,10 +1,13 @@
 import { defineStore } from 'pinia'
+import { DEFAULT_HOME_FEATURES } from '@/views/home/features'
 
 const DEFAULT_RAIL_FEATURES = ['files', 'audios', 'images', 'videos', 'chat']
 
 // data will be stored to local storage
 export type MainState = {
   railFeatures: string[]
+  homeFeatures: string[]
+  uploadDirs: Record<string, string>
   excludedDirs: string[]
   fileShowHidden: boolean
   chatTexts: Record<string, string>
@@ -43,6 +46,8 @@ export const useMainStore = defineStore('main', {
   state: () =>
     ({
       railFeatures: [...DEFAULT_RAIL_FEATURES],
+      homeFeatures: [...DEFAULT_HOME_FEATURES],
+      uploadDirs: {} as Record<string, string>,
       excludedDirs: [] as string[],
       fileShowHidden: false,
       chatTexts: {},

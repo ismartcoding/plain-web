@@ -1,0 +1,117 @@
+.grids {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+:deep(.feature-card) {
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .card-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 8px;
+
+    svg {
+      width: 32px;
+      height: 32px;
+      color: var(--md-sys-color-primary);
+    }
+  }
+
+  .card-content {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .card-title-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin: 0;
+
+      .count {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--md-sys-color-primary);
+      }
+
+      .title {
+        font-size: 0.875rem;
+        text-transform: capitalize;
+        color: var(--md-sys-color-on-surface);
+      }
+    }
+
+    .storage-info {
+      font-size: 0.75rem;
+      color: var(--md-sys-color-on-surface-variant);
+      margin-top: 4px;
+    }
+  }
+}
+
+.clipboard-card {
+  grid-column: span 2;
+  min-height: 144px;
+
+  .card-content {
+    text-align: left;
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 500;
+      margin: 0 0 16px 0;
+      text-transform: none;
+      color: var(--md-sys-color-on-surface);
+    }
+
+    .phone-input-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+
+      .phone-input {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .call-btn {
+        margin-top: 8px;
+        min-width: 80px;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .grids {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    padding: 12px;
+    margin-block-end: 24px;
+  }
+
+  .clipboard-card {
+    grid-column: span 2;
+  }
+}

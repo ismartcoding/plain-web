@@ -126,7 +126,7 @@ watch(sentinel, (el) => { if (el && scrollMode.value) setupSentinelObserver() })
 const mp = useMediaPage({
   dataType: DataType.DOC, routePath: 'docs',
   items, sortByRef: docSortBy, fileFilter: isDoc,
-  downloadName: 'docs', uploadModalId: 'upload-directory-picker-docs', uploadStorageKey: 'plainweb.uploadDir.docs',
+  downloadName: 'docs', uploadModalId: 'upload-directory-picker-docs', uploadStorageKey: 'docs',
   doFetch: () => fetch(), getScrollMode: () => scrollMode.value,
   setupScroll: () => setTimeout(setupSentinelObserver, 100),
   teardownScroll: () => { observer?.disconnect(); observer = null },
