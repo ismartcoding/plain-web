@@ -11,7 +11,8 @@ export function createBucketUploadTarget(options: {
     description: string
     initialPath?: string
     modalId: string
-    storageKey: string
+    getValue: () => string
+    setValue: (v: string) => void
   }
 }) {
   const getSelectedBucketDir = () => {
@@ -33,7 +34,8 @@ export function createBucketUploadTarget(options: {
       description: options.picker.description,
       initialPath: options.picker.initialPath || '',
       modalId: options.picker.modalId,
-      storageKey: options.picker.storageKey,
+      getValue: options.picker.getValue,
+      setValue: options.picker.setValue,
     })
   }
 

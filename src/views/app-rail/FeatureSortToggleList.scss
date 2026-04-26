@@ -1,0 +1,50 @@
+.features-list { min-width: 300px; max-height: 70vh; overflow-y: auto; padding: 4px 0; }
+
+.feature-row {
+  display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+  cursor: default; border-top: 2px solid transparent; transition: border-color 0.15s;
+}
+
+.feature-row.enabled { cursor: grab; }
+.feature-row.enabled:active { cursor: grabbing; }
+.feature-row.drag-over { border-top-color: var(--md-sys-color-primary); }
+
+.feat-order {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--md-sys-color-surface-container); color: var(--md-sys-color-on-surface-variant);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 500; flex-shrink: 0;
+}
+
+.feature-row.enabled .feat-order {
+  background: color-mix(in srgb, var(--md-sys-color-primary) 15%, transparent);
+  color: var(--md-sys-color-primary);
+}
+
+.feat-icon { width: 20px; height: 20px; flex-shrink: 0; color: var(--md-sys-color-on-surface-variant); }
+.feature-row.enabled .feat-icon { color: var(--md-sys-color-primary); }
+
+.feat-name { flex: 1; font-size: 15px; color: var(--md-sys-color-on-surface-variant); }
+.feature-row.enabled .feat-name { color: var(--md-sys-color-on-surface); font-weight: 500; }
+
+.feat-switch { cursor: pointer; flex-shrink: 0; display: inline-flex; align-items: center; }
+.feat-switch.disabled { cursor: not-allowed; opacity: 0.4; }
+.feat-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+
+.switch-track {
+  width: 52px; height: 32px; border-radius: 16px;
+  background: var(--md-sys-color-surface-container-highest); position: relative; transition: background 0.25s;
+}
+
+.switch-track::after {
+  content: ''; position: absolute; top: 4px; left: 4px; width: 24px; height: 24px;
+  border-radius: 50%; background: var(--md-sys-color-outline); transition: transform 0.25s, background 0.25s;
+}
+
+input:checked + .switch-track { background: var(--md-sys-color-primary); }
+input:checked + .switch-track::after {
+  transform: translateX(20px);
+  background: var(--md-sys-color-on-primary);
+}
+
+.drag-hint { font-size: 12px; color: var(--md-sys-color-outline); padding: 0 4px 8px; }

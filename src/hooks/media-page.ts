@@ -93,7 +93,8 @@ export function useMediaPage(options: MediaPageOptions) {
       description: t('upload_select_destination_desc'),
       initialPath: '',
       modalId: options.uploadModalId,
-      storageKey: options.uploadStorageKey,
+      getValue: () => mainStore.uploadDirs[options.uploadStorageKey] ?? '',
+      setValue: (v: string) => { mainStore.uploadDirs = { ...mainStore.uploadDirs, [options.uploadStorageKey]: v } },
     },
   })
 

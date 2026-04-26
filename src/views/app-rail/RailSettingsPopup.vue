@@ -18,9 +18,9 @@
       </div>
     </div>
 
-    <div class="dropdown-item" @click="openCustomizeSidebar">
+    <div class="dropdown-item" @click="openCustomizeUI">
       <i-lucide:layout-list class="feature-icon" />
-      <span>{{ $t('customize_sidebar') }}</span>
+      <span>{{ $t('customize_ui') }}</span>
     </div>
 
     <div class="dropdown-item" @click="openExcludedDirs">
@@ -51,7 +51,7 @@ import { useMainStore } from '@/stores/main'
 import { storeToRefs } from 'pinia'
 import { pushModal } from '@/components/modal'
 import { getAvailableFeatures, type Feature } from './features'
-import RailFeaturesModal from './RailFeaturesModal.vue'
+import CustomizeUIModal from './CustomizeUIModal.vue'
 import ExcludedDirsModal from './ExcludedDirsModal.vue'
 
 const { app } = storeToRefs(useTempStore())
@@ -64,9 +64,9 @@ const popupFeatures = computed<Feature[]>(() => {
   return available.filter((f) => !store.railFeatures.includes(f.id))
 })
 
-function openCustomizeSidebar() {
+function openCustomizeUI() {
   open.value = false
-  pushModal(RailFeaturesModal)
+  pushModal(CustomizeUIModal)
 }
 
 function openExcludedDirs() {
@@ -110,4 +110,3 @@ function lastRoute(defaultPath: string, group: string) {
 }
 
 </style>
-
