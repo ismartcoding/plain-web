@@ -216,6 +216,17 @@ export const smsGQL = `
   ${messageFragment}
 `
 
+export const simsGQL = `
+  query {
+    sims {
+      id
+      label
+      number
+      subscriptionId
+    }
+  }
+`
+
 export const smsConversationsGQL = `
   query smsConversations($offset: Int!, $limit: Int!, $query: String!) {
     smsConversations(offset: $offset, limit: $limit, query: $query) {
@@ -647,6 +658,12 @@ export const deviceInfoGQL = `
   query {
     deviceInfo {
       ...DeviceInfoFragment
+    }
+    sims {
+      id
+      label
+      number
+      subscriptionId
     }
     battery {
       level

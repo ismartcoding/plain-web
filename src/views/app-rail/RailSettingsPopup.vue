@@ -35,6 +35,7 @@
         :key="feat.id"
         :to="lastRoute(feat.defaultPath, feat.group)"
         class="dropdown-item"
+        @click="open = false"
       >
         <component :is="feat.icon" class="feature-icon" />
         <span>{{ $t(feat.titleKey) }}</span>

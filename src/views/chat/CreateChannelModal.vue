@@ -2,7 +2,7 @@
   <v-modal @close="close">
     <template #headline>{{ $t('create_channel') }}</template>
     <template #content>
-      <v-text-field v-model="name" :label="$t('channel_name')" autofocus @keydown.enter="save" />
+      <v-text-field v-model="name" :label="$t('channel_name')" autofocus @keydown.enter="onEnterKey" />
     </template>
     <template #actions>
       <v-outlined-button @click="close">{{ $t('cancel') }}</v-outlined-button>
@@ -34,6 +34,11 @@ onDone((r: any) => {
 function save() {
   if (!name.value.trim()) return
   mutate({ name: name.value.trim() })
+}
+
+function onEnterKey(e: KeyboardEvent) {
+  if (e.isComposing) return
+  save()
 }
 
 function close() {

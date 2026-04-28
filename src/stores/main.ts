@@ -40,6 +40,7 @@ export type MainState = {
   feedEntryFontSize: number // font size for feed entry content
   searchHistory: Record<string, string[]>
   notificationSound: boolean
+  selectedSimSubscriptionId: number
 }
 
 export const useMainStore = defineStore('main', {
@@ -83,6 +84,7 @@ export const useMainStore = defineStore('main', {
       feedEntryFontSize: 16, // default font size
       searchHistory: {},
       notificationSound: true,
+      selectedSimSubscriptionId: -1,
     }) as MainState,
   actions: {
     increaseFeedEntryFontSize() {

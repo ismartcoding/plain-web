@@ -4,7 +4,7 @@
 
 ## Code Standards (MUST follow for ALL changes)
 
-1. **Max 150 lines per file** — split into components/composables if exceeded.
+1. **Max 400 lines per file** — split into components/composables if exceeded. It is strictly forbidden to reduce line count by removing blank lines or whitespace — every split must be a genuine logical decomposition.
 2. **Components first** — prefer extracting UI into reusable components over inlining.
 3. **All logic in composables** — pages/views only compose; no business logic, no data fetching, no mutations in `*View.vue` / `*Page.vue`.
 4. **Use existing UI components** — `v-modal`, `v-dropdown`, `v-icon-button`, `v-text-field`, `v-circular-progress`, etc. No custom styling when an existing component covers the need.

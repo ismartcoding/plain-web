@@ -378,11 +378,6 @@ export const deviceInfoFragment = `
     screenDensity
     screenHeight
     screenWidth
-    phoneNumbers {
-      id
-      name
-      number
-    }
   }
 `
 

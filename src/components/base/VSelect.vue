@@ -1,250 +1,176 @@
 <template>
-  <div 
-    ref="selectRef"
-    :class="['v-select', {
-      'v-select--disabled': disabled,
-      'v-select--focused': focused,
-      'v-select--open': isOpen,
-      'v-select--error': error
-    }]"
-    tabindex="0"
-    @click="toggle"
-    @keydown="onKeydown"
-  >
-    <fieldset class="v-select__border">
-      <legend v-if="label" class="v-select__legend">{{ label }}</legend>
-    </fieldset>
-    
-    <div class="v-select__content">
-      <span v-if="displayText" class="v-select__text">{{ displayText }}</span>
-      <span v-else-if="placeholder" class="v-select__placeholder">{{ placeholder }}</span>
-    </div>
-    
-    <svg class="v-select__arrow" :class="{ 'v-select__arrow--open': isOpen }" viewBox="0 0 24 24">
-      <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-    </svg>
+  <v-dropdown v-model="isOpen" strategy="below">
+    <template #trigger>
+      <button
+        :class="['v-select-trigger', `v-select-trigger--${size}`]"
+        :disabled="disabled"
+        type="button"
+      >
+        <component :is="selectedOption?.icon" v-if="selectedOption?.icon" class="v-select-trigger__icon" />
+        <span class="v-select-trigger__label">
+          {{ selectedOption ? selectedOption.label : placeholder }}
+        </span>
+        <i-lucide:chevron-down :class="['v-select-trigger__chevron', { 'is-open': isOpen }]" />
+      </button>
+    </template>
 
-    <Teleport to="body">
-      <div v-if="isOpen" ref="menuRef" class="v-select-menu" :style="menuStyle">
-        <div 
-          v-for="option in options" 
-          :key="option.value"
-          :class="['v-select-option', {
-            'v-select-option--selected': option.value === modelValue,
-            'v-select-option--disabled': option.disabled
-          }]"
-          @click="selectOption(option)"
-        >
-          {{ option.label }}
-          <svg v-if="option.value === modelValue" class="v-select-option__check" viewBox="0 0 24 24">
-            <path d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z" fill="currentColor"/>
-          </svg>
-        </div>
+    <div
+      v-for="option in options"
+      :key="option.value"
+      class="dropdown-item"
+      :class="{ selected: option.value === modelValue, disabled: option.disabled }"
+      @click="selectOption(option)"
+    >
+      <component :is="option.icon" v-if="option.icon" class="v-select-option__icon" />
+      <div v-if="option.subtitle" class="v-select-option__text">
+        <span class="v-select-option__label">{{ option.label }}</span>
+        <span class="v-select-option__subtitle">{{ option.subtitle }}</span>
       </div>
-    </Teleport>
-  </div>
+      <span v-else class="v-select-option__label">{{ option.label }}</span>
+      <i-material-symbols:check-rounded v-if="option.value === modelValue" class="v-select-option__check" />
+    </div>
+  </v-dropdown>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, nextTick, onMounted, onUnmounted } from 'vue'
+import { computed, ref } from 'vue'
+import type { Component } from 'vue'
 
-interface Option {
+export interface VSelectOption {
   value: string | number
   label: string
+  subtitle?: string
+  icon?: Component
   disabled?: boolean
 }
 
 interface Props {
   modelValue?: string | number
-  label?: string
   placeholder?: string
   disabled?: boolean
-  error?: boolean
-  options?: Option[]
+  options?: VSelectOption[]
+  size?: 'sm' | 'lg'
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), { options: () => [], size: 'lg' })
+
 const emit = defineEmits<{
   'update:modelValue': [value: string | number]
   'change': [value: string | number]
 }>()
 
-const selectRef = ref<HTMLElement>()
-const menuRef = ref<HTMLElement>()
 const isOpen = ref(false)
-const focused = ref(false)
-const menuStyle = ref({})
 
-const displayText = computed(() => {
-  if (!props.modelValue || !props.options) return ''
-  return props.options.find(opt => opt.value === props.modelValue)?.label || ''
-})
+const selectedOption = computed(() => props.options.find((o) => o.value === props.modelValue) ?? null)
 
-const close = () => {
-  isOpen.value = false
-  focused.value = false
-}
-
-const open = async () => {
-  if (props.disabled) return
-  
-  isOpen.value = true
-  focused.value = true
-  
-  await nextTick()
-  
-  if (selectRef.value) {
-    const rect = selectRef.value.getBoundingClientRect()
-    menuStyle.value = {
-      position: 'fixed',
-      top: `${rect.bottom + 4}px`,
-      left: `${rect.left}px`,
-      minWidth: `${rect.width}px`,
-      maxHeight: '50vh',
-      zIndex: 9999
-    }
-  }
-}
-
-const toggle = () => {
-  if (props.disabled) return
-  isOpen.value ? close() : open()
-}
-
-const selectOption = (option: Option) => {
+function selectOption(option: VSelectOption) {
   if (option.disabled) return
-  
   emit('update:modelValue', option.value)
   emit('change', option.value)
-  close()
+  isOpen.value = false
 }
-
-const onKeydown = (event: KeyboardEvent) => {
-  if (props.disabled) return
-  
-  switch (event.key) {
-    case 'Enter':
-    case ' ':
-      event.preventDefault()
-      toggle()
-      break
-    case 'Escape':
-      if (isOpen.value) {
-        event.preventDefault()
-        close()
-      }
-      break
-    case 'ArrowDown':
-    case 'ArrowUp':
-      event.preventDefault()
-      if (!isOpen.value) open()
-      break
-  }
-}
-
-const onClickOutside = (event: Event) => {
-  if (isOpen.value && 
-      selectRef.value && 
-      !selectRef.value.contains(event.target as Node) &&
-      (!menuRef.value || !menuRef.value.contains(event.target as Node))) {
-    close()
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('click', onClickOutside)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('click', onClickOutside)
-})
 </script>
 
 <style lang="scss" scoped>
-.v-select {
-  position: relative;
+.v-select-trigger {
   display: inline-flex;
   align-items: center;
-  min-width: 120px;
-  padding: 0 16px;
-  height: 64px;
+  gap: 6px;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: 20px;
+  padding: 0 10px 0 14px;
+  background-color: transparent;
+  color: var(--md-sys-color-on-surface);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
   cursor: pointer;
-  
-  &--disabled {
-    cursor: default;
-    opacity: 0.38;
-    pointer-events: none;
+  min-width: 64px;
+  transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  &--sm {
+    height: 40px;
   }
-  
-  &__border {
-    position: absolute;
-    inset: 0;
-    margin: 0;
-    padding: 0;
-    border: 1px solid var(--md-sys-color-outline);
+
+  &--lg {
+    height: 56px;
     border-radius: 4px;
-    pointer-events: none;
-    transition: all 0.2s ease;
+    padding: 0 12px 0 16px;
+    font-size: 1rem;
   }
-  
-  &__legend {
-    margin-left: 8px;
-    padding: 0 4px;
-    font-size: 12px;
-    color: var(--md-sys-color-on-surface-variant);
-    background: var(--outlined-field-bg, var(--md-sys-color-surface, #fffbfe));
+
+  &:hover:not(:disabled) {
+    background-color: rgba(0, 0, 0, 0.08);
   }
-  
-  &__content {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    margin-top: 8px;
+
+  :root.dark &:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.08);
   }
-  
-  &__text {
-    font-size: 16px;
-    color: var(--md-sys-color-on-surface);
+
+  &:disabled {
+    border-color: rgba(0, 0, 0, 0.12);
+    color: rgba(0, 0, 0, 0.38);
+    cursor: default;
   }
-  
-  &__placeholder {
-    font-size: 16px;
+
+  &__icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
     color: var(--md-sys-color-on-surface-variant);
   }
-  
-  &__arrow {
-    width: 24px;
-    height: 24px;
-    margin-left: 12px;
-    margin-top: 8px;
+
+  &__label {
+    white-space: nowrap;
+  }
+
+  &__chevron {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
     color: var(--md-sys-color-on-surface-variant);
     transition: transform 0.2s ease;
-    
-    &--open {
+
+    &.is-open {
       transform: rotate(180deg);
     }
   }
-  
-  // 悬停状态
-  &:hover:not(&--disabled) &__border {
-    border-color: var(--md-sys-color-on-surface);
+}
+</style>
+
+<style lang="scss">
+.v-select-option {
+  &__icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    color: var(--md-sys-color-on-surface-variant);
   }
-  
-  &--focused &__border {
-    border-color: var(--md-sys-color-primary);
-    border-width: 2px;
+
+  &__text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 1px;
   }
-  
-  &--focused &__legend {
+
+  &__label {
+    line-height: 1.3;
+  }
+
+  &__subtitle {
+    font-size: 0.75rem;
+    color: var(--md-sys-color-on-surface-variant);
+    line-height: 1.3;
+  }
+
+  &__check {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
     color: var(--md-sys-color-primary);
-  }
-  
-  &--error &__border {
-    border-color: var(--md-sys-color-error);
-  }
-  
-  &--error &__legend {
-    color: var(--md-sys-color-error);
+    margin-left: auto;
   }
 }
 </style>

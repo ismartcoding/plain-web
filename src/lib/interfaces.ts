@@ -4,6 +4,13 @@ export interface IData {
   id: string
 }
 
+export interface ISim {
+  id: string
+  label: string
+  number: string
+  subscriptionId: number
+}
+
 export interface ITag extends IData {
   id: string
   name: string

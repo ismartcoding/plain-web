@@ -2,10 +2,13 @@ import { computed, ref } from 'vue'
 import toast from '@/components/toaster'
 import { useI18n } from 'vue-i18n'
 import { initMutation, sendSmsGQL, sendMmsGQL, callGQL } from '@/lib/api/mutation'
+import { initQuery, simsGQL } from '@/lib/api/query'
 import { upload as uploadFile } from '@/lib/upload/upload'
 import { shortUUID } from '@/lib/strutil'
 import tapPhone from '@/plugins/tapphone'
 import type { IUploadItem } from '@/stores/temp'
+import type { ISim } from '@/lib/interfaces'
+import { useMainStore } from '@/stores/main'
 
 const MMS_WARN_SIZE = 300 * 1024
 
@@ -19,10 +22,29 @@ export function useMessageSend(
   },
 ) {
   const { t } = useI18n()
+  const mainStore = useMainStore()
   const messageBody = ref('')
   const pendingFiles = ref<File[]>([])
   const mmsUploading = ref(false)
   const fileInputRef = ref<HTMLInputElement>()
+  const sims = ref<ISim[]>([])
+  const selectedSimId = ref<number>(mainStore.selectedSimSubscriptionId)
+
+  initQuery({
+    document: simsGQL,
+    handle(data: any, error: string) {
+      if (error) return
+      sims.value = data?.sims ?? []
+      if (selectedSimId.value === -1 && sims.value.length > 0) {
+        selectedSimId.value = sims.value[0].subscriptionId
+        mainStore.selectedSimSubscriptionId = selectedSimId.value
+      } else if (selectedSimId.value !== -1 && !sims.value.some((s) => s.subscriptionId === selectedSimId.value)) {
+        // stored SIM no longer present (SIM removed) — fall back to first
+        selectedSimId.value = sims.value.length > 0 ? sims.value[0].subscriptionId : -1
+        mainStore.selectedSimSubscriptionId = selectedSimId.value
+      }
+    },
+  })
 
   const totalPendingSize = computed(() => pendingFiles.value.reduce((s, f) => s + f.size, 0))
   const hasLargeNonImageFile = computed(() =>
@@ -111,7 +133,7 @@ export function useMessageSend(
       }
     } else {
       if (!body) return
-      mutateSendSms({ number: address, body })
+      mutateSendSms({ number: address, body, subscriptionId: selectedSimId.value })
       messageBody.value = ''
     }
   }
@@ -125,6 +147,8 @@ export function useMessageSend(
     totalPendingSize,
     hasLargeNonImageFile,
     MMS_WARN_SIZE,
+    sims,
+    selectedSimId,
     callContact,
     openFilePicker,
     onFileSelected,

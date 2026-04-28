@@ -62,6 +62,7 @@
       </div>
     </template>
     <template #actions>
+      <SimSelector v-if="sims.length > 1" v-model="selectedSimId" :sims="sims" />
       <v-outlined-button value="cancel" @click="cancel">{{ $t('cancel') }}</v-outlined-button>
       <v-filled-button value="send" :loading="loading || mmsLoading || mmsUploading" @click="submit">
         {{ $t('send') }}
@@ -73,6 +74,7 @@
 <script setup lang="ts">
 import { useSendSms, MMS_WARN_SIZE } from '@/hooks/send-sms'
 import ContactPickerDropdown from '@/components/ContactPickerDropdown.vue'
+import SimSelector from './SimSelector.vue'
 
 const props = defineProps({
   number: { type: String, default: '' },
@@ -83,6 +85,7 @@ const {
   number, body, errors, pendingFiles, fileInputRef, mmsUploading, numberRef,
   showContactPicker, selectedContactName, filteredContacts, contactsLoading,
   loading, mmsLoading, totalPendingSize, hasLargeNonImageFile,
+  sims, selectedSimId,
   cancel, submit, onNumberInput, onNumberFocus,
   selectContactNumber, clearSelectedContact, openFilePicker, onFileSelected,
   removePendingFile, filePreviewUrl, formatFileSize,
@@ -187,5 +190,6 @@ const {
     flex-shrink: 0;
   }
 }
+
 </style>
 

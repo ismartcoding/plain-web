@@ -28,10 +28,13 @@
       :has-large-non-image-file="send.hasLargeNonImageFile.value"
       :warn-size="send.MMS_WARN_SIZE"
       :send-disabled="send.sendLoading.value || send.mmsUploading.value"
+      :sims="send.sims.value"
+      :selected-sim-id="send.selectedSimId.value"
       @send="onSend"
       @open-file-picker="send.openFilePicker"
       @file-selected="send.onFileSelected"
       @remove-file="send.removePendingFile"
+      @update:selected-sim-id="(v) => { send.selectedSimId.value = v; mainStore.selectedSimSubscriptionId = v }"
     />
   </div>
 </template>
