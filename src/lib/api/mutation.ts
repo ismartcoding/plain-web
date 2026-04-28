@@ -457,8 +457,8 @@ export const setClipGQL = `
 `
 
 export const sendSmsGQL = `
-  mutation sendSms($number: String!, $body: String!) {
-    sendSms(number: $number, body: $body)
+  mutation sendSms($number: String!, $body: String!, $subscriptionId: Int!) {
+    sendSms(number: $number, body: $body, subscriptionId: $subscriptionId)
   }
 `
 

@@ -155,6 +155,7 @@ defineExpose({
   justify-content: flex-end;
   gap: 8px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .v-modal-container:has(.v-modal-content[data-type="alert"]) {

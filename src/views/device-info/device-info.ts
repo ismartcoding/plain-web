@@ -26,8 +26,8 @@ export function useDeviceInfo() {
         { label: 'brand', value: d.buildBrand },
         { label: 'build_fingerprint', value: d.fingerprint },
       ]
-      if (d.phoneNumbers.length > 0) {
-        basicInfos.value.push({ label: 'phone_number', value: d.phoneNumbers.map((it: any) => it.name + ' ' + it.number) })
+      if (data.sims && data.sims.length > 0) {
+        basicInfos.value.push({ label: 'phone_number', value: data.sims.map((s: any) => (s.label ? s.label + ' ' : '') + s.number) })
       }
       systemInfos.value = [
         { label: 'android_version', value: d.releaseBuildVersion + ' (' + d.sdkVersion + ')' },

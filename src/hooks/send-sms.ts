@@ -1,14 +1,16 @@
-import { nextTick, onMounted, ref, computed, reactive } from 'vue'
+import { nextTick, onMounted, ref, computed, reactive, watch } from 'vue'
 import { popModal } from '@/components/modal'
 import { initMutation, sendSmsGQL, sendMmsGQL } from '@/lib/api/mutation'
+import { initQuery, simsGQL } from '@/lib/api/query'
 import tapPhone from '@/plugins/tapphone'
 import { upload as uploadFile } from '@/lib/upload/upload'
 import { shortUUID } from '@/lib/strutil'
 import { getContactFullName } from '@/lib/contact/format'
 import type { IUploadItem } from '@/stores/temp'
-import type { IContact } from '@/lib/interfaces'
+import type { IContact, ISim } from '@/lib/interfaces'
 import emitter from '@/plugins/eventbus'
 import { useTempStore } from '@/stores/temp'
+import { useMainStore } from '@/stores/main'
 import { storeToRefs } from 'pinia'
 import toast from '@/components/toaster'
 import { useI18n } from 'vue-i18n'
@@ -20,6 +22,7 @@ export const MMS_WARN_SIZE = 300 * 1024
 export function useSendSms(initialNumber: string, initialBody: string) {
   const { t } = useI18n()
   const { app } = storeToRefs(useTempStore())
+  const mainStore = useMainStore()
 
   const number = ref(initialNumber)
   const body = ref(initialBody)
@@ -28,6 +31,25 @@ export function useSendSms(initialNumber: string, initialBody: string) {
   const pendingFiles = ref<File[]>([])
   const fileInputRef = ref<HTMLInputElement>()
   const mmsUploading = ref(false)
+
+  const sims = ref<ISim[]>([])
+  const selectedSimId = ref<number>(mainStore.selectedSimSubscriptionId)
+
+  initQuery({
+    handle: (data: any) => {
+      if (data?.sims) {
+        sims.value = data.sims.map((s: any) => ({ ...s }))
+        if (sims.value.length > 0 && selectedSimId.value === -1) {
+          selectedSimId.value = sims.value[0].subscriptionId
+        } else if (selectedSimId.value !== -1 && !sims.value.some((s) => s.subscriptionId === selectedSimId.value)) {
+          selectedSimId.value = sims.value.length > 0 ? sims.value[0].subscriptionId : -1
+        }
+      }
+    },
+    document: simsGQL,
+  })
+
+  watch(selectedSimId, (v) => { mainStore.selectedSimSubscriptionId = v })
 
   const {
     showContactPicker, selectedContactName, filteredContacts, contactsLoading,
@@ -79,7 +101,7 @@ export function useSendSms(initialNumber: string, initialBody: string) {
         mutateMms({ number: number.value, body: body.value || '', attachmentPaths, threadId: '' })
       } catch (e: any) { toast(e.message || t('upload_failed'), 'error') } finally { mmsUploading.value = false }
     } else if (numberOk && bodyOk) {
-      mutate({ number: number.value, body: body.value })
+      mutate({ number: number.value, body: body.value, subscriptionId: selectedSimId.value })
     }
   }
 
@@ -102,6 +124,7 @@ export function useSendSms(initialNumber: string, initialBody: string) {
     number, body, errors, pendingFiles, fileInputRef, mmsUploading, numberRef,
     showContactPicker, selectedContactName, filteredContacts, contactsLoading,
     loading, mmsLoading, totalPendingSize, hasLargeNonImageFile,
+    sims, selectedSimId,
     cancel, submit,
     onNumberInput: () => onNumberInput(number.value || ''),
     onNumberFocus: () => onNumberFocus(number.value || ''),
