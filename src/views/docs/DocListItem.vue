@@ -15,7 +15,10 @@
       <img :src="`/ficons/${item.extension}.svg`" class="svg" @error="onIconError" />
     </div>
 
-    <div class="title">{{ item.title }}</div>
+    <div class="title">
+      {{ item.title }}
+      <span v-if="isTextFile(item.title) || canOpenInBrowser(item.title)" v-tooltip="$t('supports_online_preview')" class="online-preview-icon">⚡</span>
+    </div>
 
     <div class="subtitle">
       <span>{{ formatFileSize(item.size) }}</span>
@@ -48,6 +51,7 @@
 import type { IDoc, IFilter, IApp, IBucket } from '@/lib/interfaces'
 import { DataType } from '@/lib/data'
 import { formatFileSize, formatDateTimeFull, formatTimeAgo } from '@/lib/format'
+import { isTextFile, canOpenInBrowser } from '@/lib/file'
 import DocActionButtons from './DocActionButtons.vue'
 import { useMainStore } from '@/stores/main'
 

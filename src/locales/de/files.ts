@@ -49,4 +49,5 @@ export default {
   delete_file: 'Datei löschen',
   invalid_file_path: 'Ungültiger Dateipfad',
   file_types: 'Dateitypen',
+  supports_online_preview: 'Unterstützt Online-Vorschau',
 }

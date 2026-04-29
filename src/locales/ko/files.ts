@@ -49,4 +49,5 @@ export default {
   delete_file: '파일 삭제',
   invalid_file_path: '잘못된 파일 경로',
   file_types: '파일 유형',
+  supports_online_preview: '온라인 미리보기 지원',
 }

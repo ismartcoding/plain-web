@@ -49,4 +49,5 @@ export default {
   delete_file: 'Удалить файл',
   invalid_file_path: 'Неверный путь к файлу',
   file_types: 'Типы файлов',
+  supports_online_preview: 'Поддерживает онлайн-просмотр',
 }
