@@ -49,4 +49,5 @@ export default {
   delete_file: 'ファイルを削除',
   invalid_file_path: '無効なファイルパス',
   file_types: 'ファイル種類',
+  supports_online_preview: 'オンラインプレビューに対応',
 }

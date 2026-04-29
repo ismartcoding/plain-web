@@ -49,4 +49,5 @@ export default {
   delete_file: 'ফাইল মুছুন',
   invalid_file_path: 'অবৈধ ফাইল পাথ',
   file_types: 'ফাইলের ধরন',
+  supports_online_preview: 'অনলাইন প্রিভিউ সমর্থিত',
 }

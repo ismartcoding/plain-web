@@ -49,4 +49,5 @@ export default {
   delete_file: '刪除檔案',
   invalid_file_path: '文件路徑無效',
   file_types: '檔案類型',
+  supports_online_preview: '支援線上預覽',
 }

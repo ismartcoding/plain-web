@@ -49,4 +49,5 @@ export default {
   delete_file: 'கோப்பை நீக்கு',
   invalid_file_path: 'தவறான கோப்பு பாதை',
   file_types: 'கோப்பு வகைகள்',
+  supports_online_preview: 'ஆன்லைன் முன்னோட்டம் ஆதரிக்கிறது',
 }

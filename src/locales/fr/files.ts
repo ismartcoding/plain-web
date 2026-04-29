@@ -49,4 +49,5 @@ export default {
   delete_file: 'Supprimer le fichier',
   invalid_file_path: 'Chemin de fichier invalide',
   file_types: 'Types de fichiers',
+  supports_online_preview: 'Prévisualisation en ligne disponible',
 }

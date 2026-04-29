@@ -49,4 +49,5 @@ export default {
   delete_file: 'Bestand verwijderen',
   invalid_file_path: 'Ongeldig bestandspad',
   file_types: 'Bestandstypen',
+  supports_online_preview: 'Ondersteunt online voorvertoning',
 }

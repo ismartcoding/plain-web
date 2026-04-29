@@ -49,4 +49,5 @@ export default {
   invalid_file_path: 'Invalid file path',
   delete_file: 'Delete file',
   file_types: 'File types',
+  supports_online_preview: 'Supports online preview',
 }

@@ -49,4 +49,5 @@ export default {
   delete_file: 'Excluir arquivo',
   invalid_file_path: 'Caminho de arquivo inválido',
   file_types: 'Tipos de arquivo',
+  supports_online_preview: 'Suporta visualização online',
 }

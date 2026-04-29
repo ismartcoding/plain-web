@@ -49,4 +49,5 @@ export default {
   delete_file: 'फाइल हटाएं',
   invalid_file_path: 'अमान्य फ़ाइल पथ',
   file_types: 'फ़ाइल प्रकार',
+  supports_online_preview: 'ऑनलाइन पूर्वावलोकन समर्थित',
 }
