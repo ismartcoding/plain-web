@@ -73,7 +73,7 @@ export function useMessageSend(
 
   function callContact() {
     const address = getAddress()
-    if (address) mutateCall({ number: address })
+    if (address) mutateCall({ number: address, showDialer: sims.value.length > 1 })
   }
 
   function openFilePicker() {

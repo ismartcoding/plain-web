@@ -4,9 +4,9 @@ import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/stores/main'
 import { callGQL, setClipGQL, initMutation } from '@/lib/api/mutation'
-import { homeStatsGQL, initQuery } from '@/lib/api/query'
+import { homeStatsGQL, simsGQL, initQuery } from '@/lib/api/query'
 import toast from '@/components/toaster'
-import type { IHomeStats, IStorageMount, IContact } from '@/lib/interfaces'
+import type { IHomeStats, IStorageMount, IContact, ISim } from '@/lib/interfaces'
 import { useContactPicker } from '@/hooks/contact-picker'
 
 export function useHomeData() {
@@ -51,8 +51,16 @@ export function usePhoneAction() {
   const mainStore = useMainStore()
   const { callNumber } = storeToRefs(mainStore)
   const callNumberError = ref(false)
+  const sims = ref<ISim[]>([])
 
   const { mutate: mutateCall, loading: callLoading } = initMutation({ document: callGQL })
+
+  initQuery({
+    document: simsGQL,
+    handle(data: any, error: string) {
+      if (!error) sims.value = data?.sims ?? []
+    },
+  })
 
   const {
     showContactPicker, selectedContactName, filteredContacts, contactsLoading,
@@ -66,7 +74,7 @@ export function usePhoneAction() {
 
   function callPhone() {
     if (!callNumber.value) { callNumberError.value = true; return }
-    mutateCall({ number: callNumber.value })
+    mutateCall({ number: callNumber.value, showDialer: sims.value.length > 1 })
   }
 
   watch(callNumber, () => { callNumberError.value = false })
