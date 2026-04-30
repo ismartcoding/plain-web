@@ -97,7 +97,7 @@ const { filter, q, items, loading, firstInit, refreshing, sorting, isActive, roo
 // --- Selection ---
 const { selectedIds, allChecked, realAllChecked, clearSelection, toggleAllChecked, toggleSelect, total, checked, shiftEffectingIds, handleItemClick, handleMouseOver, selectAll, shouldSelect } =
   useSelectable(items)
-total.value = totalRef.value
+watch(totalRef, (v) => { total.value = v }, { immediate: true })
 
 // --- Shared hooks ---
 const { dropping, fileDragEnter, fileDragLeave, dropFiles } = useDragDropUpload(uploads)

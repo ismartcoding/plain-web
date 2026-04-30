@@ -445,8 +445,8 @@ export const syncFeedContentGQL = `
 `
 
 export const callGQL = `
-  mutation call($number: String!) {
-    call(number: $number)
+  mutation call($number: String!, $showDialer: Boolean!) {
+    call(number: $number, showDialer: $showDialer)
   }
 `
 
