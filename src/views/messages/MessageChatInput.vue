@@ -1,5 +1,5 @@
 <template>
-  <div class="chat-input-bar">
+  <div class="chat-input sms-chat-input">
     <div v-if="pendingFiles.length" class="chat-attachment-preview">
       <div v-for="(file, idx) in pendingFiles" :key="idx" class="chat-attachment-preview-item">
         <img v-if="file.type.startsWith('image/')" :src="filePreviewUrl(file)" class="chat-preview-thumb" />
@@ -20,8 +20,7 @@
         {{ $t('mms_image_auto_compress') }}
       </div>
     </div>
-    <div class="chat-input-row">
-      <input ref="fileInputRef" type="file" multiple accept="image/*,video/*,audio/*" class="hidden-file-input" @change="$emit('fileSelected', $event)" />
+    <div class="textarea-wrapper">
       <v-text-field
         :model-value="modelValue"
         type="textarea"
@@ -50,6 +49,7 @@
           </v-icon-button>
         </template>
       </v-text-field>
+      <input ref="fileInputRef" type="file" multiple accept="image/*,video/*,audio/*" class="hidden-file-input" @change="$emit('fileSelected', $event)" />
     </div>
   </div>
 </template>
