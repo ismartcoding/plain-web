@@ -1,9 +1,10 @@
 import { ref, type Ref } from 'vue'
-import type { ICall, ITag } from '@/lib/interfaces'
+import type { ICall, ITag, ISim } from '@/lib/interfaces'
 import { openModal } from '@/components/modal'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { callGQL, deleteCallsGQL, initMutation } from '@/lib/api/mutation'
+import { simsGQL, initQuery } from '@/lib/api/query'
 import emitter from '@/plugins/eventbus'
 import { DataType } from '@/lib/data'
 
@@ -18,11 +19,19 @@ export function useCallsActions(opts: UseCallsActionsOptions) {
   const dataType = DataType.CALL
 
   const callId = ref('')
+  const sims = ref<ISim[]>([])
   const { mutate: mutateCall, loading: callLoading } = initMutation({ document: callGQL })
+
+  initQuery({
+    document: simsGQL,
+    handle(data: any, error: string) {
+      if (!error) sims.value = data?.sims ?? []
+    },
+  })
 
   function call(item: ICall) {
     callId.value = item.id
-    mutateCall({ number: item.number })
+    mutateCall({ number: item.number, showDialer: sims.value.length > 1 })
   }
 
   function addItemToTags(item: ICall) {

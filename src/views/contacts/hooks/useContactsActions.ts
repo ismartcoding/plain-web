@@ -1,5 +1,5 @@
 import { ref, type Ref } from 'vue'
-import type { IContact, IContactSource, ITag } from '@/lib/interfaces'
+import type { IContact, IContactSource, ITag, ISim } from '@/lib/interfaces'
 import { getContactFullName } from '@/lib/contact/format'
 import { openModal } from '@/components/modal'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
@@ -7,6 +7,7 @@ import EditContactModal from '@/components/EditContactModal.vue'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import SendSmsModal from '@/views/messages/SendSmsModal.vue'
 import { callGQL, deleteContactsGQL, initMutation } from '@/lib/api/mutation'
+import { simsGQL, initQuery } from '@/lib/api/query'
 import emitter from '@/plugins/eventbus'
 import { DataType } from '@/lib/data'
 
@@ -24,7 +25,15 @@ export function useContactsActions(opts: UseContactsActionsOptions) {
 
   const callId = ref('')
   const callIndex = ref(0)
+  const sims = ref<ISim[]>([])
   const { mutate: mutateCall, loading: callLoading } = initMutation({ document: callGQL })
+
+  initQuery({
+    document: simsGQL,
+    handle(data: any, error: string) {
+      if (!error) sims.value = data?.sims ?? []
+    },
+  })
 
   const fullName = getContactFullName
 
@@ -63,7 +72,7 @@ export function useContactsActions(opts: UseContactsActionsOptions) {
   function call(id: string, number: string, index: number) {
     callId.value = id
     callIndex.value = index
-    mutateCall({ number })
+    mutateCall({ number, showDialer: sims.value.length > 1 })
   }
 
   function sendSms(id: string, number: string, index: number) {
