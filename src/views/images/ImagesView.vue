@@ -67,7 +67,7 @@
       <image-video-list-skeleton v-if="loading && items.length === 0" :limit="limit" :is-phone="isPhone" />
     </div>
 
-    <div v-if="!loading && items.length === 0" class="no-data-placeholder">{{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}</div>
+    <NoDataPlaceholder v-if="!loading && items.length === 0" :loading="loading" :permissions="app.permissions" permission="WRITE_EXTERNAL_STORAGE" />
     <v-pagination v-if="!scrollMode && total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" :page-size="limit" :on-change-page-size="onChangePageSize" />
     <div v-if="scrollMode" ref="sentinel" class="scroll-sentinel"><v-circular-progress v-if="loading && items.length > 0" indeterminate class="sm" /></div>
     <input ref="fileInput" style="display: none" type="file" accept="image/*" multiple @change="uploadChanged" />
@@ -95,6 +95,7 @@ import MediaPageActions from '@/components/media/MediaPageActions.vue'
 import MediaGridItem from '@/components/media/MediaGridItem.vue'
 import MediaToolbar from '@/components/media/MediaToolbar.vue'
 import ImageSearchButton from '@/components/ai/ImageSearchButton.vue'
+import NoDataPlaceholder from '@/components/NoDataPlaceholder.vue'
 
 const { imageSortBy } = storeToRefs(useMainStore())
 const items = ref<IImageItem[]>([])
@@ -111,7 +112,7 @@ const mp = useMediaPage({
   onBeforeFetch: () => { if (scrollMode.value) { mp.page.value = 1; noMore.value = false; items.value = [] } },
 })
 const {
-  isPhone, mainStore, tempStore, app, urlTokenKey, noDataKey,
+  isPhone, mainStore, tempStore, app, urlTokenKey,
   filter, page, q, limit, dataType, uploadMenuVisible, moreMenuVisible,
   fileInput, dirFileInput, uploadChanged, dirUploadChanged, dropping, fileDragEnter, fileDragLeave,
   bucketsMap, addToTags, deleteItems, deleteItem, viewBucket,

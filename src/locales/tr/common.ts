@@ -127,6 +127,8 @@ export default {
   time: 'Zaman',
   browser_warning: 'Chrome web tarayıcısının en son sürümünü kullanmanızı önerir',
   no_permission: 'İzin yok. Lütfen APP > "Web Ayarları"na gidin, izinleri etkinleştirin ve sayfayı yenileyin.',
+  check_phone: 'Lütfen telefonunuzu kontrol edin.',
+  open_web_settings: 'Web Ayarlarını Aç',
   no_data: 'Veri yok.',
   loading: 'Yükleniyor...',
   duration: 'Süre',

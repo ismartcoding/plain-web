@@ -41,5 +41,6 @@ export default {
   mirror_tap: 'தட்டவும்',
   mirror_swipe: 'ஸ்வைப்',
   mirror_scroll: 'ஸ்க்ரோல்',
+  open_accessibility_settings: 'அணுகல் அமைப்புகளை திற',
   mirror_long_press: 'நீண்ட அழுத்தம்',
 }

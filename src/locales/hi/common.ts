@@ -127,6 +127,8 @@ export default {
   time: 'टाइम',
   browser_warning: 'वेब ब्राउज़र के नये वरजन का उपयोग करें.',
   no_permission: 'अनुमति नहीं है। कृपया APP > "वेब सेटिंग्स" पर जाएं, परमिशन चालू करें और पेज को रिफ्रेश करें.',
+  check_phone: 'कृपया अपना फोन जांचें।',
+  open_web_settings: 'Web सेटिंग्स खोलें',
   no_data: 'नो डाटा.',
   loading: 'लोडिंग...',
   duration: 'डूरेशन',

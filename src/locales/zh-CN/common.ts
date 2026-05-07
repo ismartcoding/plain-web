@@ -144,6 +144,8 @@ export default {
   time: '时间',
   browser_warning: '推荐使用最新版的Chrome浏览器',
   no_permission: '没有权限，请到手机应用 > "Web 设置"里面打开权限并刷新页面重试。',
+  check_phone: '请在手机上查看操作。',
+  open_web_settings: '打开 Web 设置',
   no_data: '没有数据。',
   loading: '加载中...',
   duration: '时长',

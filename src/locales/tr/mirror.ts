@@ -41,5 +41,6 @@ export default {
   mirror_tap: 'Dokun',
   mirror_swipe: 'Kaydır',
   mirror_scroll: 'Kaydırma',
+  open_accessibility_settings: 'Erişilebilirlik Ayarlarını Aç',
   mirror_long_press: 'Uzun basma',
 }

@@ -41,5 +41,6 @@ export default {
   mirror_tap: 'Tocar',
   mirror_swipe: 'Deslizar',
   mirror_scroll: 'Desplazar',
+  open_accessibility_settings: 'Abrir Configuración de Accesibilidad',
   mirror_long_press: 'Pulsación larga',
 }

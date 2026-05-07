@@ -81,9 +81,7 @@
           </button>
         </div>
       </section>
-      <span v-else class="no-data">
-        {{ $t(noDataKey(loading, app.permissions, 'NOTIFICATION_LISTENER')) }}
-      </span>
+      <NoDataPlaceholder v-else :loading="loading" :permissions="app.permissions" permission="NOTIFICATION_LISTENER" />
     </div>
   </div>
 </template>
@@ -91,7 +89,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { formatDateTime, formatDateTimeFull } from '@/lib/format'
-import { noDataKey } from '@/lib/list'
+import NoDataPlaceholder from '@/components/NoDataPlaceholder.vue'
 import { useNotifications } from './notifications'
 
 const warningMenuVisible = ref(false)

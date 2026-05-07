@@ -62,9 +62,7 @@
         @duplicate-item="duplicateItem"
       />
     </div>
-    <div v-if="!loading && items.length === 0" class="no-data-placeholder">
-      {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
-    </div>
+    <NoDataPlaceholder v-if="!loading && items.length === 0" :loading="loading" :permissions="app.permissions" permission="WRITE_EXTERNAL_STORAGE" />
     <v-pagination v-if="!scrollMode && total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" :page-size="limit" :on-change-page-size="onChangePageSize" />
     <div v-if="scrollMode" ref="sentinel" class="scroll-sentinel"></div>
     <input ref="fileInput" style="display: none" type="file" multiple accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,.txt,.md,.csv,.json,.xml,.js,.ts,.py,.java,.kt,.swift,.c,.cpp,.h,.cs,.go,.rs,.rb,.sh,.yaml,.yml,.toml,.ini,.cfg,.log" @change="uploadChanged" />
@@ -89,6 +87,7 @@ import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import emitter from '@/plugins/eventbus'
 import MediaPageActions from '@/components/media/MediaPageActions.vue'
 import MediaToolbar from '@/components/media/MediaToolbar.vue'
+import NoDataPlaceholder from '@/components/NoDataPlaceholder.vue'
 import DocListItem from './DocListItem.vue'
 import DocSkeletonItem from './DocSkeletonItem.vue'
 import { useDocsActions } from './hooks/useDocsActions'
@@ -133,7 +132,7 @@ const mp = useMediaPage({
   onSort: () => { noMore.value = false },
 })
 const {
-  isPhone, mainStore, app, urlTokenKey, noDataKey,
+  isPhone, mainStore, app, urlTokenKey,
   filter, page, q, limit, dataType, uploadMenuVisible, moreMenuVisible,
   fileInput, dirFileInput, uploadChanged, dirUploadChanged, dropping, fileDragEnter, fileDragLeave,
   addToTags, deleteItems, bucketsMap, viewBucket, addItemToTags: addItemToTagsRaw,

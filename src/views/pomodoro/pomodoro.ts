@@ -188,7 +188,6 @@ export function usePomodoro() {
     document: pomodoroTodayAndSettingsGQL,
     handle: (data: any, error: string) => {
       if (error) {
-        toast(t('failed_to_load_pomodoro_data'), 'error')
         return
       }
       if (!data) return

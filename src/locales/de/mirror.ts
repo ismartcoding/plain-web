@@ -41,5 +41,6 @@ export default {
   mirror_tap: 'Tippen',
   mirror_swipe: 'Wischen',
   mirror_scroll: 'Scrollen',
+  open_accessibility_settings: 'Bedienungshilfe-Einstellungen öffnen',
   mirror_long_press: 'Langes Drücken',
 }

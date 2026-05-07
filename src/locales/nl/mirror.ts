@@ -41,5 +41,6 @@ export default {
   mirror_tap: 'Tik',
   mirror_swipe: 'Vegen',
   mirror_scroll: 'Scrollen',
+  open_accessibility_settings: 'Toegankelijkheidsinstellingen openen',
   mirror_long_press: 'Lang indrukken',
 }

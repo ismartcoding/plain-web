@@ -53,9 +53,7 @@
         <AppSkeletonItem v-for="i in 20" :key="i" :index="i" :is-phone="isPhone" />
       </template>
     </div>
-    <div v-if="!loading && items.length === 0" class="no-data-placeholder">
-      {{ $t(noDataKey(loading, app.permissions, 'QUERY_ALL_PACKAGES')) }}
-    </div>
+    <NoDataPlaceholder v-if="!loading && items.length === 0" :loading="loading" :permissions="app.permissions" permission="QUERY_ALL_PACKAGES" />
     <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" :page-size="limit" :on-change-page-size="onChangePageSize" />
     <input ref="fileInput" style="display: none" type="file" accept=".apk" multiple @change="uploadChanged" />
   </div>
@@ -63,7 +61,7 @@
 
 <script setup lang="ts">
 import { inject } from 'vue'
-import { noDataKey } from '@/lib/list'
+import NoDataPlaceholder from '@/components/NoDataPlaceholder.vue'
 import { getSortItems } from '@/lib/file'
 import AppsActionButtons from '@/views/apps/AppsActionButtons.vue'
 import AppSkeletonItem from '@/views/apps/AppSkeletonItem.vue'

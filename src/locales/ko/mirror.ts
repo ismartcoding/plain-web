@@ -41,5 +41,6 @@ export default {
   mirror_tap: '탭',
   mirror_swipe: '스와이프',
   mirror_scroll: '스크롤',
+  open_accessibility_settings: '접근성 설정 열기',
   mirror_long_press: '길게 누르기',
 }

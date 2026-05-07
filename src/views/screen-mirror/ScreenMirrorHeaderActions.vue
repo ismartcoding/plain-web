@@ -54,12 +54,14 @@
         <template v-if="channel !== 'GOOGLE'">
           <div class="dropdown-divider" />
           <div class="dropdown-item" :class="{ active: controlEnabled }" @click="$emit('toggleControl'); moreMenuVisible = false">
-            <i-material-symbols:touch-app-rounded />{{ $t('remote_control') }}
+            <i-material-symbols:check-rounded v-if="controlEnabled" /><i-material-symbols:touch-app-rounded />{{ $t('remote_control') }}
           </div>
         </template>
+        <div class="dropdown-divider" />
+        <div class="dropdown-item" @click="openKeyboardShortcuts">
+          <i-lucide:keyboard />{{ $t('keyboard_shortcuts') }}
+        </div>
       </v-dropdown>
-
-      <keyboard-shortcuts :shortcuts="mirrorShortcuts" />
 
       <!-- Stop Button -->
       <v-icon-button v-tooltip="$t('stop_mirror')" :disabled="stopServiceLoading" class="btn-stop" @click="$emit('stopService')">
@@ -72,6 +74,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { openModal } from '@/components/modal'
+import KeyboardShortcutsModal from '@/components/KeyboardShortcutsModal.vue'
 
 defineProps<{
   mirroring: boolean
@@ -107,6 +111,11 @@ const moreMenuVisible = ref(false)
 function setQuality(mode: 'AUTO' | 'HD' | 'SMOOTH') {
   emit('setQualityMode', mode)
   moreMenuVisible.value = false
+}
+
+function openKeyboardShortcuts() {
+  moreMenuVisible.value = false
+  openModal(KeyboardShortcutsModal, { shortcuts: mirrorShortcuts })
 }
 
 const mirrorShortcuts = [
