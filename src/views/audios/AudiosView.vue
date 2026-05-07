@@ -48,7 +48,7 @@
         <AudioSkeletonItem v-for="i in 20" :key="i" :index="i" :is-phone="isPhone" />
       </template>
     </div>
-    <div v-if="!loading && items.length === 0" class="no-data-placeholder">{{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}</div>
+    <NoDataPlaceholder v-if="!loading && items.length === 0" :loading="loading" :permissions="app.permissions" permission="WRITE_EXTERNAL_STORAGE" />
     <v-pagination v-if="!scrollMode && total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" :page-size="limit" :on-change-page-size="onChangePageSize" />
     <div v-if="scrollMode" ref="sentinel" class="scroll-sentinel"></div>
     <input ref="fileInput" style="display: none" type="file" accept="audio/*" multiple @change="uploadChanged" />
@@ -72,6 +72,7 @@ import { useAddToPlaylist, useAudioPlayer } from './hooks/useAudiosHooks'
 import { useMediaPage } from '@/hooks/media-page'
 import MediaPageActions from '@/components/media/MediaPageActions.vue'
 import MediaToolbar from '@/components/media/MediaToolbar.vue'
+import NoDataPlaceholder from '@/components/NoDataPlaceholder.vue'
 import AudioListItem from './AudioListItem.vue'
 import AudioSkeletonItem from './AudioSkeletonItem.vue'
 
@@ -121,7 +122,7 @@ const mp = useMediaPage({
   },
 })
 const {
-  isPhone, mainStore, app, urlTokenKey, noDataKey,
+  isPhone, mainStore, app, urlTokenKey,
   filter, page, q, limit, dataType, uploadMenuVisible, moreMenuVisible,
   fileInput, dirFileInput, uploadChanged, dirUploadChanged, dropping, fileDragEnter, fileDragLeave,
   bucketsMap, addToTags, deleteItems, deleteItem, viewBucket,

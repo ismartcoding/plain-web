@@ -41,5 +41,6 @@ export default {
   mirror_tap: 'Appuyer',
   mirror_swipe: 'Balayer',
   mirror_scroll: 'Faire défiler',
+  open_accessibility_settings: 'Ouvrir les paramètres d\'accessibilité',
   mirror_long_press: 'Appui long',
 }

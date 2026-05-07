@@ -58,16 +58,14 @@
         <ContactSkeletonItem v-for="i in 20" :key="i" :index="i" :is-phone="isPhone" />
       </template>
     </div>
-    <div v-if="!loading && items.length === 0" class="no-data-placeholder">
-      {{ $t(noDataKey(loading, app.permissions, 'WRITE_CONTACTS')) }}
-    </div>
+    <NoDataPlaceholder v-if="!loading && items.length === 0" :loading="loading" :permissions="app.permissions" permission="WRITE_CONTACTS" />
     <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" :page-size="limit" :on-change-page-size="onChangePageSize" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { inject } from 'vue'
-import { noDataKey } from '@/lib/list'
+import NoDataPlaceholder from '@/components/NoDataPlaceholder.vue'
 import ContactListItem from '@/views/contacts/ContactListItem.vue'
 import { useContactsData } from './hooks/useContactsData'
 import { useContactsActions } from './hooks/useContactsActions'

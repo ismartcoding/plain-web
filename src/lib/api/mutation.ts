@@ -410,6 +410,18 @@ export const relaunchAppGQL = `
   }
 `
 
+export const openAccessibilitySettingsGQL = `
+  mutation openAccessibilitySettings {
+    openAccessibilitySettings
+  }
+`
+
+export const openWebSettingsGQL = `
+  mutation openWebSettings {
+    openWebSettings
+  }
+`
+
 export const deleteFeedGQL = `
   mutation deleteFeed($id: ID!) {
     deleteFeed(id: $id)

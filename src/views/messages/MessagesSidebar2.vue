@@ -78,16 +78,17 @@
       </template>
     </VirtualList>
 
-    <div v-if="!loading && conversations.length === 0" class="no-data-placeholder">
-      {{ isArchived ? $t('no_archived_conversations') : $t(noDataKey(loading, app.permissions, 'READ_SMS')) }}
-    </div>
+    <template v-if="!loading && conversations.length === 0">
+      <div v-if="isArchived" class="no-data-placeholder">{{ $t('no_archived_conversations') }}</div>
+      <NoDataPlaceholder v-else :loading="loading" :permissions="app.permissions" permission="READ_SMS" />
+    </template>
     <div class="sidebar-drag-indicator" @mousedown="resizeWidth"></div>
   </aside>
 </template>
 
 <script setup lang="ts">
 import { formatTimeAgo, formatDateTime } from '@/lib/format'
-import { noDataKey } from '@/lib/list'
+import NoDataPlaceholder from '@/components/NoDataPlaceholder.vue'
 import VirtualList from '@/components/virtualscroll'
 import { sortItems, useMessagesSidebar } from '@/hooks/messages-sidebar'
 import ConversationSkeletonList from './ConversationSkeletonList.vue'

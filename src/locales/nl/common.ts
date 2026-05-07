@@ -127,6 +127,8 @@ export default {
   time: 'Tijd',
   browser_warning: 'Wij raden aan de nieuwste versie van de Chrome webbrowser te gebruiken.',
   no_permission: 'Geen toestemming. Ga naar APP > "Web-instellingen" om de toestemmingen in te schakelen en vernieuw de pagina.',
+  check_phone: 'Controleer uw telefoon.',
+  open_web_settings: 'Web-instellingen openen',
   no_data: 'Geen gegevens.',
   loading: 'Laden...',
   duration: 'Duur',

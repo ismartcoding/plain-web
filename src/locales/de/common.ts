@@ -128,6 +128,8 @@ export default {
   time: 'Zeit',
   browser_warning: 'Empfohlen wird die Verwendung der neuesten Version des Chrome Webbrowsers',
   no_permission: 'Keine Berechtigung. Bitte gehen Sie zu APP > "Web-Einstellungen", um die Berechtigungen zu aktivieren, und aktualisieren Sie die Seite.',
+  check_phone: 'Bitte überprüfen Sie Ihr Telefon.',
+  open_web_settings: 'Web-Einstellungen öffnen',
   no_data: 'Keine Daten.',
   loading: 'Laden...',
   duration: 'Dauer',

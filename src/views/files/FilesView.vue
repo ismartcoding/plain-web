@@ -52,9 +52,7 @@
           @add-to-favorites="addToFavoritesClick" />
       </template>
     </VirtualList>
-    <div v-if="!loading && items.length === 0" class="no-data-placeholder">
-      {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
-    </div>
+    <NoDataPlaceholder v-if="!loading && items.length === 0" :loading="loading" :permissions="app.permissions" permission="WRITE_EXTERNAL_STORAGE" />
     <input ref="fileInput" style="display: none" type="file" multiple @change="uploadChanged" />
     <input ref="dirFileInput" style="display: none" type="file" multiple webkitdirectory mozdirectory directory @change="dirUploadChanged" />
   </div>
@@ -67,7 +65,7 @@ import { storeToRefs } from 'pinia'
 import { useTempStore } from '@/stores/temp'
 import { useFilesStore } from '@/stores/files'
 import { getSortItems } from '@/lib/file'
-import { noDataKey } from '@/lib/list'
+import NoDataPlaceholder from '@/components/NoDataPlaceholder.vue'
 import { useCreateDir, useRename, useMounts, useDownload, useView, useCopyPaste } from '@/hooks/files'
 import { useDragDropUpload, useFileUpload } from '@/hooks/upload'
 import { useSelectable } from '@/hooks/list'

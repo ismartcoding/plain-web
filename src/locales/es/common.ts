@@ -128,6 +128,8 @@ export default {
   time: 'Hora',
   browser_warning: 'Se sugiere usar la última versión del navegador web Chrome',
   no_permission: 'Sin permiso. Por favor, ve a APP > "Configuración Web" para habilitar los permisos y actualiza la página.',
+  check_phone: 'Por favor, comprueba tu teléfono.',
+  open_web_settings: 'Abrir Configuración Web',
   no_data: 'No hay datos.',
   loading: 'Cargando...',
   duration: 'Duración',

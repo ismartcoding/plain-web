@@ -14,9 +14,7 @@
         <MessageChatBubble :item="item" :url-token-key="urlTokenKey" @add-to-tags="(it) => $emit('addToTags', it)" />
       </div>
     </template>
-    <div v-if="!detailLoading && items.length === 0" class="no-data-placeholder">
-      {{ $t(noDataKey(loading, permissions, 'READ_SMS')) }}
-    </div>
+    <NoDataPlaceholder v-if="!detailLoading && items.length === 0" :loading="loading" :permissions="permissions" permission="READ_SMS" />
   </div>
 </template>
 
@@ -24,7 +22,7 @@
 import { useI18n } from 'vue-i18n'
 import type { IMessage } from '@/lib/interfaces'
 import { formatDateTime } from '@/lib/format'
-import { noDataKey } from '@/lib/list'
+import NoDataPlaceholder from '@/components/NoDataPlaceholder.vue'
 import MessageChatBubble from './MessageChatBubble.vue'
 
 const props = defineProps<{

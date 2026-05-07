@@ -41,5 +41,6 @@ export default {
   mirror_tap: 'Нажатие',
   mirror_swipe: 'Свайп',
   mirror_scroll: 'Прокрутка',
+  open_accessibility_settings: 'Открыть параметры специальных возможностей',
   mirror_long_press: 'Долгое нажатие',
 }

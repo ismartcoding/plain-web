@@ -306,6 +306,7 @@ declare module 'vue' {
     MobileWarning: typeof import('./src/components/base/MobileWarning.vue')['default']
     ModalContainer: typeof import('./src/components/modal/ModalContainer.vue')['default']
     ModalContainerItem: typeof import('./src/components/modal/ModalContainerItem.vue')['default']
+    NoDataPlaceholder: typeof import('./src/components/NoDataPlaceholder.vue')['default']
     NoteActionButtons: typeof import('./src/views/notes/NoteActionButtons.vue')['default']
     NoteEditView: typeof import('./src/views/notes/NoteEditView.vue')['default']
     NoteListItem: typeof import('./src/views/notes/NoteListItem.vue')['default']

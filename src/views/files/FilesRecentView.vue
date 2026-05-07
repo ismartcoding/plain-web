@@ -34,13 +34,11 @@
       />
     </template>
   </VirtualList>
-  <div v-if="!loading && items.length === 0" class="no-data-placeholder">
-    {{ $t(noDataKey(loading, app.permissions, 'WRITE_EXTERNAL_STORAGE')) }}
-  </div>
+  <NoDataPlaceholder v-if="!loading && items.length === 0" :loading="loading" :permissions="app.permissions" permission="WRITE_EXTERNAL_STORAGE" />
 </template>
 
 <script setup lang="ts">
-import { noDataKey } from '@/lib/list'
+import NoDataPlaceholder from '@/components/NoDataPlaceholder.vue'
 import VirtualList from '@/components/virtualscroll'
 import { useFilesRecent } from '@/hooks/files-recent'
 

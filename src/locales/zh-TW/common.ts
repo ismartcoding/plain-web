@@ -129,6 +129,8 @@ export default {
   time: '時間',
   browser_warning: '建議使用最新版本的Chrome瀏覽器',
   no_permission: '無權限。請前往APP > 「Web 設定」啟用權限並重新整理頁面。',
+  check_phone: '請在手機上查看操作。',
+  open_web_settings: '開啟 Web 設定',
   no_data: '無資料。',
   loading: '載入中...',
   duration: '時長',

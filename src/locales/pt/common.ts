@@ -126,6 +126,8 @@ export default {
   type: 'Tipo',
   browser_warning: 'Sugere-se o uso da versão mais recente do navegador Chrome',
   no_permission: 'Sem permissão. Por favor, vá para APP > "Configurações Web" para habilitar as permissões e atualize a página.',
+  check_phone: 'Por favor, verifique o seu telefone.',
+  open_web_settings: 'Abrir Configurações Web',
   no_data: 'Sem dados.',
   loading: 'Carregando...',
   duration: 'Duração',

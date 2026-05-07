@@ -41,5 +41,6 @@ export default {
   mirror_tap: 'Chạm',
   mirror_swipe: 'Vuốt',
   mirror_scroll: 'Cuộn',
+  open_accessibility_settings: 'Mở Cài đặt Trợ năng',
   mirror_long_press: 'Nhấn giữ',
 }

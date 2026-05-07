@@ -18,6 +18,9 @@
       </div>
     </template>
     <template #actions>
+      <v-outlined-button @click="openSettings">
+        {{ $t('open_accessibility_settings') }}
+      </v-outlined-button>
       <v-filled-button @click="done">
         {{ $t('ok') }}
       </v-filled-button>
@@ -27,13 +30,24 @@
 
 <script setup lang="ts">
 import { popModal } from './modal'
+import { useI18n } from 'vue-i18n'
+import { openAccessibilitySettingsGQL, initMutation } from '@/lib/api/mutation'
+import tapPhone from '@/plugins/tapphone'
 
 const props = defineProps({
   onConfirm: { type: Function, default: null },
 })
 
+const { t } = useI18n()
+const { mutate: mutateOpenSettings } = initMutation({ document: openAccessibilitySettingsGQL })
+
 function close() {
   popModal()
+}
+
+function openSettings() {
+  mutateOpenSettings()
+  tapPhone(t('check_phone'))
 }
 
 function done() {

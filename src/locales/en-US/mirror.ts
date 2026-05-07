@@ -42,4 +42,5 @@ export default {
   mirror_swipe: 'Swipe',
   mirror_scroll: 'Scroll',
   mirror_long_press: 'Long press',
+  open_accessibility_settings: 'Open Accessibility Settings',
 }

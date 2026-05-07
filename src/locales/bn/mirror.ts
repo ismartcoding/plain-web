@@ -41,5 +41,6 @@ export default {
   mirror_tap: 'ট্যাপ',
   mirror_swipe: 'সোয়াইপ',
   mirror_scroll: 'স্ক্রল',
+  open_accessibility_settings: 'অ্যাক্সেসিবিলিটি সেটিংস খুলুন',
   mirror_long_press: 'দীর্ঘ চাপ',
 }
