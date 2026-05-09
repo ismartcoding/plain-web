@@ -8,11 +8,14 @@ import emitter from '@/plugins/eventbus'
 import { tokenToKey } from '@/lib/api/file'
 import type { IApp, IMediaItemsActionedEvent } from '@/lib/interfaces'
 import { useRightSidebarResize } from '@/hooks/sidebar'
+import { getMainStateKey } from '@/lib/device-current'
+import { useDeviceSessionsStore } from '@/stores/device-sessions'
 
 export function useMainView() {
   const store = useMainStore()
   const router = useRouter()
   const tempStore = useTempStore()
+  const sessionsStore = useDeviceSessionsStore()
   const { app, urlTokenKey } = storeToRefs(tempStore)
 
   const loading = ref(true)
@@ -58,6 +61,10 @@ export function useMainView() {
         urlTokenKey.value = tokenToKey(newToken)
         if (oldToken !== newToken) window.fileIdMap = new Map<string, string>()
         app.value = data.app
+        // Keep the session name in sync with the device's reported name.
+        if (data.app.deviceName && sessionsStore.currentClientId) {
+          sessionsStore.updateName(sessionsStore.currentClientId, data.app.deviceName)
+        }
         if (playAudio) { playAudio = false; emitter.emit('do_play_audio') }
       }
     },
@@ -92,14 +99,14 @@ export function useMainView() {
   })
 
   // Restore persisted state from localStorage
-  const localState = localStorage.getItem('main_state')
+  const localState = localStorage.getItem(getMainStateKey())
   if (localState) {
     const json = JSON.parse(localState)
     store.$state = { ...store.$state, ...json }
   }
 
   watch(store.$state, (state) => {
-    localStorage.setItem('main_state', JSON.stringify(state))
+    localStorage.setItem(getMainStateKey(), JSON.stringify(state))
     currentPath.value = router.currentRoute.value.fullPath
   }, { deep: true })
 

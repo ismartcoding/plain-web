@@ -7,14 +7,28 @@ import { chachaDecrypt, chachaEncrypt, bitArrayToUint8Array } from '@/lib/api/cr
 import { parseWebSocketData } from '@/lib/api/sjcl-arraybuffer'
 import { applyDarkClass, changeColor, changeColorMode, getCurrentMode, getLastSavedAutoColorMode, isModeDark } from '@/lib/theme'
 import { tokenToKey } from '@/lib/api/file'
+import { getCurrentAuthToken } from '@/lib/device-current'
+import { TauriWebSocket } from '@/lib/api/tauri-ws'
 
 const EventType: { [key: number]: string } = {
-  1: 'message_created', 2: 'message_deleted', 3: 'message_updated',
-  4: 'feeds_fetched', 5: 'screen_mirroring', 6: 'webrtc_signaling',
-  7: 'notification_created', 8: 'notification_updated', 9: 'notification_deleted',
-  10: 'notification_refreshed', 11: 'pomodoro_action', 12: 'pomodoro_settings_update',
-  13: 'message_cleared', 14: 'screen_mirror_audio_granted', 15: 'bookmark_updated',
-  16: 'download_progress', 18: 'channels_updated', 19: 'image_search_updated',
+  1: 'message_created',
+  2: 'message_deleted',
+  3: 'message_updated',
+  4: 'feeds_fetched',
+  5: 'screen_mirroring',
+  6: 'webrtc_signaling',
+  7: 'notification_created',
+  8: 'notification_updated',
+  9: 'notification_deleted',
+  10: 'notification_refreshed',
+  11: 'pomodoro_action',
+  12: 'pomodoro_settings_update',
+  13: 'message_cleared',
+  14: 'screen_mirror_audio_granted',
+  15: 'bookmark_updated',
+  16: 'download_progress',
+  18: 'channels_updated',
+  19: 'image_search_updated',
 }
 
 export function useAppSocket() {
@@ -27,16 +41,19 @@ export function useAppSocket() {
   let ws: WebSocket
   let retryTime = 1000
 
-  const closeTapPhone = () => { tapPhoneMessage.value = '' }
+  const closeTapPhone = () => {
+    tapPhoneMessage.value = ''
+  }
 
   async function connect() {
     const clientId = localStorage.getItem('client_id')
-    const token = localStorage.getItem('auth_token') ?? ''
+    const token = getCurrentAuthToken()
     if (!token) return
 
     try {
       const key = tokenToKey(token)
-      ws = new WebSocket(`${getWebSocketBaseUrl()}?cid=${clientId}`)
+      const wsUrl = `${getWebSocketBaseUrl()}?cid=${clientId}`
+      ws = (__IS_TAURI__ && wsUrl.startsWith('wss://') ? new TauriWebSocket(wsUrl) : new WebSocket(wsUrl)) as unknown as WebSocket
       ws.onopen = async () => {
         emitter.emit('app_socket_connection_changed', true)
         console.log('WebSocket is connecting to app')
@@ -52,12 +69,26 @@ export function useAppSocket() {
           const json = chachaDecrypt(key, r.data)
           emitter.emit(type as any, json ? JSON.parse(json) : null)
           console.log(`ws.onmessage: ${type}, ${json}`)
-        } catch (ex) { console.error(ex) }
+        } catch (ex) {
+          console.error(ex)
+        }
         wsStatus.value = ''
       }
-      ws.onclose = (event: CloseEvent) => { console.error(event); wsStatus.value = 'closed'; retryConnect() }
-      ws.onerror = (event: Event) => { console.error(event); wsStatus.value = 'error'; ws.close(); emitter.emit('app_socket_connection_changed', false) }
-    } catch (ex) { console.error(ex); retryConnect() }
+      ws.onclose = (event: CloseEvent) => {
+        console.error(event)
+        wsStatus.value = 'closed'
+        retryConnect()
+      }
+      ws.onerror = (event: Event) => {
+        console.error(event)
+        wsStatus.value = 'error'
+        ws.close()
+        emitter.emit('app_socket_connection_changed', false)
+      }
+    } catch (ex) {
+      console.error(ex)
+      retryConnect()
+    }
   }
 
   function retryConnect() {
@@ -76,12 +107,18 @@ export function useAppSocket() {
 
   onMounted(() => {
     emitter.on('toast', (r: string) => toast(t(r), 'error'))
-    emitter.on('tap_phone', (r: string) => { tapPhoneMessage.value = r })
+    emitter.on('tap_phone', (r: string) => {
+      tapPhoneMessage.value = r
+    })
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
       if (getCurrentMode() !== 'auto') return
       changeColor()
     })
-    try { initializeTheme() } catch (ex) { console.error(ex) }
+    try {
+      initializeTheme()
+    } catch (ex) {
+      console.error(ex)
+    }
     connect()
   })
 

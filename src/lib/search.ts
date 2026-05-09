@@ -110,6 +110,10 @@ export const parseQuery = (q: string): IFilterField[] => {
 export const buildQuery = (fileds: IFilterField[]) => {
   const items: string[] = []
   fileds.forEach((it) => {
+    if (it.value == null) {
+      return
+    }
+
     const value = it.value
     if (it.name === 'text') {
       if (value.indexOf(' ') !== -1) {

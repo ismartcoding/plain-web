@@ -1,0 +1,29 @@
+[package]
+name = "PlainApp"
+version = "0.1.0"
+description = "PlainApp Desktop"
+authors = ["iSmartCoding"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "plainapp_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+log = "0.4"
+if-addrs = "0.13"
+reqwest = { version = "0.12", default-features = false, features = ["native-tls"] }
+tokio-tungstenite = { version = "0.24", features = ["native-tls"] }
+native-tls = "0.2"
+futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
+tokio = { version = "1", features = ["sync", "macros", "net"] }
+tauri-plugin-opener = "2.5.4"
+tauri-plugin-notification = "2.3.3"

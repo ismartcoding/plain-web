@@ -1,11 +1,13 @@
 <template>
-  <div v-if="loading" class="content-loading">
-    <v-circular-progress indeterminate />
-  </div>
-  <div v-else-if="errorMessage" class="alert alert-danger">
-    {{ $t(errorMessage) }}
-  </div>
-  <template v-else>
+  <div class="main-view-root">
+    <tauri-tab-bar v-if="isTauri" />
+    <v-modal v-if="errorMessage" @close="errorMessage = ''">
+      <template #headline>{{ $t('error') }}</template>
+      <template #content>{{ $t(errorMessage) }}</template>
+      <template #actions>
+        <v-filled-button @click="errorMessage = ''">{{ $t('ok') }}</v-filled-button>
+      </template>
+    </v-modal>
     <div class="layout">
       <header id="header">
         <section class="start">
@@ -52,6 +54,9 @@
             </keep-alive>
           </router-view>
         </main>
+        <div v-if="loading" class="loading-overlay">
+          <v-circular-progress indeterminate />
+        </div>
       </div>
       <div class="quick-actions">
         <header-actions :logged-in="true" @toggle-quick="toggleQuick" />
@@ -100,7 +105,7 @@
       </transition>
       <lightbox />
     </div>
-  </template>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -110,6 +115,7 @@ import BookmarkList from '@/views/bookmarks/BookmarkList.vue'
 import { useMainView } from '@/hooks/main-view'
 
 const isTablet = inject('isTablet')
+const isTauri = __IS_TAURI__
 
 const {
   store, app, loading, errorMessage,
@@ -119,8 +125,11 @@ const {
 </script>
 
 <style lang="scss" scoped>
-.content-loading {
-  height: 100vh;
+.main-view-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
 }
 
 .layout {
@@ -130,13 +139,27 @@ const {
     'rail page-content quick-actions quick-content';
   grid-template-columns: auto 1fr auto auto;
   grid-template-rows: auto 1fr;
-  height: 100vh;
+  flex: 1;
+  min-height: 0;
+
 }
 
 .page-content {
   grid-area: page-content;
   display: flex;
   min-height: 0;
+  position: relative;
+
+  .loading-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px 16px 0 0;
+    background: color-mix(in srgb, var(--md-sys-color-surface) 70%, transparent);
+  }
 }
 
 .quick-actions {
@@ -207,9 +230,4 @@ const {
   }
 }
 
-.alert-danger {
-  width: 360px;
-  margin: 100px auto;
-  text-align: center;
-}
 </style>

@@ -11,6 +11,7 @@ import { getFileUrlByPath } from '@/lib/api/file'
 import emitter from '@/plugins/eventbus'
 import { useNotificationWarning } from '@/hooks/notification-warning'
 import { playNotificationSound } from '@/lib/notification-sound'
+import { showDesktopNotification } from '@/lib/desktop-notification'
 
 export function useNotifications() {
   const { t } = useI18n()
@@ -57,25 +58,22 @@ export function useNotifications() {
   }
 
   // Desktop notification + sound helper
-  function showDesktopNotification(data: INotification) {
+  function notify(data: INotification) {
     if (notificationSound.value) playNotificationSound()
-    if ('Notification' in window && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-      const n = new Notification(data.title, { body: data.body, icon: data.icon, silent: true })
-      n.onclick = () => { window.focus(); n.close() }
-    }
+    showDesktopNotification({ title: data.title, body: data.body, icon: data.icon, silent: true })
   }
 
   onMounted(() => {
     emitter.on('notification_created', async (data: any) => {
       data.icon = getFileUrlByPath(urlTokenKey.value, 'pkgicon://' + data.appId)
       notifications.value = [{ ...data }, ...notifications.value]
-      showDesktopNotification(data)
+      notify(data)
     })
 
     emitter.on('notification_updated', async (data: any) => {
       data.icon = getFileUrlByPath(urlTokenKey.value, 'pkgicon://' + data.appId)
       notifications.value = notifications.value.map((n) => n.id === data.id ? { ...data } : n)
-      showDesktopNotification(data)
+      notify(data)
     })
 
     emitter.on('notification_deleted', async (data: any) => {

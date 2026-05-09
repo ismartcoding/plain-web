@@ -5,6 +5,7 @@ import type { IFileFilter } from '@/lib/interfaces'
 import { useMainStore } from '@/stores/main'
 import { replacePath } from '@/plugins/router'
 import type { ISource } from '@/components/lightbox/types'
+import { openUrl } from '@/lib/browser'
 
 interface UseFilesNavigationOptions {
   filter: IFileFilter
@@ -41,9 +42,9 @@ export function useFilesNavigation(opts: UseFilesNavigationOptions) {
   function openFile(item: IFile) {
     if (isTextFile(item.name)) {
       const fileId = getFileId(urlTokenKey.value, item.path)
-      window.open(`/text-file?id=${encodeURIComponent(fileId)}`, '_blank')
+      openUrl(`/text-file?id=${encodeURIComponent(fileId)}`)
     } else if (canOpenInBrowser(item.name)) {
-      window.open(getFileUrlByPath(urlTokenKey.value, item.path), '_blank')
+      openUrl(getFileUrlByPath(urlTokenKey.value, item.path))
     } else if (canView(item.name)) {
       view(items.value, item)
     } else {

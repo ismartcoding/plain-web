@@ -2,10 +2,14 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import router from '@/plugins/router'
 import { sha512, hashToKey, chachaEncrypt, chachaDecrypt, bitArrayToUint8Array } from '@/lib/api/crypto'
-import { getApiBaseUrl, getApiHeaders, getWebSocketBaseUrl } from '@/lib/api/api'
+import { getApiBaseUrl, getApiHeaders, getWebSocketBaseUrl, getPendingLoginHost, clearPendingLoginHost } from '@/lib/api/api'
 import { getAccurateAgent } from '@/lib/agent/agent'
 import { randomUUID } from '@/lib/strutil'
 import { tokenToKey } from '@/lib/api/file'
+import { useDeviceSessionsStore } from '@/stores/device-sessions'
+import { getCurrentAuthToken } from '@/lib/device-current'
+import { tauriFetch } from '@/lib/api/tauri-fetch'
+import { TauriWebSocket } from '@/lib/api/tauri-ws'
 
 function getSafeRedirect(redirect: unknown): string {
   const r = Array.isArray(redirect) ? redirect[0] : redirect
@@ -15,6 +19,7 @@ function getSafeRedirect(redirect: unknown): string {
 
 export function useLogin() {
   const { t } = useI18n()
+  const sessionsStore = useDeviceSessionsStore()
   const showError = ref(false)
   const webAccessDisabled = ref(true)
   const showConfirm = ref(false)
@@ -26,18 +31,18 @@ export function useLogin() {
   let ws: WebSocket
 
   async function initRequest() {
-    const token = localStorage.getItem('auth_token') ?? ''
-    const options: RequestInit & { headers: Record<string, string> } = {
-      method: 'POST',
-      headers: getApiHeaders() as Record<string, string>,
-    }
+    const token = getCurrentAuthToken()
+    const headers = getApiHeaders() as Record<string, string>
+    let body: Uint8Array | undefined
     if (token) {
       const uuid = randomUUID()
       const key = tokenToKey(token)
-      const enc = chachaEncrypt(key, uuid)
-      options.body = bitArrayToUint8Array(enc)
+      body = bitArrayToUint8Array(chachaEncrypt(key, uuid))
     }
-    const r = await fetch(`${getApiBaseUrl()}/init`, options)
+    const initUrl = `${getApiBaseUrl()}/init`
+    const r = (__IS_TAURI__ && initUrl.startsWith('https://'))
+      ? await tauriFetch(initUrl, { method: 'POST', headers, body })
+      : await fetch(initUrl, { method: 'POST', headers, body: body as BodyInit })
     if (r.status === 403) {
       showError.value = true; webAccessDisabled.value = true; error.value = 'web_access_disabled'; return
     }
@@ -49,8 +54,6 @@ export function useLogin() {
     if (bodyText) { password.value = bodyText; showPasswordInput.value = false }
     else { showPasswordInput.value = true }
   }
-
-  initRequest()
 
   async function onSubmit() {
     if (!password.value?.trim()) { passwordError.value = 'valid.required'; return }
@@ -64,20 +67,30 @@ export function useLogin() {
     error.value = ''; showError.value = false
 
     await new Promise<void>((resolve) => {
-      ws = new WebSocket(`${getWebSocketBaseUrl()}?cid=${clientId}&auth=1`)
+      const wsUrl = `${getWebSocketBaseUrl()}?cid=${clientId}&auth=1`
+      ws = ((__IS_TAURI__ && wsUrl.startsWith('wss://')) ? new TauriWebSocket(wsUrl) : new WebSocket(wsUrl)) as unknown as WebSocket
       ws.onopen = async () => {
         const ua = await getAccurateAgent()
         const enc = chachaEncrypt(key, JSON.stringify({
           password: hash, browserName: ua.browser.name, browserVersion: ua.browser.version,
           osName: ua.os.name, osVersion: ua.os.version, isMobile: ua.isMobile,
         }))
-        ws.send(bitArrayToUint8Array(enc))
+        ws.send(bitArrayToUint8Array(enc) as unknown as ArrayBuffer)
       }
       ws.onmessage = async (event: MessageEvent) => {
         const d = chachaDecrypt(key, new Uint8Array(await event.data.arrayBuffer()))
         const r = JSON.parse(d)
         if (r.status === 'PENDING') { showConfirm.value = true }
-        else { localStorage.setItem('auth_token', r.token); ws.close(); window.location.href = getSafeRedirect(router.currentRoute.value.query['redirect']) }
+        else {
+          const host = getPendingLoginHost() || sessionsStore.currentSession?.host || ''
+          if (host && r.clientId) {
+            sessionsStore.save({ clientId: r.clientId, host, name: r.name || host, token: r.token })
+            sessionsStore.setCurrent(r.clientId)
+            clearPendingLoginHost()
+          }
+          ws.close()
+          window.location.href = getSafeRedirect(router.currentRoute.value.query['redirect'])
+        }
       }
       ws.onclose = async (event: CloseEvent) => {
         resolve()
@@ -85,8 +98,11 @@ export function useLogin() {
         if (event.reason === 'abort' || event.reason === 'OK') return
         showError.value = true; showConfirm.value = false
         if (!event.reason) {
-          const r = await fetch(`${getApiBaseUrl()}/health_check`)
-          if (r.status === 200) { error.value = 'failed_connect_ws'; return }
+          const hcUrl = `${getApiBaseUrl()}/health_check`
+          const hcResp = (__IS_TAURI__ && hcUrl.startsWith('https://'))
+            ? await tauriFetch(hcUrl)
+            : await fetch(hcUrl)
+          if (hcResp.status === 200) { error.value = 'failed_connect_ws'; return }
         }
         error.value = `login.${event.reason ? event.reason : 'failed'}`
       }
@@ -100,6 +116,6 @@ export function useLogin() {
 
   return {
     showError, webAccessDisabled, showConfirm, error, showPasswordInput,
-    password, passwordError, isSubmitting, onSubmit, cancel, t,
+    password, passwordError, isSubmitting, onSubmit, cancel, t, initRequest,
   }
 }

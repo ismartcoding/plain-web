@@ -33,6 +33,8 @@ export default {
   date: 'Date',
   grant_permission: 'Grant permission',
   desktop_notification_permission_not_granted: 'Desktop notification permission is not granted.',
+  desktop_notification_permission_denied: 'Notification permission was denied. Enable it in System Settings > Notifications.',
+  notification_open_settings: 'Open System Settings',
   desktop_notification_permission_grant_title: 'Grant permission for desktop notifications',
   desktop_notification_permission_grant_message: '1. Click the padlock icon in the address bar.\n2. Open "Site settings" or "Permissions."\n3. Find "Notifications" and change it to "Allow."',
   notification_sound_on: 'Notification sound is on',

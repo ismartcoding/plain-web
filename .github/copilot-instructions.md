@@ -45,3 +45,18 @@ node scripts/i18n-translate-todo.mjs       # translate via Google Translate
 node scripts/i18n-apply-todo.mjs           # apply to locale files
 node scripts/i18n-find-untranslated.mjs    # verify: "Total: 0 missing, 0 untranslated"
 ```
+## Rust / Tauri (`src-tauri/`) Dependency Rules
+
+**Minimize third-party crates** — supply chain risk grows with every dependency.
+
+1. **Write it yourself first** — if the logic is < ~50 lines of safe Rust (base64, hex, simple parsing), implement it inline rather than pulling a crate.
+2. **Use official Tauri crates second** — prefer crates in the `tauri-apps` org (`tauri-plugin-http`, `tauri-plugin-websocket`, etc.) when a capability is already provided.
+3. **Only add a third-party crate when unavoidable** — e.g. TLS/crypto where a battle-tested library is required for security correctness. Document the reason in a code comment.
+4. **Allowed current crates** (in `src-tauri/Cargo.toml`):
+   - `reqwest` (native-tls) — HTTPS to self-signed devices, uses macOS Security.framework
+   - `tokio-tungstenite` (native-tls) — WSS to self-signed devices
+   - `native-tls` — TLS connector construction
+   - `futures-util` — async stream/sink traits required by tungstenite
+   - `tokio` (sync + macros) — async channels and `select!`
+5. **Never add** `serde_with`, `anyhow`, `thiserror`, `chrono`, `regex`, `rand`, or any crate that can be replaced by `std` or a short inline implementation.
+6. **No Docker** — all build/conversion scripts run directly via `cargo` / `python3`.

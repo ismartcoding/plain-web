@@ -10,6 +10,7 @@ import { gqlFetch } from '@/lib/api/gql-client'
 import { appGQL } from '@/lib/api/query'
 import { tokenToKey } from '@/lib/api/file'
 import { chachaDecrypt } from '@/lib/api/crypto'
+import { getCurrentAuthToken } from '@/lib/device-current'
 
 export function useTextFile() {
   const { t } = useI18n()
@@ -18,7 +19,7 @@ export function useTextFile() {
   const tempStore = useTempStore()
   const { app, urlTokenKey } = storeToRefs(tempStore)
 
-  const isLoggedIn = computed(() => !!localStorage.getItem('auth_token'))
+  const isLoggedIn = computed(() => !!getCurrentAuthToken())
 
   const loading = ref(true)
   const error = ref('')

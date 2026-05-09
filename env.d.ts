@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+declare const __IS_TAURI__: boolean
 declare module '~icons/*' {
   import type { FunctionalComponent, SVGAttributes } from 'vue'
   const component: FunctionalComponent<SVGAttributes>

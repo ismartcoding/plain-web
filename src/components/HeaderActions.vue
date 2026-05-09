@@ -37,7 +37,7 @@
       </div>
 
       <!-- Logout Section -->
-      <div v-if="props.loggedIn" class="dropdown-section">
+      <div v-if="props.loggedIn && !isTauri" class="dropdown-section">
         <div class="dropdown-item" @click="logout">
           <i-material-symbols:logout-rounded />
           {{ t('header_actions.logout') }}
@@ -81,6 +81,7 @@ const menuVisible = ref(false)
 const { locale, t } = useI18n()
 
 const isTablet = inject('isTablet')
+const isTauri = __IS_TAURI__
 const hasTasks = computed(() => {
   return tempStore.uploads.length > 0
 })

@@ -1,6 +1,6 @@
 <template>
   <nav class="app-rail">
-    <router-link to="/" class="rail-brand" aria-label="PlainBox home">
+    <router-link to="/" class="rail-brand" aria-label="PlainApp home">
       <span class="brand-logo" aria-hidden="true"></span>
     </router-link>
 
@@ -101,6 +101,10 @@ onBeforeUnmount(() => {
   margin: 4px 0 10px;
   color: var(--md-sys-color-on-surface-variant);
   flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
 }
 
 .rail-brand:hover {
