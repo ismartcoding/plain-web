@@ -34,6 +34,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { getFileUrl } from '@/lib/api/file'
+import { openUrl } from '@/lib/browser'
 
 const props = defineProps({
   data: { type: Object, required: true },
@@ -74,7 +75,7 @@ function onImageError(preview: any) {
 }
 
 function openLink(url: string) {
-  window.open(url, '_blank')
+  openUrl(url)
 }
 </script>
 

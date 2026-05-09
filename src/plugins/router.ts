@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import MainView from '@/views/MainView.vue'
 import type { MainState } from '@/stores/main'
 import i18n from '@/plugins/i18n'
+import { getCurrentAuthToken } from '@/lib/device-current'
+import { useMainStore } from '@/stores/main'
 
 const router = createRouter({
   strict: true,
@@ -224,7 +226,7 @@ router.beforeEach(async (to, from) => {
   if (scrollTop !== undefined) {
     scrollTops.set(from.fullPath, scrollTop)
   }
-  const canAccess = localStorage.getItem('auth_token')
+  const canAccess = getCurrentAuthToken()
   if (to.meta.requiresAuth && !canAccess) {
     return {
       path: '/login',
@@ -248,6 +250,16 @@ router.afterEach((to, from) => {
   const titleKey = `page_title.${group}`
   const title = group ? String((i18n.global as any).t(titleKey)) : ''
   document.title = title && title !== titleKey ? `${title} - PlainApp` : 'PlainApp'
+
+  // Sync tabs in Tauri mode
+  if (__IS_TAURI__) {
+    const mainStore = useMainStore()
+    if (group && group !== 'home') {
+      mainStore.syncRouteTab(group, title && title !== titleKey ? title : group, to.fullPath)
+    } else {
+      mainStore.setActiveHome()
+    }
+  }
 
   setTimeout(() => {
     const a = document.getElementsByClassName('main')[0]

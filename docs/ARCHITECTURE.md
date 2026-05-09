@@ -132,3 +132,9 @@ yarn build        # Production build → dist/
 yarn lint         # ESLint
 yarn typecheck    # TypeScript check
 ```
+
+## Related Docs
+
+- `docs/graphql-client.md` — GraphQL client and transport notes
+- `docs/file-upload.md` — upload flow details
+- `docs/tauri-proxy-strategy.md` — Tauri proxy performance/stability decisions

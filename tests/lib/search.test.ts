@@ -221,6 +221,11 @@ describe('buildQuery', () => {
     expect(buildQuery(fields)).toBe('description:"multi word value"')
   })
 
+  it('skips nullish field values without throwing', () => {
+    const fields = [{ name: 'text', op: '', value: undefined } as IFilterField]
+    expect(buildQuery(fields)).toBe('')
+  })
+
   it('joins multiple fields with spaces', () => {
     const fields: IFilterField[] = [
       { name: 'text', op: '', value: 'typescript' },

@@ -1,7 +1,19 @@
 import { defineStore } from 'pinia'
 import { DEFAULT_HOME_FEATURES } from '@/views/home/features'
+import { shortUUID } from '@/lib/strutil'
 
 const DEFAULT_RAIL_FEATURES = ['files', 'audios', 'images', 'videos', 'chat']
+
+export interface AppTab {
+  id: string
+  title: string
+  path: string
+  /** meta.group for feature tabs; null for path-based file tabs */
+  group: string | null
+  closeable: boolean
+}
+
+const HOME_TAB: AppTab = { id: 'home', title: 'Home', path: '/', group: 'home', closeable: false }
 
 // data will be stored to local storage
 export type MainState = {
@@ -41,6 +53,8 @@ export type MainState = {
   searchHistory: Record<string, string[]>
   notificationSound: boolean
   selectedSimSubscriptionId: number
+  tabs: AppTab[]
+  activeTabId: string
 }
 
 export const useMainStore = defineStore('main', {
@@ -85,6 +99,8 @@ export const useMainStore = defineStore('main', {
       searchHistory: {},
       notificationSound: true,
       selectedSimSubscriptionId: -1,
+      tabs: [{ ...HOME_TAB }],
+      activeTabId: 'home',
     }) as MainState,
   actions: {
     increaseFeedEntryFontSize() {
@@ -99,6 +115,50 @@ export const useMainStore = defineStore('main', {
     },
     resetFeedEntryFontSize() {
       this.feedEntryFontSize = 16
+    },
+    syncRouteTab(group: string, title: string, path: string) {
+      const existing = this.tabs.find((t) => t.group === group)
+      if (existing) {
+        existing.path = path
+        existing.title = title
+        this.activeTabId = existing.id
+      } else {
+        const id = shortUUID()
+        this.tabs.push({ id, title, path, group, closeable: true })
+        this.activeTabId = id
+      }
+    },
+    setActiveHome() {
+      // Ensure home tab always exists
+      if (!this.tabs.find((t) => t.id === 'home')) {
+        this.tabs.unshift({ ...HOME_TAB })
+      }
+      this.activeTabId = 'home'
+    },
+    openFileTab(title: string, path: string) {
+      const existing = this.tabs.find((t) => t.path === path)
+      if (existing) {
+        this.activeTabId = existing.id
+        return
+      }
+      const id = shortUUID()
+      this.tabs.push({ id, title, path, group: null, closeable: true })
+      this.activeTabId = id
+    },
+    closeTab(id: string): string | null {
+      const idx = this.tabs.findIndex((t) => t.id === id && t.closeable)
+      if (idx === -1) return null
+      const wasActive = this.activeTabId === id
+      this.tabs.splice(idx, 1)
+      if (wasActive) {
+        const newActive = this.tabs[Math.max(0, idx - 1)]
+        this.activeTabId = newActive?.id ?? 'home'
+        return newActive?.path ?? '/'
+      }
+      return null
+    },
+    setActiveTab(id: string) {
+      this.activeTabId = id
     },
   },
 })

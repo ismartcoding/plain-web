@@ -75,6 +75,7 @@
   --pl-shape-xs: 4px;
   --pl-spacing-xl: 28px;
   --pl-top-app-bar-height: 56px;
+  --pl-tauri-tab-bar-height: 0px;
   --_scrollbar-width: 8px;
   --border-radius-sm: 4px;
   /* firefox */
@@ -152,11 +153,20 @@ html {
   height: 100%;
   margin: 0;
   -webkit-tap-highlight-color: transparent;
+
+  &.tauri {
+    --pl-tauri-tab-bar-height: 38px;
+
+    body {
+      box-sizing: border-box;
+    }
+  }
 }
 
 body {
   margin: 0;
   line-height: 1.5;
+  overscroll-behavior: none;
 }
 
 a {

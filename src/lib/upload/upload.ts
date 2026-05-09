@@ -1,12 +1,13 @@
 import type { IUploadItem } from '@/stores/temp'
 import emitter from '@/plugins/eventbus'
 import { arrayBufferToHex } from '../strutil'
-import { getApiBaseUrl } from '../api/api'
+import { getApiBaseUrl, getUploadBaseUrl } from '../api/api'
 import { chachaEncrypt, bitArrayToUint8Array } from '../api/crypto'
 import { tokenToKey } from '../api/file'
 import { uploadedChunksGQL } from '../api/query'
 import { mergeChunksGQL, deleteChunksGQL } from '../api/mutation'
 import { gqlFetch } from '../api/gql-client'
+import { getCurrentAuthToken } from '../device-current'
 
 const CHUNK_SIZE = 5 * 1024 * 1024 // 5MB — balance between resume granularity and throughput
 const PARALLEL_CHUNKS = 3 // Upload 3 chunks in parallel per file
@@ -32,11 +33,11 @@ function releaseChunkSlot() {
 }
 
 export function getUploadUrl() {
-  return `${getApiBaseUrl()}/upload`
+  return `${getUploadBaseUrl()}/upload`
 }
 
 export function getUploadChunkUrl() {
-  return `${getApiBaseUrl()}/upload_chunk`
+  return `${getUploadBaseUrl()}/upload_chunk`
 }
 
 interface IUploadChunk {
@@ -149,7 +150,7 @@ export async function generateFileId(file: File) {
 }
 
 export async function upload(upload: IUploadItem, replace: boolean) {
-  const token = localStorage.getItem('auth_token') ?? ''
+  const token = getCurrentAuthToken()
   const key = tokenToKey(token)
 
   // Initialize upload status
@@ -244,6 +245,10 @@ async function uploadDirect(upload: IUploadItem, replace: boolean, key: Uint8Arr
 
       try {
         xhr.open('POST', getUploadUrl(), true)
+        if (__IS_TAURI__) {
+          const apiBaseUrl = getApiBaseUrl()
+          if (apiBaseUrl.startsWith('https://')) xhr.setRequestHeader('x-proxy-target', apiBaseUrl)
+        }
         xhr.setRequestHeader('c-id', localStorage.getItem('client_id') ?? '')
         upload.xhr = xhr
         xhr.send(data)
@@ -605,6 +610,7 @@ async function uploadChunk(upload: IUploadItem, chunkData: IUploadChunk & { star
 
     try {
       xhr.open('POST', getUploadChunkUrl(), true)
+      if (__IS_TAURI__) xhr.setRequestHeader('x-proxy-target', getApiBaseUrl())
       xhr.setRequestHeader('c-id', localStorage.getItem('client_id') ?? '')
       // Track this XHR in the set BEFORE sending, so pause can abort it
       if (!upload.xhrs) upload.xhrs = new Set()

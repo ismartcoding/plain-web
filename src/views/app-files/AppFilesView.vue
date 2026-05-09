@@ -50,6 +50,7 @@ import { useTempStore } from '@/stores/temp'
 import { getFileUrl, getFileId, download } from '@/lib/api/file'
 import { getApiBaseUrl } from '@/lib/api/api'
 import { isTextFile, canOpenInBrowser, canView } from '@/lib/file'
+import { openUrl } from '@/lib/browser'
 import { noDataKey } from '@/lib/list'
 import { useSelectable } from '@/hooks/list'
 import { useDownloadItems } from '@/hooks/files'
@@ -102,9 +103,9 @@ function clickItem(item: IAppFile) {
   const name = item.fileName
   if (isTextFile(name)) {
     const fileId = getFileId(urlTokenKey.value, `fid:${item.id}`)
-    window.open(`/text-file?id=${encodeURIComponent(fileId)}`, '_blank')
+    openUrl(`/text-file?id=${encodeURIComponent(fileId)}`)
   } else if (canOpenInBrowser(name)) {
-    window.open(getAppFileUrl(item), '_blank')
+    openUrl(getAppFileUrl(item))
   } else if (canView(name)) {
     viewMedia(item)
   } else {

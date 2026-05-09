@@ -16,6 +16,7 @@ import { openModal } from '@/components/modal/methods'
 import EditValueModal from '@/components/EditValueModal.vue'
 import emitter from '@/plugins/eventbus'
 import { exportBookmarksHtml, importBookmarksHtml } from '@/lib/bookmarks-format'
+import { openUrl } from '@/lib/browser'
 
 export function useBookmarkOperations() {
   const bmStore = useBookmarksStore()
@@ -51,7 +52,7 @@ export function useBookmarkOperations() {
 
   // Actions
   function openBookmark(b: Bookmark) {
-    if (/^https?:\/\//i.test(b.url)) window.open(b.url, '_blank')
+    if (/^https?:\/\//i.test(b.url)) openUrl(b.url)
     mutateRecordClick({ id: b.id })
   }
 

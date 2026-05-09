@@ -2,6 +2,8 @@ import { getApiBaseUrl, getApiHeaders } from './api'
 import { chachaEncrypt, chachaDecrypt, arrayBufferToBitArray, bitArrayToUint8Array } from './crypto'
 import { tokenToKey } from './file'
 import { wrapWithReplayProtection } from './time-sync'
+import { getCurrentAuthToken, clearCurrentSession } from '../device-current'
+import { tauriFetch } from './tauri-fetch'
 
 const TIMEOUT = 30000
 
@@ -30,7 +32,7 @@ export async function gqlFetch<T = any>(query: string, variables?: Record<string
 
 async function doGqlFetch<T = any>(query: string, variables?: Record<string, any>): Promise<GqlResult<T>> {
   const url = `${getApiBaseUrl()}/graphql`
-  const token = localStorage.getItem('auth_token') ?? ''
+  const token = getCurrentAuthToken()
   const key = tokenToKey(token)
 
   const json = JSON.stringify({ query, variables })
@@ -45,15 +47,12 @@ async function doGqlFetch<T = any>(query: string, variables?: Record<string, any
   const timer = setTimeout(() => controller.abort(), TIMEOUT)
 
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { ...getApiHeaders() },
-      body,
-      signal: controller.signal,
-    })
+    const response = (__IS_TAURI__ && url.startsWith('https://'))
+      ? await tauriFetch(url, { method: 'POST', headers: { ...getApiHeaders() } as Record<string, string>, body })
+      : await fetch(url, { method: 'POST', headers: { ...getApiHeaders() }, body: body as BodyInit, signal: controller.signal })
 
     if (response.status === 401) {
-      localStorage.removeItem('auth_token')
+      clearCurrentSession()
       window.location.reload()
       throw new GqlError('unauthorized', 401)
     }

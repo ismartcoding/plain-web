@@ -4,52 +4,142 @@
   </header>
   <h1>PlainApp</h1>
   <div class="login-block">
-    <form v-show="!showConfirm" @submit.prevent="onSubmit">
-      <div v-show="showError" class="alert alert-danger show" role="alert">
-        <i-material-symbols:error-outline-rounded />
-        <div class="body">
-          {{ error ? $t(error) : '' }}
-        </div>
-      </div>
-      <v-text-field
-        v-if="showPasswordInput"
-        v-model="password"
-        :label="t('password')"
-        type="password"
-        class="form-control"
-        :error="!!passwordError"
-        autocomplete="current-password"
-        :error-text="passwordError ? $t(passwordError) : ''"
-        @keydown.enter="onSubmit"
-      />
-      <v-filled-button v-if="!webAccessDisabled" :disabled="isSubmitting" :loading="isSubmitting">
-        {{ $t(isSubmitting ? 'logging_in' : 'log_in') }}
-      </v-filled-button>
-    </form>
-    <div v-show="showConfirm">
-      <div class="tap-phone">
-        <TouchPhone />
-      </div>
-      <div class="tap-phone-text">
-        {{ $t('login.to_continue') }}
-      </div>
-      <v-outlined-button @click="cancel">
-        {{ $t('cancel') }}
-      </v-outlined-button>
+    <div v-show="isTauri && !deviceHost">
+      <ul v-if="sessionsStore.sortedSessions.length" class="list-items session-list">
+        <SessionListItem
+          v-for="s in sessionsStore.sortedSessions"
+          :key="s.clientId"
+          :name="s.name"
+          :host="s.host"
+          :loading="loadingClientId === s.clientId"
+          @select="resumeSession(s)"
+        />
+      </ul>
+      <div v-if="sessionsStore.sortedSessions.length" class="divider"></div>
+      <DiscoverySection :connecting="isConnecting" @device-selected="onDeviceSelected" />
+      <ManualConnectSection :connecting="isConnecting" :error="connectError" @device-selected="onDeviceSelected" @cancel="cancelConnect" />
     </div>
+    <div v-if="isTauri && deviceHost" class="device-bar subtle">
+      <v-icon-button @click="cancelConnect">
+        <i-material-symbols:arrow-back-rounded />
+      </v-icon-button>
+      <span class="device-bar-host">{{ deviceHost }}</span>
+    </div>
+    <LoginForm v-if="deviceHost" ref="loginFormRef" />
   </div>
   <div v-if="showWarning" class="tips">{{ $t('browser_warning') }}</div>
 </template>
 <script setup lang="ts">
-import { useLogin } from './login'
+import { nextTick, onMounted, ref } from 'vue'
+import type { DeviceSession } from '@/stores/device-sessions'
+import DiscoverySection from './DiscoverySection.vue'
+import LoginForm from './LoginForm.vue'
+import ManualConnectSection from './ManualConnectSection.vue'
+import SessionListItem from './SessionListItem.vue'
+import { useDeviceSessionsStore } from '@/stores/device-sessions'
+import { clearPendingLoginHost, getPendingLoginHost, setPendingLoginHost } from '@/lib/api/api'
 
-const showWarning = window.location.protocol === 'http:' ? false : !(window.navigator as any).userAgentData
+const CONNECT_ERROR = 'device_discovery.connect_failed'
 
-const {
-  showError, webAccessDisabled, showConfirm, error, showPasswordInput,
-  password, passwordError, isSubmitting, onSubmit, cancel, t,
-} = useLogin()
+const showWarning = window.location.protocol !== 'http:' && !(window.navigator as any).userAgentData
+const isTauri = __IS_TAURI__
+const sessionsStore = useDeviceSessionsStore()
+
+const loginFormRef = ref<InstanceType<typeof LoginForm> | null>(null)
+const deviceHost = ref('')
+const isConnecting = ref(false)
+const connectError = ref('')
+const loadingClientId = ref<string | null>(null)
+
+let connectCancelled = false
+
+restorePendingLoginHost()
+if (!isTauri) {
+  setPendingLoginHost(window.location.host)
+}
+deviceHost.value = getPendingLoginHost() || sessionsStore.currentSession?.host || ''
+
+// Session resumption handler
+async function resumeSession(session: DeviceSession) {
+  if (loadingClientId.value) return
+
+  loadingClientId.value = session.clientId
+  connectError.value = ''
+  sessionsStore.setCurrent(session.clientId)
+  setPendingLoginHost(session.host)
+  deviceHost.value = session.host
+
+  try {
+    await initializeLoginForm()
+  } catch {
+    sessionsStore.setCurrent('')
+    showConnectFailure()
+    clearSelectedDevice()
+  } finally {
+    loadingClientId.value = null
+  }
+}
+
+// Device discovery handlers
+function cancelConnect() {
+  connectCancelled = true
+  isConnecting.value = false
+  clearSelectedDevice()
+}
+
+async function onDeviceSelected(host: string) {
+  setPendingLoginHost(host)
+  isConnecting.value = true
+  connectCancelled = false
+  connectError.value = ''
+  deviceHost.value = host
+
+  try {
+    await initializeLoginForm({ autoSubmitWhenNoPassword: true })
+  } catch {
+    if (!connectCancelled) {
+      showConnectFailure()
+      clearSelectedDevice()
+    }
+  } finally {
+    if (!connectCancelled) {
+      isConnecting.value = false
+    }
+  }
+}
+
+onMounted(() => {
+  if (!deviceHost.value) return
+  initializeLoginForm().catch(() => {
+    showConnectFailure()
+  })
+})
+
+function restorePendingLoginHost() {
+  const host = sessionStorage.getItem('pending_login_host') || ''
+  if (!host) return
+  sessionStorage.removeItem('pending_login_host')
+  setPendingLoginHost(host)
+}
+
+function clearSelectedDevice() {
+  clearPendingLoginHost()
+  deviceHost.value = ''
+}
+
+function showConnectFailure() {
+  connectError.value = CONNECT_ERROR
+}
+
+async function initializeLoginForm(options?: { autoSubmitWhenNoPassword?: boolean }) {
+  await nextTick()
+  if (!loginFormRef.value) {
+    throw new Error('login_form_not_ready')
+  }
+  await loginFormRef.value.init(options)
+}
 </script>
+
 
 <style lang="scss" scoped>
 .header {
@@ -58,10 +148,28 @@ const {
   margin-top: 6px;
 }
 
-.v-filled-button,
-.v-outlined-button {
-  margin-top: 24px;
-  width: 100%;
+.session-list {
+  margin: 0 0 8px;
+  padding: 0;
+}
+
+.divider {
+  height: 1px;
+  background: var(--md-sys-color-outline-variant);
+  margin: 8px 0;
+}
+
+.device-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.device-bar-host {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
 }
 
 h1 {
@@ -77,20 +185,6 @@ h1 {
   border-radius: var(--pl-shape-xl);
   padding-block: var(--pl-spacing-xl);
   padding: 40px;
-
-  .tap-phone {
-    text-align: center;
-    padding-block-end: 1rem;
-
-    *:is(svg) {
-      width: 120px;
-      height: auto;
-      fill: var(--md-sys-color-primary);
-    }
-  }
-  .tap-phone-text {
-    text-align: center;
-  }
 }
 
 .tips {
@@ -98,9 +192,5 @@ h1 {
   padding: 16px;
   width: 320px;
   margin: 0 auto;
-}
-
-.alert-danger {
-  margin-block-end: 16px;
 }
 </style>

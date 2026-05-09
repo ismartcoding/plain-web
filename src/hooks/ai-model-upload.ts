@@ -4,6 +4,7 @@ import { getUploadUrl } from '@/lib/upload/upload'
 import { chachaEncrypt, bitArrayToUint8Array } from '@/lib/api/crypto'
 import { tokenToKey } from '@/lib/api/file'
 import toast from '@/components/toaster'
+import { getCurrentAuthToken } from '@/lib/device-current'
 
 const ACCEPTED = new Set(['mobileclip_s2_image.tflite', 'mobileclip_s2_text.tflite', 'tokenizer.json'])
 
@@ -26,7 +27,7 @@ export function useAIModelUpload() {
     uploadDone.value = false
     uploading.value = true
     uploadProgress.value = 0
-    const token = localStorage.getItem('auth_token') ?? ''
+    const token = getCurrentAuthToken()
     const key = tokenToKey(token)
     const clientId = localStorage.getItem('client_id') ?? ''
     const totalBytes = valid.reduce((s, f) => s + f.size, 0)

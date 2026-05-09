@@ -21,6 +21,12 @@
 @use 'skeleton';
 @use 'settings';
 
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
 #app:has(~ .lightbox) {
   display: none;
 }
@@ -292,7 +298,7 @@
 .page-content {
   display: flex;
   grid-area: page-content;
-  height: calc(100vh - 56px);
+  min-height: 0;
 
   .sidebar {
     min-width: 240px;

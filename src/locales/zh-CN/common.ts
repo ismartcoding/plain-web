@@ -33,6 +33,8 @@ export default {
   date: '日期',
   grant_permission: '授权',
   desktop_notification_permission_not_granted: '未授予桌面通知权限。',
+  desktop_notification_permission_denied: '通知权限已被拒绝，请在"系统设置 > 通知"中手动开启。',
+  notification_open_settings: '打开系统设置',
   desktop_notification_permission_grant_title: '授予桌面通知权限',
   desktop_notification_permission_grant_message: '1. 点击地址栏中的挂锁图标。\n2. 打开"站点设置"或"权限"。\n3. 找到"通知"并将其更改为"允许"。',
   sort: '排序',

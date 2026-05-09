@@ -1,12 +1,17 @@
 import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { getFileName, getFileUrl, notId, getFileExtension, getPeerProxyUrl, getFileId } from '@/lib/api/file'
 import type { ISource } from '@/components/lightbox/types'
 import { isVideo, isImage, isAudio, isTextFile, canOpenInBrowser, isAppFile } from '@/lib/file'
 import { useTempStore } from '@/stores/temp'
+import { useMainStore } from '@/stores/main'
+import { openUrl } from '@/lib/browser'
 
 export function useChatFiles(props: { data: any; downloadInfo: any; peer: { ip: string; port: number } | null }) {
   const tempStore = useTempStore()
+  const mainStore = useMainStore()
+  const router = useRouter()
   const { urlTokenKey } = storeToRefs(tempStore)
 
   const activeAudioSrc = ref<string | null>(null)
@@ -59,14 +64,18 @@ export function useChatFiles(props: { data: any; downloadInfo: any; peer: { ip: 
       if (isAppFile(item.path) && urlTokenKey.value) {
         textFileId = getFileId(urlTokenKey.value, JSON.stringify({ path: item.path, name: item.name }))
       }
-      window.open(`/text-file?id=${encodeURIComponent(textFileId)}`, '_blank')
+      const path = `/text-file?id=${encodeURIComponent(textFileId)}`
+      if (__IS_TAURI__) {
+        mainStore.openFileTab(item.name, path)
+      }
+      router.push(path)
     } else if (canOpenInBrowser(item.name)) {
-      window.open(item.src, '_blank')
+      openUrl(item.src)
     } else if (isImage(item.name) || isVideo(item.name)) {
       const viewable = items.value.filter((it) => isImage(it.name) || isVideo(it.name))
       tempStore.lightbox = { sources: viewable, index: viewable.findIndex((it) => it.src === item.src), visible: true }
     } else {
-      window.open(item.src, '_blank')
+      openUrl(item.src)
     }
   }
 

@@ -10,6 +10,7 @@ import { initMutation, renameFileGQL, copyFileGQL } from '@/lib/api/mutation'
 import { useDownload } from '@/hooks/files'
 import { getFileUrlByPath, getFileId } from '@/lib/api/file'
 import { arrayRemove } from '@/lib/array'
+import { openUrl } from '@/lib/browser'
 
 export function useDocsActions(
   items: Ref<IDoc[]>,
@@ -27,10 +28,10 @@ export function useDocsActions(
   function openFile(item: IDoc) {
     if (isTextFile(item.title)) {
       const fileId = getFileId(urlTokenKey.value, item.path)
-      window.open(`/text-file?id=${encodeURIComponent(fileId)}`, '_blank')
+      openUrl(`/text-file?id=${encodeURIComponent(fileId)}`)
     } else if (canOpenInBrowser(item.title)) {
       const url = getFileUrlByPath(urlTokenKey.value, item.path)
-      if (url) window.open(url, '_blank')
+      if (url) openUrl(url)
     } else {
       downloadFile(item.path, item.title)
     }

@@ -6,9 +6,20 @@
       </v-icon-button>
     </template>
 
-    <div v-if="app?.battery != null" class="top-app-bar">
-      <div class="title">{{ app.deviceName || $t('my_phone') }}</div>
-      <div class="actions">
+    <div class="top-app-bar">
+      <div class="title">
+        <span>{{ app.deviceName || currentSession?.name || $t('my_phone') }}</span>
+        <button
+          v-if="isTauri"
+          v-tooltip="$t('device_discovery.change_device')"
+          class="switch-device-btn"
+          :aria-label="$t('device_discovery.change_device')"
+          @click="openDeviceSwitcher"
+        >
+          <i-lucide:arrow-left-right />
+        </button>
+      </div>
+      <div class="actions" v-if="app?.battery != null">
         <svg class="popup-battery-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="1" y="6.5" width="18" height="11" rx="2" ry="2" />
           <line x1="23" y1="10" x2="23" y2="14" />
@@ -49,16 +60,20 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTempStore } from '@/stores/temp'
 import { useMainStore } from '@/stores/main'
+import { useDeviceSessionsStore } from '@/stores/device-sessions'
 import { storeToRefs } from 'pinia'
 import { pushModal } from '@/components/modal'
 import { getAvailableFeatures, type Feature } from './features'
 import CustomizeUIModal from './CustomizeUIModal.vue'
 import ExcludedDirsModal from './ExcludedDirsModal.vue'
+import DeviceSwitcherModal from '@/components/DeviceSwitcherModal.vue'
 
 const { app } = storeToRefs(useTempStore())
 const store = useMainStore()
+const { currentSession } = storeToRefs(useDeviceSessionsStore())
 const router = useRouter()
 const open = ref(false)
+const isTauri = __IS_TAURI__
 
 const popupFeatures = computed<Feature[]>(() => {
   const available = getAvailableFeatures(app.value?.channel ?? '')
@@ -73,6 +88,11 @@ function openCustomizeUI() {
 function openExcludedDirs() {
   open.value = false
   pushModal(ExcludedDirsModal)
+}
+
+function openDeviceSwitcher() {
+  open.value = false
+  pushModal(DeviceSwitcherModal)
 }
 
 function lastRoute(defaultPath: string, group: string) {
@@ -91,6 +111,36 @@ function lastRoute(defaultPath: string, group: string) {
 <style lang="scss" scoped>
 .top-app-bar {
   width: 300px;
+}
+
+.top-app-bar .title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.switch-device-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--md-sys-color-on-surface-variant);
+  cursor: pointer;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    background: color-mix(in srgb, var(--md-sys-color-primary) 12%, transparent);
+    color: var(--md-sys-color-primary);
+  }
 }
 
 .popup-battery-svg {

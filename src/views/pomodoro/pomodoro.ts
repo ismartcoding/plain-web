@@ -8,6 +8,7 @@ import { pomodoroTodayAndSettingsGQL } from '@/lib/api/query'
 import { initMutation } from '@/lib/api/mutation'
 import { startPomodoroGQL, stopPomodoroGQL, pausePomodoroGQL } from '@/lib/api/mutation'
 import emitter from '@/plugins/eventbus'
+import { showDesktopNotification } from '@/lib/desktop-notification'
 
 const STATE_MAP: Record<string, 'work' | 'shortBreak' | 'longBreak'> = {
   WORK: 'work',
@@ -117,12 +118,9 @@ export function usePomodoro() {
   function showNotification() {
     const title = currentPhase.value === 'work' ? t('work_completed') : t('break_completed')
     const body = currentPhase.value === 'work' ? t('time_for_break') : t('time_for_work')
-    if ('Notification' in window && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-      const notification = new Notification(title, { body, icon: '/favicon.ico' })
-      notification.onclick = () => { window.focus(); notification.close() }
-    } else {
+    showDesktopNotification({ title, body, icon: '/favicon.ico' }).catch(() => {
       toast(`${title} - ${body}`)
-    }
+    })
   }
 
   function timerComplete() {
@@ -229,6 +227,9 @@ export function usePomodoro() {
 
   // Lifecycle
   function requestNotificationPermission() {
+    // Tauri (WKWebView) blocks Notification.requestPermission() outside a user
+    // gesture. macOS native notifications do not require browser permission.
+    if (__IS_TAURI__) return
     if ('Notification' in window && typeof Notification !== 'undefined' && Notification.permission === 'default') {
       Notification.requestPermission()
     }

@@ -28,6 +28,9 @@
           :class="inputClass"
           :placeholder="placeholder"
           :autocomplete="autocomplete"
+          :autocapitalize="autocapitalize"
+          :autocorrect="autocorrect"
+          :spellcheck="spellcheck"
           @input="handleInput"
           @focus="handleFocus"
           @blur="handleBlur"
@@ -60,6 +63,9 @@ interface Props {
   rows?: number
   placeholder?: string
   autocomplete?: string
+  autocapitalize?: string
+  autocorrect?: string
+  spellcheck?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -71,7 +77,10 @@ const props = withDefaults(defineProps<Props>(), {
   class: '',
   rows: 1,
   placeholder: '',
-  autocomplete: 'off'
+  autocomplete: 'off',
+  autocapitalize: undefined,
+  autocorrect: undefined,
+  spellcheck: undefined,
 })
 
 const emit = defineEmits<{
