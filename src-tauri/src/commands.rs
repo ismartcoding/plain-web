@@ -58,6 +58,11 @@ fn scan_blocking() -> DiscoverDevicesResult {
     // Empty discover request — matches DDiscoverRequest() with default empty fields.
     let payload = format!("{DISCOVER_PREFIX}{{}}");
     let target = SocketAddrV4::new(MULTICAST_ADDR, NEARBY_PORT);
+    log::info!(
+        "discover_devices: start scan target={target} payload_len={} timeout_ms={}",
+        payload.len(),
+        SCAN_TIMEOUT_MS
+    );
 
     // On multi-homed hosts (Wi-Fi + VPN, Wi-Fi + Ethernet, Docker, VMware, …)
     // a plain `send_to` against a multicast address goes out the kernel's
@@ -77,6 +82,8 @@ fn scan_blocking() -> DiscoverDevicesResult {
 
     let mut sockets: Vec<UdpSocket> = Vec::with_capacity(bind_addrs.len());
     let mut saw_permission_denied = false;
+    let mut send_ok_count = 0usize;
+    let mut send_fail_count = 0usize;
     for ip in bind_addrs {
         let socket = match UdpSocket::bind(SocketAddrV4::new(ip, 0)) {
             Ok(s) => s,
@@ -99,18 +106,35 @@ fn scan_blocking() -> DiscoverDevicesResult {
         if let Err(e) = socket.set_read_timeout(Some(Duration::from_millis(100))) {
             log::warn!("discover_devices: set_read_timeout via {ip} failed: {e}");
         }
+        let local_addr = socket.local_addr().ok();
         match socket.send_to(payload.as_bytes(), target) {
-            Ok(_) => log::debug!("discover_devices: probe sent via {ip}"),
+            Ok(n) => {
+                send_ok_count += 1;
+                log::info!(
+                    "discover_devices: probe sent via ip={ip} local={:?} target={target} bytes={n}",
+                    local_addr
+                );
+            }
             Err(e) => {
+                send_fail_count += 1;
                 if e.kind() == std::io::ErrorKind::PermissionDenied {
                     saw_permission_denied = true;
                 }
-                log::warn!("discover_devices: send via {ip} failed: {e}");
+                log::warn!(
+                    "discover_devices: send failed via ip={ip} local={:?} target={target}: {e}",
+                    local_addr
+                );
                 continue;
             }
         }
         sockets.push(socket);
     }
+    log::info!(
+        "discover_devices: send summary ok={} fail={} active_sockets={}",
+        send_ok_count,
+        send_fail_count,
+        sockets.len()
+    );
     if sockets.is_empty() {
         log::error!("discover_devices: every interface failed to send multicast");
         return DiscoverDevicesResult {
@@ -139,6 +163,7 @@ fn scan_blocking() -> DiscoverDevicesResult {
             match socket.recv_from(&mut buf) {
                 Ok((n, src)) => {
                     got_any = true;
+                    log::debug!("discover_devices: packet received from {src}, bytes={n}");
                     let msg = match std::str::from_utf8(&buf[..n]) {
                         Ok(s) => s,
                         Err(_) => continue,
@@ -170,10 +195,17 @@ fn scan_blocking() -> DiscoverDevicesResult {
                         continue;
                     }
                     found.entry(reply.id.clone()).or_insert(DiscoveredDevice {
-                        name: reply.name,
+                        name: reply.name.clone(),
                         host: format!("{host_ip}:{}", reply.port),
                         port: reply.port,
                     });
+                    log::info!(
+                        "discover_devices: discovered device id={} name={} host={} port={}",
+                        reply.id,
+                        reply.name,
+                        host_ip,
+                        reply.port
+                    );
                 }
                 Err(e)
                     if e.kind() == std::io::ErrorKind::WouldBlock
@@ -192,6 +224,11 @@ fn scan_blocking() -> DiscoverDevicesResult {
             std::thread::sleep(Duration::from_millis(20));
         }
     }
+
+    log::info!(
+        "discover_devices: scan completed, devices_found={}",
+        found.len()
+    );
 
     DiscoverDevicesResult {
         devices: found.into_values().collect(),
