@@ -1,0 +1,289 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build desktop app (${{ matrix.platform }})
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos
+            os: macos-latest
+          - platform: windows
+            os: windows-latest
+          - platform: linux
+            os: ubuntu-latest
+    outputs:
+      version_name: ${{ steps.meta.outputs.version_name }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set version name
+        id: meta
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          echo "version_name=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+
+      - name: Enable Corepack
+        shell: bash
+        run: corepack enable
+
+      - name: Install frontend dependencies
+        shell: bash
+        run: yarn install --immutable
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+          key: ${{ matrix.platform }}
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+
+      - name: Build desktop app
+        shell: bash
+        run: bash build-desktop.sh
+
+      - name: Collect artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.meta.outputs.version_name }}"
+          mkdir -p release-artifacts
+          shopt -s nullglob globstar
+
+          case "${{ matrix.platform }}" in
+            macos)
+              files=(src-tauri/target/release/bundle/dmg/*.dmg)
+              ;;
+            windows)
+              files=(src-tauri/target/release/bundle/msi/*.msi src-tauri/target/release/bundle/nsis/*.exe)
+              ;;
+            linux)
+              files=(src-tauri/target/release/bundle/deb/*.deb src-tauri/target/release/bundle/rpm/*.rpm src-tauri/target/release/bundle/appimage/*.AppImage)
+              ;;
+          esac
+
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No bundle artifacts found for ${{ matrix.platform }}" >&2
+            find src-tauri/target/release/bundle -type f -maxdepth 4 2>/dev/null || true
+            exit 1
+          fi
+
+          for file in "${files[@]}"; do
+            ext="${file##*.}"
+            cp "$file" "release-artifacts/PlainApp-${VERSION}-${{ matrix.platform }}.${ext}"
+          done
+
+      - name: Upload platform artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts-${{ matrix.platform }}
+          path: release-artifacts/*
+          if-no-files-found: error
+          retention-days: 1
+
+  package:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      version_name: ${{ needs.build.outputs.version_name }}
+      hashes: ${{ steps.hashes.outputs.hashes }}
+      artifact_names: ${{ steps.artifacts.outputs.artifact_names }}
+      release_body_files: ${{ steps.artifacts.outputs.release_body_files }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-artifacts-*
+          path: release-artifacts
+          merge-multiple: true
+
+      - name: Compute SHA-256 hashes
+        id: hashes
+        run: |
+          echo "hashes=$(sha256sum release-artifacts/* | base64 -w0)" >> $GITHUB_OUTPUT
+
+      - name: Prepare artifact metadata
+        id: artifacts
+        run: |
+          {
+            echo "artifact_names<<EOF"
+            find release-artifacts -maxdepth 1 -type f -printf '%f\n' | sort
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+          {
+            echo "release_body_files<<EOF"
+            find release-artifacts -maxdepth 1 -type f -printf '| `%f` |\n' | sort
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: release-artifacts/*
+          if-no-files-found: error
+          retention-days: 1
+
+  provenance:
+    needs: package
+    permissions:
+      actions: read
+      id-token: write
+      contents: write
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+    with:
+      base64-subjects: ${{ needs.package.outputs.hashes }}
+      upload-assets: false
+
+  virustotal:
+    needs: package
+    runs-on: ubuntu-latest
+    permissions: {}
+    outputs:
+      markdown: ${{ steps.scan.outputs.markdown }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-artifacts
+          path: release-artifacts
+
+      - name: Scan with VirusTotal
+        id: scan
+        env:
+          VT_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${VT_API_KEY:-}" ]; then
+            {
+              echo "markdown<<EOF"
+              find release-artifacts -maxdepth 1 -type f -printf '| `%f` | ⬜ Skipped | VirusTotal API key is not configured |\n' | sort
+              echo "EOF"
+            } >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          upload_and_poll() {
+            local file="$1" outprefix="$2"
+            local name sha256 size_bytes upload_url analysis_id last_response poll_status
+            local malicious suspicious undetected harmless total detected result_status report_url
+            name=$(basename "$file")
+            sha256=$(sha256sum "$file" | awk '{print $1}')
+            size_bytes=$(stat -c%s "$file")
+            upload_url="https://www.virustotal.com/api/v3/files"
+            if [ "$size_bytes" -gt 33554432 ]; then
+              upload_url=$(curl -sS --request GET \
+                --url https://www.virustotal.com/api/v3/files/upload_url \
+                --header "x-apikey: $VT_API_KEY" | jq -r '.data')
+              if [ -z "$upload_url" ] || [ "$upload_url" = "null" ]; then
+                printf '| `%s` | ⬜ N/A | [View Report](https://www.virustotal.com/gui/file/%s/detection) |\n' "$name" "$sha256" > "${outprefix}.md"
+                return
+              fi
+            fi
+            analysis_id=$(curl -sS --request POST \
+              --url "$upload_url" \
+              --header "x-apikey: $VT_API_KEY" \
+              --form "file=@$file" | jq -r '.data.id')
+            if [ -z "$analysis_id" ] || [ "$analysis_id" = "null" ]; then
+              printf '| `%s` | ⬜ N/A | [View Report](https://www.virustotal.com/gui/file/%s/detection) |\n' "$name" "$sha256" > "${outprefix}.md"
+              return
+            fi
+            last_response=""
+            for _ in $(seq 1 30); do
+              sleep 20
+              last_response=$(curl -sS \
+                --url "https://www.virustotal.com/api/v3/analyses/$analysis_id" \
+                --header "x-apikey: $VT_API_KEY")
+              poll_status=$(echo "$last_response" | jq -r '.data.attributes.status')
+              [ "$poll_status" = "completed" ] && break
+            done
+            malicious=$(echo  "$last_response" | jq -r '.data.attributes.stats.malicious   // 0')
+            suspicious=$(echo "$last_response" | jq -r '.data.attributes.stats.suspicious  // 0')
+            undetected=$(echo "$last_response" | jq -r '.data.attributes.stats.undetected  // 0')
+            harmless=$(echo   "$last_response" | jq -r '.data.attributes.stats.harmless    // 0')
+            total=$((malicious + suspicious + undetected + harmless))
+            detected=$((malicious + suspicious))
+            [ "$detected" -eq 0 ] \
+              && result_status="✅ ${detected}/${total} Clean" \
+              || result_status="⚠️ ${detected}/${total} Detected"
+            report_url="https://www.virustotal.com/gui/file/$sha256/detection"
+            printf '| `%s` | %s | [View Report](%s) |\n' "$name" "$result_status" "$report_url" > "${outprefix}.md"
+          }
+
+          i=0
+          for file in release-artifacts/*; do
+            upload_and_poll "$file" "/tmp/vt_${i}" &
+            i=$((i + 1))
+          done
+          wait
+          {
+            echo "markdown<<EOF"
+            cat /tmp/vt_*.md | sort
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+  release:
+    needs: [package, provenance, virustotal]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-artifacts
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.provenance.outputs.provenance-name }}
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: desktop-v${{ needs.package.outputs.version_name }}
+          name: Desktop Release ${{ needs.package.outputs.version_name }}
+          body: |
+            ## What's Changed
+
+            ## Downloads
+            | File |
+            |------|
+            ${{ needs.package.outputs.release_body_files }}
+
+            ## Security
+
+            ### VirusTotal Scan
+            | File | Status | Scan Report |
+            |------|--------|-------------|
+            ${{ needs.virustotal.outputs.markdown }}
+
+            ### SLSA Provenance (Level 3)
+            The `.intoto.jsonl` file is a signed SLSA provenance document covering all desktop release artifacts.
+            Verify with [slsa-verifier](https://github.com/slsa-framework/slsa-verifier).
+          draft: true
+          prerelease: false
+          artifacts: "PlainApp-*,${{ needs.provenance.outputs.provenance-name }}"

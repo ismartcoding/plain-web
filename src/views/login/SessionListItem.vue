@@ -1,9 +1,7 @@
 <template>
   <li class="item session-list-item" :class="{ loading }" @click="selectSession">
-    <div>
-      <span class="title">{{ displayName }}</span>
-      <span class="subtitle">{{ host }}</span>
-    </div>
+    <span class="title">{{ displayName }}</span>
+    <span class="subtitle">{{ host }}</span>
     <v-circular-progress v-if="loading" indeterminate class="sm icon" />
     <i-material-symbols:chevron-right-rounded v-else class="icon" />
   </li>

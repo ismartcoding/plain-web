@@ -47,8 +47,3 @@ function select(host: string) {
 }
 </script>
 
-<style lang="scss" scoped>
-.discovery-list {
-  margin-bottom: 0;
-}
-</style>

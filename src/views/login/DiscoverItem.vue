@@ -1,9 +1,7 @@
 <template>
   <li class="item discover-item" :class="{ disabled }" @click="selectItem">
-    <div>
-      <span class="title">{{ name }}</span>
-      <span class="subtitle">{{ host }}</span>
-    </div>
+    <span class="title">{{ name }}</span>
+    <span class="subtitle">{{ host }}</span>
     <i-material-symbols:chevron-right-rounded class="icon" />
   </li>
 </template>

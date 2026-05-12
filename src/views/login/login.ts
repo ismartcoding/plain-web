@@ -71,9 +71,15 @@ export function useLogin() {
       ws = ((__IS_TAURI__ && wsUrl.startsWith('wss://')) ? new TauriWebSocket(wsUrl) : new WebSocket(wsUrl)) as unknown as WebSocket
       ws.onopen = async () => {
         const ua = await getAccurateAgent()
+        const browserName = __IS_TAURI__ ? 'PlainApp' : ua.browser.name
+        const browserVersion = __IS_TAURI__ ? '' : ua.browser.version
         const enc = chachaEncrypt(key, JSON.stringify({
-          password: hash, browserName: ua.browser.name, browserVersion: ua.browser.version,
-          osName: ua.os.name, osVersion: ua.os.version, isMobile: ua.isMobile,
+          password: hash, 
+          browserName: browserName, 
+          browserVersion: browserVersion,
+          osName: ua.os.name, 
+          osVersion: ua.os.version, 
+          isMobile: ua.isMobile,
         }))
         ws.send(bitArrayToUint8Array(enc) as unknown as ArrayBuffer)
       }

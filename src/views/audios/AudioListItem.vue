@@ -137,22 +137,22 @@ interface Props {
   mainStore: any
   app: any
   // Functions passed from parent
-  handleItemClick: (event: MouseEvent, item: IAudio, index: number, callback: () => void) => void
+  handleItemClick: (event: MouseEvent, item: IAudioItem, index: number, callback: () => void) => void
   handleMouseOver: (event: MouseEvent, index: number) => void
-  toggleSelect: (event: MouseEvent, item: IAudio, index: number) => void
+  toggleSelect: (event: MouseEvent, item: IAudioItem, index: number) => void
   onImageError: (id: string) => void
   viewBucket: (store: any, bucketId: string) => void
-  deleteItem: (dataType: DataType, item: IAudio) => void
+  deleteItem: (dataType: DataType, item: IAudioItem) => void
   restore: (dataType: DataType, query: string) => void
   downloadFile: (path: string, fileName: string) => void
   trash: (dataType: DataType, query: string) => void
-  handleRemoveFromPlaylist: (event: MouseEvent, item: IAudio) => void
-  addToPlaylist: (event: MouseEvent, item: IAudio) => void
-  addItemToTags: (item: IAudio) => void
-  play: (item: IAudio) => void
+  handleRemoveFromPlaylist: (event: MouseEvent, item: IAudioItem) => void
+  addToPlaylist: (event: MouseEvent, item: IAudioItem) => void
+  addItemToTags: (item: IAudioItem) => void
+  play: (item: IAudioItem) => void
   pause: () => void
-  isAudioPlaying: (item: IAudio) => boolean
-  isInPlaylist: (item: IAudio) => boolean
+  isAudioPlaying: (item: IAudioItem) => boolean
+  isInPlaylist: (item: IAudioItem) => boolean
   restoreLoading: (query: string) => boolean
   trashLoading: (query: string) => boolean
 }

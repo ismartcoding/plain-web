@@ -26,6 +26,7 @@ pub fn run() {
             commands::discover_devices,
             commands::http_request,
             commands::ws_start_proxy,
+            commands::send_macos_notification,
             http_proxy::http_proxy_port,
         ])
         .run(tauri::generate_context!())

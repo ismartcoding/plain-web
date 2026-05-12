@@ -178,7 +178,7 @@ h1 {
 }
 
 .login-block {
-  width: 280px;
+  width: 320px;
   margin: 0 auto;
   --outlined-field-bg: var(--md-sys-color-surface-variant);
   background-color: var(--md-sys-color-surface-variant);

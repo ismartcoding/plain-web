@@ -48,7 +48,7 @@
       <section v-if="notifications.length" class="list-items">
         <div v-for="item in notifications" :key="item.id" class="item">
           <div class="title">
-            <v-dropdown :model-value="openIconId === item.id" @update:model-value="(v: boolean) => openIconId = v ? item.id : ''">\n
+            <v-dropdown :model-value="openIconId === item.id" @update:model-value="(v: boolean) => openIconId = v ? item.id : ''">
               <template #trigger>
                 <img width="20" height="20" :src="item.icon" />
               </template>
