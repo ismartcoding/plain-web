@@ -82,7 +82,7 @@ jobs:
           set -euo pipefail
           VERSION="${{ steps.meta.outputs.version_name }}"
           mkdir -p release-artifacts
-          shopt -s nullglob globstar
+          shopt -s nullglob
 
           case "${{ matrix.platform }}" in
             macos)
