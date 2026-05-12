@@ -1,4 +1,4 @@
-import { computed, onMounted, ref, watch, type Ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch, type Ref } from 'vue'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import type { IPlaylistAudio } from '@/lib/interfaces'
@@ -19,13 +19,56 @@ export function useAudioPlaylist(audioRef: Ref<HTMLAudioElement | undefined>) {
   const current = ref<IPlaylistAudio | undefined>()
   const src = ref('')
 
+  function updateMediaSessionPlaybackState() {
+    if (!('mediaSession' in navigator)) return
+    navigator.mediaSession.playbackState = audioPlaying.value ? 'playing' : 'paused'
+  }
+
+  function updateMediaSessionMetadata() {
+    if (!('mediaSession' in navigator) || typeof MediaMetadata === 'undefined') return
+    const item = current.value
+    if (!item) {
+      navigator.mediaSession.metadata = null
+      return
+    }
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: item.title || item.path.split('/').pop() || 'PlainApp',
+      artist: item.artist || app.value?.deviceName || 'PlainApp',
+      album: 'PlainApp',
+      artwork: [
+        { src: '/icons/192.png', sizes: '192x192', type: 'image/png' },
+        { src: '/icons/512.png', sizes: '512x512', type: 'image/png' },
+      ],
+    })
+    updateMediaSessionPlaybackState()
+  }
+
+  function setupMediaSessionActions() {
+    if (!('mediaSession' in navigator)) return
+    navigator.mediaSession.setActionHandler('play', () => _play())
+    navigator.mediaSession.setActionHandler('pause', () => audioRef.value?.pause())
+    navigator.mediaSession.setActionHandler('previoustrack', () => playPrev())
+    navigator.mediaSession.setActionHandler('nexttrack', () => playNext())
+  }
+
+  function clearMediaSessionActions() {
+    if (!('mediaSession' in navigator)) return
+    navigator.mediaSession.setActionHandler('play', null)
+    navigator.mediaSession.setActionHandler('pause', null)
+    navigator.mediaSession.setActionHandler('previoustrack', null)
+    navigator.mediaSession.setActionHandler('nexttrack', null)
+    navigator.mediaSession.metadata = null
+  }
+
   async function setCurrent() {
     const { audioCurrent: c } = app.value
     src.value = getFileUrlByPath(urlTokenKey.value, c)
     current.value = audios.value.find((it) => it.path == c)
+    updateMediaSessionMetadata()
   }
   setCurrent()
   watch(() => app.value.audioCurrent, setCurrent)
+  watch(audios, setCurrent)
 
   // Mutations
   const { mutate: play, onDone: playDone } = initMutation({ document: playAudioGQL })
@@ -111,11 +154,31 @@ export function useAudioPlaylist(audioRef: Ref<HTMLAudioElement | undefined>) {
     clearDone()
   }
 
+  const onPlay = () => {
+    audioPlaying.value = true
+    updateMediaSessionPlaybackState()
+  }
+  const onPause = () => {
+    audioPlaying.value = false
+    updateMediaSessionPlaybackState()
+  }
+  const doPlayAudio = () => setTimeout(_play, 500)
+  const pauseAudio = () => audioRef.value?.pause()
+
   onMounted(() => {
-    emitter.on('do_play_audio', () => setTimeout(_play, 500))
-    emitter.on('pause_audio', () => audioRef.value?.pause())
-    audioRef.value?.addEventListener('pause', () => { audioPlaying.value = false })
-    audioRef.value?.addEventListener('play', () => { audioPlaying.value = true })
+    setupMediaSessionActions()
+    emitter.on('do_play_audio', doPlayAudio)
+    emitter.on('pause_audio', pauseAudio)
+    audioRef.value?.addEventListener('pause', onPause)
+    audioRef.value?.addEventListener('play', onPlay)
+  })
+
+  onUnmounted(() => {
+    emitter.off('do_play_audio', doPlayAudio)
+    emitter.off('pause_audio', pauseAudio)
+    audioRef.value?.removeEventListener('pause', onPause)
+    audioRef.value?.removeEventListener('play', onPlay)
+    clearMediaSessionActions()
   })
 
   return {

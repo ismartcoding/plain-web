@@ -1,6 +1,6 @@
 <template>
   <nav class="app-rail">
-    <router-link to="/" class="rail-brand" aria-label="PlainApp home">
+    <router-link v-if="!isTauri" to="/" class="rail-brand" aria-label="PlainApp home">
       <span class="brand-logo" aria-hidden="true"></span>
     </router-link>
 
@@ -33,6 +33,7 @@ import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { ALL_FEATURES, getAvailableFeatures, type Feature } from './features'
 import RailSettingsPopup from './RailSettingsPopup.vue'
+const isTauri = __IS_TAURI__
 
 const store = useMainStore()
 const router = useRouter()

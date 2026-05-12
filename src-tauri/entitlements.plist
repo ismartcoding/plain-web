@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Required for sending/receiving multicast UDP packets on macOS 12+.
+         Without this the OS silently drops multicast probes.
+         For non-App Store / ad-hoc dev builds this works with codesign -s -.
+         App Store distribution requires Apple entitlement approval. -->
+    <key>com.apple.developer.networking.multicast</key>
+    <true/>
+    <!-- Allow outgoing TCP/UDP network connections (plain sockets). -->
+    <key>com.apple.security.network.client</key>
+    <true/>
+    <!-- Allow incoming TCP/UDP connections (local proxy listener). -->
+    <key>com.apple.security.network.server</key>
+    <true/>
+    <!-- Disable App Sandbox so UDP multicast + raw sockets work freely
+         on macOS desktop (non-App Store distribution). -->
+    <key>com.apple.security.app-sandbox</key>
+    <false/>
+</dict>
+</plist>

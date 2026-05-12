@@ -1,0 +1,58 @@
+name: Release to Discord
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  notify-discord:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine Release Info
+        id: release-info
+        env:
+          GH_RELEASE_NAME: ${{ github.event.release.name }}
+          GH_RELEASE_URL: ${{ github.event.release.html_url }}
+          GH_RELEASE_TIMESTAMP: ${{ github.event.release.published_at }}
+          GH_RELEASE_BODY: ${{ github.event.release.body }}
+        run: |
+          if [ "${{ github.event.release.tag_name != '' }}" = "true" ]; then
+            echo "Using release event payload"
+            echo "RELEASE_NAME=$GH_RELEASE_NAME" >> $GITHUB_ENV
+            echo "RELEASE_URL=$GH_RELEASE_URL" >> $GITHUB_ENV
+            echo "RELEASE_TIMESTAMP=$GH_RELEASE_TIMESTAMP" >> $GITHUB_ENV
+            CLEAN_BODY=$(printf '%s' "$GH_RELEASE_BODY" | tr -d '\r')
+            echo "RELEASE_BODY<<EOF" >> $GITHUB_ENV
+            echo "$CLEAN_BODY" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          else
+            echo "Fetching latest release from GitHub API"
+            response=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest)
+            name=$(echo "$response" | jq -r '.name')
+            body=$(echo "$response" | jq -r '.body // "No changelog provided."' | tr -d '\r')
+            url=$(echo "$response" | jq -r '.html_url')
+            timestamp=$(echo "$response" | jq -r '.published_at')
+
+            echo "RELEASE_NAME=$name" >> $GITHUB_ENV
+            echo "RELEASE_URL=$url" >> $GITHUB_ENV
+            echo "RELEASE_TIMESTAMP=$timestamp" >> $GITHUB_ENV
+            echo "RELEASE_BODY<<EOF" >> $GITHUB_ENV
+            echo "$body" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          fi
+
+      - name: Send to Discord
+        uses: tsickert/discord-webhook@v7.0.0
+        with:
+          webhook-url: ${{ secrets.RELEASE_WEBHOOK_URL }}
+          username: "Release"
+          content: "||@everyone||"
+          embed-title: "📦 New Desktop Release: ${{ env.RELEASE_NAME }}"
+          embed-url: "${{ env.RELEASE_URL }}"
+          embed-description: "${{ env.RELEASE_BODY }}"
+          embed-color: 2105893
+          embed-footer-text: "Changelog"
+          embed-timestamp: "${{ env.RELEASE_TIMESTAMP }}"

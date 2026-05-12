@@ -17,7 +17,31 @@
       :class="{ active: tab.id === mainStore.activeTabId }"
       @click="activateTab(tab)"
     >
-      <span class="tab-title">{{ tab.title }}</span>
+      <template v-if="tab.id === 'home'">
+        <span class="tab-title">{{ homeTabTitle }}</span>
+        <v-dropdown v-model="homeDeviceMenuOpen" strategy="below">
+          <template #trigger>
+            <button class="tab-switch" :title="$t('device_discovery.change_device')">
+              <i-material-symbols:keyboard-arrow-down-rounded />
+            </button>
+          </template>
+          <div
+            v-for="session in switchableSessions"
+            :key="session.clientId"
+            class="dropdown-item"
+            @click="switchToSession(session.clientId)"
+          >
+            {{ session.name || session.host }}
+          </div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item" @click="openDeviceSwitcher">
+            {{ $t('device_discovery.add_device') }}
+          </div>
+        </v-dropdown>
+      </template>
+      <template v-else>
+        <span class="tab-title">{{ tab.title }}</span>
+      </template>
       <button v-if="tab.closeable" class="tab-close" @click.stop="closeTab(tab.id)">
         <i-material-symbols:close-small-rounded />
       </button>
@@ -35,15 +59,35 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useMainStore } from '@/stores/main'
 import type { AppTab } from '@/stores/main'
+import { useDeviceSessionsStore } from '@/stores/device-sessions'
+import { useTempStore } from '@/stores/temp'
+import { storeToRefs } from 'pinia'
+import { pushModal } from '@/components/modal'
+import DeviceSwitcherModal from '@/components/DeviceSwitcherModal.vue'
 import i18n from '@/plugins/i18n'
 
 const router = useRouter()
 const route = useRoute()
 const mainStore = useMainStore()
+const deviceSessionsStore = useDeviceSessionsStore()
+const { currentSession, sortedSessions } = storeToRefs(deviceSessionsStore)
+const { app } = storeToRefs(useTempStore())
+const homeDeviceMenuOpen = ref(false)
+
+const homeTabTitle = computed(() =>
+  app.value?.deviceName
+  || currentSession.value?.name
+  || currentSession.value?.host
+  || String((i18n.global as any).t('my_phone'))
+)
+
+const switchableSessions = computed(() =>
+  sortedSessions.value.filter((session) => session.clientId !== deviceSessionsStore.currentClientId)
+)
 
 onMounted(() => {
   window.addEventListener('tauri-open-tab', handleOpenTab)
@@ -72,6 +116,18 @@ function closeTab(id: string) {
   if (navPath != null) {
     router.push(navPath)
   }
+}
+
+function switchToSession(clientId: string) {
+  homeDeviceMenuOpen.value = false
+  deviceSessionsStore.setCurrent(clientId)
+  // Full reload so all stores/sockets re-init against the selected device.
+  window.location.href = '/'
+}
+
+function openDeviceSwitcher() {
+  homeDeviceMenuOpen.value = false
+  pushModal(DeviceSwitcherModal)
 }
 
 function handleOpenTab(e: Event) {
@@ -213,6 +269,38 @@ async function toggleWindowMaximize() {
     opacity: 1 !important;
     background: var(--md-sys-color-surface-variant);
   }
+}
+
+.tab-switch {
+  -webkit-app-region: no-drag;
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0.75;
+
+  &:hover {
+    opacity: 1;
+    background: var(--md-sys-color-surface-variant);
+  }
+}
+
+.dropdown-divider {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--md-sys-color-outline-variant);
+}
+
+:deep(.dropdown-item),
+:deep(.dropdown-divider) {
+  -webkit-app-region: no-drag;
 }
 
 .tab-spacer {

@@ -44,6 +44,72 @@ pub struct DiscoverDevicesResult {
     pub status: DiscoverScanStatus,
 }
 
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct MacosNotificationOptions {
+    title: String,
+    body: Option<String>,
+}
+
+#[cfg(target_os = "macos")]
+#[tauri::command]
+pub async fn send_macos_notification(
+    app: tauri::AppHandle,
+    options: MacosNotificationOptions,
+) -> Result<(), String> {
+    let identifier = app.config().identifier.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        let plain_script =
+            macos_notification_script(&options.title, options.body.as_deref());
+        let script = format!(
+            "tell application id {}\n{}\nend tell",
+            applescript_string(&identifier),
+            plain_script
+        );
+        run_osascript(&script)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[cfg(target_os = "macos")]
+fn macos_notification_script(title: &str, body: Option<&str>) -> String {
+    format!(
+        "display notification {} with title {}",
+        applescript_string(body.unwrap_or("")),
+        applescript_string(title)
+    )
+}
+
+#[cfg(target_os = "macos")]
+fn run_osascript(script: &str) -> Result<(), String> {
+    let status = std::process::Command::new("osascript")
+        .arg("-e")
+        .arg(script)
+        .status()
+        .map_err(|e| e.to_string())?;
+    if status.success() {
+        Ok(())
+    } else {
+        Err(format!("osascript exited with status {status}"))
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn applescript_string(value: &str) -> String {
+    let escaped = value
+        .replace('\\', "\\\\")
+        .replace('"', "\\\"")
+        .replace(['\r', '\n'], " ");
+    format!("\"{escaped}\"")
+}
+
+#[cfg(not(target_os = "macos"))]
+#[tauri::command]
+pub async fn send_macos_notification(_options: MacosNotificationOptions) -> Result<(), String> {
+    Err("macOS notifications are only available on macOS".to_string())
+}
+
 #[tauri::command]
 pub async fn discover_devices() -> DiscoverDevicesResult {
     tauri::async_runtime::spawn_blocking(scan_blocking)
@@ -58,21 +124,16 @@ fn scan_blocking() -> DiscoverDevicesResult {
     // Empty discover request — matches DDiscoverRequest() with default empty fields.
     let payload = format!("{DISCOVER_PREFIX}{{}}");
     let target = SocketAddrV4::new(MULTICAST_ADDR, NEARBY_PORT);
-    log::info!(
-        "discover_devices: start scan target={target} payload_len={} timeout_ms={}",
-        payload.len(),
-        SCAN_TIMEOUT_MS
-    );
 
     // On multi-homed hosts (Wi-Fi + VPN, Wi-Fi + Ethernet, Docker, VMware, …)
     // a plain `send_to` against a multicast address goes out the kernel's
     // default multicast interface, which is often *not* the LAN where the
     // phone lives. We bind one socket per local IPv4 interface — binding the
     // local address forces the kernel to use that interface for outgoing
-    // multicast (equivalent to setting IP_MULTICAST_IF) — and reuse those
-    // same sockets to receive the unicast replies. Replies arrive at the
-    // ephemeral port the probe was sent from, so the listening socket *must*
-    // be the same socket that did the send.
+    // multicast (equivalent to setting IP_MULTICAST_IF). Android replies via
+    // NearbyNetwork.sendUnicast(message, targetIP), which always sends back to
+    // NEARBY_PORT rather than the UDP source port. Therefore Tauri must bind
+    // the receive sockets to NEARBY_PORT, not ephemeral ports.
     let interfaces = if_addrs::get_if_addrs().unwrap_or_default();
     let mut bind_addrs: Vec<Ipv4Addr> = local_ipv4_addrs(&interfaces);
     if bind_addrs.is_empty() {
@@ -82,61 +143,33 @@ fn scan_blocking() -> DiscoverDevicesResult {
 
     let mut sockets: Vec<UdpSocket> = Vec::with_capacity(bind_addrs.len());
     let mut saw_permission_denied = false;
-    let mut send_ok_count = 0usize;
-    let mut send_fail_count = 0usize;
     for ip in bind_addrs {
-        let socket = match UdpSocket::bind(SocketAddrV4::new(ip, 0)) {
+        let socket = match UdpSocket::bind(SocketAddrV4::new(ip, NEARBY_PORT)) {
             Ok(s) => s,
             Err(e) => {
                 if e.kind() == std::io::ErrorKind::PermissionDenied {
                     saw_permission_denied = true;
                 }
-                log::warn!("discover_devices: bind on {ip} failed: {e}");
                 continue;
             }
         };
-        if let Err(e) = socket.set_multicast_ttl_v4(1) {
-            log::warn!("discover_devices: set_multicast_ttl_v4 via {ip} failed: {e}");
-        }
-        if let Err(e) = socket.set_multicast_loop_v4(true) {
-            log::warn!("discover_devices: set_multicast_loop_v4 via {ip} failed: {e}");
-        }
+        let _ = socket.set_multicast_ttl_v4(1);
+        let _ = socket.set_multicast_loop_v4(true);
         // Short non-blocking-ish read so we can round-robin across sockets
         // and honour the overall scan deadline.
-        if let Err(e) = socket.set_read_timeout(Some(Duration::from_millis(100))) {
-            log::warn!("discover_devices: set_read_timeout via {ip} failed: {e}");
-        }
-        let local_addr = socket.local_addr().ok();
+        let _ = socket.set_read_timeout(Some(Duration::from_millis(100)));
         match socket.send_to(payload.as_bytes(), target) {
-            Ok(n) => {
-                send_ok_count += 1;
-                log::info!(
-                    "discover_devices: probe sent via ip={ip} local={:?} target={target} bytes={n}",
-                    local_addr
-                );
-            }
+            Ok(_) => {}
             Err(e) => {
-                send_fail_count += 1;
                 if e.kind() == std::io::ErrorKind::PermissionDenied {
                     saw_permission_denied = true;
                 }
-                log::warn!(
-                    "discover_devices: send failed via ip={ip} local={:?} target={target}: {e}",
-                    local_addr
-                );
                 continue;
             }
         }
         sockets.push(socket);
     }
-    log::info!(
-        "discover_devices: send summary ok={} fail={} active_sockets={}",
-        send_ok_count,
-        send_fail_count,
-        sockets.len()
-    );
     if sockets.is_empty() {
-        log::error!("discover_devices: every interface failed to send multicast");
         return DiscoverDevicesResult {
             devices: vec![],
             status: if saw_permission_denied {
@@ -163,7 +196,6 @@ fn scan_blocking() -> DiscoverDevicesResult {
             match socket.recv_from(&mut buf) {
                 Ok((n, src)) => {
                     got_any = true;
-                    log::debug!("discover_devices: packet received from {src}, bytes={n}");
                     let msg = match std::str::from_utf8(&buf[..n]) {
                         Ok(s) => s,
                         Err(_) => continue,
@@ -174,10 +206,7 @@ fn scan_blocking() -> DiscoverDevicesResult {
                     };
                     let reply: DiscoverReply = match serde_json::from_str(json) {
                         Ok(r) => r,
-                        Err(e) => {
-                            log::warn!("discover_devices: bad reply json: {e}");
-                            continue;
-                        }
+                        Err(_) => continue,
                     };
                     // Prefer the IP that actually answered us; fall back to
                     // the first advertised IPv4 in the reply.
@@ -199,22 +228,10 @@ fn scan_blocking() -> DiscoverDevicesResult {
                         host: format!("{host_ip}:{}", reply.port),
                         port: reply.port,
                     });
-                    log::info!(
-                        "discover_devices: discovered device id={} name={} host={} port={}",
-                        reply.id,
-                        reply.name,
-                        host_ip,
-                        reply.port
-                    );
                 }
-                Err(e)
-                    if e.kind() == std::io::ErrorKind::WouldBlock
-                        || e.kind() == std::io::ErrorKind::TimedOut =>
-                {
-                    // No packet within this socket's read timeout — try the next.
-                }
-                Err(e) => {
-                    log::warn!("discover_devices: recv error: {e}");
+                Err(_) => {
+                    // No packet within this socket's read timeout, or transient
+                    // recv error — round-robin to the next socket.
                 }
             }
         }
@@ -224,11 +241,6 @@ fn scan_blocking() -> DiscoverDevicesResult {
             std::thread::sleep(Duration::from_millis(20));
         }
     }
-
-    log::info!(
-        "discover_devices: scan completed, devices_found={}",
-        found.len()
-    );
 
     DiscoverDevicesResult {
         devices: found.into_values().collect(),

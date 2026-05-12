@@ -48,7 +48,7 @@
 import { ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useTempStore } from '@/stores/temp'
-import type { IAppFile } from '../composables/useAppFilesData'
+import type { IAppFile } from './useAppFilesData'
 import { formatFileSize, formatDateTime, formatTimeAgo } from '@/lib/format'
 import { getFileUrl, getFileId, getFileExtension, download } from '@/lib/api/file'
 import { getApiBaseUrl } from '@/lib/api/api'

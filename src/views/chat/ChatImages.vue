@@ -12,7 +12,7 @@
 import { getFileName, getFileUrl, notId, getPeerProxyUrl } from '@/lib/api/file'
 import { isVideo } from '@/lib/file'
 import { computed } from 'vue'
-import type { ISource } from '../lightbox/types'
+import type { ISource } from '@/components/lightbox/types'
 import { formatSeconds, formatFileSize } from '@/lib/format'
 import { useTempStore } from '@/stores/temp'
 import ChatDownloadOverlay from './ChatDownloadOverlay.vue'

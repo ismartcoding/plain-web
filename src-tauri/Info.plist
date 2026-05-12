@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Triggers macOS "local network" permission dialog when the app first
+         attempts to discover devices via multicast UDP. -->
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>PlainApp needs access to the local network to discover nearby devices.</string>
+    <!-- Listing a Bonjour service type is required for macOS to show the
+         Local Network permission dialog for apps that use UDP multicast. -->
+    <key>NSBonjourServices</key>
+    <array>
+        <string>_plainapp._tcp</string>
+        <string>_plainapp._udp</string>
+    </array>
+</dict>
+</plist>

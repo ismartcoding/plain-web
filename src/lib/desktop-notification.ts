@@ -15,6 +15,15 @@ export async function showDesktopNotification(options: DesktopNotificationOption
     }
     if (!granted) return
 
+    if (navigator.platform.toLowerCase().includes('mac')) {
+      try {
+        const { invoke } = await import('@tauri-apps/api/core')
+        await invoke('send_macos_notification', { options })
+        return
+      } catch {
+      }
+    }
+
     await sendNotification({
       title: options.title,
       body: options.body,

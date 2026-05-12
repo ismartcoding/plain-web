@@ -25,7 +25,7 @@ export default defineConfig({
     preprocessorOptions: { 
       scss: { 
         charset: false,
-        api: 'modern-compiler' // 修复 legacy JS API 警告
+        api: 'modern-compiler' 
       } 
     } 
   },
