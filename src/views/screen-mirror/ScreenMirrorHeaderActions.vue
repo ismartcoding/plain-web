@@ -123,9 +123,6 @@ const mirrorShortcuts = [
   { keys: ['Click', '+', 'Drag'], description: 'mirror_swipe' },
   { keys: ['Scroll'], description: 'mirror_scroll' },
   { keys: ['Long press'], description: 'mirror_long_press' },
-  { keys: ['Esc'], description: 'nav_back' },
-  { keys: ['Backspace'], description: 'nav_back' },
-  { keys: ['Home'], description: 'nav_home' },
 ]
 </script>
 
