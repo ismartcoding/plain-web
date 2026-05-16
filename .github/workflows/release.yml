@@ -72,9 +72,53 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
 
+      - name: Validate macOS signing secrets
+        if: matrix.platform == 'macos'
+        shell: bash
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          missing=0
+          for name in APPLE_CERTIFICATE APPLE_CERTIFICATE_PASSWORD APPLE_SIGNING_IDENTITY APPLE_ID APPLE_PASSWORD APPLE_TEAM_ID; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Missing GitHub secret: ${name}"
+              missing=1
+            fi
+          done
+          exit "$missing"
+
       - name: Build desktop app
         shell: bash
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: bash build-desktop.sh
+
+      - name: Verify macOS notarization
+        if: matrix.platform == 'macos'
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(src-tauri/target/release/bundle/dmg/*.dmg)
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "::error::No macOS DMG artifacts found"
+            exit 1
+          fi
+          for file in "${files[@]}"; do
+            xcrun stapler validate "$file"
+            spctl -a -vv -t open "$file"
+          done
 
       - name: Collect artifacts
         shell: bash
@@ -277,11 +321,6 @@ jobs:
           name: Desktop Release ${{ needs.package.outputs.version_name }}
           body: |
             ## What's Changed
-
-            ## Downloads
-            | File |
-            |------|
-            ${{ needs.package.outputs.release_body_files }}
 
             ## Security
 

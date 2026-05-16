@@ -125,7 +125,6 @@ export default {
   from: 'Từ',
   type: 'Loại',
   time: 'Thời gian',
-  browser_warning: 'Đề xuất sử dụng phiên bản mới nhất của trình duyệt web Chrome',
   no_permission: 'Không có quyền. Vui lòng vào APP > "Cài đặt Web" để bật quyền và làm mới trang.',
   check_phone: 'Vui lòng kiểm tra điện thoại của bạn.',
   open_web_settings: 'Mở Cài đặt Web',

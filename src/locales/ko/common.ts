@@ -126,7 +126,6 @@ export default {
   from: '보낸 이',
   type: '유형',
   time: '시간',
-  browser_warning: 'Chrome 웹 브라우저의 최신 버전을 사용하는 것이 좋습니다.',
   no_permission: '권한 없음. APP > "Web 설정"으로 이동하여 권한을 활성화하고 페이지를 새로 고칩니다.',
   check_phone: '휴대폰을 확인해 주세요.',
   open_web_settings: 'Web 설정 열기',
