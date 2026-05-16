@@ -27,7 +27,6 @@
     </div>
     <LoginForm v-if="deviceHost" ref="loginFormRef" />
   </div>
-  <div v-if="showWarning" class="tips">{{ $t('browser_warning') }}</div>
 </template>
 <script setup lang="ts">
 import { nextTick, onMounted, ref } from 'vue'
@@ -41,7 +40,6 @@ import { clearPendingLoginHost, getPendingLoginHost, setPendingLoginHost } from 
 
 const CONNECT_ERROR = 'device_discovery.connect_failed'
 
-const showWarning = window.location.protocol !== 'http:' && !(window.navigator as any).userAgentData
 const isTauri = __IS_TAURI__
 const sessionsStore = useDeviceSessionsStore()
 
@@ -185,12 +183,5 @@ h1 {
   border-radius: var(--pl-shape-xl);
   padding-block: var(--pl-spacing-xl);
   padding: 40px;
-}
-
-.tips {
-  text-align: center;
-  padding: 16px;
-  width: 320px;
-  margin: 0 auto;
 }
 </style>

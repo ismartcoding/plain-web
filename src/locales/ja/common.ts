@@ -126,7 +126,6 @@ export default {
   from: '送信元',
   type: 'タイプ',
   time: '時間',
-  browser_warning: '最新版のChromeウェブブラウザを使用することをお勧めします。',
   no_permission: '権限がありません。APP > 「Web設定」で権限を有効にしてページをリフレッシュしてください。',
   check_phone: 'スマートフォンをご確認ください。',
   open_web_settings: 'Web設定を開く',

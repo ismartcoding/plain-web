@@ -146,7 +146,6 @@ export default {
   from: 'From',
   type: 'Type',
   time: 'Time',
-  browser_warning: 'Suggest to use the lastest version of Chrome web browser',
   no_permission: 'No permission. Please go to APP > "Web Settings" to enable the permissions and refresh the page.',
   check_phone: 'Please check your phone.',
   open_web_settings: 'Open Web Settings',
