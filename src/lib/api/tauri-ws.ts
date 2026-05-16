@@ -42,6 +42,7 @@ export class TauriWebSocket {
     } catch {
       this.readyState = 3
       this.onerror?.(new Event('error'))
+      this.onclose?.(new CloseEvent('close', { wasClean: false, code: 1006 }))
     }
   }
 
@@ -56,7 +57,12 @@ export class TauriWebSocket {
 
   close(code?: number, reason?: string): void {
     this.readyState = 3
-    this._ws?.close(code, reason)
+    if (this._ws) {
+      this._ws.close(code, reason)
+    } else {
+      // _start failed before _ws was assigned; fire onclose so callers can clean up
+      this.onclose?.(new CloseEvent('close', { wasClean: false, code: code ?? 1000, reason: reason ?? '' }))
+    }
   }
 }
 

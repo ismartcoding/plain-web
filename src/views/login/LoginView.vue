@@ -17,7 +17,8 @@
       </ul>
       <div v-if="sessionsStore.sortedSessions.length" class="divider"></div>
       <DiscoverySection :connecting="isConnecting" @device-selected="onDeviceSelected" />
-      <ManualConnectSection :connecting="isConnecting" :error="connectError" @device-selected="onDeviceSelected" @cancel="cancelConnect" />
+      <p v-if="connectError" class="help-text invalid-feedback">{{ $t(connectError) }}</p>
+      <ManualConnectSection :connecting="isConnecting" @device-selected="onDeviceSelected" @cancel="cancelConnect" />
     </div>
     <div v-if="isTauri && deviceHost" class="device-bar subtle">
       <v-icon-button @click="cancelConnect">

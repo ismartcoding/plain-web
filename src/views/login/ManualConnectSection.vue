@@ -9,7 +9,6 @@
       :spellcheck="false"
       @keyup.enter="selectManual"
     />
-    <p v-if="error" class="help-text invalid-feedback">{{ $t(error) }}</p>
     <v-outlined-button v-if="connecting" class="action-btn" :loading="connecting" @click="$emit('cancel')">
       {{ $t('cancel') }}
     </v-outlined-button>
@@ -23,7 +22,6 @@
 import { ref } from 'vue'
 defineProps<{
   connecting?: boolean
-  error?: string
 }>()
 
 const emit = defineEmits<{
