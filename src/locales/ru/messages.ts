@@ -37,6 +37,5 @@ export default {
   sms_notification_warning: 'Чтобы получать новые SMS в режиме реального времени, перейдите в PlainApp на своём телефоне → «Web-настройки» → включите разрешение «Управление уведомлениями».',
   archive_conversation: 'Архивировать разговор',
   archived: 'Архив',
-  no_archived_conversations: 'Нет архивных разговоров',
   unarchive: 'Разархивировать',
 }

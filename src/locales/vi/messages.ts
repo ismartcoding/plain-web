@@ -33,6 +33,5 @@ export default {
   sms_notification_warning: 'Để nhận SMS mới trong thời gian thực, hãy truy cập PlainApp trên điện thoại của bạn → "Cài đặt Web" → bật quyền "Quản lý thông báo".',
   archive_conversation: 'Lưu trữ cuộc trò chuyện',
   archived: 'Đã lưu trữ',
-  no_archived_conversations: 'Không có cuộc trò chuyện được lưu trữ',
   unarchive: 'Bỏ lưu trữ',
 }

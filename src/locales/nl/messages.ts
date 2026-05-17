@@ -33,6 +33,5 @@ export default {
   sms_notification_warning: 'Om nieuwe sms-berichten in realtime te ontvangen, gaat u naar de PlainApp op uw telefoon → "Web-instellingen" → schakel de machtiging "Meldingen beheren" in.',
   archive_conversation: 'Gesprek archiveren',
   archived: 'Gearchiveerd',
-  no_archived_conversations: 'Geen gearchiveerde gesprekken',
   unarchive: 'Archivering ongedaan maken',
 }

@@ -79,8 +79,7 @@
     </VirtualList>
 
     <template v-if="!loading && conversations.length === 0">
-      <div v-if="isArchived" class="no-data-placeholder">{{ $t('no_archived_conversations') }}</div>
-      <NoDataPlaceholder v-else :loading="loading" :permissions="app.permissions" permission="READ_SMS" />
+      <NoDataPlaceholder :loading="loading" :permissions="app.permissions" permission="READ_SMS" />
     </template>
     <div class="sidebar-drag-indicator" @mousedown="resizeWidth"></div>
   </aside>
