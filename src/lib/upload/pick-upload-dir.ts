@@ -3,7 +3,6 @@ import DirectoryPickerModal from '@/components/DirectoryPickerModal.vue'
 
 export async function pickUploadDir(options: {
   title?: string
-  description?: string
   initialPath?: string
   modalId?: string
   getValue?: () => string
@@ -13,7 +12,6 @@ export async function pickUploadDir(options: {
 
   const selected = await promptModal<string>(DirectoryPickerModal, {
     title: options.title,
-    description: options.description,
     initialPath: saved || options.initialPath,
     modalId: options.modalId || 'directory-picker',
   })

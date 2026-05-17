@@ -2,13 +2,27 @@ import type { Ref } from 'vue'
 import type { IBucket, IFilter } from '@/lib/interfaces'
 import { getDirFromPath } from '@/lib/file'
 import { pickUploadDir } from '@/lib/upload/pick-upload-dir'
+import { DataType } from '@/lib/data'
+
+const UPLOAD_SUBDIR: Partial<Record<DataType, string>> = {
+  [DataType.IMAGE]: 'DCIM',
+  [DataType.VIDEO]: 'DCIM',
+  [DataType.AUDIO]: 'Music',
+  [DataType.DOC]: 'Documents',
+}
+
+export function getDefaultUploadDir(dataType: DataType, internalStoragePath: string): string {
+  const sub = UPLOAD_SUBDIR[dataType]
+  if (!sub) return ''
+  const base = internalStoragePath.replace(/\/$/, '')
+  return base ? `${base}/${sub}` : ''
+}
 
 export function createBucketUploadTarget(options: {
   filter: Pick<IFilter, 'bucketId' | 'trash'>
   buckets: Ref<IBucket[]>
   picker: {
     title: string
-    description: string
     initialPath?: string
     modalId: string
     getValue: () => string
@@ -29,9 +43,11 @@ export function createBucketUploadTarget(options: {
     const bucketDir = getSelectedBucketDir()
     if (bucketDir) return bucketDir
 
+    const saved = options.picker.getValue?.()?.trim()
+    if (saved) return saved
+
     return pickUploadDir({
       title: options.picker.title,
-      description: options.picker.description,
       initialPath: options.picker.initialPath || '',
       modalId: options.picker.modalId,
       getValue: options.picker.getValue,

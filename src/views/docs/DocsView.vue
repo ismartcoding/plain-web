@@ -14,16 +14,7 @@
     @select-real-all="selectRealAll" @clear-selection="clearSelection"
   >
     <template #actions>
-      <MediaPageActions placement="top" :filter-trash="!!filter.trash" :is-phone="isPhone" :checked="checked"
-        :upload-menu-visible="uploadMenuVisible" :more-menu-visible="moreMenuVisible"
-        :sort-by="docSortBy" :sort-items="sortItems" :show-view-toggle="false"
-        :on-upload-files="uploadFilesClick" :on-upload-dir="uploadDirClick"
-        :on-sort="sort" :show-view-options="true" :scroll-paging="mainStore.docsScrollPaging"
-        :on-open-keyboard-shortcuts="openKeyboardShortcuts"
-        @update:uploadMenuVisible="(v: boolean) => uploadMenuVisible = v"
-        @update:moreMenuVisible="(v: boolean) => moreMenuVisible = v"
-        @update:scrollPaging="(v: boolean) => mainStore.docsScrollPaging = v"
-      />
+      <MediaPageActions v-bind="actionsProps" placement="top" />
     </template>
   </MediaToolbar>
 
@@ -82,6 +73,7 @@ import { hasFeature } from '@/lib/feature'
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/stores/main'
 import { useMediaPage } from '@/hooks/media-page'
+import { useMediaPageActions } from '@/hooks/media-page-actions'
 import { openModal } from '@/components/modal'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import emitter from '@/plugins/eventbus'
@@ -93,7 +85,7 @@ import DocSkeletonItem from './DocSkeletonItem.vue'
 import { useDocsActions } from './hooks/useDocsActions'
 
 const mainStoreLocal = useMainStore()
-const { docSortBy } = storeToRefs(mainStoreLocal)
+const { docSortBy, docsScrollPaging } = storeToRefs(mainStoreLocal)
 const items = ref<IDoc[]>([])
 const sortItems = getSortItems()
 
@@ -133,14 +125,15 @@ const mp = useMediaPage({
 })
 const {
   isPhone, mainStore, app, urlTokenKey,
-  filter, page, q, limit, dataType, uploadMenuVisible, moreMenuVisible,
+  filter, page, q, limit, dataType,
   fileInput, dirFileInput, uploadChanged, dirUploadChanged, dropping, fileDragEnter, fileDragLeave,
   addToTags, deleteItems, bucketsMap, viewBucket, addItemToTags: addItemToTagsRaw,
   selectedIds, allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible,
   clearSelection, toggleAllChecked, toggleSelect, total, checked, shiftEffectingIds, handleItemClick, shouldSelect,
   downloadItems, downloadFile, trashLoading, trash, restoreLoading, restore,
   gotoPage, onChangePageSize, getQuery, sort, handleMouseOverMode,
-  openKeyboardShortcuts, uploadFilesClick, uploadDirClick, dropFiles2,
+  uploadFilesClick, uploadDirClick, dropFiles2,
+  uploadDir, uploadDirEditable, editUploadDir,
 } = mp
 
 function deleteDocItemInTrash(dt: DataType, item: IDoc) {
@@ -177,6 +170,20 @@ const { openFile, deleteItem: deleteDocItem, renameItem, duplicateItem } = useDo
 function addItemToTags(item: IDoc) {
   addItemToTagsRaw({ id: item.id, title: item.title, size: item.size, tags: item.tags })
 }
+
+const actionsProps = useMediaPageActions({
+  filterTrash: computed(() => !!filter.trash),
+  checked,
+  sortBy: docSortBy,
+  sortItems,
+  onSort: sort,
+  upload: { dir: uploadDir, editable: uploadDirEditable, onUploadFiles: uploadFilesClick, onUploadDir: uploadDirClick, onEditDir: editUploadDir },
+  options: {
+    show: true,
+    scrollPaging: docsScrollPaging,
+    onUpdateScrollPaging: (v: boolean) => { docsScrollPaging.value = v },
+  },
+})
 </script>
 
 <style scoped lang="scss">

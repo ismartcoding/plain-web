@@ -19,15 +19,7 @@
       </v-icon-button>
     </template>
     <template #actions>
-      <MediaPageActions placement="top" :filter-trash="!!filter.trash" :is-phone="isPhone" :checked="checked"
-        :upload-menu-visible="uploadMenuVisible" :more-menu-visible="moreMenuVisible"
-        :sort-by="audioSortBy" :sort-items="sortItems" :show-view-toggle="false"
-        :on-upload-files="uploadFilesClick" :on-upload-dir="uploadDirClick"
-        :on-sort="sort" :show-view-options="true" :scroll-paging="mainStore.audiosScrollPaging"
-        :on-open-keyboard-shortcuts="openKeyboardShortcuts"
-        @update:uploadMenuVisible="(v) => uploadMenuVisible = v" @update:moreMenuVisible="(v) => moreMenuVisible = v"
-        @update:scrollPaging="(v) => mainStore.audiosScrollPaging = v"
-      />
+      <MediaPageActions v-bind="actionsProps" placement="top" />
     </template>
   </MediaToolbar>
 
@@ -70,6 +62,7 @@ import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
 import { useAddToPlaylist, useAudioPlayer } from './hooks/useAudiosHooks'
 import { useMediaPage } from '@/hooks/media-page'
+import { useMediaPageActions } from '@/hooks/media-page-actions'
 import MediaPageActions from '@/components/media/MediaPageActions.vue'
 import MediaToolbar from '@/components/media/MediaToolbar.vue'
 import NoDataPlaceholder from '@/components/NoDataPlaceholder.vue'
@@ -78,7 +71,7 @@ import AudioSkeletonItem from './AudioSkeletonItem.vue'
 
 const mainStoreLocal = useMainStore()
 const tempStoreLocal = useTempStore()
-const { audioSortBy } = storeToRefs(mainStoreLocal)
+const { audioSortBy, audiosScrollPaging } = storeToRefs(mainStoreLocal)
 const { audioPlaying } = storeToRefs(tempStoreLocal)
 const items = ref<IAudioItem[]>([])
 const sortItems = getSortItems()
@@ -123,14 +116,15 @@ const mp = useMediaPage({
 })
 const {
   isPhone, mainStore, app, urlTokenKey,
-  filter, page, q, limit, dataType, uploadMenuVisible, moreMenuVisible,
+  filter, page, q, limit, dataType,
   fileInput, dirFileInput, uploadChanged, dirUploadChanged, dropping, fileDragEnter, fileDragLeave,
   bucketsMap, addToTags, deleteItems, deleteItem, viewBucket,
   selectedIds, allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible,
   clearSelection, toggleAllChecked, toggleSelect, total, checked, shiftEffectingIds, handleItemClick, shouldSelect,
   downloadItems, downloadFile, trashLoading, trash, restoreLoading, restore,
   gotoPage, onChangePageSize, getQuery, sort, handleMouseOverMode,
-  openKeyboardShortcuts, addItemToTags, uploadFilesClick, uploadDirClick, dropFiles2,
+  addItemToTags, uploadFilesClick, uploadDirClick, dropFiles2,
+  uploadDir, uploadDirEditable, editUploadDir,
 } = mp
 
 const isAudioPlaying = (item: IAudioItem) => audioPlaying.value && app.value?.audioCurrent === item.path
@@ -166,6 +160,20 @@ const { loading, fetch } = initLazyQuery({
   },
   document: audiosGQL,
   variables: () => ({ offset: (page.value - 1) * limit.value, limit: limit.value, query: effectiveQ.value, sortBy: audioSortBy.value }),
+})
+
+const actionsProps = useMediaPageActions({
+  filterTrash: computed(() => !!filter.trash),
+  checked,
+  sortBy: audioSortBy,
+  sortItems,
+  onSort: sort,
+  upload: { dir: uploadDir, editable: uploadDirEditable, onUploadFiles: uploadFilesClick, onUploadDir: uploadDirClick, onEditDir: editUploadDir },
+  options: {
+    show: true,
+    scrollPaging: audiosScrollPaging,
+    onUpdateScrollPaging: (v: boolean) => { audiosScrollPaging.value = v },
+  },
 })
 </script>
 

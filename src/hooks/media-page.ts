@@ -1,8 +1,6 @@
 import { computed, inject, onActivated, onDeactivated, reactive, ref, watch, type Ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { useI18n } from 'vue-i18n'
-import toast from '@/components/toaster'
 import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
 import type { IBucket, IFilter, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IMediaItemsActionedEvent } from '@/lib/interfaces'
@@ -14,20 +12,17 @@ import { useAddToTags } from '@/hooks/tags'
 import { useSelectable } from '@/hooks/list'
 import { useBuckets, useBucketsTags, useDeleteItems } from '@/hooks/media'
 import { useDownload, useDownloadItems } from '@/hooks/files'
-import { useDragDropUpload, useFileUpload } from '@/hooks/upload'
-import { createBucketUploadTarget } from '@/hooks/media-upload'
+import { useMediaPageUpload } from '@/hooks/media-page-upload'
 import { useMediaRestore, useMediaTrash } from '@/hooks/media-trash'
 import { useKeyEvents } from '@/hooks/key-events'
 import { replacePath } from '@/plugins/router'
 import emitter from '@/plugins/eventbus'
 import { openModal } from '@/components/modal'
 import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
-import KeyboardShortcutsModal from '@/components/KeyboardShortcutsModal.vue'
 import { type DataType, FEATURE } from '@/lib/data'
 import { getDirFromPath } from '@/lib/file'
 import { generateDownloadFileName } from '@/lib/format'
 import { hasFeature } from '@/lib/feature'
-import { mediaKeyboardShortcuts } from '@/lib/shortcuts/media'
 
 export interface MediaPageOptions {
   dataType: DataType
@@ -51,23 +46,16 @@ export function useMediaPage(options: MediaPageOptions) {
   const isPhone = inject<Ref<boolean>>('isPhone')!
   const mainStore = useMainStore()
   const tempStore = useTempStore()
-  const { app, urlTokenKey, uploads } = storeToRefs(tempStore)
-  const { t } = useI18n()
+  const { app, urlTokenKey } = storeToRefs(tempStore)
   const { parseQ } = useSearch()
   const route = useRoute()
 
   const filter = reactive<IFilter>({ tagIds: [], bucketId: undefined })
-  const uploadMenuVisible = ref(false)
-  const moreMenuVisible = ref(false)
   const sorting = ref(false)
   const page = ref(1)
   const q = ref('')
   const limit = computed(() => mainStore.pageSize)
   const isActive = ref(false)
-
-  const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload(uploads)
-  const { input: dirFileInput, upload: uploadDir, uploadChanged: dirUploadChanged } = useFileUpload(uploads)
-  const { dropping, fileDragEnter, fileDragLeave, dropFiles } = useDragDropUpload(uploads)
 
   const { tags, buckets, fetch: fetchBucketsTags } = useBucketsTags(dataType)
   const bucketsMap = computed(() => {
@@ -86,16 +74,13 @@ export function useMediaPage(options: MediaPageOptions) {
   const { trashLoading, trash } = useMediaTrash()
   const { restoreLoading, restore } = useMediaRestore()
 
-  const uploadTarget = createBucketUploadTarget({
-    filter, buckets,
-    picker: {
-      title: t('upload_select_destination'),
-      description: t('upload_select_destination_desc'),
-      initialPath: '',
-      modalId: options.uploadModalId,
-      getValue: () => mainStore.uploadDirs[options.uploadStorageKey] ?? '',
-      setValue: (v: string) => { mainStore.uploadDirs = { ...mainStore.uploadDirs, [options.uploadStorageKey]: v } },
-    },
+  const upload = useMediaPageUpload({
+    dataType,
+    filter,
+    buckets,
+    fileFilter,
+    uploadModalId: options.uploadModalId,
+    uploadStorageKey: options.uploadStorageKey,
   })
 
   const gotoPage = (p: number) => {
@@ -121,9 +106,6 @@ export function useMediaPage(options: MediaPageOptions) {
     gotoPage, trashInEditMode,
   )
 
-  function openKeyboardShortcuts() {
-    openModal(KeyboardShortcutsModal, { title: t('keyboard_shortcuts'), shortcuts: mediaKeyboardShortcuts })
-  }
   function handleMouseOverMode(e: MouseEvent, index: number) {
     sel.handleMouseOver(e, index)
   }
@@ -143,10 +125,6 @@ export function useMediaPage(options: MediaPageOptions) {
     sortByRef.value = value
     doFetch()
   }
-
-  async function uploadFilesClick() { const dir = await uploadTarget.resolveTargetDir(); if (dir) uploadFiles(dir) }
-  async function uploadDirClick() { const dir = await uploadTarget.resolveTargetDir(); if (dir) uploadDir(dir) }
-  function dropFiles2(e: DragEvent) { dropFiles(e, uploadTarget.resolveTargetDir, (file) => fileFilter(file.name)) }
 
   const itemsTagsUpdatedHandler = (e: IItemsTagsUpdatedEvent) => { if (e.type === dataType) { sel.clearSelection(); doFetch() } }
   const itemTagsUpdatedHandler = (e: IItemTagsUpdatedEvent) => { if (e.type === dataType) doFetch() }
@@ -196,12 +174,12 @@ export function useMediaPage(options: MediaPageOptions) {
 
   return {
     isPhone, mainStore, tempStore, app, urlTokenKey, noDataKey,
-    filter, page, q, sorting, uploadMenuVisible, moreMenuVisible, limit, dataType,
-    fileInput, dirFileInput, uploadChanged, dirUploadChanged, dropping, fileDragEnter, fileDragLeave,
+    filter, page, q, sorting, limit, dataType,
+    ...upload,
     tags, buckets, bucketsMap, addToTags, deleteItems, deleteItem, viewBucket,
     ...sel, downloadItems, downloadFile,
     trashLoading, trash, restoreLoading, restore,
     gotoPage, onChangePageSize, getQuery, sort, handleMouseOverMode,
-    openKeyboardShortcuts, addItemToTags, uploadFilesClick, uploadDirClick, dropFiles2,
+    addItemToTags,
   }
 }
