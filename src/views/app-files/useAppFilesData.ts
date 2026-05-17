@@ -12,6 +12,18 @@ export interface IAppFile {
   updatedAt: string
 }
 
+/**
+ * Build the fid URI suffix for an app file.
+ * Uses "{id}.{ext}" where ext is the lowercase extension of fileName,
+ * falling back to bare "{id}" if fileName has no extension.
+ */
+export function getAppFileFid(item: IAppFile): string {
+  const dot = item.fileName.lastIndexOf('.')
+  if (dot === -1) return item.id
+  const ext = item.fileName.substring(dot + 1).toLowerCase()
+  return ext ? `${item.id}.${ext}` : item.id
+}
+
 const PAGE_SIZE = 50
 
 export function useAppFilesData() {

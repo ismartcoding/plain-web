@@ -55,7 +55,7 @@ import { noDataKey } from '@/lib/list'
 import { useSelectable } from '@/hooks/list'
 import { useDownloadItems } from '@/hooks/files'
 import FileSkeletonItem from '@/views/files/FileSkeletonItem.vue'
-import { useAppFilesData, type IAppFile } from './useAppFilesData'
+import { useAppFilesData, getAppFileFid, type IAppFile } from './useAppFilesData'
 import AppFileItem from './AppFileItem.vue'
 
 const isPhone = inject('isPhone') as boolean
@@ -90,11 +90,11 @@ function setupObserver() {
 watch(sentinel, (el) => { if (el) setupObserver() })
 
 function getAppFileUrl(item: IAppFile) {
-  return getFileUrl(getFileId(urlTokenKey.value, `fid:${item.id}`))
+  return getFileUrl(getFileId(urlTokenKey.value, `fid:${getAppFileFid(item)}`))
 }
 
 function getAppFileDownloadUrl(item: IAppFile) {
-  const path = `fid:${item.id}`
+  const path = `fid:${getAppFileFid(item)}`
   const fileId = getFileId(urlTokenKey.value, JSON.stringify({ path, name: item.fileName }))
   return `${getApiBaseUrl()}/fs?id=${encodeURIComponent(fileId)}&dl=1`
 }
@@ -102,7 +102,7 @@ function getAppFileDownloadUrl(item: IAppFile) {
 function clickItem(item: IAppFile) {
   const name = item.fileName
   if (isTextFile(name)) {
-    const fileId = getFileId(urlTokenKey.value, `fid:${item.id}`)
+    const fileId = getFileId(urlTokenKey.value, `fid:${getAppFileFid(item)}`)
     openUrl(`/text-file?id=${encodeURIComponent(fileId)}`)
   } else if (canOpenInBrowser(name)) {
     openUrl(getAppFileUrl(item))
@@ -116,9 +116,9 @@ function clickItem(item: IAppFile) {
 function viewMedia(item: IAppFile) {
   const viewable = items.value.filter((it) => canView(it.fileName))
   const sources = viewable.map((it) => ({
-    path: `fid:${it.id}`, src: getAppFileUrl(it), name: it.fileName, size: it.size, duration: 0,
+    path: `fid:${getAppFileFid(it)}`, src: getAppFileUrl(it), name: it.fileName, size: it.size, duration: 0,
   }))
-  tempStore.lightbox = { sources, index: sources.findIndex((s) => s.path === `fid:${item.id}`), visible: true }
+  tempStore.lightbox = { sources, index: sources.findIndex((s) => s.path === `fid:${getAppFileFid(item)}`), visible: true }
 }
 
 const isActive = ref(false)
