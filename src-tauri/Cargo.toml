@@ -28,3 +28,13 @@ tokio = { version = "1", features = ["sync", "macros", "net"] }
 tauri-plugin-opener = "2.5.4"
 tauri-plugin-notification = "2.3.3"
 tauri-plugin-log = "2"
+# XChaCha20-Poly1305 for local server request encryption — required for security correctness.
+chacha20poly1305 = "0.10"
+# Self-signed TLS certificate generation for local HTTPS server.
+# ring feature enables the required crypto backend (generate_simple_self_signed needs it).
+rcgen = { version = "0.13", default-features = false, features = ["pem", "ring"] }
+# Async TLS acceptor wrapping tokio streams. Uses ring backend to match rcgen.
+tokio-rustls = { version = "0.26", default-features = false, features = ["ring", "logging", "tls12"] }
+rustls-pemfile = "2"
+# SQLite for local chat/channel storage. Bundled builds SQLite from source — no system dependency.
+rusqlite = { version = "0.32", features = ["bundled"] }

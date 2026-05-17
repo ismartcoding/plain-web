@@ -1,6 +1,13 @@
 import { defineStore } from 'pinia'
 
 /**
+ * Sentinel clientId for the built-in "local" session (no connected device).
+ * Stored as currentClientId to signal local mode instead of empty string,
+ * so the value is always meaningful and consistent across all consumers.
+ */
+export const LOCAL_CLIENT_ID = '__local__'
+
+/**
  * Persistent registry of devices the user has previously logged into,
  * scoped to the Tauri desktop app. Lets the user switch between known
  * devices without re-authenticating each time.
@@ -31,7 +38,7 @@ export type DeviceSessionsState = {
 const STORAGE_KEY = 'device_sessions'
 
 function loadFromStorage(): DeviceSessionsState {
-  const fallback: DeviceSessionsState = { sessions: [], currentClientId: '' }
+  const fallback: DeviceSessionsState = { sessions: [], currentClientId: LOCAL_CLIENT_ID }
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return fallback
@@ -45,8 +52,9 @@ function loadFromStorage(): DeviceSessionsState {
               && typeof s.token === 'string'
         )
       : []
-    const currentClientId =
-      typeof parsed.currentClientId === 'string' ? parsed.currentClientId : ''
+    // Migrate legacy empty-string currentClientId to LOCAL_CLIENT_ID.
+    const stored = typeof parsed.currentClientId === 'string' ? parsed.currentClientId : ''
+    const currentClientId = stored || LOCAL_CLIENT_ID
     return { sessions, currentClientId }
   } catch {
     return fallback
@@ -100,7 +108,7 @@ export const useDeviceSessionsStore = defineStore('deviceSessions', {
     },
     remove(clientId: string) {
       this.sessions = this.sessions.filter((s) => s.clientId !== clientId)
-      if (this.currentClientId === clientId) this.currentClientId = ''
+      if (this.currentClientId === clientId) this.currentClientId = LOCAL_CLIENT_ID
       // Also clean up the persisted main state for this device.
       localStorage.removeItem(`main_state:${clientId}`)
       this.persist()

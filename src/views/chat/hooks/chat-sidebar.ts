@@ -10,6 +10,7 @@ import { openModal } from '@/components/modal'
 import CreateChannelModal from '@/views/chat/CreateChannelModal.vue'
 import { useChatStore } from '@/stores/chat'
 import { decryptChatId } from './chat-route'
+import { isLocalMode } from '@/lib/local-mode'
 
 export function useChatSidebar() {
   const router = useRouter()
@@ -28,8 +29,8 @@ export function useChatSidebar() {
     return decryptChatId(currentEncryptedId.value, urlTokenKey.value)
   })
 
-  function getPeerChatRouteId(peerId: string) { return getFileId(urlTokenKey.value, `peer:${peerId}`) }
-  function getChannelChatRouteId(channelId: string) { return getFileId(urlTokenKey.value, `channel:${channelId}`) }
+  function getPeerChatRouteId(peerId: string) { return isLocalMode() ? `peer:${peerId}` : getFileId(urlTokenKey.value, `peer:${peerId}`) }
+  function getChannelChatRouteId(channelId: string) { return isLocalMode() ? `channel:${channelId}` : getFileId(urlTokenKey.value, `channel:${channelId}`) }
   function isPeerActive(peerId: string) { return currentChatId.value === `peer:${peerId}` }
   function isChannelActive(channelId: string) { return currentChatId.value === `channel:${channelId}` }
 

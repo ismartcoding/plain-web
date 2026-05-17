@@ -14,6 +14,18 @@ export function getPendingLoginHost(): string { return _pendingLoginHost }
 let _httpProxyPort = 0
 export function setHttpProxyPort(port: number): void { _httpProxyPort = port }
 
+let _localServerPort = 0
+export function setLocalServerPort(port: number): void { _localServerPort = port }
+export function getLocalServerPort(): number { return _localServerPort }
+
+let _localToken = ''
+export function setLocalServerToken(token: string): void { _localToken = token }
+export function getLocalToken(): string { return _localToken }
+
+let _localServerHttpsPort = 0
+export function setLocalServerHttpsPort(port: number): void { _localServerHttpsPort = port }
+export function getLocalServerHttpsPort(): number { return _localServerHttpsPort }
+
 /** In Tauri + HTTPS mode, builds a local proxy URL with the device target
  *  encoded as `_pt` query param — for browser-initiated requests (img/video src)
  *  that cannot set custom headers. Non-HTTPS devices get a direct URL. */
@@ -56,6 +68,9 @@ function isSecurePort(host: string): boolean {
 }
 
 export function getWebSocketBaseUrl() {
+  if (__IS_TAURI__ && _localServerPort && !(_pendingLoginHost || getCurrentDeviceHost())) {
+    return `ws://127.0.0.1:${_localServerPort}`
+  }
   if (__IS_TAURI__ && (_pendingLoginHost || getCurrentDeviceHost())) {
     const p = isSecurePort(getApiHost()) ? 'wss' : 'ws'
     return `${p}://${getApiHost()}`
@@ -65,6 +80,9 @@ export function getWebSocketBaseUrl() {
 }
 
 export function getApiBaseUrl() {
+  if (__IS_TAURI__ && _localServerPort && !(_pendingLoginHost || getCurrentDeviceHost())) {
+    return `http://127.0.0.1:${_localServerPort}`
+  }
   if (__IS_TAURI__ && (_pendingLoginHost || getCurrentDeviceHost())) {
     const p = isSecurePort(getApiHost()) ? 'https' : 'http'
     return `${p}://${getApiHost()}`

@@ -10,6 +10,7 @@ import type { IApp, IMediaItemsActionedEvent } from '@/lib/interfaces'
 import { useRightSidebarResize } from '@/hooks/sidebar'
 import { getMainStateKey } from '@/lib/device-current'
 import { useDeviceSessionsStore } from '@/stores/device-sessions'
+import { isLocalMode } from '@/lib/local-mode'
 
 export function useMainView() {
   const store = useMainStore()
@@ -21,6 +22,12 @@ export function useMainView() {
   const loading = ref(true)
   const errorMessage = ref('')
   let playAudio = false
+
+  // In local mode there is no device to query — suppress the loading state immediately
+  // so there is no loading flash, but still run appGQL to get the urlToken from the
+  // local server (needed for file URL encryption).
+  const localMode = isLocalMode()
+  if (localMode) loading.value = false
 
   const hiddenHeaderSearchRoutes = new Set(['/files/recent', '/screen-mirror'])
   const hiddenHeaderSearchPatterns = [/^\/chat(?:\/|$)/]
@@ -42,6 +49,7 @@ export function useMainView() {
   }
 
   function toggleQuick(name: string) {
+    if (localMode && name === 'notification') return
     store.quick = store.quick === name ? '' : name
   }
 
@@ -50,7 +58,7 @@ export function useMainView() {
     return !hiddenHeaderSearchRoutes.has(route.path) && !hiddenHeaderSearchPatterns.some((p) => p.test(route.path))
   })
 
-  const { refetch: refetchApp } = initQuery({
+  const refetchApp = initQuery({
     handle: (data: { app: IApp }, error: string) => {
       loading.value = false
       if (error) {
@@ -69,7 +77,7 @@ export function useMainView() {
       }
     },
     document: appGQL,
-  })
+  }).refetch
 
   const { resizeWidth } = useRightSidebarResize(
     300,
@@ -112,7 +120,7 @@ export function useMainView() {
 
   return {
     store, app, loading, errorMessage,
-    hasTasks, hasLeftSidebar, showHeaderSearch,
+    hasTasks, hasLeftSidebar, showHeaderSearch, localMode,
     toggleSidebar, toggleQuick, getSidebar2CacheKey, resizeWidth,
   }
 }

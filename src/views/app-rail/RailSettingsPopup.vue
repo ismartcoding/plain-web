@@ -19,7 +19,7 @@
           <i-lucide:arrow-left-right />
         </button>
       </div>
-      <div class="actions" v-if="app?.battery != null">
+      <div class="actions" v-if="!localMode && app?.battery != null">
         <svg class="popup-battery-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="1" y="6.5" width="18" height="11" rx="2" ry="2" />
           <line x1="23" y1="10" x2="23" y2="14" />
@@ -29,6 +29,7 @@
       </div>
     </div>
 
+    <template v-if="!localMode">
     <div class="dropdown-item" @click="openCustomizeUI">
       <i-lucide:layout-list class="feature-icon" />
       <span>{{ $t('customize_ui') }}</span>
@@ -52,6 +53,7 @@
         <span>{{ $t(feat.titleKey) }}</span>
       </router-link>
     </template>
+    </template>
   </v-dropdown>
 </template>
 
@@ -64,9 +66,12 @@ import { useDeviceSessionsStore } from '@/stores/device-sessions'
 import { storeToRefs } from 'pinia'
 import { pushModal } from '@/components/modal'
 import { getAvailableFeatures, type Feature } from './features'
+import { isLocalMode } from '@/lib/local-mode'
 import CustomizeUIModal from './CustomizeUIModal.vue'
 import ExcludedDirsModal from './ExcludedDirsModal.vue'
 import DeviceSwitcherModal from '@/components/DeviceSwitcherModal.vue'
+
+const localMode = isLocalMode()
 
 const { app } = storeToRefs(useTempStore())
 const store = useMainStore()

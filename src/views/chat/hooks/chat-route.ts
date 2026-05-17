@@ -6,8 +6,10 @@ import { useMainStore } from '@/stores/main'
 import { chachaDecrypt } from '@/lib/api/crypto'
 import { tokenToKey } from '@/lib/api/file'
 import { replacePath } from '@/plugins/router'
+import { isLocalMode } from '@/lib/local-mode'
 
 export function decryptChatId(rawId: string, key: Uint8Array | null): string {
+  if (isLocalMode() && (rawId.startsWith('peer:') || rawId.startsWith('channel:'))) return rawId
   if (!rawId || !key) return 'local'
   try {
     const bits = tokenToKey(rawId)

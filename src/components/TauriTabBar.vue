@@ -34,6 +34,9 @@
             {{ session.name || session.host }}
           </div>
           <div class="dropdown-divider"></div>
+          <div v-if="!localMode" class="dropdown-item" @click="switchToLocal">
+            {{ $t('home.switch_to_local') }}
+          </div>
           <div class="dropdown-item" @click="openDeviceSwitcher">
             {{ $t('device_discovery.add_device') }}
           </div>
@@ -63,7 +66,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useMainStore } from '@/stores/main'
 import type { AppTab } from '@/stores/main'
-import { useDeviceSessionsStore } from '@/stores/device-sessions'
+import { useDeviceSessionsStore, LOCAL_CLIENT_ID } from '@/stores/device-sessions'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { pushModal } from '@/components/modal'
@@ -78,11 +81,16 @@ const { currentSession, sortedSessions } = storeToRefs(deviceSessionsStore)
 const { app } = storeToRefs(useTempStore())
 const homeDeviceMenuOpen = ref(false)
 
+// True when no device session is active — local-only mode.
+const localMode = computed(() => deviceSessionsStore.currentClientId === LOCAL_CLIENT_ID)
+
 const homeTabTitle = computed(() =>
-  app.value?.deviceName
-  || currentSession.value?.name
-  || currentSession.value?.host
-  || String((i18n.global as any).t('my_phone'))
+  localMode.value
+    ? String((i18n.global as any).t('home.local_mode'))
+    : app.value?.deviceName
+      || currentSession.value?.name
+      || currentSession.value?.host
+      || String((i18n.global as any).t('my_phone'))
 )
 
 const switchableSessions = computed(() =>
@@ -122,6 +130,12 @@ function switchToSession(clientId: string) {
   homeDeviceMenuOpen.value = false
   deviceSessionsStore.setCurrent(clientId)
   // Full reload so all stores/sockets re-init against the selected device.
+  window.location.href = '/'
+}
+
+function switchToLocal() {
+  homeDeviceMenuOpen.value = false
+  deviceSessionsStore.setCurrent(LOCAL_CLIENT_ID)
   window.location.href = '/'
 }
 

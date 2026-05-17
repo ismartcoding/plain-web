@@ -1,9 +1,10 @@
-import { getApiBaseUrl, getApiHeaders } from './api'
+import { getApiBaseUrl, getApiHeaders, getLocalToken } from './api'
 import { chachaEncrypt, chachaDecrypt, arrayBufferToBitArray, bitArrayToUint8Array } from './crypto'
 import { tokenToKey } from './file'
 import { wrapWithReplayProtection } from './time-sync'
 import { getCurrentAuthToken, clearCurrentSession } from '../device-current'
 import { tauriFetch } from './tauri-fetch'
+import { isLocalMode } from '../local-mode'
 
 const TIMEOUT = 30000
 
@@ -32,7 +33,7 @@ export async function gqlFetch<T = any>(query: string, variables?: Record<string
 
 async function doGqlFetch<T = any>(query: string, variables?: Record<string, any>): Promise<GqlResult<T>> {
   const url = `${getApiBaseUrl()}/graphql`
-  const token = getCurrentAuthToken()
+  const token = isLocalMode() ? getLocalToken() : getCurrentAuthToken()
   const key = tokenToKey(token)
 
   const json = JSON.stringify({ query, variables })
@@ -52,8 +53,12 @@ async function doGqlFetch<T = any>(query: string, variables?: Record<string, any
       : await fetch(url, { method: 'POST', headers: { ...getApiHeaders() }, body: body as BodyInit, signal: controller.signal })
 
     if (response.status === 401) {
-      clearCurrentSession()
-      window.location.reload()
+      // In local mode there is no device session — never clear state or reload;
+      // that would create an infinite reload loop.
+      if (!isLocalMode()) {
+        clearCurrentSession()
+        window.location.reload()
+      }
       throw new GqlError('unauthorized', 401)
     }
     if (response.status === 403) {

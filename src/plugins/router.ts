@@ -3,6 +3,7 @@ import MainView from '@/views/MainView.vue'
 import type { MainState } from '@/stores/main'
 import i18n from '@/plugins/i18n'
 import { getCurrentAuthToken } from '@/lib/device-current'
+import { isLocalMode, isLocalRouteGroup } from '@/lib/local-mode'
 import { useMainStore } from '@/stores/main'
 
 const router = createRouter({
@@ -226,7 +227,10 @@ router.beforeEach(async (to, from) => {
   if (scrollTop !== undefined) {
     scrollTops.set(from.fullPath, scrollTop)
   }
-  const canAccess = getCurrentAuthToken()
+  if (isLocalMode() && (to.path === '/' || to.meta.group === 'home')) {
+    return { path: '/chat' }
+  }
+  const canAccess = getCurrentAuthToken() || (isLocalMode() && isLocalRouteGroup(to.meta.group))
   if (to.meta.requiresAuth && !canAccess) {
     return {
       path: '/login',

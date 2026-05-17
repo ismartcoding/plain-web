@@ -58,6 +58,7 @@
           <v-circular-progress indeterminate />
         </div>
       </div>
+      <template v-if="!localMode">
       <div class="quick-actions">
         <header-actions :logged-in="true" @toggle-quick="toggleQuick" />
 
@@ -72,7 +73,7 @@
           <i-material-symbols:format-list-numbered-rounded />
         </v-icon-button>
         <v-icon-button
-          v-if="app.channel !== 'GOOGLE'"
+          v-if="!localMode && app.channel !== 'GOOGLE'"
           v-tooltip="$t('header_actions.notifications')"
           class="q-action"
           toggle
@@ -98,11 +99,12 @@
         <div v-show="store.quick" class="quick-content" :style="{ width: store.quickContentWidth + 'px' }">
           <upload-list v-show="store.quick === 'upload'" />
           <audio-player v-show="store.quick === 'audio'" />
-          <p-notifications v-show="store.quick === 'notification'" />
+          <p-notifications v-if="!localMode" v-show="store.quick === 'notification'" />
           <pomodoro-timer v-show="store.quick === 'pomodoro'" />
           <bookmark-list v-show="store.quick === 'bookmark'" />
         </div>
       </transition>
+      </template>
       <lightbox />
     </div>
   </div>
@@ -119,7 +121,7 @@ const isTauri = __IS_TAURI__
 
 const {
   store, app, loading, errorMessage,
-  hasTasks, hasLeftSidebar, showHeaderSearch,
+  hasTasks, hasLeftSidebar, showHeaderSearch, localMode,
   toggleSidebar, toggleQuick, getSidebar2CacheKey, resizeWidth,
 } = useMainView()
 </script>
