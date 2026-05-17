@@ -15,9 +15,7 @@
   >
     <template #actions>
       <ImageSearchButton />
-      <MediaPageActions v-bind="actionsProps" placement="top"
-        :on-upload-files="uploadFilesClick" :on-upload-dir="uploadDirClick"
-      />
+      <MediaPageActions v-bind="actionsProps" placement="top" />
     </template>
     <template #secondary>
       <MediaPageActions v-bind="actionsProps" placement="secondary" />
@@ -90,6 +88,7 @@ import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/stores/main'
 import { useGroupedScroll } from '@/hooks/grouped-scroll'
 import { useMediaPage } from '@/hooks/media-page'
+import { useMediaPageActions } from '@/hooks/media-page-actions'
 import ImageListItem from '@/views/images/ImageListItem.vue'
 import MediaPageActions from '@/components/media/MediaPageActions.vue'
 import MediaGridItem from '@/components/media/MediaGridItem.vue'
@@ -97,7 +96,7 @@ import MediaToolbar from '@/components/media/MediaToolbar.vue'
 import ImageSearchButton from '@/components/ai/ImageSearchButton.vue'
 import NoDataPlaceholder from '@/components/NoDataPlaceholder.vue'
 
-const { imageSortBy } = storeToRefs(useMainStore())
+const { imageSortBy, imagesCardView, imagesGroupBy, imagesScrollPaging } = storeToRefs(useMainStore())
 const items = ref<IImageItem[]>([])
 const sortItems = getImageSortItems()
 const groupByItems = getImageGroupByItems()
@@ -113,14 +112,15 @@ const mp = useMediaPage({
 })
 const {
   isPhone, mainStore, tempStore, app, urlTokenKey,
-  filter, page, q, limit, dataType, uploadMenuVisible, moreMenuVisible,
+  filter, page, q, limit, dataType,
   fileInput, dirFileInput, uploadChanged, dirUploadChanged, dropping, fileDragEnter, fileDragLeave,
   bucketsMap, addToTags, deleteItems, deleteItem, viewBucket,
   selectedIds, allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible,
   clearSelection, toggleAllChecked, toggleSelect, total, checked, shiftEffectingIds, handleItemClick, shouldSelect,
   downloadItems, downloadFile, trashLoading, trash, restoreLoading, restore,
   gotoPage, onChangePageSize, getQuery, sort, handleMouseOverMode,
-  openKeyboardShortcuts, addItemToTags, uploadFilesClick, uploadDirClick, dropFiles2,
+  addItemToTags, uploadFilesClick, uploadDirClick, dropFiles2,
+  uploadDir, uploadDirEditable, editUploadDir,
 } = mp
 
 const { noMore, sentinel, isGroupMode, scrollMode, groupedItems, setupSentinelObserver, teardownObserver, prefetchNext } = useGroupedScroll({
@@ -162,17 +162,23 @@ const sources = computed<ISource[]>(() => items.value.map((it: IImageItem) => ({
 })) as ISource[])
 function view(index: number) { tempStore.lightbox = { sources: sources.value, index, visible: true } }
 
-const actionsProps = computed(() => ({
-  filterTrash: !!filter.trash, isPhone: isPhone.value, checked: checked.value,
-  uploadMenuVisible: uploadMenuVisible.value, moreMenuVisible: moreMenuVisible.value,
-  sortBy: imageSortBy.value, sortItems, showViewToggle: true, cardView: mainStore.imagesCardView,
-  hideViewToggle: isGroupMode.value, onSort: sort, showViewOptions: true, showGroupBy: true,
-  groupByItems, groupBy: mainStore.imagesGroupBy, scrollPaging: mainStore.imagesScrollPaging,
-  onOpenKeyboardShortcuts: openKeyboardShortcuts, onUpdateCardView: (v: boolean) => { mainStore.imagesCardView = v },
-  'onUpdate:uploadMenuVisible': (v: boolean) => { uploadMenuVisible.value = v },
-  'onUpdate:moreMenuVisible': (v: boolean) => { moreMenuVisible.value = v },
-  'onUpdate:groupBy': (v: string) => { mainStore.imagesGroupBy = v },
-  'onUpdate:scrollPaging': (v: boolean) => { mainStore.imagesScrollPaging = v },
-}))
+const actionsProps = useMediaPageActions({
+  filterTrash: computed(() => !!filter.trash),
+  checked,
+  sortBy: imageSortBy,
+  sortItems,
+  onSort: sort,
+  upload: { dir: uploadDir, editable: uploadDirEditable, onUploadFiles: uploadFilesClick, onUploadDir: uploadDirClick, onEditDir: editUploadDir },
+  view: { cardView: imagesCardView, hide: isGroupMode, onUpdateCardView: (v: boolean) => { imagesCardView.value = v } },
+  options: {
+    show: true,
+    showGroupBy: true,
+    groupByItems,
+    groupBy: imagesGroupBy,
+    scrollPaging: imagesScrollPaging,
+    onUpdateGroupBy: (v: string) => { imagesGroupBy.value = v },
+    onUpdateScrollPaging: (v: boolean) => { imagesScrollPaging.value = v },
+  },
+})
 </script>
 

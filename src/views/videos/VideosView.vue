@@ -14,9 +14,7 @@
     @select-real-all="selectRealAll" @clear-selection="clearSelection"
   >
     <template #actions>
-      <MediaPageActions v-bind="actionsProps" placement="top"
-        :on-upload-files="uploadFilesClick" :on-upload-dir="uploadDirClick"
-      />
+      <MediaPageActions v-bind="actionsProps" placement="top" />
     </template>
     <template #secondary>
       <MediaPageActions v-bind="actionsProps" placement="secondary" />
@@ -96,12 +94,13 @@ import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/stores/main'
 import { useGroupedScroll } from '@/hooks/grouped-scroll'
 import { useMediaPage } from '@/hooks/media-page'
+import { useMediaPageActions } from '@/hooks/media-page-actions'
 import MediaPageActions from '@/components/media/MediaPageActions.vue'
 import MediaGridItem from '@/components/media/MediaGridItem.vue'
 import MediaToolbar from '@/components/media/MediaToolbar.vue'
 import NoDataPlaceholder from '@/components/NoDataPlaceholder.vue'
 
-const { videoSortBy } = storeToRefs(useMainStore())
+const { videoSortBy, videosCardView, videosGroupBy, videosScrollPaging } = storeToRefs(useMainStore())
 const items = ref<IVideoItem[]>([])
 const sortItems = getSortItems()
 const groupByItems = getVideoGroupByItems()
@@ -117,14 +116,15 @@ const mp = useMediaPage({
 })
 const {
   isPhone, mainStore, tempStore, app, urlTokenKey,
-  filter, page, q, limit, dataType, uploadMenuVisible, moreMenuVisible,
+  filter, page, q, limit, dataType,
   fileInput, dirFileInput, uploadChanged, dirUploadChanged, dropping, fileDragEnter, fileDragLeave,
   bucketsMap, addToTags, deleteItems, deleteItem, viewBucket,
   selectedIds, allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible,
   clearSelection, toggleAllChecked, toggleSelect, total, checked, shiftEffectingIds, handleItemClick, shouldSelect,
   downloadItems, downloadFile, trashLoading, trash, restoreLoading, restore,
   gotoPage, onChangePageSize, getQuery, sort, handleMouseOverMode,
-  openKeyboardShortcuts, addItemToTags, uploadFilesClick, uploadDirClick, dropFiles2,
+  addItemToTags, uploadFilesClick, uploadDirClick, dropFiles2,
+  uploadDir, uploadDirEditable, editUploadDir,
 } = mp
 
 const { noMore, sentinel, isGroupMode, scrollMode, groupedItems, setupSentinelObserver, teardownObserver, prefetchNext } = useGroupedScroll({
@@ -168,16 +168,22 @@ const sources = computed<ISource[]>(() => items.value.map((it: IVideoItem) => ({
 })) as ISource[])
 function view(index: number) { tempStore.lightbox = { sources: sources.value, index, visible: true } }
 
-const actionsProps = computed(() => ({
-  filterTrash: !!filter.trash, isPhone: isPhone.value, checked: checked.value,
-  uploadMenuVisible: uploadMenuVisible.value, moreMenuVisible: moreMenuVisible.value,
-  sortBy: videoSortBy.value, sortItems, showViewToggle: true, cardView: mainStore.videosCardView,
-  hideViewToggle: isGroupMode.value, onSort: sort, showViewOptions: true, showGroupBy: true,
-  groupByItems, groupBy: mainStore.videosGroupBy, scrollPaging: mainStore.videosScrollPaging,
-  onOpenKeyboardShortcuts: openKeyboardShortcuts, onUpdateCardView: (v: boolean) => { mainStore.videosCardView = v },
-  'onUpdate:uploadMenuVisible': (v: boolean) => { uploadMenuVisible.value = v },
-  'onUpdate:moreMenuVisible': (v: boolean) => { moreMenuVisible.value = v },
-  'onUpdate:groupBy': (v: string) => { mainStore.videosGroupBy = v },
-  'onUpdate:scrollPaging': (v: boolean) => { mainStore.videosScrollPaging = v },
-}))
+const actionsProps = useMediaPageActions({
+  filterTrash: computed(() => !!filter.trash),
+  checked,
+  sortBy: videoSortBy,
+  sortItems,
+  onSort: sort,
+  upload: { dir: uploadDir, editable: uploadDirEditable, onUploadFiles: uploadFilesClick, onUploadDir: uploadDirClick, onEditDir: editUploadDir },
+  view: { cardView: videosCardView, hide: isGroupMode, onUpdateCardView: (v: boolean) => { videosCardView.value = v } },
+  options: {
+    show: true,
+    showGroupBy: true,
+    groupByItems,
+    groupBy: videosGroupBy,
+    scrollPaging: videosScrollPaging,
+    onUpdateGroupBy: (v: string) => { videosGroupBy.value = v },
+    onUpdateScrollPaging: (v: boolean) => { videosScrollPaging.value = v },
+  },
+})
 </script>

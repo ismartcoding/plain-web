@@ -6,7 +6,6 @@
 
     <template #content>
       <div class="picker">
-        <p v-if="description" class="picker-desc">{{ description }}</p>
         <div class="hint">
           <span class="picker-current__label">{{ $t('current_path') }}:</span>
           <span class="mono picker-current__value">{{ currentDir || '-' }}</span>
@@ -69,11 +68,6 @@ function cancel() { popModal() }
   flex-direction: column;
   gap: 12px;
   min-width: min(960px, 90vw);
-}
-
-.picker-desc {
-  margin: 0;
-  color: var(--md-sys-color-on-surface-variant);
 }
 
 .picker-current__label {
