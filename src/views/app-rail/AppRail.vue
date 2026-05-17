@@ -32,8 +32,10 @@ import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { ALL_FEATURES, getAvailableFeatures, type Feature } from './features'
+import { isLocalFeatureId, isLocalMode } from '@/lib/local-mode'
 import RailSettingsPopup from './RailSettingsPopup.vue'
 const isTauri = __IS_TAURI__
+const localMode = isLocalMode()
 
 const store = useMainStore()
 const router = useRouter()
@@ -42,11 +44,12 @@ const { app } = storeToRefs(tempStore)
 
 const availableFeatures = computed(() => getAvailableFeatures(app.value?.channel ?? ''))
 
-const railFeatures = computed<Feature[]>(() =>
-  store.railFeatures
+const railFeatures = computed<Feature[]>(() => {
+  const ids = localMode ? store.railFeatures.filter(isLocalFeatureId) : store.railFeatures
+  return ids
     .map((id) => ALL_FEATURES.find((f) => f.id === id))
     .filter((f): f is Feature => !!f && availableFeatures.value.some((a) => a.id === f.id))
-)
+})
 
 function isActive(feat: Feature) {
   try {

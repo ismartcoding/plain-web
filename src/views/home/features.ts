@@ -2,6 +2,7 @@ import type { Component } from 'vue'
 import ILucideClipboard from '~icons/lucide/clipboard'
 import ILucidePhoneCall from '~icons/lucide/phone-call'
 import { ALL_FEATURES, type Feature } from '@/views/app-rail/features'
+import { isLocalFeatureId, isLocalMode } from '@/lib/local-mode'
 
 export type HomeFeatureCountKey =
   | 'audios'
@@ -70,6 +71,7 @@ const HOME_PANEL_FEATURES: HomePanelFeature[] = [
 export function getAvailableHomeFeatures(channel: string): HomeSectionFeature[] {
   const routeFeatures = ALL_FEATURES
     .filter((feature) => HOME_FEATURE_IDS.has(feature.id))
+    .filter((feature) => !isLocalMode() || isLocalFeatureId(feature.id))
     .filter((feature) => !(feature.requireNonGoogle && channel === 'GOOGLE'))
     .map((feature) => ({
       ...feature,
@@ -79,7 +81,7 @@ export function getAvailableHomeFeatures(channel: string): HomeSectionFeature[] 
 
   const featureMap = new Map<string, HomeSectionFeature>([
     ...routeFeatures.map((feature) => [feature.id, feature] as const),
-    ...HOME_PANEL_FEATURES.map((feature) => [feature.id, feature] as const),
+    ...(isLocalMode() ? [] : HOME_PANEL_FEATURES.map((feature) => [feature.id, feature] as const)),
   ])
 
   return DEFAULT_HOME_FEATURES

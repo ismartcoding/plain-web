@@ -121,7 +121,7 @@ import { useRouter } from 'vue-router'
 import { popModal } from './modal/methods'
 import DeviceDiscoveryStatus from './DeviceDiscoveryStatus.vue'
 import { useDeviceDiscovery } from '@/hooks/use-device-discovery'
-import { useDeviceSessionsStore } from '@/stores/device-sessions'
+import { useDeviceSessionsStore, LOCAL_CLIENT_ID } from '@/stores/device-sessions'
 import type { DeviceSession } from '@/stores/device-sessions'
 
 const store = useDeviceSessionsStore()
@@ -164,9 +164,9 @@ function remove(s: DeviceSession) {
   const isCurrent = s.clientId === currentClientId.value
   store.remove(s.clientId)
   if (isCurrent) {
-    // The active device was removed — store.remove() already cleared currentClientId.
+    // The active device was removed; store.remove() falls back to LOCAL_CLIENT_ID.
     close()
-    window.location.href = '/login'
+    window.location.href = '/'
   }
 }
 
@@ -197,8 +197,8 @@ function saveEdit(s: DeviceSession) {
 }
 
 function addNew(host: string) {
-  // Clear currentClientId so the router allows navigation to /login.
-  store.setCurrent('')
+  // Switch to local so the router allows navigation to /login without a token.
+  store.setCurrent(LOCAL_CLIENT_ID)
   // Pass the pre-selected host to LoginView via sessionStorage.
   sessionStorage.setItem('pending_login_host', host)
   close()
