@@ -33,6 +33,5 @@ export default {
   sms_notification_warning: '新しい SMS をリアルタイムで受信するには、携帯電話で PlainApp → 「Web設定」に移動し、「通知の管理」権限を有効にします。',
   archive_conversation: '会話をアーカイブ',
   archived: 'アーカイブ',
-  no_archived_conversations: 'アーカイブされた会話はありません',
   unarchive: 'アーカイブ解除',
 }

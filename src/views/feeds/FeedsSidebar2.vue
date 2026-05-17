@@ -72,10 +72,7 @@
         <v-circular-progress v-if="!noMore" indeterminate class="sm" />
       </template>
     </VirtualList>
-
-    <div v-if="!listLoading && items.length === 0" class="no-data-placeholder">
-      {{ $t(noDataKey(listLoading)) }}
-    </div>
+    <NoDataPlaceholder v-if="!listLoading && items.length === 0" :loading="listLoading" />
     <div class="sidebar-drag-indicator" @mousedown="resizeWidth"></div>
   </aside>
 </template>
@@ -83,7 +80,6 @@
 <script setup lang="ts">
 import { inject } from 'vue'
 import { formatTimeAgo, formatDateTime } from '@/lib/format'
-import { noDataKey } from '@/lib/list'
 import { getFileUrl } from '@/lib/api/file'
 import { useMainStore } from '@/stores/main'
 import VirtualList from '@/components/virtualscroll'

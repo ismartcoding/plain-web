@@ -71,18 +71,16 @@
       <v-pagination v-if="total > limit" :page="page" :go="gotoPage" :total="total" :limit="limit" :page-size="limit" :on-change-page-size="onChangePageSize" />
     </template>
   </VirtualList>
-  <div v-if="!loading && items.length === 0" class="no-data-placeholder">
-    {{ $t(noDataKey(loading)) }}
-  </div>
+  <NoDataPlaceholder v-if="!loading && items.length === 0" :loading="loading" />
 </template>
 
 <script setup lang="ts">
 import { inject } from 'vue'
-import { noDataKey } from '@/lib/list'
 import VirtualList from '@/components/virtualscroll'
 import NoteListItem from '@/views/notes/NoteListItem.vue'
 import { useNotesData } from './hooks/useNotesData'
 import { useNotesActions } from './hooks/useNotesActions'
+import NoDataPlaceholder from '@/components/NoDataPlaceholder.vue'
 
 const isPhone = inject('isPhone') as boolean
 

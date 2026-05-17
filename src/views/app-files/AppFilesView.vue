@@ -18,11 +18,7 @@
       <FileSkeletonItem v-for="i in 10" :key="i" :index="i" :is-phone="isPhone" />
     </div>
   </div>
-
-  <div v-else-if="items.length === 0 && !loading" class="no-data-placeholder">
-    {{ $t(noDataKey(loading)) }}
-  </div>
-
+  <NoDataPlaceholder v-if="items.length === 0 && !loading" :loading="loading" />
   <div v-else class="scroller-wrapper app-files-list">
     <div class="scroller main-list" :class="{ 'select-mode': checked }">
       <AppFileItem

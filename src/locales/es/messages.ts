@@ -33,6 +33,5 @@ export default {
   sms_notification_warning: 'Para recibir nuevos SMS en tiempo real, vaya a PlainApp en su teléfono → "Configuración Web" → habilite el permiso "Administrar notificaciones".',
   archive_conversation: 'Archivar conversación',
   archived: 'Archivado',
-  no_archived_conversations: 'No hay conversaciones archivadas',
   unarchive: 'Desarchivar',
 }

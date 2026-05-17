@@ -33,6 +33,5 @@ export default {
   sms_notification_warning: 'Yeni SMS\'i gerçek zamanlı olarak almak için telefonunuzdaki PlainApp\'e gidin → "Web Ayarları" → "Bildirimleri Yönet" iznini etkinleştirin.',
   archive_conversation: 'Konuşmayı arşivle',
   archived: 'Arşivlendi',
-  no_archived_conversations: 'Arşivlenmiş konuşma yok',
   unarchive: 'Arşivden çıkar',
 }
