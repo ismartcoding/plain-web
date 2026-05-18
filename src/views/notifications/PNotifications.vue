@@ -30,14 +30,7 @@
         </div>
       </div>
       <div class="actions">
-        <button
-          v-tooltip="$t(notificationSound ? 'notification_sound_on' : 'notification_sound_off')"
-          class="btn-icon"
-          @click.prevent="notificationSound = !notificationSound"
-        >
-          <i-material-symbols:volume-up-rounded v-if="notificationSound" />
-          <i-material-symbols:volume-off-rounded v-else />
-        </button>
+        <notification-sound-button v-model="notificationVolume" />
         <button v-if="notifications.length" v-tooltip="$t('clear_list')" class="btn-icon" @click.prevent="clearAll">
           <i-material-symbols:delete-forever-outline-rounded />
         </button>
@@ -90,13 +83,14 @@
 import { ref } from 'vue'
 import { formatDateTime, formatDateTimeFull } from '@/lib/format'
 import NoDataPlaceholder from '@/components/NoDataPlaceholder.vue'
+import NotificationSoundButton from '@/components/NotificationSoundButton.vue'
 import { useNotifications } from './notifications'
 
 const warningMenuVisible = ref(false)
 const openIconId = ref('')
 
 const {
-  store, app, notificationSound, notifications, loading,
+  store, app, notificationVolume, notifications, loading,
   hasNotificationWarning, notificationWarningMessage, notificationWarningAction,
   replyingId, replyText, replySending,
   startReply, cancelReply, sendReply, deleteItem, clearAll,
