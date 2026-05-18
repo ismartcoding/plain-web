@@ -3,11 +3,11 @@
  * Approximates a bell/glass chime with two inharmonic partials, a fast attack
  * and a natural exponential decay — similar to the macOS "Glass" alert tone.
  */
-export function playNotificationSound(): void {
+export function playNotificationSound(volume = 1): void {
   try {
     const ctx = new AudioContext()
     const master = ctx.createGain()
-    master.gain.value = 1
+    master.gain.value = Math.max(0, Math.min(1, volume))
     master.connect(ctx.destination)
 
     // Two partials give the characteristic inharmonic "bell" colour

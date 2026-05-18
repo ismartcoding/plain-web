@@ -51,7 +51,7 @@ export type MainState = {
   callNumber: string
   feedEntryFontSize: number // font size for feed entry content
   searchHistory: Record<string, string[]>
-  notificationSound: boolean
+  notificationVolume: number
   selectedSimSubscriptionId: number
   tabs: AppTab[]
   activeTabId: string
@@ -97,7 +97,7 @@ export const useMainStore = defineStore('main', {
       callNumber: '',
       feedEntryFontSize: 16, // default font size
       searchHistory: {},
-      notificationSound: true,
+      notificationVolume: 0.5,
       selectedSimSubscriptionId: -1,
       tabs: [{ ...HOME_TAB }],
       activeTabId: 'home',

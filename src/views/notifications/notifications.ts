@@ -16,7 +16,7 @@ import { showDesktopNotification } from '@/lib/desktop-notification'
 export function useNotifications() {
   const { t } = useI18n()
   const store = useMainStore()
-  const { notificationSound } = storeToRefs(store)
+  const { notificationVolume } = storeToRefs(store)
   const { app, urlTokenKey } = storeToRefs(useTempStore())
   const { hasWarning: hasNotificationWarning, warningMessage: notificationWarningMessage, warningAction: notificationWarningAction } = useNotificationWarning()
 
@@ -59,7 +59,7 @@ export function useNotifications() {
 
   // Desktop notification + sound helper
   function notify(data: INotification) {
-    if (notificationSound.value) playNotificationSound()
+    if (notificationVolume.value > 0) playNotificationSound(notificationVolume.value)
     showDesktopNotification({ title: data.title, body: data.body, icon: data.icon, silent: true })
   }
 
@@ -84,7 +84,7 @@ export function useNotifications() {
   })
 
   return {
-    store, app, notificationSound, notifications, loading,
+    store, app, notificationVolume, notifications, loading,
     hasNotificationWarning, notificationWarningMessage, notificationWarningAction,
     replyingId, replyText, replySending,
     startReply, cancelReply, sendReply, deleteItem, clearAll,
