@@ -67,10 +67,12 @@
           v-tooltip="$t('header_actions.uploads')"
           class="q-action"
           toggle
-          :class="{ selected: store.quick === 'upload' }"
+          :class="{ selected: store.quick === 'upload' && !hasActiveUploads, uploading: hasActiveUploads }"
           @click="toggleQuick('upload')"
         >
-          <i-material-symbols:format-list-numbered-rounded />
+          <span class="upload-action-icon">
+            <i-material-symbols:format-list-numbered-rounded />
+          </span>
         </v-icon-button>
         <v-icon-button
           v-if="!localMode && app.channel !== 'GOOGLE'"
@@ -121,7 +123,7 @@ const isTauri = __IS_TAURI__
 
 const {
   store, app, loading, errorMessage,
-  hasTasks, hasLeftSidebar, showHeaderSearch, localMode,
+  hasTasks, hasActiveUploads, hasLeftSidebar, showHeaderSearch, localMode,
   toggleSidebar, toggleQuick, getSidebar2CacheKey, resizeWidth,
 } = useMainView()
 </script>
@@ -174,6 +176,29 @@ const {
 
   .q-action {
     margin: 8px;
+
+    &.uploading {
+      color: var(--md-sys-color-primary);
+
+      .upload-action-icon {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        &::before {
+          content: '';
+          position: absolute;
+          width: 34px;
+          height: 34px;
+          border-radius: 50%;
+          border: 2.5px solid transparent;
+          border-top-color: var(--md-sys-color-primary);
+          border-right-color: var(--md-sys-color-primary);
+          animation: upload-ring-spin 0.85s linear infinite;
+        }
+      }
+    }
   }
 
   .drag-indicator {
@@ -182,6 +207,10 @@ const {
     margin-bottom: auto;
     cursor: col-resize;
   }
+}
+
+@keyframes upload-ring-spin {
+  to { transform: rotate(360deg); }
 }
 
 .quick-content {

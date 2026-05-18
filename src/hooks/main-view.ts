@@ -36,6 +36,10 @@ export function useMainView() {
 
   const hasTasks = computed(() => tempStore.uploads.length > 0)
 
+  const hasActiveUploads = computed(() => {
+    return tempStore.uploads.some((u) => ['uploading', 'saving', 'pending'].includes(u.status))
+  })
+
   const hasLeftSidebar = computed(() => {
     const route = router.currentRoute.value
     const matchedRoute = route.matched[route.matched.length - 1]
@@ -120,7 +124,7 @@ export function useMainView() {
 
   return {
     store, app, loading, errorMessage,
-    hasTasks, hasLeftSidebar, showHeaderSearch, localMode,
+    hasTasks, hasActiveUploads, hasLeftSidebar, showHeaderSearch, localMode,
     toggleSidebar, toggleQuick, getSidebar2CacheKey, resizeWidth,
   }
 }

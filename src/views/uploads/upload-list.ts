@@ -79,7 +79,6 @@ export function useUploadList() {
   }
 
   watch(() => tempStore.uploads, (newUploads) => {
-    store.quick = 'upload'
     const created = newUploads.filter((item) => item.status === 'created')
     if (created.length === 0) return
     const batches = new Map<string, typeof newUploads>()
