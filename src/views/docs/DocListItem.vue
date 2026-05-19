@@ -32,12 +32,12 @@
       :filter="filter"
       :app="app"
       :data-type="dataType"
+      :tags="tags"
       :trash-loading="trashLoading"
       :restore-loading="restoreLoading"
       :trash="trash"
       :restore="restore"
       :delete-item="deleteItem"
-      :add-item-to-tags="addItemToTags"
       @download-file="$emit('download-file', $event)"
       @delete-item="$emit('delete-item', $event)"
       @open-file="$emit('open-file', $event)"
@@ -48,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import type { IDoc, IFilter, IApp, IBucket } from '@/lib/interfaces'
+import type { IDoc, IFilter, IApp, IBucket, ITag } from '@/lib/interfaces'
 import { DataType } from '@/lib/data'
 import { formatFileSize, formatDateTimeFull, formatTimeAgo } from '@/lib/format'
 import { isTextFile, canOpenInBrowser } from '@/lib/file'
@@ -66,6 +66,7 @@ defineProps<{
   filter: IFilter
   app: IApp
   dataType: DataType
+  tags: ITag[]
   trashLoading: (query: string) => boolean
   restoreLoading: (query: string) => boolean
   trash: (dataType: DataType, query: string) => void
@@ -73,7 +74,6 @@ defineProps<{
   deleteItem: (dataType: DataType, item: any) => void
   bucketsMap: Record<string, IBucket>
   viewBucket: (store: any, bucketId: string) => void
-  addItemToTags: (item: IDoc) => void
   handleItemClick: (event: MouseEvent, item: IDoc, index: number, callback: () => void) => void
   handleMouseOver: (event: MouseEvent, index: number) => void
   toggleSelect: (event: MouseEvent, item: IDoc, index: number) => void

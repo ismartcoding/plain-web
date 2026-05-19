@@ -25,7 +25,7 @@
       <LightboxFileTags 
         :current="current" 
         :file-info="fileInfo"
-        @add-to-tags="$emit('add-to-tags')"
+        :tags-map="tagsMap"
       />
     </div>
   </section>
@@ -69,7 +69,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['rename-file', 'delete-file', 'add-to-tags', 'refetch-info'])
+const emit = defineEmits(['rename-file', 'delete-file', 'refetch-info'])
 
 const { isTrashed, canTrash } = useFileTrashState(() => props.current, () => props.osVersion)
 const { trash } = useMediaTrash()

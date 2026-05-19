@@ -10,9 +10,12 @@
     :show-secondary="isPhone && !checked"
     @toggle-all-checked="toggleAllChecked" @delete="deleteItems(dataType, selectedIds, realAllChecked, total, q)"
     @restore="restore(dataType, getQuery())" @download="downloadItems(realAllChecked, selectedIds, q)"
-    @trash="trash(dataType, getQuery())" @add-to-tags="addToTags(selectedIds, realAllChecked, q)"
+    @trash="trash(dataType, getQuery())"
     @select-real-all="selectRealAll" @clear-selection="clearSelection"
   >
+    <template #tag-action>
+      <BulkTagDropdown :type="dataType" :tags="tags" :items="items" :selected-ids="selectedIds" :real-all-checked="realAllChecked" :q="q" />
+    </template>
     <template #actions>
       <MediaPageActions v-bind="actionsProps" placement="top" />
     </template>
@@ -62,11 +65,11 @@
     <div v-else class="main-list media-list" :class="{ 'select-mode': checked }">
       <VideoListItem v-for="(item, i) in items" :key="item.id" :item="item" :index="i" :is-phone="isPhone"
         :selected-ids="selectedIds" :shift-effecting-ids="shiftEffectingIds" :should-select="shouldSelect"
-        :image-error-ids="imageErrorIds" :buckets-map="bucketsMap" :filter="filter" :data-type="dataType"
+        :image-error-ids="imageErrorIds" :buckets-map="bucketsMap" :filter="filter" :data-type="dataType" :tags="tags"
         :main-store="mainStore" :app="app" :handle-item-click="handleItemClick" :handle-mouse-over="handleMouseOverMode"
         :toggle-select="toggleSelect" :on-image-error="onImageError" :view-bucket="viewBucket"
         :delete-item="deleteItem" :restore="restore" :download-file="downloadFile" :trash="trash"
-        :add-item-to-tags="addItemToTags" :view="view"
+        :view="view"
         :restore-loading="restoreLoading" :trash-loading="trashLoading" />
       <image-video-list-skeleton v-if="loading && items.length === 0" :limit="limit" :is-phone="isPhone" />
     </div>
@@ -118,12 +121,12 @@ const {
   isPhone, mainStore, tempStore, app, urlTokenKey,
   filter, page, q, limit, dataType,
   fileInput, dirFileInput, uploadChanged, dirUploadChanged, dropping, fileDragEnter, fileDragLeave,
-  bucketsMap, addToTags, deleteItems, deleteItem, viewBucket,
+  tags, bucketsMap, deleteItems, deleteItem, viewBucket,
   selectedIds, allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible,
   clearSelection, toggleAllChecked, toggleSelect, total, checked, shiftEffectingIds, handleItemClick, shouldSelect,
   downloadItems, downloadFile, trashLoading, trash, restoreLoading, restore,
   gotoPage, onChangePageSize, getQuery, sort, handleMouseOverMode,
-  addItemToTags, uploadFilesClick, uploadDirClick, dropFiles2,
+  uploadFilesClick, uploadDirClick, dropFiles2,
   uploadDir, uploadDirEditable, editUploadDir,
 } = mp
 

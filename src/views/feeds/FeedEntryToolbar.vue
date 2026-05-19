@@ -9,9 +9,10 @@
         <item-tags :tags="entry?.tags" :type="dataType" />
         <feed-entry-action-buttons
           v-if="!isPhone"
-          :entry-url="entry?.url"
+          :entry="entry"
+          :tags="tags"
+          :data-type="dataType"
           :sync-content-loading="syncContentLoading"
-          @add-to-tags="$emit('addToTags')"
           @sync-content="$emit('syncContent')"
           @save-to-notes="$emit('saveToNotes')"
           @print="$emit('print')"
@@ -28,9 +29,10 @@
     </div>
     <div v-if="isPhone" class="action-buttons-row">
       <feed-entry-action-buttons
-        :entry-url="entry?.url"
+        :entry="entry"
+        :tags="tags"
+        :data-type="dataType"
         :sync-content-loading="syncContentLoading"
-        @add-to-tags="$emit('addToTags')"
         @sync-content="$emit('syncContent')"
         @save-to-notes="$emit('saveToNotes')"
         @print="$emit('print')"
@@ -44,11 +46,12 @@
 
 <script setup lang="ts">
 import { formatDateTime, formatTimeAgo } from '@/lib/format'
-import type { IFeedEntryDetail } from '@/lib/interfaces'
+import type { IFeedEntryDetail, ITag } from '@/lib/interfaces'
 
 interface Props {
   entry: IFeedEntryDetail
   dataType: string
+  tags: ITag[]
   syncContentLoading: boolean
   isPhone?: boolean
 }
@@ -57,7 +60,6 @@ defineProps<Props>()
 
 defineEmits<{
   viewFeed: [feed: any]
-  addToTags: []
   syncContent: []
   saveToNotes: []
   print: []

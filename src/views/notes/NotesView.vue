@@ -17,9 +17,7 @@
           <v-icon-button v-tooltip="$t('move_to_trash')" @click.stop="trash(getQuery())">
             <i-material-symbols:delete-outline-rounded />
           </v-icon-button>
-          <v-icon-button v-tooltip="$t('add_to_tags')" @click.stop="addToTags(selectedIds, realAllChecked, q)">
-            <i-material-symbols:label-outline-rounded />
-          </v-icon-button>
+          <BulkTagDropdown :type="dataType" :tags="tags" :items="items" :selected-ids="selectedIds" :real-all-checked="realAllChecked" :q="q" />
           <v-icon-button v-tooltip="$t('export_notes')" @click.stop="exportNotes2">
             <i-material-symbols:export-notes-outline-rounded />
           </v-icon-button>
@@ -53,13 +51,13 @@
           :is-phone="isPhone"
           :filter="filter"
           :data-type="dataType"
+          :tags="tags"
           :route-id="$route.params['id'] as string"
           :handle-item-click="handleItemClick"
           :handle-mouse-over="handleMouseOver"
           :toggle-select="toggleSelect"
           :view="view"
           :delete-item="deleteItem"
-          :add-item-to-tags="addItemToTags"
           :restore-loading="restoreLoading"
           :trash-loading="trashLoading"
           :restore="restore"
@@ -95,10 +93,10 @@ const {
 })
 
 const {
-  addToTags, deleteItems, deleteItem, addItemToTags,
+  deleteItems, deleteItem,
   exportNotes2, getQuery, trashLoading, trash, restoreLoading, restore,
   view, viewUrl, create,
-} = useNotesActions({ items, selectedIds, realAllChecked, q, total, tags, clearSelection, fetch })
+} = useNotesActions({ items, selectedIds, realAllChecked, q, total, clearSelection, fetch })
 </script>
 <style lang="scss" scoped>
 .scroller {

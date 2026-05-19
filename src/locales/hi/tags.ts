@@ -5,4 +5,5 @@ export default {
   remove_from_tags: 'रिमूव फ्रॉम टैग्स',
   select_tags: 'सिलेक्ट टैग्स',
   add_tag: 'ऐड टैग',
+  search_or_create: 'खोजें या बनाएं...',
 }

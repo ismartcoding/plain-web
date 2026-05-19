@@ -6,17 +6,18 @@
     <v-icon-button v-tooltip="$t('edit')" @click.stop="edit">
       <i-material-symbols:edit />
     </v-icon-button>
-    <v-icon-button v-tooltip="$t('add_to_tags')" @click.stop="addItemToTags">
-      <i-material-symbols:label-outline-rounded />
-    </v-icon-button>
+    <TagRelationsDropdown :type="dataType" :tags="tags" :item="{ key: item.id, title: '', size: 0 }" :selected="item.tags" />
   </div>
 </template>
 
 <script setup lang="ts">
-import type { IContact } from '@/lib/interfaces'
+import type { IContact, ITag } from '@/lib/interfaces'
+import { DataType } from '@/lib/data'
 
 interface Props {
   item: IContact
+  tags: ITag[]
+  dataType: DataType
 }
 
 const props = defineProps<Props>()
@@ -24,7 +25,6 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   deleteItem: [item: IContact]
   edit: [item: IContact]
-  addItemToTags: [item: IContact]
 }>()
 
 function deleteItem() {
@@ -33,9 +33,5 @@ function deleteItem() {
 
 function edit() {
   emit('edit', props.item)
-}
-
-function addItemToTags() {
-  emit('addItemToTags', props.item)
 }
 </script> 

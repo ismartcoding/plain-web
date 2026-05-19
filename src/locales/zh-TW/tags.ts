@@ -5,4 +5,5 @@ export default {
   remove_from_tags: '從標籤中移除',
   select_tags: '選擇標籤',
   add_tag: '新增標籤',
+  search_or_create: '搜尋或新建...',
 }

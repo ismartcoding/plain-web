@@ -2,11 +2,9 @@ import type { IFeedEntry, ITag } from '@/lib/interfaces'
 import type { Ref, ComputedRef } from 'vue'
 import { openModal } from '@/components/modal'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
-import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { useI18n } from 'vue-i18n'
 import toast from '@/components/toaster'
 import { useDelete } from '@/hooks/list'
-import { useAddToTags } from '@/hooks/tags'
 import { deleteFeedEntriesGQL, initMutation, saveFeedEntriesToNotesGQL, syncFeedsGQL, deleteFeedEntryGQL } from '@/lib/api/mutation'
 import { useFeeds } from '@/hooks/feeds'
 import { useMainStore } from '@/stores/main'
@@ -34,7 +32,6 @@ export function useFeedEntriesActions(opts: UseFeedEntriesActionsOptions) {
   const { t } = useI18n()
   const dataType = DataType.FEED_ENTRY
 
-  const { addToTags } = useAddToTags(dataType, tags)
   const { viewFeed } = useFeeds(mainStore)
 
   const { deleteItems } = useDelete(deleteFeedEntriesGQL, () => {
@@ -89,14 +86,6 @@ export function useFeedEntriesActions(opts: UseFeedEntriesActionsOptions) {
     })
   }
 
-  function addItemToTags(item: IFeedEntry) {
-    openModal(UpdateTagRelationsModal, {
-      type: dataType,
-      tags: tags.value,
-      item: { key: item.id, title: '', size: 0 },
-      selected: tags.value.filter((it) => item.tags.some((t) => t.id === it.id)),
-    })
-  }
 
   function viewUrl(item: IFeedEntry) {
     const qVal = router.currentRoute.value.query.q
@@ -113,7 +102,7 @@ export function useFeedEntriesActions(opts: UseFeedEntriesActionsOptions) {
   }
 
   return {
-    addToTags, deleteItems, deleteItem, addItemToTags,
+    deleteItems, deleteItem,
     saveFeedsToNotes, savingNotes, syncFeeds,
     viewUrl, view, viewFeed, backToList,
   }

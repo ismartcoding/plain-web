@@ -12,8 +12,6 @@ import router, { replacePath, replacePathNoReload } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
-import { openModal } from '@/components/modal'
-import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import emitter from '@/plugins/eventbus'
 import { upload as uploadFile } from '@/lib/upload/upload'
 import { shortUUID } from '@/lib/strutil'
@@ -76,7 +74,7 @@ export function useNoteEdit() {
   }
 
   const tags = ref<ITag[]>()
-  initQuery({
+  const { refetch: refetchTags } = initQuery({
     handle: (data: { tags: ITag[] }, error: string) => {
       if (error) toast(t(error), 'error')
       else if (data) tags.value = data.tags
@@ -104,14 +102,6 @@ export function useNoteEdit() {
   function getTime() {
     const time = note?.value?.updatedAt
     return time ? `(${t('updated_at')}: ${formatDateTime(time)})` : ''
-  }
-
-  function addToTags() {
-    openModal(UpdateTagRelationsModal, {
-      type: dataType, tags: tags.value,
-      item: { key: note.value?.id, title: '', size: 0 },
-      selected: tags.value?.filter((it: ITag) => note.value?.tags.some((t) => t.id === it.id)),
-    })
   }
 
   const print = () => window.print()
@@ -150,23 +140,35 @@ export function useNoteEdit() {
     viewMode.value = mode
   }
 
+  const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
+    if (event.type === dataType) fetch()
+  }
+  const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
+    if (event.type === dataType) fetch()
+  }
+  const refetchTagsHandler = (type: string) => {
+    if (type === dataType) refetchTags()
+  }
+
   onMounted(() => {
     id.value = route.params.id as string
     if (id.value === 'create') id.value = ''
     if (id.value) fetch()
     else watchContent()
-    emitter.on('item_tags_updated', (event: IItemTagsUpdatedEvent) => { if (event.type === dataType) fetch() })
-    emitter.on('items_tags_updated', (event: IItemsTagsUpdatedEvent) => { if (event.type === dataType) fetch() })
+    emitter.on('item_tags_updated', itemTagsUpdatedHandler)
+    emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
+    emitter.on('refetch_tags', refetchTagsHandler)
   })
 
   onUnmounted(() => {
-    emitter.off('item_tags_updated')
-    emitter.off('items_tags_updated')
+    emitter.off('item_tags_updated', itemTagsUpdatedHandler)
+    emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
+    emitter.off('refetch_tags', refetchTagsHandler)
   })
 
   return {
-    id, note, title, content, markdown, notSaved, dataType, viewMode,
-    uploadingImage, t, backToList, getTime, addToTags, print,
+    id, note, title, content, markdown, notSaved, dataType, tags, viewMode,
+    uploadingImage, t, backToList, getTime, print,
     handlePasteImages, setViewMode,
   }
 }

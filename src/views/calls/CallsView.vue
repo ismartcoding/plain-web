@@ -8,9 +8,7 @@
         <v-icon-button v-tooltip="$t('delete')" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)">
           <i-material-symbols:delete-forever-outline-rounded />
         </v-icon-button>
-        <v-icon-button v-tooltip="$t('add_to_tags')" @click.stop="addToTags(selectedIds, realAllChecked, q)">
-          <i-material-symbols:label-outline-rounded />
-        </v-icon-button>
+        <BulkTagDropdown :type="dataType" :tags="tags" :items="items" :selected-ids="selectedIds" :real-all-checked="realAllChecked" :q="q" />
       </template>
     </div>
 
@@ -37,6 +35,7 @@
         :should-select="shouldSelect"
         :is-phone="isPhone"
         :data-type="dataType"
+        :tags="tags"
         :call-loading="callLoading"
         :call-id="callId"
         :handle-item-click="handleItemClick"
@@ -44,7 +43,6 @@
         :toggle-select="toggleSelect"
         @delete-item="deleteItem"
         @call="call"
-        @add-item-to-tags="addItemToTags"
       />
       <template v-if="loading && items.length === 0">
         <CallSkeletonItem v-for="i in 20" :key="i" :index="i" :is-phone="isPhone" />
@@ -66,14 +64,14 @@ const isPhone = inject('isPhone') as boolean
 
 const {
   items, page, limit, q, loading, tags, dataType, app,
-  addToTags, deleteItems,
+  deleteItems,
   selectedIds, allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible,
   clearSelection, toggleAllChecked, toggleSelect, total, checked,
   shiftEffectingIds, handleItemClick, handleMouseOver, shouldSelect,
   gotoPage, onChangePageSize,
 } = useCallsData()
 
-const { callId, callLoading, call, addItemToTags, deleteItem } = useCallsActions({ items, tags, total })
+const { callId, callLoading, call, deleteItem } = useCallsActions({ items, tags, total })
 </script>
 <style scoped lang="scss">
 :deep(.call-item) {

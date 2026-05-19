@@ -78,11 +78,12 @@ export function useFeedEntriesData(onDelete: () => void) {
   )
 
   const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
-    if (event.type === dataType) { selectable.clearSelection(); fetch() }
+    if (event.type === dataType) { fetch() }
   }
   const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
     if (event.type === dataType) { fetch() }
   }
+  const refetchTagsHandler = (type: string) => { if (type === dataType) fetchFeedsTags() }
 
   function applyRouteQuery() {
     const nextPage = parseInt(route.query.page?.toString() ?? '1')
@@ -112,6 +113,7 @@ export function useFeedEntriesData(onDelete: () => void) {
     applyRouteQuery()
     emitter.on('item_tags_updated', itemTagsUpdatedHandler)
     emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
+    emitter.on('refetch_tags', refetchTagsHandler)
     emitter.on('feeds_fetched', feedsFetchedHandler)
     window.addEventListener('keydown', pageKeyDown)
     window.addEventListener('keyup', pageKeyUp)
@@ -123,6 +125,7 @@ export function useFeedEntriesData(onDelete: () => void) {
     noMore.value = false
     emitter.off('item_tags_updated', itemTagsUpdatedHandler)
     emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
+    emitter.off('refetch_tags', refetchTagsHandler)
     emitter.off('feeds_fetched', feedsFetchedHandler)
     window.removeEventListener('keydown', pageKeyDown)
     window.removeEventListener('keyup', pageKeyUp)

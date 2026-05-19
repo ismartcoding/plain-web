@@ -12,15 +12,14 @@
       <v-icon-button v-tooltip="$t('move_to_trash')" class="sm" :loading="trashLoading(`ids:${item.id}`)" @click.stop.prevent="trash(`ids:${item.id}`)">
         <i-material-symbols:delete-outline-rounded />
       </v-icon-button>
-      <v-icon-button v-tooltip="$t('add_to_tags')" class="sm" @click.stop.prevent="addItemToTags(item)">
-        <i-material-symbols:label-outline-rounded />
-      </v-icon-button>
+      <TagRelationsDropdown :type="dataType" :tags="tags" :item="{ key: item.id, title: '', size: 0 }" :selected="item.tags" />
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { INote, IFilter } from '@/lib/interfaces'
+import type { INote, IFilter, ITag } from '@/lib/interfaces'
+import { DataType } from '@/lib/data'
 import { useI18n } from 'vue-i18n'
 
 const { t: $t } = useI18n()
@@ -28,9 +27,10 @@ const { t: $t } = useI18n()
 interface Props {
   item: INote
   filter: IFilter
+  dataType: DataType
+  tags: ITag[]
   // Functions passed from parent
   deleteItem: (item: INote) => void
-  addItemToTags: (item: INote) => void
   restoreLoading: (query: string) => boolean
   trashLoading: (query: string) => boolean
   restore: (query: string) => void

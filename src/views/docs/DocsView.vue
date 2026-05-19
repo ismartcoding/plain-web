@@ -10,9 +10,12 @@
     :show-secondary="false"
     @toggle-all-checked="toggleAllChecked" @delete="deleteItems(dataType, selectedIds, realAllChecked, total, q)"
     @restore="restore(dataType, getQuery())" @download="downloadItems(realAllChecked, selectedIds, q)"
-    @trash="trash(dataType, getQuery())" @add-to-tags="addToTags(selectedIds, realAllChecked, q)"
+    @trash="trash(dataType, getQuery())"
     @select-real-all="selectRealAll" @clear-selection="clearSelection"
   >
+    <template #tag-action>
+      <BulkTagDropdown :type="dataType" :tags="tags" :items="items" :selected-ids="selectedIds" :real-all-checked="realAllChecked" :q="q" />
+    </template>
     <template #actions>
       <MediaPageActions v-bind="actionsProps" placement="top" />
     </template>
@@ -42,7 +45,7 @@
         :delete-item="deleteDocItemInTrash"
         :buckets-map="bucketsMap"
         :view-bucket="viewBucket"
-        :add-item-to-tags="addItemToTags"
+        :tags="tags"
         :handle-item-click="handleItemClick"
         :handle-mouse-over="handleMouseOverMode"
         :toggle-select="toggleSelect"
@@ -127,7 +130,7 @@ const {
   isPhone, mainStore, app, urlTokenKey,
   filter, page, q, limit, dataType,
   fileInput, dirFileInput, uploadChanged, dirUploadChanged, dropping, fileDragEnter, fileDragLeave,
-  addToTags, deleteItems, bucketsMap, viewBucket, addItemToTags: addItemToTagsRaw,
+  deleteItems, bucketsMap, viewBucket, tags,
   selectedIds, allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible,
   clearSelection, toggleAllChecked, toggleSelect, total, checked, shiftEffectingIds, handleItemClick, shouldSelect,
   downloadItems, downloadFile, trashLoading, trash, restoreLoading, restore,
@@ -166,10 +169,6 @@ const { loading, fetch } = initLazyQuery({
 })
 
 const { openFile, deleteItem: deleteDocItem, renameItem, duplicateItem } = useDocsActions(items, selectedIds, clearSelection, fetch, urlTokenKey)
-
-function addItemToTags(item: IDoc) {
-  addItemToTagsRaw({ id: item.id, title: item.title, size: item.size, tags: item.tags })
-}
 
 const actionsProps = useMediaPageActions({
   filterTrash: computed(() => !!filter.trash),

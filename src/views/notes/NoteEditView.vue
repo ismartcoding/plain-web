@@ -14,9 +14,7 @@
         <item-tags :tags="note?.tags" :type="dataType" :only-links="true" />
         <note-mode-toggle :mode="viewMode" @update:mode="setViewMode" />
         <template v-if="id">
-          <v-icon-button v-tooltip="$t('add_to_tags')" @click.prevent="addToTags">
-            <i-material-symbols:label-outline-rounded />
-          </v-icon-button>
+          <TagRelationsDropdown :type="dataType" :tags="tags ?? []" :item="{ key: note?.id ?? '', title: '', size: 0 }" :selected="note?.tags ?? []" />
           <v-icon-button v-tooltip="$t('print')" @click.prevent="print">
             <i-material-symbols:print-outline-rounded />
           </v-icon-button>
@@ -49,8 +47,8 @@ import NoteModeToggle from '@/views/notes/NoteModeToggle.vue'
 const editorRef = ref<InstanceType<typeof MarkdownEditorVue>>()
 
 const {
-  id, note, title, content, markdown, notSaved, dataType, viewMode, uploadingImage,
-  backToList, getTime, addToTags, print, handlePasteImages, setViewMode,
+  id, note, title, content, markdown, notSaved, dataType, tags, viewMode, uploadingImage,
+  backToList, getTime, print, handlePasteImages, setViewMode,
 } = useNoteEdit()
 
 async function onPasteImages(files: File[]) {

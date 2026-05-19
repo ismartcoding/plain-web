@@ -11,7 +11,7 @@ export function useEditContact(data: IContact | undefined, sources: any[], done:
 
   const editItem = reactive({
     firstName: '', middleName: '', lastName: '', prefix: '', suffix: '',
-    nickname: '', organization: null as any, notes: '', source: '', starred: 0,
+    nickname: '', organization: null as any, notes: '', source: '', starred: false,
     phoneNumbers: [] as IContactPhoneNumber[],
     emails: [] as IContactContentItem[],
     addresses: [] as IContactContentItem[],

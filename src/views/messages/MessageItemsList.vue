@@ -9,13 +9,14 @@
         :should-select="shouldSelect"
         :is-phone="isPhone"
         :data-type="dataType"
+        :tags="tags"
+        :tags="tags"
         :call-loading="callLoading"
         :call-id="callId"
         :handle-item-click="handleItemClick"
         :handle-mouse-over="handleMouseOver"
         :toggle-select="toggleSelect"
         :on-view="onView"
-        @add-item-to-tags="addItemToTags"
         @send-sms="sendSms"
         @call="call"
         @archive="archive"
@@ -28,11 +29,12 @@
 </template>
 
 <script setup lang="ts">
-import type { IMessage } from '@/lib/interfaces'
+import type { IMessage, ITag } from '@/lib/interfaces'
 import { DataType } from '@/lib/data'
 
 interface Props {
   items: IMessage[]
+  tags: ITag[]
   loading: boolean
   checked: boolean
   selectedIds: string[]
@@ -50,16 +52,11 @@ interface Props {
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  addItemToTags: [item: IMessage]
   sendSms: [item: IMessage]
   call: [item: IMessage]
   viewItem: [item: IMessage]
   archive: [item: IMessage]
 }>()
-
-function addItemToTags(item: IMessage) {
-  emit('addItemToTags', item)
-}
 
 function sendSms(item: IMessage) {
   emit('sendSms', item)

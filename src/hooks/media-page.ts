@@ -8,7 +8,6 @@ import type { IUploadItem } from '@/stores/temp'
 import { decodeBase64 } from '@/lib/strutil'
 import { noDataKey } from '@/lib/list'
 import { useSearch } from '@/hooks/search'
-import { useAddToTags } from '@/hooks/tags'
 import { useSelectable } from '@/hooks/list'
 import { useBuckets, useBucketsTags, useDeleteItems } from '@/hooks/media'
 import { useDownload, useDownloadItems } from '@/hooks/files'
@@ -17,8 +16,6 @@ import { useMediaRestore, useMediaTrash } from '@/hooks/media-trash'
 import { useKeyEvents } from '@/hooks/key-events'
 import { replacePath } from '@/plugins/router'
 import emitter from '@/plugins/eventbus'
-import { openModal } from '@/components/modal'
-import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { type DataType, FEATURE } from '@/lib/data'
 import { getDirFromPath } from '@/lib/file'
 import { generateDownloadFileName } from '@/lib/format'
@@ -63,7 +60,6 @@ export function useMediaPage(options: MediaPageOptions) {
     buckets.value.forEach((it) => { map[it.id] = it })
     return map
   })
-  const { addToTags } = useAddToTags(dataType, tags)
   const { deleteItems, deleteItem } = useDeleteItems()
   const { view: viewBucket } = useBuckets(dataType)
 
@@ -109,13 +105,6 @@ export function useMediaPage(options: MediaPageOptions) {
   function handleMouseOverMode(e: MouseEvent, index: number) {
     sel.handleMouseOver(e, index)
   }
-  function addItemToTags(item: { id: string; title: string; size: number; tags: { id: string }[] }) {
-    openModal(UpdateTagRelationsModal, {
-      type: dataType, tags: tags.value,
-      item: { key: item.id, title: item.title, size: item.size },
-      selected: tags.value.filter((it) => item.tags.some((t) => t.id === it.id)),
-    })
-  }
   function sort(value: string) {
     if (sortByRef.value === value) return
     sorting.value = true
@@ -126,9 +115,10 @@ export function useMediaPage(options: MediaPageOptions) {
     doFetch()
   }
 
-  const itemsTagsUpdatedHandler = (e: IItemsTagsUpdatedEvent) => { if (e.type === dataType) { sel.clearSelection(); doFetch() } }
+  const itemsTagsUpdatedHandler = (e: IItemsTagsUpdatedEvent) => { if (e.type === dataType) { doFetch() } }
   const itemTagsUpdatedHandler = (e: IItemTagsUpdatedEvent) => { if (e.type === dataType) doFetch() }
   const mediaItemsActionedHandler = (e: IMediaItemsActionedEvent) => { if (e.type === dataType) { sel.clearSelection(); doFetch() } }
+  const refetchTagsHandler = (type: string) => { if (type === dataType) fetchBucketsTags() }
   const uploadTaskDoneHandler = (r: IUploadItem) => {
     if (r.status === 'done' && fileFilter(r.fileName)) {
       const shouldRefresh = !filter.bucketId || buckets.value.some((b) =>
@@ -157,6 +147,7 @@ export function useMediaPage(options: MediaPageOptions) {
     emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
     emitter.on('media_items_actioned', mediaItemsActionedHandler)
     emitter.on('upload_task_done', uploadTaskDoneHandler)
+    emitter.on('refetch_tags', refetchTagsHandler)
     window.addEventListener('keydown', pageKeyDown)
     window.addEventListener('keyup', pageKeyUp)
     if (options.getScrollMode()) options.setupScroll?.()
@@ -167,6 +158,7 @@ export function useMediaPage(options: MediaPageOptions) {
     emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
     emitter.off('media_items_actioned', mediaItemsActionedHandler)
     emitter.off('upload_task_done', uploadTaskDoneHandler)
+    emitter.off('refetch_tags', refetchTagsHandler)
     window.removeEventListener('keydown', pageKeyDown)
     window.removeEventListener('keyup', pageKeyUp)
     options.teardownScroll?.()
@@ -176,10 +168,9 @@ export function useMediaPage(options: MediaPageOptions) {
     isPhone, mainStore, tempStore, app, urlTokenKey, noDataKey,
     filter, page, q, sorting, limit, dataType,
     ...upload,
-    tags, buckets, bucketsMap, addToTags, deleteItems, deleteItem, viewBucket,
+    tags, buckets, bucketsMap, deleteItems, deleteItem, viewBucket,
     ...sel, downloadItems, downloadFile,
     trashLoading, trash, restoreLoading, restore,
     gotoPage, onChangePageSize, getQuery, sort, handleMouseOverMode,
-    addItemToTags,
   }
 }

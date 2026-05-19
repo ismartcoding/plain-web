@@ -11,7 +11,7 @@ import type { IContact, IContactSource, IFilter, IItemTagsUpdatedEvent, IItemsTa
 import { decodeBase64 } from '@/lib/strutil'
 import { useSelectable, useDelete } from '@/hooks/list'
 import { useSearch } from '@/hooks/search'
-import { useTags, useAddToTags } from '@/hooks/tags'
+import { useTags } from '@/hooks/tags'
 import emitter from '@/plugins/eventbus'
 import { deleteContactsGQL } from '@/lib/api/mutation'
 import { DataType } from '@/lib/data'
@@ -32,7 +32,6 @@ export function useContactsData() {
   const items = ref<IContact[]>([])
   const isActive = ref(false)
   const { tags, fetch: fetchTags } = useTags(dataType)
-  const { addToTags } = useAddToTags(dataType, tags)
 
   const selectable = useSelectable(items)
 
@@ -84,11 +83,12 @@ export function useContactsData() {
   })
 
   const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
-    if (event.type === dataType) { selectable.clearSelection(); fetch() }
+    if (event.type === dataType) { fetch() }
   }
   const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
     if (event.type === dataType) { fetch() }
   }
+  const refetchTagsHandler = (type: string) => { if (type === dataType) fetchTags() }
 
   function applyRouteQuery() {
     const nextPage = parseInt(route.query.page?.toString() ?? '1')
@@ -106,6 +106,7 @@ export function useContactsData() {
     applyRouteQuery()
     emitter.on('item_tags_updated', itemTagsUpdatedHandler)
     emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
+    emitter.on('refetch_tags', refetchTagsHandler)
     window.addEventListener('keydown', pageKeyDown)
     window.addEventListener('keyup', pageKeyUp)
   })
@@ -114,13 +115,14 @@ export function useContactsData() {
     isActive.value = false
     emitter.off('item_tags_updated', itemTagsUpdatedHandler)
     emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
+    emitter.off('refetch_tags', refetchTagsHandler)
     window.removeEventListener('keydown', pageKeyDown)
     window.removeEventListener('keyup', pageKeyUp)
   })
 
   return {
     items, filter, page, limit, q, loading, fetch, tags, dataType, app, sources,
-    addToTags, deleteItems,
+    deleteItems,
     gotoPage, onChangePageSize,
     ...selectable,
   }

@@ -22,11 +22,12 @@
     </div>
     <CallActionButtons
       :item="item"
+      :tags="tags"
+      :data-type="dataType"
       :call-loading="callLoading"
       :call-id="callId"
       @delete-item="deleteItem"
       @call="call"
-      @add-item-to-tags="addItemToTags"
     />
     <div class="geo">
       {{ getGeoText(item.geo) }}
@@ -69,18 +70,19 @@
     <template #actions>
       <CallActionButtons
         :item="item"
+        :tags="tags"
+        :data-type="dataType"
         :call-loading="callLoading"
         :call-id="callId"
         @delete-item="deleteItem"
         @call="call"
-        @add-item-to-tags="addItemToTags"
       />
     </template>
   </ListItemPhone>
 </template>
 
 <script setup lang="ts">
-import type { ICall, ICallGeo } from '@/lib/interfaces'
+import type { ICall, ICallGeo, ITag } from '@/lib/interfaces'
 import { DataType } from '@/lib/data'
 import { formatDateTime, formatSeconds, formatTimeAgo } from '@/lib/format'
 import { useI18n } from 'vue-i18n'
@@ -94,6 +96,7 @@ interface Props {
   shouldSelect: boolean
   isPhone: boolean
   dataType: DataType
+  tags: ITag[]
   callLoading?: boolean
   callId?: string
   // Functions passed from parent
@@ -109,7 +112,6 @@ const { t } = useI18n()
 const emit = defineEmits<{
   deleteItem: [item: ICall]
   call: [item: ICall]
-  addItemToTags: [item: ICall]
 }>()
 
 function deleteItem(item: ICall) {
@@ -118,10 +120,6 @@ function deleteItem(item: ICall) {
 
 function call(item: ICall) {
   emit('call', item)
-}
-
-function addItemToTags(item: ICall) {
-  emit('addItemToTags', item)
 }
 
 function getGeoText(geo: ICallGeo | null | undefined) {

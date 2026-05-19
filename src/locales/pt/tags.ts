@@ -5,4 +5,5 @@ export default {
   remove_from_tags: 'Remover das tags',
   select_tags: 'Selecionar tags',
   add_tag: 'Adicionar tag',
+  search_or_create: 'Pesquisar ou criar...',
 }

@@ -1,12 +1,10 @@
 <template>
   <div class="action-buttons">
-    <v-icon-button v-tooltip="$t('add_to_tags')" class="sm" style="margin-inline-start: 16px" @click.prevent="$emit('addToTags')">
-      <i-material-symbols:label-outline-rounded />
-    </v-icon-button>
+    <TagRelationsDropdown :type="dataType" :tags="tags" :item="{ key: entry.id, title: '', size: 0 }" :selected="entry.tags ?? []" />
     <v-icon-button v-tooltip="$t('sync_content')" :loading="syncContentLoading" @click.prevent="$emit('syncContent')">
       <i-material-symbols:sync-rounded />
     </v-icon-button>
-    <a v-tooltip="$t('view_original_article')" :href="entryUrl" class="btn-icon" target="_blank">
+    <a v-tooltip="$t('view_original_article')" :href="entry?.url" class="btn-icon" target="_blank">
       <v-icon-button class="sm">
         <i-material-symbols:open-in-new-rounded />
       </v-icon-button>
@@ -42,16 +40,18 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import type { IFeedEntryDetail, ITag } from '@/lib/interfaces'
 
 interface Props {
-  entryUrl?: string
+  entry: IFeedEntryDetail
+  tags: ITag[]
+  dataType: string
   syncContentLoading: boolean
 }
 
 defineProps<Props>()
 
 defineEmits<{
-  addToTags: []
   syncContent: []
   saveToNotes: []
   print: []

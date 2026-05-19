@@ -1,11 +1,9 @@
 import { ref } from 'vue'
-import type { INote, ITag } from '@/lib/interfaces'
+import type { INote } from '@/lib/interfaces'
 import { openModal } from '@/components/modal'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
-import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { truncateText } from '@/lib/array'
 import { useDelete } from '@/hooks/list'
-import { useAddToTags } from '@/hooks/tags'
 import { deleteNotesGQL, exportNotesGQL, initMutation, deleteNoteGQL } from '@/lib/api/mutation'
 import { useNotesRestore, useNotesTrash } from '@/hooks/notes'
 import router, { replacePath } from '@/plugins/router'
@@ -20,17 +18,14 @@ interface UseNotesActionsOptions {
   realAllChecked: Ref<boolean>
   q: Ref<string>
   total: Ref<number>
-  tags: Ref<ITag[]>
   clearSelection: () => void
   fetch: () => void
 }
 
 export function useNotesActions(opts: UseNotesActionsOptions) {
-  const { items, selectedIds, realAllChecked, q, total, tags, clearSelection, fetch } = opts
+  const { items, selectedIds, realAllChecked, q, total, clearSelection, fetch } = opts
   const mainStore = useMainStore()
   const dataType = DataType.NOTE
-
-  const { addToTags } = useAddToTags(dataType, tags)
 
   const { mutate: exportNotes, onDone: onExported } = initMutation({
     document: exportNotesGQL,
@@ -83,15 +78,6 @@ export function useNotesActions(opts: UseNotesActionsOptions) {
     })
   }
 
-  function addItemToTags(item: INote) {
-    openModal(UpdateTagRelationsModal, {
-      type: dataType,
-      tags: tags.value,
-      item: { key: item.id, title: '', size: 0 },
-      selected: tags.value.filter((it) => item.tags.some((t) => t.id === it.id)),
-    })
-  }
-
   function viewUrl(item: INote) {
     const qVal = router.currentRoute.value.query.q
     return qVal ? `/notes/${item.id}?q=${qVal}` : `/notes/${item.id}`
@@ -106,7 +92,7 @@ export function useNotesActions(opts: UseNotesActionsOptions) {
   }
 
   return {
-    addToTags, deleteItems, deleteItem, addItemToTags,
+    deleteItems, deleteItem,
     exportNotes2, getQuery, trashLoading, trash, restoreLoading, restore,
     view, viewUrl, create,
   }
