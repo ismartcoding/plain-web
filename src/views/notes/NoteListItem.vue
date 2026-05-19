@@ -19,8 +19,9 @@
       <NoteActionButtons
         :item="item"
         :filter="filter"
+        :data-type="dataType"
+        :tags="tags"
         :delete-item="deleteItem"
-        :add-item-to-tags="addItemToTags"
         :restore-loading="restoreLoading"
         :trash-loading="trashLoading"
         :restore="restore"
@@ -59,8 +60,9 @@
       <NoteActionButtons
         :item="item"
         :filter="filter"
+        :data-type="dataType"
+        :tags="tags"
         :delete-item="deleteItem"
-        :add-item-to-tags="addItemToTags"
         :restore-loading="restoreLoading"
         :trash-loading="trashLoading"
         :restore="restore"
@@ -71,7 +73,7 @@
 </template>
 
 <script setup lang="ts">
-import type { INote, IFilter } from '@/lib/interfaces'
+import type { INote, IFilter, ITag } from '@/lib/interfaces'
 import { DataType } from '@/lib/data'
 import { formatDateTime, formatTimeAgo } from '@/lib/format'
 import { getSummary } from '@/lib/strutil'
@@ -86,6 +88,7 @@ interface Props {
   isPhone: boolean
   filter: IFilter
   dataType: DataType
+  tags: ITag[]
   routeId?: string
   // Functions passed from parent
   handleItemClick: (event: MouseEvent, item: INote, index: number, callback: () => void) => void
@@ -93,7 +96,6 @@ interface Props {
   toggleSelect: (event: MouseEvent, item: INote, index: number) => void
   view: (item: INote) => void
   deleteItem: (item: INote) => void
-  addItemToTags: (item: INote) => void
   restoreLoading: (query: string) => boolean
   trashLoading: (query: string) => boolean
   restore: (query: string) => void

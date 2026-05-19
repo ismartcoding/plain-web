@@ -5,14 +5,13 @@
     :class="{ sent: isSent, received: !isSent }"
   >
     <div class="chat-bubble-with-actions">
-      <v-icon-button
+      <TagRelationsDropdown
         v-if="!isDraftOrPending"
-        v-tooltip="$t('add_to_tags')"
-        class="chat-tag-btn"
-        @click.stop="$emit('addToTags', item)"
-      >
-        <i-material-symbols:label-outline-rounded />
-      </v-icon-button>
+        :type="type"
+        :tags="tags"
+        :item="{ key: item.id, title: '', size: 0 }"
+        :selected="item.tags ?? []"
+      />
       <div class="chat-bubble">
         <div v-if="item.body" v-html="addLinksToURLs(item.body)"></div>
         <div v-if="item.attachments?.length" class="chat-attachments">
@@ -40,18 +39,16 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { IMessage } from '@/lib/interfaces'
+import type { IMessage, ITag } from '@/lib/interfaces'
 import { formatDateTime, formatTime } from '@/lib/format'
 import { addLinksToURLs } from '@/lib/strutil'
 import { getFileUrlByPath } from '@/lib/api/file'
 
 const props = defineProps<{
   item: IMessage
+  tags: ITag[]
+  type: string
   urlTokenKey: Uint8Array | null
-}>()
-
-defineEmits<{
-  addToTags: [item: IMessage]
 }>()
 
 const isSent = computed(() => props.item.type === 2 || props.item.type === 4)

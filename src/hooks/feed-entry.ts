@@ -5,8 +5,6 @@ import { useI18n } from 'vue-i18n'
 import { feedEntryGQL, initLazyQuery, initQuery, tagsGQL } from '@/lib/api/query'
 import type { IFeedEntryDetail, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, ITag } from '@/lib/interfaces'
 import { useSafeMarkdown } from '@/hooks/markdown'
-import { openModal } from '@/components/modal'
-import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import emitter from '@/plugins/eventbus'
 import { initMutation, saveFeedEntriesToNotesGQL, syncFeedContentGQL } from '@/lib/api/mutation'
 import { storeToRefs } from 'pinia'
@@ -60,14 +58,6 @@ export function useFeedEntry() {
     variables: { type: dataType },
   })
 
-  function addToTags() {
-    openModal(UpdateTagRelationsModal, {
-      type: dataType, tags: tags.value,
-      item: { key: entry.value?.id, title: '', size: 0 },
-      selected: tags.value?.filter((it) => entry.value?.tags.some((t) => t.id === it.id)),
-    })
-  }
-
   const { mutate: syncFeedContent, loading: syncContentLoading, onDone: syncContentDone } = initMutation({ document: syncFeedContentGQL })
   syncContentDone(async (r: any) => {
     entry.value = r.data.syncFeedContent
@@ -91,7 +81,7 @@ export function useFeedEntry() {
   })
 
   return {
-    id, entry, markdown, loading, isPhone, dataType, mainStore,
-    syncContentLoading, viewFeed, addToTags, syncContent, saveToNotes, print, backToList,
+    id, entry, tags, markdown, loading, isPhone, dataType, mainStore,
+    syncContentLoading, viewFeed, syncContent, saveToNotes, print, backToList,
   }
 }

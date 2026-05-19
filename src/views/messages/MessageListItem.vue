@@ -19,9 +19,10 @@
     <div class="subtitle" v-html="addLinksToURLs(item.body)"></div>
     <MessageActionButtons
       :item="item"
+      :tags="tags"
+      :data-type="dataType"
       :call-loading="callLoading"
       :call-id="callId"
-      @add-item-to-tags="addItemToTags"
       @send-sms="sendSms"
       @call="call"
       @archive="archive"
@@ -68,9 +69,10 @@
     <template #actions>
       <MessageActionButtons
         :item="item"
+        :tags="tags"
+        :data-type="dataType"
         :call-loading="callLoading"
         :call-id="callId"
-        @add-item-to-tags="addItemToTags"
         @send-sms="sendSms"
         @call="call"
         @archive="archive"
@@ -80,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import type { IMessage } from '@/lib/interfaces'
+import type { IMessage, ITag } from '@/lib/interfaces'
 import { DataType } from '@/lib/data'
 import { formatDateTime, formatTimeAgo } from '@/lib/format'
 import { addLinksToURLs } from '@/lib/strutil'
@@ -97,6 +99,7 @@ interface Props {
   shouldSelect: boolean
   isPhone: boolean
   dataType: DataType
+  tags: ITag[]
   callLoading?: boolean
   callId?: string
   // Functions passed from parent
@@ -109,15 +112,10 @@ interface Props {
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  addItemToTags: [item: IMessage]
   sendSms: [item: IMessage]
   call: [item: IMessage]
   archive: [item: IMessage]
 }>()
-
-function addItemToTags(item: IMessage) {
-  emit('addItemToTags', item)
-}
 
 function call(item: IMessage) {
   emit('call', item)

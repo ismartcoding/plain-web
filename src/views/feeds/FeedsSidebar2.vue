@@ -9,9 +9,7 @@
           <v-icon-button v-tooltip="$t('delete')" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)">
             <i-material-symbols:delete-forever-outline-rounded />
           </v-icon-button>
-          <v-icon-button v-tooltip="$t('add_to_tags')" @click.stop="addToTags(selectedIds, realAllChecked, q)">
-            <i-material-symbols:label-outline-rounded />
-          </v-icon-button>
+          <BulkTagDropdown :type="dataType" :tags="tags" :items="items" :selected-ids="selectedIds" :real-all-checked="realAllChecked" :q="q" />
           <v-icon-button v-tooltip="$t('save_to_notes')" :loading="savingNotes" @click.prevent="saveFeedsToNotes">
             <i-material-symbols:add-notes-outline-rounded />
           </v-icon-button>
@@ -100,7 +98,7 @@ const {
 })
 
 const {
-  addToTags, deleteItems, saveFeedsToNotes, savingNotes, syncFeeds,
+  deleteItems, saveFeedsToNotes, savingNotes, syncFeeds,
   viewUrl, view, viewFeed,
 } = useFeedEntriesActions({ selectedIds, realAllChecked, q, total, tags, items, clearSelection, fetch })
 </script>

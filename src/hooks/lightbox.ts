@@ -10,7 +10,6 @@ import { useMainStore } from '@/stores/main'
 import { fileInfoGQL, initLazyQuery, tagsGQL } from '@/lib/api/query'
 import { openModal } from '@/components/modal'
 import { useI18n } from 'vue-i18n'
-import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import type { IItemTagsUpdatedEvent, IFileDeletedEvent, IFileRenamedEvent, ITag, IMediaItemsActionedEvent } from '@/lib/interfaces'
 import emitter from '@/plugins/eventbus'
 import { useDownload, useRename } from '@/hooks/files'
@@ -336,18 +335,6 @@ export function useLightboxFileActions(
     })
   }
 
-  function addToTags() {
-    const type = current.value?.type ?? ''
-    const tags = tagsMap.get(type) ?? []
-    const item = current.value?.data ?? {}
-    openModal(UpdateTagRelationsModal, {
-      type,
-      tags,
-      item: { key: item.id, title: item.title, size: item.size },
-      selected: tags.filter((it: ITag) => fileInfo.value?.tags.some((t: ITag) => t.id === it.id)),
-    })
-  }
-
   function handleActionSuccess(action: string) {
     if (isPhone && (action === 'trash' || action === 'restore')) {
       lightboxInfoVisible.value = false
@@ -359,7 +346,7 @@ export function useLightboxFileActions(
     // status.loading is set externally
   }
 
-  return { downloadFile, deleteFile, renameFile, addToTags, handleActionSuccess, viewOrigin }
+  return { downloadFile, deleteFile, renameFile, handleActionSuccess, viewOrigin }
 }
 
 export function useLightboxEvents(

@@ -26,12 +26,12 @@
       :item="item"
       :filter="filter"
       :data-type="dataType"
+      :tags="tags"
       :app="app"
       :delete-item="deleteItem"
       :restore="restore"
       :download-file="downloadFile"
       :trash="trash"
-      :add-item-to-tags="addItemToTags"
       :restore-loading="restoreLoading"
       :trash-loading="trashLoading"
     />
@@ -77,12 +77,12 @@
         :item="item"
         :filter="filter"
         :data-type="dataType"
+        :tags="tags"
         :app="app"
         :delete-item="deleteItem"
         :restore="restore"
         :download-file="downloadFile"
         :trash="trash"
-        :add-item-to-tags="addItemToTags"
         :restore-loading="restoreLoading"
         :trash-loading="trashLoading"
       />
@@ -91,7 +91,7 @@
 </template>
 
 <script setup lang="ts">
-import type { IVideoItem, IBucket, IFilter } from '@/lib/interfaces'
+import type { IVideoItem, IBucket, IFilter, ITag } from '@/lib/interfaces'
 import { DataType } from '@/lib/data'
 import { formatFileSize, formatSeconds, formatDateTime, formatTimeAgo } from '@/lib/format'
 import { getFileUrl, getFileName, getFileExtension } from '@/lib/api/file'
@@ -107,6 +107,7 @@ interface Props {
   bucketsMap: Record<string, IBucket>
   filter: IFilter
   dataType: DataType
+  tags: ITag[]
   mainStore: any
   app: any
   // Functions passed from parent
@@ -119,7 +120,6 @@ interface Props {
   restore: (dataType: DataType, query: string) => void
   downloadFile: (path: string, fileName: string) => void
   trash: (dataType: DataType, query: string) => void
-  addItemToTags: (item: IVideoItem) => void
   view: (index: number) => void
   restoreLoading: (query: string) => boolean
   trashLoading: (query: string) => boolean

@@ -4,7 +4,6 @@ import { getContactFullName } from '@/lib/contact/format'
 import { openModal } from '@/components/modal'
 import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import EditContactModal from '@/components/EditContactModal.vue'
-import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import SendSmsModal from '@/views/messages/SendSmsModal.vue'
 import { callGQL, deleteContactsGQL, initMutation } from '@/lib/api/mutation'
 import { simsGQL, initQuery } from '@/lib/api/query'
@@ -36,15 +35,6 @@ export function useContactsActions(opts: UseContactsActionsOptions) {
   })
 
   const fullName = getContactFullName
-
-  function addItemToTags(item: IContact) {
-    openModal(UpdateTagRelationsModal, {
-      type: dataType,
-      tags: tags.value,
-      item: { key: item.id, title: '', size: 0 },
-      selected: tags.value.filter((it) => item.tags.some((t: ITag) => t.id === it.id)),
-    })
-  }
 
   function deleteItem(item: IContact) {
     openModal(DeleteConfirm, {
@@ -81,5 +71,5 @@ export function useContactsActions(opts: UseContactsActionsOptions) {
     openModal(SendSmsModal, { number })
   }
 
-  return { callId, callIndex, callLoading, call, sendSms, addItemToTags, deleteItem, edit, create }
+  return { callId, callIndex, callLoading, call, sendSms, deleteItem, edit, create }
 }

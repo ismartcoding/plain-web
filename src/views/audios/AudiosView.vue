@@ -10,9 +10,12 @@
     :show-secondary="false"
     @toggle-all-checked="toggleAllChecked" @delete="deleteItems(dataType, selectedIds, realAllChecked, total, q)"
     @restore="restore(dataType, getQuery())" @download="downloadItems(realAllChecked, selectedIds, q)"
-    @trash="trash(dataType, getQuery())" @add-to-tags="addToTags(selectedIds, realAllChecked, q)"
+    @trash="trash(dataType, getQuery())"
     @select-real-all="selectRealAll" @clear-selection="clearSelection"
   >
+    <template #tag-action>
+      <BulkTagDropdown :type="dataType" :tags="tags" :items="items" :selected-ids="selectedIds" :real-all-checked="realAllChecked" :q="q" />
+    </template>
     <template #extra-actions>
       <v-icon-button v-tooltip="$t('add_to_playlist')" @click.stop="addItemsToPlaylist($event, selectedIds, realAllChecked, q)">
         <i-material-symbols:playlist-add />
@@ -28,12 +31,12 @@
     <div class="main-list" :class="{ 'select-mode': checked }">
       <AudioListItem v-for="(item, i) in items" :key="item.id" :item="item" :index="i" :is-phone="isPhone"
         :selected-ids="selectedIds" :shift-effecting-ids="shiftEffectingIds" :should-select="shouldSelect"
-        :image-error-ids="imageErrorIds" :buckets-map="bucketsMap" :filter="filter" :data-type="dataType"
+        :image-error-ids="imageErrorIds" :buckets-map="bucketsMap" :filter="filter" :data-type="dataType" :tags="tags"
         :animating-ids="animatingIds" :play-loading="playLoading" :play-path="playPath" :main-store="mainStore" :app="app"
         :handle-item-click="handleItemClick" :handle-mouse-over="handleMouseOverMode" :toggle-select="toggleSelect"
         :on-image-error="onImageError" :view-bucket="viewBucket" :delete-item="deleteItem" :restore="restore"
         :download-file="downloadFile" :trash="trash" :handle-remove-from-playlist="handleRemoveFromPlaylist"
-        :add-to-playlist="handleAddToPlaylist" :add-item-to-tags="addItemToTags" :play="play" :pause="pause"
+        :add-to-playlist="handleAddToPlaylist" :play="play" :pause="pause"
         :is-audio-playing="isAudioPlaying" :is-in-playlist="isInPlaylist"
         :restore-loading="restoreLoading" :trash-loading="trashLoading" />
       <template v-if="loading && items.length === 0">
@@ -118,12 +121,12 @@ const {
   isPhone, mainStore, app, urlTokenKey,
   filter, page, q, limit, dataType,
   fileInput, dirFileInput, uploadChanged, dirUploadChanged, dropping, fileDragEnter, fileDragLeave,
-  bucketsMap, addToTags, deleteItems, deleteItem, viewBucket,
+  bucketsMap, deleteItems, deleteItem, viewBucket, tags,
   selectedIds, allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible,
   clearSelection, toggleAllChecked, toggleSelect, total, checked, shiftEffectingIds, handleItemClick, shouldSelect,
   downloadItems, downloadFile, trashLoading, trash, restoreLoading, restore,
   gotoPage, onChangePageSize, getQuery, sort, handleMouseOverMode,
-  addItemToTags, uploadFilesClick, uploadDirClick, dropFiles2,
+  uploadFilesClick, uploadDirClick, dropFiles2,
   uploadDir, uploadDirEditable, editUploadDir,
 } = mp
 

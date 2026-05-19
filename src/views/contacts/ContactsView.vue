@@ -11,9 +11,7 @@
         <v-icon-button v-tooltip="$t('download')" style="display: none">
           <i-material-symbols:download-rounded />
         </v-icon-button>
-        <v-icon-button v-tooltip="$t('add_to_tags')" @click.stop="addToTags(selectedIds, realAllChecked, q)">
-          <i-material-symbols:label-outline-rounded />
-        </v-icon-button>
+        <BulkTagDropdown :type="dataType" :tags="tags" :items="items" :selected-ids="selectedIds" :real-all-checked="realAllChecked" :q="q" />
       </template>
     </div>
     <div class="actions">
@@ -42,6 +40,7 @@
         :should-select="shouldSelect"
         :is-phone="isPhone"
         :data-type="dataType"
+        :tags="tags"
         :call-loading="callLoading"
         :call-id="callId"
         :call-index="callIndex"
@@ -50,7 +49,6 @@
         :toggle-select="toggleSelect"
         @delete-item="deleteItem"
         @edit="edit"
-        @add-item-to-tags="addItemToTags"
         @send-sms="sendSms"
         @call="call"
       />
@@ -74,7 +72,7 @@ const isPhone = inject('isPhone') as boolean
 
 const {
   items, page, limit, q, loading, tags, dataType, app, sources, fetch,
-  addToTags, deleteItems,
+  deleteItems,
   selectedIds, allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible,
   clearSelection, toggleAllChecked, toggleSelect, total, checked,
   shiftEffectingIds, handleItemClick, handleMouseOver, shouldSelect,
@@ -83,7 +81,7 @@ const {
 
 const {
   callId, callIndex, callLoading, call, sendSms,
-  addItemToTags, deleteItem, edit, create,
+  deleteItem, edit, create,
 } = useContactsActions({ items, tags, total, sources, fetch })
 </script>
 <style lang="scss" scoped>

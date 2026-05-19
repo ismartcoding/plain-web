@@ -28,6 +28,7 @@
       :item="item"
       :filter="filter"
       :data-type="dataType"
+      :tags="tags"
       :animating-ids="animatingIds"
       :play-loading="playLoading"
       :play-path="playPath"
@@ -38,7 +39,6 @@
       :trash="trash"
       :handle-remove-from-playlist="handleRemoveFromPlaylist"
       :add-to-playlist="addToPlaylist"
-      :add-item-to-tags="addItemToTags"
       :pause="pause"
       :is-audio-playing="isAudioPlaying"
       :is-in-playlist="isInPlaylist"
@@ -93,6 +93,7 @@
         :item="item"
         :filter="filter"
         :data-type="dataType"
+        :tags="tags"
         :animating-ids="animatingIds"
         :play-loading="playLoading"
         :play-path="playPath"
@@ -103,7 +104,6 @@
         :trash="trash"
         :handle-remove-from-playlist="handleRemoveFromPlaylist"
         :add-to-playlist="addToPlaylist"
-        :add-item-to-tags="addItemToTags"
         :pause="pause"
         :is-audio-playing="isAudioPlaying"
         :is-in-playlist="isInPlaylist"
@@ -115,7 +115,7 @@
 </template>
 
 <script setup lang="ts">
-import type { IAudioItem, IBucket, IFilter } from '@/lib/interfaces'
+import type { IAudioItem, IBucket, IFilter, ITag } from '@/lib/interfaces'
 import { DataType } from '@/lib/data'
 import { formatFileSize, formatSeconds, formatDateTime, formatTimeAgo } from '@/lib/format'
 import { getFileUrl, getFileExtension } from '@/lib/api/file'
@@ -131,6 +131,7 @@ interface Props {
   bucketsMap: Record<string, IBucket>
   filter: IFilter
   dataType: DataType
+  tags: ITag[]
   animatingIds: string[]
   playLoading: boolean
   playPath: string
@@ -148,7 +149,6 @@ interface Props {
   trash: (dataType: DataType, query: string) => void
   handleRemoveFromPlaylist: (event: MouseEvent, item: IAudioItem) => void
   addToPlaylist: (event: MouseEvent, item: IAudioItem) => void
-  addItemToTags: (item: IAudioItem) => void
   play: (item: IAudioItem) => void
   pause: () => void
   isAudioPlaying: (item: IAudioItem) => boolean

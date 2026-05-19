@@ -5,4 +5,5 @@ export default {
   remove_from_tags: 'குறிச்சொற்களில் இல்லை செய்ய',
   select_tags: 'குறிச்சொற்களைத் தேர்ந்தெடு',
   add_tag: 'குறிச்சொற் சேர்க்க',
+  search_or_create: 'தேடு அல்லது உருவாக்கு...',
 }

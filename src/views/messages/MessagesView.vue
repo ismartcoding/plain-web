@@ -17,8 +17,9 @@
       :loading-more="thread.loadingMore.value"
       :permissions="app.permissions"
       :url-token-key="urlTokenKey"
+      :tags="thread.tags.value"
+      :type="DataType.SMS"
       @scroll="thread.onScroll"
-      @add-to-tags="addItemToTags"
     />
     <MessageChatInput
       v-model="send.messageBody.value"
@@ -46,10 +47,8 @@ import { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
-import type { IMessage, ITag } from '@/lib/interfaces'
 import { openModal } from '@/components/modal'
 import ExportSmsModal from '@/views/messages/ExportSmsModal.vue'
-import UpdateTagRelationsModal from '@/components/UpdateTagRelationsModal.vue'
 import { DataType } from '@/lib/data'
 import { useMessageThread } from '@/hooks/message-thread'
 import { useMessageSend } from '@/hooks/message-send'
@@ -89,15 +88,6 @@ async function onSend() {
     thread.setPendingSms(body, address)
   }
   await send.sendMessage()
-}
-
-function addItemToTags(item: IMessage) {
-  openModal(UpdateTagRelationsModal, {
-    type: DataType.SMS,
-    tags: thread.tags.value,
-    item: { key: item.id, title: '', size: 0 },
-    selected: thread.tags.value.filter((it) => item.tags?.some((t: ITag) => t.id === it.id)),
-  })
 }
 
 const { mutate: mutateArchiveConversation } = initMutation({ document: archiveConversationGQL })

@@ -74,11 +74,12 @@ export function useNotesData(onDelete: () => void) {
   }
 
   const itemsTagsUpdatedHandler = (event: IItemsTagsUpdatedEvent) => {
-    if (event.type === dataType) { selectable.clearSelection(); fetch() }
+    if (event.type === dataType) { fetch() }
   }
   const itemTagsUpdatedHandler = (event: IItemTagsUpdatedEvent) => {
     if (event.type === dataType) { fetch() }
   }
+  const refetchTagsHandler = (type: string) => { if (type === dataType) fetchTags() }
 
   watch(() => route.fullPath, () => { if (isActive.value) applyRouteQuery() })
 
@@ -88,7 +89,7 @@ export function useNotesData(onDelete: () => void) {
     applyRouteQuery()
     emitter.on('item_tags_updated', itemTagsUpdatedHandler)
     emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
-    window.addEventListener('keydown', pageKeyDown)
+    emitter.on('refetch_tags', refetchTagsHandler)
     window.addEventListener('keyup', pageKeyUp)
   })
 
@@ -96,7 +97,7 @@ export function useNotesData(onDelete: () => void) {
     isActive.value = false
     emitter.off('item_tags_updated', itemTagsUpdatedHandler)
     emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
-    window.removeEventListener('keydown', pageKeyDown)
+    emitter.off('refetch_tags', refetchTagsHandler)
     window.removeEventListener('keyup', pageKeyUp)
   })
 

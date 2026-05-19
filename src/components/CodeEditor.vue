@@ -94,17 +94,19 @@ function replaceTheme() {
   })
 }
 
+function colorModeChangedHandler() {
+  isDark = document.documentElement.classList.contains('dark')
+  replaceTheme()
+}
+
 onMounted(() => {
   createEditor()
-  emitter.on('color_mode_changed', () => {
-    isDark = document.documentElement.classList.contains('dark')
-    replaceTheme()
-  })
+  emitter.on('color_mode_changed', colorModeChangedHandler)
 })
 
 onUnmounted(() => {
   view.value?.destroy()
-  emitter.off('color_mode_changed')
+  emitter.off('color_mode_changed', colorModeChangedHandler)
 })
 
 watch(

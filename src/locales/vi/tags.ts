@@ -5,4 +5,5 @@ export default {
   remove_from_tags: 'Xóa khỏi thẻ',
   select_tags: 'Chọn thẻ',
   add_tag: 'Thêm thẻ',
+  search_or_create: 'Tìm kiếm hoặc tạo...',
 }

@@ -71,7 +71,6 @@
           :download-file="downloadFile"
           @rename-file="renameFile"
           @delete-file="deleteFile"
-          @add-to-tags="addToTags"
           @refetch-info="refetchInfo"
         />
       </div>
@@ -89,7 +88,7 @@
         <LightboxFileTags 
           :current="current" 
           :file-info="fileInfo"
-          @add-to-tags="addToTags"
+          :tags-map="tagsMap"
         />
         
         <!-- Action Buttons in Footer -->
@@ -146,7 +145,7 @@ const { zoomIn, zoomOut, rotateLeft, rotateRight, resize, onDblclick, onWheel } 
 const { closeDialog, changeIndex, onNext, onPrev } =
   useLightboxNavigation(tempStore, imgIndex, current, imgWrapperState, status, tagsMap, loadTags, loadInfo, toRef(props, 'loop'), emit as (event: string, ...args: any[]) => void)
 
-const { downloadFile, deleteFile, renameFile, addToTags, handleActionSuccess, viewOrigin: viewOriginAction } =
+const { downloadFile, deleteFile, renameFile, handleActionSuccess, viewOrigin: viewOriginAction } =
   useLightboxFileActions(current, fileInfo, tagsMap, urlTokenKey, refetchInfo, isPhone, lightboxInfoVisible)
 
 const viewOrigin = () => {

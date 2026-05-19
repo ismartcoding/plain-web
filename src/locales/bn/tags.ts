@@ -5,4 +5,5 @@ export default {
   remove_from_tags: 'ট্যাগ থেকে সরান',
   select_tags: 'ট্যাগ নির্বাচন করুন',
   add_tag: 'ট্যাগ যোগ করুন',
+  search_or_create: 'অনুসন্ধান বা তৈরি করুন...',
 }

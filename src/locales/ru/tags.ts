@@ -5,4 +5,5 @@ export default {
   remove_from_tags: 'Убрать из тегов',
   select_tags: 'Выберите теги',
   add_tag: 'Добавить тег',
+  search_or_create: 'Поиск или создание...',
 }

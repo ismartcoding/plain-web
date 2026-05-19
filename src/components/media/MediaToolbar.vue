@@ -13,7 +13,9 @@
         <template v-else>
             <v-icon-button v-if="canTrash" v-tooltip="$t('move_to_trash')" :loading="trashQueryLoading" @click.stop="$emit('trash')"><i-material-symbols:delete-outline-rounded /></v-icon-button>
             <v-icon-button v-else v-tooltip="$t('delete')" @click.stop="$emit('delete')"><i-material-symbols:delete-forever-outline-rounded /></v-icon-button>
-            <v-icon-button v-tooltip="$t('add_to_tags')" @click.stop="$emit('addToTags')"><i-material-symbols:label-outline-rounded /></v-icon-button>
+            <slot name="tag-action">
+              <v-icon-button v-tooltip="$t('add_to_tags')" @click.stop="$emit('addToTags')"><i-material-symbols:label-outline-rounded /></v-icon-button>
+            </slot>
           <v-icon-button v-tooltip="$t('download')" @click.stop="$emit('download')"><i-material-symbols:download-rounded /></v-icon-button>
           <slot name="extra-actions" />
         </template>

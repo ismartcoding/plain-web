@@ -39,9 +39,10 @@
     </div>
     <ContactActionButtons
       :item="item"
+      :tags="tags"
+      :data-type="dataType"
       @delete-item="deleteItem"
       @edit="edit"
-      @add-item-to-tags="addItemToTags"
     />
     <div class="time">
       <span v-tooltip="formatDateTime(item.updatedAt)">
@@ -101,16 +102,17 @@
     <template #actions>
       <ContactActionButtons
         :item="item"
+        :tags="tags"
+        :data-type="dataType"
         @delete-item="deleteItem"
         @edit="edit"
-        @add-item-to-tags="addItemToTags"
       />
     </template>
   </ListItemPhone>
 </template>
 
 <script setup lang="ts">
-import type { IContact } from '@/lib/interfaces'
+import type { IContact, ITag } from '@/lib/interfaces'
 import { DataType } from '@/lib/data'
 import { formatDateTime, formatTimeAgo } from '@/lib/format'
 import { getFileUrl } from '@/lib/api/file'
@@ -125,6 +127,7 @@ interface Props {
   shouldSelect: boolean
   isPhone: boolean
   dataType: DataType
+  tags: ITag[]
   callLoading?: boolean
   callId?: string
   callIndex?: number
@@ -139,7 +142,6 @@ defineProps<Props>()
 const emit = defineEmits<{
   deleteItem: [item: IContact]
   edit: [item: IContact]
-  addItemToTags: [item: IContact]
   sendSms: [id: string, number: string, index: number]
   call: [id: string, number: string, index: number]
 }>()
@@ -150,10 +152,6 @@ function deleteItem(item: IContact) {
 
 function edit(item: IContact) {
   emit('edit', item)
-}
-
-function addItemToTags(item: IContact) {
-  emit('addItemToTags', item)
 }
 
 function call(id: string, number: string, index: number) {

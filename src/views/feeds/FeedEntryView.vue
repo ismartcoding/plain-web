@@ -6,10 +6,10 @@
       <feed-entry-toolbar
         :entry="entry"
         :data-type="dataType"
+        :tags="tags ?? []"
         :sync-content-loading="syncContentLoading"
         :is-phone="isPhone"
         @view-feed="viewFeed"
-        @add-to-tags="addToTags"
         @sync-content="syncContent"
         @save-to-notes="saveToNotes({ query: `ids:${id}` })"
         @print="print"
@@ -31,8 +31,8 @@ import FeedEntryToolbar from '@/views/feeds/FeedEntryToolbar.vue'
 import { useFeedEntry } from '@/hooks/feed-entry'
 
 const {
-  id, entry, markdown, loading, isPhone, dataType, mainStore,
-  syncContentLoading, viewFeed, addToTags, syncContent, saveToNotes, print, backToList,
+  id, entry, tags, markdown, loading, isPhone, dataType, mainStore,
+  syncContentLoading, viewFeed, syncContent, saveToNotes, print, backToList,
 } = useFeedEntry()
 </script>
 <style lang="scss">

@@ -100,7 +100,10 @@ function deleteTag(item: ITag) {
     name: item.name,
     gql: deleteTagGQL,
     typeName: 'Tag',
-    done: () => { tags.value = tags.value.filter((t) => t.id !== item.id) },
+    done: () => {
+      tags.value = tags.value.filter((t) => t.id !== item.id)
+      emitter.emit('refetch_tags', props.type)
+    },
   })
 }
 

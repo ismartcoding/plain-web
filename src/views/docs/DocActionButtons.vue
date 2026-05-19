@@ -27,9 +27,7 @@
       <v-icon-button v-tooltip="$t('download')" class="sm" @click.stop="$emit('download-file', item.path)">
         <i-material-symbols:download-rounded />
       </v-icon-button>
-      <v-icon-button v-tooltip="$t('add_to_tags')" class="sm" @click.stop="addItemToTags(item)">
-        <i-material-symbols:label-outline-rounded />
-      </v-icon-button>
+      <TagRelationsDropdown :type="dataType" :tags="tags" :item="{ key: item.id, title: item.title, size: item.size }" :selected="item.tags" />
 
       <v-dropdown v-model="infoVisible">
         <template #trigger>
@@ -75,8 +73,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { IDoc, IFilter } from '@/lib/interfaces'
-import type { IApp } from '@/lib/interfaces'
+import type { IDoc, IFilter, IApp, ITag } from '@/lib/interfaces'
 import { DataType, FEATURE } from '@/lib/data'
 import { hasFeature } from '@/lib/feature'
 import { formatFileSize, formatDateTimeFull } from '@/lib/format'
@@ -86,12 +83,12 @@ const props = defineProps<{
   filter: IFilter
   app: IApp
   dataType: DataType
+  tags: ITag[]
   trashLoading: (query: string) => boolean
   restoreLoading: (query: string) => boolean
   trash: (dataType: DataType, query: string) => void
   restore: (dataType: DataType, query: string) => void
   deleteItem: (dataType: DataType, item: any) => void
-  addItemToTags: (item: IDoc) => void
 }>()
 
 defineEmits<{

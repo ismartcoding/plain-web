@@ -5,4 +5,5 @@ export default {
   remove_from_tags: 'Etiketlerden kaldır',
   select_tags: 'Etiketleri seç',
   add_tag: 'Etiket ekle',
+  search_or_create: 'Ara veya oluştur...',
 }

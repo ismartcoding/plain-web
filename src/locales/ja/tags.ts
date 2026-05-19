@@ -5,4 +5,5 @@ export default {
   remove_from_tags: 'タグから削除',
   select_tags: 'タグを選択',
   add_tag: 'タグを追加',
+  search_or_create: '検索または作成...',
 }
