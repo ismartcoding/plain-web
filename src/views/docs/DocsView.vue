@@ -8,7 +8,9 @@
     :restore-query-loading="restoreLoading(getQuery())" :trash-query-loading="trashLoading(getQuery())"
     :limit="limit" :all-checked-alert-visible="allCheckedAlertVisible"
     :show-secondary="false"
+    :confirming-delete="confirmingDelete" :delete-count="deleteCount" :delete-loading="deleteLoading"
     @toggle-all-checked="toggleAllChecked" @delete="deleteItems(dataType, selectedIds, realAllChecked, total, q)"
+    @confirm="doDeleteItems" @cancel="cancelDeleteItems"
     @restore="restore(dataType, getQuery())" @download="downloadItems(realAllChecked, selectedIds, q)"
     @trash="trash(dataType, getQuery())"
     @select-real-all="selectRealAll" @clear-selection="clearSelection"
@@ -128,7 +130,7 @@ const {
   isPhone, mainStore, app, urlTokenKey,
   filter, page, q, limit, dataType,
   fileInput, dirFileInput, uploadChanged, dirUploadChanged, dropping, fileDragEnter, fileDragLeave,
-  deleteItems, bucketsMap, viewBucket, tags,
+  deleteItems, confirmingDelete, deleteCount, deleteLoading, doDeleteItems, cancelDeleteItems, bucketsMap, viewBucket, tags,
   selectedIds, allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible,
   clearSelection, toggleAllChecked, toggleSelect, total, checked, shiftEffectingIds, handleItemClick, shouldSelect,
   downloadItems, downloadFile, trashLoading, trash, restoreLoading, restore,

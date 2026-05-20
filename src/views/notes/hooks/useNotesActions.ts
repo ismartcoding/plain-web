@@ -48,7 +48,7 @@ export function useNotesActions(opts: UseNotesActionsOptions) {
     URL.revokeObjectURL(url)
   })
 
-  const { deleteItems } = useDelete(deleteNotesGQL, () => {
+  const { deleteItems, confirmingDelete, deleteCount, deleteLoading, doDeleteItems, cancelDeleteItems } = useDelete(deleteNotesGQL, () => {
     clearSelection()
     fetch()
   })
@@ -96,7 +96,7 @@ export function useNotesActions(opts: UseNotesActionsOptions) {
   }
 
   return {
-    deleteItems, deleteItem,
+    deleteItems, confirmingDelete, deleteCount, deleteLoading, doDeleteItems, cancelDeleteItems, deleteItem,
     exportNotes2, getQuery, trashLoading, trash, restoreLoading, restore,
     view, viewUrl, create,
   }

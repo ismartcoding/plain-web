@@ -1,9 +1,8 @@
 import type { IData } from '@/lib/interfaces'
-import { computed, h, ref, type Ref } from 'vue'
+import { computed, ref, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import toast from '@/components/toaster'
-import { openModal } from '@/components/modal'
-import DeleteItemsConfirm from '@/components/DeleteItemsConfirm.vue'
+import { initMutation } from '@/lib/api/mutation'
 
 export const useSelectable = (items: Ref<IData[]>) => {
   const allChecked = ref(false)
@@ -156,8 +155,21 @@ export const useSelectable = (items: Ref<IData[]>) => {
 
 export const useDelete = (gql: string, done: () => void) => {
   const { t } = useI18n()
+  const confirmingDelete = ref(false)
+  const deleteCount = ref(0)
+  const deleteQuery = ref('')
+
+  const { mutate, loading: deleteLoading, onDone } = initMutation({ document: gql })
+
+  onDone(() => {
+    confirmingDelete.value = false
+    done()
+  })
 
   return {
+    confirmingDelete,
+    deleteCount,
+    deleteLoading,
     deleteItems: (selectedIds: string[], realAllChecked: boolean, total: number, query: string) => {
       let q = query
       if (!realAllChecked) {
@@ -167,13 +179,15 @@ export const useDelete = (gql: string, done: () => void) => {
         }
         q = `ids:${selectedIds.join(',')}`
       }
-
-      openModal(DeleteItemsConfirm, {
-        gql: gql,
-        count: realAllChecked ? total : selectedIds.length,
-        variables: () => ({ query: q }),
-        done: done,
-      })
+      deleteCount.value = realAllChecked ? total : selectedIds.length
+      deleteQuery.value = q
+      confirmingDelete.value = true
+    },
+    doDeleteItems: () => {
+      mutate({ query: deleteQuery.value })
+    },
+    cancelDeleteItems: () => {
+      confirmingDelete.value = false
     },
   }
 }

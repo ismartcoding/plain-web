@@ -33,7 +33,7 @@ export function useFeedEntriesActions(opts: UseFeedEntriesActionsOptions) {
 
   const { viewFeed } = useFeeds(mainStore)
 
-  const { deleteItems } = useDelete(deleteFeedEntriesGQL, () => {
+  const { deleteItems, confirmingDelete, deleteCount, deleteLoading, doDeleteItems, cancelDeleteItems } = useDelete(deleteFeedEntriesGQL, () => {
     clearSelection()
     fetch()
     if (items.value.some((it) => it.tags.length)) {
@@ -104,7 +104,7 @@ export function useFeedEntriesActions(opts: UseFeedEntriesActionsOptions) {
   }
 
   return {
-    deleteItems, deleteItem,
+    deleteItems, confirmingDelete, deleteCount, deleteLoading, doDeleteItems, cancelDeleteItems, deleteItem,
     saveFeedsToNotes, savingNotes, syncFeeds,
     viewUrl, view, viewFeed, backToList,
   }

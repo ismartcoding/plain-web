@@ -1,5 +1,3 @@
-import DeleteItemsConfirm from '@/components/DeleteItemsConfirm.vue'
-import { openModal } from '@/components/modal'
 import { useI18n } from 'vue-i18n'
 import toast from '@/components/toaster'
 import { deleteMediaItemsGQL, initMutation } from '@/lib/api/mutation'
@@ -15,12 +13,27 @@ import { bucketsTagsGQL, initLazyQuery } from '@/lib/api/query'
 
 export const useDeleteItems = () => {
   const { t } = useI18n()
+  const confirmingDelete = ref(false)
+  const deleteCount = ref(0)
+  const deleteQuery = ref('')
+  const deleteType = ref('')
+
+  const { mutate: doBulkDelete, loading: deleteLoading, onDone: onBulkDeleteDone } = initMutation({ document: deleteMediaItemsGQL })
+  onBulkDeleteDone(() => {
+    const type = deleteType.value
+    const q = deleteQuery.value
+    confirmingDelete.value = false
+    emitter.emit('media_items_actioned', { type, action: 'delete', query: q })
+  })
 
   const { mutate: doDeleteItem, onDone: onDeleteItemDone } = initMutation({ document: deleteMediaItemsGQL })
   let pendingDeleteCallback: (() => void) | null = null
   onDeleteItemDone(() => { pendingDeleteCallback?.(); pendingDeleteCallback = null })
 
   return {
+    confirmingDelete,
+    deleteCount,
+    deleteLoading,
     deleteItems: (type: string, ids: string[], realAllChecked: boolean, total: number, query: string) => {
       let q = query
       if (!realAllChecked) {
@@ -30,15 +43,16 @@ export const useDeleteItems = () => {
         }
         q = `ids:${ids.join(',')}`
       }
-
-      openModal(DeleteItemsConfirm, {
-        gql: deleteMediaItemsGQL,
-        count: realAllChecked ? total : ids.length,
-        variables: () => ({ type: type, query: q }),
-        done: () => {
-          emitter.emit('media_items_actioned', { type: type, action: 'delete', query: q })
-        },
-      })
+      deleteCount.value = realAllChecked ? total : ids.length
+      deleteQuery.value = q
+      deleteType.value = type
+      confirmingDelete.value = true
+    },
+    doDeleteItems: () => {
+      doBulkDelete({ type: deleteType.value, query: deleteQuery.value })
+    },
+    cancelDeleteItems: () => {
+      confirmingDelete.value = false
     },
 
     deleteItem: (type: string, item: IImageItem | IVideoItem | IAudio) => {

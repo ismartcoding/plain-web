@@ -60,7 +60,7 @@ export function useMediaPage(options: MediaPageOptions) {
     buckets.value.forEach((it) => { map[it.id] = it })
     return map
   })
-  const { deleteItems, deleteItem } = useDeleteItems()
+  const { deleteItems, deleteItem, confirmingDelete, deleteCount, deleteLoading, doDeleteItems, cancelDeleteItems } = useDeleteItems()
   const { view: viewBucket } = useBuckets(dataType)
 
   const sel = useSelectable(items)
@@ -168,7 +168,7 @@ export function useMediaPage(options: MediaPageOptions) {
     isPhone, mainStore, tempStore, app, urlTokenKey, noDataKey,
     filter, page, q, sorting, limit, dataType,
     ...upload,
-    tags, buckets, bucketsMap, deleteItems, deleteItem, viewBucket,
+    tags, buckets, bucketsMap, deleteItems, deleteItem, confirmingDelete, deleteCount, deleteLoading, doDeleteItems, cancelDeleteItems, viewBucket,
     ...sel, downloadItems, downloadFile,
     trashLoading, trash, restoreLoading, restore,
     gotoPage, onChangePageSize, getQuery, sort, handleMouseOverMode,
