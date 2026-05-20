@@ -5,9 +5,7 @@
       <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
       <span v-else>{{ $t('page_title.contacts') }} ({{ total.toLocaleString() }})</span>
       <template v-if="checked">
-        <v-icon-button v-tooltip="$t('delete')" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)">
-          <i-material-symbols:delete-forever-outline-rounded />
-        </v-icon-button>
+        <bulk-delete-button :confirming="confirmingDelete" :count="deleteCount" :loading="deleteLoading" @click="deleteItems(selectedIds, realAllChecked, total, q)" @confirm="doDeleteItems" @cancel="cancelDeleteItems" />
         <v-icon-button v-tooltip="$t('download')" style="display: none">
           <i-material-symbols:download-rounded />
         </v-icon-button>
@@ -72,7 +70,7 @@ const isPhone = inject('isPhone') as boolean
 
 const {
   items, page, limit, q, loading, tags, dataType, app, sources, fetch,
-  deleteItems,
+  deleteItems, confirmingDelete, deleteCount, deleteLoading, doDeleteItems, cancelDeleteItems,
   selectedIds, allChecked, realAllChecked, selectRealAll, allCheckedAlertVisible,
   clearSelection, toggleAllChecked, toggleSelect, total, checked,
   shiftEffectingIds, handleItemClick, handleMouseOver, shouldSelect,

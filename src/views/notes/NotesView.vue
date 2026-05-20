@@ -6,9 +6,7 @@
       <span v-else>{{ $t('page_title.notes') }} ({{ total.toLocaleString() }})</span>
       <template v-if="checked">
         <template v-if="filter.trash">
-          <v-icon-button v-tooltip="$t('delete')" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)">
-            <i-material-symbols:delete-forever-outline-rounded />
-          </v-icon-button>
+          <bulk-delete-button :confirming="confirmingDelete" :count="deleteCount" :loading="deleteLoading" @click="deleteItems(selectedIds, realAllChecked, total, q)" @confirm="doDeleteItems" @cancel="cancelDeleteItems" />
           <v-icon-button v-tooltip="$t('restore')" :loading="restoreLoading(getQuery())" @click.stop="restore(getQuery())">
             <i-material-symbols:restore-from-trash-outline-rounded />
           </v-icon-button>
@@ -93,7 +91,7 @@ const {
 })
 
 const {
-  deleteItems, deleteItem,
+  deleteItems, confirmingDelete, deleteCount, deleteLoading, doDeleteItems, cancelDeleteItems, deleteItem,
   exportNotes2, getQuery, trashLoading, trash, restoreLoading, restore,
   view, viewUrl, create,
 } = useNotesActions({ items, selectedIds, realAllChecked, q, total, clearSelection, fetch })

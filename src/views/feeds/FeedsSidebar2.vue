@@ -6,9 +6,7 @@
         <span v-if="selectedIds.length">{{ $t('x_selected', { count: realAllChecked ? total.toLocaleString() : selectedIds.length.toLocaleString() }) }}</span>
         <span v-else>{{ $t('page_title.feeds') }} ({{ total.toLocaleString() }})</span>
         <template v-if="checked">
-          <v-icon-button v-tooltip="$t('delete')" @click.stop="deleteItems(selectedIds, realAllChecked, total, q)">
-            <i-material-symbols:delete-forever-outline-rounded />
-          </v-icon-button>
+          <bulk-delete-button :confirming="confirmingDelete" :count="deleteCount" :loading="deleteLoading" @click="deleteItems(selectedIds, realAllChecked, total, q)" @confirm="doDeleteItems" @cancel="cancelDeleteItems" />
           <BulkTagDropdown :type="dataType" :tags="tags" :items="items" :selected-ids="selectedIds" :real-all-checked="realAllChecked" :q="q" />
           <v-icon-button v-tooltip="$t('save_to_notes')" :loading="savingNotes" @click.prevent="saveFeedsToNotes">
             <i-material-symbols:add-notes-outline-rounded />
@@ -98,7 +96,7 @@ const {
 })
 
 const {
-  deleteItems, saveFeedsToNotes, savingNotes, syncFeeds,
+  deleteItems, confirmingDelete, deleteCount, deleteLoading, doDeleteItems, cancelDeleteItems, saveFeedsToNotes, savingNotes, syncFeeds,
   viewUrl, view, viewFeed,
 } = useFeedEntriesActions({ selectedIds, realAllChecked, q, total, tags, items, clearSelection, fetch })
 </script>

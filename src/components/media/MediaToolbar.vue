@@ -6,13 +6,13 @@
       <span v-else>{{ $t(pageTitle) }} ({{ total.toLocaleString() }})</span>
       <template v-if="checked">
         <template v-if="filterTrash">
-          <v-icon-button v-tooltip="$t('delete')" @click.stop="$emit('delete')"><i-material-symbols:delete-forever-outline-rounded /></v-icon-button>
+          <bulk-delete-button :confirming="confirmingDelete" :count="deleteCount" :loading="deleteLoading" @click="$emit('delete')" @confirm="$emit('confirm')" @cancel="$emit('cancel')" />
           <v-icon-button v-tooltip="$t('restore')" :loading="restoreQueryLoading" @click.stop="$emit('restore')"><i-material-symbols:restore-from-trash-outline-rounded /></v-icon-button>
           <v-icon-button v-tooltip="$t('download')" @click.stop="$emit('download')"><i-material-symbols:download-rounded /></v-icon-button>
         </template>
         <template v-else>
             <v-icon-button v-if="canTrash" v-tooltip="$t('move_to_trash')" :loading="trashQueryLoading" @click.stop="$emit('trash')"><i-material-symbols:delete-outline-rounded /></v-icon-button>
-            <v-icon-button v-else v-tooltip="$t('delete')" @click.stop="$emit('delete')"><i-material-symbols:delete-forever-outline-rounded /></v-icon-button>
+            <bulk-delete-button v-else :confirming="confirmingDelete" :count="deleteCount" :loading="deleteLoading" @click="$emit('delete')" @confirm="$emit('confirm')" @cancel="$emit('cancel')" />
             <slot name="tag-action">
               <v-icon-button v-tooltip="$t('add_to_tags')" @click.stop="$emit('addToTags')"><i-material-symbols:label-outline-rounded /></v-icon-button>
             </slot>
@@ -49,10 +49,15 @@ defineProps<{
   limit: number
   allCheckedAlertVisible: boolean
   showSecondary: boolean
+  confirmingDelete: boolean
+  deleteCount: number
+  deleteLoading: boolean
 }>()
 
 defineEmits<{
   toggleAllChecked: [event: Event]
+  confirm: []
+  cancel: []
   delete: []
   restore: []
   download: []

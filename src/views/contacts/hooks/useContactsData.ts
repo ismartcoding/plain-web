@@ -35,7 +35,7 @@ export function useContactsData() {
 
   const selectable = useSelectable(items)
 
-  const { deleteItems } = useDelete(deleteContactsGQL, () => {
+  const { deleteItems, confirmingDelete, deleteCount, deleteLoading, doDeleteItems, cancelDeleteItems } = useDelete(deleteContactsGQL, () => {
     selectable.clearSelection()
     fetch()
     emitter.emit('refetch_tags', dataType)
@@ -122,7 +122,7 @@ export function useContactsData() {
 
   return {
     items, filter, page, limit, q, loading, fetch, tags, dataType, app, sources,
-    deleteItems,
+    deleteItems, confirmingDelete, deleteCount, deleteLoading, doDeleteItems, cancelDeleteItems,
     gotoPage, onChangePageSize,
     ...selectable,
   }
