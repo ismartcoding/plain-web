@@ -6,4 +6,5 @@ export default {
   select_tags: 'Sélectionner des étiquettes',
   add_tag: 'Ajouter une étiquette',
   search_or_create: 'Rechercher ou créer...',
+  clear_tags_from_selected: 'Supprimer les étiquettes des éléments sélectionnés',
 }

@@ -1,7 +1,5 @@
 import { ref, type Ref } from 'vue'
 import type { ICall, ITag, ISim } from '@/lib/interfaces'
-import { openModal } from '@/components/modal'
-import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import { callGQL, deleteCallsGQL, initMutation } from '@/lib/api/mutation'
 import { simsGQL, initQuery } from '@/lib/api/query'
 import emitter from '@/plugins/eventbus'
@@ -33,20 +31,23 @@ export function useCallsActions(opts: UseCallsActionsOptions) {
     mutateCall({ number: item.number, showDialer: sims.value.length > 1 })
   }
 
+  const { mutate: doDeleteCall, onDone: onDeleteCallDone } = initMutation({ document: deleteCallsGQL })
+  const pendingDeleteCall = ref<ICall | null>(null)
+
+  onDeleteCallDone(() => {
+    const item = pendingDeleteCall.value
+    if (item) {
+      items.value = items.value.filter((it) => it.id !== item.id)
+      total.value--
+      if (item.tags.length) emitter.emit('refetch_tags', dataType)
+      emitter.emit('calls_deleted')
+      pendingDeleteCall.value = null
+    }
+  })
+
   function deleteItem(item: ICall) {
-    openModal(DeleteConfirm, {
-      id: item.id,
-      name: item.number,
-      gql: deleteCallsGQL,
-      variables: () => ({ query: `ids:${item.id}` }),
-      typeName: 'Call',
-      done: () => {
-        items.value = items.value.filter((it) => it.id !== item.id)
-        total.value--
-        if (item.tags.length) emitter.emit('refetch_tags', dataType)
-        emitter.emit('calls_deleted')
-      },
-    })
+    pendingDeleteCall.value = item
+    doDeleteCall({ query: `ids:${item.id}` })
   }
 
   return { callId, callLoading, call, deleteItem }

@@ -6,4 +6,5 @@ export default {
   select_tags: 'Chọn thẻ',
   add_tag: 'Thêm thẻ',
   search_or_create: 'Tìm kiếm hoặc tạo...',
+  clear_tags_from_selected: 'Xóa thẻ khỏi các mục đã chọn',
 }

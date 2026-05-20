@@ -6,4 +6,5 @@ export default {
   select_tags: '태그 선택',
   add_tag: '태그 추가',
   search_or_create: '검색 또는 생성...',
+  clear_tags_from_selected: '선택한 항목에서 태그 제거',
 }

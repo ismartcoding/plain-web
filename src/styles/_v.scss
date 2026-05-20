@@ -1,5 +1,6 @@
 .v-outlined-button.btn-sm,
-.v-filled-button.btn-sm {
+.v-filled-button.btn-sm,
+.v-tonal-button.btn-sm {
   --_label-text-size: 0.75rem;
   height: 32px;
   --_container-height: 32px;
@@ -8,7 +9,8 @@
 }
 
 .v-outlined-button.btn-lg,
-.v-filled-button.btn-lg {
+.v-filled-button.btn-lg,
+.v-tonal-button.btn-lg {
   --_label-text-size: 1rem;
   --_container-height: 56px;
   height: 56px;
@@ -26,6 +28,25 @@
   .circular-progress {
     --size: 18px;
     color: var(--md-sys-color-on-primary);
+  }
+}
+
+// Danger variant — filled error-color button
+.v-filled-button.danger {
+  background-color: var(--md-sys-color-error);
+  color: var(--md-sys-color-on-error);
+
+  &:hover:not(:disabled) {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
+  }
+
+  &:disabled {
+    background-color: rgba(0, 0, 0, 0.12);
+    color: rgba(0, 0, 0, 0.38);
+  }
+
+  .circular-progress {
+    color: var(--md-sys-color-on-error);
   }
 }
 

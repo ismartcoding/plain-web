@@ -1,7 +1,6 @@
+import { ref } from 'vue'
 import type { IFeedEntry, ITag } from '@/lib/interfaces'
 import type { Ref, ComputedRef } from 'vue'
-import { openModal } from '@/components/modal'
-import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import { useI18n } from 'vue-i18n'
 import toast from '@/components/toaster'
 import { useDelete } from '@/hooks/list'
@@ -70,20 +69,23 @@ export function useFeedEntriesActions(opts: UseFeedEntriesActionsOptions) {
     doSyncFeeds({ id: '' })
   }
 
+  const { mutate: doDeleteEntry, onDone: onDeleteEntryDone } = initMutation({ document: deleteFeedEntryGQL })
+  const pendingDeleteEntry = ref<IFeedEntry | null>(null)
+
+  onDeleteEntryDone(() => {
+    const item = pendingDeleteEntry.value
+    if (item) {
+      items.value = items.value.filter((it) => it.id !== item.id)
+      clearSelection()
+      total.value--
+      if (item.tags.length) emitter.emit('refetch_tags', dataType)
+      pendingDeleteEntry.value = null
+    }
+  })
+
   function deleteItem(item: IFeedEntry) {
-    openModal(DeleteConfirm, {
-      id: item.id,
-      name: item.title,
-      gql: deleteFeedEntryGQL,
-      variables: () => ({ query: `ids:${item.id}` }),
-      typeName: 'FeedEntry',
-      done: () => {
-        items.value = items.value.filter((it) => it.id !== item.id)
-        clearSelection()
-        total.value--
-        if (item.tags.length) emitter.emit('refetch_tags', dataType)
-      },
-    })
+    pendingDeleteEntry.value = item
+    doDeleteEntry({ query: `ids:${item.id}` })
   }
 
 

@@ -1,8 +1,5 @@
 import { ref } from 'vue'
 import type { INote } from '@/lib/interfaces'
-import { openModal } from '@/components/modal'
-import DeleteConfirm from '@/components/DeleteConfirm.vue'
-import { truncateText } from '@/lib/array'
 import { useDelete } from '@/hooks/list'
 import { deleteNotesGQL, exportNotesGQL, initMutation, deleteNoteGQL } from '@/lib/api/mutation'
 import { useNotesRestore, useNotesTrash } from '@/hooks/notes'
@@ -67,15 +64,22 @@ export function useNotesActions(opts: UseNotesActionsOptions) {
     exportNotes({ query: getQuery() })
   }
 
+  const { mutate: doDeleteNote, onDone: onDeleteNoteDone } = initMutation({ document: deleteNoteGQL })
+  const pendingDeleteNote = ref<INote | null>(null)
+
+  onDeleteNoteDone(() => {
+    const item = pendingDeleteNote.value
+    if (item) {
+      items.value = items.value.filter((it) => it.id !== item.id)
+      clearSelection()
+      total.value--
+      pendingDeleteNote.value = null
+    }
+  })
+
   function deleteItem(item: INote) {
-    openModal(DeleteConfirm, {
-      id: item.id,
-      name: truncateText(item.title, 20),
-      gql: deleteNoteGQL,
-      variables: () => ({ query: `ids:${item.id}` }),
-      done: () => { items.value = items.value.filter((it) => it.id !== item.id); clearSelection(); total.value-- },
-      typeName: 'Note',
-    })
+    pendingDeleteNote.value = item
+    doDeleteNote({ query: `ids:${item.id}` })
   }
 
   function viewUrl(item: INote) {

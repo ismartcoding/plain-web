@@ -1,21 +1,33 @@
 <template>
   <div class="file-action-buttons">
-    <template v-if="!current?.isFromChat">
-      <template v-if="canTrash">
-        <template v-if="isTrashed">
-          <v-outlined-button @click.stop="$emit('delete-file')">
-            <i-material-symbols:delete-forever-outline-rounded />
-            {{ $t('delete') }}
-          </v-outlined-button>
-          <v-outlined-button :class="{ loading: restoreLoading(`ids:${current?.data?.id}`) }" @click.stop="restoreItem">
-            <i-material-symbols:restore-from-trash-outline-rounded />
-            {{ $t('restore') }}
-          </v-outlined-button>
+    <template v-if="!confirming">
+      <template v-if="!current?.isFromChat">
+        <template v-if="canTrash">
+          <template v-if="isTrashed">
+            <v-outlined-button @click.stop="confirming = true">
+              <i-material-symbols:delete-forever-outline-rounded />
+              {{ $t('delete') }}
+            </v-outlined-button>
+            <v-outlined-button :class="{ loading: restoreLoading(`ids:${current?.data?.id}`) }" @click.stop="restoreItem">
+              <i-material-symbols:restore-from-trash-outline-rounded />
+              {{ $t('restore') }}
+            </v-outlined-button>
+          </template>
+          <template v-else>
+            <v-outlined-button :class="{ loading: trashLoading(`ids:${current?.data?.id}`) }" @click.stop="trashMediaItem">
+              <i-material-symbols:delete-outline-rounded />
+              {{ $t('move_to_trash') }}
+            </v-outlined-button>
+            <v-outlined-button @click.stop="$emit('rename-file')">
+              <i-material-symbols:edit-outline-rounded />
+              {{ $t('rename') }}
+            </v-outlined-button>
+          </template>
         </template>
         <template v-else>
-          <v-outlined-button :class="{ loading: trashLoading(`ids:${current?.data?.id}`) }" @click.stop="trashMediaItem">
-            <i-material-symbols:delete-outline-rounded />
-            {{ $t('move_to_trash') }}
+          <v-outlined-button @click.stop="confirming = true">
+            <i-material-symbols:delete-forever-outline-rounded />
+            {{ $t('delete') }}
           </v-outlined-button>
           <v-outlined-button @click.stop="$emit('rename-file')">
             <i-material-symbols:edit-outline-rounded />
@@ -23,26 +35,17 @@
           </v-outlined-button>
         </template>
       </template>
-      <template v-else>
-        <v-outlined-button @click.stop="$emit('delete-file')">
-          <i-material-symbols:delete-forever-outline-rounded />
-          {{ $t('delete') }}
-        </v-outlined-button>
-        <v-outlined-button @click.stop="$emit('rename-file')">
-          <i-material-symbols:edit-outline-rounded />
-          {{ $t('rename') }}
-        </v-outlined-button>
-      </template>
+      <v-outlined-button class="download-btn" @click.stop="handleDownload">
+        <i-material-symbols:download-rounded />
+        {{ $t('download') }}
+      </v-outlined-button>
     </template>
-    <v-outlined-button class="download-btn" @click.stop="handleDownload">
-      <i-material-symbols:download-rounded />
-      {{ $t('download') }}
-    </v-outlined-button>
+    <inline-delete-confirm v-else :name="current?.name ?? current?.data?.title ?? ''" @confirm="onConfirmDelete" @cancel="confirming = false" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { getFileName } from '@/lib/api/file'
 import { DataType } from '@/lib/data'
 import { useMediaRestore, useMediaTrash, useFileTrashState } from '@/hooks/media-trash'
@@ -66,6 +69,13 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['rename-file', 'delete-file', 'action-success'])
+
+const confirming = ref(false)
+
+function onConfirmDelete() {
+  emit('delete-file')
+  confirming.value = false
+}
 
 const { isTrashed, canTrash } = useFileTrashState(() => props.current, () => props.osVersion)
 

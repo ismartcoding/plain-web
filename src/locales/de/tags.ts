@@ -6,4 +6,5 @@ export default {
   select_tags: 'Tags auswählen',
   add_tag: 'Tag hinzufügen',
   search_or_create: 'Suchen oder erstellen...',
+  clear_tags_from_selected: 'Tags von ausgewählten Elementen entfernen',
 }

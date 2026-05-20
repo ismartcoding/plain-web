@@ -2,7 +2,6 @@ import { ref, type Ref } from 'vue'
 import type { IContact, IContactSource, ITag, ISim } from '@/lib/interfaces'
 import { getContactFullName } from '@/lib/contact/format'
 import { openModal } from '@/components/modal'
-import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import EditContactModal from '@/components/EditContactModal.vue'
 import SendSmsModal from '@/views/messages/SendSmsModal.vue'
 import { callGQL, deleteContactsGQL, initMutation } from '@/lib/api/mutation'
@@ -36,19 +35,22 @@ export function useContactsActions(opts: UseContactsActionsOptions) {
 
   const fullName = getContactFullName
 
+  const { mutate: doDeleteContact, onDone: onDeleteContactDone } = initMutation({ document: deleteContactsGQL })
+  const pendingDeleteContact = ref<IContact | null>(null)
+
+  onDeleteContactDone(() => {
+    const item = pendingDeleteContact.value
+    if (item) {
+      items.value = items.value.filter((it) => it.id !== item.id)
+      total.value--
+      if (item.tags.length) emitter.emit('refetch_tags', dataType)
+      pendingDeleteContact.value = null
+    }
+  })
+
   function deleteItem(item: IContact) {
-    openModal(DeleteConfirm, {
-      id: item.id,
-      name: fullName(item),
-      gql: deleteContactsGQL,
-      variables: () => ({ query: `ids:${item.id}` }),
-      typeName: 'Contact',
-      done: () => {
-        items.value = items.value.filter((it) => it.id !== item.id)
-        total.value--
-        if (item.tags.length) emitter.emit('refetch_tags', dataType)
-      },
-    })
+    pendingDeleteContact.value = item
+    doDeleteContact({ query: `ids:${item.id}` })
   }
 
   function edit(item: IContact) {
