@@ -6,4 +6,5 @@ export default {
   select_tags: 'ট্যাগ নির্বাচন করুন',
   add_tag: 'ট্যাগ যোগ করুন',
   search_or_create: 'অনুসন্ধান বা তৈরি করুন...',
+  clear_tags_from_selected: 'নির্বাচিত আইটেম থেকে ট্যাগ সাফ করুন',
 }

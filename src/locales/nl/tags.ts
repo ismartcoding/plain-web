@@ -6,4 +6,5 @@ export default {
   select_tags: 'Tags selecteren',
   add_tag: 'Tag toevoegen',
   search_or_create: 'Zoeken of aanmaken...',
+  clear_tags_from_selected: 'Tags van geselecteerde items verwijderen',
 }

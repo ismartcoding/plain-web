@@ -41,12 +41,17 @@
         </div>
       </v-dropdown-menu>
       <v-dropdown-menu v-model="feedMenuVisible" :anchor="'feed-' + selectedFeed?.id">
-        <div class="dropdown-item" @click="editFeed(selectedFeed!); feedMenuVisible = false">
-          {{ $t('edit') }}
-        </div>
-        <div class="dropdown-item" @click="deleteFeed(selectedFeed!); feedMenuVisible = false">
-          {{ $t('delete') }}
-        </div>
+        <template v-if="!confirmingDeleteFeed">
+          <div class="dropdown-item" @click="editFeed(selectedFeed!); feedMenuVisible = false">
+            {{ $t('edit') }}
+          </div>
+          <div class="dropdown-item" @click="deleteFeed(selectedFeed!)">
+            {{ $t('delete') }}
+          </div>
+        </template>
+        <template v-else>
+          <inline-delete-confirm :name="deletingFeed?.name ?? ''" :loading="deleteFeedLoading" @confirm="doDeleteFeed" @cancel="cancelDeleteFeed" />
+        </template>
       </v-dropdown-menu>
       <tag-filter type="FEED_ENTRY" :selected="selectedTagId" />
       <input ref="fileInput" style="display: none" accept=".xml" type="file" @change="uploadChanged" />
@@ -61,7 +66,8 @@ const {
   counter, feeds, actionItems,
   addMenuVisible, selectedTagId, selectedFeedId, today,
   fileInput, feedMenuVisible, selectedFeed,
+  confirmingDeleteFeed, deletingFeed, deleteFeedLoading,
   getFeedCount, viewFeed, viewAll, viewToday,
-  uploadChanged, showFeedMenu, editFeed, deleteFeed,
+  uploadChanged, showFeedMenu, editFeed, deleteFeed, doDeleteFeed, cancelDeleteFeed,
 } = useFeedsSidebar()
 </script>

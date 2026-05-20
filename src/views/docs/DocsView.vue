@@ -68,7 +68,7 @@
 import { computed, ref, watch } from 'vue'
 import toast from '@/components/toaster'
 import { docsGQL, initLazyQuery } from '@/lib/api/query'
-import { deleteMediaItemsGQL } from '@/lib/api/mutation'
+import { deleteMediaItemsGQL, initMutation } from '@/lib/api/mutation'
 import type { IDoc } from '@/lib/interfaces'
 import { DataType, FEATURE } from '@/lib/data'
 import { getSortItems, isDoc } from '@/lib/file'
@@ -77,8 +77,6 @@ import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/stores/main'
 import { useMediaPage } from '@/hooks/media-page'
 import { useMediaPageActions } from '@/hooks/media-page-actions'
-import { openModal } from '@/components/modal'
-import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import emitter from '@/plugins/eventbus'
 import MediaPageActions from '@/components/media/MediaPageActions.vue'
 import MediaToolbar from '@/components/media/MediaToolbar.vue'
@@ -139,17 +137,13 @@ const {
   uploadDir, uploadDirEditable, editUploadDir,
 } = mp
 
+const { mutate: doDeleteDocItem, onDone: onDeleteDocItemDone } = initMutation({ document: deleteMediaItemsGQL })
+let pendingDocDeleteEmit: (() => void) | null = null
+onDeleteDocItemDone(() => { pendingDocDeleteEmit?.(); pendingDocDeleteEmit = null })
+
 function deleteDocItemInTrash(dt: DataType, item: IDoc) {
-  openModal(DeleteConfirm, {
-    id: item.id,
-    name: item.title,
-    gql: deleteMediaItemsGQL,
-    variables: () => ({ type: dt, query: `ids:${item.id}` }),
-    typeName: 'Doc',
-    done: () => {
-      emitter.emit('media_items_actioned', { type: dt, action: 'delete', id: item.id, query: `ids:${item.id}` })
-    },
-  })
+  pendingDocDeleteEmit = () => emitter.emit('media_items_actioned', { type: dt, action: 'delete', id: item.id, query: `ids:${item.id}` })
+  doDeleteDocItem({ type: dt, query: `ids:${item.id}` })
 }
 
 const { loading, fetch } = initLazyQuery({

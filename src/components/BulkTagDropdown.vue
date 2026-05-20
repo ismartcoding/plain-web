@@ -26,7 +26,7 @@
         >
           <v-checkbox class="tag-checkbox" :checked="getTagState(tag) === 'all'" :indeterminate="getTagState(tag) === 'some'" />
           <span class="tag-name">{{ tag.name }}</span>
-          <i-material-symbols:cancel-rounded v-if="getTagState(tag) === 'some'" class="clear-icon" @click.stop="clearTag(tag)" />
+          <i-lucide:circle-minus v-if="getTagState(tag) === 'some'" v-tooltip="$t('clear_tags_from_selected')" class="clear-icon" @click.stop="clearTag(tag)" />
         </div>
         <div v-if="canCreate" class="bulk-tag-item create-item" @click.stop="createAndAdd">
           <i-material-symbols:add class="add-icon" />

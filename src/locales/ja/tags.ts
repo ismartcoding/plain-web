@@ -6,4 +6,5 @@ export default {
   select_tags: 'タグを選択',
   add_tag: 'タグを追加',
   search_or_create: '検索または作成...',
+  clear_tags_from_selected: '選択したアイテムからタグをクリア',
 }

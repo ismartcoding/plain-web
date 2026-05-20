@@ -2,9 +2,8 @@ import DeleteItemsConfirm from '@/components/DeleteItemsConfirm.vue'
 import { openModal } from '@/components/modal'
 import { useI18n } from 'vue-i18n'
 import toast from '@/components/toaster'
-import { deleteMediaItemsGQL } from '@/lib/api/mutation'
+import { deleteMediaItemsGQL, initMutation } from '@/lib/api/mutation'
 import emitter from '@/plugins/eventbus'
-import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import type { DataType } from '@/lib/data'
 import { encodeBase64 } from '@/lib/strutil'
 import type { MainState } from '@/stores/main'
@@ -16,10 +15,10 @@ import { bucketsTagsGQL, initLazyQuery } from '@/lib/api/query'
 
 export const useDeleteItems = () => {
   const { t } = useI18n()
-  const typeNameMap = new Map<string, string>()
-  typeNameMap.set('AUDIO', 'Audio')
-  typeNameMap.set('VIDEO', 'Video')
-  typeNameMap.set('IMAGE', 'Image')
+
+  const { mutate: doDeleteItem, onDone: onDeleteItemDone } = initMutation({ document: deleteMediaItemsGQL })
+  let pendingDeleteCallback: (() => void) | null = null
+  onDeleteItemDone(() => { pendingDeleteCallback?.(); pendingDeleteCallback = null })
 
   return {
     deleteItems: (type: string, ids: string[], realAllChecked: boolean, total: number, query: string) => {
@@ -43,24 +42,14 @@ export const useDeleteItems = () => {
     },
 
     deleteItem: (type: string, item: IImageItem | IVideoItem | IAudio) => {
-      openModal(DeleteConfirm, {
-        id: item.id,
-        name: item.title,
-        image: isIAudio(item) ? '' : item.fileId,
-        gql: deleteMediaItemsGQL,
-        variables: () => ({ type: type, query: `ids:${item.id}` }),
-        typeName: typeNameMap.get(type) ?? '',
-        done: () => {
-          emitter.emit('media_items_actioned', { type: type, action: 'delete', id: item.id, query: `ids:${item.id}` })
-        },
-      })
+      pendingDeleteCallback = () => {
+        emitter.emit('media_items_actioned', { type, action: 'delete', id: item.id, query: `ids:${item.id}` })
+      }
+      doDeleteItem({ type, query: `ids:${item.id}` })
     },
   }
 }
 
-function isIAudio(object: any): object is IAudio {
-  return 'albumFileId' in object
-}
 
 export const useBuckets = (type: DataType) => {
   const path = ({

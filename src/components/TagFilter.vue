@@ -15,17 +15,22 @@
     </li>
   </ul>
   <v-dropdown-menu v-model="tagMenuVisible" :anchor="'tag-' + selectedItem?.id">
-    <div class="dropdown-item" @click="renameTag(selectedItem!); tagMenuVisible = false">
-      {{ $t('rename') }}
-    </div>
-    <div class="dropdown-item" @click="deleteTag(selectedItem!); tagMenuVisible = false">
-      {{ $t('delete') }}
-    </div>
+    <template v-if="!confirmingDelete">
+      <div class="dropdown-item" @click="renameTag(selectedItem!); tagMenuVisible = false">
+        {{ $t('rename') }}
+      </div>
+      <div class="dropdown-item" @click="confirmingDelete = true">
+        {{ $t('delete') }}
+      </div>
+    </template>
+    <template v-else>
+      <inline-delete-confirm :name="selectedItem?.name ?? ''" :loading="deleteLoading" @confirm="doDeleteTag" @cancel="confirmingDelete = false" />
+    </template>
   </v-dropdown-menu>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { initQuery, tagsGQL } from '@/lib/api/query'
 import { replacePath } from '@/plugins/router'
 import type { IMediaItemsActionedEvent, ITag } from '@/lib/interfaces'
@@ -37,7 +42,6 @@ import toast from '@/components/toaster'
 import { useI18n } from 'vue-i18n'
 import { initMutation, createTagGQL, deleteTagGQL, updateTagGQL } from '@/lib/api/mutation'
 import EditValueModal from '@/components/EditValueModal.vue'
-import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import emitter from '@/plugins/eventbus'
 import { names } from '@/lib/tag'
 
@@ -51,6 +55,11 @@ const mainStore = useMainStore()
 const tags = ref<ITag[]>([])
 const tagMenuVisible = ref(false)
 const selectedItem = ref<ITag>()
+const confirmingDelete = ref(false)
+
+watch(tagMenuVisible, (v) => {
+  if (!v) confirmingDelete.value = false
+})
 
 const { refetch } = initQuery({
   handle: (data: any, error: string) => {
@@ -94,17 +103,20 @@ function renameTag(item: ITag) {
   })
 }
 
-function deleteTag(item: ITag) {
-  openModal(DeleteConfirm, {
-    id: item.id,
-    name: item.name,
-    gql: deleteTagGQL,
-    typeName: 'Tag',
-    done: () => {
-      tags.value = tags.value.filter((t) => t.id !== item.id)
-      emitter.emit('refetch_tags', props.type)
-    },
-  })
+const { mutate: deleteTagMutate, loading: deleteLoading, onDone: onDeleteDone } = initMutation({ document: deleteTagGQL })
+
+onDeleteDone(() => {
+  if (selectedItem.value) {
+    tags.value = tags.value.filter((t) => t.id !== selectedItem.value!.id)
+    emitter.emit('refetch_tags', props.type)
+  }
+  confirmingDelete.value = false
+  tagMenuVisible.value = false
+})
+
+function doDeleteTag() {
+  if (deleteLoading.value || !selectedItem.value) return
+  deleteTagMutate({ id: selectedItem.value.id })
 }
 
 function add() {

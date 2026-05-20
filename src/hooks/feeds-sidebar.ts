@@ -9,7 +9,6 @@ import { useI18n } from 'vue-i18n'
 import toast from '@/components/toaster'
 import { openModal } from '@/components/modal'
 import { initQuery, feedsGQL, initLazyQuery, feedEntryCountGQL } from '@/lib/api/query'
-import DeleteConfirm from '@/components/DeleteConfirm.vue'
 import FeedModal from '@/views/feeds/FeedModal.vue'
 import { useFeeds } from '@/hooks/feeds'
 import { decodeBase64 } from '@/lib/strutil'
@@ -33,6 +32,12 @@ export function useFeedsSidebar() {
   const feedsCount = ref<Map<string, number>>(new Map())
   const feedMenuVisible = ref(false)
   const selectedFeed = ref<IFeed>()
+  const confirmingDeleteFeed = ref(false)
+  const deletingFeed = ref<IFeed | null>(null)
+
+  watch(feedMenuVisible, (v) => {
+    if (!v) { confirmingDeleteFeed.value = false; deletingFeed.value = null }
+  })
 
   const { fetch } = initLazyQuery({
     handle: (data: { total: number; today: number; feedsCount: IFeedCount[] }) => {
@@ -101,11 +106,31 @@ export function useFeedsSidebar() {
 
   function editFeed(item: IFeed) { openModal(FeedModal, { data: item }) }
 
+  const { mutate: doDeleteFeedMutate, loading: deleteFeedLoading, onDone: onDeleteFeedDone } = initMutation({ document: deleteFeedGQL })
+
+  onDeleteFeedDone(() => {
+    const item = deletingFeed.value
+    if (item) {
+      feeds.value = feeds.value.filter((f) => f.id !== item.id)
+      replacePath(mainStore, '/feeds')
+      deletingFeed.value = null
+      confirmingDeleteFeed.value = false
+      feedMenuVisible.value = false
+    }
+  })
+
   function deleteFeed(item: IFeed) {
-    openModal(DeleteConfirm, {
-      id: item.id, name: item.name, gql: deleteFeedGQL, typeName: 'Feed',
-      done: () => { feeds.value = feeds.value.filter((f) => f.id !== item.id); replacePath(mainStore, `/feeds`) },
-    })
+    deletingFeed.value = item
+    confirmingDeleteFeed.value = true
+  }
+
+  function doDeleteFeed() {
+    if (deletingFeed.value) doDeleteFeedMutate({ id: deletingFeed.value.id })
+  }
+
+  function cancelDeleteFeed() {
+    confirmingDeleteFeed.value = false
+    deletingFeed.value = null
   }
 
   const actionItems: IDropdownItem[] = [
@@ -127,7 +152,8 @@ export function useFeedsSidebar() {
     counter, feeds, actionItems,
     addMenuVisible, selectedTagId, selectedFeedId, today,
     fileInput, feedMenuVisible, selectedFeed,
+    confirmingDeleteFeed, deletingFeed, deleteFeedLoading,
     getFeedCount, viewFeed, viewAll, viewToday,
-    uploadChanged, showFeedMenu, editFeed, deleteFeed,
+    uploadChanged, showFeedMenu, editFeed, deleteFeed, doDeleteFeed, cancelDeleteFeed,
   }
 }
