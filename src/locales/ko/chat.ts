@@ -15,6 +15,7 @@ export default {
   app_files: '앱 파일',
   send_to_phone_clipboard: '전화 클립보드로 보내기',
   clipboard_text: '클립보드 텍스트',
+  devices: '기기',
   channels: '채널',
   create_channel: '채널 만들기',
   channel_name: '채널 이름',

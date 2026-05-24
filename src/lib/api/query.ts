@@ -133,12 +133,22 @@ export const peersGQL = `
       name
       ip
       status
+      online
       port
       deviceType
       createdAt
       updatedAt
     }
   }
+`
+
+export const latestChatItemsGQL = `
+  query {
+    latestChatItems {
+      ...ChatItemFragment
+    }
+  }
+  ${chatItemFragment}
 `
 
 export const appFilesGQL = `

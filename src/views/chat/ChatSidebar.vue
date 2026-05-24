@@ -2,10 +2,25 @@
   <left-sidebar>
     <template #body>
       <ul class="nav">
-        <li :class="{ active: currentChatId === 'local' }" @click.prevent="openChat('local')">
-          <span class="icon" aria-hidden="true"><i-lucide:bot /></span>
-          <span class="title">{{ $t('page_title.local_chat') }}</span>
-        </li>
+        <PeerListItem
+          kind="local"
+          :active="currentChatId === 'local'"
+          :title="$t('page_title.local_chat')"
+          :subtitle="getLatestChatPreview('local')"
+          :time="getLatestChatCreatedAt('local')"
+          @click="openChat('local')"
+        >
+          <template #action>
+            <v-icon-button
+              v-if="isLocalMode()"
+              v-tooltip="$t('device_identity')"
+              class="xs"
+              @click.stop="openIdentity"
+            >
+              <i-lucide:settings-2 />
+            </v-icon-button>
+          </template>
+        </PeerListItem>
       </ul>
 
       <template v-if="loading">
@@ -21,55 +36,38 @@
           </v-icon-button>
         </div>
         <ul class="nav">
-          <li
+          <PeerListItem
             v-for="channel in joinedChannels"
             :key="channel.id"
-            :class="{ active: isChannelActive(channel.id) }"
-            @click.prevent="openChat(getChannelChatRouteId(channel.id))"
-          >
-            <span class="icon" aria-hidden="true"><i-lucide:hash /></span>
-            <span class="title">{{ channel.name }}</span>
-          </li>
+            kind="channel"
+            :active="isChannelActive(channel.id)"
+            :title="channel.name"
+            :subtitle="getLatestChatPreview(`channel:${channel.id}`) || $t('channels')"
+            :time="getLatestChatCreatedAt(`channel:${channel.id}`)"
+            @click="openChat(getChannelChatRouteId(channel.id))"
+          />
         </ul>
 
-        <template v-if="pairedPeers.length > 0">
-          <div class="section-title">{{ $t('paired_devices') }}</div>
+        <template v-if="allPeers.length > 0 || isLocalMode()">
+          <div class="section-title">
+            {{ $t('devices') }}
+            <v-icon-button v-if="isLocalMode()" v-tooltip="$t('discover_devices')" class="sm" @click="openNearby">
+              <i-lucide:radar />
+            </v-icon-button>
+          </div>
           <ul class="nav">
-            <li
-              v-for="peer in pairedPeers"
+            <PeerListItem
+              v-for="peer in allPeers"
               :key="peer.id"
-              :class="{ active: isPeerActive(peer.id) }"
-              @click.prevent="openChat(getPeerChatRouteId(peer.id))"
-            >
-              <span class="icon" aria-hidden="true">
-                <i-lucide:smartphone v-if="peer.deviceType === 'phone'" />
-                <i-lucide:tablet v-else-if="peer.deviceType === 'tablet'" />
-                <i-lucide:laptop v-else-if="peer.deviceType === 'pc'" />
-                <i-lucide:monitor v-else />
-              </span>
-              <span class="title">{{ peer.name }}</span>
-            </li>
-          </ul>
-        </template>
-
-        <template v-if="unpairedPeers.length > 0">
-          <div class="section-title">{{ $t('unpaired_devices') }}</div>
-          <ul class="nav">
-            <li
-              v-for="peer in unpairedPeers"
-              :key="peer.id"
-              :class="{ active: isPeerActive(peer.id) }"
-              @click.prevent="openChat(getPeerChatRouteId(peer.id))"
-            >
-              <span class="icon" aria-hidden="true">
-                <i-lucide:smartphone v-if="peer.deviceType === 'phone'" />
-                <i-lucide:tablet v-else-if="peer.deviceType === 'tablet'" />
-                <i-lucide:laptop v-else-if="peer.deviceType === 'pc'" />
-                <i-lucide:monitor v-else />
-              </span>
-              <span class="title">{{ peer.name }}</span>
-              <span class="subtitle">{{ peer.ip }}</span>
-            </li>
+              kind="peer"
+              :device-type="peer.deviceType"
+              :online="!!peer.online"
+              :active="isPeerActive(peer.id)"
+              :title="peer.name"
+              :subtitle="getLatestChatPreview(`peer:${peer.id}`) || peer.ip"
+              :time="getLatestChatCreatedAt(`peer:${peer.id}`)"
+              @click="openChat(getPeerChatRouteId(peer.id))"
+            />
           </ul>
         </template>
       </template>
@@ -79,14 +77,28 @@
 
 <script setup lang="ts">
 import { useChatSidebar } from './hooks/chat-sidebar'
+import { isLocalMode } from '@/lib/local-mode'
+import { openModal } from '@/components/modal'
+import NearbyModal from '@/views/chat/NearbyModal.vue'
+import DeviceIdentityModal from '@/views/chat/DeviceIdentityModal.vue'
+import PeerListItem from './components/PeerListItem.vue'
 
 const {
   currentChatId, loading,
-  pairedPeers, unpairedPeers, joinedChannels,
+  allPeers, joinedChannels,
   isPeerActive, isChannelActive,
   getPeerChatRouteId, getChannelChatRouteId,
-  openChat, openCreateChannel,
+  getLatestChatPreview, getLatestChatCreatedAt,
+  openChat, openCreateChannel, onPeerPaired,
 } = useChatSidebar()
+
+function openNearby() {
+  openModal(NearbyModal, { onPaired: onPeerPaired })
+}
+
+function openIdentity() {
+  openModal(DeviceIdentityModal, {})
+}
 </script>
 
 <style lang="scss" scoped>

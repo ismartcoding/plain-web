@@ -1,12 +1,15 @@
 import { ref } from 'vue'
 
 export interface DiscoveredDevice {
+  id: string
   name: string
   host: string
+  ip: string
   port: number
+  deviceType: string
 }
 
-const POLL_INTERVAL_MS = 5000
+const POLL_INTERVAL_MS = 300
 
 export type DiscoveryStatus = 'idle' | 'searching' | 'ok' | 'permission_denied' | 'network_error'
 
@@ -33,13 +36,14 @@ export function useDeviceDiscovery() {
         ? { devices: result, status: 'ok' as const }
         : result
       if (active) {
-        devices.value = normalized.devices
+        if (normalized.devices.length > 0) {
+          devices.value = normalized.devices
+        }
         status.value = normalized.status
       }
     } catch (e) {
       console.error('device discovery failed', e)
       if (active) {
-        devices.value = []
         status.value = 'network_error'
       }
     } finally {

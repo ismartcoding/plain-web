@@ -15,6 +15,7 @@ export default {
   app_files: 'Arquivos do app',
   send_to_phone_clipboard: 'Enviar para a área de transferência do telefone',
   clipboard_text: 'Texto da área de transferência',
+  devices: 'Dispositivos',
   channels: 'Canais',
   create_channel: 'Criar canal',
   channel_name: 'Nome do canal',

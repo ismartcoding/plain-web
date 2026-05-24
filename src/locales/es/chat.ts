@@ -15,6 +15,7 @@ export default {
   app_files: 'Archivos de la app',
   send_to_phone_clipboard: 'Enviar al portapapeles del teléfono',
   clipboard_text: 'Texto del portapapeles',
+  devices: 'Dispositivos',
   channels: 'Canales',
   create_channel: 'Crear canal',
   channel_name: 'Nombre del canal',

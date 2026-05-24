@@ -14,6 +14,7 @@ export default {
   app_files: 'App-bestanden',
   send_to_phone_clipboard: 'Verzenden naar telefoonklembord',
   clipboard_text: 'Klembord tekst',
+  devices: 'Apparaten',
   channels: 'Kanalen',
   create_channel: 'Kanaal maken',
   channel_name: 'Kanaalnaam',

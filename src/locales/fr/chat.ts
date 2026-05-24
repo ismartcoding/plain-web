@@ -15,6 +15,7 @@ export default {
   app_files: "Fichiers de l'appli",
   send_to_phone_clipboard: 'Envoyer au presse-papier du téléphone',
   clipboard_text: 'Texte du presse-papiers',
+  devices: 'Appareils',
   channels: 'Canaux',
   create_channel: 'Créer une chaîne',
   channel_name: 'Nom de la chaîne',

@@ -15,6 +15,7 @@ export default {
   app_files: 'Uygulama dosyaları',
   send_to_phone_clipboard: 'Telefon panosuna gönder',
   clipboard_text: 'Pano metni',
+  devices: 'Cihazlar',
   channels: 'Kanallar',
   create_channel: 'Kanal oluştur',
   channel_name: 'Kanal adı',

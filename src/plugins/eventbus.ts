@@ -39,6 +39,7 @@ type Events = {
   bookmark_updated: any
   download_progress: any[]
   channels_updated: any[]
+  peer_status_updated: { id: string, online: boolean }
   sms_sent: undefined
   image_search_updated: any
 }

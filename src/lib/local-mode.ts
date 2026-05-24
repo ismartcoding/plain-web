@@ -11,11 +11,6 @@ export function isLocalRouteGroup(group: unknown): boolean {
   return typeof group === 'string' && LOCAL_ROUTE_GROUPS.includes(group)
 }
 
-/**
- * Local mode: Tauri app running without a connected Android device session.
- * Checks the persisted currentClientId directly so it works before Pinia
- * is initialised (e.g. in router.ts, api.ts).
- */
 export function isLocalMode(): boolean {
   if (!__IS_TAURI__) return false
   const raw = localStorage.getItem('device_sessions')

@@ -15,6 +15,7 @@ export default {
   app_files: 'ऐप फ़ाइलें',
   send_to_phone_clipboard: 'फ़ोन क्लिपबोर्ड पर भेजें',
   clipboard_text: 'क्लिपबोर्ड पाठ',
+  devices: 'डिवाइस',
   channels: 'चैनल',
   create_channel: 'चैनल बनाएं',
   channel_name: 'चैनल का नाम',
