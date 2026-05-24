@@ -10,7 +10,6 @@
         :is-phone="isPhone"
         :data-type="dataType"
         :tags="tags"
-        :tags="tags"
         :call-loading="callLoading"
         :call-id="callId"
         :handle-item-click="handleItemClick"

@@ -15,6 +15,7 @@ export default {
   app_files: 'Файлы приложения',
   send_to_phone_clipboard: 'Отправить в буфер обмена телефона',
   clipboard_text: 'Текст в буфере обмена',
+  devices: 'Устройства',
   channels: 'Каналы',
   create_channel: 'Создать канал',
   channel_name: 'Название канала',

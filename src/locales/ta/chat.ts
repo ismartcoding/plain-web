@@ -15,6 +15,7 @@ export default {
   app_files: 'பயன்பாடு கோப்புகள்',
   send_to_phone_clipboard: 'தொலைபேசி கிளிப்போர்டுக்கு அனுப்பவும்',
   clipboard_text: 'கிளிப்போர்டு உரை',
+  devices: 'சாதனங்கள்',
   channels: 'சேனல்கள்',
   create_channel: 'சேனலை உருவாக்கவும்',
   channel_name: 'சேனல் பெயர்',

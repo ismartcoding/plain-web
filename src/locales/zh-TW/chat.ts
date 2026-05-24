@@ -15,6 +15,7 @@ export default {
   app_files: '應用檔案',
   send_to_phone_clipboard: '傳送到手機剪貼簿',
   clipboard_text: '剪貼簿文本',
+  devices: '裝置',
   channels: '頻道',
   create_channel: '建立頻道',
   channel_name: '頻道名稱',

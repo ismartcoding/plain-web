@@ -15,10 +15,14 @@ const SCAN_TIMEOUT_MS: u64 = 2500;
 const RECV_BUF_SIZE: usize = 4096;
 
 #[derive(Serialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct DiscoveredDevice {
+    pub id: String,
     pub name: String,
     pub host: String,
+    pub ip: String,
     pub port: u16,
+    pub device_type: String,
 }
 
 #[derive(Deserialize, Debug)]
@@ -28,6 +32,8 @@ struct DiscoverReply {
     port: u16,
     #[serde(default)]
     ips: Vec<String>,
+    #[serde(default, alias = "deviceType")]
+    device_type: String,
 }
 
 #[derive(Serialize, Clone, Debug)]
@@ -224,9 +230,12 @@ fn scan_blocking() -> DiscoverDevicesResult {
                         continue;
                     }
                     found.entry(reply.id.clone()).or_insert(DiscoveredDevice {
+                        id: reply.id.clone(),
                         name: reply.name.clone(),
                         host: format!("{host_ip}:{}", reply.port),
+                        ip: host_ip.clone(),
                         port: reply.port,
+                        device_type: normalize_device_type(&reply.device_type),
                     });
                 }
                 Err(_) => {
@@ -280,6 +289,17 @@ fn local_ipv4_addrs(interfaces: &[Interface]) -> Vec<Ipv4Addr> {
 fn is_cgnat(o: &[u8; 4]) -> bool {
     // 100.64.0.0/10 — RFC 6598 carrier-grade NAT, often used by VPNs.
     o[0] == 100 && (o[1] & 0xC0) == 64
+}
+
+fn normalize_device_type(wire: &str) -> String {
+    match wire {
+        "COMPUTER" => "computer".to_string(),
+        "PHONE" => "phone".to_string(),
+        "TABLET" => "tablet".to_string(),
+        "TV" => "tv".to_string(),
+        "OTHER" => "other".to_string(),
+        v => v.to_string(),
+    }
 }
 
 // ─── IPC fetch command (bypasses WKWebView TLS validation) ──────────────────

@@ -79,6 +79,89 @@ pub fn short_id() -> String {
 // Data types
 // ---------------------------------------------------------------------------
 
+/// Matches plain-app `DPeer` entity.
+#[derive(Clone, Debug)]
+pub struct DPeer {
+    pub id: String,
+    pub name: String,
+    pub ip: String,
+    /// Base64-encoded XChaCha20 shared key (ECDH-derived). Empty until paired.
+    pub key: String,
+    /// Base64-encoded raw Ed25519 public key (32 bytes).
+    pub public_key: String,
+    /// "paired" | "unpaired" | "channel"
+    pub status: String,
+    pub port: u16,
+    /// "phone" | "tablet" | "pc" | "mac"
+    pub device_type: String,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+#[allow(dead_code)]
+impl DPeer {
+    pub fn new(id: &str, name: &str, ip: &str, port: u16, device_type: &str) -> Self {
+        let now = now_iso();
+        Self {
+            id: id.to_string(),
+            name: name.to_string(),
+            ip: ip.to_string(),
+            key: String::new(),
+            public_key: String::new(),
+            status: "unpaired".to_string(),
+            port,
+            device_type: device_type.to_string(),
+            created_at: now.clone(),
+            updated_at: now,
+        }
+    }
+
+    pub fn is_paired(&self) -> bool { self.status == "paired" }
+
+    /// Return the best reachable IP (first item — caller should implement LAN preference).
+    pub fn best_ip(&self) -> &str {
+        self.ip.split(',').next().unwrap_or(&self.ip).trim()
+    }
+
+    pub fn base_url(&self) -> String {
+        format!("https://{}:{}", self.best_ip(), self.port)
+    }
+
+    pub fn peer_graphql_url(&self) -> String {
+        format!("{}/peer_graphql", self.base_url())
+    }
+
+    pub fn file_url(&self, file_id: &str) -> String {
+        format!("{}/fs?id={}", self.base_url(), file_id)
+    }
+}
+
+/// Content-addressable file store record. Matches plain-app `DAppFile`.
+#[allow(dead_code)]
+#[derive(Clone, Debug)]
+pub struct DAppFile {
+    /// Full SHA-256 hex digest (64 chars) — primary key.
+    pub id: String,
+    pub size: i64,
+    pub mime_type: String,
+    pub real_path: String,
+    pub ref_count: i32,
+    /// SHA-256 hex digest of first 4 KB + last 4 KB (fast dedup probe).
+    pub weak_hash: String,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+/// Persistent device identity. Generated once on first startup.
+#[derive(Clone, Debug)]
+pub struct DDeviceIdentity {
+    pub client_id: String,
+    pub device_name: String,
+    /// Base64-encoded Ed25519 keypair bytes (64 bytes: private || public).
+    pub ed25519_keypair: String,
+    pub created_at: String,
+}
+
 #[derive(Clone, Debug)]
 pub struct DChat {
     pub id: String,
@@ -176,9 +259,231 @@ impl ChatDb {
                 status     TEXT NOT NULL DEFAULT 'joined',
                 created_at TEXT NOT NULL DEFAULT '',
                 updated_at TEXT NOT NULL DEFAULT ''
+            );
+            CREATE TABLE IF NOT EXISTS peers (
+                id          TEXT PRIMARY KEY,
+                name        TEXT NOT NULL DEFAULT '',
+                ip          TEXT NOT NULL DEFAULT '',
+                key         TEXT NOT NULL DEFAULT '',
+                public_key  TEXT NOT NULL DEFAULT '',
+                status      TEXT NOT NULL DEFAULT 'unpaired',
+                port        INTEGER NOT NULL DEFAULT 0,
+                device_type TEXT NOT NULL DEFAULT '',
+                created_at  TEXT NOT NULL DEFAULT '',
+                updated_at  TEXT NOT NULL DEFAULT ''
+            );
+            CREATE TABLE IF NOT EXISTS app_files (
+                id          TEXT PRIMARY KEY,
+                size        INTEGER NOT NULL DEFAULT 0,
+                mime_type   TEXT NOT NULL DEFAULT '',
+                real_path   TEXT NOT NULL DEFAULT '',
+                ref_count   INTEGER NOT NULL DEFAULT 1,
+                weak_hash   TEXT NOT NULL DEFAULT '',
+                created_at  TEXT NOT NULL DEFAULT '',
+                updated_at  TEXT NOT NULL DEFAULT ''
+            );
+            CREATE INDEX IF NOT EXISTS idx_app_files_weak ON app_files(size, weak_hash);
+            CREATE TABLE IF NOT EXISTS device_identity (
+                client_id       TEXT PRIMARY KEY,
+                device_name     TEXT NOT NULL DEFAULT '',
+                ed25519_keypair TEXT NOT NULL DEFAULT '',
+                created_at      TEXT NOT NULL DEFAULT ''
             );",
         )?;
         Ok(ChatDb(Arc::new(Mutex::new(conn))))
+    }
+
+    // ── Device identity ───────────────────────────────────────────────────────
+
+    pub fn get_identity(&self) -> Option<DDeviceIdentity> {
+        let conn = self.0.lock().unwrap();
+        conn.query_row(
+            "SELECT client_id, device_name, ed25519_keypair, created_at FROM device_identity LIMIT 1",
+            [],
+            |row| Ok(DDeviceIdentity {
+                client_id: row.get(0)?,
+                device_name: row.get(1)?,
+                ed25519_keypair: row.get(2)?,
+                created_at: row.get(3)?,
+            }),
+        )
+        .ok()
+    }
+
+    pub fn insert_identity(&self, identity: &DDeviceIdentity) {
+        let conn = self.0.lock().unwrap();
+        let _ = conn.execute(
+            "INSERT OR IGNORE INTO device_identity (client_id, device_name, ed25519_keypair, created_at) \
+             VALUES (?1, ?2, ?3, ?4)",
+            params![identity.client_id, identity.device_name, identity.ed25519_keypair, identity.created_at],
+        );
+    }
+
+    pub fn update_device_name(&self, name: &str) {
+        let conn = self.0.lock().unwrap();
+        let _ = conn.execute("UPDATE device_identity SET device_name=?1", params![name]);
+    }
+
+    // ── Peer queries ──────────────────────────────────────────────────────────
+
+    pub fn get_peers(&self) -> Vec<DPeer> {
+        let conn = self.0.lock().unwrap();
+        let mut stmt = match conn.prepare(
+            "SELECT id,name,ip,key,public_key,status,port,device_type,created_at,updated_at \
+             FROM peers ORDER BY name ASC",
+        ) {
+            Ok(s) => s,
+            Err(_) => return vec![],
+        };
+        stmt.query_map(params![], |row| {
+            Ok(DPeer {
+                id: row.get(0)?,
+                name: row.get(1)?,
+                ip: row.get(2)?,
+                key: row.get(3)?,
+                public_key: row.get(4)?,
+                status: row.get(5)?,
+                port: row.get::<_, i64>(6)? as u16,
+                device_type: row.get(7)?,
+                created_at: row.get(8)?,
+                updated_at: row.get(9)?,
+            })
+        })
+        .ok()
+        .map(|iter| iter.filter_map(|r| r.ok()).collect())
+        .unwrap_or_default()
+    }
+
+    pub fn get_peer_by_id(&self, id: &str) -> Option<DPeer> {
+        let conn = self.0.lock().unwrap();
+        conn.query_row(
+            "SELECT id,name,ip,key,public_key,status,port,device_type,created_at,updated_at \
+             FROM peers WHERE id=?",
+            params![id],
+            |row| Ok(DPeer {
+                id: row.get(0)?,
+                name: row.get(1)?,
+                ip: row.get(2)?,
+                key: row.get(3)?,
+                public_key: row.get(4)?,
+                status: row.get(5)?,
+                port: row.get::<_, i64>(6)? as u16,
+                device_type: row.get(7)?,
+                created_at: row.get(8)?,
+                updated_at: row.get(9)?,
+            }),
+        )
+        .ok()
+    }
+
+    pub fn upsert_peer(&self, peer: &DPeer) {
+        let conn = self.0.lock().unwrap();
+        let _ = conn.execute(
+            "INSERT INTO peers (id,name,ip,key,public_key,status,port,device_type,created_at,updated_at)
+             VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)
+             ON CONFLICT(id) DO UPDATE SET
+               name=excluded.name, ip=excluded.ip, key=excluded.key,
+               public_key=excluded.public_key, status=excluded.status,
+               port=excluded.port, device_type=excluded.device_type,
+               updated_at=excluded.updated_at",
+            params![
+                peer.id, peer.name, peer.ip, peer.key, peer.public_key,
+                peer.status, peer.port as i64, peer.device_type,
+                peer.created_at, peer.updated_at
+            ],
+        );
+    }
+
+    #[allow(dead_code)]
+    pub fn delete_peer(&self, id: &str) {
+        let conn = self.0.lock().unwrap();
+        let _ = conn.execute("DELETE FROM peers WHERE id=?", params![id]);
+    }
+
+    // ── App-files (content-addressable) ──────────────────────────────────────
+    // Wired into createChatItem with file attachments in a follow-up;
+    // suppress dead-code warnings until then.
+
+    #[allow(dead_code)]
+    pub fn get_app_file(&self, id: &str) -> Option<DAppFile> {
+        let conn = self.0.lock().unwrap();
+        conn.query_row(
+            "SELECT id,size,mime_type,real_path,ref_count,weak_hash,created_at,updated_at \
+             FROM app_files WHERE id=?",
+            params![id],
+            |row| Ok(DAppFile {
+                id: row.get(0)?,
+                size: row.get(1)?,
+                mime_type: row.get(2)?,
+                real_path: row.get(3)?,
+                ref_count: row.get(4)?,
+                weak_hash: row.get(5)?,
+                created_at: row.get(6)?,
+                updated_at: row.get(7)?,
+            }),
+        )
+        .ok()
+    }
+
+    #[allow(dead_code)]
+    pub fn find_app_files_by_weak(&self, size: i64, weak_hash: &str) -> Vec<DAppFile> {
+        let conn = self.0.lock().unwrap();
+        let mut stmt = match conn.prepare(
+            "SELECT id,size,mime_type,real_path,ref_count,weak_hash,created_at,updated_at \
+             FROM app_files WHERE size=? AND weak_hash=?",
+        ) {
+            Ok(s) => s,
+            Err(_) => return vec![],
+        };
+        stmt.query_map(params![size, weak_hash], |row| {
+            Ok(DAppFile {
+                id: row.get(0)?,
+                size: row.get(1)?,
+                mime_type: row.get(2)?,
+                real_path: row.get(3)?,
+                ref_count: row.get(4)?,
+                weak_hash: row.get(5)?,
+                created_at: row.get(6)?,
+                updated_at: row.get(7)?,
+            })
+        })
+        .ok()
+        .map(|iter| iter.filter_map(|r| r.ok()).collect())
+        .unwrap_or_default()
+    }
+
+    #[allow(dead_code)]
+    pub fn insert_app_file(&self, f: &DAppFile) {
+        let conn = self.0.lock().unwrap();
+        let _ = conn.execute(
+            "INSERT OR IGNORE INTO app_files \
+             (id,size,mime_type,real_path,ref_count,weak_hash,created_at,updated_at) \
+             VALUES (?1,?2,?3,?4,?5,?6,?7,?8)",
+            params![f.id, f.size, f.mime_type, f.real_path, f.ref_count, f.weak_hash, f.created_at, f.updated_at],
+        );
+    }
+
+    #[allow(dead_code)]
+    pub fn increment_app_file_ref(&self, id: &str) {
+        let conn = self.0.lock().unwrap();
+        let _ = conn.execute("UPDATE app_files SET ref_count=ref_count+1 WHERE id=?", params![id]);
+    }
+
+    #[allow(dead_code)]
+    pub fn decrement_app_file_ref(&self, id: &str) -> i32 {
+        {
+            let conn = self.0.lock().unwrap();
+            let _ = conn.execute("UPDATE app_files SET ref_count=ref_count-1 WHERE id=?", params![id]);
+        }
+        let conn = self.0.lock().unwrap();
+        conn.query_row("SELECT ref_count FROM app_files WHERE id=?", params![id], |r| r.get(0))
+            .unwrap_or(0)
+    }
+
+    #[allow(dead_code)]
+    pub fn delete_app_file(&self, id: &str) {
+        let conn = self.0.lock().unwrap();
+        let _ = conn.execute("DELETE FROM app_files WHERE id=?", params![id]);
     }
 
     // ── Chat queries ─────────────────────────────────────────────────────────

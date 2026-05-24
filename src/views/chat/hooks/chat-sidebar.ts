@@ -17,7 +17,7 @@ export function useChatSidebar() {
   const mainStore = useMainStore()
   const { urlTokenKey } = storeToRefs(useTempStore())
   const chatStore = useChatStore()
-  const { loading, pairedPeers, unpairedPeers, joinedChannels } = storeToRefs(chatStore)
+  const { loading, pairedPeers, allPeers, joinedChannels } = storeToRefs(chatStore)
 
   const currentEncryptedId = computed(() => {
     const qid = router.currentRoute.value.query.id
@@ -50,14 +50,28 @@ export function useChatSidebar() {
     })
   }
 
+  async function onPeerPaired(peerId: string) {
+    await chatStore.fetchPeers()
+    openChat(getPeerChatRouteId(peerId))
+  }
+
   onMounted(() => { chatStore.init() })
+
+  function getLatestChatPreview(chatId: string) {
+    return chatStore.getLatestChatPreview(chatId)
+  }
+
+  function getLatestChatCreatedAt(chatId: string) {
+    return chatStore.getLatestChatCreatedAt(chatId)
+  }
 
   return {
     currentChatId, loading,
-    pairedPeers, unpairedPeers, joinedChannels,
+    pairedPeers, allPeers, joinedChannels,
     isPeerActive, isChannelActive,
     getPeerChatRouteId, getChannelChatRouteId,
-    openChat, openCreateChannel,
+    getLatestChatPreview, getLatestChatCreatedAt,
+    openChat, openCreateChannel, onPeerPaired,
   }
 }
 

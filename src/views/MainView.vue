@@ -58,55 +58,54 @@
           <v-circular-progress indeterminate />
         </div>
       </div>
-      <template v-if="!localMode">
-      <div class="quick-actions">
-        <header-actions :logged-in="true" @toggle-quick="toggleQuick" />
-
-        <v-icon-button
-          v-if="hasTasks || store.quick === 'upload'"
-          v-tooltip="$t('header_actions.uploads')"
-          class="q-action"
-          toggle
-          :class="{ selected: store.quick === 'upload' && !hasActiveUploads, uploading: hasActiveUploads }"
-          @click="toggleQuick('upload')"
-        >
-          <span class="upload-action-icon">
-            <i-material-symbols:format-list-numbered-rounded />
-          </span>
-        </v-icon-button>
-        <v-icon-button
-          v-if="!localMode && app.channel !== 'GOOGLE'"
-          v-tooltip="$t('header_actions.notifications')"
-          class="q-action"
-          toggle
-          :class="{ selected: store.quick === 'notification' }"
-          @click="toggleQuick('notification')"
-        >
-          <i-material-symbols:notifications-outline-rounded />
-        </v-icon-button>
-        <v-icon-button id="quick-audio" v-tooltip="$t('playlist')" class="q-action" toggle :class="{ selected: store.quick === 'audio' }" @click="toggleQuick('audio')">
-          <i-material-symbols:queue-music-rounded />
-        </v-icon-button>
-        <v-icon-button v-tooltip="$t('pomodoro_timer')" class="q-action" toggle :class="{ selected: store.quick === 'pomodoro' }" @click="toggleQuick('pomodoro')">
-          <i-material-symbols:timer-outline />
-        </v-icon-button>
-        <v-icon-button v-tooltip="$t('bookmarks')" class="q-action" toggle :class="{ selected: store.quick === 'bookmark' }" @click="toggleQuick('bookmark')">
-          <i-lucide:bookmark />
-        </v-icon-button>
-        <div v-show="store.quick" class="drag-indicator" @mousedown="resizeWidth">
-          <i-material-symbols:drag-indicator />
+        <div class="quick-actions">
+          <header-actions :logged-in="true" @toggle-quick="toggleQuick" />
+            <template v-if="!localMode">
+                <v-icon-button
+                  v-if="hasTasks || store.quick === 'upload'"
+                  v-tooltip="$t('header_actions.uploads')"
+                  class="q-action"
+                  toggle
+                  :class="{ selected: store.quick === 'upload' && !hasActiveUploads, uploading: hasActiveUploads }"
+                  @click="toggleQuick('upload')"
+                >
+                  <span class="upload-action-icon">
+                    <i-material-symbols:format-list-numbered-rounded />
+                  </span>
+                </v-icon-button>
+                <v-icon-button
+                  v-if="!localMode && app.channel !== 'GOOGLE'"
+                  v-tooltip="$t('header_actions.notifications')"
+                  class="q-action"
+                  toggle
+                  :class="{ selected: store.quick === 'notification' }"
+                  @click="toggleQuick('notification')"
+                >
+                  <i-material-symbols:notifications-outline-rounded />
+                </v-icon-button>
+                <v-icon-button id="quick-audio" v-tooltip="$t('playlist')" class="q-action" toggle :class="{ selected: store.quick === 'audio' }" @click="toggleQuick('audio')">
+                  <i-material-symbols:queue-music-rounded />
+                </v-icon-button>
+                <v-icon-button v-tooltip="$t('pomodoro_timer')" class="q-action" toggle :class="{ selected: store.quick === 'pomodoro' }" @click="toggleQuick('pomodoro')">
+                  <i-material-symbols:timer-outline />
+                </v-icon-button>
+                <v-icon-button v-tooltip="$t('bookmarks')" class="q-action" toggle :class="{ selected: store.quick === 'bookmark' }" @click="toggleQuick('bookmark')">
+                  <i-lucide:bookmark />
+                </v-icon-button>
+                <div v-show="store.quick" class="drag-indicator" @mousedown="resizeWidth">
+                  <i-material-symbols:drag-indicator />
+                </div>
+            </template>
         </div>
-      </div>
-      <transition name="width">
-        <div v-show="store.quick" class="quick-content" :style="{ width: store.quickContentWidth + 'px' }">
-          <upload-list v-show="store.quick === 'upload'" />
-          <audio-player v-show="store.quick === 'audio'" />
-          <p-notifications v-if="!localMode" v-show="store.quick === 'notification'" />
-          <pomodoro-timer v-show="store.quick === 'pomodoro'" />
-          <bookmark-list v-show="store.quick === 'bookmark'" />
-        </div>
-      </transition>
-      </template>
+        <transition name="width">
+          <div v-show="store.quick" class="quick-content" :style="{ width: store.quickContentWidth + 'px' }">
+            <upload-list v-show="store.quick === 'upload'" />
+            <audio-player v-show="store.quick === 'audio'" />
+            <p-notifications v-if="!localMode" v-show="store.quick === 'notification'" />
+            <pomodoro-timer v-show="store.quick === 'pomodoro'" />
+            <bookmark-list v-show="store.quick === 'bookmark'" />
+          </div>
+        </transition>
       <lightbox />
     </div>
   </div>

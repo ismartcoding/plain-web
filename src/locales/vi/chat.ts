@@ -15,6 +15,7 @@ export default {
   app_files: 'Tệp ứng dụng',
   send_to_phone_clipboard: 'Gửi vào bảng nhớ tạm trên điện thoại',
   clipboard_text: 'Văn bản bảng nhớ tạm',
+  devices: 'Thiết bị',
   channels: 'Kênh',
   create_channel: 'Tạo kênh',
   channel_name: 'Tên kênh',

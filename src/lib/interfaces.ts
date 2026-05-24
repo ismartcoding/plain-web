@@ -255,6 +255,7 @@ export interface IPeer {
   name: string
   ip: string
   status: string
+  online?: boolean
   port: number
   deviceType: string
   createdAt: string

@@ -4,10 +4,10 @@
 //! - HTTPS on :8443 (fallback :0) — handles encrypted requests only.
 //! - WebSocket on the HTTP port: frontend connects for real-time chat events.
 
-use crate::local_crypto::{gen_token, xchacha_decrypt, xchacha_encrypt};
-use crate::local_db::ChatDb;
-use crate::local_server_data::{encode_ws_event, execute_graphql, WsEvent};
-use crate::local_tls::{build_acceptor, ensure_cert};
+use super::crypto::{base64_decode, chacha20_decrypt, chacha20_encrypt, ed25519_verify, gen_token, xchacha_decrypt, xchacha_encrypt};
+use super::db::{ChatDb, DDeviceIdentity};
+use super::graphql::{encode_ws_event, execute_graphql, new_peer_key_cache, PeerKeyCache, WsEvent};
+use super::tls::{build_acceptor, ensure_cert};
 use futures_util::{SinkExt, StreamExt};
 use serde_json::{json, Value};
 use std::net::TcpListener as StdTcpListener;
@@ -30,7 +30,9 @@ pub struct LocalServerState {
 }
 
 impl LocalServerState {
-    pub fn start(app_data_dir: PathBuf, db: Arc<ChatDb>) -> Self {
+    pub fn start(app_data_dir: PathBuf, db: Arc<ChatDb>, identity: Arc<DDeviceIdentity>) -> Self {
+        let peer_key_cache = new_peer_key_cache();
+        super::graphql::refresh_peer_key_cache(&db, &peer_key_cache);
         let http_listener = bind_listener(8080);
         let port = http_listener.local_addr().expect("local server addr").port();
         http_listener.set_nonblocking(true).expect("set_nonblocking");
@@ -62,8 +64,11 @@ impl LocalServerState {
         // ── HTTP + WebSocket listener ─────────────────────────────────────────
         {
             let db = db.clone();
+            let identity = identity.clone();
+            let peer_key_cache = peer_key_cache.clone();
             let token_arc = Arc::new(token.clone());
             let event_tx = event_tx.clone();
+            let app_data_dir2 = app_data_dir.clone();
             tauri::async_runtime::spawn(async move {
                 let listener =
                     tokio::net::TcpListener::from_std(http_listener).expect("http listener");
@@ -73,11 +78,14 @@ impl LocalServerState {
                     };
                     let _ = stream.set_nodelay(true);
                     let db = db.clone();
+                    let identity = identity.clone();
+                    let peer_key_cache = peer_key_cache.clone();
                     let token = token_arc.clone();
                     let event_tx = event_tx.clone();
                     let event_rx = event_tx.subscribe();
+                    let data_dir = app_data_dir2.clone();
                     tokio::spawn(async move {
-                        // Peek first 4 bytes to detect WebSocket GET upgrades.
+                        // Peek first bytes to detect WebSocket GET upgrades.
                         let mut peek = [0u8; 512];
                         let n = stream.peek(&mut peek).await.unwrap_or(0);
                         if is_ws_upgrade(&peek[..n]) {
@@ -87,7 +95,7 @@ impl LocalServerState {
                             }
                         } else {
                             let (rd, wr) = tokio::io::split(stream);
-                            handle(rd, wr, &db, &token, &event_tx, port, https_port).await;
+                            handle(rd, wr, &db, &identity, &peer_key_cache, &token, &event_tx, port, https_port, &data_dir).await;
                         }
                     });
                 }
@@ -97,6 +105,8 @@ impl LocalServerState {
         // ── HTTPS listener ───────────────────────────────────────────────────
         if let Some(acc) = acceptor {
             let db = db.clone();
+            let identity = identity.clone();
+            let peer_key_cache = peer_key_cache.clone();
             let token_arc = Arc::new(token.clone());
             let event_tx = event_tx.clone();
             let port_clone = https_port;
@@ -109,14 +119,17 @@ impl LocalServerState {
                     };
                     let _ = stream.set_nodelay(true);
                     let db = db.clone();
+                    let identity = identity.clone();
+                    let peer_key_cache = peer_key_cache.clone();
                     let token = token_arc.clone();
                     let event_tx = event_tx.clone();
                     let acc = acc.clone();
+                    let data_dir = app_data_dir.clone();
                     tokio::spawn(async move {
                         match acc.accept(stream).await {
                             Ok(tls_stream) => {
                                 let (rd, wr) = tokio::io::split(tls_stream);
-                                handle(rd, wr, &db, &token, &event_tx, port_clone, port_clone)
+                                handle(rd, wr, &db, &identity, &peer_key_cache, &token, &event_tx, port_clone, port_clone, &data_dir)
                                     .await;
                             }
                             Err(e) => log::debug!("local_server: TLS handshake error: {e}"),
@@ -209,10 +222,13 @@ async fn handle<R, W>(
     rd: R,
     mut wr: W,
     db: &ChatDb,
+    identity: &DDeviceIdentity,
+    peer_key_cache: &PeerKeyCache,
     token: &str,
     event_tx: &broadcast::Sender<WsEvent>,
     port: u16,
     https_port: u16,
+    data_dir: &std::path::Path,
 ) where
     R: AsyncRead + Unpin,
     W: AsyncWrite + Unpin,
@@ -231,9 +247,15 @@ async fn handle<R, W>(
         return;
     }
     let method = parts[0].to_owned();
-    let path = parts[1].split('?').next().unwrap_or(parts[1]).to_owned();
+    let raw_path = parts[1].to_owned();
+    let (path, query_str) = raw_path
+        .split_once('?')
+        .map(|(p, q)| (p.to_owned(), q.to_owned()))
+        .unwrap_or_else(|| (raw_path.clone(), String::new()));
 
     let mut content_length = 0usize;
+    let mut header_client_id = String::new();
+    let mut header_channel_id = String::new();
     loop {
         let mut line = String::new();
         if reader.read_line(&mut line).await.is_err() {
@@ -244,8 +266,14 @@ async fn handle<R, W>(
             break;
         }
         if let Some((k, v)) = line.split_once(':') {
-            if k.trim().eq_ignore_ascii_case("content-length") {
-                content_length = v.trim().parse().unwrap_or(0);
+            let k = k.trim();
+            let v = v.trim();
+            if k.eq_ignore_ascii_case("content-length") {
+                content_length = v.parse().unwrap_or(0);
+            } else if k.eq_ignore_ascii_case("c-id") {
+                header_client_id = v.to_string();
+            } else if k.eq_ignore_ascii_case("c-cid") {
+                header_channel_id = v.to_string();
             }
         }
     }
@@ -265,7 +293,10 @@ async fn handle<R, W>(
             respond(&mut wr, 200, "OK", APP_ID.as_bytes(), "text/plain").await
         }
         ("POST", "/init") => respond(&mut wr, 200, "OK", b"", "text/plain").await,
-        ("POST", "/graphql") | ("POST", "/peer_graphql") => {
+        ("GET", "/fs") => {
+            serve_file(&mut wr, &query_str, data_dir).await;
+        }
+        ("POST", "/graphql") => {
             let Some(plaintext) = xchacha_decrypt(token, &body) else {
                 respond(&mut wr, 401, "Unauthorized", b"", "text/plain").await;
                 return;
@@ -273,8 +304,10 @@ async fn handle<R, W>(
             let json_bytes = strip_replay_prefix(&plaintext);
             let request: Value =
                 serde_json::from_slice(json_bytes).unwrap_or_else(|_| json!({}));
+            let db_arc = Arc::new(db.clone());
+            let id_arc = Arc::new(identity.clone());
             let response_json =
-                execute_graphql(request, Arc::new(db.clone()), token, event_tx, port, https_port);
+                execute_graphql(request, db_arc, id_arc, peer_key_cache, token, event_tx, port, https_port);
             let response_text = response_json.to_string();
             match xchacha_encrypt(token, response_text.as_bytes()) {
                 Some(encrypted) => {
@@ -285,7 +318,133 @@ async fn handle<R, W>(
                 }
             }
         }
+        ("POST", "/peer_graphql") => {
+            // Authenticate incoming peer message:
+            //   1. Look up peer by c-id header.
+            //   2. Decrypt body with peer's shared key (ChaCha20Poly1305, 12B nonce).
+            //   3. Verify Ed25519 signature: `{timestamp}{graphql_json}`.
+            //   4. Check timestamp freshness (±5 min).
+            let peer_opt = if header_client_id.is_empty() {
+                None
+            } else {
+                db.get_peer_by_id(&header_client_id)
+            };
+            let Some(peer) = peer_opt else {
+                respond(&mut wr, 401, "Unauthorized", b"unknown peer", "text/plain").await;
+                return;
+            };
+            if !peer.is_paired() {
+                respond(&mut wr, 401, "Unauthorized", b"not paired", "text/plain").await;
+                return;
+            }
+            let key = base64_decode(&peer.key);
+            let Some(plaintext_bytes) = chacha20_decrypt(&key, &body) else {
+                respond(&mut wr, 401, "Unauthorized", b"decrypt failed", "text/plain").await;
+                return;
+            };
+            let plaintext = match std::str::from_utf8(&plaintext_bytes) {
+                Ok(s) => s.to_string(),
+                Err(_) => {
+                    respond(&mut wr, 400, "Bad Request", b"", "text/plain").await;
+                    return;
+                }
+            };
+            // Format: `signature|timestamp|{graphql_json}`
+            let mut parts = plaintext.splitn(3, '|');
+            let sig_b64 = parts.next().unwrap_or_default();
+            let ts_str = parts.next().unwrap_or_default();
+            let gql_json = parts.next().unwrap_or_default();
+            // Verify timestamp freshness.
+            use std::time::{SystemTime, UNIX_EPOCH};
+            let ts: i64 = ts_str.parse().unwrap_or(0);
+            let now_ms = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_millis() as i64;
+            if (now_ms - ts).abs() > 5 * 60 * 1000 {
+                respond(&mut wr, 401, "Unauthorized", b"timestamp expired", "text/plain").await;
+                return;
+            }
+            // Verify Ed25519 signature over `{timestamp}{graphql_json}`.
+            let sig_data = format!("{ts}{gql_json}");
+            if !ed25519_verify(&peer.public_key, sig_data.as_bytes(), sig_b64) {
+                respond(&mut wr, 401, "Unauthorized", b"bad signature", "text/plain").await;
+                return;
+            }
+            // Dispatch as incoming createChatItem.
+            let mut request: Value =
+                serde_json::from_str(gql_json).unwrap_or_else(|_| json!({}));
+            // Inject fromId into variables so createChatItem_from_peer can use it.
+            if let Some(vars) = request.get_mut("variables").and_then(Value::as_object_mut) {
+                vars.insert("fromId".to_string(), json!(peer.id));
+                if !header_channel_id.is_empty() {
+                    vars.insert("channelId".to_string(), json!(header_channel_id));
+                }
+            }
+            let db_arc = Arc::new(db.clone());
+            let id_arc = Arc::new(identity.clone());
+            let response_json =
+                execute_graphql(request, db_arc, id_arc, peer_key_cache, token, event_tx, port, https_port);
+            let response_text = response_json.to_string();
+            match chacha20_encrypt(&key, response_text.as_bytes()) {
+                Some(encrypted) => {
+                    respond(&mut wr, 200, "OK", &encrypted, "application/octet-stream").await;
+                }
+                None => {
+                    respond(&mut wr, 500, "Internal Server Error", b"", "text/plain").await;
+                }
+            }
+        }
         _ => respond(&mut wr, 404, "Not Found", b"", "text/plain").await,
+    }
+}
+
+// ── /fs file serving ─────────────────────────────────────────────────────────
+
+async fn serve_file<W: AsyncWrite + Unpin>(
+    wr: &mut W,
+    query_str: &str,
+    data_dir: &std::path::Path,
+) {
+    // Parse `id` query param from `id=abc123.jpg&...`
+    let file_id = query_str
+        .split('&')
+        .find_map(|kv| kv.strip_prefix("id="))
+        .unwrap_or_default();
+    if file_id.is_empty() {
+        respond(wr, 400, "Bad Request", b"missing id", "text/plain").await;
+        return;
+    }
+    // Path layout: {data_dir}/files/{hash[0:2]}/{hash[2:4]}/{id}
+    let hash = file_id.split('.').next().unwrap_or(file_id);
+    if hash.len() < 4 {
+        respond(wr, 400, "Bad Request", b"invalid id", "text/plain").await;
+        return;
+    }
+    let file_path = data_dir
+        .join("files")
+        .join(&hash[..2])
+        .join(&hash[2..4])
+        .join(file_id);
+    match tokio::fs::read(&file_path).await {
+        Ok(data) => {
+            let mime = mime_from_ext(file_id);
+            respond(wr, 200, "OK", &data, mime).await;
+        }
+        Err(_) => respond(wr, 404, "Not Found", b"", "text/plain").await,
+    }
+}
+
+fn mime_from_ext(filename: &str) -> &'static str {
+    match filename.rsplit('.').next().unwrap_or("").to_ascii_lowercase().as_str() {
+        "jpg" | "jpeg" => "image/jpeg",
+        "png" => "image/png",
+        "gif" => "image/gif",
+        "webp" => "image/webp",
+        "mp4" => "video/mp4",
+        "mp3" => "audio/mpeg",
+        "pdf" => "application/pdf",
+        _ => "application/octet-stream",
     }
 }
 
