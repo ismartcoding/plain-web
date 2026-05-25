@@ -23,6 +23,12 @@ use std::net::TcpListener as StdTcpListener;
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
 use tokio::net::TcpStream;
 
+mod utils;
+#[cfg(test)]
+mod tests;
+
+use utils::{extract_pt, CORS};
+
 // ─── Public state ─────────────────────────────────────────────────────────────
 
 pub struct HttpProxyState {
@@ -62,59 +68,6 @@ impl HttpProxyState {
 #[tauri::command]
 pub fn http_proxy_port(state: tauri::State<'_, HttpProxyState>) -> u16 {
     state.port
-}
-
-// ─── CORS ────────────────────────────────────────────────────────────────────
-
-const CORS: &[u8] = b"access-control-allow-origin: *\r\n\
-                       access-control-allow-methods: GET, POST, PUT, DELETE, OPTIONS\r\n\
-                       access-control-allow-headers: *\r\n";
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-/// Percent-decode a URL-encoded string.
-pub(crate) fn url_decode(s: &str) -> String {
-    let mut out = Vec::with_capacity(s.len());
-    let src = s.as_bytes();
-    let mut i = 0;
-    while i < src.len() {
-        if src[i] == b'%' && i + 2 < src.len() {
-            let hi = (src[i + 1] as char).to_digit(16).unwrap_or(0) as u8;
-            let lo = (src[i + 2] as char).to_digit(16).unwrap_or(0) as u8;
-            out.push((hi << 4) | lo);
-            i += 3;
-        } else if src[i] == b'+' {
-            out.push(b' ');
-            i += 1;
-        } else {
-            out.push(src[i]);
-            i += 1;
-        }
-    }
-    String::from_utf8_lossy(&out).into_owned()
-}
-
-/// Remove `_pt` from query string; return `(cleaned_path, decoded_pt_value)`.
-pub(crate) fn extract_pt(path: &str) -> (String, String) {
-    let (base, query) = match path.split_once('?') {
-        Some((b, q)) => (b, q),
-        None => return (path.to_owned(), String::new()),
-    };
-    let mut rest: Vec<&str> = Vec::new();
-    let mut pt = String::new();
-    for param in query.split('&') {
-        if let Some(val) = param.strip_prefix("_pt=") {
-            pt = url_decode(val);
-        } else if !param.is_empty() {
-            rest.push(param);
-        }
-    }
-    let cleaned = if rest.is_empty() {
-        base.to_owned()
-    } else {
-        format!("{}?{}", base, rest.join("&"))
-    };
-    (cleaned, pt)
 }
 
 // ─── Per-connection handler ───────────────────────────────────────────────────
@@ -285,67 +238,5 @@ async fn handle(stream: TcpStream, http: reqwest::Client) {
             }
             _ => break,
         }
-    }
-}
-
-// ─── Unit tests ───────────────────────────────────────────────────────────────
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn url_decode_plain() {
-        assert_eq!(url_decode("hello"), "hello");
-    }
-    #[test]
-    fn url_decode_percent() {
-        assert_eq!(url_decode("hello%20world"), "hello world");
-    }
-    #[test]
-    fn url_decode_plus() {
-        assert_eq!(url_decode("hello+world"), "hello world");
-    }
-    #[test]
-    fn url_decode_full_url() {
-        assert_eq!(
-            url_decode("https%3A%2F%2F192.168.1.1%3A8443"),
-            "https://192.168.1.1:8443"
-        );
-    }
-    #[test]
-    fn url_decode_hex_upper() {
-        assert_eq!(url_decode("%41%42%43"), "ABC");
-    }
-
-    #[test]
-    fn extract_pt_no_query() {
-        let (p, pt) = extract_pt("/fs");
-        assert_eq!(p, "/fs");
-        assert_eq!(pt, "");
-    }
-    #[test]
-    fn extract_pt_only_pt() {
-        let (p, pt) = extract_pt("/fs?_pt=https%3A%2F%2F192.168.1.1%3A8443");
-        assert_eq!(p, "/fs");
-        assert_eq!(pt, "https://192.168.1.1:8443");
-    }
-    #[test]
-    fn extract_pt_pt_with_other_params() {
-        let (p, pt) = extract_pt("/fs?id=abc&_pt=https%3A%2F%2F192.168.1.1%3A8443&w=50");
-        assert_eq!(p, "/fs?id=abc&w=50");
-        assert_eq!(pt, "https://192.168.1.1:8443");
-    }
-    #[test]
-    fn extract_pt_no_pt_param() {
-        let (p, pt) = extract_pt("/fs?id=abc&w=50");
-        assert_eq!(p, "/fs?id=abc&w=50");
-        assert_eq!(pt, "");
-    }
-    #[test]
-    fn extract_pt_pt_first() {
-        let (p, pt) = extract_pt("/fs?_pt=https%3A%2F%2F10.0.0.1%3A443&id=xyz");
-        assert_eq!(p, "/fs?id=xyz");
-        assert_eq!(pt, "https://10.0.0.1:443");
     }
 }

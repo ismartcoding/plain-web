@@ -1,7 +1,8 @@
 import { format } from './timeago'
+import { get as prefsGet } from '@/lib/prefs'
 
 function getLocale() {
-  const locale = localStorage.getItem('locale') ?? navigator.language ?? 'en-US'
+  const locale = prefsGet('locale', navigator.language ?? 'en-US')
   try {
     Intl.DateTimeFormat.supportedLocalesOf([locale])
     return locale

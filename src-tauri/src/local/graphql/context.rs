@@ -1,9 +1,11 @@
-//! Shared types and WebSocket event infrastructure.
+//! Shared types, WebSocket event infrastructure, and resolver context.
 
-use crate::local::crypto::{base64_decode, xchacha_encrypt};
+use crate::crypto::{base64_decode, xchacha_encrypt};
 use crate::local::db::ChatDb;
+use crate::prefs::AppIdentity;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
+use tokio::sync::broadcast;
 
 pub const WS_MESSAGE_CREATED: i32 = 1;
 pub const WS_MESSAGE_DELETED: i32 = 2;
@@ -44,4 +46,16 @@ pub fn encode_ws_event(ev: &WsEvent, token: &str) -> Option<Vec<u8>> {
     msg.extend_from_slice(&ev.event_type.to_be_bytes());
     msg.extend_from_slice(&encrypted);
     Some(msg)
+}
+
+/// All server-level dependencies bundled for injection into async-graphql resolvers.
+/// Passed per-request via `Request::data(Arc<AppCtx>)`.
+pub struct AppCtx {
+    pub db: Arc<ChatDb>,
+    pub identity: Arc<AppIdentity>,
+    pub peer_key_cache: PeerKeyCache,
+    pub event_tx: broadcast::Sender<WsEvent>,
+    pub token: String,
+    pub port: u16,
+    pub https_port: u16,
 }

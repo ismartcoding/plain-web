@@ -1,4 +1,5 @@
 import emitter from '@/plugins/eventbus.js'
+import { get as prefsGet, set as prefsSet } from '@/lib/prefs'
 
 export type ColorMode = 'light' | 'dark' | 'auto'
 
@@ -21,19 +22,19 @@ export function isModeDark(mode: ColorMode, saveAutoMode = true) {
 
 
 export function getCurrentMode(): ColorMode | null {
-  return localStorage.getItem('color-mode') as ColorMode | null
+  return prefsGet<ColorMode | null>('color-mode', null)
 }
 
 export function saveColorMode(mode: ColorMode) {
-  localStorage.setItem('color-mode', mode)
+  prefsSet('color-mode', mode)
 }
 
 export function getLastSavedAutoColorMode() {
-  return localStorage.getItem('last-auto-color-mode') as 'light' | 'dark' | null
+  return prefsGet<'light' | 'dark' | null>('last-auto-color-mode', null)
 }
 
 export function saveLastSavedAutoColorMode(mode: 'light' | 'dark') {
-  localStorage.setItem('last-auto-color-mode', mode)
+  prefsSet('last-auto-color-mode', mode)
 }
 
 export function changeColor() {

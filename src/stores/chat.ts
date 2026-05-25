@@ -4,6 +4,7 @@ import { initLazyQuery, peersGQL, chatChannelsGQL, latestChatItemsGQL } from '@/
 import type { IPeer, IChatChannel, IChatItem } from '@/lib/interfaces'
 import emitter from '@/plugins/eventbus'
 import { getCached, setCached } from '@/lib/api/cache'
+import { get as prefsGet } from '@/lib/prefs'
 
 /**
  * Global store for chat peers and channels.
@@ -101,8 +102,7 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   function getLocalClientId(): string {
-    if (typeof globalThis === 'undefined' || !('localStorage' in globalThis)) return ''
-    return globalThis.localStorage.getItem('client_id') ?? ''
+    return prefsGet('client_id', '')
   }
 
   function isLocalEndpoint(id: string, localClientId: string): boolean {

@@ -67,6 +67,7 @@ import { useI18n } from 'vue-i18n'
 import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
+import { set as prefsSet, clear as prefsClear } from '@/lib/prefs'
 
 const props = defineProps({
   loggedIn: { type: Boolean },
@@ -114,13 +115,13 @@ function toggleQuick(name: string) {
 function changeLang(loc: string) {
   menuVisible.value = false
   locale.value = loc
-  localStorage.setItem('locale', loc)
+  prefsSet('locale', loc)
   document.title = 'PlainApp'
 }
 
 function logout() {
   menuVisible.value = false
-  localStorage.clear()
+  prefsClear()
   window.location.reload()
 }
 </script>

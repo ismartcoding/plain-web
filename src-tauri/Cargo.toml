@@ -26,6 +26,7 @@ native-tls = "0.2"
 futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
 tokio = { version = "1", features = ["sync", "macros", "net"] }
 tauri-plugin-opener = "2.5.4"
+tauri-plugin-store = "2"
 tauri-plugin-notification = "2.3.3"
 tauri-plugin-log = "2"
 # XChaCha20-Poly1305 for local server request encryption — required for security correctness.
@@ -48,3 +49,5 @@ sha2 = "0.10"
 rand = "0.8"
 # UUID v4 for persistent device client-id.
 uuid = { version = "1", features = ["v4"] }
+# Typed GraphQL schema with derive macros for clean resolver code.
+async-graphql = { version = "7", default-features = false }

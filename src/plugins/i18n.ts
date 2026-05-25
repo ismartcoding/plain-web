@@ -1,4 +1,5 @@
 import { createI18n } from 'vue-i18n'
+import { get as prefsGet } from '@/lib/prefs'
 import en_US from '@/locales/en-US'
 import zh_CN from '@/locales/zh-CN'
 import zh_TW from '@/locales/zh-TW'
@@ -19,7 +20,7 @@ import vi from '@/locales/vi'
 
 export default createI18n({
   legacy: false,
-  locale: localStorage.getItem('locale') ?? navigator.language,
+  locale: prefsGet('locale', navigator.language),
   fallbackLocale: 'en-US',
   messages: {
     'en-US': en_US,

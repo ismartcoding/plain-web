@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { get as prefsGet, set as prefsSet, remove as prefsRemove } from '@/lib/prefs'
 
 /**
  * Sentinel clientId for the built-in "local" session (no connected device).
@@ -40,9 +41,7 @@ const STORAGE_KEY = 'device_sessions'
 function loadFromStorage(): DeviceSessionsState {
   const fallback: DeviceSessionsState = { sessions: [], currentClientId: LOCAL_CLIENT_ID }
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return fallback
-    const parsed = JSON.parse(raw)
+    const parsed = prefsGet<DeviceSessionsState | null>(STORAGE_KEY, null)
     if (!parsed || typeof parsed !== 'object') return fallback
     const sessions: DeviceSession[] = Array.isArray(parsed.sessions)
       ? parsed.sessions.filter(
@@ -52,7 +51,6 @@ function loadFromStorage(): DeviceSessionsState {
               && typeof s.token === 'string'
         )
       : []
-    // Migrate legacy empty-string currentClientId to LOCAL_CLIENT_ID.
     const stored = typeof parsed.currentClientId === 'string' ? parsed.currentClientId : ''
     const currentClientId = stored || LOCAL_CLIENT_ID
     return { sessions, currentClientId }
@@ -73,13 +71,10 @@ export const useDeviceSessionsStore = defineStore('deviceSessions', {
   },
   actions: {
     persist() {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({
-          sessions: this.sessions,
-          currentClientId: this.currentClientId,
-        })
-      )
+      prefsSet(STORAGE_KEY, {
+        sessions: this.sessions,
+        currentClientId: this.currentClientId,
+      })
     },
     /**
      * Insert or update a session for the given device. `addedAt` is preserved
@@ -110,7 +105,7 @@ export const useDeviceSessionsStore = defineStore('deviceSessions', {
       this.sessions = this.sessions.filter((s) => s.clientId !== clientId)
       if (this.currentClientId === clientId) this.currentClientId = LOCAL_CLIENT_ID
       // Also clean up the persisted main state for this device.
-      localStorage.removeItem(`main_state:${clientId}`)
+      prefsRemove(`main_state:${clientId}`)
       this.persist()
     },
     /** Update the display name for an existing session (e.g. after fetching app.deviceName). */

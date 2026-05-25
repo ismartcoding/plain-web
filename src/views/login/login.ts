@@ -10,6 +10,7 @@ import { useDeviceSessionsStore } from '@/stores/device-sessions'
 import { getCurrentAuthToken } from '@/lib/device-current'
 import { tauriFetch } from '@/lib/api/tauri-fetch'
 import { TauriWebSocket } from '@/lib/api/tauri-ws'
+import { get as prefsGet } from '@/lib/prefs'
 
 function getSafeRedirect(redirect: unknown): string {
   const r = Array.isArray(redirect) ? redirect[0] : redirect
@@ -60,7 +61,7 @@ export function useLogin() {
     passwordError.value = ''
     if (isSubmitting.value) return
     isSubmitting.value = true
-    const clientId = localStorage.getItem('client_id')
+    const clientId = prefsGet('client_id', '')
     const pass = password.value ?? ''
     const hash = sha512(pass)
     const key = hashToKey(hash)

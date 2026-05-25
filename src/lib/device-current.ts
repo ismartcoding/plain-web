@@ -1,11 +1,12 @@
 /**
  * Synchronous accessors for the currently active device.
- * Reads directly from the `device_sessions` localStorage key, which is kept
- * in sync by the Pinia store (`stores/device-sessions.ts`) via `persist()`.
+ * Reads directly from the `device_sessions` prefs key, kept in sync by the
+ * Pinia store (`stores/device-sessions.ts`) via `persist()`.
  *
  * Works in modules that execute before Pinia is initialised (api.ts, router.ts, login.ts).
  * Both web and Tauri use the same storage structure — no branching on __IS_TAURI__.
  */
+import { get as prefsGet, set as prefsSet } from '@/lib/prefs'
 
 const SESSIONS_KEY = 'device_sessions'
 
@@ -16,9 +17,8 @@ interface SessionsStorage {
 
 function readSessionsStorage(): SessionsStorage {
   try {
-    const raw = localStorage.getItem(SESSIONS_KEY)
-    if (!raw) return { sessions: [], currentClientId: '' }
-    const p = JSON.parse(raw)
+    const p = prefsGet<SessionsStorage | null>(SESSIONS_KEY, null)
+    if (!p) return { sessions: [], currentClientId: '' }
     return {
       sessions: Array.isArray(p.sessions) ? p.sessions : [],
       currentClientId: typeof p.currentClientId === 'string' ? p.currentClientId : '',
@@ -51,17 +51,15 @@ export function getCurrentAuthToken(): string {
  */
 export function clearCurrentSession(): void {
   try {
-    const raw = localStorage.getItem(SESSIONS_KEY)
-    if (!raw) return
-    const p = JSON.parse(raw)
+    const p = prefsGet<SessionsStorage | null>(SESSIONS_KEY, null)
+    if (!p) return
     const currentId = typeof p.currentClientId === 'string' ? p.currentClientId : ''
-    // Clear the stale token so resumeSession won't skip re-authentication.
     if (currentId && Array.isArray(p.sessions)) {
       const session = p.sessions.find((s: any) => s.clientId === currentId)
       if (session) session.token = ''
     }
     p.currentClientId = ''
-    localStorage.setItem(SESSIONS_KEY, JSON.stringify(p))
+    prefsSet(SESSIONS_KEY, p)
   } catch {}
 }
 

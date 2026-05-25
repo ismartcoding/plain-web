@@ -1,4 +1,5 @@
 import { LOCAL_CLIENT_ID } from '@/stores/device-sessions'
+import { get as prefsGet } from '@/lib/prefs'
 
 export const LOCAL_FEATURE_IDS = ['chat']
 export const LOCAL_ROUTE_GROUPS = ['home', ...LOCAL_FEATURE_IDS]
@@ -13,12 +14,10 @@ export function isLocalRouteGroup(group: unknown): boolean {
 
 export function isLocalMode(): boolean {
   if (!__IS_TAURI__) return false
-  const raw = localStorage.getItem('device_sessions')
-  if (!raw) return true
   try {
-    const p = JSON.parse(raw)
-    const cid = typeof p.currentClientId === 'string' ? p.currentClientId : ''
-    return cid === LOCAL_CLIENT_ID
+    const p = prefsGet<{ currentClientId?: string } | null>('device_sessions', null)
+    const cid = typeof p?.currentClientId === 'string' ? p.currentClientId : ''
+    return !cid || cid === LOCAL_CLIENT_ID
   } catch {
     return true
   }

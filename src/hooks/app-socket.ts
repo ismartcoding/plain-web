@@ -9,6 +9,7 @@ import { applyDarkClass, changeColor, changeColorMode, getCurrentMode, getLastSa
 import { tokenToKey } from '@/lib/api/file'
 import { getCurrentAuthToken } from '@/lib/device-current'
 import { TauriWebSocket } from '@/lib/api/tauri-ws'
+import { get as prefsGet } from '@/lib/prefs'
 
 const EventType: { [key: number]: string } = {
   1: 'message_created',
@@ -47,7 +48,7 @@ export function useAppSocket() {
   }
 
   async function connect() {
-    const clientId = localStorage.getItem('client_id')
+    const clientId = prefsGet('client_id', '')
     const token = getCurrentAuthToken()
     if (!token) return
 

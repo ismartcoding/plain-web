@@ -9,6 +9,7 @@ import { tokenToKey } from '@/lib/api/file'
 import type { IApp, IMediaItemsActionedEvent } from '@/lib/interfaces'
 import { useRightSidebarResize } from '@/hooks/sidebar'
 import { getMainStateKey } from '@/lib/device-current'
+import { get as prefsGet, set as prefsSet } from '@/lib/prefs'
 import { useDeviceSessionsStore } from '@/stores/device-sessions'
 import { isLocalMode } from '@/lib/local-mode'
 
@@ -110,15 +111,14 @@ export function useMainView() {
     emitter.off('media_items_actioned', mediaItemsActionedHandler)
   })
 
-  // Restore persisted state from localStorage
-  const localState = localStorage.getItem(getMainStateKey())
+  // Restore persisted state from prefs
+  const localState = prefsGet<Record<string, unknown> | null>(getMainStateKey(), null)
   if (localState) {
-    const json = JSON.parse(localState)
-    store.$state = { ...store.$state, ...json }
+    store.$state = { ...store.$state, ...localState }
   }
 
   watch(store.$state, (state) => {
-    localStorage.setItem(getMainStateKey(), JSON.stringify(state))
+    prefsSet(getMainStateKey(), state)
     currentPath.value = router.currentRoute.value.fullPath
   }, { deep: true })
 
