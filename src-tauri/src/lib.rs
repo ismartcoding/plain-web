@@ -1,6 +1,9 @@
 mod commands;
+mod crypto;
 mod http_proxy;
 mod local;
+mod prefs;
+mod utils;
 
 use std::sync::Arc;
 use tauri::Manager;
@@ -8,6 +11,7 @@ use tauri::Manager;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(
             tauri_plugin_log::Builder::default()
                 .level(log::LevelFilter::Info)
@@ -28,18 +32,12 @@ pub fn run() {
                 Ok(d) => Arc::new(d),
                 Err(e) => panic!("local_db open failed: {e}"),
             };
-            // Ensure persistent device identity (generates on first run).
-            let identity = Arc::new(local::crypto::ensure_identity(&db));
-            // Pairing manager. We do NOT start a persistent UDP listener on
-            // port 52352 because that conflicts with the short-lived discovery
-            // scan socket (commands::scan_blocking) which also binds 52352 to
-            // receive DISCOVER_REPLY datagrams. Pairing is initiator-only for
-            // now: pair_device sends PAIR_REQUEST and waits for PAIR_RESPONSE
-            // on its own socket bound just for the pairing window.
+            // Ensure persistent device identity via plugin-store (generates on first run).
+            let handle = app.handle().clone();
             let (pairing_mgr, mut pairing_rx) =
-                local::pairing::PairingManager::new(db.clone(), identity.clone());
+                local::pairing::PairingManager::new(db.clone(), handle.clone());
             // Bridge pairing broadcast → Tauri event "pairing-event".
-            let app_handle = app.handle().clone();
+            let app_handle = handle.clone();
             tauri::async_runtime::spawn(async move {
                 use tauri::Emitter;
                 while let Ok(ev) = pairing_rx.recv().await {
@@ -47,23 +45,23 @@ pub fn run() {
                 }
             });
             app.handle().manage(pairing_mgr);
-            app.handle().manage(local::server::LocalServerState::start(data_dir, db, identity));
+            app.handle().manage(local::server::LocalServerState::start(data_dir, db, handle));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            commands::discover_devices,
-            commands::http_request,
-            commands::ws_start_proxy,
-            commands::send_macos_notification,
+            commands::discover::discover_devices,
+            commands::http_client::http_request,
+            commands::ws_proxy::ws_start_proxy,
+            commands::notification::send_macos_notification,
             http_proxy::http_proxy_port,
             local::server::local_server_port,
             local::server::local_server_https_port,
             local::server::local_server_token,
-            local::pairing::pair_device,
-            local::pairing::respond_pair_device,
-            local::pairing::cancel_pair_device,
-            local::pairing::get_device_identity,
-            local::pairing::set_device_name,
+            local::pairing::commands::pair_device,
+            local::pairing::commands::respond_pair_device,
+            local::pairing::commands::cancel_pair_device,
+            local::pairing::commands::get_device_identity,
+            local::pairing::commands::set_device_name,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

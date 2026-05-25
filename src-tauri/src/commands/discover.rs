@@ -1,3 +1,5 @@
+// Matches NearbyNetwork.kt in plain-app (Android): same multicast group, port,
+// and message prefix protocol used by NearbyDiscoverManager.
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::net::{Ipv4Addr, SocketAddrV4, UdpSocket};
@@ -5,8 +7,6 @@ use std::time::{Duration, Instant};
 
 use if_addrs::{IfAddr, Interface};
 
-// Matches NearbyNetwork.kt in plain-app (Android): same multicast group, port,
-// and message prefix protocol used by NearbyDiscoverManager.
 const MULTICAST_ADDR: Ipv4Addr = Ipv4Addr::new(224, 0, 0, 100);
 const NEARBY_PORT: u16 = 52352;
 const DISCOVER_PREFIX: &str = "DISCOVER:";
@@ -48,72 +48,6 @@ pub enum DiscoverScanStatus {
 pub struct DiscoverDevicesResult {
     pub devices: Vec<DiscoveredDevice>,
     pub status: DiscoverScanStatus,
-}
-
-#[derive(Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct MacosNotificationOptions {
-    title: String,
-    body: Option<String>,
-}
-
-#[cfg(target_os = "macos")]
-#[tauri::command]
-pub async fn send_macos_notification(
-    app: tauri::AppHandle,
-    options: MacosNotificationOptions,
-) -> Result<(), String> {
-    let identifier = app.config().identifier.clone();
-    tauri::async_runtime::spawn_blocking(move || {
-        let plain_script =
-            macos_notification_script(&options.title, options.body.as_deref());
-        let script = format!(
-            "tell application id {}\n{}\nend tell",
-            applescript_string(&identifier),
-            plain_script
-        );
-        run_osascript(&script)
-    })
-    .await
-    .map_err(|e| e.to_string())?
-}
-
-#[cfg(target_os = "macos")]
-fn macos_notification_script(title: &str, body: Option<&str>) -> String {
-    format!(
-        "display notification {} with title {}",
-        applescript_string(body.unwrap_or("")),
-        applescript_string(title)
-    )
-}
-
-#[cfg(target_os = "macos")]
-fn run_osascript(script: &str) -> Result<(), String> {
-    let status = std::process::Command::new("osascript")
-        .arg("-e")
-        .arg(script)
-        .status()
-        .map_err(|e| e.to_string())?;
-    if status.success() {
-        Ok(())
-    } else {
-        Err(format!("osascript exited with status {status}"))
-    }
-}
-
-#[cfg(target_os = "macos")]
-fn applescript_string(value: &str) -> String {
-    let escaped = value
-        .replace('\\', "\\\\")
-        .replace('"', "\\\"")
-        .replace(['\r', '\n'], " ");
-    format!("\"{escaped}\"")
-}
-
-#[cfg(not(target_os = "macos"))]
-#[tauri::command]
-pub async fn send_macos_notification(_options: MacosNotificationOptions) -> Result<(), String> {
-    Err("macOS notifications are only available on macOS".to_string())
 }
 
 #[tauri::command]
@@ -300,154 +234,4 @@ fn normalize_device_type(wire: &str) -> String {
         "OTHER" => "other".to_string(),
         v => v.to_string(),
     }
-}
-
-// ─── IPC fetch command (bypasses WKWebView TLS validation) ──────────────────
-//
-// JS passes: raw request body as ArrayBuffer IPC body, plus IPC headers:
-//   x-url     — target URL
-//   x-method  — HTTP method
-//   x-headers — JSON-encoded extra request headers (Record<string,string>)
-//
-// Response: tauri::ipc::Response whose bytes are [status_hi, status_lo, ...body]
-// No base64 — bytes flow through the proxy untouched.
-//
-// A single HttpClient is shared across all requests (Tauri state) so that
-// TCP connections and TLS sessions are reused — this is critical for latency.
-// reqwest::Client is internally an Arc, so cloning is cheap.
-
-pub struct HttpClient(pub reqwest::Client);
-
-impl HttpClient {
-    pub fn new() -> Self {
-        let client = reqwest::Client::builder()
-            .danger_accept_invalid_certs(true)
-            .danger_accept_invalid_hostnames(true)
-            .tcp_keepalive(std::time::Duration::from_secs(30))
-            .timeout(std::time::Duration::from_secs(30))
-            .build()
-            .expect("reqwest client init failed");
-        HttpClient(client)
-    }
-}
-
-#[tauri::command]
-pub async fn http_request(
-    http: tauri::State<'_, HttpClient>,
-    request: tauri::ipc::Request<'_>,
-) -> Result<tauri::ipc::Response, String> {
-    let hdrs = request.headers();
-    let url = hdrs
-        .get("x-url")
-        .and_then(|v| v.to_str().ok())
-        .ok_or("missing x-url header")?
-        .to_string();
-    let method: reqwest::Method = hdrs
-        .get("x-method")
-        .and_then(|v| v.to_str().ok())
-        .unwrap_or("POST")
-        .parse()
-        .map_err(|_| "invalid method")?;
-    let extra_headers: HashMap<String, String> = hdrs
-        .get("x-headers")
-        .and_then(|v| v.to_str().ok())
-        .and_then(|s| serde_json::from_str(s).ok())
-        .unwrap_or_default();
-
-    let body = match request.body() {
-        tauri::ipc::InvokeBody::Raw(b) => b.clone(),
-        tauri::ipc::InvokeBody::Json(_) => vec![],
-    };
-
-    let mut builder = http.0.request(method, &url);
-    for (k, v) in extra_headers {
-        builder = builder.header(&k, &v);
-    }
-    if !body.is_empty() {
-        builder = builder.body(body);
-    }
-
-    let resp = builder.send().await.map_err(|e| e.to_string())?;
-    let status = resp.status().as_u16();
-    let resp_bytes = resp.bytes().await.map_err(|e| e.to_string())?;
-
-    // Prepend 2 bytes (big-endian u16) for the HTTP status code so JS can read it.
-    let mut out = Vec::with_capacity(2 + resp_bytes.len());
-    out.push((status >> 8) as u8);
-    out.push((status & 0xff) as u8);
-    out.extend_from_slice(&resp_bytes);
-    Ok(tauri::ipc::Response::new(out))
-}
-
-// ─── WebSocket local-proxy (bypasses WKWebView TLS validation) ───────────────
-//
-// Instead of routing WS frames through Tauri IPC events, Rust opens a plain
-// (non-TLS) TCP listener on 127.0.0.1:0 and returns the assigned port to JS.
-// JS then does:  new WebSocket('ws://127.0.0.1:<port>')
-// Rust accepts that connection, upgrades it to WS, then connects to the real
-// device WSS URL with danger_accept_invalid_certs and relays frames in both
-// directions. No custom IPC serialisation — TCP carries the data directly.
-
-#[tauri::command]
-pub async fn ws_start_proxy(url: String) -> Result<u16, String> {
-    use tokio::net::TcpListener;
-    use futures_util::SinkExt;
-
-    let listener = TcpListener::bind("127.0.0.1:0")
-        .await
-        .map_err(|e| e.to_string())?;
-    let port = listener.local_addr().map_err(|e| e.to_string())?.port();
-
-    tauri::async_runtime::spawn(async move {
-        // Accept exactly one connection from JS (each WebSocket gets its own proxy).
-        let Ok((tcp, _)) = listener.accept().await else { return };
-
-        // Handshake local side (plain WS — no TLS needed for localhost).
-        let Ok(mut local_ws) = tokio_tungstenite::accept_async(tcp).await else { return };
-
-        // Connect to device with self-signed cert acceptance.
-        let tls = match native_tls::TlsConnector::builder()
-            .danger_accept_invalid_certs(true)
-            .build()
-        {
-            Ok(t) => t,
-            Err(_) => return,
-        };
-        let connector = tokio_tungstenite::Connector::NativeTls(tls);
-        let Ok((device_ws, _)) = tokio_tungstenite::connect_async_tls_with_config(
-            url.as_str(),
-            None,
-            false,
-            Some(connector),
-        )
-        .await
-        else {
-            // Ensure frontend receives a close event when remote connection fails.
-            let _ = local_ws.close(None).await;
-            return;
-        };
-
-        use futures_util::StreamExt;
-        let (mut local_tx, mut local_rx) = local_ws.split();
-        let (mut device_tx, mut device_rx) = device_ws.split();
-
-        // Relay frames in both directions until either side closes.
-        tokio::select! {
-            _ = async {
-                while let Some(Ok(msg)) = local_rx.next().await {
-                    if device_tx.send(msg).await.is_err() { break; }
-                }
-            } => {}
-            _ = async {
-                while let Some(Ok(msg)) = device_rx.next().await {
-                    if local_tx.send(msg).await.is_err() { break; }
-                }
-            } => {}
-        }
-
-        // Signal closure to frontend after relay exits for any reason.
-        let _ = local_tx.close().await;
-    });
-
-    Ok(port)
 }

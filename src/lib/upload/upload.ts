@@ -8,6 +8,7 @@ import { uploadedChunksGQL } from '../api/query'
 import { mergeChunksGQL, deleteChunksGQL } from '../api/mutation'
 import { gqlFetch } from '../api/gql-client'
 import { getCurrentAuthToken } from '../device-current'
+import { get as prefsGet } from '../prefs'
 
 const CHUNK_SIZE = 5 * 1024 * 1024 // 5MB — balance between resume granularity and throughput
 const PARALLEL_CHUNKS = 3 // Upload 3 chunks in parallel per file
@@ -249,7 +250,7 @@ async function uploadDirect(upload: IUploadItem, replace: boolean, key: Uint8Arr
           const apiBaseUrl = getApiBaseUrl()
           if (apiBaseUrl.startsWith('https://')) xhr.setRequestHeader('x-proxy-target', apiBaseUrl)
         }
-        xhr.setRequestHeader('c-id', localStorage.getItem('client_id') ?? '')
+        xhr.setRequestHeader('c-id', prefsGet('client_id', ''))
         upload.xhr = xhr
         xhr.send(data)
       } catch (ex: any) {
@@ -611,7 +612,7 @@ async function uploadChunk(upload: IUploadItem, chunkData: IUploadChunk & { star
     try {
       xhr.open('POST', getUploadChunkUrl(), true)
       if (__IS_TAURI__) xhr.setRequestHeader('x-proxy-target', getApiBaseUrl())
-      xhr.setRequestHeader('c-id', localStorage.getItem('client_id') ?? '')
+      xhr.setRequestHeader('c-id', prefsGet('client_id', ''))
       // Track this XHR in the set BEFORE sending, so pause can abort it
       if (!upload.xhrs) upload.xhrs = new Set()
       upload.xhrs.add(xhr)

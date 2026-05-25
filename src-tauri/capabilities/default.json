@@ -6,6 +6,7 @@
     "core:default",
     "opener:default",
     "notification:default",
-    "core:window:allow-toggle-maximize"
+    "core:window:allow-toggle-maximize",
+    "store:default"
   ]
 }

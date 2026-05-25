@@ -1,4 +1,5 @@
 import { getCurrentDeviceHost } from '../device-current'
+import { get as prefsGet } from '../prefs'
 
 // Temporary host set during the login flow (before the session is committed to the store).
 // Allows api.ts to route requests to the target device before clientId is known.
@@ -58,7 +59,7 @@ export function getApiHost() {
 export function getApiHeaders() {
   return {
     'Content-Type': 'multipart/form-data',
-    'c-id': localStorage.getItem('client_id') ?? '',
+    'c-id': prefsGet('client_id', ''),
   }
 }
 

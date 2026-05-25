@@ -1,8 +1,11 @@
 //! Peer-to-peer message delivery over HTTPS /peer_graphql.
 
-use crate::local::crypto::{chacha20_decrypt, chacha20_encrypt, ed25519_sign};
-use crate::local::db::DPeer;
-use serde_json::json;
+use crate::crypto::{chacha20_decrypt, chacha20_encrypt, ed25519_sign};
+use crate::local::db::{ChatDb, DChat, DPeer};
+use serde_json::{json, Value};
+use tokio::sync::broadcast;
+
+use super::context::{WsEvent, WS_MESSAGE_CREATED};
 
 /// Build all candidate URLs for a peer's /peer_graphql endpoint,
 /// ordered with the most-recently-seen IP first.
@@ -94,4 +97,29 @@ pub async fn deliver_to_peer(
         return true;
     }
     false
+}
+
+/// Handle an incoming peer `createChatItem` message that has already been
+/// authenticated and decrypted by server.rs. Bypasses the schema entirely.
+pub fn create_chat_item_from_peer(
+    db: &ChatDb,
+    from_id: &str,
+    channel_id: &str,
+    content: &str,
+    event_tx: &broadcast::Sender<WsEvent>,
+) -> Value {
+    let to_id = if channel_id.is_empty() { "me" } else { "" };
+    let chat = DChat::new(from_id, to_id, channel_id, content);
+    db.insert_chat(&chat);
+    let item = json!({
+        "id": chat.id, "fromId": chat.from_id, "toId": chat.to_id,
+        "channelId": chat.channel_id, "content": chat.content,
+        "createdAt": chat.created_at, "status": chat.status,
+        "statusData": chat.status_data, "data": null,
+    });
+    let _ = event_tx.send(WsEvent {
+        event_type: WS_MESSAGE_CREATED,
+        payload: json!([item]).to_string(),
+    });
+    json!({ "data": { "createChatItem": item } })
 }
