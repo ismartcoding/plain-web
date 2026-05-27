@@ -7,6 +7,7 @@
 use super::db::ChatDb;
 use super::graphql::{build_schema, new_peer_key_cache, refresh_peer_key_cache, AppCtx, WsEvent};
 use super::tls::{build_acceptor, ensure_cert};
+use crate::prefs::AppIdentity;
 use std::net::TcpListener as StdTcpListener;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -26,8 +27,7 @@ pub struct LocalServerState {
 }
 
 impl LocalServerState {
-    pub fn start(app_data_dir: PathBuf, db: Arc<ChatDb>, handle: AppHandle) -> Self {
-        let identity = Arc::new(crate::prefs::ensure_identity(&handle));
+    pub fn start(app_data_dir: PathBuf, log_dir: PathBuf, db: Arc<ChatDb>, handle: AppHandle, identity: Arc<AppIdentity>) -> Self {
         let peer_key_cache = new_peer_key_cache();
         refresh_peer_key_cache(&db, &peer_key_cache);
         let http_listener = bind_listener(8080);
@@ -56,6 +56,9 @@ impl LocalServerState {
             token: token.clone(),
             port,
             https_port,
+            data_dir: app_data_dir.clone(),
+            log_dir,
+            device_name: Arc::new(std::sync::RwLock::new(identity.device_name.clone())),
         });
 
         // Build TLS acceptor — generate self-signed cert if missing.

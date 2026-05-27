@@ -58,4 +58,10 @@ pub struct AppCtx {
     pub token: String,
     pub port: u16,
     pub https_port: u16,
+    /// App data directory — used by debug resolvers to read prefs.json.
+    pub data_dir: std::path::PathBuf,
+    /// App log directory — used by debug resolvers to read/clear plain.log.
+    pub log_dir: std::path::PathBuf,
+    /// Mutable device display name — updated by the updateDeviceName mutation.
+    pub device_name: Arc<std::sync::RwLock<String>>,
 }

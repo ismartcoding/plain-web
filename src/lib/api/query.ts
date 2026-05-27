@@ -689,6 +689,30 @@ export const deviceInfoGQL = `
   ${deviceInfoFragment}
 `
 
+export const appLogsGQL = `
+  query AppLogs($offset: Int!, $limit: Int!) {
+    appLogs(offset: $offset, limit: $limit)
+  }
+`
+
+export const appLogPathGQL = `
+  query {
+    appLogPath
+  }
+`
+
+export const dbPathGQL = `
+  query {
+    dbPath
+  }
+`
+
+export const dataStorePathGQL = `
+  query {
+    dataStorePath
+  }
+`
+
 export const uploadedChunksGQL = `
   query uploadedChunks($fileId: String!) {
     uploadedChunks(fileId: $fileId)
@@ -728,6 +752,33 @@ export const pomodoroTodayAndSettingsGQL = `
       showNotification
       playSoundOnComplete
     }
+  }
+`
+
+export const dataStoreEntriesGQL = `
+  query {
+    dataStoreEntries {
+      key
+      value
+    }
+  }
+`
+
+export const dbTablesGQL = `
+  query {
+    dbTables
+  }
+`
+
+export const dbTableRowCountGQL = `
+  query DbTableRowCount($table: String!) {
+    dbTableRowCount(table: $table)
+  }
+`
+
+export const dbTableRowsGQL = `
+  query DbTableRows($table: String!, $offset: Int!, $limit: Int!) {
+    dbTableRows(table: $table, offset: $offset, limit: $limit)
   }
 `
 

@@ -6,10 +6,8 @@ use crate::crypto::base64_decode;
 use crate::local::db::{now_iso, DChannel, DChat};
 use super::super::context::{AppCtx, WsEvent, WS_CHANNELS_UPDATED, WS_MESSAGE_CREATED, WS_MESSAGE_DELETED, WS_MESSAGE_UPDATED};
 use super::super::peer::{deliver_to_peer, peer_graphql_urls};
-use super::types::{ChatChannel, ChatItem};
+use super::types::{ChatChannel, ChatItem, Peer};
 
-/// Serialise a DChat row to the JSON shape the frontend expects.
-/// Used for WebSocket event payloads (async-graphql types do not implement Serialize).
 fn chat_to_json(c: &DChat) -> Value {
     json!({
         "id": c.id, "fromId": c.from_id, "toId": c.to_id,
@@ -19,11 +17,36 @@ fn chat_to_json(c: &DChat) -> Value {
     })
 }
 
-pub struct MutationRoot;
+#[derive(Default)]
+pub struct ChatQuery;
 
 #[Object]
-impl MutationRoot {
-    /// Send a chat message from this device. Delivers to peer asynchronously.
+impl ChatQuery {
+    async fn chat_items(&self, ctx: &Context<'_>, id: String) -> Vec<ChatItem> {
+        let c = ctx.data_unchecked::<Arc<AppCtx>>();
+        c.db.get_chats(&id).into_iter().map(ChatItem::from).collect()
+    }
+
+    async fn peers(&self, ctx: &Context<'_>) -> Vec<Peer> {
+        let c = ctx.data_unchecked::<Arc<AppCtx>>();
+        c.db.get_peers().into_iter().map(Peer::from).collect()
+    }
+
+    async fn chat_channels(&self, ctx: &Context<'_>) -> Vec<ChatChannel> {
+        let c = ctx.data_unchecked::<Arc<AppCtx>>();
+        c.db.get_channels().into_iter().map(ChatChannel::from).collect()
+    }
+
+    async fn latest_chat_items(&self, _ctx: &Context<'_>) -> Vec<ChatItem> {
+        vec![]
+    }
+}
+
+#[derive(Default)]
+pub struct ChatMutation;
+
+#[Object]
+impl ChatMutation {
     async fn send_chat_item(&self, ctx: &Context<'_>, to_id: String, content: String) -> ChatItem {
         let c = ctx.data_unchecked::<Arc<AppCtx>>().clone();
 
@@ -76,7 +99,6 @@ impl MutationRoot {
         ChatItem::from(chat)
     }
 
-    /// Receive a message from a remote peer (called by `/peer_graphql` handler).
     async fn create_chat_item(
         &self,
         ctx: &Context<'_>,

@@ -440,6 +440,7 @@ export interface IApp {
   internalStoragePath: string
   downloadsDir: string
   developerMode: boolean
+  debug: boolean
   favoriteFolders: IFavoriteFolder[]
 }
 

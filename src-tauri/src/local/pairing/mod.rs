@@ -14,8 +14,8 @@
 //! ChatDb's key-cache is considered stale (callers should re-query `get_peers`).
 
 use crate::crypto::{base64_decode, base64_encode, ed25519_sign, ed25519_verify, EcdhSession};
+use crate::prefs::AppIdentity;
 use super::db::{now_iso, ChatDb, DPeer};
-use tauri::AppHandle;
 use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -54,7 +54,7 @@ struct PairingSession {
 #[derive(Clone)]
 pub struct PairingManager {
     pub db: Arc<ChatDb>,
-    handle: AppHandle,
+    pub identity: Arc<AppIdentity>,
     sessions: Arc<Mutex<HashMap<String, PairingSession>>>,
     /// Broadcast channel to notify the frontend of pairing events.
     event_tx: tokio::sync::broadcast::Sender<PairingEvent>,
@@ -86,12 +86,12 @@ pub enum PairingEventKind {
 impl PairingManager {
     pub fn new(
         db: Arc<ChatDb>,
-        handle: AppHandle,
+        identity: Arc<AppIdentity>,
     ) -> (Self, tokio::sync::broadcast::Receiver<PairingEvent>) {
         let (tx, rx) = tokio::sync::broadcast::channel(32);
         let mgr = PairingManager {
             db,
-            handle,
+            identity,
             sessions: Arc::new(Mutex::new(HashMap::new())),
             event_tx: tx,
         };
@@ -124,7 +124,7 @@ impl PairingManager {
     /// the response back to that port, not to the source port). Returns when
     /// the response arrives, the user cancels, or the timeout elapses.
     pub fn start_pairing(&self, device_id: &str, device_name: &str, device_ip: &str, local_port: u16) {
-        let identity = crate::prefs::ensure_identity(&self.handle);
+        let identity = &self.identity;
         let ecdh = EcdhSession::generate();
         let ecdh_pub_b64 = base64_encode(&ecdh.public_key_bytes);
         let kp_bytes = base64_decode(&identity.ed25519_keypair);
@@ -257,7 +257,7 @@ impl PairingManager {
 
     /// Called from frontend after user accepts/rejects a pairing request.
     pub fn respond_to_pairing(&self, request: PairingRequest, sender_ip: &str, accepted: bool, local_port: u16) {
-        let identity = crate::prefs::ensure_identity(&self.handle);
+        let identity = &self.identity;
         let kp_bytes = base64_decode(&identity.ed25519_keypair);
         let vk_bytes = if kp_bytes.len() == 64 { kp_bytes[32..].to_vec() } else { vec![] };
         let sig_pub_b64 = base64_encode(&vk_bytes);
@@ -412,7 +412,7 @@ impl PairingManager {
         };
         if let Some(s) = session {
             let cancel = PairingCancel {
-                from_id: crate::prefs::ensure_identity(&self.handle).client_id,
+                from_id: self.identity.client_id.clone(),
                 to_id: device_id.to_string(),
             };
             let msg = format!("{}{}", PAIR_CANCEL_PREFIX, serde_json::to_string(&cancel).unwrap_or_default());

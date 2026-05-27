@@ -20,6 +20,12 @@ pub struct FavoriteFolder {
 }
 
 #[derive(SimpleObject)]
+pub struct KeyValuePair {
+    pub key: String,
+    pub value: String,
+}
+
+#[derive(SimpleObject)]
 pub struct App {
     pub usb_connected: bool,
     pub url_token: String,
@@ -41,6 +47,7 @@ pub struct App {
     pub downloads_dir: String,
     pub developer_mode: bool,
     pub favorite_folders: Vec<FavoriteFolder>,
+    pub debug: bool,
 }
 
 /// All fields from both `homeStatsGQL` and the full `mountsGQL` query.

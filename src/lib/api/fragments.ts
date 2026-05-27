@@ -45,6 +45,7 @@ export const appFragment = `
     internalStoragePath
     downloadsDir
     developerMode
+    debug
     favoriteFolders {
       rootPath
       fullPath

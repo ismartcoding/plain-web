@@ -1,1 +1,1 @@
-{"com.ismartcoding.plainapp":{"identifier":"com.ismartcoding.plainapp","description":"","local":true,"windows":["main"],"permissions":["core:default","opener:default","notification:default","core:window:allow-toggle-maximize","store:default"]}}
+{"com.ismartcoding.plainapp":{"identifier":"com.ismartcoding.plainapp","description":"","local":true,"windows":["main"],"permissions":["core:default","opener:default","notification:default","core:window:allow-toggle-maximize","core:window:allow-start-dragging","store:default"]}}

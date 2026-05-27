@@ -192,6 +192,34 @@ const router = createRouter({
           },
           meta: { group: 'chat', className: 'chat' },
         },
+        {
+          path: 'developer',
+          redirect: '/developer/datastore',
+        },
+        {
+          path: 'developer/datastore',
+          components: {
+            default: () => import('@/views/developer/DeveloperDataStoreView.vue'),
+            LeftSidebar: () => import('@/views/developer/DeveloperSidebar.vue'),
+          },
+          meta: { group: 'developer' },
+        },
+        {
+          path: 'developer/database',
+          components: {
+            default: () => import('@/views/developer/DeveloperDatabaseView.vue'),
+            LeftSidebar: () => import('@/views/developer/DeveloperSidebar.vue'),
+          },
+          meta: { group: 'developer' },
+        },
+        {
+          path: 'developer/logs',
+          components: {
+            default: () => import('@/views/developer/DeveloperLogsView.vue'),
+            LeftSidebar: () => import('@/views/developer/DeveloperSidebar.vue'),
+          },
+          meta: { group: 'developer' },
+        },
       ],
     },
     {
