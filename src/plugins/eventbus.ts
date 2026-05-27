@@ -40,6 +40,7 @@ type Events = {
   download_progress: any[]
   channels_updated: any[]
   peer_status_updated: { id: string, online: boolean }
+  device_name_updated: string
   sms_sent: undefined
   image_search_updated: any
 }

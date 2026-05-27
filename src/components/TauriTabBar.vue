@@ -51,7 +51,7 @@
     </div>
     </div>
 
-    <div class="tab-spacer" @dblclick="toggleWindowMaximize" />
+    <div class="tab-spacer" data-tauri-drag-region />
 
     <div class="right-controls">
       <button class="bar-btn" title="Refresh" @click="refreshPage">
@@ -168,12 +168,6 @@ function goForward() {
 
 function refreshPage() {
   router.go(0)
-}
-
-async function toggleWindowMaximize() {
-  if (!__IS_TAURI__) return
-  const { getCurrentWindow } = await import('@tauri-apps/api/window')
-  await getCurrentWindow().toggleMaximize()
 }
 </script>
 

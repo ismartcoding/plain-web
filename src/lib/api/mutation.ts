@@ -74,6 +74,18 @@ export async function runMutation(
   return result != null
 }
 
+export const clearAppLogsGQL = `
+  mutation {
+    clearAppLogs
+  }
+`
+
+export const updateDeviceNameGQL = `
+  mutation updateDeviceName($name: String!) {
+    updateDeviceName(name: $name)
+  }
+`
+
 // --- GraphQL Mutation Definitions ---
 
 export const sendChatItemGQL = `
@@ -675,8 +687,8 @@ export const disableImageSearchGQL = `
   mutation { disableImageSearch }
 `
 
-export const cancelImageDownloadGQL = `
-  mutation { cancelImageDownload }
+export const cancelImageModelDownloadGQL = `
+  mutation { cancelImageModelDownload }
 `
 
 export const startImageIndexGQL = `
@@ -728,5 +740,23 @@ export const deleteNoteGQL = `
 export const deleteFeedEntryGQL = `
   mutation deleteFeedEntry($query: String!) {
     deleteFeedEntries(query: $query)
+  }
+`
+
+export const deleteDataStoreEntryGQL = `
+  mutation DeleteDataStoreEntry($key: String!) {
+    deleteDataStoreEntry(key: $key)
+  }
+`
+
+export const createDbTableRowGQL = `
+  mutation CreateDbTableRow($table: String!, $row: String!) {
+    createDbTableRow(table: $table, row: $row)
+  }
+`
+
+export const deleteDbTableRowsGQL = `
+  mutation DeleteDbTableRows($table: String!, $ids: [String!]!) {
+    deleteDbTableRows(table: $table, ids: $ids)
   }
 `

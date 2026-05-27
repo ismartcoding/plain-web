@@ -2,7 +2,7 @@ import { LOCAL_CLIENT_ID } from '@/stores/device-sessions'
 import { get as prefsGet } from '@/lib/prefs'
 
 export const LOCAL_FEATURE_IDS = ['chat']
-export const LOCAL_ROUTE_GROUPS = ['home', ...LOCAL_FEATURE_IDS]
+export const LOCAL_ROUTE_GROUPS = ['home', 'developer', ...LOCAL_FEATURE_IDS]
 
 export function isLocalFeatureId(id: string): boolean {
   return LOCAL_FEATURE_IDS.includes(id)

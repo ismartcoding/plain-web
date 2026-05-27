@@ -30,6 +30,16 @@ impl Clone for ChatDb {
 }
 
 impl ChatDb {
+    /// Execute a closure with read/write access to the underlying Connection.
+    /// Used by debug GraphQL resolvers (db_tables, db_table_rows, etc.).
+    pub fn with_conn<F, T>(&self, f: F) -> T
+    where
+        F: FnOnce(&Connection) -> T,
+    {
+        let conn = self.0.lock().unwrap();
+        f(&conn)
+    }
+
     pub fn open(db_path: &Path) -> rusqlite::Result<Self> {
         let conn = Connection::open(db_path)?;
         conn.execute_batch("PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;")?;

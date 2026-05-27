@@ -31,6 +31,7 @@ const EventType: { [key: number]: string } = {
   18: 'channels_updated',
   19: 'image_search_updated',
   20: 'peer_status_updated',
+  21: 'device_name_updated',
 }
 
 export function useAppSocket() {

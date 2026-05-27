@@ -98,17 +98,25 @@ export function useMainView() {
   const mediaItemsActionedHandler = (event: IMediaItemsActionedEvent) => {
     if (event.type === 'AUDIO') refetchApp()
   }
+  const deviceNameUpdatedHandler = (name: string) => {
+    if (app.value) app.value.deviceName = name
+    if (name && sessionsStore.currentClientId) {
+      sessionsStore.updateName(sessionsStore.currentClientId, name)
+    }
+  }
 
   onMounted(() => {
     emitter.on('refetch_app', refetchAppHandler)
     emitter.on('play_audio', playAudioHandler)
     emitter.on('media_items_actioned', mediaItemsActionedHandler)
+    emitter.on('device_name_updated', deviceNameUpdatedHandler)
   })
 
   onUnmounted(() => {
     emitter.off('refetch_app', refetchAppHandler)
     emitter.off('play_audio', playAudioHandler)
     emitter.off('media_items_actioned', mediaItemsActionedHandler)
+    emitter.off('device_name_updated', deviceNameUpdatedHandler)
   })
 
   // Restore persisted state from prefs

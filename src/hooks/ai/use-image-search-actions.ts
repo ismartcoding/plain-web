@@ -1,6 +1,6 @@
 import { ref, onUnmounted } from 'vue'
 import emitter from '@/plugins/eventbus'
-import { enableImageSearchGQL, disableImageSearchGQL, cancelImageDownloadGQL, startImageIndexGQL, cancelImageIndexGQL, initMutation } from '@/lib/api/mutation'
+import { enableImageSearchGQL, disableImageSearchGQL, cancelImageModelDownloadGQL, startImageIndexGQL, cancelImageIndexGQL, initMutation } from '@/lib/api/mutation'
 import type { IImageSearchStatus } from '@/lib/interfaces'
 
 export function useImageSearchActions() {
@@ -12,7 +12,7 @@ export function useImageSearchActions() {
 
   const { mutate: mutateEnable } = initMutation({ document: enableImageSearchGQL })
   const { mutate: mutateDisable } = initMutation({ document: disableImageSearchGQL })
-  const { mutate: mutateCancelDownload } = initMutation({ document: cancelImageDownloadGQL })
+  const { mutate: mutateCancelDownload } = initMutation({ document: cancelImageModelDownloadGQL })
   const { mutate: mutateStartIndex } = initMutation({ document: startImageIndexGQL })
   const { mutate: mutateCancelIndex } = initMutation({ document: cancelImageIndexGQL })
 

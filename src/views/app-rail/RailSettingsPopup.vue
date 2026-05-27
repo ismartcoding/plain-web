@@ -10,6 +10,14 @@
       <div class="title">
         <span>{{ app.deviceName || currentSession?.name || $t('my_phone') }}</span>
         <button
+          v-tooltip="$t('edit')"
+          class="switch-device-btn"
+          :aria-label="$t('edit')"
+          @click="editDeviceName"
+        >
+          <i-lucide:pencil />
+        </button>
+        <button
           v-if="isTauri"
           v-tooltip="$t('device_discovery.change_device')"
           class="switch-device-btn"
@@ -54,24 +62,34 @@
       </router-link>
     </template>
     </template>
+
+    <div class="popup-divider"></div>
+    <router-link to="/developer" class="dropdown-item" @click="open = false">
+      <i-lucide:code-2 class="feature-icon" />
+      <span>{{ $t('developer.developer_mode') }}</span>
+    </router-link>
   </v-dropdown>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useTempStore } from '@/stores/temp'
 import { useMainStore } from '@/stores/main'
 import { useDeviceSessionsStore } from '@/stores/device-sessions'
 import { storeToRefs } from 'pinia'
-import { pushModal } from '@/components/modal'
+import { pushModal, openModal } from '@/components/modal'
 import { getAvailableFeatures, type Feature } from './features'
 import { isLocalMode } from '@/lib/local-mode'
 import CustomizeUIModal from './CustomizeUIModal.vue'
 import ExcludedDirsModal from './ExcludedDirsModal.vue'
 import DeviceSwitcherModal from '@/components/DeviceSwitcherModal.vue'
+import EditValueModal from '@/components/EditValueModal.vue'
+import { initMutation, updateDeviceNameGQL } from '@/lib/api/mutation'
 
 const localMode = isLocalMode()
+const { t } = useI18n()
 
 const { app } = storeToRefs(useTempStore())
 const store = useMainStore()
@@ -98,6 +116,23 @@ function openExcludedDirs() {
 function openDeviceSwitcher() {
   open.value = false
   pushModal(DeviceSwitcherModal)
+}
+
+function editDeviceName() {
+  open.value = false
+  openModal(EditValueModal, {
+    title: t('device_name'),
+    placeholder: t('device_name'),
+    value: app.value?.deviceName ?? currentSession.value?.name ?? '',
+    mutation: () =>
+      initMutation({
+        document: updateDeviceNameGQL,
+      }),
+    getVariables: (value: string) => ({ name: value }),
+    done: (value: string) => {
+      if (app.value) app.value.deviceName = value
+    },
+  })
 }
 
 function lastRoute(defaultPath: string, group: string) {
