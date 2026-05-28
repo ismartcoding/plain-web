@@ -1,8 +1,134 @@
-use async_graphql::{SimpleObject, Union};
+use async_graphql::{Enum, SimpleObject, Union};
 
 use crate::local::db::{DChannel, DChat, DPeer};
 
 // ── Output types ──────────────────────────────────────────────────────────────
+
+#[derive(Enum, Copy, Clone, Eq, PartialEq)]
+#[graphql(name = "DevicePlatform")]
+pub enum DevicePlatform {
+    Android,
+    Ios,
+    Macos,
+    Windows,
+    Linux,
+}
+
+#[derive(SimpleObject)]
+#[graphql(name = "AndroidDeviceInfo")]
+pub struct AndroidDeviceInfo {
+    pub sdk_version: i32,
+    pub version_code_name: String,
+    pub security_patch: String,
+    pub bootloader: String,
+    pub fingerprint: String,
+    pub hardware: String,
+    pub radio_version: String,
+    pub board: String,
+    pub build_brand: String,
+    pub build_host: String,
+    pub build_user: String,
+    pub build_number: String,
+    pub product: String,
+    pub device: String,
+    pub java_vm_version: String,
+    pub gl_es_version: String,
+    pub serial: String,
+    pub build_time: String,
+}
+
+#[derive(SimpleObject)]
+#[graphql(name = "DesktopDeviceInfo")]
+pub struct DesktopDeviceInfo {
+    pub hostname: String,
+    pub cpu_model: String,
+    pub gpu_model: String,
+    pub desktop_environment: String,
+    pub window_manager: String,
+}
+
+#[derive(SimpleObject)]
+#[graphql(name = "DisplayInfo")]
+pub struct DisplayInfo {
+    pub width: i32,
+    pub height: i32,
+    pub density: String,
+}
+
+#[derive(SimpleObject)]
+#[graphql(name = "DeviceInfo")]
+pub struct DeviceInfo {
+    pub name: String,
+    pub platform: DevicePlatform,
+    pub manufacturer: String,
+    pub model: String,
+    pub os_name: String,
+    pub os_version: String,
+    pub kernel_version: String,
+    pub app_version: String,
+    pub app_build_number: String,
+    pub language: String,
+    pub uptime: i64,
+    pub cpu_arch: String,
+    pub total_memory: i64,
+    pub total_storage: i64,
+    pub display: Option<DisplayInfo>,
+    pub android: Option<AndroidDeviceInfo>,
+    pub desktop: Option<DesktopDeviceInfo>,
+}
+
+#[derive(SimpleObject)]
+#[graphql(name = "Sim")]
+pub struct Sim {
+    pub id: String,
+    pub label: String,
+    pub number: String,
+    pub subscription_id: i32,
+}
+
+#[derive(Enum, Copy, Clone, Eq, PartialEq)]
+#[graphql(name = "BatteryHealth")]
+pub enum BatteryHealth {
+    Unknown,
+    Good,
+    Overheat,
+    Dead,
+    OverVoltage,
+    UnspecifiedFailure,
+    Cold,
+}
+
+#[derive(Enum, Copy, Clone, Eq, PartialEq)]
+#[graphql(name = "BatteryStatus")]
+pub enum BatteryStatus {
+    Unknown,
+    Charging,
+    Discharging,
+    NotCharging,
+    Full,
+}
+
+#[derive(Enum, Copy, Clone, Eq, PartialEq)]
+#[graphql(name = "BatteryPlugged")]
+pub enum BatteryPlugged {
+    Unplugged,
+    Ac,
+    Usb,
+    Wireless,
+}
+
+#[derive(SimpleObject)]
+#[graphql(name = "Battery")]
+pub struct BatteryInfo {
+    pub level: i32,
+    pub voltage: i32,
+    pub health: BatteryHealth,
+    pub plugged: BatteryPlugged,
+    pub temperature: f64,
+    pub status: BatteryStatus,
+    pub technology: String,
+    pub capacity: i32,
+}
 
 #[derive(SimpleObject)]
 pub struct PlaylistAudio {

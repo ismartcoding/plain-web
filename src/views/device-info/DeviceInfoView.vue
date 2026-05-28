@@ -13,13 +13,10 @@
             <div v-for="(item, index) in basicInfos" :key="index" class="key-value">
               <div class="key">{{ $t(item.label) }}</div>
               <div class="value">
-                <time v-if="item.isTime" v-tooltip="formatDateTimeFull(item.value)" class="time">{{ formatDateTime(item.value) }} </time>
-                <template v-else-if="Array.isArray(item.value)">
+                <template v-if="Array.isArray(item.value)">
                   <div v-for="(it, i) in item.value" :key="i">{{ it }}</div>
                 </template>
-                <template v-else>
-                  {{ item.value }}
-                </template>
+                <template v-else>{{ item.value }}</template>
               </div>
             </div>
           </div>
@@ -31,34 +28,43 @@
           <div class="card-body">
             <div v-for="(item, index) in systemInfos" :key="index" class="key-value">
               <div class="key">{{ $t(item.label) }}</div>
+              <div class="value">{{ item.value }}</div>
+            </div>
+          </div>
+        </section>
+      </div>
+      <div v-if="hardwareInfos.length">
+        <section class="card">
+          <h5 class="card-title">{{ $t('hardware') }}</h5>
+          <div class="card-body">
+            <div v-for="(item, index) in hardwareInfos" :key="index" class="key-value">
+              <div class="key">{{ $t(item.label) }}</div>
+              <div class="value">{{ item.value }}</div>
+            </div>
+          </div>
+        </section>
+      </div>
+      <div v-if="platformInfos.length">
+        <section class="card">
+          <h5 class="card-title">{{ $t('platform_info') }}</h5>
+          <div class="card-body">
+            <div v-for="(item, index) in platformInfos" :key="index" class="key-value">
+              <div class="key">{{ $t(item.label) }}</div>
               <div class="value">
                 <time v-if="item.isTime" v-tooltip="formatDateTimeFull(item.value)" class="time">{{ formatDateTime(item.value) }}</time>
-                <template v-else-if="Array.isArray(item.value)">
-                  <div v-for="(it, i) in item.value" :key="i">{{ it }}</div>
-                </template>
-                <template v-else>
-                  {{ item.value }}
-                </template>
+                <template v-else>{{ item.value }}</template>
               </div>
             </div>
           </div>
         </section>
       </div>
-      <div>
+      <div v-if="batteryInfos.length">
         <section class="card">
           <h5 class="card-title">{{ $t('battery') }}</h5>
           <div class="card-body">
             <div v-for="(item, index) in batteryInfos" :key="index" class="key-value">
               <div class="key">{{ $t(item.label) }}</div>
-              <div class="value">
-                <time v-if="item.isTime" v-tooltip="formatDateTimeFull(item.value)" class="time">{{ formatDateTime(item.value) }}</time>
-                <template v-else-if="Array.isArray(item.value)">
-                  <div v-for="(it, i) in item.value" :key="i">{{ it }}</div>
-                </template>
-                <template v-else>
-                  {{ item.value }}
-                </template>
-              </div>
+              <div class="value">{{ item.value }}</div>
             </div>
           </div>
         </section>
@@ -76,7 +82,7 @@ const isActive = ref(false)
 onActivated(() => { isActive.value = true })
 onDeactivated(() => { isActive.value = false })
 
-const { basicInfos, systemInfos, batteryInfos, loading, refetch } = useDeviceInfo()
+const { basicInfos, systemInfos, hardwareInfos, platformInfos, batteryInfos, loading, refetch } = useDeviceInfo()
 </script>
 <style lang="scss" scoped>
 .scroll-content {
