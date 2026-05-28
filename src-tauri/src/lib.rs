@@ -26,6 +26,9 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .manage(commands::HttpClient::new())
         .setup(|app| {
+            #[cfg(target_os = "macos")]
+            commands::macos_menu::setup(app)?;
+
             app.handle().manage(http_proxy::HttpProxyState::start());
             let data_dir = app.path().app_data_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
             let log_dir = app.path().app_log_dir().unwrap_or_else(|_| data_dir.join("logs"));
@@ -56,6 +59,7 @@ pub fn run() {
             commands::http_client::http_request,
             commands::ws_proxy::ws_start_proxy,
             commands::notification::send_macos_notification,
+            commands::window::open_window,
             http_proxy::http_proxy_port,
             local::server::local_server_port,
             local::server::local_server_https_port,
