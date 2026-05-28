@@ -2,6 +2,10 @@
   <left-sidebar>
     <template #body>
       <ul class="nav">
+        <li :class="{ active: activeSection === 'device-info' }" @click.prevent="navigate('/developer/device-info')">
+          <span class="icon" aria-hidden="true"><i-lucide:smartphone /></span>
+          <span class="title">{{ $t('device_info') }}</span>
+        </li>
         <li :class="{ active: activeSection === 'datastore' }" @click.prevent="navigate('/developer/datastore')">
           <span class="icon" aria-hidden="true"><i-lucide:archive /></span>
           <span class="title">{{ $t('developer.datastore') }}</span>
@@ -28,6 +32,7 @@ const mainStore = useMainStore()
 
 const activeSection = computed(() => {
   const path = router.currentRoute.value.path
+  if (path.startsWith('/developer/device-info')) return 'device-info'
   if (path.startsWith('/developer/datastore')) return 'datastore'
   if (path.startsWith('/developer/database')) return 'database'
   if (path.startsWith('/developer/logs')) return 'logs'

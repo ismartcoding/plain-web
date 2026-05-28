@@ -37,7 +37,6 @@
       </div>
     </div>
 
-    <template v-if="!localMode">
     <div class="dropdown-item" @click="openCustomizeUI">
       <i-lucide:layout-list class="feature-icon" />
       <span>{{ $t('customize_ui') }}</span>
@@ -47,6 +46,11 @@
       <i-lucide:folder-minus class="feature-icon" />
       <span>{{ $t('exclude_directories') }}</span>
     </div>
+
+    <router-link to="/developer" class="dropdown-item" @click="open = false">
+      <i-lucide:code-2 class="feature-icon" />
+      <span>{{ $t('developer.developer_mode') }}</span>
+    </router-link>
 
     <template v-if="popupFeatures.length">
       <div class="popup-divider"></div>
@@ -61,13 +65,6 @@
         <span>{{ $t(feat.titleKey) }}</span>
       </router-link>
     </template>
-    </template>
-
-    <div class="popup-divider"></div>
-    <router-link to="/developer" class="dropdown-item" @click="open = false">
-      <i-lucide:code-2 class="feature-icon" />
-      <span>{{ $t('developer.developer_mode') }}</span>
-    </router-link>
   </v-dropdown>
 </template>
 

@@ -43,7 +43,6 @@ export const DEFAULT_HOME_FEATURES = [
   'calls',
   'contacts',
   'screen_mirror',
-  'device_info',
   'clipboard',
   'call_phone',
 ]

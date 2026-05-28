@@ -1,8 +1,10 @@
 <template>
+  <Teleport v-if="isActive" to="#header-end-slot" defer>
+    <v-icon-button v-tooltip="$t('refresh')" :loading="loading" @click="refetch">
+      <i-material-symbols:refresh-rounded />
+    </v-icon-button>
+  </Teleport>
   <div class="scroll-content">
-    <div class="top-app-bar">
-      <div class="title">{{ $t('device_info') }}</div>
-    </div>
     <div class="grids">
       <div>
         <section class="card">
@@ -66,10 +68,15 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onActivated, onDeactivated } from 'vue'
 import { formatDateTime, formatDateTimeFull } from '@/lib/format'
 import { useDeviceInfo } from './device-info'
 
-const { basicInfos, systemInfos, batteryInfos } = useDeviceInfo()
+const isActive = ref(false)
+onActivated(() => { isActive.value = true })
+onDeactivated(() => { isActive.value = false })
+
+const { basicInfos, systemInfos, batteryInfos, loading, refetch } = useDeviceInfo()
 </script>
 <style lang="scss" scoped>
 .scroll-content {
@@ -79,7 +86,7 @@ const { basicInfos, systemInfos, batteryInfos } = useDeviceInfo()
 .grids {
   display: grid;
   gap: 16px;
-  padding: 0 16px 16px 16px;
+  padding: 16px;
   grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
 }
 
@@ -97,7 +104,7 @@ const { basicInfos, systemInfos, batteryInfos } = useDeviceInfo()
   .grids {
     grid-template-columns: 1fr;
     gap: 12px;
-    padding: 0 12px 12px 12px;
+    padding: 12px;
   }
 
   .scroll-content {

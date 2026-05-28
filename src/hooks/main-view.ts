@@ -31,7 +31,7 @@ export function useMainView() {
   if (localMode) loading.value = false
 
   const hiddenHeaderSearchRoutes = new Set(['/files/recent', '/screen-mirror'])
-  const hiddenHeaderSearchPatterns = [/^\/chat(?:\/|$)/]
+  const hiddenHeaderSearchPatterns = [/^\/chat(?:\/|$)/, /^\/developer(?:\/|$)/,]
 
   function toggleSidebar() { store.miniSidebar = !store.miniSidebar }
 

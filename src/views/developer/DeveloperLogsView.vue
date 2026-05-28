@@ -1,31 +1,28 @@
 <template>
-  <div class="top-app-bar">
-    <div class="title">{{ $t('developer.logs') }}</div>
-    <div class="actions">
-      <v-icon-button v-if="logPath" v-tooltip="$t('download')" @click="downloadLogs">
-        <i-lucide:download />
-      </v-icon-button>
-      <v-icon-button v-if="lines.length > 0" v-tooltip="$t('developer.clear_logs')" :loading="clearing" @click="clearLogs">
-        <i-lucide:trash-2 />
-      </v-icon-button>
-      <v-dropdown v-if="logPath" v-model="pathOpen">
-        <template #trigger>
-          <v-icon-button>
-            <i-lucide:info />
-          </v-icon-button>
-        </template>
-        <section class="card card-info">
-          <div class="key-value vertical">
-            <div class="key">{{ $t('path') }}</div>
-            <div class="value">{{ logPath }}</div>
-          </div>
-        </section>
-      </v-dropdown>
-      <v-icon-button v-tooltip="$t('refresh')" :loading="loading" @click="reload">
-        <i-material-symbols:refresh-rounded />
-      </v-icon-button>
-    </div>
-  </div>
+  <Teleport v-if="isActive" to="#header-end-slot" defer>
+    <v-icon-button v-if="logPath" v-tooltip="$t('download')" @click="downloadLogs">
+      <i-lucide:download />
+    </v-icon-button>
+    <v-icon-button v-if="lines.length > 0" v-tooltip="$t('developer.clear_logs')" :loading="clearing" @click="clearLogs">
+      <i-lucide:trash-2 />
+    </v-icon-button>
+    <v-dropdown v-if="logPath" v-model="pathOpen">
+      <template #trigger>
+        <v-icon-button>
+          <i-lucide:info />
+        </v-icon-button>
+      </template>
+      <section class="card card-info">
+        <div class="key-value vertical">
+          <div class="key">{{ $t('path') }}</div>
+          <div class="value">{{ logPath }}</div>
+        </div>
+      </section>
+    </v-dropdown>
+    <v-icon-button v-tooltip="$t('refresh')" :loading="loading" @click="reload">
+      <i-material-symbols:refresh-rounded />
+    </v-icon-button>
+  </Teleport>
   <div class="log-viewer-wrap">
     <div v-if="loading && lines.length === 0" class="state-wrap">
       <v-circular-progress indeterminate />
@@ -44,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, shallowRef, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, onActivated, onDeactivated, shallowRef, nextTick } from 'vue'
 import { EditorView, lineNumbers } from '@codemirror/view'
 import { EditorState } from '@codemirror/state'
 import { syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language'
@@ -57,6 +54,10 @@ import { initQuery, initLazyQuery, appLogsGQL, appLogPathGQL } from '@/lib/api/q
 import { initMutation, clearAppLogsGQL } from '@/lib/api/mutation'
 
 const PAGE_SIZE = 200
+
+const isActive = ref(false)
+onActivated(() => { isActive.value = true })
+onDeactivated(() => { isActive.value = false })
 
 const lines = ref<string[]>([])
 const offset = ref(0)
