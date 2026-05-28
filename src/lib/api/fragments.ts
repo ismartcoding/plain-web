@@ -349,36 +349,52 @@ export const notificationFragment = `
 
 export const deviceInfoFragment = `
   fragment DeviceInfoFragment on DeviceInfo {
-    deviceName
-    releaseBuildVersion
-    versionCodeName
+    name
+    platform
     manufacturer
-    securityPatch
-    bootloader
-    deviceId
     model
-    product
-    fingerprint
-    hardware
-    radioVersion
-    device
-    board
-    displayVersion
-    buildBrand
-    buildHost
-    buildTime
-    uptime
-    buildUser
-    serial
+    osName
     osVersion
-    language
-    sdkVersion
-    javaVmVersion
     kernelVersion
-    glEsVersion
-    screenDensity
-    screenHeight
-    screenWidth
+    appVersion
+    appBuildNumber
+    language
+    uptime
+    cpuArch
+    totalMemory
+    totalStorage
+    display {
+      width
+      height
+      density
+    }
+    android {
+      sdkVersion
+      versionCodeName
+      securityPatch
+      bootloader
+      fingerprint
+      hardware
+      radioVersion
+      board
+      buildBrand
+      buildHost
+      buildUser
+      buildNumber
+      product
+      device
+      javaVmVersion
+      glEsVersion
+      serial
+      buildTime
+    }
+    desktop {
+      hostname
+      cpuModel
+      gpuModel
+      desktopEnvironment
+      windowManager
+    }
   }
 `
 

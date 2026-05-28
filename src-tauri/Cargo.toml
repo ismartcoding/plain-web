@@ -51,6 +51,8 @@ rand = "0.8"
 uuid = { version = "1", features = ["v4"] }
 # Typed GraphQL schema with derive macros for clean resolver code.
 async-graphql = { version = "7", default-features = false }
+# Cross-platform system information (OS version, uptime, CPU brand).
+sysinfo = { version = "0.32", default-features = false, features = ["system"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6"

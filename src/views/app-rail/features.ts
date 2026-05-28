@@ -3,7 +3,7 @@ import ILucideFolder from '~icons/lucide/folder'
 import ILucideMusic from '~icons/lucide/music'
 import ILucideImage from '~icons/lucide/image'
 import ILucideVideo from '~icons/lucide/video'
-import ILucideBot from '~icons/lucide/bot'
+import ILucideMessageCircle from '~icons/lucide/message-circle'
 import ILucideFileText from '~icons/lucide/file-text'
 import ILucideLayoutGrid from '~icons/lucide/layout-grid'
 import ILucideNotebookPen from '~icons/lucide/notebook-pen'
@@ -27,7 +27,7 @@ export const ALL_FEATURES: Feature[] = [
   { id: 'audios', group: 'audios', defaultPath: '/audios', icon: ILucideMusic, titleKey: 'page_title.audios' },
   { id: 'images', group: 'images', defaultPath: '/images', icon: ILucideImage, titleKey: 'page_title.images' },
   { id: 'videos', group: 'videos', defaultPath: '/videos', icon: ILucideVideo, titleKey: 'page_title.videos' },
-  { id: 'chat', group: 'chat', defaultPath: '/chat', icon: ILucideBot, titleKey: 'page_title.chat' },
+  { id: 'chat', group: 'chat', defaultPath: '/chat', icon: ILucideMessageCircle, titleKey: 'page_title.chat' },
   { id: 'docs', group: 'docs', defaultPath: '/docs', icon: ILucideFileText, titleKey: 'page_title.docs' },
   { id: 'apps', group: 'apps', defaultPath: '/apps', icon: ILucideLayoutGrid, titleKey: 'page_title.apps', requireNonGoogle: true },
   { id: 'notes', group: 'notes', defaultPath: '/notes', icon: ILucideNotebookPen, titleKey: 'page_title.notes' },

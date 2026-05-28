@@ -10,16 +10,6 @@
           :time="getLatestChatCreatedAt('local')"
           @click="openChat('local')"
         >
-          <template #action>
-            <v-icon-button
-              v-if="isLocalMode()"
-              v-tooltip="$t('device_identity')"
-              class="xs"
-              @click.stop="openIdentity"
-            >
-              <i-lucide:settings-2 />
-            </v-icon-button>
-          </template>
         </PeerListItem>
       </ul>
 
@@ -80,7 +70,6 @@ import { useChatSidebar } from './hooks/chat-sidebar'
 import { isLocalMode } from '@/lib/local-mode'
 import { openModal } from '@/components/modal'
 import NearbyModal from '@/views/chat/NearbyModal.vue'
-import DeviceIdentityModal from '@/views/chat/DeviceIdentityModal.vue'
 import PeerListItem from './components/PeerListItem.vue'
 
 const {
@@ -96,9 +85,6 @@ function openNearby() {
   openModal(NearbyModal, { onPaired: onPeerPaired })
 }
 
-function openIdentity() {
-  openModal(DeviceIdentityModal, {})
-}
 </script>
 
 <style lang="scss" scoped>
