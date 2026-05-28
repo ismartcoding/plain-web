@@ -14,9 +14,21 @@
   </Teleport>
 </template>
 <script setup lang="ts">
+import { onMounted, onUnmounted } from 'vue'
 import { useAppSocket } from '@/hooks/app-socket'
+import { openWindow } from '@/lib/api/tauri-window'
 
 const { wsStatus, tapPhoneMessage, closeTapPhone } = useAppSocket()
+
+function onKeydown(e: KeyboardEvent) {
+  if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'N') {
+    e.preventDefault()
+    openWindow('/')
+  }
+}
+
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 </script>
 
 <style scoped>
