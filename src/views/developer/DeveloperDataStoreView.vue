@@ -1,25 +1,22 @@
 <template>
-  <div class="top-app-bar">
-    <div class="title">{{ $t('developer.datastore') }}</div>
-    <div class="actions">
-      <v-dropdown v-if="dataStorePath" v-model="pathOpen">
-        <template #trigger>
-          <v-icon-button>
-            <i-lucide:info />
-          </v-icon-button>
-        </template>
-        <section class="card card-info">
-          <div class="key-value vertical">
-            <div class="key">{{ $t('path') }}</div>
-            <div class="value">{{ dataStorePath }}</div>
-          </div>
-        </section>
-      </v-dropdown>
-      <v-icon-button v-tooltip="$t('refresh')" :loading="loading" @click="refetch">
-        <i-material-symbols:refresh-rounded />
-      </v-icon-button>
-    </div>
-  </div>
+  <Teleport v-if="isActive" to="#header-end-slot" defer>
+    <v-dropdown v-if="dataStorePath" v-model="pathOpen">
+      <template #trigger>
+        <v-icon-button>
+          <i-lucide:info />
+        </v-icon-button>
+      </template>
+      <section class="card card-info">
+        <div class="key-value vertical">
+          <div class="key">{{ $t('path') }}</div>
+          <div class="value">{{ dataStorePath }}</div>
+        </div>
+      </section>
+    </v-dropdown>
+    <v-icon-button v-tooltip="$t('refresh')" :loading="loading" @click="refetch">
+      <i-material-symbols:refresh-rounded />
+    </v-icon-button>
+  </Teleport>
   <div class="scroll-content">
     <div v-if="loading" class="state-wrap">
       <v-circular-progress indeterminate />
@@ -41,12 +38,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onActivated, onDeactivated } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useTempStore } from '@/stores/temp'
 import { initQuery, dataStoreEntriesGQL, dataStorePathGQL } from '@/lib/api/query'
 import { initMutation, deleteDataStoreEntryGQL } from '@/lib/api/mutation'
 import DevDataTable from './DevDataTable.vue'
+
+const isActive = ref(false)
+onActivated(() => { isActive.value = true })
+onDeactivated(() => { isActive.value = false })
 
 const { app } = storeToRefs(useTempStore())
 

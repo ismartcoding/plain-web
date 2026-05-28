@@ -12,7 +12,7 @@ export function useDeviceInfo() {
   const systemInfos = ref<InfoItem[]>([])
   const batteryInfos = ref<InfoItem[]>([])
 
-  initQuery({
+  const { loading, refetch } = initQuery({
     handle: (data: any, error: string) => {
       if (error) { toast(t(error), 'error'); return }
       const d = data.deviceInfo
@@ -55,5 +55,5 @@ export function useDeviceInfo() {
     document: deviceInfoGQL,
   })
 
-  return { basicInfos, systemInfos, batteryInfos }
+  return { basicInfos, systemInfos, batteryInfos, loading, refetch }
 }

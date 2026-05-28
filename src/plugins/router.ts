@@ -155,11 +155,6 @@ const router = createRouter({
           meta: { group: 'screen_mirror' },
         },
         {
-          path: 'device-info',
-          component: () => import('@/views/device-info/DeviceInfoView.vue'),
-          meta: { group: 'device_info' },
-        },
-        {
           path: 'feeds',
           components: {
             LeftSidebar: () => import('@/views/feeds/FeedsSidebar.vue'),
@@ -194,7 +189,7 @@ const router = createRouter({
         },
         {
           path: 'developer',
-          redirect: '/developer/datastore',
+          redirect: '/developer/device-info',
         },
         {
           path: 'developer/datastore',
@@ -216,6 +211,14 @@ const router = createRouter({
           path: 'developer/logs',
           components: {
             default: () => import('@/views/developer/DeveloperLogsView.vue'),
+            LeftSidebar: () => import('@/views/developer/DeveloperSidebar.vue'),
+          },
+          meta: { group: 'developer' },
+        },
+        {
+          path: 'developer/device-info',
+          components: {
+            default: () => import('@/views/device-info/DeviceInfoView.vue'),
             LeftSidebar: () => import('@/views/developer/DeveloperSidebar.vue'),
           },
           meta: { group: 'developer' },
