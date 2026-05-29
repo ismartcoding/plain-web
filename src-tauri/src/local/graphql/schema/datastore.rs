@@ -26,7 +26,10 @@ impl DataStoreQuery {
         };
         let mut entries: Vec<KeyValuePair> = obj
             .into_iter()
-            .map(|(k, v)| KeyValuePair { key: k, value: v.to_string() })
+            .map(|(k, v)| KeyValuePair {
+                key: k,
+                value: v.to_string(),
+            })
             .collect();
         entries.sort_by(|a, b| a.key.cmp(&b.key));
         entries
@@ -45,11 +48,11 @@ impl DataStoreMutation {
             Ok(t) => t,
             Err(_) => return false,
         };
-        let mut obj: serde_json::Map<String, serde_json::Value> =
-            match serde_json::from_str(&text) {
-                Ok(m) => m,
-                Err(_) => return false,
-            };
+        let mut obj: serde_json::Map<String, serde_json::Value> = match serde_json::from_str(&text)
+        {
+            Ok(m) => m,
+            Err(_) => return false,
+        };
         obj.remove(&key);
         std::fs::write(&prefs_path, serde_json::to_string(&obj).unwrap_or_default()).is_ok()
     }

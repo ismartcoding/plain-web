@@ -23,9 +23,9 @@ use std::net::TcpListener as StdTcpListener;
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
 use tokio::net::TcpStream;
 
-mod utils;
 #[cfg(test)]
 mod tests;
+mod utils;
 
 use utils::{extract_pt, CORS};
 
@@ -55,7 +55,9 @@ impl HttpProxyState {
             let listener =
                 tokio::net::TcpListener::from_std(std_listener).expect("listener from_std");
             loop {
-                let Ok((stream, _)) = listener.accept().await else { continue };
+                let Ok((stream, _)) = listener.accept().await else {
+                    continue;
+                };
                 let c = client.clone();
                 tokio::spawn(handle(stream, c));
             }

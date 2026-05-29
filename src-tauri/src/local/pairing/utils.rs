@@ -45,7 +45,10 @@ pub(super) fn bind_pairing_socket() -> std::io::Result<UdpSocket> {
     loop {
         match UdpSocket::bind(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, NEARBY_PORT)) {
             Ok(socket) => return Ok(socket),
-            Err(e) if e.kind() == std::io::ErrorKind::AddrInUse && std::time::Instant::now() < deadline => {
+            Err(e)
+                if e.kind() == std::io::ErrorKind::AddrInUse
+                    && std::time::Instant::now() < deadline =>
+            {
                 std::thread::sleep(Duration::from_millis(100));
             }
             Err(e) => return Err(e),

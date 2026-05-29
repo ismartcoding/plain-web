@@ -18,7 +18,9 @@ pub fn run() {
                 .targets([
                     tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Stdout),
                     tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Stderr),
-                    tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::LogDir { file_name: Some("plain".to_string()) }),
+                    tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::LogDir {
+                        file_name: Some("plain".to_string()),
+                    }),
                 ])
                 .build(),
         )
@@ -30,8 +32,14 @@ pub fn run() {
             commands::macos_menu::setup(app)?;
 
             app.handle().manage(http_proxy::HttpProxyState::start());
-            let data_dir = app.path().app_data_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
-            let log_dir = app.path().app_log_dir().unwrap_or_else(|_| data_dir.join("logs"));
+            let data_dir = app
+                .path()
+                .app_data_dir()
+                .unwrap_or_else(|_| std::path::PathBuf::from("."));
+            let log_dir = app
+                .path()
+                .app_log_dir()
+                .unwrap_or_else(|_| data_dir.join("logs"));
             let db_path = data_dir.join("local_chat.db");
             let db = match local::db::ChatDb::open(&db_path) {
                 Ok(d) => Arc::new(d),
@@ -51,7 +59,9 @@ pub fn run() {
                 }
             });
             app.handle().manage(pairing_mgr);
-            app.handle().manage(local::server::LocalServerState::start(data_dir, log_dir, db, handle, identity));
+            app.handle().manage(local::server::LocalServerState::start(
+                data_dir, log_dir, db, handle, identity,
+            ));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

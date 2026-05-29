@@ -40,7 +40,9 @@ impl DPeer {
         }
     }
 
-    pub fn is_paired(&self) -> bool { self.status == "paired" }
+    pub fn is_paired(&self) -> bool {
+        self.status == "paired"
+    }
 
     /// Return the best reachable IP (first item — caller should implement LAN preference).
     pub fn best_ip(&self) -> &str {
@@ -95,18 +97,20 @@ impl ChatDb {
             "SELECT id,name,ip,key,public_key,status,port,device_type,created_at,updated_at \
              FROM peers WHERE id=?",
             params![id],
-            |row| Ok(DPeer {
-                id: row.get(0)?,
-                name: row.get(1)?,
-                ip: row.get(2)?,
-                key: row.get(3)?,
-                public_key: row.get(4)?,
-                status: row.get(5)?,
-                port: row.get::<_, i64>(6)? as u16,
-                device_type: row.get(7)?,
-                created_at: row.get(8)?,
-                updated_at: row.get(9)?,
-            }),
+            |row| {
+                Ok(DPeer {
+                    id: row.get(0)?,
+                    name: row.get(1)?,
+                    ip: row.get(2)?,
+                    key: row.get(3)?,
+                    public_key: row.get(4)?,
+                    status: row.get(5)?,
+                    port: row.get::<_, i64>(6)? as u16,
+                    device_type: row.get(7)?,
+                    created_at: row.get(8)?,
+                    updated_at: row.get(9)?,
+                })
+            },
         )
         .ok()
     }

@@ -21,9 +21,7 @@ pub fn setup(app: &mut tauri::App) -> tauri::Result<()> {
     let new_window = MenuItemBuilder::with_id("new-window", "New Window")
         .accelerator("CmdOrCtrl+Shift+N")
         .build(app)?;
-    let file_submenu = SubmenuBuilder::new(app, "File")
-        .item(&new_window)
-        .build()?;
+    let file_submenu = SubmenuBuilder::new(app, "File").item(&new_window).build()?;
 
     // ── Edit menu (standard items so cut/copy/paste/undo work) ───────────
     let edit_submenu = SubmenuBuilder::new(app, "Edit")

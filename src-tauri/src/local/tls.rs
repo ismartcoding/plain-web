@@ -2,14 +2,14 @@
 // Uses rcgen to generate a self-signed EC P-256 certificate and persists it to disk.
 // On startup, if cert.pem / key.pem are missing they are auto-generated.
 
-use rcgen::{CertifiedKey, generate_simple_self_signed};
+use rcgen::{generate_simple_self_signed, CertifiedKey};
 use rustls_pemfile::{certs, private_key};
 use std::io::BufReader;
 use std::path::Path;
 use std::sync::Arc;
-use tokio_rustls::TlsAcceptor;
-use tokio_rustls::rustls::ServerConfig;
 use tokio_rustls::rustls::pki_types::{CertificateDer, PrivateKeyDer};
+use tokio_rustls::rustls::ServerConfig;
+use tokio_rustls::TlsAcceptor;
 
 const CERT_FILE: &str = "local_server_cert.pem";
 const KEY_FILE: &str = "local_server_key.pem";
@@ -23,11 +23,17 @@ pub fn ensure_cert(dir: &Path) -> std::io::Result<(Vec<u8>, Vec<u8>)> {
     if cert_path.exists() && key_path.exists() {
         let cert_pem = std::fs::read(&cert_path)?;
         let key_pem = std::fs::read(&key_path)?;
-        log::info!("local_tls: loaded existing cert from {}", cert_path.display());
+        log::info!(
+            "local_tls: loaded existing cert from {}",
+            cert_path.display()
+        );
         return Ok((cert_pem, key_pem));
     }
 
-    log::info!("local_tls: generating new self-signed certificate in {}", dir.display());
+    log::info!(
+        "local_tls: generating new self-signed certificate in {}",
+        dir.display()
+    );
     std::fs::create_dir_all(dir)?;
 
     let subject_alt_names = vec!["localhost".to_string(), "127.0.0.1".to_string()];

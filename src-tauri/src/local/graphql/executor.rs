@@ -11,14 +11,21 @@ pub async fn execute_graphql(schema: &LocalSchema, request: Value, ctx: Arc<AppC
         return stub;
     }
 
-    let query_str = request.get("query").and_then(Value::as_str).unwrap_or_default();
+    let query_str = request
+        .get("query")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
     let vars: async_graphql::Variables = request
         .get("variables")
         .and_then(|v| serde_json::from_value(v.clone()).ok())
         .unwrap_or_default();
 
     let response = schema
-        .execute(async_graphql::Request::new(query_str).variables(vars).data(ctx))
+        .execute(
+            async_graphql::Request::new(query_str)
+                .variables(vars)
+                .data(ctx),
+        )
         .await;
 
     serde_json::to_value(response).unwrap_or_else(|_| json!({ "data": null }))
@@ -36,7 +43,9 @@ fn op_name(request: &Value) -> &str {
             let mut words = q.split_whitespace();
             while let Some(w) = words.next() {
                 if w == "query" || w == "mutation" {
-                    return words.next().map(|n| n.split(['(', '{']).next().unwrap_or(""));
+                    return words
+                        .next()
+                        .map(|n| n.split(['(', '{']).next().unwrap_or(""));
                 }
             }
             None
@@ -46,18 +55,18 @@ fn op_name(request: &Value) -> &str {
 
 fn stub_response(request: &Value) -> Option<Value> {
     let data = match op_name(request) {
-        "images"       => json!({ "images": [],  "imageCount": 0 }),
-        "videos"       => json!({ "videos": [],  "videoCount": 0 }),
-        "audios"       => json!({ "items": [],   "total": 0 }),
-        "docs"         => json!({ "items": [],   "total": 0 }),
-        "files"        => json!({ "files": [] }),
-        "recentFiles"  => json!({ "recentFiles": [] }),
-        "notes"        => json!({ "notes": [],   "noteCount": 0 }),
-        "feeds"        => json!({ "feeds": [] }),
-        "feedEntries"  => json!({ "items": [],   "total": 0 }),
-        "feedsTags"    => json!({ "tags": [],    "feeds": [] }),
-        "bucketsTags"  => json!({ "tags": [],    "mediaBuckets": [] }),
-        _              => return None,
+        "images" => json!({ "images": [],  "imageCount": 0 }),
+        "videos" => json!({ "videos": [],  "videoCount": 0 }),
+        "audios" => json!({ "items": [],   "total": 0 }),
+        "docs" => json!({ "items": [],   "total": 0 }),
+        "files" => json!({ "files": [] }),
+        "recentFiles" => json!({ "recentFiles": [] }),
+        "notes" => json!({ "notes": [],   "noteCount": 0 }),
+        "feeds" => json!({ "feeds": [] }),
+        "feedEntries" => json!({ "items": [],   "total": 0 }),
+        "feedsTags" => json!({ "tags": [],    "feeds": [] }),
+        "bucketsTags" => json!({ "tags": [],    "mediaBuckets": [] }),
+        _ => return None,
     };
     Some(json!({ "data": data }))
 }

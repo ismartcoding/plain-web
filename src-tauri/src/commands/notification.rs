@@ -15,8 +15,7 @@ pub async fn send_macos_notification(
 ) -> Result<(), String> {
     let identifier = app.config().identifier.clone();
     tauri::async_runtime::spawn_blocking(move || {
-        let plain_script =
-            macos_notification_script(&options.title, options.body.as_deref());
+        let plain_script = macos_notification_script(&options.title, options.body.as_deref());
         let script = format!(
             "tell application id {}\n{}\nend tell",
             applescript_string(&identifier),

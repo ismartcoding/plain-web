@@ -64,16 +64,18 @@ impl ChatDb {
             "SELECT id,name,owner,members,version,status,created_at,updated_at \
              FROM chat_channels WHERE id=?",
             params![id],
-            |row| Ok(DChannel {
-                id: row.get(0)?,
-                name: row.get(1)?,
-                owner: row.get(2)?,
-                members: row.get(3)?,
-                version: row.get(4)?,
-                status: row.get(5)?,
-                created_at: row.get(6)?,
-                updated_at: row.get(7)?,
-            }),
+            |row| {
+                Ok(DChannel {
+                    id: row.get(0)?,
+                    name: row.get(1)?,
+                    owner: row.get(2)?,
+                    members: row.get(3)?,
+                    version: row.get(4)?,
+                    status: row.get(5)?,
+                    created_at: row.get(6)?,
+                    updated_at: row.get(7)?,
+                })
+            },
         )
         .ok()
     }

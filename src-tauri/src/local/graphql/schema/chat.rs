@@ -2,11 +2,14 @@ use async_graphql::{Context, Object};
 use serde_json::{json, Value};
 use std::sync::Arc;
 
-use crate::crypto::base64_decode;
-use crate::local::db::{now_iso, DChannel, DChat};
-use super::super::context::{AppCtx, WsEvent, WS_CHANNELS_UPDATED, WS_MESSAGE_CREATED, WS_MESSAGE_DELETED, WS_MESSAGE_UPDATED};
+use super::super::context::{
+    AppCtx, WsEvent, WS_CHANNELS_UPDATED, WS_MESSAGE_CREATED, WS_MESSAGE_DELETED,
+    WS_MESSAGE_UPDATED,
+};
 use super::super::peer::{deliver_to_peer, peer_graphql_urls};
 use super::types::{ChatChannel, ChatItem, Peer};
+use crate::crypto::base64_decode;
+use crate::local::db::{now_iso, DChannel, DChat};
 
 fn chat_to_json(c: &DChat) -> Value {
     json!({
@@ -24,7 +27,10 @@ pub struct ChatQuery;
 impl ChatQuery {
     async fn chat_items(&self, ctx: &Context<'_>, id: String) -> Vec<ChatItem> {
         let c = ctx.data_unchecked::<Arc<AppCtx>>();
-        c.db.get_chats(&id).into_iter().map(ChatItem::from).collect()
+        c.db.get_chats(&id)
+            .into_iter()
+            .map(ChatItem::from)
+            .collect()
     }
 
     async fn peers(&self, ctx: &Context<'_>) -> Vec<Peer> {
@@ -34,7 +40,10 @@ impl ChatQuery {
 
     async fn chat_channels(&self, ctx: &Context<'_>) -> Vec<ChatChannel> {
         let c = ctx.data_unchecked::<Arc<AppCtx>>();
-        c.db.get_channels().into_iter().map(ChatChannel::from).collect()
+        c.db.get_channels()
+            .into_iter()
+            .map(ChatChannel::from)
+            .collect()
     }
 
     async fn latest_chat_items(&self, _ctx: &Context<'_>) -> Vec<ChatItem> {
@@ -52,13 +61,29 @@ impl ChatMutation {
 
         let is_channel = to_id.starts_with("channel:");
         let is_peer = to_id.starts_with("peer:");
-        let peer_id = if is_peer { to_id.strip_prefix("peer:").unwrap_or(&to_id).to_string() } else { String::new() };
-        let channel_id = if is_channel { to_id.strip_prefix("channel:").unwrap_or("").to_string() } else { String::new() };
-        let to = if is_peer { peer_id.clone() } else if is_channel { String::new() } else { to_id.clone() };
+        let peer_id = if is_peer {
+            to_id.strip_prefix("peer:").unwrap_or(&to_id).to_string()
+        } else {
+            String::new()
+        };
+        let channel_id = if is_channel {
+            to_id.strip_prefix("channel:").unwrap_or("").to_string()
+        } else {
+            String::new()
+        };
+        let to = if is_peer {
+            peer_id.clone()
+        } else if is_channel {
+            String::new()
+        } else {
+            to_id.clone()
+        };
 
         let pending = is_peer && !peer_id.is_empty() && peer_id != "local";
         let mut chat = DChat::new("me", &to, &channel_id, &content);
-        if pending { chat.status = "pending".to_string(); }
+        if pending {
+            chat.status = "pending".to_string();
+        }
         c.db.insert_chat(&chat);
 
         if pending {
@@ -66,9 +91,14 @@ impl ChatMutation {
                 let key = {
                     let cache = c.peer_key_cache.read().unwrap();
                     cache.get(&peer_id).cloned()
-                }.or_else(|| {
+                }
+                .or_else(|| {
                     let raw = base64_decode(&peer.key);
-                    if raw.len() == 32 { Some(raw) } else { None }
+                    if raw.len() == 32 {
+                        Some(raw)
+                    } else {
+                        None
+                    }
                 });
                 if let Some(key) = key {
                     let chat_id = chat.id.clone();
@@ -79,7 +109,15 @@ impl ChatMutation {
                     let event_tx = c.event_tx.clone();
                     let db = c.db.clone();
                     tokio::spawn(async move {
-                        let ok = deliver_to_peer(&peer_urls, &key, &client_id, &kp_bytes, &content_str, None).await;
+                        let ok = deliver_to_peer(
+                            &peer_urls,
+                            &key,
+                            &client_id,
+                            &kp_bytes,
+                            &content_str,
+                            None,
+                        )
+                        .await;
                         let new_status = if ok { "sent" } else { "failed" };
                         if let Some(updated) = db.update_chat_status(&chat_id, new_status) {
                             let _ = event_tx.send(WsEvent {
@@ -146,11 +184,19 @@ impl ChatMutation {
         let ch = DChannel::new(name.trim());
         c.db.insert_channel(&ch);
         let channel = ChatChannel::from(ch);
-        let _ = c.event_tx.send(WsEvent { event_type: WS_CHANNELS_UPDATED, payload: "{}".to_string() });
+        let _ = c.event_tx.send(WsEvent {
+            event_type: WS_CHANNELS_UPDATED,
+            payload: "{}".to_string(),
+        });
         channel
     }
 
-    async fn update_chat_channel(&self, ctx: &Context<'_>, id: String, name: String) -> Option<ChatChannel> {
+    async fn update_chat_channel(
+        &self,
+        ctx: &Context<'_>,
+        id: String,
+        name: String,
+    ) -> Option<ChatChannel> {
         let c = ctx.data_unchecked::<Arc<AppCtx>>();
         let result = c.db.get_channel_by_id(&id).map(|mut ch| {
             ch.name = name.trim().to_string();
@@ -160,7 +206,10 @@ impl ChatMutation {
             ChatChannel::from(ch)
         });
         if result.is_some() {
-            let _ = c.event_tx.send(WsEvent { event_type: WS_CHANNELS_UPDATED, payload: "{}".to_string() });
+            let _ = c.event_tx.send(WsEvent {
+                event_type: WS_CHANNELS_UPDATED,
+                payload: "{}".to_string(),
+            });
         }
         result
     }
@@ -169,7 +218,10 @@ impl ChatMutation {
         let c = ctx.data_unchecked::<Arc<AppCtx>>();
         c.db.delete_chats_by_channel(&id);
         c.db.delete_channel(&id);
-        let _ = c.event_tx.send(WsEvent { event_type: WS_CHANNELS_UPDATED, payload: "{}".to_string() });
+        let _ = c.event_tx.send(WsEvent {
+            event_type: WS_CHANNELS_UPDATED,
+            payload: "{}".to_string(),
+        });
         true
     }
 
@@ -179,11 +231,18 @@ impl ChatMutation {
             ch.status = "left".to_string();
             ch.updated_at = now_iso();
             c.db.update_channel(&ch);
-            let _ = c.event_tx.send(WsEvent { event_type: WS_CHANNELS_UPDATED, payload: "{}".to_string() });
+            let _ = c.event_tx.send(WsEvent {
+                event_type: WS_CHANNELS_UPDATED,
+                payload: "{}".to_string(),
+            });
         }
         true
     }
 
-    async fn accept_chat_channel_invite(&self, _ctx: &Context<'_>, _id: String) -> bool { true }
-    async fn decline_chat_channel_invite(&self, _ctx: &Context<'_>, _id: String) -> bool { true }
+    async fn accept_chat_channel_invite(&self, _ctx: &Context<'_>, _id: String) -> bool {
+        true
+    }
+    async fn decline_chat_channel_invite(&self, _ctx: &Context<'_>, _id: String) -> bool {
+        true
+    }
 }

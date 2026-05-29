@@ -19,10 +19,14 @@ pub async fn ws_start_proxy(url: String) -> Result<u16, String> {
 
     tauri::async_runtime::spawn(async move {
         // Accept exactly one connection from JS (each WebSocket gets its own proxy).
-        let Ok((tcp, _)) = listener.accept().await else { return };
+        let Ok((tcp, _)) = listener.accept().await else {
+            return;
+        };
 
         // Handshake local side (plain WS — no TLS needed for localhost).
-        let Ok(mut local_ws) = tokio_tungstenite::accept_async(tcp).await else { return };
+        let Ok(mut local_ws) = tokio_tungstenite::accept_async(tcp).await else {
+            return;
+        };
 
         // Connect to device with self-signed cert acceptance.
         let tls = match native_tls::TlsConnector::builder()

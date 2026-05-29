@@ -1,7 +1,6 @@
 use chacha20poly1305::{
     aead::{Aead, KeyInit},
-    ChaCha20Poly1305, Nonce as ChaNonce,
-    XChaCha20Poly1305, XNonce,
+    ChaCha20Poly1305, Nonce as ChaNonce, XChaCha20Poly1305, XNonce,
 };
 
 use crate::utils::base64::base64_decode;
@@ -57,7 +56,9 @@ pub fn chacha20_encrypt(key: &[u8], plaintext: &[u8]) -> Option<Vec<u8>> {
 /// Decrypt `data` (nonce || ciphertext) with a 32-byte key using ChaCha20-Poly1305.
 /// Returns plaintext or `None` on auth failure.
 pub fn chacha20_decrypt(key: &[u8], data: &[u8]) -> Option<Vec<u8>> {
-    if data.len() < 12 { return None; }
+    if data.len() < 12 {
+        return None;
+    }
     let cipher = ChaCha20Poly1305::new_from_slice(key).ok()?;
     let nonce = ChaNonce::from_slice(&data[..12]);
     cipher.decrypt(nonce, &data[12..]).ok()

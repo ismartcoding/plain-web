@@ -51,7 +51,10 @@ fn sign_debug_binary_macos() {
     match status {
         Ok(s) if s.success() => {}
         Ok(s) => {
-            println!("cargo:warning=codesign: exited with status {s} for {}", binary.display());
+            println!(
+                "cargo:warning=codesign: exited with status {s} for {}",
+                binary.display()
+            );
         }
         Err(e) => {
             println!("cargo:warning=codesign: failed to run: {e}");
