@@ -10,6 +10,7 @@ use tokio::sync::broadcast;
 pub const WS_MESSAGE_CREATED: i32 = 1;
 pub const WS_MESSAGE_DELETED: i32 = 2;
 pub const WS_MESSAGE_UPDATED: i32 = 3;
+pub const WS_BOOKMARK_UPDATED: i32 = 15;
 pub const WS_CHANNELS_UPDATED: i32 = 18;
 
 #[derive(Clone, Debug)]

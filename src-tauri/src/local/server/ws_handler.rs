@@ -8,7 +8,9 @@ pub(super) fn is_ws_upgrade(data: &[u8]) -> bool {
     if data.len() < 4 || &data[..4] != b"GET " {
         return false;
     }
-    let text = std::str::from_utf8(data).unwrap_or_default().to_ascii_lowercase();
+    let text = std::str::from_utf8(data)
+        .unwrap_or_default()
+        .to_ascii_lowercase();
     text.contains("upgrade: websocket")
 }
 

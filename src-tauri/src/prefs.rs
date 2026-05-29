@@ -47,7 +47,11 @@ pub fn ensure_identity(handle: &AppHandle) -> AppIdentity {
         });
 
     let _ = store.save();
-    AppIdentity { client_id, device_name, ed25519_keypair }
+    AppIdentity {
+        client_id,
+        device_name,
+        ed25519_keypair,
+    }
 }
 
 /// Return the persistent local-server URL token, generating it on first run.

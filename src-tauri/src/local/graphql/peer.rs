@@ -75,15 +75,23 @@ pub async fn deliver_to_peer(
             }
         };
         if !response.status().is_success() {
-            log::warn!("local_chat: deliver_to_peer bad status {} from {}", response.status(), peer_graphql_url);
+            log::warn!(
+                "local_chat: deliver_to_peer bad status {} from {}",
+                response.status(),
+                peer_graphql_url
+            );
             continue;
         }
         let Ok(bytes) = response.bytes().await else {
-            log::warn!("local_chat: deliver_to_peer failed reading response from {peer_graphql_url}");
+            log::warn!(
+                "local_chat: deliver_to_peer failed reading response from {peer_graphql_url}"
+            );
             continue;
         };
         let Some(decrypted) = chacha20_decrypt(key, &bytes) else {
-            log::warn!("local_chat: deliver_to_peer failed decrypting response from {peer_graphql_url}");
+            log::warn!(
+                "local_chat: deliver_to_peer failed decrypting response from {peer_graphql_url}"
+            );
             continue;
         };
         let Ok(value) = serde_json::from_slice::<serde_json::Value>(&decrypted) else {
@@ -91,7 +99,9 @@ pub async fn deliver_to_peer(
             continue;
         };
         if value.get("errors").is_some() {
-            log::warn!("local_chat: deliver_to_peer GraphQL errors from {peer_graphql_url}: {value}");
+            log::warn!(
+                "local_chat: deliver_to_peer GraphQL errors from {peer_graphql_url}: {value}"
+            );
             continue;
         }
         return true;

@@ -10,7 +10,12 @@ pub fn pair_device(
     state: tauri::State<'_, PairingManager>,
     server_state: tauri::State<'_, super::super::server::LocalServerState>,
 ) {
-    state.start_pairing(&device_id, &device_name, &device_ip, server_state.https_port);
+    state.start_pairing(
+        &device_id,
+        &device_name,
+        &device_ip,
+        server_state.https_port,
+    );
 }
 
 /// Accept or reject an incoming PAIR_REQUEST.
@@ -23,18 +28,14 @@ pub fn respond_pair_device(
     state: tauri::State<'_, PairingManager>,
     server_state: tauri::State<'_, super::super::server::LocalServerState>,
 ) -> Result<(), String> {
-    let req: PairingRequest =
-        serde_json::from_str(&request_json).map_err(|e| e.to_string())?;
+    let req: PairingRequest = serde_json::from_str(&request_json).map_err(|e| e.to_string())?;
     state.respond_to_pairing(req, &sender_ip, accepted, server_state.https_port);
     Ok(())
 }
 
 /// Cancel an in-progress pairing initiated by us.
 #[tauri::command]
-pub fn cancel_pair_device(
-    device_id: String,
-    state: tauri::State<'_, PairingManager>,
-) {
+pub fn cancel_pair_device(device_id: String, state: tauri::State<'_, PairingManager>) {
     state.cancel_pairing(&device_id);
 }
 

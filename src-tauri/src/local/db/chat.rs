@@ -121,17 +121,19 @@ impl ChatDb {
             "SELECT id,from_id,to_id,channel_id,content,status,status_data,created_at,updated_at \
              FROM chats WHERE id=?",
             params![id],
-            |row| Ok(DChat {
-                id: row.get(0)?,
-                from_id: row.get(1)?,
-                to_id: row.get(2)?,
-                channel_id: row.get(3)?,
-                content: row.get(4)?,
-                status: row.get(5)?,
-                status_data: row.get(6)?,
-                created_at: row.get(7)?,
-                updated_at: row.get(8)?,
-            }),
+            |row| {
+                Ok(DChat {
+                    id: row.get(0)?,
+                    from_id: row.get(1)?,
+                    to_id: row.get(2)?,
+                    channel_id: row.get(3)?,
+                    content: row.get(4)?,
+                    status: row.get(5)?,
+                    status_data: row.get(6)?,
+                    created_at: row.get(7)?,
+                    updated_at: row.get(8)?,
+                })
+            },
         )
         .ok()
     }

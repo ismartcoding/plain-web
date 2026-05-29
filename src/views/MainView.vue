@@ -89,13 +89,13 @@
                 <v-icon-button v-tooltip="$t('pomodoro_timer')" class="q-action" toggle :class="{ selected: store.quick === 'pomodoro' }" @click="toggleQuick('pomodoro')">
                   <i-material-symbols:timer-outline />
                 </v-icon-button>
-                <v-icon-button v-tooltip="$t('bookmarks')" class="q-action" toggle :class="{ selected: store.quick === 'bookmark' }" @click="toggleQuick('bookmark')">
-                  <i-lucide:bookmark />
-                </v-icon-button>
-                <div v-show="store.quick" class="drag-indicator" @mousedown="resizeWidth">
-                  <i-material-symbols:drag-indicator />
-                </div>
             </template>
+            <v-icon-button v-tooltip="$t('bookmarks')" class="q-action" toggle :class="{ selected: store.quick === 'bookmark' }" @click="toggleQuick('bookmark')">
+              <i-lucide:bookmark />
+            </v-icon-button>
+            <div v-show="store.quick" class="drag-indicator" @mousedown="resizeWidth">
+              <i-material-symbols:drag-indicator />
+            </div>
         </div>
         <transition name="width">
           <div v-show="store.quick" class="quick-content" :style="{ width: store.quickContentWidth + 'px' }">

@@ -24,10 +24,14 @@ impl EcdhSession {
     pub fn generate() -> Self {
         let secret = EphemeralSecret::random(&mut OsRng);
         let public_key = P256PublicKey::from(&secret);
-        let public_key_bytes = public_key.to_public_key_der()
+        let public_key_bytes = public_key
+            .to_public_key_der()
             .map(|der| der.as_bytes().to_vec())
             .unwrap_or_default();
-        EcdhSession { secret, public_key_bytes }
+        EcdhSession {
+            secret,
+            public_key_bytes,
+        }
     }
 
     /// Compute SHA-256(ECDH raw shared secret) from the peer's X.509/SPKI DER public key bytes.

@@ -2,7 +2,10 @@ use async_graphql::{Context, Object};
 use std::sync::Arc;
 
 use super::super::context::AppCtx;
-use super::types::{App, BatteryHealth, BatteryInfo, BatteryPlugged, BatteryStatus, DesktopDeviceInfo, DeviceInfo, DevicePlatform, Sim};
+use super::types::{
+    App, BatteryHealth, BatteryInfo, BatteryPlugged, BatteryStatus, DesktopDeviceInfo, DeviceInfo,
+    DevicePlatform, Sim,
+};
 
 #[derive(Default)]
 pub struct AppQuery;
@@ -43,7 +46,11 @@ impl AppQuery {
         let device_name = c.device_name.read().unwrap().clone();
 
         let sys = System::new_all();
-        let cpu_model = sys.cpus().first().map(|cpu| cpu.brand().to_string()).unwrap_or_default();
+        let cpu_model = sys
+            .cpus()
+            .first()
+            .map(|cpu| cpu.brand().to_string())
+            .unwrap_or_default();
         let total_memory = sys.total_memory() as i64;
 
         let hostname = System::host_name().unwrap_or_default();
@@ -113,9 +120,18 @@ impl AppMutation {
 // ── System info helpers ───────────────────────────────────────────────────────
 
 fn current_platform() -> DevicePlatform {
-    #[cfg(target_os = "macos")] { return DevicePlatform::Macos; }
-    #[cfg(target_os = "windows")] { return DevicePlatform::Windows; }
-    #[cfg(target_os = "linux")] { return DevicePlatform::Linux; }
+    #[cfg(target_os = "macos")]
+    {
+        return DevicePlatform::Macos;
+    }
+    #[cfg(target_os = "windows")]
+    {
+        return DevicePlatform::Windows;
+    }
+    #[cfg(target_os = "linux")]
+    {
+        return DevicePlatform::Linux;
+    }
     #[allow(unreachable_code)]
     DevicePlatform::Linux
 }
@@ -144,18 +160,24 @@ fn hw_model() -> String {
     #[cfg(target_os = "linux")]
     if let Ok(s) = std::fs::read_to_string("/sys/class/dmi/id/product_name") {
         let s = s.trim().to_string();
-        if !s.is_empty() { return s; }
+        if !s.is_empty() {
+            return s;
+        }
     }
     sysinfo::System::host_name().unwrap_or_default()
 }
 
 fn manufacturer() -> String {
     #[cfg(target_os = "macos")]
-    { return "Apple".to_string(); }
+    {
+        return "Apple".to_string();
+    }
     #[cfg(target_os = "linux")]
     if let Ok(s) = std::fs::read_to_string("/sys/class/dmi/id/sys_vendor") {
         let s = s.trim().to_string();
-        if !s.is_empty() { return s; }
+        if !s.is_empty() {
+            return s;
+        }
     }
     #[cfg(target_os = "windows")]
     if let Some(s) = run_cmd("wmic", &["csproduct", "get", "vendor", "/value"]) {
@@ -166,7 +188,6 @@ fn manufacturer() -> String {
     #[allow(unreachable_code)]
     String::new()
 }
-
 
 fn battery_info() -> Option<BatteryInfo> {
     #[cfg(target_os = "macos")]

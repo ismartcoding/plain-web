@@ -2,10 +2,13 @@ use serde_json::{json, Value};
 use std::sync::Arc;
 use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncReadExt, AsyncWrite};
 
-use crate::crypto::{base64_decode, chacha20_decrypt, chacha20_encrypt, ed25519_verify, xchacha_decrypt, xchacha_encrypt};
 use super::super::graphql::{create_chat_item_from_peer, execute_graphql, AppCtx, LocalSchema};
 use super::file_server::serve_file;
 use super::response::{respond, APP_ID};
+use crate::crypto::{
+    base64_decode, chacha20_decrypt, chacha20_encrypt, ed25519_verify, xchacha_decrypt,
+    xchacha_encrypt,
+};
 
 pub(super) async fn handle<R, W>(
     rd: R,
@@ -73,9 +76,7 @@ pub(super) async fn handle<R, W>(
     }
 
     match (method.as_str(), path.as_str()) {
-        ("GET", "/health") => {
-            respond(&mut wr, 200, "OK", APP_ID.as_bytes(), "text/plain").await
-        }
+        ("GET", "/health") => respond(&mut wr, 200, "OK", APP_ID.as_bytes(), "text/plain").await,
         ("POST", "/init") => respond(&mut wr, 200, "OK", b"", "text/plain").await,
         ("GET", "/fs") => {
             serve_file(&mut wr, &query_str, data_dir).await;
@@ -86,17 +87,14 @@ pub(super) async fn handle<R, W>(
                 return;
             };
             let json_bytes = strip_replay_prefix(&plaintext);
-            let request: Value =
-                serde_json::from_slice(json_bytes).unwrap_or_else(|_| json!({}));
+            let request: Value = serde_json::from_slice(json_bytes).unwrap_or_else(|_| json!({}));
             let response_json = execute_graphql(schema, request, ctx.clone()).await;
             let response_text = response_json.to_string();
             match xchacha_encrypt(&ctx.token, response_text.as_bytes()) {
                 Some(encrypted) => {
                     respond(&mut wr, 200, "OK", &encrypted, "application/octet-stream").await
                 }
-                None => {
-                    respond(&mut wr, 500, "Internal Server Error", b"", "text/plain").await
-                }
+                None => respond(&mut wr, 500, "Internal Server Error", b"", "text/plain").await,
             }
         }
         ("POST", "/peer_graphql") => {
@@ -120,7 +118,14 @@ pub(super) async fn handle<R, W>(
             };
             let key = base64_decode(&peer.key);
             let Some(plaintext_bytes) = chacha20_decrypt(&key, &body) else {
-                respond(&mut wr, 401, "Unauthorized", b"decrypt failed", "text/plain").await;
+                respond(
+                    &mut wr,
+                    401,
+                    "Unauthorized",
+                    b"decrypt failed",
+                    "text/plain",
+                )
+                .await;
                 return;
             };
             let plaintext = match std::str::from_utf8(&plaintext_bytes) {
@@ -143,7 +148,14 @@ pub(super) async fn handle<R, W>(
                 .unwrap_or_default()
                 .as_millis() as i64;
             if (now_ms - ts).abs() > 5 * 60 * 1000 {
-                respond(&mut wr, 401, "Unauthorized", b"timestamp expired", "text/plain").await;
+                respond(
+                    &mut wr,
+                    401,
+                    "Unauthorized",
+                    b"timestamp expired",
+                    "text/plain",
+                )
+                .await;
                 return;
             }
             // Verify Ed25519 signature over `{timestamp}{graphql_json}`.
@@ -155,10 +167,16 @@ pub(super) async fn handle<R, W>(
             // Parse content from GQL variables and dispatch directly (bypasses schema).
             let gql_req: Value = serde_json::from_str(gql_json).unwrap_or_else(|_| json!({}));
             let content = gql_req
-                .get("variables").and_then(|v| v.get("content")).and_then(Value::as_str)
+                .get("variables")
+                .and_then(|v| v.get("content"))
+                .and_then(Value::as_str)
                 .unwrap_or_default();
             let response_json = create_chat_item_from_peer(
-                &ctx.db, &peer.id, &header_channel_id, content, &ctx.event_tx,
+                &ctx.db,
+                &peer.id,
+                &header_channel_id,
+                content,
+                &ctx.event_tx,
             );
             let response_text = response_json.to_string();
             match chacha20_encrypt(&key, response_text.as_bytes()) {

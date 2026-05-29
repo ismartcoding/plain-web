@@ -27,16 +27,29 @@ pub struct LocalServerState {
 }
 
 impl LocalServerState {
-    pub fn start(app_data_dir: PathBuf, log_dir: PathBuf, db: Arc<ChatDb>, handle: AppHandle, identity: Arc<AppIdentity>) -> Self {
+    pub fn start(
+        app_data_dir: PathBuf,
+        log_dir: PathBuf,
+        db: Arc<ChatDb>,
+        handle: AppHandle,
+        identity: Arc<AppIdentity>,
+    ) -> Self {
         let peer_key_cache = new_peer_key_cache();
         refresh_peer_key_cache(&db, &peer_key_cache);
         let http_listener = bind_listener(8080);
-        let port = http_listener.local_addr().expect("local server addr").port();
-        http_listener.set_nonblocking(true).expect("set_nonblocking");
+        let port = http_listener
+            .local_addr()
+            .expect("local server addr")
+            .port();
+        http_listener
+            .set_nonblocking(true)
+            .expect("set_nonblocking");
 
         let https_listener = bind_listener(8443);
         let https_port = https_listener.local_addr().expect("https addr").port();
-        https_listener.set_nonblocking(true).expect("set_nonblocking https");
+        https_listener
+            .set_nonblocking(true)
+            .expect("set_nonblocking https");
 
         crate::prefs::set_http_port(&handle, port);
         crate::prefs::set_https_port(&handle, https_port);
@@ -119,8 +132,8 @@ impl LocalServerState {
             let schema = schema.clone();
             let ctx = ctx.clone();
             tauri::async_runtime::spawn(async move {
-                let listener = tokio::net::TcpListener::from_std(https_listener)
-                    .expect("https listener");
+                let listener =
+                    tokio::net::TcpListener::from_std(https_listener).expect("https listener");
                 loop {
                     let Ok((stream, _)) = listener.accept().await else {
                         continue;
@@ -143,7 +156,11 @@ impl LocalServerState {
             });
         }
 
-        LocalServerState { port, https_port, token }
+        LocalServerState {
+            port,
+            https_port,
+            token,
+        }
     }
 }
 

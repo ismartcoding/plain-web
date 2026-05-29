@@ -26,16 +26,18 @@ impl ChatDb {
             "SELECT id,size,mime_type,real_path,ref_count,weak_hash,created_at,updated_at \
              FROM app_files WHERE id=?",
             params![id],
-            |row| Ok(DAppFile {
-                id: row.get(0)?,
-                size: row.get(1)?,
-                mime_type: row.get(2)?,
-                real_path: row.get(3)?,
-                ref_count: row.get(4)?,
-                weak_hash: row.get(5)?,
-                created_at: row.get(6)?,
-                updated_at: row.get(7)?,
-            }),
+            |row| {
+                Ok(DAppFile {
+                    id: row.get(0)?,
+                    size: row.get(1)?,
+                    mime_type: row.get(2)?,
+                    real_path: row.get(3)?,
+                    ref_count: row.get(4)?,
+                    weak_hash: row.get(5)?,
+                    created_at: row.get(6)?,
+                    updated_at: row.get(7)?,
+                })
+            },
         )
         .ok()
     }
@@ -74,25 +76,44 @@ impl ChatDb {
             "INSERT OR IGNORE INTO app_files \
              (id,size,mime_type,real_path,ref_count,weak_hash,created_at,updated_at) \
              VALUES (?1,?2,?3,?4,?5,?6,?7,?8)",
-            params![f.id, f.size, f.mime_type, f.real_path, f.ref_count, f.weak_hash, f.created_at, f.updated_at],
+            params![
+                f.id,
+                f.size,
+                f.mime_type,
+                f.real_path,
+                f.ref_count,
+                f.weak_hash,
+                f.created_at,
+                f.updated_at
+            ],
         );
     }
 
     #[allow(dead_code)]
     pub fn increment_app_file_ref(&self, id: &str) {
         let conn = self.0.lock().unwrap();
-        let _ = conn.execute("UPDATE app_files SET ref_count=ref_count+1 WHERE id=?", params![id]);
+        let _ = conn.execute(
+            "UPDATE app_files SET ref_count=ref_count+1 WHERE id=?",
+            params![id],
+        );
     }
 
     #[allow(dead_code)]
     pub fn decrement_app_file_ref(&self, id: &str) -> i32 {
         {
             let conn = self.0.lock().unwrap();
-            let _ = conn.execute("UPDATE app_files SET ref_count=ref_count-1 WHERE id=?", params![id]);
+            let _ = conn.execute(
+                "UPDATE app_files SET ref_count=ref_count-1 WHERE id=?",
+                params![id],
+            );
         }
         let conn = self.0.lock().unwrap();
-        conn.query_row("SELECT ref_count FROM app_files WHERE id=?", params![id], |r| r.get(0))
-            .unwrap_or(0)
+        conn.query_row(
+            "SELECT ref_count FROM app_files WHERE id=?",
+            params![id],
+            |r| r.get(0),
+        )
+        .unwrap_or(0)
     }
 
     #[allow(dead_code)]

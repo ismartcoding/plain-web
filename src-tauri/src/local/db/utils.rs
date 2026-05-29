@@ -45,7 +45,12 @@ fn unix_secs_to_iso8601(secs: u64) -> String {
     }
     format!(
         "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z",
-        year, month, days + 1, hh, mm, ss
+        year,
+        month,
+        days + 1,
+        hh,
+        mm,
+        ss
     )
 }
 

@@ -215,7 +215,11 @@ fn local_ipv4_addrs(interfaces: &[Interface]) -> Vec<Ipv4Addr> {
     addrs.sort_by_key(|ip| {
         let o = ip.octets();
         let priv_lan = ip.is_private() && !is_cgnat(&o);
-        if priv_lan { 0 } else { 1 }
+        if priv_lan {
+            0
+        } else {
+            1
+        }
     });
     addrs
 }

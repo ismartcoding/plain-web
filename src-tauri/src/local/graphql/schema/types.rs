@@ -1,6 +1,6 @@
-use async_graphql::{Enum, SimpleObject, Union};
+use async_graphql::{Enum, InputObject, SimpleObject, Union};
 
-use crate::local::db::{DChannel, DChat, DPeer};
+use crate::local::db::{DBookmark, DBookmarkGroup, DChannel, DChat, DPeer};
 
 // ── Output types ──────────────────────────────────────────────────────────────
 
@@ -314,4 +314,72 @@ impl From<DPeer> for Peer {
             updated_at: p.updated_at,
         }
     }
+}
+
+#[derive(SimpleObject)]
+#[graphql(name = "Bookmark")]
+pub struct Bookmark {
+    pub id: String,
+    pub url: String,
+    pub title: String,
+    pub favicon_path: String,
+    pub group_id: String,
+    pub pinned: bool,
+    pub click_count: i32,
+    pub last_clicked_at: Option<String>,
+    pub sort_order: i32,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+impl From<DBookmark> for Bookmark {
+    fn from(b: DBookmark) -> Self {
+        Self {
+            id: b.id,
+            url: b.url,
+            title: b.title,
+            favicon_path: b.favicon_path,
+            group_id: b.group_id,
+            pinned: b.pinned,
+            click_count: b.click_count,
+            last_clicked_at: b.last_clicked_at,
+            sort_order: b.sort_order,
+            created_at: b.created_at,
+            updated_at: b.updated_at,
+        }
+    }
+}
+
+#[derive(SimpleObject)]
+#[graphql(name = "BookmarkGroup")]
+pub struct BookmarkGroup {
+    pub id: String,
+    pub name: String,
+    pub collapsed: bool,
+    pub sort_order: i32,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+impl From<DBookmarkGroup> for BookmarkGroup {
+    fn from(g: DBookmarkGroup) -> Self {
+        Self {
+            id: g.id,
+            name: g.name,
+            collapsed: g.collapsed,
+            sort_order: g.sort_order,
+            created_at: g.created_at,
+            updated_at: g.updated_at,
+        }
+    }
+}
+
+#[derive(InputObject)]
+#[graphql(name = "BookmarkInput")]
+pub struct BookmarkInput {
+    pub url: String,
+    pub title: String,
+    pub group_id: String,
+    pub pinned: bool,
+    pub sort_order: i32,
 }
