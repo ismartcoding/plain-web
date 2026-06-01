@@ -1,5 +1,5 @@
-use std::net::{Ipv4Addr, SocketAddrV4, UdpSocket};
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::net::UdpSocket;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 pub(super) const NEARBY_PORT: u16 = 52352;
 const MAX_TIMESTAMP_DIFF_MS: i64 = 5 * 60 * 1000;
@@ -38,22 +38,6 @@ pub(super) fn prefer_sender_ip(ips: &[String], sender_ip: &str) -> String {
         }
     }
     all.join(",")
-}
-
-pub(super) fn bind_pairing_socket() -> std::io::Result<UdpSocket> {
-    let deadline = std::time::Instant::now() + Duration::from_secs(5);
-    loop {
-        match UdpSocket::bind(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, NEARBY_PORT)) {
-            Ok(socket) => return Ok(socket),
-            Err(e)
-                if e.kind() == std::io::ErrorKind::AddrInUse
-                    && std::time::Instant::now() < deadline =>
-            {
-                std::thread::sleep(Duration::from_millis(100));
-            }
-            Err(e) => return Err(e),
-        }
-    }
 }
 
 #[allow(dead_code)]

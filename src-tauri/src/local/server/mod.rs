@@ -7,10 +7,11 @@
 use super::db::ChatDb;
 use super::graphql::{build_schema, new_peer_key_cache, refresh_peer_key_cache, AppCtx, WsEvent};
 use super::tls::{build_acceptor, ensure_cert};
+use crate::commands::discover::PeerStatusManager;
 use crate::prefs::AppIdentity;
 use std::net::TcpListener as StdTcpListener;
 use std::path::PathBuf;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 use tauri::AppHandle;
 use tokio::sync::broadcast;
 use tokio_rustls::TlsAcceptor;
@@ -24,6 +25,7 @@ pub struct LocalServerState {
     pub port: u16,
     pub https_port: u16,
     pub token: String,
+    pub event_tx: broadcast::Sender<WsEvent>,
 }
 
 impl LocalServerState {
@@ -33,6 +35,8 @@ impl LocalServerState {
         db: Arc<ChatDb>,
         handle: AppHandle,
         identity: Arc<AppIdentity>,
+        device_name: Arc<RwLock<String>>,
+        peer_status: PeerStatusManager,
     ) -> Self {
         let peer_key_cache = new_peer_key_cache();
         refresh_peer_key_cache(&db, &peer_key_cache);
@@ -64,6 +68,7 @@ impl LocalServerState {
         let ctx = Arc::new(AppCtx {
             db: db.clone(),
             identity: identity.clone(),
+            peer_status: peer_status.clone(),
             peer_key_cache: peer_key_cache.clone(),
             event_tx: event_tx.clone(),
             token: token.clone(),
@@ -71,7 +76,7 @@ impl LocalServerState {
             https_port,
             data_dir: app_data_dir.clone(),
             log_dir,
-            device_name: Arc::new(std::sync::RwLock::new(identity.device_name.clone())),
+            device_name,
         });
 
         // Build TLS acceptor — generate self-signed cert if missing.
@@ -114,8 +119,9 @@ impl LocalServerState {
                         let mut peek = [0u8; 512];
                         let n = stream.peek(&mut peek).await.unwrap_or(0);
                         if ws_handler::is_ws_upgrade(&peek[..n]) {
+                            let path = ws_handler::ws_path(&peek[..n]);
                             match tokio_tungstenite::accept_async(stream).await {
-                                Ok(ws) => ws_handler::handle_ws(ws, &token, event_rx).await,
+                                Ok(ws) => ws_handler::handle_ws(ws, &path, &token, event_rx, &ctx).await,
                                 Err(e) => log::debug!("local_server: WS accept error: {e}"),
                             }
                         } else {
@@ -160,6 +166,7 @@ impl LocalServerState {
             port,
             https_port,
             token,
+            event_tx,
         }
     }
 }

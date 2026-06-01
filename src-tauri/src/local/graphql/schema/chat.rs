@@ -35,7 +35,13 @@ impl ChatQuery {
 
     async fn peers(&self, ctx: &Context<'_>) -> Vec<Peer> {
         let c = ctx.data_unchecked::<Arc<AppCtx>>();
-        c.db.get_peers().into_iter().map(Peer::from).collect()
+        c.db.get_peers()
+            .into_iter()
+            .map(|peer| {
+                let online = c.peer_status.is_online(&peer.id);
+                Peer::from_peer(peer, online)
+            })
+            .collect()
     }
 
     async fn chat_channels(&self, ctx: &Context<'_>) -> Vec<ChatChannel> {

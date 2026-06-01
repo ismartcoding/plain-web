@@ -48,6 +48,8 @@ pub fn run() {
             // Ensure persistent device identity once at startup.
             let handle = app.handle().clone();
             let identity = Arc::new(crate::prefs::ensure_identity(&handle));
+            let device_name = Arc::new(std::sync::RwLock::new(identity.device_name.clone()));
+            let peer_status = commands::discover::PeerStatusManager::new(db.clone(), identity.clone());
             let (pairing_mgr, mut pairing_rx) =
                 local::pairing::PairingManager::new(db.clone(), identity.clone());
             // Bridge pairing broadcast → Tauri event "pairing-event".
@@ -58,10 +60,30 @@ pub fn run() {
                     let _ = app_handle.emit("pairing-event", ev);
                 }
             });
-            app.handle().manage(pairing_mgr);
-            app.handle().manage(local::server::LocalServerState::start(
-                data_dir, log_dir, db, handle, identity,
-            ));
+            app.handle().manage(pairing_mgr.clone());
+            let local_server_state = local::server::LocalServerState::start(
+                data_dir,
+                log_dir,
+                db.clone(),
+                handle,
+                identity.clone(),
+                device_name.clone(),
+                peer_status.clone(),
+            );
+            peer_status.set_event_tx(local_server_state.event_tx.clone());
+            let discover_mgr = commands::discover::NearbyDiscoverManager::new(
+                db,
+                identity,
+                device_name,
+                pairing_mgr.clone(),
+                peer_status.clone(),
+                local_server_state.https_port,
+            );
+            discover_mgr.start();
+            peer_status.set_discover_manager(discover_mgr.clone());
+            peer_status.start();
+            app.handle().manage(discover_mgr);
+            app.handle().manage(local_server_state);
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

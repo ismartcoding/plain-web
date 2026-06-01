@@ -1,3 +1,4 @@
+#[path = "discover/mod.rs"]
 pub mod discover;
 pub mod http_client;
 #[cfg(target_os = "macos")]
