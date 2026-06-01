@@ -19,7 +19,6 @@ use crate::prefs::AppIdentity;
 use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use std::time::Duration;
 
 pub mod commands;
 mod protocol;
@@ -28,8 +27,8 @@ mod utils;
 pub use protocol::{PairingCancel, PairingRequest, PairingResponse};
 
 use utils::{
-    bind_pairing_socket, device_type_signature_value, local_ipv4_strs, now_ms, prefer_sender_ip,
-    send_udp, timestamp_ok, NEARBY_PORT,
+    device_type_signature_value, local_ipv4_strs, now_ms, prefer_sender_ip, send_udp,
+    timestamp_ok, NEARBY_PORT,
 };
 
 const PAIR_REQUEST_PREFIX: &str = "PAIR_REQUEST:";
@@ -101,31 +100,34 @@ impl PairingManager {
         (mgr, rx)
     }
 
-    fn dispatch(&self, msg: &str, sender_ip: &str) {
+    pub fn handle_datagram(&self, msg: &str, sender_ip: &str) -> bool {
         if let Some(payload) = msg.strip_prefix(PAIR_REQUEST_PREFIX) {
             match serde_json::from_str::<PairingRequest>(payload) {
                 Ok(req) => self.on_pair_request(req, sender_ip),
                 Err(e) => log::debug!("local_pairing: bad PAIR_REQUEST: {e}"),
             }
+            true
         } else if let Some(payload) = msg.strip_prefix(PAIR_RESPONSE_PREFIX) {
             match serde_json::from_str::<PairingResponse>(payload) {
                 Ok(resp) => self.on_pair_response(resp, sender_ip),
                 Err(e) => log::debug!("local_pairing: bad PAIR_RESPONSE: {e}"),
             }
+            true
         } else if let Some(payload) = msg.strip_prefix(PAIR_CANCEL_PREFIX) {
             match serde_json::from_str::<PairingCancel>(payload) {
                 Ok(cancel) => self.on_pair_cancel(cancel),
                 Err(e) => log::debug!("local_pairing: bad PAIR_CANCEL: {e}"),
             }
+            true
+        } else {
+            false
         }
     }
 
     // ── Initiator side ────────────────────────────────────────────────────────
 
-    /// Send a PAIR_REQUEST and wait up to ~30s for the matching PAIR_RESPONSE.
-    /// Binds UDP port 52352 only during the pairing window (plain-app sends
-    /// the response back to that port, not to the source port). Returns when
-    /// the response arrives, the user cancels, or the timeout elapses.
+    /// Send a PAIR_REQUEST and let the shared discover receiver deliver the
+    /// matching PAIR_RESPONSE / PAIR_CANCEL datagrams back into this manager.
     pub fn start_pairing(
         &self,
         device_id: &str,
@@ -178,83 +180,13 @@ impl PairingManager {
             PAIR_REQUEST_PREFIX,
             serde_json::to_string(&req).unwrap_or_default()
         );
-        let device_ip = device_ip.to_string();
         let device_id = device_id.to_string();
         let device_name = device_name.to_string();
         let mgr = self.clone();
+        send_udp(&msg, device_ip, NEARBY_PORT);
 
-        // Run send + receive on a blocking worker so we don't block the IPC
-        // thread. The socket lives only for the pairing window.
-        tauri::async_runtime::spawn_blocking(move || {
-            let socket = match bind_pairing_socket() {
-                Ok(s) => s,
-                Err(e) => {
-                    log::error!(
-                        "local_pairing: failed to bind {NEARBY_PORT} for pairing after retry: {e}"
-                    );
-                    let _ = mgr.event_tx.send(PairingEvent {
-                        kind: PairingEventKind::Failed {
-                            reason: format!("bind UDP {NEARBY_PORT} failed: {e}"),
-                        },
-                        device_id: device_id.clone(),
-                        device_name: device_name.clone(),
-                    });
-                    mgr.sessions.lock().unwrap().remove(&device_id);
-                    return;
-                }
-            };
-            let _ = socket.set_read_timeout(Some(Duration::from_millis(500)));
-            // Send PAIR_REQUEST.
-            let target = format!("{device_ip}:{NEARBY_PORT}");
-            if let Err(e) = socket.send_to(msg.as_bytes(), &target) {
-                log::error!("local_pairing: send PAIR_REQUEST failed: {e}");
-                let _ = mgr.event_tx.send(PairingEvent {
-                    kind: PairingEventKind::Failed {
-                        reason: format!("send PAIR_REQUEST failed: {e}"),
-                    },
-                    device_id: device_id.clone(),
-                    device_name: device_name.clone(),
-                });
-                mgr.sessions.lock().unwrap().remove(&device_id);
-                return;
-            }
-            // Loop receive until response/cancel/timeout (~30s budget).
-            let deadline = std::time::Instant::now() + Duration::from_secs(30);
-            let mut buf = [0u8; 4096];
-            while std::time::Instant::now() < deadline {
-                // Bail if the session was cancelled by the user.
-                if !mgr.sessions.lock().unwrap().contains_key(&device_id) {
-                    return;
-                }
-                match socket.recv_from(&mut buf) {
-                    Ok((n, src)) => {
-                        let s = match std::str::from_utf8(&buf[..n]) {
-                            Ok(s) => s,
-                            Err(_) => continue,
-                        };
-                        let sender_ip = match src.ip() {
-                            std::net::IpAddr::V4(v4) => v4.to_string(),
-                            _ => continue,
-                        };
-                        mgr.dispatch(s, &sender_ip);
-                        // dispatch consumed the session on success/failure.
-                        if !mgr.sessions.lock().unwrap().contains_key(&device_id) {
-                            return;
-                        }
-                    }
-                    Err(ref e)
-                        if e.kind() == std::io::ErrorKind::WouldBlock
-                            || e.kind() == std::io::ErrorKind::TimedOut =>
-                    {
-                        continue
-                    }
-                    Err(e) => {
-                        log::debug!("local_pairing: recv error: {e}");
-                        break;
-                    }
-                }
-            }
-            // Timed out.
+        std::thread::spawn(move || {
+            std::thread::sleep(std::time::Duration::from_secs(30));
             if mgr.sessions.lock().unwrap().remove(&device_id).is_some() {
                 let _ = mgr.event_tx.send(PairingEvent {
                     kind: PairingEventKind::Failed {

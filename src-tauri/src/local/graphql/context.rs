@@ -1,6 +1,7 @@
 //! Shared types, WebSocket event infrastructure, and resolver context.
 
 use crate::crypto::{base64_decode, xchacha_encrypt};
+use crate::commands::discover::PeerStatusManager;
 use crate::local::db::ChatDb;
 use crate::prefs::AppIdentity;
 use std::collections::HashMap;
@@ -12,6 +13,7 @@ pub const WS_MESSAGE_DELETED: i32 = 2;
 pub const WS_MESSAGE_UPDATED: i32 = 3;
 pub const WS_BOOKMARK_UPDATED: i32 = 15;
 pub const WS_CHANNELS_UPDATED: i32 = 18;
+pub const WS_PEER_STATUS_UPDATED: i32 = 20;
 
 #[derive(Clone, Debug)]
 pub struct WsEvent {
@@ -54,6 +56,7 @@ pub fn encode_ws_event(ev: &WsEvent, token: &str) -> Option<Vec<u8>> {
 pub struct AppCtx {
     pub db: Arc<ChatDb>,
     pub identity: Arc<AppIdentity>,
+    pub peer_status: PeerStatusManager,
     pub peer_key_cache: PeerKeyCache,
     pub event_tx: broadcast::Sender<WsEvent>,
     pub token: String,

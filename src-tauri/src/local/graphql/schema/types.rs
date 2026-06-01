@@ -302,12 +302,18 @@ pub struct Peer {
 
 impl From<DPeer> for Peer {
     fn from(p: DPeer) -> Self {
+        Self::from_peer(p, false)
+    }
+}
+
+impl Peer {
+    pub fn from_peer(p: DPeer, online: bool) -> Self {
         Self {
             id: p.id,
             name: p.name,
             ip: p.ip,
             status: p.status,
-            online: false,
+            online,
             port: p.port as i32,
             device_type: p.device_type,
             created_at: p.created_at,
