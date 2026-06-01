@@ -41,10 +41,23 @@ type InitOptions = {
   autoSubmitWhenNoPassword?: boolean
 }
 
+const props = withDefaults(defineProps<{
+  redirectOnSuccess?: boolean
+}>(), {
+  redirectOnSuccess: true,
+})
+
+const emit = defineEmits<{
+  (e: 'success'): void
+}>()
+
 const {
   showError, webAccessDisabled, showConfirm, error, showPasswordInput,
   password, passwordError, isSubmitting, onSubmit, cancel, t, initRequest,
-} = useLogin()
+} = useLogin({
+  redirectOnSuccess: props.redirectOnSuccess,
+  onSuccess: async () => emit('success'),
+})
 
 async function init(options: InitOptions = {}) {
   await initRequest()

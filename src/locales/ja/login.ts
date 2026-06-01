@@ -18,6 +18,7 @@ export default {
     search_failed_title: 'Unable to scan nearby devices',
     search_failed_hint: 'Make sure both devices are on the same LAN and try again.',
     manual_host: 'ホスト:ポート（例: 192.168.1.5:8443）',
+    manual_host_placeholder: 'ホスト:ポート（例: 192.168.1.5:8443）',
     change_device: 'デバイスを変更',
     connect_failed: '接続失敗。アドレスを確認してもう一度お試しください。',
     logged_in_devices: 'ログイン済み',
@@ -25,5 +26,6 @@ export default {
     current: '現在',
     no_devices_yet: 'デバイスがありません。以下で検索またはアドレスを入力してください。',
     remove_device_confirm: 'このデバイスをリストから削除しますか？',
+    switch_to_local: 'Switch to Local',
   },
 }

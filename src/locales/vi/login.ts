@@ -18,6 +18,7 @@ export default {
     search_failed_title: 'Unable to scan nearby devices',
     search_failed_hint: 'Make sure both devices are on the same LAN and try again.',
     manual_host: 'Host:cổng (vd. 192.168.1.5:8443)',
+    manual_host_placeholder: 'Host:cổng (vd. 192.168.1.5:8443)',
     change_device: 'Đổi thiết bị',
     connect_failed: 'Kết nối thất bại. Kiểm tra địa chỉ và thử lại.',
     logged_in_devices: 'Đã đăng nhập',
@@ -25,5 +26,6 @@ export default {
     current: 'Hiện tại',
     no_devices_yet: 'Chưa có thiết bị. Tìm kiếm hoặc nhập địa chỉ bên dưới.',
     remove_device_confirm: 'Xóa thiết bị này khỏi danh sách?',
+    switch_to_local: 'Switch to Local',
   },
 }

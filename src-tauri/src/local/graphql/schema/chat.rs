@@ -20,6 +20,17 @@ fn chat_to_json(c: &DChat) -> Value {
     })
 }
 
+fn peer_delivery_status_data(peer_id: &str, peer_name: &str, error: &str) -> String {
+    json!({
+        "results": [{
+            "peerId": peer_id,
+            "peerName": peer_name,
+            "error": error,
+        }]
+    })
+    .to_string()
+}
+
 #[derive(Default)]
 pub struct ChatQuery;
 
@@ -114,8 +125,10 @@ impl ChatMutation {
                     let content_str = content.clone();
                     let event_tx = c.event_tx.clone();
                     let db = c.db.clone();
+                    let peer_id_for_status = peer.id.clone();
+                    let peer_name_for_status = peer.name.clone();
                     tokio::spawn(async move {
-                        let ok = deliver_to_peer(
+                        let delivery_result = deliver_to_peer(
                             &peer_urls,
                             &key,
                             &client_id,
@@ -124,8 +137,20 @@ impl ChatMutation {
                             None,
                         )
                         .await;
-                        let new_status = if ok { "sent" } else { "failed" };
-                        if let Some(updated) = db.update_chat_status(&chat_id, new_status) {
+                        let (new_status, status_data) = match delivery_result {
+                            Ok(()) => ("sent", String::new()),
+                            Err(error) => (
+                                "failed",
+                                peer_delivery_status_data(
+                                    &peer_id_for_status,
+                                    &peer_name_for_status,
+                                    &error,
+                                ),
+                            ),
+                        };
+                        if let Some(updated) =
+                            db.update_chat_status_and_data(&chat_id, new_status, &status_data)
+                        {
                             let _ = event_tx.send(WsEvent {
                                 event_type: WS_MESSAGE_UPDATED,
                                 payload: json!([chat_to_json(&updated)]).to_string(),
@@ -174,15 +199,131 @@ impl ChatMutation {
     }
 
     async fn retry_chat_item(&self, ctx: &Context<'_>, id: String) -> Option<ChatItem> {
-        let c = ctx.data_unchecked::<Arc<AppCtx>>();
-        let updated = c.db.update_chat_status(&id, "sent");
-        if let Some(ref chat) = updated {
+        let c = ctx.data_unchecked::<Arc<AppCtx>>().clone();
+        log::info!("[retry_chat_item] called with id={}", id);
+        let chat = match c.db.get_chat_by_id(&id) {
+            Some(chat) => chat,
+            None => {
+                log::warn!("[retry_chat_item] chat not found for id={}", id);
+                return None;
+            }
+        };
+        log::info!("[retry_chat_item] chat loaded: id={}, to_id={}, channel_id={}", chat.id, chat.to_id, chat.channel_id);
+        let is_peer = !chat.to_id.is_empty() && chat.channel_id.is_empty();
+
+        if !is_peer {
+            log::info!("[retry_chat_item] not a peer message, marking as sent");
+            let updated = c.db.update_chat_status(&id, "sent");
+            if let Some(ref u) = updated {
+                let _ = c.event_tx.send(WsEvent {
+                    event_type: WS_MESSAGE_UPDATED,
+                    payload: json!([chat_to_json(u)]).to_string(),
+                });
+                log::info!("[retry_chat_item] status updated to sent for id={}", id);
+            } else {
+                log::warn!("[retry_chat_item] failed to update status to sent for id={}", id);
+            }
+            return updated.map(ChatItem::from);
+        }
+
+        // Mirror Android HRetryChatItemEvent → deliverToPeerAsync:
+        // mark as pending, then spawn re-delivery, update status on completion.
+        if let Some(updated) = c.db.update_chat_status(&id, "pending") {
             let _ = c.event_tx.send(WsEvent {
                 event_type: WS_MESSAGE_UPDATED,
-                payload: json!([chat_to_json(chat)]).to_string(),
+                payload: json!([chat_to_json(&updated)]).to_string(),
             });
+            log::info!("[retry_chat_item] status updated to pending for id={}", id);
+        } else {
+            log::warn!("[retry_chat_item] failed to update status to pending for id={}", id);
         }
-        updated.map(ChatItem::from)
+
+        let peer_id = chat.to_id.clone();
+        log::info!("[retry_chat_item] peer_id={}", peer_id);
+        if let Some(peer) = c.db.get_peer_by_id(&peer_id) {
+            log::info!("[retry_chat_item] found peer: id={}", peer.id);
+            let key = {
+                let cache = c.peer_key_cache.read().unwrap();
+                let cached = cache.get(&peer_id).cloned();
+                if cached.is_some() {
+                    log::info!("[retry_chat_item] found key in cache for peer_id={}", peer_id);
+                } else {
+                    log::info!("[retry_chat_item] no key in cache for peer_id={}", peer_id);
+                }
+                cached
+            }
+            .or_else(|| {
+                let raw = base64_decode(&peer.key);
+                if raw.len() == 32 {
+                    log::info!("[retry_chat_item] decoded key from base64 for peer_id={}", peer_id);
+                    Some(raw)
+                } else {
+                    log::warn!("[retry_chat_item] failed to decode valid key for peer_id={}", peer_id);
+                    None
+                }
+            });
+
+            if let Some(key) = key {
+                log::info!("[retry_chat_item] got key for peer_id={}", peer_id);
+                let chat_id = id.clone();
+                let peer_urls = peer_graphql_urls(&peer);
+                log::info!("[retry_chat_item] peer_urls={:?}", peer_urls);
+                let client_id = c.identity.client_id.clone();
+                log::info!("[retry_chat_item] sending c-id={} (this must match Android peer.id)", client_id);
+                let kp_bytes = base64_decode(&c.identity.ed25519_keypair);
+                let content_str = chat.content.clone();
+                let event_tx = c.event_tx.clone();
+                let db = c.db.clone();
+                let peer_id_for_status = peer.id.clone();
+                let peer_name_for_status = peer.name.clone();
+                tokio::spawn(async move {
+                    log::info!("[retry_chat_item] spawning deliver_to_peer for chat_id={}", chat_id);
+                    let delivery_result = deliver_to_peer(
+                        &peer_urls,
+                        &key,
+                        &client_id,
+                        &kp_bytes,
+                        &content_str,
+                        None,
+                    )
+                    .await;
+                    let (new_status, status_data, log_result) = match delivery_result {
+                        Ok(()) => ("sent", String::new(), "ok".to_string()),
+                        Err(error) => (
+                            "failed",
+                            peer_delivery_status_data(
+                                &peer_id_for_status,
+                                &peer_name_for_status,
+                                &error,
+                            ),
+                            error,
+                        ),
+                    };
+                    log::info!(
+                        "[retry_chat_item] deliver_to_peer result for chat_id={}: {}",
+                        chat_id,
+                        log_result
+                    );
+                    if let Some(updated) =
+                        db.update_chat_status_and_data(&chat_id, new_status, &status_data)
+                    {
+                        let _ = event_tx.send(WsEvent {
+                            event_type: WS_MESSAGE_UPDATED,
+                            payload: json!([chat_to_json(&updated)]).to_string(),
+                        });
+                        log::info!("[retry_chat_item] status updated to {} for chat_id={}", new_status, chat_id);
+                    } else {
+                        log::warn!("[retry_chat_item] failed to update status to {} for chat_id={}", new_status, chat_id);
+                    }
+                });
+            } else {
+                log::warn!("[retry_chat_item] no key found for peer_id={}", peer_id);
+            }
+        } else {
+            log::warn!("[retry_chat_item] peer not found for peer_id={}", peer_id);
+        }
+
+        c.db.get_chat_by_id(&id).map(ChatItem::from)
     }
 
     async fn create_chat_channel(&self, ctx: &Context<'_>, name: String) -> ChatChannel {

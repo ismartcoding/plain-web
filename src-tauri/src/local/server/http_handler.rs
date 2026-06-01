@@ -6,7 +6,7 @@ use super::super::graphql::{create_chat_item_from_peer, execute_graphql, AppCtx,
 use super::file_server::serve_file;
 use super::response::{respond, APP_ID};
 use crate::crypto::{
-    base64_decode, chacha20_decrypt, chacha20_encrypt, ed25519_verify, xchacha_decrypt,
+    base64_decode, xchacha_decrypt_raw, xchacha_encrypt_raw, ed25519_verify, xchacha_decrypt,
     xchacha_encrypt,
 };
 
@@ -117,7 +117,7 @@ pub(super) async fn handle<R, W>(
                 return;
             };
             let key = base64_decode(&peer.key);
-            let Some(plaintext_bytes) = chacha20_decrypt(&key, &body) else {
+            let Some(plaintext_bytes) = xchacha_decrypt_raw(&key, &body) else {
                 respond(
                     &mut wr,
                     401,
@@ -179,7 +179,7 @@ pub(super) async fn handle<R, W>(
                 &ctx.event_tx,
             );
             let response_text = response_json.to_string();
-            match chacha20_encrypt(&key, response_text.as_bytes()) {
+            match xchacha_encrypt_raw(&key, response_text.as_bytes()) {
                 Some(encrypted) => {
                     respond(&mut wr, 200, "OK", &encrypted, "application/octet-stream").await;
                 }

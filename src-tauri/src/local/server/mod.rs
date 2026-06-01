@@ -1,8 +1,10 @@
 //! Local HTTP+HTTPS+WebSocket server for offline/local mode.
 //!
-//! - HTTP on :8080 (fallback :0) — handles plain requests AND WebSocket upgrades.
-//! - HTTPS on :8443 (fallback :0) — handles encrypted requests only.
-//! - WebSocket on the HTTP port: frontend connects for real-time chat events.
+//! - HTTP on :8080 (fallback :0) — plain requests and WebSocket upgrades.
+//! - HTTPS on :8443 (fallback :0) — encrypted requests and WSS upgrades.
+//!
+//! Per-connection dispatch lives in [`plain_conn`] (HTTP/WS) and
+//! [`tls_conn`] (HTTPS/WSS); the listener loops here only accept and spawn.
 
 use super::db::ChatDb;
 use super::graphql::{build_schema, new_peer_key_cache, refresh_peer_key_cache, AppCtx, WsEvent};
@@ -18,7 +20,9 @@ use tokio_rustls::TlsAcceptor;
 
 mod file_server;
 mod http_handler;
+mod plain_conn;
 mod response;
+mod tls_conn;
 mod ws_handler;
 
 pub struct LocalServerState {
@@ -99,7 +103,7 @@ impl LocalServerState {
             let schema = schema.clone();
             let ctx = ctx.clone();
             let event_tx = event_tx.clone();
-            let app_data_dir2 = app_data_dir.clone();
+            let data_dir = app_data_dir.clone();
             let token_arc = Arc::new(token.clone());
             tauri::async_runtime::spawn(async move {
                 let listener =
@@ -109,31 +113,19 @@ impl LocalServerState {
                         continue;
                     };
                     let _ = stream.set_nodelay(true);
-                    let schema = schema.clone();
-                    let ctx = ctx.clone();
-                    let token = token_arc.clone();
-                    let event_rx = event_tx.subscribe();
-                    let data_dir = app_data_dir2.clone();
-                    tokio::spawn(async move {
-                        // Peek first bytes to detect WebSocket GET upgrades.
-                        let mut peek = [0u8; 512];
-                        let n = stream.peek(&mut peek).await.unwrap_or(0);
-                        if ws_handler::is_ws_upgrade(&peek[..n]) {
-                            let path = ws_handler::ws_path(&peek[..n]);
-                            match tokio_tungstenite::accept_async(stream).await {
-                                Ok(ws) => ws_handler::handle_ws(ws, &path, &token, event_rx, &ctx).await,
-                                Err(e) => log::debug!("local_server: WS accept error: {e}"),
-                            }
-                        } else {
-                            let (rd, wr) = tokio::io::split(stream);
-                            http_handler::handle(rd, wr, &schema, &ctx, &data_dir).await;
-                        }
-                    });
+                    tokio::spawn(plain_conn::serve(
+                        stream,
+                        schema.clone(),
+                        ctx.clone(),
+                        token_arc.clone(),
+                        event_tx.subscribe(),
+                        data_dir.clone(),
+                    ));
                 }
             });
         }
 
-        // ── HTTPS listener ───────────────────────────────────────────────────
+        // ── HTTPS + WSS listener ─────────────────────────────────────────────
         if let Some(acc) = acceptor {
             let schema = schema.clone();
             let ctx = ctx.clone();
@@ -145,19 +137,13 @@ impl LocalServerState {
                         continue;
                     };
                     let _ = stream.set_nodelay(true);
-                    let schema = schema.clone();
-                    let ctx = ctx.clone();
-                    let acc = acc.clone();
-                    let data_dir = app_data_dir.clone();
-                    tokio::spawn(async move {
-                        match acc.accept(stream).await {
-                            Ok(tls_stream) => {
-                                let (rd, wr) = tokio::io::split(tls_stream);
-                                http_handler::handle(rd, wr, &schema, &ctx, &data_dir).await;
-                            }
-                            Err(e) => log::debug!("local_server: TLS handshake error: {e}"),
-                        }
-                    });
+                    tokio::spawn(tls_conn::serve(
+                        stream,
+                        acc.clone(),
+                        schema.clone(),
+                        ctx.clone(),
+                        app_data_dir.clone(),
+                    ));
                 }
             });
         }
@@ -195,3 +181,5 @@ fn bind_listener(preferred: u16) -> StdTcpListener {
         .or_else(|_| StdTcpListener::bind("0.0.0.0:0"))
         .expect("local server bind")
 }
+
+

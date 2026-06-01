@@ -1,6 +1,6 @@
 <template>
   <Teleport v-if="isActive" to="#header-end-slot" defer>
-    <v-icon-button v-tooltip="$t('refresh')" @click="refetch">
+    <v-icon-button v-tooltip="$t('refresh')" @click="() => refetch()">
       <i-material-symbols:refresh-rounded />
     </v-icon-button>
     <v-icon-button v-tooltip="$t('files')" @click.prevent="openFolder">

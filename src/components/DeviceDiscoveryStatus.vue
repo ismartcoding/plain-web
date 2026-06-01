@@ -43,7 +43,7 @@ defineEmits<{
   align-items: center;
   gap: 10px;
   justify-content: center;
-  padding: 16px 0;
+  padding: 0 0 16px 0;
   font-size: 0.85rem;
   color: var(--md-sys-color-on-surface-variant);
 }

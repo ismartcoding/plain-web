@@ -18,6 +18,7 @@ export default {
     search_failed_title: 'Unable to scan nearby devices',
     search_failed_hint: 'Make sure both devices are on the same LAN and try again.',
     manual_host: '主機:埠（例如 192.168.1.5:8443）',
+    manual_host_placeholder: '主機:埠（例如 192.168.1.5:8443）',
     change_device: '更換設備',
     connect_failed: '連接失敗，請檢查地址後重試。',
     logged_in_devices: '已登入',
@@ -25,5 +26,6 @@ export default {
     current: '當前',
     no_devices_yet: '暫無設備，請在下方搜尋或輸入地址。',
     remove_device_confirm: '從列表中移除此設備？',
+    switch_to_local: 'Switch to Local',
   },
 }
