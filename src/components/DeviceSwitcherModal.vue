@@ -1,20 +1,22 @@
 <template>
   <v-modal @close="close">
     <template #headline>
-      {{ $t('device_discovery.change_device') }}
+      <button v-if="isLoginStep" class="login-back" :aria-label="$t('back')" @click="cancelLoginStep">
+          <i-material-symbols:arrow-back-rounded />
+      </button>
+      {{ isLoginStep ? ($t('log_in') + ': ' + loginHost) : $t('device_discovery.change_device') }}
     </template>
     <template #content>
-      <div class="switcher">
-        <!-- Logged-in devices -->
-        <section class="section">
+      <div v-if="!isLoginStep" class="switcher">
+        <section v-if="sessions.length" class="section">
           <h3 class="section-title">{{ $t('device_discovery.logged_in_devices') }}</h3>
-          <ul v-if="sessions.length" class="device-list">
+          <ul class="device-list">
             <li
               v-for="s in sessions"
-            :key="s.clientId"
-            class="device-item"
-            :class="{ current: s.clientId === currentClientId, editing: editingId === s.clientId }"
-            @click="editingId === s.clientId ? null : switchTo(s)"
+              :key="s.clientId"
+              class="device-item"
+              :class="{ current: s.clientId === currentClientId, editing: editingId === s.clientId }"
+              @click="editingId === s.clientId ? null : switchTo(s)"
             >
               <template v-if="editingId === s.clientId">
                 <v-text-field
@@ -44,7 +46,10 @@
               </template>
               <template v-else>
                 <div class="device-info">
-                  <span class="device-name">{{ s.name || s.host }}</span>
+                  <span class="device-name">
+                    <span class="device-status-dot" :class="{ online: isSessionOnline(s.clientId) }"></span>
+                    <span>{{ s.name || s.host }}</span>
+                  </span>
                   <span class="device-host">{{ s.host }}</span>
                 </div>
                 <span v-if="s.clientId === currentClientId" class="device-badge">
@@ -67,14 +72,8 @@
               </template>
             </li>
           </ul>
-          <p v-else class="empty">{{ $t('device_discovery.no_devices_yet') }}</p>
         </section>
-
-        <div class="divider"></div>
-
-        <!-- Add new -->
         <section class="section">
-          <h3 class="section-title">{{ $t('device_discovery.add_device') }}</h3>
           <DeviceDiscoveryStatus
             :status="status"
             @retry="retry"
@@ -105,10 +104,20 @@
           />
         </section>
       </div>
+      <div v-else class="login-panel">
+        <LoginForm
+          ref="loginFormRef"
+          :redirect-on-success="false"
+          @success="handleLoginSuccess"
+        />
+      </div>
     </template>
     <template #actions>
-      <v-outlined-button @click="close">{{ $t('cancel') }}</v-outlined-button>
-      <v-filled-button :disabled="!manualHost.trim()" @click="addManual">
+      <v-outlined-button v-if="!isLoginStep" :disabled="currentClientId === LOCAL_CLIENT_ID" @click="switchToLocal">
+        {{ $t('device_discovery.switch_to_local') }}
+      </v-outlined-button>
+      <v-outlined-button v-if="!isLoginStep" @click="close">{{ $t('cancel') }}</v-outlined-button>
+      <v-filled-button v-if="!isLoginStep" :disabled="!manualHost.trim()" @click="addManual">
         {{ $t('connect') }}
       </v-filled-button>
     </template>
@@ -116,23 +125,31 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { popModal } from './modal/methods'
 import DeviceDiscoveryStatus from './DeviceDiscoveryStatus.vue'
+import LoginForm from '@/views/login/LoginForm.vue'
 import { useDeviceDiscovery } from '@/hooks/use-device-discovery'
 import { useDeviceSessionsStore, LOCAL_CLIENT_ID } from '@/stores/device-sessions'
+import { useChatStore } from '@/stores/chat'
 import type { DeviceSession } from '@/stores/device-sessions'
+import { clearPendingLoginHost, setPendingLoginHost } from '@/lib/api/api'
 
 const store = useDeviceSessionsStore()
-const router = useRouter()
+const chatStore = useChatStore()
 const { devices, status, start, stop, retry, openLanPermissionSettings } = useDeviceDiscovery()
 
 const sessions = computed(() => store.sortedSessions)
 const currentClientId = computed(() => store.currentClientId)
+const onlinePeerIds = computed(() =>
+  new Set(chatStore.peers.filter((peer) => peer.online).map((peer) => peer.id))
+)
 const manualHost = ref('')
 const editingId = ref<string | null>(null)
 const editValue = ref('')
+const isLoginStep = ref(false)
+const loginHost = ref('')
+const loginFormRef = ref<InstanceType<typeof LoginForm> | null>(null)
 
 // Devices found by scanning that aren't already in the saved sessions list.
 const newDevices = computed(() =>
@@ -143,6 +160,9 @@ onMounted(() => start())
 onUnmounted(() => stop())
 
 function close() {
+  if (isLoginStep.value) {
+    clearPendingLoginHost()
+  }
   popModal()
 }
 
@@ -150,7 +170,16 @@ function stripScheme(v: string): string {
   return v.replace(/^https?:\/\//, '')
 }
 
+function isSessionOnline(clientId: string): boolean {
+  return onlinePeerIds.value.has(clientId)
+}
+
 function switchTo(s: DeviceSession) {
+  if (!s.token) {
+    store.setCurrent(LOCAL_CLIENT_ID)
+    void startLoginStep(s.host)
+    return
+  }
   if (s.clientId === currentClientId.value) {
     close()
     return
@@ -197,18 +226,43 @@ function saveEdit(s: DeviceSession) {
 }
 
 function addNew(host: string) {
-  // Switch to local so the router allows navigation to /login without a token.
   store.setCurrent(LOCAL_CLIENT_ID)
-  // Pass the pre-selected host to LoginView via sessionStorage.
-  sessionStorage.setItem('pending_login_host', host)
-  close()
-  router.push('/login')
+  startLoginStep(host)
 }
 
 function addManual() {
   const host = stripScheme(manualHost.value.trim())
   if (!host) return
   addNew(host)
+}
+
+async function startLoginStep(host: string) {
+  loginHost.value = host
+  setPendingLoginHost(host)
+  isLoginStep.value = true
+  await nextTick()
+  await loginFormRef.value?.init({ autoSubmitWhenNoPassword: true })
+}
+
+function cancelLoginStep() {
+  clearPendingLoginHost()
+  isLoginStep.value = false
+  loginHost.value = ''
+}
+
+function handleLoginSuccess() {
+  close()
+  window.location.href = '/'
+}
+
+function switchToLocal() {
+  if (currentClientId.value === LOCAL_CLIENT_ID) {
+    close()
+    return
+  }
+  store.setCurrent(LOCAL_CLIENT_ID)
+  close()
+  window.location.href = '/'
 }
 </script>
 
@@ -233,16 +287,10 @@ function addManual() {
   color: var(--md-sys-color-on-surface-variant);
 }
 
-.divider {
-  height: 1px;
-  background: var(--md-sys-color-outline-variant);
-  margin: 16px 0;
-}
-
 .device-list {
   list-style: none;
   padding: 0;
-  margin: 0 0 8px;
+  margin: 0 0 16px 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -276,11 +324,26 @@ function addManual() {
 }
 
 .device-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-weight: 500;
   font-size: 0.9rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.device-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--md-sys-color-outline);
+  flex-shrink: 0;
+}
+
+.device-status-dot.online {
+  background: #20c997;
 }
 
 .device-host {
@@ -354,5 +417,52 @@ function addManual() {
 .manual-input {
   margin-top: 8px;
   width: 100%;
+}
+
+.login-panel {
+  width: min(320px, 80vw);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.login-host {
+  width: 100%;
+  margin-bottom: 12px;
+  word-break: break-word;
+  text-align: center;
+}
+
+.login-back {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 8px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--md-sys-color-on-surface-variant);
+  cursor: pointer;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
+    color: var(--md-sys-color-on-surface);
+  }
+}
+
+.login-panel :deep(form),
+.login-panel :deep(.tap-phone-text),
+.login-panel :deep(.tap-phone) {
+  width: 100%;
+  text-align: center;
 }
 </style>

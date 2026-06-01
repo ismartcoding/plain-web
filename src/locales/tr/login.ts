@@ -18,6 +18,7 @@ export default {
     search_failed_title: 'Unable to scan nearby devices',
     search_failed_hint: 'Make sure both devices are on the same LAN and try again.',
     manual_host: 'Host:port (örn. 192.168.1.5:8443)',
+    manual_host_placeholder: 'Host:port (örn. 192.168.1.5:8443)',
     change_device: 'Cihaz değiştir',
     connect_failed: 'Bağlantı başarısız. Adresi kontrol edip tekrar deneyin.',
     logged_in_devices: 'Oturum açıldı',
@@ -25,5 +26,6 @@ export default {
     current: 'Mevcut',
     no_devices_yet: 'Cihaz yok. Aşağıda arayın veya adres girin.',
     remove_device_confirm: 'Bu cihazı listeden kaldır?',
+    switch_to_local: 'Switch to Local',
   },
 }

@@ -18,6 +18,7 @@ export default {
     search_failed_title: 'Unable to scan nearby devices',
     search_failed_hint: 'Make sure both devices are on the same LAN and try again.',
     manual_host: 'Host:porta (ex. 192.168.1.5:8443)',
+    manual_host_placeholder: 'Host:porta (ex. 192.168.1.5:8443)',
     change_device: 'Mudar dispositivo',
     connect_failed: 'Falha na conexão. Verifique o endereço e tente novamente.',
     logged_in_devices: 'Conectado',
@@ -25,5 +26,6 @@ export default {
     current: 'Atual',
     no_devices_yet: 'Nenhum dispositivo. Pesquise ou insira um endereço abaixo.',
     remove_device_confirm: 'Remover este dispositivo da lista?',
+    switch_to_local: 'Switch to Local',
   },
 }

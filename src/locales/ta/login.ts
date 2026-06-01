@@ -18,6 +18,7 @@ export default {
     search_failed_title: 'Unable to scan nearby devices',
     search_failed_hint: 'Make sure both devices are on the same LAN and try again.',
     manual_host: 'ஹோஸ்ட்:போர்ட் (உதா. 192.168.1.5:8443)',
+    manual_host_placeholder: 'ஹோஸ்ட்:போர்ட் (உதா. 192.168.1.5:8443)',
     change_device: 'சாதனம் மாற்றவும்',
     connect_failed: 'இணைப்பு தோல்விவிட்டது. முகவரி சரிபார்த்து மீண்டும் முயற்சிக்கவும்.',
     logged_in_devices: 'உள்நுழைந்தவை',
@@ -25,5 +26,6 @@ export default {
     current: 'தற்போதைய',
     no_devices_yet: 'சாதனங்கள் இல்லை. கீழே தேடுங்கள் அல்லது முகவரி உள்ளிடுங்கள்.',
     remove_device_confirm: 'இந்த சாதனத்தை பட்டியலிலிருந்து நீக்கவும்?',
+    switch_to_local: 'Switch to Local',
   },
 }

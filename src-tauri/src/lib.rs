@@ -14,7 +14,11 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(
             tauri_plugin_log::Builder::default()
-                .level(log::LevelFilter::Info)
+                .level(if cfg!(debug_assertions) {
+                    log::LevelFilter::Debug
+                } else {
+                    log::LevelFilter::Info
+                })
                 .targets([
                     tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Stdout),
                     tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Stderr),
@@ -86,12 +90,19 @@ pub fn run() {
             app.handle().manage(local_server_state);
             Ok(())
         })
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::Destroyed = event {
+                #[cfg(target_os = "macos")]
+                commands::macos_dock::remove_window_device_name(window.label());
+            }
+        })
         .invoke_handler(tauri::generate_handler![
             commands::discover::discover_devices,
             commands::http_client::http_request,
             commands::ws_proxy::ws_start_proxy,
             commands::notification::send_macos_notification,
             commands::window::open_window,
+            commands::window::set_window_device_name,
             http_proxy::http_proxy_port,
             local::server::local_server_port,
             local::server::local_server_https_port,

@@ -115,6 +115,23 @@ impl ChatDb {
         self.get_chat_by_id(id)
     }
 
+    pub fn update_chat_status_and_data(
+        &self,
+        id: &str,
+        status: &str,
+        status_data: &str,
+    ) -> Option<DChat> {
+        let now = now_iso();
+        {
+            let conn = self.0.lock().unwrap();
+            let _ = conn.execute(
+                "UPDATE chats SET status=?1, status_data=?2, updated_at=?3 WHERE id=?4",
+                params![status, status_data, now, id],
+            );
+        }
+        self.get_chat_by_id(id)
+    }
+
     pub fn get_chat_by_id(&self, id: &str) -> Option<DChat> {
         let conn = self.0.lock().unwrap();
         conn.query_row(

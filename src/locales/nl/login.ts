@@ -18,6 +18,7 @@ export default {
     search_failed_title: 'Unable to scan nearby devices',
     search_failed_hint: 'Make sure both devices are on the same LAN and try again.',
     manual_host: 'Host:poort (bijv. 192.168.1.5:8443)',
+    manual_host_placeholder: 'Host:poort (bijv. 192.168.1.5:8443)',
     change_device: 'Apparaat wijzigen',
     connect_failed: 'Verbinding mislukt. Controleer het adres en probeer opnieuw.',
     logged_in_devices: 'Ingelogd',
@@ -25,5 +26,6 @@ export default {
     current: 'Huidig',
     no_devices_yet: 'Geen apparaten. Zoek of voer een adres hieronder in.',
     remove_device_confirm: 'Dit apparaat uit de lijst verwijderen?',
+    switch_to_local: 'Switch to Local',
   },
 }

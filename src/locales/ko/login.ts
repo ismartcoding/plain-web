@@ -18,6 +18,7 @@ export default {
     search_failed_title: 'Unable to scan nearby devices',
     search_failed_hint: 'Make sure both devices are on the same LAN and try again.',
     manual_host: '호스트:포트 (예: 192.168.1.5:8443)',
+    manual_host_placeholder: '호스트:포트 (예: 192.168.1.5:8443)',
     change_device: '기기 변경',
     connect_failed: '연결 실패. 주소를 확인하고 다시 시도해 주세요.',
     logged_in_devices: '로그인됨',
@@ -25,5 +26,6 @@ export default {
     current: '현재',
     no_devices_yet: '기기 없음. 아래에서 검색하거나 주소를 입력하세요.',
     remove_device_confirm: '이 기기를 목록에서 제거할까요?',
+    switch_to_local: 'Switch to Local',
   },
 }

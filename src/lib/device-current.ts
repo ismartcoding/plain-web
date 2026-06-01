@@ -7,6 +7,7 @@
  * Both web and Tauri use the same storage structure — no branching on __IS_TAURI__.
  */
 import { get as prefsGet, set as prefsSet } from '@/lib/prefs'
+import { LOCAL_CLIENT_ID } from '@/stores/device-sessions'
 
 const SESSIONS_KEY = 'device_sessions'
 
@@ -46,8 +47,8 @@ export function getCurrentAuthToken(): string {
 /**
  * Clear auth on failure (e.g. 401 from server).
  * Clears the token of the current session (so the user must re-authenticate)
- * and clears `currentClientId` so the router redirects to /login.
- * The session entry itself is kept in the list so the user can click it to re-auth.
+ * and switches the active device back to desktop local mode.
+ * The session entry itself is kept in the list so the user can re-auth later.
  */
 export function clearCurrentSession(): void {
   try {
@@ -58,7 +59,7 @@ export function clearCurrentSession(): void {
       const session = p.sessions.find((s: any) => s.clientId === currentId)
       if (session) session.token = ''
     }
-    p.currentClientId = ''
+    p.currentClientId = LOCAL_CLIENT_ID
     prefsSet(SESSIONS_KEY, p)
   } catch {}
 }

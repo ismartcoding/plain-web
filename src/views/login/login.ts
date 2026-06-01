@@ -12,13 +12,18 @@ import { tauriFetch } from '@/lib/api/tauri-fetch'
 import { TauriWebSocket } from '@/lib/api/tauri-ws'
 import { get as prefsGet } from '@/lib/prefs'
 
+type UseLoginOptions = {
+  redirectOnSuccess?: boolean
+  onSuccess?: () => void | Promise<void>
+}
+
 function getSafeRedirect(redirect: unknown): string {
   const r = Array.isArray(redirect) ? redirect[0] : redirect
   if (typeof r === 'string' && r.startsWith('/') && !r.startsWith('//')) return r
   return '/'
 }
 
-export function useLogin() {
+export function useLogin(options: UseLoginOptions = {}) {
   const { t } = useI18n()
   const sessionsStore = useDeviceSessionsStore()
   const showError = ref(false)
@@ -30,6 +35,16 @@ export function useLogin() {
   const passwordError = ref('')
   const isSubmitting = ref(false)
   let ws: WebSocket
+  const redirectOnSuccess = options.redirectOnSuccess !== false
+
+  async function finishLoginSuccess() {
+    if (options.onSuccess) {
+      await options.onSuccess()
+    }
+    if (redirectOnSuccess) {
+      window.location.href = getSafeRedirect(router.currentRoute.value.query['redirect'])
+    }
+  }
 
   async function initRequest() {
     const token = getCurrentAuthToken()
@@ -50,7 +65,7 @@ export function useLogin() {
     webAccessDisabled.value = false
     const bodyText = await r.text()
     if (r.status === 200 && token && !bodyText) {
-      window.location.href = getSafeRedirect(router.currentRoute.value.query['redirect']); return
+      await finishLoginSuccess(); return
     }
     if (bodyText) { password.value = bodyText; showPasswordInput.value = false }
     else { showPasswordInput.value = true }
@@ -89,14 +104,14 @@ export function useLogin() {
         const r = JSON.parse(d)
         if (r.status === 'PENDING') { showConfirm.value = true }
         else {
-          const host = getPendingLoginHost() || sessionsStore.currentSession?.host || ''
+          const host = getPendingLoginHost() || sessionsStore.currentSession?.host || window.location.host || ''
           if (host && r.clientId) {
             sessionsStore.save({ clientId: r.clientId, host, name: r.name || host, token: r.token })
             sessionsStore.setCurrent(r.clientId)
             clearPendingLoginHost()
           }
           ws.close()
-          window.location.href = getSafeRedirect(router.currentRoute.value.query['redirect'])
+          void finishLoginSuccess()
         }
       }
       ws.onclose = async (event: CloseEvent) => {
