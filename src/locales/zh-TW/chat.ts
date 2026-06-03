@@ -38,4 +38,7 @@ export default {
   delivery_status: '傳送狀態',
   delivery_status_summary: '{delivered} / {total} 已送達',
   delivery_failed: '錯誤',
+  pair_request: '配對請求',
+  allow: '允許',
+  deny: '拒絕',
 }

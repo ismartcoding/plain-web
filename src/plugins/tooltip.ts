@@ -62,7 +62,7 @@ const directive: Directive = {
 
     el.mouseleaveFunc = () => {
       clearTimeout(globalThis.showTooltipTimeout)
-      const tooltips = document.getElementsByClassName('tooltip')
+      const tooltips = Array.from(document.getElementsByClassName('tooltip'))
       for (const tooltip of tooltips) {
         if (tooltip.parentNode) {
           tooltip.parentNode.removeChild(tooltip)

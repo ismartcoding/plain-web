@@ -60,7 +60,6 @@ const isPeer = computed(() => props.kind === 'peer')
   flex: 1;
   min-width: 0;
   flex-direction: column;
-  line-height: 1.2;
 }
 
 .subtitle {

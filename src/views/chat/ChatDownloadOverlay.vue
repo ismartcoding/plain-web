@@ -38,7 +38,7 @@ interface DownloadInfo {
 
 const props = withDefaults(
   defineProps<{
-    downloadInfo: DownloadInfo | null
+    downloadInfo?: DownloadInfo | null
     /** outer size of the SVG ring in px */
     ringSize?: number
     /** border-radius forwarded to the backdrop */

@@ -61,7 +61,10 @@ export function clearCurrentSession(): void {
     }
     p.currentClientId = LOCAL_CLIENT_ID
     prefsSet(SESSIONS_KEY, p)
-  } catch {}
+  } catch {
+    // Swallow storage errors (quota, disabled localStorage, etc.) so a
+    // single failed clear doesn't crash the surrounding auth/UI flow.
+  }
 }
 
 /** Compute the per-device localStorage key for the main store snapshot. */

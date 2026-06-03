@@ -1,6 +1,6 @@
 import { invoke } from '@tauri-apps/api/core'
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
-import { onUnmounted, ref } from 'vue'
+import { markRaw, ref, watch } from 'vue'
 
 export type PairingStatus = 'idle' | 'requesting' | 'waiting' | 'success' | 'failed' | 'cancelled'
 
@@ -26,40 +26,91 @@ interface PairingEventPayload {
     | { type: 'cancelled' }
 }
 
-export function useDevicePairing() {
-  const status = ref<PairingStatus>('idle')
-  const errorMessage = ref('')
-  const pairedPeerId = ref('')
-  /** Pending incoming request (shown in accept/reject dialog) */
-  const incomingRequest = ref<{ request: PairingRequest; senderIp: string } | null>(null)
+// Module-level singleton state so the listener stays active for the app lifetime
+// and is shared across all components that call this composable.
+const status = ref<PairingStatus>('idle')
+const errorMessage = ref('')
+const pairedPeerId = ref('')
+/** Pending incoming request — a global modal is opened when this is set. */
+const incomingRequest = ref<{ request: PairingRequest; senderIp: string } | null>(null)
 
-  let unlisten: UnlistenFn | null = null
+let unlisten: UnlistenFn | null = null
+let listenerInitialized = false
+let modalWatcherInitialized = false
 
-  if (__IS_TAURI__) {
-    listen<PairingEventPayload>('pairing-event', ({ payload }) => {
-      const k = payload.kind
-      if (k.type === 'incomingRequest') {
-        incomingRequest.value = { request: k.request, senderIp: k.senderIp }
-        status.value = 'waiting'
-      } else if (k.type === 'success') {
-        pairedPeerId.value = payload.deviceId
-        status.value = 'success'
-        incomingRequest.value = null
-      } else if (k.type === 'failed') {
-        status.value = 'failed'
-        errorMessage.value = k.reason
-        incomingRequest.value = null
-      } else if (k.type === 'cancelled') {
-        status.value = 'cancelled'
-        incomingRequest.value = null
-      }
-    }).then((fn) => { unlisten = fn })
+async function allowPairing(request: PairingRequest, senderIp: string) {
+  try {
+    await invoke('respond_pair_device', {
+      requestJson: JSON.stringify(request),
+      senderIp,
+      accepted: true,
+    })
+    status.value = 'waiting'
+  } catch (e) {
+    status.value = 'failed'
+    errorMessage.value = String(e)
+  } finally {
+    incomingRequest.value = null
   }
+}
 
-  onUnmounted(() => {
-    unlisten?.()
-    unlisten = null
+async function denyPairing(request: PairingRequest, senderIp: string) {
+  try {
+    await invoke('respond_pair_device', {
+      requestJson: JSON.stringify(request),
+      senderIp,
+      accepted: false,
+    })
+  } finally {
+    incomingRequest.value = null
+    status.value = 'idle'
+  }
+}
+
+function initListener() {
+  if (listenerInitialized || !__IS_TAURI__) return
+  listenerInitialized = true
+  listen<PairingEventPayload>('pairing-event', ({ payload }) => {
+    const k = payload.kind
+    if (k.type === 'incomingRequest') {
+      incomingRequest.value = { request: k.request, senderIp: k.senderIp }
+      status.value = 'waiting'
+    } else if (k.type === 'success') {
+      pairedPeerId.value = payload.deviceId
+      status.value = 'success'
+      incomingRequest.value = null
+    } else if (k.type === 'failed') {
+      status.value = 'failed'
+      errorMessage.value = k.reason
+      incomingRequest.value = null
+    } else if (k.type === 'cancelled') {
+      status.value = 'cancelled'
+      incomingRequest.value = null
+    }
+  }).then((fn) => {
+    unlisten = fn
   })
+}
+
+async function initModalWatcher() {
+  if (modalWatcherInitialized) return
+  modalWatcherInitialized = true
+  const { openModal } = await import('@/components/modal')
+  const IncomingPairRequestModal = markRaw((await import('@/views/chat/IncomingPairRequestModal.vue')).default)
+  watch(incomingRequest, (req) => {
+    if (!req) return
+    openModal(IncomingPairRequestModal, {
+      request: req.request,
+      senderIp: req.senderIp,
+      onAllow: () => allowPairing(req.request, req.senderIp),
+      onDeny: () => denyPairing(req.request, req.senderIp),
+    })
+  })
+}
+
+export function useDevicePairing() {
+  initListener()
+  void initModalWatcher()
 
   async function pairDevice(device: {
     id: string
@@ -80,35 +131,6 @@ export function useDevicePairing() {
     } catch (e) {
       status.value = 'failed'
       errorMessage.value = String(e)
-    }
-  }
-
-  async function acceptPairing(request: PairingRequest, senderIp: string) {
-    try {
-      await invoke('respond_pair_device', {
-        requestJson: JSON.stringify(request),
-        senderIp,
-        accepted: true,
-      })
-      status.value = 'waiting'
-    } catch (e) {
-      status.value = 'failed'
-      errorMessage.value = String(e)
-    } finally {
-      incomingRequest.value = null
-    }
-  }
-
-  async function rejectPairing(request: PairingRequest, senderIp: string) {
-    try {
-      await invoke('respond_pair_device', {
-        requestJson: JSON.stringify(request),
-        senderIp,
-        accepted: false,
-      })
-    } finally {
-      incomingRequest.value = null
-      status.value = 'idle'
     }
   }
 
@@ -133,8 +155,8 @@ export function useDevicePairing() {
     pairedPeerId,
     incomingRequest,
     pairDevice,
-    acceptPairing,
-    rejectPairing,
+    allowPairing,
+    denyPairing,
     cancelPairing,
     reset,
   }

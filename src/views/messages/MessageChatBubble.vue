@@ -29,7 +29,7 @@
     <div v-if="item.tags?.length" class="chat-bubble-tags">
       <span v-for="tag in item.tags" :key="tag.id" class="chat-tag-chip">{{ tag.name }}</span>
     </div>
-    <span class="chat-time" v-tooltip="formatDateTime(item.date)">{{ formatTime(item.date) }}</span>
+    <span v-tooltip="formatDateTime(item.date)" class="chat-time">{{ formatTime(item.date) }}</span>
     <span v-if="isDraftOrPending" class="chat-pending-status" :class="{ failed: pendingFailed }">
       <i-material-symbols:error-outline-rounded v-if="pendingFailed" class="pending-error-icon" />
       {{ pendingFailed ? $t('mms_cancelled') : $t('message_type.3') }}

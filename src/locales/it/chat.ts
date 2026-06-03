@@ -38,4 +38,7 @@ export default {
   delivery_status: 'Stato consegna',
   delivery_status_summary: '{delivered} / {total} consegnati',
   delivery_failed: 'Errore',
+  pair_request: 'Richiesta di associazione',
+  allow: 'Consenti',
+  deny: 'Nega',
 }

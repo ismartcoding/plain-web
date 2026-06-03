@@ -80,6 +80,7 @@ const props = defineProps({
   selfId: { type: String, default: '' },
   onClear: { type: Function as PropType<() => Promise<void>>, required: true },
   onDeleted: { type: Function as PropType<() => void>, default: () => {} },
+  onRenamed: { type: Function as PropType<(channel: IChatChannel) => void>, default: undefined },
   onMemberUpdated: { type: Function as PropType<() => void>, default: () => {} },
 })
 

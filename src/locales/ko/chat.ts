@@ -38,4 +38,7 @@ export default {
   delivery_status: '전송 상태',
   delivery_status_summary: '{delivered} / {total} 전달됨',
   delivery_failed: '오류',
+  pair_request: '페어링 요청',
+  allow: '허용',
+  deny: '거부',
 }

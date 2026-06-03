@@ -1,11 +1,11 @@
-//! Peer-to-peer message delivery over HTTPS /peer_graphql.
+//! Outgoing peer-to-peer message delivery over HTTPS `/peer_graphql`.
+//!
+//! The incoming side (decryption, signature verification, mutation
+//! dispatch) lives in `crate::local::peer_graphql`.
 
-use crate::crypto::{xchacha_decrypt_raw, xchacha_encrypt_raw, ed25519_sign};
-use crate::local::db::{ChatDb, DChat, DPeer};
-use serde_json::{json, Value};
-use tokio::sync::broadcast;
-
-use super::context::{WsEvent, WS_MESSAGE_CREATED};
+use crate::crypto::{xchacha_decrypt_raw, xchacha_encrypt_raw, ed25519_sign, ed25519_verify};
+use crate::local::db::DPeer;
+use serde_json::json;
 
 fn reqwest_error_kind(err: &reqwest::Error) -> &'static str {
     if err.is_timeout() {
@@ -190,27 +190,92 @@ pub async fn deliver_to_peer(
     })
 }
 
-/// Handle an incoming peer `createChatItem` message that has already been
-/// authenticated and decrypted by server.rs. Bypasses the schema entirely.
-pub fn create_chat_item_from_peer(
-    db: &ChatDb,
-    from_id: &str,
-    channel_id: &str,
-    content: &str,
-    event_tx: &broadcast::Sender<WsEvent>,
-) -> Value {
-    let to_id = if channel_id.is_empty() { "me" } else { "" };
-    let chat = DChat::new(from_id, to_id, channel_id, content);
-    db.insert_chat(&chat);
-    let item = json!({
-        "id": chat.id, "fromId": chat.from_id, "toId": chat.to_id,
-        "channelId": chat.channel_id, "content": chat.content,
-        "createdAt": chat.created_at, "status": chat.status,
-        "statusData": chat.status_data, "data": null,
-    });
-    let _ = event_tx.send(WsEvent {
-        event_type: WS_MESSAGE_CREATED,
-        payload: json!([item]).to_string(),
-    });
-    json!({ "data": { "createChatItem": item } })
+/// Send a `channelSystemMessage` GraphQL mutation to a peer over the same
+/// transport used by `deliver_to_peer`. Returns `true` if the peer
+/// acknowledged the request, `false` otherwise.
+#[allow(dead_code)]
+pub async fn deliver_channel_system_message(
+    peer: &DPeer,
+    key: &[u8],
+    kp_bytes: &[u8],
+    msg_type: &str,
+    payload: &str,
+) -> bool {
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    let graphql_json = serde_json::to_string(&json!({
+        "query": "mutation ChannelSystemMessage($type: String!, $payload: String!) { channelSystemMessage(type: $type, payload: $payload) }",
+        "variables": { "type": msg_type, "payload": payload }
+    }))
+    .unwrap_or_default();
+
+    let ts = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis() as i64;
+    let sig_data = format!("{ts}{graphql_json}");
+    let signature = ed25519_sign(kp_bytes, sig_data.as_bytes());
+    let wire = format!("{signature}|{ts}|{graphql_json}");
+
+    let Some(encrypted) = xchacha_encrypt_raw(key, wire.as_bytes()) else {
+        log::warn!("[channel] encrypt failed for {} ({msg_type})", peer.id);
+        return false;
+    };
+
+    let client = reqwest::Client::builder()
+        .danger_accept_invalid_certs(true)
+        .danger_accept_invalid_hostnames(true)
+        .timeout(std::time::Duration::from_secs(10))
+        .build()
+        .unwrap_or_default();
+
+    for url in peer_graphql_urls(peer) {
+        let resp = client
+            .post(&url)
+            .header("c-id", &peer.id)
+            .header(reqwest::header::CONTENT_TYPE, "application/json")
+            .body(encrypted.clone())
+            .send()
+            .await;
+        let Ok(resp) = resp else { continue };
+        if !resp.status().is_success() {
+            log::warn!(
+                "[channel] {} bad status {} from {}",
+                msg_type,
+                resp.status(),
+                url
+            );
+            continue;
+        }
+        let Ok(bytes) = resp.bytes().await else {
+            continue;
+        };
+        let Some(decrypted) = xchacha_decrypt_raw(key, &bytes) else {
+            log::warn!("[channel] {} response decrypt failed from {url}", msg_type);
+            continue;
+        };
+        let Ok(value) = serde_json::from_slice::<serde_json::Value>(&decrypted) else {
+            continue;
+        };
+        if value.get("errors").is_some() {
+            log::warn!("[channel] {} GraphQL errors from {url}: {value}", msg_type);
+            continue;
+        }
+        log::debug!("[channel] {} sent to {} via {url}", msg_type, peer.id);
+        return true;
+    }
+    log::debug!(
+        "[channel] {} delivery failed to {} (no reachable URL)",
+        msg_type,
+        peer.id
+    );
+    false
+}
+
+/// Verify an incoming peer message's Ed25519 signature. Currently a thin
+/// wrapper over `ed25519_verify`; exposed so the http handler can validate
+/// the signature before dispatching to a sub-handler.
+#[allow(dead_code)]
+pub fn verify_peer_signature(public_key_b64: &str, sig_data: &[u8], sig_b64: &str) -> bool {
+    ed25519_verify(public_key_b64, sig_data, sig_b64)
 }

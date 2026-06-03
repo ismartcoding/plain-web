@@ -272,9 +272,11 @@ router.beforeEach(async (to, from) => {
   // clean up tooltip
   clearTimeout(globalThis.showTooltipTimeout)
   setTimeout(() => {
-    const tooltips = document.getElementsByClassName('tooltip')
+    const tooltips = Array.from(document.getElementsByClassName('tooltip'))
     for (const tooltip of tooltips) {
-      document.body.removeChild(tooltip)
+      if (tooltip.parentNode === document.body) {
+        document.body.removeChild(tooltip)
+      }
     }
   }, 100)
 })

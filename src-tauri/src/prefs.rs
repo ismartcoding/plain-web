@@ -2,6 +2,7 @@ use tauri::AppHandle;
 use tauri_plugin_store::StoreExt;
 
 use crate::crypto::{base64_encode, ed25519_generate, gen_token};
+use crate::utils::short_uuid;
 
 pub const STORE_FILE: &str = "prefs.json";
 
@@ -22,7 +23,7 @@ pub fn ensure_identity(handle: &AppHandle) -> AppIdentity {
         .get("client_id")
         .and_then(|v| v.as_str().map(String::from))
         .unwrap_or_else(|| {
-            let id = uuid::Uuid::new_v4().to_string();
+            let id = short_uuid::short_uuid();
             store.set("client_id", id.as_str());
             id
         });
@@ -97,7 +98,7 @@ fn default_device_name() -> String {
         .output()
         .ok()
         .and_then(|o| String::from_utf8(o.stdout).ok())
-        .map(|s| s.trim().to_string())
+        .map(|s| s.trim().trim_end_matches(".local").to_string())
         .filter(|s| !s.is_empty())
         .unwrap_or_else(|| "PlainApp Desktop".to_string())
 }

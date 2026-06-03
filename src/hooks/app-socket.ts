@@ -32,6 +32,7 @@ const EventType: { [key: number]: string } = {
   19: 'image_search_updated',
   20: 'peer_status_updated',
   21: 'device_name_updated',
+  22: 'channel_invite_received',
 }
 
 export function useAppSocket() {
@@ -59,7 +60,7 @@ export function useAppSocket() {
       ws = (__IS_TAURI__ && wsUrl.startsWith('wss://') ? new TauriWebSocket(wsUrl) : new WebSocket(wsUrl)) as unknown as WebSocket
       ws.onopen = async () => {
         emitter.emit('app_socket_connection_changed', true)
-        console.log('WebSocket is connecting to app')
+        console.log('[app-socket] WebSocket connected to', wsUrl)
         retryTime = 1000
         ws.send(bitArrayToUint8Array(chachaEncrypt(key, new Date().getTime().toString())))
         wsStatus.value = ''
@@ -68,22 +69,23 @@ export function useAppSocket() {
         const buffer = await event.data.arrayBuffer()
         const r = parseWebSocketData(buffer)
         const type = EventType[r.type]
+        console.log(`[app-socket] ws.onmessage raw type=${r.type} mapped=${type}`)
         try {
           const json = chachaDecrypt(key, r.data)
           emitter.emit(type as any, json ? JSON.parse(json) : null)
           console.log(`ws.onmessage: ${type}, ${json}`)
         } catch (ex) {
-          console.error(ex)
+          console.error('[app-socket] ws.onmessage decrypt failed for type', type, ex)
         }
         wsStatus.value = ''
       }
       ws.onclose = (event: CloseEvent) => {
-        console.error(event)
+        console.log('[app-socket] WebSocket closed', event.code, event.reason)
         wsStatus.value = 'closed'
         retryConnect()
       }
       ws.onerror = (event: Event) => {
-        console.error(event)
+        console.error('[app-socket] WebSocket error', event)
         wsStatus.value = 'error'
         ws.close()
         emitter.emit('app_socket_connection_changed', false)

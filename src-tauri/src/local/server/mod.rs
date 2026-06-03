@@ -8,6 +8,7 @@
 
 use super::db::ChatDb;
 use super::graphql::{build_schema, new_peer_key_cache, refresh_peer_key_cache, AppCtx, WsEvent};
+use super::peer_graphql::{build_schema as build_peer_schema, PeerSchema};
 use super::tls::{build_acceptor, ensure_cert};
 use crate::commands::discover::PeerStatusManager;
 use crate::prefs::AppIdentity;
@@ -20,8 +21,8 @@ use tokio_rustls::TlsAcceptor;
 
 mod file_server;
 mod http_handler;
+pub(super) mod response;
 mod plain_conn;
-mod response;
 mod tls_conn;
 mod ws_handler;
 
@@ -65,10 +66,15 @@ impl LocalServerState {
         let token = crate::prefs::get_url_token(&handle);
 
         // Broadcast channel for WebSocket events (chat mutations → all WS clients).
-        let (event_tx, _) = broadcast::channel::<WsEvent>(64);
+        // 1024 is a generous buffer; the receiver would only "lag" (RecvError::Lagged)
+        // if a single WS handler is starved for that many events in a row, which is
+        // highly unlikely for chat traffic. If it does happen, we log a warning and
+        // skip ahead — see `ws_handler/chat.rs`.
+        let (event_tx, _) = broadcast::channel::<WsEvent>(1024);
 
-        // Build the async-graphql schema once; context is injected per-request.
+        // Build the async-graphql schemas once; contexts are injected per-request.
         let schema = Arc::new(build_schema());
+        let peer_schema: Arc<PeerSchema> = Arc::new(build_peer_schema());
         let ctx = Arc::new(AppCtx {
             db: db.clone(),
             identity: identity.clone(),
@@ -101,6 +107,7 @@ impl LocalServerState {
         // ── HTTP + WebSocket listener ─────────────────────────────────────────
         {
             let schema = schema.clone();
+            let peer_schema = peer_schema.clone();
             let ctx = ctx.clone();
             let event_tx = event_tx.clone();
             let data_dir = app_data_dir.clone();
@@ -116,6 +123,7 @@ impl LocalServerState {
                     tokio::spawn(plain_conn::serve(
                         stream,
                         schema.clone(),
+                        peer_schema.clone(),
                         ctx.clone(),
                         token_arc.clone(),
                         event_tx.subscribe(),
@@ -128,6 +136,7 @@ impl LocalServerState {
         // ── HTTPS + WSS listener ─────────────────────────────────────────────
         if let Some(acc) = acceptor {
             let schema = schema.clone();
+            let peer_schema = peer_schema.clone();
             let ctx = ctx.clone();
             tauri::async_runtime::spawn(async move {
                 let listener =
@@ -141,6 +150,7 @@ impl LocalServerState {
                         stream,
                         acc.clone(),
                         schema.clone(),
+                        peer_schema.clone(),
                         ctx.clone(),
                         app_data_dir.clone(),
                     ));

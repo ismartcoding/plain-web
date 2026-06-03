@@ -38,4 +38,7 @@ export default {
   delivery_status: 'வழங்கல் நிலை',
   delivery_status_summary: '{delivered} / {total} வழங்கப்பட்டது',
   delivery_failed: 'பிழை',
+  pair_request: 'இணைப்பு கோரிக்கை',
+  allow: 'அனுமதி',
+  deny: 'மறு',
 }

@@ -100,22 +100,4 @@ const { basicInfos, systemInfos, hardwareInfos, platformInfos, batteryInfos, loa
   height: 100%;
 }
 
-@media (max-width: 1200px) and (min-width: 769px) {
-  .grids {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .grids {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 12px;
-  }
-
-  .scroll-content {
-    padding: 0 0 12px 0;
-  }
-}
-
 </style>

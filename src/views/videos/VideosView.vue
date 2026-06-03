@@ -36,7 +36,8 @@
       <div v-for="group in groupedItems" :key="group.date" class="image-group">
         <div class="group-date-label">{{ group.dateLabel }}</div>
         <div class="media-grid" :class="{ 'select-mode': checked }">
-          <MediaGridItem v-for="{ item, idx } in group.entries" :key="item.id" :item="item" :checked="checked"
+          <MediaGridItem
+v-for="{ item, idx } in group.entries" :key="item.id" :item="item" :checked="checked"
             :selected-ids="selectedIds" :shift-effecting-ids="shiftEffectingIds" :should-select="shouldSelect" :data-type="dataType"
             @item-click="handleItemClick($event, item, idx, view)" @item-mouse-enter="handleMouseOverMode($event, idx)"
             @toggle-select="toggleSelect($event, item, idx)" @view="view(idx)">
@@ -51,7 +52,8 @@
     </template>
 
     <div v-else-if="!mainStore.videosCardView" class="media-grid" :class="{ 'select-mode': checked }">
-      <MediaGridItem v-for="(item, i) in items" :key="item.id" :item="item" :checked="checked"
+      <MediaGridItem
+v-for="(item, i) in items" :key="item.id" :item="item" :checked="checked"
         :selected-ids="selectedIds" :shift-effecting-ids="shiftEffectingIds" :should-select="shouldSelect" :data-type="dataType"
         @item-click="handleItemClick($event, item, i, view)" @item-mouse-enter="handleMouseOverMode($event, i)"
         @toggle-select="toggleSelect($event, item, i)" @view="view(i)">
@@ -65,7 +67,8 @@
     </div>
 
     <div v-else class="main-list media-list" :class="{ 'select-mode': checked }">
-      <VideoListItem v-for="(item, i) in items" :key="item.id" :item="item" :index="i" :is-phone="isPhone"
+      <VideoListItem
+v-for="(item, i) in items" :key="item.id" :item="item" :index="i" :is-phone="isPhone"
         :selected-ids="selectedIds" :shift-effecting-ids="shiftEffectingIds" :should-select="shouldSelect"
         :image-error-ids="imageErrorIds" :buckets-map="bucketsMap" :filter="filter" :data-type="dataType" :tags="tags"
         :main-store="mainStore" :app="app" :handle-item-click="handleItemClick" :handle-mouse-over="handleMouseOverMode"

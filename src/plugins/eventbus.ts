@@ -40,6 +40,7 @@ type Events = {
   download_progress: any[]
   channels_updated: any[]
   peer_status_updated: { id: string, online: boolean }
+  channel_invite_received: { channelId: string, channelName: string, fromId: string, fromName: string }
   device_name_updated: string
   sms_sent: undefined
   image_search_updated: any
@@ -61,8 +62,12 @@ function createEmitter<E extends Record<string, any>>() {
     else all.delete(type)
   }
 
+   
+   
   function emit<K extends keyof E>(type: K, event: E[K]): void
+  // eslint-disable-next-line no-redeclare -- TypeScript function overloads share a name by design
   function emit<K extends keyof E>(type: undefined extends E[K] ? K : never): void
+  // eslint-disable-next-line no-redeclare -- TypeScript function overloads share a name by design
   function emit(type: any, event?: any) {
     all.get(type)?.forEach((h) => h(event))
   }

@@ -4,16 +4,6 @@
       {{ $t('discover_devices') }}
     </template>
     <template #content>
-      <!-- Incoming pair request banner -->
-      <div v-if="incomingRequest" class="pair-request-card">
-        <div class="pair-request-icon"><i-lucide:link /></div>
-        <p>{{ $t('pair_request_from', { name: incomingRequest.request.fromName }) }}</p>
-        <div class="pair-request-actions">
-          <v-outlined-button @click="reject">{{ $t('reject') }}</v-outlined-button>
-          <v-filled-button @click="accept">{{ $t('accept') }}</v-filled-button>
-        </div>
-      </div>
-
       <!-- Scanning indicator -->
       <div class="nearby-searching">
         <v-circular-progress indeterminate class="sm" />
@@ -76,7 +66,7 @@ const props = defineProps<{
 }>()
 
 const { devices: discoveredDevices, start, stop } = useDeviceDiscovery()
-const { status: pairingStatus, pairedPeerId, pairDevice, cancelPairing, acceptPairing, rejectPairing, incomingRequest } = useDevicePairing()
+const { status: pairingStatus, pairedPeerId, pairDevice, cancelPairing } = useDevicePairing()
 
 const pairingDeviceId = ref('')
 
@@ -91,16 +81,6 @@ async function cancel(d: DiscoveredDevice) {
   await cancelPairing(d.id)
   pairingDeviceId.value = ''
   start()
-}
-
-async function accept() {
-  if (!incomingRequest.value) return
-  await acceptPairing(incomingRequest.value.request, incomingRequest.value.senderIp)
-}
-
-async function reject() {
-  if (!incomingRequest.value) return
-  await rejectPairing(incomingRequest.value.request, incomingRequest.value.senderIp)
 }
 
 watch(pairingStatus, (status) => {
@@ -119,36 +99,6 @@ onUnmounted(() => stop())
 </script>
 
 <style lang="scss" scoped>
-.pair-request-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 16px;
-  margin-bottom: 12px;
-  border-radius: 12px;
-  border: 1px solid var(--md-sys-color-primary);
-  background: color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent);
-  text-align: center;
-
-  .pair-request-icon {
-    font-size: 1.5rem;
-    color: var(--md-sys-color-primary);
-  }
-
-  p {
-    margin: 0;
-    font-size: 0.9rem;
-    color: var(--md-sys-color-on-surface);
-  }
-
-  .pair-request-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 4px;
-  }
-}
-
 .nearby-searching {
   display: flex;
   align-items: center;

@@ -3,6 +3,7 @@ use std::sync::Arc;
 use tokio::sync::broadcast;
 
 use super::super::graphql::{AppCtx, LocalSchema, WsEvent};
+use super::super::peer_graphql::PeerSchema;
 use super::{http_handler, ws_handler};
 
 /// Dispatch a plain TCP connection to either the WebSocket handler or the HTTP
@@ -10,6 +11,7 @@ use super::{http_handler, ws_handler};
 pub(super) async fn serve(
     stream: tokio::net::TcpStream,
     schema: Arc<LocalSchema>,
+    peer_schema: Arc<PeerSchema>,
     ctx: Arc<AppCtx>,
     token: Arc<String>,
     event_rx: broadcast::Receiver<WsEvent>,
@@ -26,6 +28,6 @@ pub(super) async fn serve(
         }
     } else {
         let (rd, wr) = tokio::io::split(stream);
-        http_handler::handle(rd, wr, &schema, &ctx, &data_dir).await;
+        http_handler::handle(rd, wr, &schema, &peer_schema, &ctx, &data_dir).await;
     }
 }

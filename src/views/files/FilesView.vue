@@ -41,7 +41,8 @@
     <div v-show="dropping" class="drag-mask" @drop.stop.prevent="dropFiles2" @dragleave.stop.prevent="fileDragLeave">{{ $t('release_to_send_files') }}</div>
     <VirtualList v-if="items.length > 0" class="scroller main-list" :data-key="'id'" :data-sources="items" :estimate-size="80">
       <template #item="{ index, item }">
-        <FileListItem :item="item" :index="index" :selected-ids="selectedIds" :shift-effecting-ids="shiftEffectingIds"
+        <FileListItem
+:item="item" :index="index" :selected-ids="selectedIds" :shift-effecting-ids="shiftEffectingIds"
           :should-select="shouldSelect" :is-phone="isPhone" :image-error-ids="imageErrorIds"
           :extension-image-error-ids="extensionImageErrorIds" :can-paste="canPaste()" :handle-item-click="handleItemClick"
           :handle-mouse-over="handleMouseOver" :toggle-select="toggleSelect" :on-image-error="onImageError"

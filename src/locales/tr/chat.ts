@@ -38,4 +38,7 @@ export default {
   delivery_status: 'Teslimat durumu',
   delivery_status_summary: '{delivered} / {total} teslim edildi',
   delivery_failed: 'Hata',
+  pair_request: 'Eşleştirme isteği',
+  allow: 'İzin ver',
+  deny: 'Reddet',
 }

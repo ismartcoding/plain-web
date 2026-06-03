@@ -20,11 +20,8 @@ import type { IChatChannel } from '@/lib/interfaces'
 
 const props = defineProps({
   channel: { type: Object as PropType<IChatChannel>, required: true },
+  onRenamed: { type: Function as PropType<(channel: IChatChannel) => void>, default: undefined },
 })
-
-const emit = defineEmits<{
-  (e: 'renamed', channel: any): void
-}>()
 
 const name = ref(props.channel.name)
 
@@ -33,7 +30,8 @@ const { mutate, loading, onDone } = initMutation({
 })
 
 onDone((r: any) => {
-  emit('renamed', { ...r.data.updateChatChannel })
+  const renamed = { ...r.data.updateChatChannel }
+  props.onRenamed?.(renamed)
   popModal()
 })
 

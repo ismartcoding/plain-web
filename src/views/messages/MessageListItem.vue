@@ -4,7 +4,7 @@
     v-if="!isPhone"
     class="sms-item selectable-card"
     :class="{ selected: selectedIds.includes(item.id), selecting: shiftEffectingIds.includes(item.id) }"
-    @click.stop="handleItemClick($event, item, index, () => onView(index, item))"
+    @click.stop="handleItemClick($event, item, index, () => handleView(index, item))"
     @mouseenter.stop="handleMouseOver($event, index)"
   >
     <div class="start">
@@ -14,7 +14,7 @@
     </div>
     <div class="title">
       {{ getDisplayName(item.address) }}
-      <span v-if="item.type === 5" class="failed-icon" v-tooltip="$t('message_type.5')">&#x26A0;</span>
+      <span v-if="item.type === 5" v-tooltip="$t('message_type.5')" class="failed-icon">&#x26A0;</span>
     </div>
     <div class="subtitle" v-html="addLinksToURLs(item.body)"></div>
     <MessageActionButtons
@@ -44,13 +44,13 @@
     :is-selected="selectedIds.includes(item.id)"
     :is-selecting="shiftEffectingIds.includes(item.id)"
     :checkbox-checked="shiftEffectingIds.includes(item.id) ? shouldSelect : selectedIds.includes(item.id)"
-    @click="handleItemClick($event, item, index, () => onView(index, item))"
+    @click="handleItemClick($event, item, index, () => handleView(index, item))"
     @mouseenter.stop="handleMouseOver($event, index)"
     @checkbox-click="(event: MouseEvent) => toggleSelect(event, item, index)"
   >
     <template #title>
       {{ getDisplayName(item.address) }}
-      <span v-if="item.type === 5" class="failed-icon" v-tooltip="$t('message_type.5')">&#x26A0;</span>
+      <span v-if="item.type === 5" v-tooltip="$t('message_type.5')" class="failed-icon">&#x26A0;</span>
     </template>
     
     <template #subtitle>
@@ -129,7 +129,7 @@ function archive(item: IMessage) {
   emit('archive', item)
 }
 
-function onView(index: number, item: IMessage) {
+function handleView(index: number, item: IMessage) {
   props.onView?.(index, item)
 }
 </script>

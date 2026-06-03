@@ -16,13 +16,14 @@ pub struct DChannel {
 }
 
 impl DChannel {
-    pub fn new(name: &str) -> Self {
+    pub fn new(name: &str, client_id: &str) -> Self {
         let now = now_iso();
+        let members = format!(r#"[{{"id":"{}","status":"joined"}}]"#, client_id);
         Self {
             id: short_id(),
             name: name.to_string(),
             owner: "me".to_string(),
-            members: r#"[{"id":"__local__","status":"joined"}]"#.to_string(),
+            members,
             version: 1,
             status: "joined".to_string(),
             created_at: now.clone(),

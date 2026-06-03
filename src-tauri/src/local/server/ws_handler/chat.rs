@@ -54,18 +54,31 @@ pub(super) async fn handle<S>(
     let token = token.to_string();
 
     // Forward broadcast events to the client.
+    log::info!(
+        "local_server chat_ws: subscribed to event_tx for cid={cid} (initial receivers = {})",
+        event_rx.len()
+    );
     loop {
         tokio::select! {
             event = event_rx.recv() => {
                 match event {
                     Ok(ev) => {
+                        log::info!(
+                            "local_server chat_ws: forwarding event type={} to cid={cid}",
+                            ev.event_type
+                        );
                         if let Some(bytes) = encode_ws_event(&ev, &token) {
                             if sink.send(Message::Binary(bytes.into())).await.is_err() {
                                 break;
                             }
                         }
                     }
-                    Err(broadcast::error::RecvError::Lagged(_)) => continue,
+                    Err(broadcast::error::RecvError::Lagged(n)) => {
+                        log::warn!(
+                            "local_server chat_ws: lagged by {n} events for cid={cid}"
+                        );
+                        continue;
+                    }
                     Err(_) => break,
                 }
             }

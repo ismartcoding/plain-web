@@ -6,7 +6,9 @@ pub(super) const CORS: &[u8] = b"access-control-allow-origin: *\r\n\
                        access-control-allow-methods: GET, POST, PUT, DELETE, OPTIONS\r\n\
                        access-control-allow-headers: *\r\n";
 
-pub(super) async fn respond<W: AsyncWrite + Unpin>(
+/// Public to the crate so sibling modules (e.g. `peer_graphql`) can write
+/// HTTP responses without duplicating the framing logic.
+pub(crate) async fn respond<W: AsyncWrite + Unpin>(
     wr: &mut W,
     status: u16,
     reason: &str,

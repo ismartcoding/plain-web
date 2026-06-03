@@ -27,7 +27,7 @@
           <i-lucide:arrow-left-right />
         </button>
       </div>
-      <div class="actions" v-if="!localMode && app?.battery != null">
+      <div v-if="!localMode && app?.battery != null" class="actions">
         <svg class="popup-battery-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="1" y="6.5" width="18" height="11" rx="2" ry="2" />
           <line x1="23" y1="10" x2="23" y2="14" />

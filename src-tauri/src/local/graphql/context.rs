@@ -14,6 +14,7 @@ pub const WS_MESSAGE_UPDATED: i32 = 3;
 pub const WS_BOOKMARK_UPDATED: i32 = 15;
 pub const WS_CHANNELS_UPDATED: i32 = 18;
 pub const WS_PEER_STATUS_UPDATED: i32 = 20;
+pub const WS_CHANNEL_INVITE_RECEIVED: i32 = 22;
 
 #[derive(Clone, Debug)]
 pub struct WsEvent {

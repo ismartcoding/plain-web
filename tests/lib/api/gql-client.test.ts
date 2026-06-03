@@ -123,7 +123,10 @@ describe('gqlFetch', () => {
     vi.stubGlobal('fetch', vi.fn(async () => ({ status: 401, arrayBuffer: async () => new ArrayBuffer(0) })))
     Object.defineProperty(window, 'location', { value: { reload: vi.fn() }, writable: true })
 
-    try { await gqlFetch('query { me }') } catch {}
+    try { await gqlFetch('query { me }') } catch {
+      // gqlFetch is expected to throw GqlError on 401; we only care
+      // about the post-throw localStorage side effect below.
+    }
     expect(localStorage.getItem('auth_token')).toBeNull()
   })
 

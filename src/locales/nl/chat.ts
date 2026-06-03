@@ -37,4 +37,7 @@ export default {
   delivery_status: 'Bezorgstatus',
   delivery_status_summary: '{delivered} / {total} bezorgd',
   delivery_failed: 'Fout',
+  pair_request: 'Koppelingsverzoek',
+  allow: 'Toestaan',
+  deny: 'Weigeren',
 }

@@ -38,4 +38,7 @@ export default {
   delivery_status: 'Status de entrega',
   delivery_status_summary: '{delivered} / {total} entregues',
   delivery_failed: 'Erro',
+  pair_request: 'Pedido de emparelhamento',
+  allow: 'Permitir',
+  deny: 'Negar',
 }

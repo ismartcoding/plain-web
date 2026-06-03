@@ -38,4 +38,7 @@ export default {
   delivery_status: 'डिलीवरी स्थिति',
   delivery_status_summary: '{delivered} / {total} डिलीवर हुए',
   delivery_failed: 'त्रुटि',
+  pair_request: 'पेयरिंग अनुरोध',
+  allow: 'अनुमति दें',
+  deny: 'अस्वीकार करें',
 }

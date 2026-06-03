@@ -1,4 +1,4 @@
-import { ref, watch, type ComputedRef, type Ref } from 'vue'
+import { ref, watch, onUnmounted, type ComputedRef, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { initQuery, chatItemsGQL } from '@/lib/api/query'
 import { sendChatItemGQL, deleteChatItemGQL, retryChatItemGQL, initMutation } from '@/lib/api/mutation'
@@ -16,6 +16,7 @@ export function useChatMessages(chatId: ComputedRef<string>, channelId: Computed
   const { cancel: cancelTask } = useTasks()
   const deleteId = ref('')
   let initialized = false
+  let isMounted = true
 
   function scrollBottom() {
     const div = scrollContainer.value
@@ -130,7 +131,16 @@ export function useChatMessages(chatId: ComputedRef<string>, channelId: Computed
   // Real-time event bus handlers for message CRUD
   useChatEvents(chatId, chatItems, scrollBottom)
 
-  watch(chatId, () => { initialized = false; chatItems.value = []; scrollBottom() })
+  watch(chatId, () => {
+    if (!isMounted) return
+    initialized = false
+    chatItems.value = []
+    scrollBottom()
+  })
+
+  onUnmounted(() => {
+    isMounted = false
+  })
 
   return {
     chatItems, loading, sendLoading, deleteLoading,
