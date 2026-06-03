@@ -10,6 +10,7 @@ export function useChannelInfo(props: {
   selfId: string
   onClear: () => Promise<void>
   onDeleted: () => void
+  onRenamed?: (channel: IChatChannel) => void
   onMemberUpdated: () => void
 }) {
   const channel = ref({ ...props.channel })
@@ -50,7 +51,15 @@ export function useChannelInfo(props: {
 
   function addMember(peerId: string) { mutateAddMember({ id: channel.value.id, peerId }) }
   function removeMember(peerId: string) { mutateRemoveMember({ id: channel.value.id, peerId }) }
-  function openRename() { openModal(RenameChannelModal, { channel: channel.value }) }
+  function openRename() {
+    openModal(RenameChannelModal, {
+      channel: channel.value,
+      onRenamed: (renamed: IChatChannel) => {
+        channel.value = { ...renamed }
+        props.onRenamed?.(renamed)
+      },
+    })
+  }
   function close() { popModal() }
 
   return {

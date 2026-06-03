@@ -58,11 +58,11 @@ import { useChatRouteId } from './hooks/chat-route'
 import { useChatData } from './hooks/chat-data'
 import { useChatMessages } from './hooks/chat-messages'
 import { useChatUpload } from './hooks/chat-upload'
-import type { IChatItem } from '@/lib/interfaces'
+import type { IChatChannel, IChatItem } from '@/lib/interfaces'
 
 const store = useMainStore()
 const { chatId, peerId, channelId, isChannel, appDir, openFolder } = useChatRouteId()
-const { peers, peer, channel, pageTitle, getSenderName, fetchChannels } = useChatData(chatId, peerId, isChannel, channelId)
+const { peers, peer, channel, pageTitle, getSenderName, fetchChannels, updateChannel, removeChannel } = useChatData(chatId, peerId, isChannel, channelId)
 
 const chatText = computed({
   get: () => store.chatTexts[chatId.value] ?? '',
@@ -105,7 +105,8 @@ function openChatInfo() {  if (isChannel.value && channel.value) {
     openModal(ChannelInfoModal, {
       channel: channel.value, peers: peers.value, selfId: '',
       onClear: clearMessages,
-      onDeleted: () => replacePath(store, '/chat'),
+      onRenamed: (renamed: IChatChannel) => updateChannel(renamed),
+      onDeleted: () => { removeChannel(channelId.value); replacePath(store, '/chat') },
       onMemberUpdated: () => fetchChannels(),
     })
   } else {

@@ -37,7 +37,8 @@
       <div v-for="group in groupedItems" :key="group.date" class="image-group">
         <div class="group-date-label">{{ group.dateLabel }}</div>
         <div class="media-grid" :class="{ 'select-mode': checked }">
-          <MediaGridItem v-for="{ item, idx } in group.entries" :key="item.id" :item="item" :checked="checked"
+          <MediaGridItem
+v-for="{ item, idx } in group.entries" :key="item.id" :item="item" :checked="checked"
             :selected-ids="selectedIds" :shift-effecting-ids="shiftEffectingIds" :should-select="shouldSelect" :data-type="dataType"
             @item-click="(e) => handleItemClick(e, item, idx, view)" @item-mouse-enter="(e) => handleMouseOverMode(e, idx)"
             @toggle-select="(e) => toggleSelect(e, item, idx)" @view="view(idx)">
@@ -49,7 +50,8 @@
     </template>
 
     <div v-else-if="!mainStore.imagesCardView" class="media-grid" :class="{ 'select-mode': checked }">
-      <MediaGridItem v-for="(item, i) in items" :key="item.id" :item="item" :checked="checked"
+      <MediaGridItem
+v-for="(item, i) in items" :key="item.id" :item="item" :checked="checked"
         :selected-ids="selectedIds" :shift-effecting-ids="shiftEffectingIds" :should-select="shouldSelect" :data-type="dataType"
         @item-click="(e) => handleItemClick(e, item, i, view)" @item-mouse-enter="(e) => handleMouseOverMode(e, i)"
         @toggle-select="(e) => toggleSelect(e, item, i)" @view="view(i)">
@@ -60,7 +62,8 @@
     </div>
 
     <div v-else class="main-list media-list" :class="{ 'select-mode': checked }">
-      <ImageListItem v-for="(item, i) in items" :key="item.id" :item="item" :index="i" :is-phone="isPhone"
+      <ImageListItem
+v-for="(item, i) in items" :key="item.id" :item="item" :index="i" :is-phone="isPhone"
         :selected-ids="selectedIds" :shift-effecting-ids="shiftEffectingIds" :should-select="shouldSelect"
         :buckets-map="bucketsMap" :filter="filter" :data-type="dataType" :tags="tags" :main-store="mainStore" :app="app"
         :handle-item-click="handleItemClick" :handle-mouse-over="handleMouseOverMode" :toggle-select="toggleSelect"

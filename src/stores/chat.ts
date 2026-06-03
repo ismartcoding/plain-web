@@ -5,6 +5,8 @@ import type { IPeer, IChatChannel, IChatItem } from '@/lib/interfaces'
 import emitter from '@/plugins/eventbus'
 import { getCached, setCached } from '@/lib/api/cache'
 import { get as prefsGet } from '@/lib/prefs'
+import { openModal } from '@/components/modal'
+import ChannelInviteModal from '@/views/chat/ChannelInviteModal.vue'
 
 /**
  * Global store for chat peers and channels.
@@ -147,6 +149,47 @@ export const useChatStore = defineStore('chat', () => {
     setCached<IPeer[]>('chat:peers', peers.value)
   })
 
+  emitter.on('channel_invite_received', (data) => {
+    if (!data?.channelId) return
+    // De-dupe: if a modal is already up for this channel, ignore.
+    const invite = {
+      channelId: data.channelId,
+      channelName: data.channelName ?? '',
+      fromId: data.fromId ?? '',
+      fromName: data.fromName ?? '',
+    }
+    console.debug('[chat] channel_invite_received', invite)
+    try {
+      openModal(ChannelInviteModal, {
+        invite,
+        onResponded: (channelId: string, accepted: boolean) => {
+          if (!accepted) {
+            // Backend already deleted the channel and fired channels_updated.
+            // The normal listener above will refresh the list; no extra work.
+            removeChannel(channelId)
+          }
+        },
+      })
+    } catch (e) {
+      // openModal throws if another modal is already queued or the modal
+      // system is not yet initialized. Fall back to a deferred push on
+      // next tick so the user still gets prompted.
+      console.error('[chat] failed to open channel invite modal', e)
+      setTimeout(() => {
+        try {
+          openModal(ChannelInviteModal, {
+            invite,
+            onResponded: (channelId: string, accepted: boolean) => {
+              if (!accepted) removeChannel(channelId)
+            },
+          })
+        } catch (e2) {
+          console.error('[chat] deferred openModal also failed', e2)
+        }
+      }, 500)
+    }
+  })
+
   emitter.on('message_created', (items: any[]) => {
     if (!Array.isArray(items)) return
     // Newly created messages are the newest state for their chat.
@@ -219,6 +262,19 @@ export const useChatStore = defineStore('chat', () => {
     return channels.value.find((c) => c.id === id) ?? null
   }
 
+  function updateChannel(channel: IChatChannel) {
+    const next = channels.value.map((c) => c.id === channel.id ? { ...channel } : c)
+    channels.value = next
+    setCached<IChatChannel[]>('chat:channels', next)
+  }
+
+  function removeChannel(channelId: string) {
+    if (!channels.value.some((c) => c.id === channelId)) return
+    const next = channels.value.filter((c) => c.id !== channelId)
+    channels.value = next
+    setCached<IChatChannel[]>('chat:channels', next)
+  }
+
   return {
     peers,
     channels,
@@ -230,6 +286,8 @@ export const useChatStore = defineStore('chat', () => {
     joinedChannels,
     findPeer,
     findChannel,
+    updateChannel,
+    removeChannel,
     getLatestChat,
     getLatestChatPreview,
     getLatestChatCreatedAt,

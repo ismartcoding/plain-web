@@ -1,68 +1,85 @@
 <template>
-  <v-modal @close="close">
+  <v-modal @close="dismiss">
     <template #headline>{{ $t('channel_invite') }}</template>
     <template #content>
-      <p>{{ $t('channel_invite_desc', { name: channel.name }) }}</p>
-      <section class="card chat-detail-card">
-        <div class="key-value">
-          <span class="key">{{ $t('channel_name') }}</span>
-          <span class="value">{{ channel.name }}</span>
-        </div>
-        <div class="key-value">
-          <span class="key">{{ $t('channel_members') }}</span>
-          <span class="value">{{ channel.members.length }}</span>
-        </div>
-      </section>
+      <p class="desc">
+        {{ $t('channel_invite_desc', { name: invite.channelName }) }}
+      </p>
+      <p v-if="invite.fromName" class="from">
+        {{ $t('from') }}: <strong>{{ invite.fromName }}</strong>
+      </p>
     </template>
     <template #actions>
-      <v-outlined-button :loading="declineLoading" @click="decline">{{ $t('decline_invite') }}</v-outlined-button>
-      <v-filled-button :loading="acceptLoading" @click="accept">{{ $t('accept_invite') }}</v-filled-button>
+      <v-outlined-button :loading="loading" :disabled="loading" @click="respond(false)">
+        {{ $t('decline_invite') }}
+      </v-outlined-button>
+      <v-filled-button :loading="loading" :disabled="loading" @click="respond(true)">
+        {{ $t('accept_invite') }}
+      </v-filled-button>
     </template>
   </v-modal>
 </template>
 
 <script setup lang="ts">
-import type { PropType } from 'vue'
+import { ref } from 'vue'
 import { popModal } from '@/components/modal'
-import { initMutation, acceptChatChannelInviteGQL, declineChatChannelInviteGQL } from '@/lib/api/mutation'
-import type { IChatChannel } from '@/lib/interfaces'
+import { initMutation, respondChannelInviteGQL } from '@/lib/api/mutation'
 
-const props = defineProps({
-  channel: { type: Object as PropType<IChatChannel>, required: true },
-})
+interface IChannelInvite {
+  channelId: string
+  channelName: string
+  fromId: string
+  fromName: string
+}
 
-const emit = defineEmits<{
-  (e: 'accepted'): void
-  (e: 'declined'): void
+const props = defineProps<{
+  invite: IChannelInvite
+  onResponded?: (channelId: string, accepted: boolean) => void
 }>()
 
-const { mutate: mutateAccept, loading: acceptLoading, onDone: onAcceptDone } = initMutation({
-  document: acceptChatChannelInviteGQL,
-})
+const loading = ref(false)
 
-const { mutate: mutateDecline, loading: declineLoading, onDone: onDeclineDone } = initMutation({
-  document: declineChatChannelInviteGQL,
-})
+const { mutate, onDone, onError } = initMutation({ document: respondChannelInviteGQL })
 
-onAcceptDone(() => {
-  emit('accepted')
+onDone((r: any) => {
+  const accepted = !!r.data?.respondChannelInvite
+  props.onResponded?.(props.invite.channelId, accepted)
   popModal()
 })
 
-onDeclineDone(() => {
-  emit('declined')
+onError(() => {
+  // Surface the error to the user but keep the modal closed so they can
+  // retry by re-opening the chat view (the channel is persisted locally).
   popModal()
 })
 
-function accept() {
-  mutateAccept({ id: props.channel.id })
+async function respond(accept: boolean) {
+  if (loading.value) return
+  loading.value = true
+  try {
+    mutate({ id: props.invite.channelId, accept })
+  } catch (e) {
+    loading.value = false
+    throw e
+  }
 }
 
-function decline() {
-  mutateDecline({ id: props.channel.id })
-}
-
-function close() {
+function dismiss() {
+  // Dismiss without responding — treat as a temporary deferral. The channel
+  // remains in the local list; the user can re-open it from the sidebar
+  // and respond later (no GraphQL call).
   popModal()
 }
 </script>
+
+<style scoped>
+.desc {
+  margin: 0 0 8px 0;
+  line-height: 1.4;
+}
+.from {
+  margin: 0;
+  font-size: 13px;
+  opacity: 0.75;
+}
+</style>

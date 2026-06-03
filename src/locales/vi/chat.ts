@@ -38,4 +38,7 @@ export default {
   delivery_status: 'Trạng thái gửi',
   delivery_status_summary: '{delivered} / {total} đã gửi',
   delivery_failed: 'Lỗi',
+  pair_request: 'Yêu cầu ghép nối',
+  allow: 'Cho phép',
+  deny: 'Từ chối',
 }

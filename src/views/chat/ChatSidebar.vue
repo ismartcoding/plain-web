@@ -32,7 +32,7 @@
             kind="channel"
             :active="isChannelActive(channel.id)"
             :title="channel.name"
-            :subtitle="getLatestChatPreview(`channel:${channel.id}`) || $t('channels')"
+            :subtitle="getLatestChatPreview(`channel:${channel.id}`)"
             :time="getLatestChatCreatedAt(`channel:${channel.id}`)"
             @click="openChat(getChannelChatRouteId(channel.id))"
           />

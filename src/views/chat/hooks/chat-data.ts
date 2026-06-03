@@ -30,7 +30,7 @@ export function useChatData(chatId: ComputedRef<string>, peerId: ComputedRef<str
     return peer.value?.name ?? chatItem.fromId
   }
 
-  return { peers, peer, channel, pageTitle, getSenderName, fetchChannels: chatStore.fetchChannels }
+  return { peers, peer, channel, pageTitle, getSenderName, fetchChannels: chatStore.fetchChannels, updateChannel: chatStore.updateChannel, removeChannel: chatStore.removeChannel }
 }
 
 

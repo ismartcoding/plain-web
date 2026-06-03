@@ -16,5 +16,4 @@ pub use context::{
     refresh_peer_key_cache,
 };
 pub use executor::execute_graphql;
-pub use peer::create_chat_item_from_peer;
 pub use schema::{build_schema, LocalSchema};

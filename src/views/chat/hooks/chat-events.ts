@@ -1,5 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
-import { onActivated, onDeactivated } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import type { IChatItem } from '@/lib/interfaces'
 import emitter from '@/plugins/eventbus'
 
@@ -15,7 +15,7 @@ export function normalizeChatItem(item: any): IChatItem {
 export function useChatEvents(chatId: ComputedRef<string>, chatItems: Ref<IChatItem[]>, scrollBottom: () => void) {
   const handlers: Record<string, (...args: any[]) => any> = {}
 
-  onActivated(() => {
+  onMounted(() => {
     handlers.message_created = (data: any[]) => {
       const peerId = chatId.value.startsWith('peer:') ? chatId.value.slice(5) : ''
       const items = data
@@ -52,7 +52,7 @@ export function useChatEvents(chatId: ComputedRef<string>, chatItems: Ref<IChatI
     emitter.on('message_updated', handlers.message_updated)
   })
 
-  onDeactivated(() => {
+  onUnmounted(() => {
     Object.entries(handlers).forEach(([event, fn]) => emitter.off(event as any, fn))
   })
 }

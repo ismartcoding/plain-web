@@ -1,5 +1,5 @@
 <template>
-  <v-modal @close="$emit('close')" modal-id="ai-search">
+  <v-modal modal-id="ai-search" @close="$emit('close')">
     <template #headline>{{ $t('ai.image_search') }}</template>
     <template #content>
       <div v-if="!status" class="ai-modal-loading">

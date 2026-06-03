@@ -11,7 +11,7 @@
           :loading="contactsLoading"
           @select="selectContactNumber"
         >
-          <template #default="{ toggle }">
+          <template #default>
             <v-text-field
               ref="numberRef"
               v-model="number"

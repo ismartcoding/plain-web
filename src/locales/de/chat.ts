@@ -38,4 +38,7 @@ export default {
   delivery_status: 'Lieferstatus',
   delivery_status_summary: '{delivered} / {total} zugestellt',
   delivery_failed: 'Fehler',
+  pair_request: 'Kopplungsanfrage',
+  allow: 'Erlauben',
+  deny: 'Verweigern',
 }

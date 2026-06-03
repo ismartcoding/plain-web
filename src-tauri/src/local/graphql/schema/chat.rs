@@ -328,7 +328,7 @@ impl ChatMutation {
 
     async fn create_chat_channel(&self, ctx: &Context<'_>, name: String) -> ChatChannel {
         let c = ctx.data_unchecked::<Arc<AppCtx>>();
-        let ch = DChannel::new(name.trim());
+        let ch = DChannel::new(name.trim(), &c.identity.client_id);
         c.db.insert_channel(&ch);
         let channel = ChatChannel::from(ch);
         let _ = c.event_tx.send(WsEvent {
@@ -386,10 +386,144 @@ impl ChatMutation {
         true
     }
 
+    /// Mirrors plain-app `addChatChannelMember`:
+    /// 1. Channel must exist.
+    /// 2. Only the owner can add members.
+    /// 3. The peer must not already be a member.
+    /// 4. New member is appended with `status = "pending"`, version bumped,
+    ///    `updated_at` refreshed, then persisted.
+    /// 5. `ChannelSystemMessageSender.sendInvite` is a no-op in local mode
+    ///    (no peer-to-peer channel transport available); reserved for future use.
+    /// 6. Broadcasts `WS_CHANNELS_UPDATED` and returns the updated channel.
+    async fn add_chat_channel_member(
+        &self,
+        ctx: &Context<'_>,
+        id: String,
+        peer_id: String,
+    ) -> Option<ChatChannel> {
+        let c = ctx.data_unchecked::<Arc<AppCtx>>();
+        let mut ch = c.db.get_channel_by_id(&id)?;
+        if ch.owner != c.identity.client_id {
+            return None;
+        }
+        let members: Vec<serde_json::Value> =
+            serde_json::from_str(&ch.members).unwrap_or_default();
+        if members.iter().any(|m| m["id"].as_str() == Some(&peer_id)) {
+            return None;
+        }
+        // Look up the peer (allowed to be missing) — Android sends an invite
+        // when present; local mode has no outbound transport yet, so the
+        // lookup is currently informational.
+        let _peer = c.db.get_peer_by_id(&peer_id);
+        let mut new_members = members;
+        new_members.push(json!({
+            "id": peer_id,
+            "status": "pending",
+        }));
+        ch.members = serde_json::to_string(&new_members).unwrap_or_else(|_| "[]".to_string());
+        ch.version += 1;
+        ch.updated_at = now_iso();
+        c.db.update_channel(&ch);
+        let _ = c.event_tx.send(WsEvent {
+            event_type: WS_CHANNELS_UPDATED,
+            payload: "{}".to_string(),
+        });
+        Some(ChatChannel::from(ch))
+    }
+
+    /// Mirrors plain-app's `ChannelInvitePage` accept / decline buttons.
+    ///
+    /// `accept = true` keeps the already-persisted channel and pings the
+    /// owner with a `channel_invite_accept` so their `member` status moves
+    /// from `pending` to `joined`.
+    ///
+    /// `accept = false` removes the locally-stored channel and sends a
+    /// `channel_invite_decline` so the owner can drop us from the members
+    /// list.
+    async fn respond_channel_invite(
+        &self,
+        ctx: &Context<'_>,
+        id: String,
+        accept: bool,
+    ) -> bool {
+        let c = ctx.data_unchecked::<Arc<AppCtx>>();
+        let Some(ch) = c.db.get_channel_by_id(&id) else {
+            return false;
+        };
+        let owner_id = ch.owner.clone();
+        let owner_peer = c.db.get_peer_by_id(&owner_id);
+        let kp_b64 = c.identity.ed25519_keypair.clone();
+        let kp_bytes = base64_decode(&kp_b64);
+
+        if accept {
+            if let Some(peer) = owner_peer {
+                let _ = crate::local::channel::sender::send_invite_accept(
+                    &ch.id,
+                    &peer,
+                    &kp_bytes,
+                    "", // public_key: tauri does not currently extract it from the keypair
+                    &c.identity.device_name,
+                    "desktop",
+                    &c.peer_key_cache,
+                )
+                .await;
+            }
+            true
+        } else {
+            // Decline: drop the local channel and notify the owner.
+            c.db.delete_channel(&ch.id);
+            let _ = c.event_tx.send(WsEvent {
+                event_type: WS_CHANNELS_UPDATED,
+                payload: "{}".to_string(),
+            });
+            if let Some(peer) = owner_peer {
+                let _ = crate::local::channel::sender::send_invite_decline(
+                    &ch.id,
+                    &peer,
+                    &kp_bytes,
+                    &c.peer_key_cache,
+                )
+                .await;
+            }
+            false
+        }
+    }
+
     async fn accept_chat_channel_invite(&self, _ctx: &Context<'_>, _id: String) -> bool {
         true
     }
     async fn decline_chat_channel_invite(&self, _ctx: &Context<'_>, _id: String) -> bool {
         true
+    }
+
+    /// Mirrors plain-app `PeerGraphQL.channelSystemMessage` mutation.
+    ///
+    /// `from_id` is taken from the `c-id` request header (set by the peer's
+    /// transport layer) and `type` / `payload` come from the GraphQL
+    /// variables. The actual dispatch lives in
+    /// `local::channel::handler::handle` so the schema is consistent with
+    /// plain-app but the heavy lifting goes through the same code path
+    /// used by the bypassed-schema HTTP handler in
+    /// `local::server::http_handler`.
+    async fn channel_system_message(
+        &self,
+        ctx: &Context<'_>,
+        r#type: String,
+        payload: String,
+    ) -> bool {
+        // The schema-driven path doesn't have direct access to the
+        // `c-id` header, so callers that reach this mutation must
+        // identify themselves through the request context. The HTTP
+        // handler bypasses this resolver and calls
+        // `channel_system_message_from_peer` directly.
+        let c = ctx.data_unchecked::<Arc<AppCtx>>();
+        crate::local::channel::handler::handle(
+            &c.db,
+            &c.identity.client_id,
+            "(schema)",
+            &r#type,
+            &payload,
+            &c.event_tx,
+        )
     }
 }

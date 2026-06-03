@@ -4,6 +4,7 @@ use tokio::io::AsyncBufReadExt;
 use tokio_rustls::TlsAcceptor;
 
 use super::super::graphql::{AppCtx, LocalSchema};
+use super::super::peer_graphql::PeerSchema;
 use super::{http_handler, ws_handler};
 
 /// Dispatch a TLS connection to either the WebSocket handler or the HTTP
@@ -13,6 +14,7 @@ pub(super) async fn serve(
     stream: tokio::net::TcpStream,
     acc: Arc<TlsAcceptor>,
     schema: Arc<LocalSchema>,
+    peer_schema: Arc<PeerSchema>,
     ctx: Arc<AppCtx>,
     data_dir: PathBuf,
 ) {
@@ -37,6 +39,6 @@ pub(super) async fn serve(
         }
     } else {
         let (rd, wr) = tokio::io::split(peek_reader);
-        http_handler::handle(rd, wr, &schema, &ctx, &data_dir).await;
+        http_handler::handle(rd, wr, &schema, &peer_schema, &ctx, &data_dir).await;
     }
 }

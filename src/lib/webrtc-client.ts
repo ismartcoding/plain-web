@@ -51,7 +51,10 @@ export class WebRTCClient {
         if ('jitterBufferTarget' in receiver) {
           receiver.jitterBufferTarget = 0
         }
-      } catch (_) {}
+      } catch (_) {
+        // jitterBufferTarget is a non-standard hint that older browsers
+        // may reject; we just skip it and continue with the stream.
+      }
 
       if (event.streams && event.streams.length > 0) {
         this.options.onStream(event.streams[0])

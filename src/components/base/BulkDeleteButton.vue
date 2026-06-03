@@ -1,5 +1,5 @@
 <template>
-  <v-icon-button v-tooltip="$t('delete')" :id="btnId" @click.stop="$emit('click')">
+  <v-icon-button :id="btnId" v-tooltip="$t('delete')" @click.stop="$emit('click')">
     <i-material-symbols:delete-forever-outline-rounded />
   </v-icon-button>
   <v-dropdown-menu v-model="open" :anchor="btnId">

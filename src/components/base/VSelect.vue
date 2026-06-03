@@ -52,7 +52,12 @@ interface Props {
   size?: 'sm' | 'lg'
 }
 
-const props = withDefaults(defineProps<Props>(), { options: () => [], size: 'lg' })
+const props = withDefaults(defineProps<Props>(), {
+  modelValue: undefined,
+  placeholder: '',
+  options: () => [],
+  size: 'lg',
+})
 
 const emit = defineEmits<{
   'update:modelValue': [value: string | number]

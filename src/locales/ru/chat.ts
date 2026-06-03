@@ -38,4 +38,7 @@ export default {
   delivery_status: 'Статус доставки',
   delivery_status_summary: '{delivered} / {total} доставлено',
   delivery_failed: 'Ошибка',
+  pair_request: 'Запрос на сопряжение',
+  allow: 'Разрешить',
+  deny: 'Отклонить',
 }

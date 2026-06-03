@@ -21,6 +21,9 @@ export async function showDesktopNotification(options: DesktopNotificationOption
         await invoke('send_macos_notification', { options })
         return
       } catch {
+        // Fall through to sendNotification below if the macOS-specific
+        // Tauri command isn't available in this build (e.g. dev mode
+        // running the web bundle without the Tauri runtime wired up).
       }
     }
 

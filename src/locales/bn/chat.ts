@@ -38,4 +38,7 @@ export default {
   delivery_status: 'ডেলিভারি স্ট্যাটাস',
   delivery_status_summary: '{delivered} / {total} ডেলিভার হয়েছে',
   delivery_failed: 'ত্রুটি',
+  pair_request: 'পেয়ারিং অনুরোধ',
+  allow: 'অনুমতি দিন',
+  deny: 'অস্বীকার করুন',
 }

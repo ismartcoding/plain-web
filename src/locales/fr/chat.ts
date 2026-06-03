@@ -38,4 +38,7 @@ export default {
   delivery_status: 'Statut de livraison',
   delivery_status_summary: '{delivered} / {total} livré(s)',
   delivery_failed: 'Erreur',
+  pair_request: 'Demande d\'appairage',
+  allow: 'Autoriser',
+  deny: 'Refuser',
 }

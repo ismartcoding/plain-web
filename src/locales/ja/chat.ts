@@ -37,4 +37,7 @@ export default {
   delivery_status: '配信状態',
   delivery_status_summary: '{delivered} / {total} 件配信済み',
   delivery_failed: 'エラー',
+  pair_request: 'ペアリング要求',
+  allow: '許可',
+  deny: '拒否',
 }

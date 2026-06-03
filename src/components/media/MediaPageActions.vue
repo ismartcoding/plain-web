@@ -15,7 +15,7 @@
       <div v-if="upload.onEditDir || upload.dir" class="upload-dest-row">
         <span class="upload-dest-label">{{ $t('save_to') }}</span>
         <span class="upload-dest-path" :title="upload.dir || ''">{{ upload.dir || '—' }}</span>
-        <v-icon-button v-if="upload.editable && upload.onEditDir" class="upload-dest-edit" v-tooltip="$t('edit')" @click.stop="handleEditUploadDir">
+        <v-icon-button v-if="upload.editable && upload.onEditDir" v-tooltip="$t('edit')" class="upload-dest-edit" @click.stop="handleEditUploadDir">
           <i-material-symbols:edit-outline-rounded />
         </v-icon-button>
       </div>
@@ -60,9 +60,9 @@
       :sort-by="sort.sortBy"
       :sort-items="sort.items"
       :on-open-keyboard-shortcuts="openKeyboardShortcuts"
-      @update:groupBy="options.onUpdateGroupBy?.($event)"
-      @update:scrollPaging="options.onUpdateScrollPaging($event)"
-      @update:sortBy="sort.onSort($event)"
+      @update:group-by="options.onUpdateGroupBy?.($event)"
+      @update:scroll-paging="options.onUpdateScrollPaging($event)"
+      @update:sort-by="sort.onSort($event)"
     />
   </template>
 
