@@ -35,26 +35,33 @@ export const useSelectable = (items: Ref<IData[]>) => {
   }
 
   const toggleShiftSelection = (item: IData, index: number) => {
-    // if (shiftEffectingIds.value.length === 0) {
-    //   shiftEffectingIds.value = getShiftEffectingIds(index)
-    // }
-    if (lastCheckedIndex.value !== null && lastCheckedIndex.value !== index && shiftEffectingIds.value.length > 0) {
+    // 没有锚点或点了同一项，回退到普通 toggle
+    if (lastCheckedIndex.value === null || lastCheckedIndex.value === index) {
+      checkItem(!selectedIds.value.includes(item.id), item, index)
+      return
+    }
+    // 优先用 hover 预览的 ids；没有预览就实时计算区间，让"裸 shift+click"也能范围选择
+    const ids = shiftEffectingIds.value.length > 0
+      ? shiftEffectingIds.value
+      : getShiftEffectingIds(index)
+    if (ids.length > 0) {
       if (shouldSelect.value) {
-        for (const id of shiftEffectingIds.value) {
+        for (const id of ids) {
           if (!selectedIds.value.includes(id)) {
             selectedIds.value.push(id)
           }
         }
       } else {
-        selectedIds.value = selectedIds.value.filter((it) => !shiftEffectingIds.value.includes(it))
+        selectedIds.value = selectedIds.value.filter((it) => !ids.includes(it))
       }
-      shiftEffectingIds.value = []
-      lastCheckedIndex.value = index
-      shouldSelect.value = selectedIds.value.includes(item.id)
-      updateAllCheckState(shouldSelect.value)
     } else {
       checkItem(!selectedIds.value.includes(item.id), item, index)
+      return
     }
+    shiftEffectingIds.value = []
+    lastCheckedIndex.value = index
+    shouldSelect.value = selectedIds.value.includes(item.id)
+    updateAllCheckState(shouldSelect.value)
   }
 
   const checkItem = (checked: boolean, item: IData, index: number) => {
