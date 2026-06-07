@@ -44,6 +44,7 @@ impl PeerMutation {
             &c.channel_id,
             &content,
             c.event_tx(),
+            &c.app.token,
         )
     }
 
@@ -56,6 +57,7 @@ impl PeerMutation {
         payload: String,
     ) -> bool {
         let c = ctx.data_unchecked::<PeerCtx>();
+        let kp_bytes = crate::crypto::base64_decode(&c.app.identity.ed25519_keypair);
         channel_system_message_from_peer(
             c.db(),
             &c.client_id,
@@ -63,6 +65,9 @@ impl PeerMutation {
             &r#type,
             &payload,
             c.event_tx(),
+            &c.app.peer_key_cache,
+            &c.app.channel_key_cache,
+            &kp_bytes,
         )
     }
 }

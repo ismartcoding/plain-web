@@ -1,11 +1,12 @@
 use serde_json::{json, Value};
 use std::sync::Arc;
-use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncReadExt, AsyncWrite};
+use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncWrite};
 
 use super::super::graphql::{execute_graphql, AppCtx, LocalSchema};
 use super::super::peer_graphql::{self, PeerSchema};
 use super::file_server::serve_file;
 use super::response::{respond, APP_ID};
+use super::upload;
 use crate::crypto::{xchacha_decrypt, xchacha_encrypt};
 
 pub(super) async fn handle<R, W>(
@@ -19,6 +20,7 @@ pub(super) async fn handle<R, W>(
     R: AsyncRead + Unpin,
     W: AsyncWrite + Unpin,
 {
+    let _ = data_dir; // /fs now uses ctx.data_dir via the file_server handler.
     let mut reader = tokio::io::BufReader::new(rd);
 
     let mut req_line = String::new();
@@ -39,7 +41,8 @@ pub(super) async fn handle<R, W>(
         .map(|(p, q)| (p.to_owned(), q.to_owned()))
         .unwrap_or_else(|| (raw_path.clone(), String::new()));
 
-    let mut content_length = 0usize;
+    let mut content_type = String::new();
+    let mut content_length: usize = 0;
     let mut header_client_id = String::new();
     let mut header_channel_id = String::new();
     loop {
@@ -54,7 +57,9 @@ pub(super) async fn handle<R, W>(
         if let Some((k, v)) = line.split_once(':') {
             let k = k.trim();
             let v = v.trim();
-            if k.eq_ignore_ascii_case("content-length") {
+            if k.eq_ignore_ascii_case("content-type") {
+                content_type = v.to_string();
+            } else if k.eq_ignore_ascii_case("content-length") {
                 content_length = v.parse().unwrap_or(0);
             } else if k.eq_ignore_ascii_case("c-id") {
                 header_client_id = v.to_string();
@@ -69,18 +74,31 @@ pub(super) async fn handle<R, W>(
         return;
     }
 
-    let mut body = vec![0u8; content_length];
-    if content_length > 0 && reader.read_exact(&mut body).await.is_err() {
-        return;
-    }
-
     match (method.as_str(), path.as_str()) {
         ("GET", "/health") => respond(&mut wr, 200, "OK", APP_ID.as_bytes(), "text/plain").await,
         ("POST", "/init") => respond(&mut wr, 200, "OK", b"", "text/plain").await,
         ("GET", "/fs") => {
-            serve_file(&mut wr, &query_str, data_dir).await;
+            serve_file(&mut wr, &query_str, ctx).await;
+        }
+        ("POST", "/upload") => {
+            if header_client_id.is_empty() || header_client_id != ctx.identity.client_id {
+                respond(&mut wr, 401, "Unauthorized", b"", "text/plain").await;
+                return;
+            }
+            upload::handle_upload(reader, wr, ctx, &content_type, content_length).await;
+        }
+        ("POST", "/upload_chunk") => {
+            if header_client_id.is_empty() || header_client_id != ctx.identity.client_id {
+                respond(&mut wr, 401, "Unauthorized", b"", "text/plain").await;
+                return;
+            }
+            upload::handle_upload_chunk(reader, wr, ctx, &content_type, content_length).await;
         }
         ("POST", "/graphql") => {
+            let mut body = vec![0u8; content_length];
+            if content_length > 0 && tokio::io::AsyncReadExt::read_exact(&mut reader, &mut body).await.is_err() {
+                return;
+            }
             let Some(plaintext) = xchacha_decrypt(&ctx.token, &body) else {
                 respond(&mut wr, 401, "Unauthorized", b"", "text/plain").await;
                 return;
@@ -97,6 +115,10 @@ pub(super) async fn handle<R, W>(
             }
         }
         ("POST", "/peer_graphql") => {
+            let mut body = vec![0u8; content_length];
+            if content_length > 0 && tokio::io::AsyncReadExt::read_exact(&mut reader, &mut body).await.is_err() {
+                return;
+            }
             peer_graphql::handle(
                 &mut wr,
                 &body,

@@ -13,6 +13,7 @@ mod chat;
 mod peer;
 mod utils;
 
+pub use app_file::DAppFile;
 pub use bookmark::{DBookmark, DBookmarkGroup};
 pub use channel::DChannel;
 pub use chat::DChat;
@@ -64,6 +65,7 @@ impl ChatDb {
                 name       TEXT NOT NULL DEFAULT '',
                 owner      TEXT NOT NULL DEFAULT 'me',
                 members    TEXT NOT NULL DEFAULT '[]',
+                key        TEXT NOT NULL DEFAULT '',
                 version    INTEGER NOT NULL DEFAULT 1,
                 status     TEXT NOT NULL DEFAULT 'joined',
                 created_at TEXT NOT NULL DEFAULT '',
@@ -93,6 +95,7 @@ impl ChatDb {
             );
             CREATE INDEX IF NOT EXISTS idx_app_files_weak ON app_files(size, weak_hash);",
         )?;
+        Self::run_migrations(&conn)?;
         conn.execute_batch(
             "CREATE TABLE IF NOT EXISTS bookmarks (
                 id              TEXT PRIMARY KEY,
@@ -118,5 +121,22 @@ impl ChatDb {
             );",
         )?;
         Ok(ChatDb(Arc::new(Mutex::new(conn))))
+    }
+
+    fn run_migrations(conn: &Connection) -> rusqlite::Result<()> {
+        Self::ensure_column(conn, "chat_channels", "key", "TEXT NOT NULL DEFAULT ''")?;
+        Ok(())
+    }
+
+    fn ensure_column(conn: &Connection, table: &str, column: &str, definition: &str) -> rusqlite::Result<()> {
+        let mut stmt = conn.prepare(&format!("PRAGMA table_info({table})"))?;
+        let exists = stmt
+            .query_map([], |row| row.get::<_, String>(1))?
+            .filter_map(|r| r.ok())
+            .any(|name| name == column);
+        if !exists {
+            conn.execute(&format!("ALTER TABLE {table} ADD COLUMN {column} {definition}"), [])?;
+        }
+        Ok(())
     }
 }

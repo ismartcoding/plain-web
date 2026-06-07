@@ -25,6 +25,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { isMacPlatform, isMobilePlatform } from '@/lib/platform'
 
 interface ShortcutItem {
   keys: string[]
@@ -38,16 +39,14 @@ defineProps<{
 const shortcutsMenuVisible = ref(false)
 const hasKeyboard = ref(false)
 
-const isMac = computed(() => {
-  return /Mac|iPhone|iPad|iPod/.test(navigator.userAgent)
-})
+const isMac = computed(() => isMacPlatform())
 
 const modifierKey = computed(() => {
   return isMac.value ? 'Cmd' : 'Ctrl'
 })
 
 function detectKeyboard() {
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+  const isMobile = isMobilePlatform()
   const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0
   const isLargeScreen = window.innerWidth >= 768
 

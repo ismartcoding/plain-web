@@ -50,7 +50,13 @@ pub async fn handle<W>(
     log::info!("[/peer_graphql] request from c-id={header_client_id}");
 
     // ── 1. Authenticate ──────────────────────────────────────────────────
-    let authed = match authenticate(&ctx.db, header_client_id, body) {
+    let authed = match authenticate(
+        &ctx.db,
+        header_client_id,
+        header_channel_id,
+        body,
+        &ctx.channel_key_cache,
+    ) {
         Ok(a) => a,
         Err(e) => {
             log::warn!("[/peer_graphql] auth failed: {}", e.reason());

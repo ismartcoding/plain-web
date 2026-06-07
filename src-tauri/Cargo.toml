@@ -29,6 +29,8 @@ tauri-plugin-opener = "2.5.4"
 tauri-plugin-store = "2"
 tauri-plugin-notification = "2.3.3"
 tauri-plugin-log = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
 # XChaCha20-Poly1305 for local server request encryption — required for security correctness.
 chacha20poly1305 = "0.10"
 # Self-signed TLS certificate generation for local HTTPS server.

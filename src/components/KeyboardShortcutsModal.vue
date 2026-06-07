@@ -27,6 +27,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { popModal } from '@/components/modal'
+import { isMacPlatform } from '@/lib/platform'
 import type { ShortcutItem } from '@/lib/shortcuts/media'
 
 const { t: $t } = useI18n()
@@ -36,9 +37,7 @@ defineProps<{
   title?: string
 }>()
 
-const isMac = computed(() => {
-  return /Mac|iPhone|iPad|iPod/.test(navigator.userAgent)
-})
+const isMac = computed(() => isMacPlatform())
 
 const modifierKey = computed(() => {
   return isMac.value ? 'Cmd' : 'Ctrl'

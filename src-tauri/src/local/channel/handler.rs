@@ -4,14 +4,20 @@
 //! `plain-app/.../channel/ChannelSystemMessageHandler.kt`). Each
 //! handler mutates the local DB and broadcasts `WS_CHANNELS_UPDATED`
 //! when the channel set changes.
+//!
+//! `handle_leave` and `handle_invite_accept` additionally call
+//! `broadcast_update` to propagate the new member roster / version
+//! to every other member, matching Kotlin's behaviour.
 
 use tokio::sync::broadcast;
 
 use serde_json::{json, Value};
 
+use crate::crypto::base64_decode;
 use crate::local::db::{now_iso, ChatDb, DPeer};
 use crate::local::graphql::context::{
-    WsEvent, WS_CHANNEL_INVITE_RECEIVED, WS_CHANNELS_UPDATED,
+    load_key_cache, ChannelKeyCache, PeerKeyCache, WsEvent, WS_CHANNEL_INVITE_RECEIVED,
+    WS_CHANNELS_UPDATED,
 };
 
 use super::messages::*;
@@ -22,6 +28,14 @@ use super::messages::*;
 ///
 /// `client_id` is the local device's own peer id (used to compare against
 /// `owner == "me"` and to filter self out of the members list).
+///
+/// `kp_bytes` is the local Ed25519 keypair, used to sign outbound
+/// `broadcast_update` traffic for `handle_leave` / `handle_invite_accept`.
+///
+/// `peer_key_cache` and `channel_key_cache` are used to encrypt the
+/// outbound broadcast payload and to refresh the local channel key
+/// cache after `handle_invite_accept` (mirrors Kotlin's
+/// `ChatCacheManager.loadKeyCacheAsync`).
 pub fn handle(
     db: &ChatDb,
     client_id: &str,
@@ -29,14 +43,34 @@ pub fn handle(
     msg_type: &str,
     payload: &str,
     event_tx: &broadcast::Sender<WsEvent>,
+    kp_bytes: &[u8],
+    peer_key_cache: &PeerKeyCache,
+    channel_key_cache: &ChannelKeyCache,
 ) -> bool {
     let result = match msg_type {
         TYPE_INVITE => handle_invite(db, client_id, from_id, payload, event_tx),
-        TYPE_INVITE_ACCEPT => handle_invite_accept(db, client_id, from_id, payload),
+        TYPE_INVITE_ACCEPT => handle_invite_accept(
+            db,
+            client_id,
+            from_id,
+            payload,
+            event_tx,
+            kp_bytes,
+            peer_key_cache,
+            channel_key_cache,
+        ),
         TYPE_INVITE_DECLINE => handle_invite_decline(db, client_id, from_id, payload),
         TYPE_UPDATE => handle_update(db, client_id, from_id, payload),
         TYPE_KICK => handle_kick(db, client_id, from_id, payload),
-        TYPE_LEAVE => handle_leave(db, client_id, from_id, payload),
+        TYPE_LEAVE => handle_leave(
+            db,
+            client_id,
+            from_id,
+            payload,
+            event_tx,
+            kp_bytes,
+            peer_key_cache,
+        ),
         other => {
             log::warn!("[channel] unknown system message type: {other}");
             return false;
@@ -73,6 +107,7 @@ fn handle_invite(
     let version = msg["version"].as_i64().unwrap_or(0);
     let members_arr = msg["members"].as_array().cloned().unwrap_or_default();
     let member_peers = msg["memberPeers"].as_array().cloned().unwrap_or_default();
+    let key = msg["key"].as_str().unwrap_or("");
 
     if channel_id.is_empty() {
         log::warn!("[channel] invite missing channelId");
@@ -137,6 +172,9 @@ fn handle_invite(
         ch.name = channel_name.to_string();
         ch.owner = from_id.to_string();
         ch.members = encode_members(&members_arr);
+        if !key.is_empty() {
+            ch.key = key.to_string();
+        }
         ch.version = version;
         ch.status = CHANNEL_STATUS_JOINED.to_string();
         ch.updated_at = now_iso();
@@ -149,6 +187,7 @@ fn handle_invite(
             name: channel_name.to_string(),
             owner: from_id.to_string(),
             members: encode_members(&members_arr),
+            key: key.to_string(),
             version,
             status: CHANNEL_STATUS_JOINED.to_string(),
             created_at: now.clone(),
@@ -185,7 +224,16 @@ fn handle_invite(
 
 // ── ChannelInviteAccept ─────────────────────────────────────────────────────
 
-fn handle_invite_accept(db: &ChatDb, client_id: &str, from_id: &str, payload: &str) -> bool {
+fn handle_invite_accept(
+    db: &ChatDb,
+    client_id: &str,
+    from_id: &str,
+    payload: &str,
+    event_tx: &broadcast::Sender<WsEvent>,
+    kp_bytes: &[u8],
+    peer_key_cache: &PeerKeyCache,
+    channel_key_cache: &ChannelKeyCache,
+) -> bool {
     let msg: Value = match serde_json::from_str(payload) {
         Ok(v) => v,
         Err(e) => {
@@ -252,6 +300,35 @@ fn handle_invite_accept(db: &ChatDb, client_id: &str, from_id: &str, payload: &s
     ch.version += 1;
     ch.updated_at = now_iso();
     db.update_channel(&ch);
+
+    // Mirror Kotlin: refresh key cache + broadcast the new roster so
+    // existing members see the accepter as `joined` on next sync.
+    load_key_cache(db, peer_key_cache, channel_key_cache);
+    let channel_key = base64_decode(&ch.key);
+    if !channel_key.is_empty() {
+        let broadcast_ch = ch.clone();
+        let broadcast_db = db.clone();
+        let broadcast_peer_key_cache = peer_key_cache.clone();
+        let broadcast_event_tx = event_tx.clone();
+        let broadcast_kp_bytes = kp_bytes.to_vec();
+        let client_id_owned = client_id.to_string();
+        tokio::spawn(async move {
+            crate::local::channel::sender::broadcast_update(
+                &broadcast_ch,
+                &client_id_owned,
+                &broadcast_kp_bytes,
+                &broadcast_db,
+                &broadcast_peer_key_cache,
+                &channel_key,
+            )
+            .await;
+            let _ = broadcast_event_tx.send(WsEvent {
+                event_type: WS_CHANNELS_UPDATED,
+                payload: "{}".to_string(),
+            });
+        });
+    }
+
     log::info!("[channel] peer {from_id} accepted invite for {channel_id}");
     true
 }
@@ -389,7 +466,15 @@ fn handle_kick(db: &ChatDb, client_id: &str, from_id: &str, payload: &str) -> bo
 
 // ── ChannelLeave ────────────────────────────────────────────────────────────
 
-fn handle_leave(db: &ChatDb, client_id: &str, from_id: &str, payload: &str) -> bool {
+fn handle_leave(
+    db: &ChatDb,
+    client_id: &str,
+    from_id: &str,
+    payload: &str,
+    event_tx: &broadcast::Sender<WsEvent>,
+    kp_bytes: &[u8],
+    peer_key_cache: &PeerKeyCache,
+) -> bool {
     let msg: Value = match serde_json::from_str(payload) {
         Ok(v) => v,
         Err(e) => {
@@ -413,6 +498,33 @@ fn handle_leave(db: &ChatDb, client_id: &str, from_id: &str, payload: &str) -> b
     ch.version += 1;
     ch.updated_at = now_iso();
     db.update_channel(&ch);
+
+    // Mirror Kotlin: tell every other member that the leaver is gone
+    // and the roster version has moved.
+    let channel_key = base64_decode(&ch.key);
+    if !channel_key.is_empty() {
+        let broadcast_ch = ch.clone();
+        let broadcast_db = db.clone();
+        let broadcast_peer_key_cache = peer_key_cache.clone();
+        let broadcast_event_tx = event_tx.clone();
+        let broadcast_kp_bytes = kp_bytes.to_vec();
+        let client_id_owned = client_id.to_string();
+        tokio::spawn(async move {
+            crate::local::channel::sender::broadcast_update(
+                &broadcast_ch,
+                &client_id_owned,
+                &broadcast_kp_bytes,
+                &broadcast_db,
+                &broadcast_peer_key_cache,
+                &channel_key,
+            )
+            .await;
+            let _ = broadcast_event_tx.send(WsEvent {
+                event_type: WS_CHANNELS_UPDATED,
+                payload: "{}".to_string(),
+            });
+        });
+    }
     log::info!("[channel] peer {from_id} left {channel_id}");
     true
 }

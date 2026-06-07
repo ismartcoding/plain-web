@@ -96,8 +96,53 @@ function uploadImagesChanged(e: Event) {
 }
 
 function sendImages() {
-  imageInput.value!.value = ''
-  imageInput.value!.click()
+  if (__IS_TAURI__) {
+    pickImagesViaTauri()
+  } else {
+    imageInput.value!.value = ''
+    imageInput.value!.click()
+  }
+}
+
+const IMAGE_MIME: Record<string, string> = {
+  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif',
+  webp: 'image/webp', bmp: 'image/bmp', heic: 'image/heic', heif: 'image/heif',
+  avif: 'image/avif', apng: 'image/apng', tiff: 'image/tiff', tif: 'image/tiff', svg: 'image/svg+xml',
+}
+const VIDEO_MIME: Record<string, string> = {
+  mp4: 'video/mp4', mov: 'video/quicktime', m4v: 'video/x-m4v',
+  webm: 'video/webm', mkv: 'video/x-matroska', avi: 'video/x-msvideo',
+  '3gp': 'video/3gpp', '3gpp': 'video/3gpp',
+}
+function mimeFromName(name: string): string {
+  const ext = name.toLowerCase().split('.').pop() || ''
+  return IMAGE_MIME[ext] || VIDEO_MIME[ext] || ''
+}
+
+async function pickImagesViaTauri() {
+  const { open } = await import('@tauri-apps/plugin-dialog')
+  const { readFile } = await import('@tauri-apps/plugin-fs')
+  const selected = await open({
+    multiple: true,
+    filters: [{
+      name: 'Media',
+      extensions: [
+        'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'heic', 'heif', 'avif', 'apng', 'tiff', 'tif', 'svg',
+        'mp4', 'mov', 'm4v', 'webm', 'mkv', 'avi', '3gp', '3gpp',
+      ],
+    }],
+  })
+  if (!selected) return
+  const paths = (Array.isArray(selected) ? selected : [selected]) as string[]
+  const files: File[] = []
+  for (const p of paths) {
+    const bytes = await readFile(p)
+    const name = p.split('/').pop() || 'file'
+    files.push(new File([bytes], name, { type: mimeFromName(name) }))
+  }
+  if (files.length) {
+    emit('send-images', files)
+  }
 }
 
 function sendFiles() {

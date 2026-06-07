@@ -155,6 +155,71 @@ impl ChatDb {
         .ok()
     }
 
+    pub fn get_all_chats(&self) -> Vec<DChat> {
+        let conn = self.0.lock().unwrap();
+        let mut stmt = match conn.prepare(
+            "SELECT id,from_id,to_id,channel_id,content,status,status_data,created_at,updated_at \
+             FROM chats ORDER BY created_at ASC",
+        ) {
+            Ok(s) => s,
+            Err(_) => return vec![],
+        };
+        stmt.query_map(params![], |row| {
+            Ok(DChat {
+                id: row.get(0)?,
+                from_id: row.get(1)?,
+                to_id: row.get(2)?,
+                channel_id: row.get(3)?,
+                content: row.get(4)?,
+                status: row.get(5)?,
+                status_data: row.get(6)?,
+                created_at: row.get(7)?,
+                updated_at: row.get(8)?,
+            })
+        })
+        .ok()
+        .map(|iter| iter.filter_map(|r| r.ok()).collect())
+        .unwrap_or_default()
+    }
+
+    pub fn get_all_latest_chats(&self) -> Vec<DChat> {
+        let conn = self.0.lock().unwrap();
+        let mut stmt = match conn.prepare(
+            "SELECT id,from_id,to_id,channel_id,content,status,status_data,created_at,updated_at \
+             FROM chats c \
+             INNER JOIN ( \
+                 SELECT '' as from_id, '' as to_id, channel_id, MAX(created_at) as max_created_at \
+                 FROM chats WHERE channel_id != '' GROUP BY channel_id \
+                 UNION ALL \
+                 SELECT from_id, to_id, '' as channel_id, MAX(created_at) as max_created_at \
+                 FROM chats WHERE channel_id = '' GROUP BY from_id, to_id \
+             ) latest ON ( \
+                 (c.channel_id != '' AND c.channel_id = latest.channel_id AND c.created_at = latest.max_created_at) \
+                 OR (c.channel_id = '' AND c.from_id = latest.from_id AND c.to_id = latest.to_id AND c.created_at = latest.max_created_at) \
+             ) \
+             ORDER BY c.created_at DESC",
+        ) {
+            Ok(s) => s,
+            Err(_) => return vec![],
+        };
+        stmt.query_map(params![], |row| {
+            Ok(DChat {
+                id: row.get(0)?,
+                from_id: row.get(1)?,
+                to_id: row.get(2)?,
+                channel_id: row.get(3)?,
+                content: row.get(4)?,
+                status: row.get(5)?,
+                status_data: row.get(6)?,
+                created_at: row.get(7)?,
+                updated_at: row.get(8)?,
+            })
+        })
+        .ok()
+        .map(|iter| iter.filter_map(|r| r.ok()).collect())
+        .unwrap_or_default()
+    }
+
     pub fn delete_chats_by_channel(&self, channel_id: &str) {
         let conn = self.0.lock().unwrap();
         let _ = conn.execute("DELETE FROM chats WHERE channel_id=?", params![channel_id]);
