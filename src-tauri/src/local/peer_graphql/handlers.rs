@@ -10,7 +10,7 @@ use crate::local::db::{ChatDb, DChat};
 use crate::local::graphql::context::{
     WsEvent, WS_CHANNELS_UPDATED, WS_MESSAGE_CREATED,
 };
-use crate::local::graphql::schema::types::ChatItem;
+use crate::local::graphql::schema::types::{chat_item_data_from_content, ChatItem};
 use serde_json::{json, Value};
 use tokio::sync::broadcast;
 
@@ -23,14 +23,35 @@ pub fn create_chat_item_from_peer(
     channel_id: &str,
     content: &str,
     event_tx: &broadcast::Sender<WsEvent>,
+    token: &str,
 ) -> ChatItem {
+    // Channel membership gate (mirrors Kotlin's
+    // `PeerGraphQL.createChatItem` IllegalStateException("Channel not joined")).
+    if !channel_id.is_empty() {
+        match db.get_channel_by_id(channel_id) {
+            Some(ch) if ch.status == "joined" || ch.status == "kicked" => {}
+            Some(_) => {
+                log::warn!(
+                    "[peer_graphql] dropping chat for channel {channel_id} in status {}",
+                    db.get_channel_by_id(channel_id)
+                        .map(|c| c.status)
+                        .unwrap_or_default()
+                );
+                return ChatItem::from(DChat::new(from_id, "", channel_id, content));
+            }
+            None => {
+                log::warn!("[peer_graphql] dropping chat for unknown channel {channel_id}");
+                return ChatItem::from(DChat::new(from_id, "", channel_id, content));
+            }
+        }
+    }
     let to_id = if channel_id.is_empty() { "me" } else { "" };
     let chat = DChat::new(from_id, to_id, channel_id, content);
     db.insert_chat(&chat);
-    let item = ChatItem::from(chat.clone());
+    let item = ChatItem::with_data(chat.clone(), token);
     let _ = event_tx.send(WsEvent {
         event_type: WS_MESSAGE_CREATED,
-        payload: json!([item_to_json(&chat)]).to_string(),
+        payload: json!([item_to_json(&chat, token)]).to_string(),
     });
     item
 }
@@ -51,9 +72,20 @@ pub fn channel_system_message_from_peer(
     msg_type: &str,
     payload: &str,
     event_tx: &broadcast::Sender<WsEvent>,
+    peer_key_cache: &crate::local::graphql::context::PeerKeyCache,
+    channel_key_cache: &crate::local::graphql::context::ChannelKeyCache,
+    kp_bytes: &[u8],
 ) -> bool {
     let ok = crate::local::channel::handler::handle(
-        db, client_id, from_id, msg_type, payload, event_tx,
+        db,
+        client_id,
+        from_id,
+        msg_type,
+        payload,
+        event_tx,
+        kp_bytes,
+        peer_key_cache,
+        channel_key_cache,
     );
     let _ = event_tx.send(WsEvent {
         event_type: WS_CHANNELS_UPDATED,
@@ -66,11 +98,24 @@ pub fn channel_system_message_from_peer(
 /// `WS_MESSAGE_CREATED` payload. Kept distinct from `ChatItem`'s
 /// automatic serialisation so we don't have to plumb the `updated_at`
 /// field (which `ChatItem` does not expose).
-fn item_to_json(c: &DChat) -> Value {
+fn item_to_json(c: &DChat, token: &str) -> Value {
+    let data = chat_item_data_from_content(&c.content, token)
+        .as_ref()
+        .map(|d| match d {
+            crate::local::graphql::schema::types::ChatItemData::MessageImages(m) => {
+                json!({ "MessageImages": { "ids": &m.ids } })
+            }
+            crate::local::graphql::schema::types::ChatItemData::MessageFiles(m) => {
+                json!({ "MessageFiles": { "ids": &m.ids } })
+            }
+            crate::local::graphql::schema::types::ChatItemData::MessageText(m) => {
+                json!({ "MessageText": { "ids": &m.ids } })
+            }
+        });
     json!({
         "id": c.id, "fromId": c.from_id, "toId": c.to_id,
         "channelId": c.channel_id, "content": c.content,
         "createdAt": c.created_at, "updatedAt": c.updated_at,
-        "status": c.status, "statusData": c.status_data, "data": null,
+        "status": c.status, "statusData": c.status_data, "data": data,
     })
 }

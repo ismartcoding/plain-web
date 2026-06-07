@@ -1,28 +1,4 @@
-use super::utils::{extract_pt, url_decode};
-
-#[test]
-fn url_decode_plain() {
-    assert_eq!(url_decode("hello"), "hello");
-}
-#[test]
-fn url_decode_percent() {
-    assert_eq!(url_decode("hello%20world"), "hello world");
-}
-#[test]
-fn url_decode_plus() {
-    assert_eq!(url_decode("hello+world"), "hello world");
-}
-#[test]
-fn url_decode_full_url() {
-    assert_eq!(
-        url_decode("https%3A%2F%2F192.168.1.1%3A8443"),
-        "https://192.168.1.1:8443"
-    );
-}
-#[test]
-fn url_decode_hex_upper() {
-    assert_eq!(url_decode("%41%42%43"), "ABC");
-}
+use super::utils::extract_pt;
 
 #[test]
 fn extract_pt_no_query() {

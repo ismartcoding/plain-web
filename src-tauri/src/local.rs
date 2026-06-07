@@ -1,3 +1,4 @@
+pub mod app_file_store;
 pub mod channel;
 pub mod db;
 pub mod graphql;

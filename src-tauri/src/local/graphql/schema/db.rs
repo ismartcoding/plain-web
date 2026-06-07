@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 use super::super::context::AppCtx;
 use super::util::is_safe_identifier;
+use crate::utils::hex::bytes_to_hex;
 
 #[derive(Default)]
 pub struct DbQuery;
@@ -76,9 +77,9 @@ impl DbQuery {
                             .map(serde_json::Value::Number)
                             .unwrap_or(serde_json::Value::Null),
                         rusqlite::types::Value::Text(s) => serde_json::Value::String(s),
-                        rusqlite::types::Value::Blob(b) => serde_json::Value::String(
-                            b.iter().map(|byte| format!("{:02x}", byte)).collect(),
-                        ),
+                        rusqlite::types::Value::Blob(b) => {
+                            serde_json::Value::String(bytes_to_hex(&b))
+                        }
                     };
                     obj.insert(name.clone(), json_val);
                 }

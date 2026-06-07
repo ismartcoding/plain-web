@@ -2,9 +2,12 @@
 
 mod app;
 mod bookmark;
-mod chat;
+mod chat_channel;
+mod chat_message;
+mod chat_query;
 mod datastore;
 mod db;
+mod file_upload;
 mod logs;
 mod stub;
 pub mod types;
@@ -14,9 +17,12 @@ use async_graphql::{EmptySubscription, MergedObject, Schema};
 
 use app::{AppMutation, AppQuery};
 use bookmark::{BookmarkMutation, BookmarkQuery};
-use chat::{ChatMutation, ChatQuery};
+use chat_channel::ChatChannelMutation;
+use chat_message::ChatMessageMutation;
+use chat_query::ChatQuery;
 use datastore::{DataStoreMutation, DataStoreQuery};
 use db::{DbMutation, DbQuery};
+use file_upload::{FileUploadMutation, FileUploadQuery};
 use logs::{LogsMutation, LogsQuery};
 use stub::StubQuery;
 
@@ -28,6 +34,7 @@ pub struct QueryRoot(
     LogsQuery,
     DataStoreQuery,
     DbQuery,
+    FileUploadQuery,
     StubQuery,
 );
 
@@ -35,10 +42,12 @@ pub struct QueryRoot(
 pub struct MutationRoot(
     AppMutation,
     BookmarkMutation,
-    ChatMutation,
+    ChatMessageMutation,
+    ChatChannelMutation,
     LogsMutation,
     DataStoreMutation,
     DbMutation,
+    FileUploadMutation,
 );
 
 pub type LocalSchema = Schema<QueryRoot, MutationRoot, EmptySubscription>;

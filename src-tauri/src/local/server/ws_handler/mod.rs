@@ -44,14 +44,7 @@ pub(super) async fn handle_ws<S>(
 }
 
 /// Extract a single query parameter value from a path string like `/foo?a=1&b=2`.
+/// Value is percent-decoded (so `cid=hello%20world` becomes `hello world`).
 pub(super) fn query_param(path: &str, key: &str) -> Option<String> {
-    let (_, query) = path.split_once('?')?;
-    query.split('&').find_map(|pair| {
-        let (k, v) = pair.split_once('=')?;
-        if k == key {
-            Some(v.to_string())
-        } else {
-            None
-        }
-    })
+    crate::utils::query::query_get(path, key)
 }

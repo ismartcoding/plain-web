@@ -1,7 +1,7 @@
 import type { IUploadItem } from '@/stores/temp'
 import emitter from '@/plugins/eventbus'
 import { arrayBufferToHex } from '../strutil'
-import { getApiBaseUrl, getUploadBaseUrl } from '../api/api'
+import { getApiBaseUrl, getLocalToken, getUploadBaseUrl } from '../api/api'
 import { chachaEncrypt, bitArrayToUint8Array } from '../api/crypto'
 import { tokenToKey } from '../api/file'
 import { uploadedChunksGQL } from '../api/query'
@@ -9,6 +9,7 @@ import { mergeChunksGQL, deleteChunksGQL } from '../api/mutation'
 import { gqlFetch } from '../api/gql-client'
 import { getCurrentAuthToken } from '../device-current'
 import { get as prefsGet } from '../prefs'
+import { isLocalMode } from '../local-mode'
 
 const CHUNK_SIZE = 5 * 1024 * 1024 // 5MB — balance between resume granularity and throughput
 const PARALLEL_CHUNKS = 3 // Upload 3 chunks in parallel per file
@@ -92,16 +93,22 @@ function initializeUpload(upload: IUploadItem) {
   upload.lastUpdateTime = Date.now()
 }
 
+// Last-ditch non-cryptographic hash used when `crypto.subtle` is
+// unavailable. Mixes byte length with the first 16 bytes of the body
+// and pads to 32 hex chars — enough to disambiguate uploads, not for
+// security. Shared by both fallback branches of `getMD5Hash`.
+function fallbackHash(data: ArrayBuffer): string {
+  const view = new Uint8Array(data)
+  let hash = data.byteLength.toString(16)
+  for (let i = 0; i < Math.min(16, view.length); i++) {
+    hash += view[i].toString(16).padStart(2, '0')
+  }
+  return hash.padEnd(32, '0').substring(0, 32)
+}
+
 export async function getMD5Hash(data: ArrayBuffer) {
-  // Check if crypto.subtle is available
   if (!crypto || !crypto.subtle) {
-    // Fallback: use a simple hash based on data length and first few bytes
-    const view = new Uint8Array(data)
-    let hash = data.byteLength.toString(16)
-    for (let i = 0; i < Math.min(16, view.length); i++) {
-      hash += view[i].toString(16).padStart(2, '0')
-    }
-    return hash.padEnd(32, '0').substring(0, 32)
+    return fallbackHash(data)
   }
 
   try {
@@ -110,13 +117,7 @@ export async function getMD5Hash(data: ArrayBuffer) {
     return arrayBufferToHex(hashBuffer).substring(0, 32) // Use first 32 chars as MD5-like hash
   } catch (error) {
     console.warn('Crypto API failed, using fallback hash:', error)
-    // Fallback: use a simple hash based on data length and first few bytes
-    const view = new Uint8Array(data)
-    let hash = data.byteLength.toString(16)
-    for (let i = 0; i < Math.min(16, view.length); i++) {
-      hash += view[i].toString(16).padStart(2, '0')
-    }
-    return hash.padEnd(32, '0').substring(0, 32)
+    return fallbackHash(data)
   }
 }
 
@@ -151,7 +152,10 @@ export async function generateFileId(file: File) {
 }
 
 export async function upload(upload: IUploadItem, replace: boolean) {
-  const token = getCurrentAuthToken()
+  // In local mode the local server is the only client, so it has no
+  // per-session token — the upload `info` part is encrypted with the
+  // local server's URL token (same key the server uses to decrypt).
+  const token = isLocalMode() ? getLocalToken() : getCurrentAuthToken()
   const key = tokenToKey(token)
 
   // Initialize upload status

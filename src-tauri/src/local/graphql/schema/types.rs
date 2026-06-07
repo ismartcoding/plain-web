@@ -1,6 +1,9 @@
 use async_graphql::{Enum, InputObject, SimpleObject, Union};
+use serde_json::Value;
 
-use crate::local::db::{DBookmark, DBookmarkGroup, DChannel, DChat, DPeer};
+use crate::crypto::xchacha_encrypt;
+use crate::local::db::{DAppFile, DBookmark, DBookmarkGroup, DChannel, DChat, DPeer};
+use crate::utils::base64::base64_encode;
 
 // ── Output types ──────────────────────────────────────────────────────────────
 
@@ -232,6 +235,12 @@ pub struct ChatItem {
 
 impl From<DChat> for ChatItem {
     fn from(c: DChat) -> Self {
+        // `data` is None here because building it requires the URL token
+        // (XChaCha20 encryption of `{path, name}` JSON — see
+        // `plain-app/.../helpers/FileHelper.kt::getFileId`). Resolvers
+        // and WS event emitters that have access to `AppCtx` should call
+        // `ChatItem::with_data` instead, or populate `data` directly
+        // after construction.
         Self {
             id: c.id,
             from_id: c.from_id,
@@ -244,6 +253,86 @@ impl From<DChat> for ChatItem {
             data: None,
         }
     }
+}
+
+impl ChatItem {
+    /// Build a `ChatItem` with its `data` field populated. The data
+    /// field's `ids` are the URL-token-encrypted form expected by the
+    /// `/fs` endpoint — see `plain-app` `FileHelper.getFileId` for the
+    /// Kotlin reference.
+    pub(crate) fn with_data(c: DChat, token: &str) -> Self {
+        let mut item = Self::from(c);
+        item.data = chat_item_data_from_content(&item.content, token);
+        item
+    }
+}
+
+pub(crate) fn chat_item_data_from_content(content: &str, token: &str) -> Option<ChatItemData> {
+    let v: Value = serde_json::from_str(content).ok()?;
+    let msg_type = v.get("type")?.as_str()?;
+    let value = v.get("value")?;
+    match msg_type {
+        "images" => {
+            let ids = value
+                .get("items")?
+                .as_array()?
+                .iter()
+                .filter_map(|i| {
+                    let uri = i.get("uri").and_then(|u| u.as_str())?;
+                    let name = i.get("fileName").and_then(|u| u.as_str()).unwrap_or("");
+                    Some(make_file_id_json(uri, name, token))
+                })
+                .collect();
+            Some(ChatItemData::MessageImages(MessageImages { ids }))
+        }
+        "files" => {
+            let ids = value
+                .get("items")?
+                .as_array()?
+                .iter()
+                .filter_map(|i| {
+                    let uri = i.get("uri").and_then(|u| u.as_str())?;
+                    let name = i.get("fileName").and_then(|u| u.as_str()).unwrap_or("");
+                    Some(make_file_id_json(uri, name, token))
+                })
+                .collect();
+            Some(ChatItemData::MessageFiles(MessageFiles { ids }))
+        }
+        "text" => {
+            // For text messages, the encryption input is the bare
+            // `imageLocalPath` (not wrapped in JSON) — matches plain-app
+            // `ChatItem.getContentData()`'s `MessageText` branch.
+            let ids = value
+                .get("linkPreviews")?
+                .as_array()?
+                .iter()
+                .filter_map(|p| p.get("imageLocalPath").and_then(|s| s.as_str()))
+                .filter(|s| !s.is_empty())
+                .map(|p| make_file_id(p, token))
+                .collect();
+            Some(ChatItemData::MessageText(MessageText { ids }))
+        }
+        _ => None,
+    }
+}
+
+/// Encrypt `JSON.stringify({path, name})` with the local URL token and
+/// base64-encode the result. Mirrors `plain-app`'s
+/// `FileHelper.getFileId(JSONObject().apply { put("path", …); put("name", …) })`
+/// for chat image/file payloads.
+pub(crate) fn make_file_id_json(path: &str, name: &str, token: &str) -> String {
+    let json = serde_json::json!({ "path": path, "name": name }).to_string();
+    make_file_id(&json, token)
+}
+
+/// Encrypt `path` with the local URL token and base64-encode the
+/// result. Mirrors `plain-app`'s `FileHelper.getFileId(path)` for the
+/// text-message link-preview path (no JSON wrapping).
+pub(crate) fn make_file_id(path: &str, token: &str) -> String {
+    let Some(encrypted) = xchacha_encrypt(token, path.as_bytes()) else {
+        return String::new();
+    };
+    base64_encode(&encrypted)
 }
 
 #[derive(SimpleObject, Clone)]
@@ -293,7 +382,6 @@ pub struct Peer {
     pub name: String,
     pub ip: String,
     pub status: String,
-    pub online: bool,
     pub port: i32,
     pub device_type: String,
     pub created_at: String,
@@ -302,18 +390,11 @@ pub struct Peer {
 
 impl From<DPeer> for Peer {
     fn from(p: DPeer) -> Self {
-        Self::from_peer(p, false)
-    }
-}
-
-impl Peer {
-    pub fn from_peer(p: DPeer, online: bool) -> Self {
         Self {
             id: p.id,
             name: p.name,
             ip: p.ip,
             status: p.status,
-            online,
             port: p.port as i32,
             device_type: p.device_type,
             created_at: p.created_at,
@@ -388,4 +469,120 @@ pub struct BookmarkInput {
     pub group_id: String,
     pub pinned: bool,
     pub sort_order: i32,
+}
+
+#[derive(SimpleObject)]
+#[graphql(name = "AppFile")]
+pub struct AppFile {
+    pub id: String,
+    pub size: i64,
+    pub mime_type: String,
+    pub real_path: String,
+    pub file_name: String,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+impl AppFile {
+    pub fn from_dappfile(f: DAppFile, file_name: String) -> Self {
+        Self {
+            id: f.id,
+            size: f.size,
+            mime_type: f.mime_type,
+            real_path: f.real_path,
+            file_name,
+            created_at: f.created_at,
+            updated_at: f.updated_at,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::crypto::xchacha_decrypt;
+    use crate::utils::base64::{base64_decode, base64_encode};
+
+    /// Roundtrip the `make_file_id_json` output through the same
+    /// decryption the `/fs` handler does. This is the contract that
+    /// keeps chat images loading — if this test fails, the server is
+    /// either encrypting the wrong thing or the token doesn't match
+    /// the one the web side will derive from `app.urlToken`.
+    #[test]
+    fn make_file_id_json_roundtrips_through_fs_decrypt() {
+        let token_raw = [42u8; 32];
+        let token_b64 = base64_encode(&token_raw);
+
+        let fid = make_file_id_json("fid:abc123def456.jpg", "cat.jpg", &token_b64);
+        assert!(!fid.is_empty(), "encrypted id should not be empty");
+
+        // `/fs` handler: base64-decode the query param, then
+        // xchacha_decrypt with the local URL token.
+        let encrypted = base64_decode(&fid);
+        let plaintext = xchacha_decrypt(&token_b64, &encrypted)
+            .expect("server-side encrypted id must decrypt with local token");
+
+        // The decrypted plaintext is the JSON we built in
+        // `make_file_id_json` — must round-trip to the original
+        // `{path, name}` pair, which is what `file_server` then
+        // passes to `resolve_uri`.
+        let v: serde_json::Value = serde_json::from_slice(&plaintext).unwrap();
+        assert_eq!(v["path"], "fid:abc123def456.jpg");
+        assert_eq!(v["name"], "cat.jpg");
+    }
+
+    /// `make_file_id` (the `&str` variant) is used for text-message
+    /// link-preview paths. Decryption should give back the bare
+    /// `imageLocalPath` (not JSON-wrapped).
+    #[test]
+    fn make_file_id_roundtrips_through_fs_decrypt() {
+        let token_raw = [7u8; 32];
+        let token_b64 = base64_encode(&token_raw);
+
+        let path = "app://Pictures/foo.png";
+        let fid = make_file_id(path, &token_b64);
+
+        let plaintext = xchacha_decrypt(&token_b64, &base64_decode(&fid))
+            .expect("decrypt must succeed for text link-preview path");
+        assert_eq!(std::str::from_utf8(&plaintext).unwrap(), path);
+    }
+
+    /// The full `chat_item_data_from_content` flow: build a chat
+    /// `content` JSON, compute its `data` with the token, decrypt
+    /// each id back, and confirm we recover the original `{path,
+    /// name}`.
+    #[test]
+    fn chat_item_data_from_content_roundtrips() {
+        let token_b64 = base64_encode(&[99u8; 32]);
+
+        let content = serde_json::json!({
+            "type": "images",
+            "value": {
+                "items": [
+                    { "uri": "fid:00112233.jpg", "fileName": "first.jpg" },
+                    { "uri": "fid:ffeeddcc.png", "fileName": "second.png" },
+                ]
+            }
+        })
+        .to_string();
+
+        let data = chat_item_data_from_content(&content, &token_b64)
+            .expect("should parse content");
+        let ids = match data {
+            ChatItemData::MessageImages(m) => m.ids,
+            _ => panic!("expected MessageImages"),
+        };
+        assert_eq!(ids.len(), 2);
+
+        for (i, expected) in
+            ["fid:00112233.jpg", "fid:ffeeddcc.png"].iter().enumerate()
+        {
+            let expected_name = if i == 0 { "first.jpg" } else { "second.png" };
+            let plaintext = xchacha_decrypt(&token_b64, &base64_decode(&ids[i]))
+                .expect("must decrypt");
+            let v: serde_json::Value = serde_json::from_slice(&plaintext).unwrap();
+            assert_eq!(v["path"], *expected);
+            assert_eq!(v["name"], expected_name);
+        }
+    }
 }

@@ -19,7 +19,13 @@ impl AppQuery {
             url_token: c.token.clone(),
             http_port: c.port as i32,
             https_port: c.https_port as i32,
-            app_dir: c.data_dir.to_string_lossy().into_owned(),
+            // Matches Android `context.appDir()` — the parent directory of the
+            // content-addressable `{hash[0..1]}/{hash[2..3]}/` sharded layout.
+            // The web client uses `appDir` to build `fid:` paths (see
+            // `getFinalPath` in `lib/api/file.ts`), so it must point at
+            // `{data_dir}/files` to match where the local file_server
+            // (`/fs` route) reads from.
+            app_dir: c.data_dir.join("files").to_string_lossy().into_owned(),
             device_name: c.device_name.read().unwrap().clone(),
             battery: String::new(),
             app_version: String::new(),

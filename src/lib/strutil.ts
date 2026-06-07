@@ -8,7 +8,7 @@ export const randomUUID = () => {
   b[8] = (b[8] & 0x3f) | 0x80
 
   // Lowercasing the result after converting each element in hexadecimal format
-  const uuid = toHex(b).toLowerCase()
+  const uuid = bytesToHex(b).toLowerCase()
 
   // Return the string created by extracting substrings from the given result
   return `${uuid.substring(0, 8)}-${uuid.substring(8, 12)}-${uuid.substring(12, 16)}-${uuid.substring(16, 20)}-${uuid.substring(20)}`
@@ -20,12 +20,16 @@ export const shortUUID = () => {
   return translated.padStart(shortIdLength, flickrBase58[0])
 }
 
-const toHex = (b: Uint8Array) => {
-  return [...b].map((x) => x.toString(16).padStart(2, '0')).join('')
+export const bytesToHex = (b: Uint8Array): string => {
+  let out = ''
+  for (let i = 0; i < b.length; i++) {
+    out += b[i].toString(16).padStart(2, '0')
+  }
+  return out
 }
 
-export const arrayBufferToHex = (buffer: ArrayBuffer) => {
-  return [...new Uint8Array(buffer)].map((x) => x.toString(16).padStart(2, '0')).join('')
+export const arrayBufferToHex = (buffer: ArrayBufferLike): string => {
+  return bytesToHex(new Uint8Array(buffer))
 }
 
 export const base64ToArrayBuffer = (b64: string) => {

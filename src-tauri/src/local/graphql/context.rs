@@ -15,6 +15,9 @@ pub const WS_BOOKMARK_UPDATED: i32 = 15;
 pub const WS_CHANNELS_UPDATED: i32 = 18;
 pub const WS_PEER_STATUS_UPDATED: i32 = 20;
 pub const WS_CHANNEL_INVITE_RECEIVED: i32 = 22;
+/// Fired by the server when a text chat item is created; the web
+/// client listens for this to trigger its own link preview fetcher.
+pub const WS_FETCH_LINK_PREVIEWS: i32 = 23;
 
 #[derive(Clone, Debug)]
 pub struct WsEvent {
@@ -23,8 +26,13 @@ pub struct WsEvent {
 }
 
 pub type PeerKeyCache = Arc<RwLock<HashMap<String, Vec<u8>>>>;
+pub type ChannelKeyCache = Arc<RwLock<HashMap<String, Vec<u8>>>>;
 
 pub fn new_peer_key_cache() -> PeerKeyCache {
+    Arc::new(RwLock::new(HashMap::new()))
+}
+
+pub fn new_channel_key_cache() -> ChannelKeyCache {
     Arc::new(RwLock::new(HashMap::new()))
 }
 
@@ -39,6 +47,25 @@ pub fn refresh_peer_key_cache(db: &ChatDb, cache: &PeerKeyCache) {
             if raw.len() == 32 {
                 map.insert(p.id, raw);
             }
+        }
+    }
+}
+
+/// Rebuild both peer and channel key caches from the DB.
+/// Mirrors `ChatCacheManager.loadKeyCacheAsync()` in plain-app.
+pub fn load_key_cache(
+    db: &ChatDb,
+    peer_cache: &PeerKeyCache,
+    channel_cache: &ChannelKeyCache,
+) {
+    refresh_peer_key_cache(db, peer_cache);
+
+    let mut cm = channel_cache.write().unwrap();
+    cm.clear();
+    for ch in db.get_channels_with_key() {
+        let raw = base64_decode(&ch.key);
+        if raw.len() == 32 {
+            cm.insert(ch.id, raw);
         }
     }
 }
@@ -59,6 +86,7 @@ pub struct AppCtx {
     pub identity: Arc<AppIdentity>,
     pub peer_status: PeerStatusManager,
     pub peer_key_cache: PeerKeyCache,
+    pub channel_key_cache: ChannelKeyCache,
     pub event_tx: broadcast::Sender<WsEvent>,
     pub token: String,
     pub port: u16,

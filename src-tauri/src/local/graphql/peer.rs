@@ -193,6 +193,13 @@ pub async fn deliver_to_peer(
 /// Send a `channelSystemMessage` GraphQL mutation to a peer over the same
 /// transport used by `deliver_to_peer`. Returns `true` if the peer
 /// acknowledged the request, `false` otherwise.
+///
+/// When `channel_id_opt` is `Some`, the request carries a `c-cid`
+/// header so the receiver picks the channel key from its cache
+/// instead of the peer's shared key. The wire body is still
+/// encrypted with `key` — callers are responsible for passing the
+/// correct key (channel key when `channel_id_opt.is_some()`,
+/// otherwise the peer's shared key).
 #[allow(dead_code)]
 pub async fn deliver_channel_system_message(
     peer: &DPeer,
@@ -200,6 +207,7 @@ pub async fn deliver_channel_system_message(
     kp_bytes: &[u8],
     msg_type: &str,
     payload: &str,
+    channel_id_opt: Option<&str>,
 ) -> bool {
     use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -230,13 +238,17 @@ pub async fn deliver_channel_system_message(
         .unwrap_or_default();
 
     for url in peer_graphql_urls(peer) {
-        let resp = client
+        let mut req = client
             .post(&url)
             .header("c-id", &peer.id)
             .header(reqwest::header::CONTENT_TYPE, "application/json")
-            .body(encrypted.clone())
-            .send()
-            .await;
+            .body(encrypted.clone());
+        if let Some(cid) = channel_id_opt {
+            if !cid.is_empty() {
+                req = req.header("c-cid", cid);
+            }
+        }
+        let resp = req.send().await;
         let Ok(resp) = resp else { continue };
         if !resp.status().is_success() {
             log::warn!(

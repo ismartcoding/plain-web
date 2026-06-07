@@ -16,6 +16,12 @@ pub(crate) fn gen_random(buf: &mut [u8]) {
     }
 }
 
+pub fn random_bytes(len: usize) -> Vec<u8> {
+    let mut buf = vec![0u8; len];
+    gen_random(&mut buf);
+    buf
+}
+
 pub fn gen_token() -> String {
     let mut bytes = [0u8; 32];
     gen_random(&mut bytes);

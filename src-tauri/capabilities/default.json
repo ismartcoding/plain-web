@@ -8,6 +8,12 @@
     "notification:default",
     "core:window:allow-toggle-maximize",
     "core:window:allow-start-dragging",
-    "store:default"
+    "store:default",
+    "dialog:default",
+    "fs:default",
+    {
+      "identifier": "fs:allow-read-file",
+      "allow": [{ "path": "**" }]
+    }
   ]
 }

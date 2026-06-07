@@ -7,7 +7,10 @@
 //! [`tls_conn`] (HTTPS/WSS); the listener loops here only accept and spawn.
 
 use super::db::ChatDb;
-use super::graphql::{build_schema, new_peer_key_cache, refresh_peer_key_cache, AppCtx, WsEvent};
+use super::graphql::{
+    build_schema, load_key_cache, new_channel_key_cache, new_peer_key_cache, refresh_peer_key_cache,
+    AppCtx, WsEvent,
+};
 use super::peer_graphql::{build_schema as build_peer_schema, PeerSchema};
 use super::tls::{build_acceptor, ensure_cert};
 use crate::commands::discover::PeerStatusManager;
@@ -24,6 +27,8 @@ mod http_handler;
 pub(super) mod response;
 mod plain_conn;
 mod tls_conn;
+mod upload;
+mod uri;
 mod ws_handler;
 
 pub struct LocalServerState {
@@ -44,7 +49,9 @@ impl LocalServerState {
         peer_status: PeerStatusManager,
     ) -> Self {
         let peer_key_cache = new_peer_key_cache();
-        refresh_peer_key_cache(&db, &peer_key_cache);
+        let channel_key_cache = new_channel_key_cache();
+        load_key_cache(&db, &peer_key_cache, &channel_key_cache);
+        let _ = refresh_peer_key_cache;
         let http_listener = bind_listener(8080);
         let port = http_listener
             .local_addr()
@@ -80,6 +87,7 @@ impl LocalServerState {
             identity: identity.clone(),
             peer_status: peer_status.clone(),
             peer_key_cache: peer_key_cache.clone(),
+            channel_key_cache: channel_key_cache.clone(),
             event_tx: event_tx.clone(),
             token: token.clone(),
             port,

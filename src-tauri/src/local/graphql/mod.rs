@@ -12,8 +12,8 @@ pub mod peer;
 pub mod schema;
 
 pub use context::{
-    AppCtx, WS_PEER_STATUS_UPDATED, WsEvent, encode_ws_event, new_peer_key_cache,
-    refresh_peer_key_cache,
+    AppCtx, WS_PEER_STATUS_UPDATED, WsEvent, encode_ws_event, load_key_cache,
+    new_channel_key_cache, new_peer_key_cache, refresh_peer_key_cache,
 };
 pub use executor::execute_graphql;
 pub use schema::{build_schema, LocalSchema};
