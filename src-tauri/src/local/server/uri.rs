@@ -33,7 +33,7 @@ pub(super) fn parse_decrypted_id(plaintext: &str) -> (String, String) {
 ///   * `app://{rel}`      → `{data_dir}/{rel}`
 ///   * absolute path      → returned as-is
 ///   * relative path      → joined to `{data_dir}`
-pub(super) fn resolve_uri(uri: &str, data_dir: &Path) -> PathBuf {
+pub(crate) fn resolve_uri(uri: &str, data_dir: &Path) -> PathBuf {
     if let Some(suffix) = uri.strip_prefix("fid:") {
         let (hash, ext) = match suffix.split_once('.') {
             Some((h, e)) => (h, e),

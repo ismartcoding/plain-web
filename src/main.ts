@@ -11,6 +11,11 @@ import { shortUUID } from './lib/strutil'
 import { getIsPhone, getIsTablet } from './hooks/device'
 import { setHttpProxyPort, setLocalServerPort, setLocalServerToken, setLocalServerHttpsPort } from './lib/api/api'
 import { preload as preloadPrefs, get as prefsGet, set as prefsSet } from './lib/prefs'
+import { applyUrlClientId } from './lib/window-client'
+
+// Pull `?__cid=` (set by `openWindow` when spawning child windows) into
+// sessionStorage before anything else reads the clientId. Idempotent.
+applyUrlClientId()
 
 if (!__IS_TAURI__) {
   import('./registerServiceWorker')
@@ -41,7 +46,13 @@ async function bootstrap() {
 
   // Dynamically import i18n AFTER prefs are loaded so createI18n() reads
   // the persisted locale from the prefs cache instead of localStorage.
-  const { default: i18n } = await import('./plugins/i18n')
+  const i18nModule = await import('./plugins/i18n')
+  const i18n = i18nModule.default
+  // Pre-load the persisted locale's chunk synchronously so the first
+  // render shows the right translations instead of the en-US fallback.
+  // Other locales stay on disk until the user switches to them.
+  const { loadLocaleMessages } = i18nModule
+  await loadLocaleMessages(i18n.global.locale.value)
 
   createApp(App)
     .use(VueClickAway)
@@ -53,6 +64,20 @@ async function bootstrap() {
     .provide('isPhone', getIsPhone())
     .provide('isTablet', getIsTablet())
     .mount('#app')
+
+  // Pre-warm the media preview window 2s after the main window finishes
+  // mounting. The delay keeps the cold-start critical path snappy and
+  // moves the cost (creating a hidden webview, loading the SPA once
+  // inside it) out of the user's first click.
+  if (__IS_TAURI__) {
+    setTimeout(() => {
+      import('@tauri-apps/api/core').then(({ invoke }) => {
+        invoke('media_preview_init').catch((e) => {
+          console.warn('media_preview_init failed', e)
+        })
+      })
+    }, 2000)
+  }
 }
 
 bootstrap()

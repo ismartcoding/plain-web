@@ -68,6 +68,7 @@ pub fn elect_leader(
 /// * Otherwise, send the item to the leader only.
 /// * If no leader can be elected (no online peers), return `None`
 ///   so the caller can persist a `DMessageStatusData(results=null)`.
+#[allow(clippy::too_many_arguments)]
 pub async fn send_async(
     channel: &DChannel,
     client_id: &str,
@@ -169,10 +170,10 @@ fn channel_key_from_cache_or_peer(
 ) -> Option<Vec<u8>> {
     {
         let cache = channel_key_cache.read().unwrap();
-        if let Some(k) = cache.get(channel_id) {
-            if !k.is_empty() {
-                return Some(k.clone());
-            }
+        if let Some(k) = cache.get(channel_id)
+            && !k.is_empty()
+        {
+            return Some(k.clone());
         }
     }
     let cache = peer_key_cache.read().unwrap();

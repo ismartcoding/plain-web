@@ -75,5 +75,5 @@ impl PeerMutation {
 pub type PeerSchema = Schema<PeerQuery, PeerMutation, EmptySubscription>;
 
 pub fn build_schema() -> PeerSchema {
-    Schema::build(PeerQuery::default(), PeerMutation::default(), EmptySubscription).finish()
+    Schema::build(PeerQuery, PeerMutation, EmptySubscription).finish()
 }

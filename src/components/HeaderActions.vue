@@ -31,7 +31,7 @@
           {{ t('bookmarks') }}
         </div>
         <div class="dropdown-item" :selected="{ active: store.quick === 'chat' }" @click="toggleQuick('chat')">
-          <i-lucide-bot />
+          <i-lucide:bot />
           {{ t('my_phone') }}
         </div>
       </div>
@@ -53,7 +53,13 @@
       <!-- Language Section -->
       <div class="dropdown-section">
         <div class="dropdown-section-title">{{ t('header_actions.language') }}</div>
-        <div v-for="lang in langs" :key="lang.value" class="dropdown-item" @click="changeLang(lang.value)">
+        <div
+          v-for="lang in availableLocales"
+          :key="lang.code"
+          class="dropdown-item"
+          :class="{ selected: lang.code === locale }"
+          @click="onLangClick(lang.code)"
+        >
           {{ lang.name }}
         </div>
       </div>
@@ -67,7 +73,8 @@ import { useI18n } from 'vue-i18n'
 import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
-import { set as prefsSet, clear as prefsClear } from '@/lib/prefs'
+import { clear as prefsClear } from '@/lib/prefs'
+import { useLocaleSwitch } from '@/composables/useLocaleSwitch'
 
 const props = defineProps({
   loggedIn: { type: Boolean },
@@ -79,7 +86,7 @@ const store = useMainStore()
 const tempStore = useTempStore()
 const { app } = storeToRefs(tempStore)
 const menuVisible = ref(false)
-const { locale, t } = useI18n()
+const { t } = useI18n()
 
 const isTablet = inject('isTablet')
 const isTauri = __IS_TAURI__
@@ -87,36 +94,16 @@ const hasTasks = computed(() => {
   return tempStore.uploads.length > 0
 })
 
-const langs = [
-  { name: 'English', value: 'en-US' },
-  { name: '简体中文', value: 'zh-CN' },
-  { name: '繁体中文', value: 'zh-TW' },
-  { name: 'español', value: 'es' },
-  { name: '日本語', value: 'ja' },
-  { name: 'Nederlands', value: 'nl' },
-  { name: 'italiano', value: 'it' },
-  { name: 'हिन्दी', value: 'hi' },
-  { name: 'français', value: 'fr' },
-  { name: 'русский язык', value: 'ru' },
-  { name: 'বাংলা', value: 'bn' },
-  { name: 'Deutsch', value: 'de' },
-  { name: 'Português', value: 'pt' },
-  { name: 'தமிழ்', value: 'ta' },
-  { name: '한국어', value: 'ko' },
-  { name: 'Türkçe', value: 'tr' },
-  { name: 'Tiếng Việt', value: 'vi' },
-]
+const { locale, availableLocales, handleLocaleSwitch } = useLocaleSwitch()
 
 function toggleQuick(name: string) {
   menuVisible.value = false
   emit('toggle-quick', name)
 }
 
-function changeLang(loc: string) {
+function onLangClick(code: string) {
   menuVisible.value = false
-  locale.value = loc
-  prefsSet('locale', loc)
-  document.title = 'PlainApp'
+  void handleLocaleSwitch(code)
 }
 
 function logout() {

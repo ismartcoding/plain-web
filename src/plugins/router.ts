@@ -3,7 +3,7 @@ import MainView from '@/views/MainView.vue'
 import type { MainState } from '@/stores/main'
 import i18n from '@/plugins/i18n'
 import { getCurrentAuthToken } from '@/lib/device-current'
-import { isLocalMode, isLocalRouteGroup } from '@/lib/local-mode'
+import { isLocalMode, isLocalModeAllowed, isLocalRouteGroup } from '@/lib/local-mode'
 import { useMainStore } from '@/stores/main'
 
 const router = createRouter({
@@ -238,6 +238,12 @@ const router = createRouter({
       meta: { requiresAuth: false },
     },
     {
+      name: 'media-preview',
+      path: '/media-preview',
+      component: () => import('@/views/media-preview/MediaPreviewView.vue'),
+      meta: { requiresAuth: false, group: 'chat' },
+    },
+    {
       name: 'ux',
       path: '/ux',
       component: () => import('@/views/ux/UxView.vue'),
@@ -258,15 +264,23 @@ router.beforeEach(async (to, from) => {
   if (scrollTop !== undefined) {
     scrollTops.set(from.fullPath, scrollTop)
   }
-  if (isLocalMode() && (to.path === '/' || to.meta.group === 'home')) {
+  if (isLocalModeAllowed() && (to.path === '/' || to.meta.group === 'home')) {
     return { path: '/chat' }
   }
-  const canAccess = getCurrentAuthToken() || (isLocalMode() && isLocalRouteGroup(to.meta.group))
+  const canAccess = getCurrentAuthToken() || (isLocalModeAllowed() && isLocalRouteGroup(to.meta.group))
   if (to.meta.requiresAuth && !canAccess) {
     return {
       path: '/login',
       query: { redirect: to.fullPath },
     }
+  }
+
+  // /media-preview is a self-contained popup window — it carries its source
+  // entirely via the `?src=...` query string, so it doesn't need auth.
+  // Guard it against being loaded bare (e.g. user typing the URL) by
+  // bouncing back to home when no source is present.
+  if (to.name === 'media-preview' && !to.query.src) {
+    return { path: '/' }
   }
 
   // clean up tooltip

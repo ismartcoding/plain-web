@@ -55,9 +55,10 @@ pub fn setup(app: &mut tauri::App) -> tauri::Result<()> {
     super::macos_dock::setup(app.handle().clone());
 
     // ── Menu event handler ────────────────────────────────────────────────
-    app.on_menu_event(|app, event| match event.id().as_ref() {
-        "new-window" => super::window::create_window(app, "/".to_string()),
-        _ => {}
+    app.on_menu_event(|app, event| {
+        if event.id().as_ref() == "new-window" {
+            super::window::create_window(app, "/".to_string());
+        }
     });
 
     Ok(())

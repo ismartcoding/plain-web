@@ -65,6 +65,7 @@ pub fn create_chat_item_from_peer(
 /// additional safety net we always fire `WS_CHANNELS_UPDATED` here to
 /// match the original behaviour (recognised messages end up firing it
 /// twice, which is harmless).
+#[allow(clippy::too_many_arguments)]
 pub fn channel_system_message_from_peer(
     db: &ChatDb,
     client_id: &str,

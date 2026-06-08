@@ -197,8 +197,79 @@ pub struct Mount {
     pub disk_id: String,
 }
 
+// ── fileInfo query (mirrors plain-app web/models/FileInfo.kt) ────────────────
+//
+// Schema shape is what the web lightbox's `fileInfoGQL` query expects. The
+// `data` field is a polymorphic union over Image/Video/AudioFileInfo so the
+// client's `... on ImageFileInfo { width height location { ... } }` fragment
+// stays valid. Local-mode `tags` and `video/audio` metadata are best-effort
+// (zeros / empty); the popup window's right-side info panel is collapsed by
+// default and main-window traffic still goes through the device server.
+
+/// EXIF / video GPS coordinate pair. Mirrors plain-app `Location`.
+#[derive(SimpleObject, Clone)]
+pub struct Location {
+    pub latitude: f64,
+    pub longitude: f64,
+}
+
+#[derive(SimpleObject)]
+pub struct ImageFileInfo {
+    pub width: i32,
+    pub height: i32,
+    pub location: Option<Location>,
+}
+
+#[derive(SimpleObject)]
+pub struct VideoFileInfo {
+    pub width: i32,
+    pub height: i32,
+    /// Seconds. `0` in local mode — the desktop local server has no
+    /// `MediaMetadataRetriever` equivalent. Main-window traffic still goes
+    /// through the device server and returns real durations.
+    pub duration: i64,
+    pub location: Option<Location>,
+}
+
+#[derive(SimpleObject)]
+pub struct AudioFileInfo {
+    /// Seconds. `0` in local mode (see `VideoFileInfo::duration`).
+    pub duration: i64,
+    pub location: Option<Location>,
+}
+
+/// Polymorphic media-metadata payload — clients select via `... on XFileInfo`.
+#[derive(Union)]
+pub enum MediaFileInfo {
+    Image(ImageFileInfo),
+    Video(VideoFileInfo),
+    Audio(AudioFileInfo),
+}
+
+/// `fileInfo` query result. `data` is `None` for non-media files; `tags` is
+/// empty in local mode (plain-web doesn't yet persist tag relations).
+#[derive(SimpleObject)]
+pub struct FileInfo {
+    pub path: String,
+    pub updated_at: String,
+    pub size: i64,
+    pub tags: Vec<Tag>,
+    pub data: Option<MediaFileInfo>,
+}
+
+/// Mirrors plain-app `web/models/Tag.kt`. The local server returns an
+/// empty list — the `tags` query exists purely to satisfy schema
+/// resolution for the popup lightbox.
+#[derive(SimpleObject, Clone)]
+pub struct Tag {
+    pub id: String,
+    pub name: String,
+    pub count: i32,
+}
+
 /// Union for `ChatItem.data` — always `None` in local mode but schema must match the fragment.
 #[derive(Union)]
+#[allow(clippy::enum_variant_names)]
 pub enum ChatItemData {
     MessageImages(MessageImages),
     MessageFiles(MessageFiles),

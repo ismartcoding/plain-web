@@ -11,7 +11,7 @@ pub fn now_iso() -> String {
 }
 
 fn is_leap(y: u64) -> bool {
-    y % 4 == 0 && (y % 100 != 0 || y % 400 == 0)
+    y.is_multiple_of(4) && (!y.is_multiple_of(100) || y.is_multiple_of(400))
 }
 
 fn unix_secs_to_iso8601(secs: u64) -> String {

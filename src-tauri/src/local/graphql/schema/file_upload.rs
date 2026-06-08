@@ -174,8 +174,7 @@ impl FileUploadMutation {
                     .and_then(|s| s.to_str())
                     .unwrap_or("")
                     .to_string();
-                let sibling = unique_sibling(&target, &stem, &ext);
-                sibling
+                unique_sibling(&target, &stem, &ext)
             } else {
                 target.clone()
             };

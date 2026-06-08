@@ -19,7 +19,7 @@ pub fn read_log_lines(path: &std::path::Path, offset: i32, limit: i32) -> Vec<St
     };
     BufReader::new(file)
         .lines()
-        .flatten()
+        .map_while(Result::ok)
         .skip(offset.max(0) as usize)
         .take(limit.max(0) as usize)
         .collect()

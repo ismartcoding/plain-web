@@ -1,7 +1,12 @@
 //! Local HTTP+HTTPS+WebSocket server for offline/local mode.
 //!
-//! - HTTP on :8080 (fallback :0) — plain requests and WebSocket upgrades.
-//! - HTTPS on :8443 (fallback :0) — encrypted requests and WSS upgrades.
+//! - HTTP — plain requests and WebSocket upgrades.
+//! - HTTPS — encrypted requests and WSS upgrades.
+//!
+//! Each listener tries a fixed candidate range in order, falling back to an
+//! OS-assigned port only when every candidate is taken. The bound port is
+//! recorded in `LocalServerState` and persisted via `prefs` so downstream
+//! consumers (pairing, discovery, GraphQL) see the actual value.
 //!
 //! Per-connection dispatch lives in [`plain_conn`] (HTTP/WS) and
 //! [`tls_conn`] (HTTPS/WSS); the listener loops here only accept and spawn.
@@ -28,7 +33,7 @@ pub(super) mod response;
 mod plain_conn;
 mod tls_conn;
 mod upload;
-mod uri;
+pub(crate) mod uri;
 mod ws_handler;
 
 pub struct LocalServerState {
@@ -52,7 +57,7 @@ impl LocalServerState {
         let channel_key_cache = new_channel_key_cache();
         load_key_cache(&db, &peer_key_cache, &channel_key_cache);
         let _ = refresh_peer_key_cache;
-        let http_listener = bind_listener(8080);
+        let http_listener = bind_listener(HTTP_PORTS);
         let port = http_listener
             .local_addr()
             .expect("local server addr")
@@ -61,7 +66,7 @@ impl LocalServerState {
             .set_nonblocking(true)
             .expect("set_nonblocking");
 
-        let https_listener = bind_listener(8443);
+        let https_listener = bind_listener(HTTPS_PORTS);
         let https_port = https_listener.local_addr().expect("https addr").port();
         https_listener
             .set_nonblocking(true)
@@ -194,10 +199,118 @@ pub fn local_server_token(state: tauri::State<'_, LocalServerState>) -> String {
 
 // ── TCP listener binding ──────────────────────────────────────────────────────
 
-fn bind_listener(preferred: u16) -> StdTcpListener {
-    StdTcpListener::bind(format!("0.0.0.0:{preferred}"))
-        .or_else(|_| StdTcpListener::bind("0.0.0.0:0"))
-        .expect("local server bind")
+const HTTP_PORTS: &[u16] = &[
+    8080, 8180, 8280, 8380, 8480, 8580, 8680, 8780, 8880, 8980,
+];
+const HTTPS_PORTS: &[u16] = &[
+    8043, 8143, 8243, 8343, 8443, 8543, 8643, 8743, 8843, 8943,
+];
+
+fn bind_listener(candidates: &[u16]) -> StdTcpListener {
+    for &port in candidates {
+        let wildcard = match StdTcpListener::bind(format!("0.0.0.0:{port}")) {
+            Ok(l) => l,
+            Err(e) => {
+                log::debug!("local_server: port {port} bind on 0.0.0.0 failed: {e}");
+                continue;
+            }
+        };
+        match StdTcpListener::bind(format!("127.0.0.1:{port}")) {
+            Ok(_) => {
+                if port != candidates[0] {
+                    log::info!(
+                        "local_server: preferred port {pref} unavailable, bound {port} instead",
+                        pref = candidates[0]
+                    );
+                }
+                return wildcard;
+            }
+            Err(e) => {
+                log::debug!("local_server: port {port} bind on 127.0.0.1 failed: {e}");
+            }
+        }
+    }
+    StdTcpListener::bind("0.0.0.0:0").expect("local server bind")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::net::TcpListener as StdTcpListener;
+    use std::sync::Mutex;
+
+    static SERIAL: Mutex<()> = Mutex::new(());
+
+    fn grab_port() -> (StdTcpListener, u16) {
+        let l = StdTcpListener::bind("0.0.0.0:0").expect("grab :0");
+        let p = l.local_addr().unwrap().port();
+        (l, p)
+    }
+
+    fn grab_loopback_port() -> (StdTcpListener, u16) {
+        let l = StdTcpListener::bind("127.0.0.1:0").expect("grab loopback :0");
+        let p = l.local_addr().unwrap().port();
+        (l, p)
+    }
+
+    #[test]
+    fn bind_listener_skips_wildcard_taken_candidate() {
+        let _guard = SERIAL.lock().unwrap();
+        let (taken_hold, taken) = grab_port();
+        let candidates: Vec<u16> = (0..5).map(|i| taken.wrapping_add(i)).collect();
+        let l = bind_listener(&candidates);
+        let picked = l.local_addr().unwrap().port();
+        assert_ne!(picked, taken, "bind_listener should skip the held port");
+        assert!(
+            candidates.contains(&picked),
+            "picked port {picked} should be a candidate"
+        );
+        drop(taken_hold);
+    }
+
+    #[test]
+    fn bind_listener_skips_loopback_taken_candidate() {
+        let _guard = SERIAL.lock().unwrap();
+        let (taken_hold, taken) = grab_loopback_port();
+        let candidates: Vec<u16> = (0..5).map(|i| taken.wrapping_add(i)).collect();
+        let l = bind_listener(&candidates);
+        let picked = l.local_addr().unwrap().port();
+        assert_ne!(
+            picked, taken,
+            "bind_listener should skip a port held on 127.0.0.1 (macOS coexistence quirk)"
+        );
+        assert!(
+            candidates.contains(&picked),
+            "picked port {picked} should be a candidate"
+        );
+        drop(taken_hold);
+    }
+
+    #[test]
+    fn bind_listener_falls_back_to_os_when_all_taken() {
+        let _guard = SERIAL.lock().unwrap();
+        let mut held = Vec::new();
+        let mut candidates = Vec::new();
+        for _ in 0..8 {
+            let (h, p) = grab_port();
+            held.push(h);
+            candidates.push(p);
+        }
+        let l = bind_listener(&candidates);
+        let picked = l.local_addr().unwrap().port();
+        assert_ne!(picked, 0, "OS-assigned port should be non-zero");
+        assert!(
+            !candidates.contains(&picked),
+            "OS-assigned port {picked} should not collide with held range"
+        );
+    }
+
+    #[test]
+    fn http_and_https_ranges_do_not_overlap() {
+        for &p in HTTP_PORTS {
+            assert!(!HTTPS_PORTS.contains(&p), "{p} appears in both ranges");
+        }
+    }
 }
 
 

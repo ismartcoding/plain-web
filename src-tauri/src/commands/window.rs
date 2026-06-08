@@ -1,4 +1,32 @@
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, PhysicalPosition};
+
+/// Pixels to offset new windows to the right of the current focused window,
+/// so a freshly opened window doesn't sit exactly on top of its parent.
+const WINDOW_CASCADE_OFFSET: i32 = 32;
+
+/// Place a freshly built window just to the right of the current focused
+/// window, with the same top edge. Falls back to the platform default
+/// position (i.e. no-op) when there is no focused window or its outer
+/// geometry can't be read — we never want to fail a window open because
+/// the cascade placement didn't work.
+pub fn cascade_from_focused(app: &AppHandle, win: &tauri::WebviewWindow) {
+    let windows = app.webview_windows();
+    let Some(focused) = windows
+        .values()
+        .find(|w| w.is_focused().unwrap_or(false))
+    else {
+        return;
+    };
+    let Ok(origin) = focused.outer_position() else { return };
+    let Ok(size) = focused.outer_size() else { return };
+    let new_pos = PhysicalPosition::new(
+        origin.x.saturating_add(size.width as i32).saturating_add(WINDOW_CASCADE_OFFSET),
+        origin.y,
+    );
+    if let Err(e) = win.set_position(new_pos) {
+        log::warn!("cascade_from_focused: set_position failed: {e}");
+    }
+}
 
 /// Core logic — usable from both the Tauri command and the native menu handler.
 pub fn create_window(app: &AppHandle, path: String) {
@@ -18,14 +46,15 @@ pub fn create_window(app: &AppHandle, path: String) {
             .as_millis()
     );
     let url = tauri::WebviewUrl::App(path.into());
-    if let Err(e) = tauri::WebviewWindowBuilder::new(app, &label, url)
+    match tauri::WebviewWindowBuilder::new(app, &label, url)
         .title("")
         .inner_size(1200.0, 800.0)
         .min_inner_size(900.0, 600.0)
         .title_bar_style(tauri::TitleBarStyle::Overlay)
         .build()
     {
-        log::error!("open_window failed: {e}");
+        Ok(win) => cascade_from_focused(app, &win),
+        Err(e) => log::error!("open_window failed: {e}"),
     }
 }
 

@@ -75,7 +75,7 @@ pub async fn send_invite(
 /// Send `channel_invite_accept` to the channel owner. Wire is
 /// encrypted with the per-channel key (the owner knows the channel
 /// key by virtue of having created the channel).
-#[allow(dead_code)]
+#[allow(dead_code, clippy::too_many_arguments)]
 pub async fn send_invite_accept(
     channel_id: &str,
     owner_peer: &DPeer,

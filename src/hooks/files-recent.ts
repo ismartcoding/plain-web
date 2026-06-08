@@ -18,6 +18,7 @@ import emitter from '@/plugins/eventbus'
 import type { IFileDeletedEvent, IFileRenamedEvent } from '@/lib/interfaces'
 import { arrayRemove } from '@/lib/array'
 import { getIsPhone } from '@/hooks/device'
+import { useOpenMedia } from '@/hooks/open-media'
 
 export function useFilesRecent() {
   const { t } = useI18n()
@@ -30,8 +31,11 @@ export function useFilesRecent() {
   const { selectedIds, allChecked, realAllChecked, clearSelection, toggleAllChecked, toggleSelect, total, checked, shiftEffectingIds, handleItemClick, handleMouseOver, selectAll, shouldSelect } =
     useSelectable(items)
   const { downloadFile, downloadFiles, downloadDir } = useDownload(urlTokenKey)
+  const { open: openMedia } = useOpenMedia()
   const { view } = useView(sources, (s: ISource[], index: number) => {
-    tempStore.lightbox = { sources: s, index, visible: true }
+    const target = s[index]
+    if (!target) return
+    openMedia(index, s)
   })
   const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useFilesKeyEvents(selectAll, clearSelection, () => {})
 

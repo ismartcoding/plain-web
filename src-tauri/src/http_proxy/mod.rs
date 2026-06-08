@@ -11,8 +11,8 @@
 //! 2. Video/audio (<video> tag, Range requests, large response)
 //!    → resp.chunk() streams bytes as they arrive, never buffers full body
 //!    → when browser closes connection (video switched), write fails,
-//!      loop exits, resp is dropped, reqwest closes upstream (body was
-//!      abandoned mid-stream so the connection is NOT returned to the pool)
+//!    loop exits, resp is dropped, reqwest closes upstream (body was
+//!    abandoned mid-stream so the connection is NOT returned to the pool)
 //!    → no stale upstream connections
 //!
 //! Target URL is passed via:
@@ -232,14 +232,9 @@ async fn handle(stream: TcpStream, http: reqwest::Client) {
     //    switched), write_all returns an error, we break, resp is dropped.
     //    Because the body wasn't fully consumed, reqwest does NOT return this
     //    connection to the pool — it closes it. No stale upstream connections.
-    loop {
-        match resp.chunk().await {
-            Ok(Some(data)) => {
-                if wr.write_all(&data).await.is_err() {
-                    break;
-                }
-            }
-            _ => break,
+    while let Ok(Some(data)) = resp.chunk().await {
+        if wr.write_all(&data).await.is_err() {
+            break;
         }
     }
 }

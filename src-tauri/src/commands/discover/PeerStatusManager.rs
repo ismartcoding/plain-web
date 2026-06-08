@@ -16,24 +16,13 @@ use tokio_tungstenite::tungstenite::Message;
 const INITIAL_RECONNECT_DELAY_MS: u64 = 1_000;
 const MAX_RECONNECT_DELAY_MS: u64 = 60_000;
 
+#[derive(Default)]
 struct PeerState {
     task: Option<tauri::async_runtime::JoinHandle<()>>,
     task_id: u64,
     reconnect_attempts: u32,
     pending_reconnect: bool,
     online: bool,
-}
-
-impl Default for PeerState {
-    fn default() -> Self {
-        Self {
-            task: None,
-            task_id: 0,
-            reconnect_attempts: 0,
-            pending_reconnect: false,
-            online: false,
-        }
-    }
 }
 
 struct Inner {
@@ -243,7 +232,7 @@ impl PeerStatusManager {
                 return;
             };
 
-            if ws.send(Message::Binary(payload.into())).await.is_err() {
+            if ws.send(Message::Binary(payload)).await.is_err() {
                 manager.connection_closed(&peer_id_for_task, task_id);
                 return;
             }

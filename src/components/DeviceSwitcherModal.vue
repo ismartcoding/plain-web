@@ -113,7 +113,7 @@
       </div>
     </template>
     <template #actions>
-      <v-outlined-button v-if="!isLoginStep" :disabled="currentClientId === LOCAL_CLIENT_ID" @click="switchToLocal">
+      <v-outlined-button v-if="!isLoginStep" :disabled="localMode" @click="switchToLocal">
         {{ $t('device_discovery.switch_to_local') }}
       </v-outlined-button>
       <v-outlined-button v-if="!isLoginStep" @click="close">{{ $t('cancel') }}</v-outlined-button>
@@ -130,10 +130,11 @@ import { popModal } from './modal/methods'
 import DeviceDiscoveryStatus from './DeviceDiscoveryStatus.vue'
 import LoginForm from '@/views/login/LoginForm.vue'
 import { useDeviceDiscovery } from '@/hooks/use-device-discovery'
-import { useDeviceSessionsStore, LOCAL_CLIENT_ID } from '@/stores/device-sessions'
+import { useDeviceSessionsStore } from '@/stores/device-sessions'
 import { useChatStore } from '@/stores/chat'
 import type { DeviceSession } from '@/stores/device-sessions'
 import { clearPendingLoginHost, setPendingLoginHost } from '@/lib/api/api'
+import { isLocalMode } from '@/lib/local-mode'
 
 const store = useDeviceSessionsStore()
 const chatStore = useChatStore()
@@ -141,6 +142,7 @@ const { devices, status, start, stop, retry, openLanPermissionSettings } = useDe
 
 const sessions = computed(() => store.sortedSessions)
 const currentClientId = computed(() => store.currentClientId)
+const localMode = computed(() => isLocalMode())
 const onlinePeerIds = computed(() =>
   new Set(chatStore.peers.filter((peer) => peer.online).map((peer) => peer.id))
 )
@@ -176,7 +178,7 @@ function isSessionOnline(clientId: string): boolean {
 
 function switchTo(s: DeviceSession) {
   if (!s.token) {
-    store.setCurrent(LOCAL_CLIENT_ID)
+    store.setCurrent('')
     void startLoginStep(s.host)
     return
   }
@@ -193,7 +195,7 @@ function remove(s: DeviceSession) {
   const isCurrent = s.clientId === currentClientId.value
   store.remove(s.clientId)
   if (isCurrent) {
-    // The active device was removed; store.remove() falls back to LOCAL_CLIENT_ID.
+    // The active device was removed; store.remove() drops the binding.
     close()
     window.location.href = '/'
   }
@@ -226,7 +228,7 @@ function saveEdit(s: DeviceSession) {
 }
 
 function addNew(host: string) {
-  store.setCurrent(LOCAL_CLIENT_ID)
+  store.setCurrent('')
   startLoginStep(host)
 }
 
@@ -256,11 +258,11 @@ function handleLoginSuccess() {
 }
 
 function switchToLocal() {
-  if (currentClientId.value === LOCAL_CLIENT_ID) {
+  if (localMode.value) {
     close()
     return
   }
-  store.setCurrent(LOCAL_CLIENT_ID)
+  store.setCurrent('')
   close()
   window.location.href = '/'
 }

@@ -37,6 +37,47 @@
       </div>
     </div>
 
+    <div class="theme-row">
+      <theme-changer />
+    </div>
+
+    <div
+      class="dropdown-item language-trigger"
+      :class="{ open: languageOpen }"
+      @mouseenter="openLanguage"
+      @mouseleave="scheduleCloseLanguage"
+    >
+      <i-lucide:globe class="feature-icon" />
+      <span>{{ $t('header_actions.language') }}</span>
+      <i-lucide:chevron-right class="feature-icon-end" />
+      <teleport to="body">
+        <div
+          v-if="languageOpen"
+          class="language-menu"
+          :style="languageMenuStyle"
+          @mouseenter="cancelCloseLanguage"
+          @mouseleave="scheduleCloseLanguage"
+        >
+          <div
+            v-for="lang in availableLocales"
+            :key="lang.code"
+            class="dropdown-item language-item"
+            :class="{ selected: lang.code === locale }"
+            @click="onLangClick(lang.code)"
+          >
+            <span>{{ lang.name }}</span>
+          </div>
+        </div>
+      </teleport>
+    </div>
+
+    <div v-if="!isTauri && !localMode" class="dropdown-item" @click="logout">
+      <i-material-symbols:logout-rounded class="feature-icon" />
+      <span>{{ $t('header_actions.logout') }}</span>
+    </div>
+
+    <div class="popup-divider"></div>
+
     <div class="dropdown-item" @click="openCustomizeUI">
       <i-lucide:layout-list class="feature-icon" />
       <span>{{ $t('customize_ui') }}</span>
@@ -69,7 +110,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useTempStore } from '@/stores/temp'
@@ -79,6 +120,9 @@ import { storeToRefs } from 'pinia'
 import { pushModal, openModal } from '@/components/modal'
 import { getAvailableFeatures, type Feature } from './features'
 import { isLocalMode } from '@/lib/local-mode'
+import { clear as prefsClear } from '@/lib/prefs'
+import { useLocaleSwitch } from '@/composables/useLocaleSwitch'
+import ThemeChanger from '@/components/ThemeChanger.vue'
 import CustomizeUIModal from './CustomizeUIModal.vue'
 import ExcludedDirsModal from './ExcludedDirsModal.vue'
 import DeviceSwitcherModal from '@/components/DeviceSwitcherModal.vue'
@@ -94,6 +138,72 @@ const { currentSession } = storeToRefs(useDeviceSessionsStore())
 const router = useRouter()
 const open = ref(false)
 const isTauri = __IS_TAURI__
+
+const { locale, availableLocales, handleLocaleSwitch } = useLocaleSwitch()
+
+const languageOpen = ref(false)
+const languageTriggerRef = ref<HTMLElement | null>(null)
+const languageMenuStyle = ref<Record<string, string>>({ position: 'fixed', visibility: 'hidden' })
+let closeTimer: ReturnType<typeof setTimeout> | null = null
+
+function positionLanguageMenu() {
+  const trigger = languageTriggerRef.value
+  if (!trigger) return
+  const rect = trigger.getBoundingClientRect()
+  const MENU_WIDTH = 240
+  const GAP = 4
+  const left = Math.min(window.innerWidth - MENU_WIDTH - 8, rect.right + GAP)
+  const top = rect.top
+  languageMenuStyle.value = {
+    position: 'fixed',
+    top: `${top}px`,
+    left: `${Math.max(8, left)}px`,
+    width: `${MENU_WIDTH}px`,
+    visibility: 'visible',
+    zIndex: '10000',
+  }
+}
+
+function openLanguage(e: MouseEvent) {
+  if (closeTimer) {
+    clearTimeout(closeTimer)
+    closeTimer = null
+  }
+  languageTriggerRef.value = e.currentTarget as HTMLElement
+  languageOpen.value = true
+  void nextTick(() => positionLanguageMenu())
+}
+
+function scheduleCloseLanguage() {
+  if (closeTimer) clearTimeout(closeTimer)
+  closeTimer = setTimeout(() => {
+    languageOpen.value = false
+    closeTimer = null
+  }, 120)
+}
+
+function cancelCloseLanguage() {
+  if (closeTimer) {
+    clearTimeout(closeTimer)
+    closeTimer = null
+  }
+}
+
+function onLangClick(code: string) {
+  languageOpen.value = false
+  open.value = false
+  void handleLocaleSwitch(code)
+}
+
+function logout() {
+  open.value = false
+  prefsClear()
+  window.location.reload()
+}
+
+onUnmounted(() => {
+  if (closeTimer) clearTimeout(closeTimer)
+})
 
 const popupFeatures = computed<Feature[]>(() => {
   const available = getAvailableFeatures(app.value?.channel ?? '')
@@ -197,4 +307,42 @@ function lastRoute(defaultPath: string, group: string) {
   margin: 4px 0;
 }
 
+.theme-row {
+  padding: 4px 0 8px;
+
+  :deep(.theme-changer) {
+    margin: 0 16px;
+  }
+}
+
+.language-trigger {
+  cursor: default;
+
+  .feature-icon-end {
+    margin-left: auto;
+    width: 18px;
+    height: 18px;
+    color: var(--md-sys-color-on-surface-variant);
+  }
+
+  &.open {
+    background-color: var(--md-sys-color-surface-variant);
+  }
+}
+
+</style>
+
+<style lang="scss">
+.language-menu {
+  background: var(--md-sys-color-surface-container);
+  border-radius: 8px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+  padding: 4px 0;
+  max-height: 320px;
+  overflow-y: auto;
+
+  .dropdown-item.language-item {
+    padding: 8px 16px;
+  }
+}
 </style>

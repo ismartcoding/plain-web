@@ -33,6 +33,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .manage(commands::HttpClient::new())
+        .manage(commands::media_preview_pool::MediaPreviewState::default())
         .setup(|app| {
             #[cfg(target_os = "macos")]
             commands::macos_menu::setup(app)?;
@@ -96,6 +97,14 @@ pub fn run() {
             if let tauri::WindowEvent::Destroyed = event {
                 #[cfg(target_os = "macos")]
                 commands::macos_dock::remove_window_device_name(window.label());
+                // Any preview window dying (warm or visible) means we no
+                // longer have a ready window. Rebuild so the next click is
+                // fast. The user explicitly asked to let the close path
+                // destroy the window — we don't intercept.
+                commands::media_preview_pool::on_window_destroyed(
+                    &window.app_handle().clone(),
+                    window.label(),
+                );
             }
         })
         .invoke_handler(tauri::generate_handler![
@@ -105,6 +114,8 @@ pub fn run() {
             commands::notification::send_macos_notification,
             commands::window::open_window,
             commands::window::set_window_device_name,
+            commands::media_preview_pool::media_preview_init,
+            commands::media_preview_pool::media_preview_activate,
             http_proxy::http_proxy_port,
             local::server::local_server_port,
             local::server::local_server_https_port,

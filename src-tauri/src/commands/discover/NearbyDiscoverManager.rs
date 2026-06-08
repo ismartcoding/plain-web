@@ -73,6 +73,8 @@ struct DiscoverReplyEvent {
     sender_ip: String,
 }
 
+type DiscoverListener = (u64, mpsc::Sender<DiscoverReplyEvent>);
+
 #[derive(Clone)]
 pub struct NearbyDiscoverManager {
     db: Arc<ChatDb>,
@@ -83,7 +85,7 @@ pub struct NearbyDiscoverManager {
     peer_status: PeerStatusManager,
     https_port: u16,
     receiver: Arc<Mutex<Option<ReceiverHandle>>>,
-    listeners: Arc<Mutex<Vec<(u64, mpsc::Sender<DiscoverReplyEvent>)>>>,
+    listeners: Arc<Mutex<Vec<DiscoverListener>>>,
     next_listener_id: Arc<AtomicU64>,
 }
 

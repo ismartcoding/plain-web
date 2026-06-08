@@ -24,6 +24,7 @@
     
     <div class="title">
       {{ item.name }}
+      <OnlinePreviewIcon :name="item.name" :is-dir="item.isDir" />
     </div>
     
     <div class="subtitle">
@@ -72,7 +73,10 @@
       </div>
     </template>
     
-    <template #title>{{ item.name }}</template>
+    <template #title>
+      {{ item.name }}
+      <OnlinePreviewIcon :name="item.name" :is-dir="item.isDir" />
+    </template>
     
     <template #subtitle>
       <span v-if="item.isDir">{{ $t('x_items', item.children || 0) }}</span>
@@ -110,6 +114,7 @@ interface IFileWithChildren extends IFile {
 }
 import { formatFileSize, formatDateTime, formatTimeAgo } from '@/lib/format'
 import { getFileUrl } from '@/lib/api/file'
+import OnlinePreviewIcon from '@/components/OnlinePreviewIcon.vue'
 
 interface Props {
   item: IFileWithChildren

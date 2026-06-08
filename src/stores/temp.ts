@@ -1,7 +1,7 @@
 import type { ISource } from '@/components/lightbox/types'
 import type { IFile } from '@/lib/file'
 import type { IDocExtGroup } from '@/lib/interfaces'
-import { defineStore } from 'pinia'
+import { defineCrossWindowStore } from '@/lib/cross-window-store'
 import type { IApp } from '@/lib/interfaces'
 
 export interface IUploadItem {
@@ -70,7 +70,7 @@ export type TempState = {
   feedsSyncing: boolean
 }
 
-export const useTempStore = defineStore('temp', {
+export const useTempStore = defineCrossWindowStore<'temp', TempState>('temp', {
   state: () =>
     ({
       app: {} as IApp,
@@ -103,4 +103,9 @@ export const useTempStore = defineStore('temp', {
       },
       feedsSyncing: false,
     }) as TempState,
+}, {
+  // Only these keys are mirrored across windows/tabs via BroadcastChannel.
+  // Everything else (app config, uploads, lightbox, urlTokenKey) stays
+  // strictly per-window because it's either per-device state or local UI.
+  syncKeys: ['counter', 'audioPlaying', 'feedsSyncing'],
 })

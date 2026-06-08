@@ -1,0 +1,45 @@
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { loadLocaleMessages, SUPPORTED_LOCALES } from '@/plugins/i18n'
+import { set as prefsSet } from '@/lib/prefs'
+
+/**
+ * Locale switcher.
+ *
+ * Mirrors plainapp-app's `useLocaleSwitch`: keeps a `switchingLocale` ref that
+ * the header overlay reads, awaits the async locale chunk load, and only
+ * resolves after the message map is registered with vue-i18n.
+ */
+export function useLocaleSwitch() {
+  const { locale } = useI18n()
+
+  const switchingLocale = ref('')
+
+  const availableLocales = computed(() => SUPPORTED_LOCALES.slice())
+
+  const currentLocaleName = computed(
+    () => availableLocales.value.find((l) => l.code === locale.value)?.name ?? locale.value,
+  )
+
+  async function handleLocaleSwitch(code: string): Promise<void> {
+    if (code === locale.value) return
+    const name = availableLocales.value.find((l) => l.code === code)?.name ?? code
+    switchingLocale.value = name
+    try {
+      await loadLocaleMessages(code)
+      locale.value = code
+      prefsSet('locale', code)
+      document.title = 'PlainApp'
+    } finally {
+      switchingLocale.value = ''
+    }
+  }
+
+  return {
+    locale,
+    availableLocales,
+    currentLocaleName,
+    switchingLocale,
+    handleLocaleSwitch,
+  }
+}

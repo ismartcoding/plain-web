@@ -17,7 +17,7 @@
 
     <div class="title">
       {{ item.title }}
-      <span v-if="isTextFile(item.title) || canOpenInBrowser(item.title)" v-tooltip="$t('supports_online_preview')" class="online-preview-icon">⚡</span>
+      <OnlinePreviewIcon :name="item.title" />
     </div>
 
     <div class="subtitle">
@@ -51,8 +51,8 @@
 import type { IDoc, IFilter, IApp, IBucket, ITag } from '@/lib/interfaces'
 import { DataType } from '@/lib/data'
 import { formatFileSize, formatDateTimeFull, formatTimeAgo } from '@/lib/format'
-import { isTextFile, canOpenInBrowser } from '@/lib/file'
 import DocActionButtons from './DocActionButtons.vue'
+import OnlinePreviewIcon from '@/components/OnlinePreviewIcon.vue'
 import { useMainStore } from '@/stores/main'
 
 const mainStore = useMainStore()

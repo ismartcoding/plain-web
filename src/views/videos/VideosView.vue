@@ -107,6 +107,7 @@ import MediaPageActions from '@/components/media/MediaPageActions.vue'
 import MediaGridItem from '@/components/media/MediaGridItem.vue'
 import MediaToolbar from '@/components/media/MediaToolbar.vue'
 import NoDataPlaceholder from '@/components/NoDataPlaceholder.vue'
+import { useOpenMedia } from '@/hooks/open-media'
 
 const { videoSortBy, videosCardView, videosGroupBy, videosScrollPaging } = storeToRefs(useMainStore())
 const items = ref<IVideoItem[]>([])
@@ -174,7 +175,8 @@ const { loading, fetch } = initLazyQuery({
 const sources = computed<ISource[]>(() => items.value.map((it: IVideoItem) => ({
   src: getFileUrl(it.fileId), name: getFileName(it.path), duration: it.duration, size: it.size, path: it.path, data: it, type: dataType,
 })) as ISource[])
-function view(index: number) { tempStore.lightbox = { sources: sources.value, index, visible: true } }
+const { open: openMedia } = useOpenMedia(sources)
+function view(index: number) { openMedia(index) }
 
 const actionsProps = useMediaPageActions({
   filterTrash: computed(() => !!filter.trash),

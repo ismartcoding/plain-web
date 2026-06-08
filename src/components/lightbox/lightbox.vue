@@ -2,8 +2,9 @@
   <Teleport to="body">
     <div v-if="tempStore.lightbox.visible" class="lightbox" @touchmove="preventDefault" @wheel="onWheel">
       <div class="layout">
-        <LightboxHeader 
+        <LightboxHeader
           :current="current"
+          :popup="popup"
           @close="closeDialog"
           @view-origin="viewOrigin"
           @zoom-in="zoomIn"
@@ -12,8 +13,9 @@
           @rotate-left="rotateLeft"
           @rotate-right="rotateRight"
           @toggle-info="lightboxInfoVisible = !lightboxInfoVisible"
+          @open-in-window="onOpenInWindow"
         />
-        <section class="content" @click.self="closeDialog">
+        <section class="content" @click.self="onBackdropClick">
           <div v-if="tempStore.lightbox.sources.length > 1 && (loop || imgIndex > 0)" class="btn-prev" @click="onPrev">
             <i-material-symbols:chevron-left-rounded />
           </div>
@@ -26,10 +28,10 @@
           <div v-else-if="status.loadError" class="v-on-error">
             {{ $t('load_failed', { name: current?.name }) }}
           </div>
-          <div v-if="current && isVideo(current.name)" v-show="!status.loading && !status.loadError" class="v-video-wrapper" @click.self="closeDialog">
+          <div v-if="current && isVideo(current.name)" v-show="!status.loading && !status.loadError" class="v-video-wrapper" @click.self="onBackdropClick">
             <video ref="video" controls autoplay="true" :src="current.src" @error="onError" @canplay="onLoad" @playing="onPlaying" @pause="onPause" @volumechange="onVolumeChange" />
           </div>
-          <div v-else-if="current && isAudio(current.name)" v-show="!status.loading && !status.loadError" class="v-audio-wrapper" @click.self="closeDialog">
+          <div v-else-if="current && isAudio(current.name)" v-show="!status.loading && !status.loadError" class="v-audio-wrapper" @click.self="onBackdropClick">
             <div style="padding: 50px">
               <audio controls autoplay="true" :src="current.src" @error="onError" @canplay="onLoad" />
             </div>
@@ -110,6 +112,7 @@
 import { inject, toRef } from 'vue'
 import { preventDefault } from './utils/index'
 import { isVideo, isImage, isAudio, isSvg } from '@/lib/file'
+import { openMediaInWindow } from '@/lib/api/tauri-window'
 import {
   useLightboxState,
   useLightboxQueries,
@@ -122,6 +125,7 @@ import {
 
 const props = defineProps({
   loop: { type: Boolean, default: true },
+  popup: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['on-error', 'on-prev', 'on-next', 'on-prev-click', 'on-next-click', 'on-index-change'])
@@ -154,7 +158,19 @@ const viewOrigin = () => {
 }
 
 const { onLoad, onError, onPlaying, onPause, onVolumeChange } =
-  useLightboxEvents(tempStore, current, video, status, imgState, imgIndex, setImgSize, refetchInfo, updateViewOriginImageState, closeDialog, onNext, onPrev, changeIndex, emit as (event: string, ...args: any[]) => void)
+  useLightboxEvents(tempStore, current, video, status, imgState, imgIndex, setImgSize, refetchInfo, updateViewOriginImageState, closeDialog, onNext, onPrev, changeIndex, emit as (event: string, ...args: any[]) => void, toRef(props, 'popup'))
+
+function onBackdropClick() {
+  if (props.popup) return
+  closeDialog()
+}
+
+async function onOpenInWindow() {
+  if (props.popup || !__IS_TAURI__ || !current.value) return
+  const source = current.value
+  closeDialog()
+  await openMediaInWindow(source)
+}
 
 const { onMouseDown, onMouseMove, onMouseUp, onTouchStart, onTouchMove, onTouchEnd } =
   useLightboxMouseTouch(imgWrapperState, imgState, status)
