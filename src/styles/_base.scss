@@ -76,7 +76,7 @@
   --pl-spacing-xl: 28px;
   --pl-top-app-bar-height: 56px;
   --pl-tauri-tab-bar-height: 0px;
-  --_scrollbar-width: 8px;
+  --_scrollbar-width: 4px;
   --border-radius-sm: 4px;
   /* firefox */
   scrollbar-color: var(--md-sys-color-primary) transparent;
@@ -123,17 +123,6 @@
     --md-sys-color-warning: #FBC02D;
     --border-color: #938f99;
   }
-}
-
-/* Chromium + Safari */
-::-webkit-scrollbar {
-  background-color: transparent;
-  width: var(--_scrollbar-width);
-}
-
-::-webkit-scrollbar-thumb {
-  background-color: var(--md-sys-color-primary);
-  border-radius: calc(var(--_scrollbar-width) / 2);
 }
 
 ::slotted(*) {

@@ -7,6 +7,9 @@
       <button class="bar-btn" title="Forward" @click="goForward">
         <i-material-symbols:arrow-forward-ios-rounded />
       </button>
+      <button class="bar-btn" title="Refresh" @click="refreshPage">
+        <i-material-symbols:refresh-rounded />
+      </button>
     </div>
 
     <div class="tabs-row">
@@ -52,12 +55,6 @@
     </div>
 
     <div class="tab-spacer" data-tauri-drag-region />
-
-    <div class="right-controls">
-      <button class="bar-btn" title="Refresh" @click="refreshPage">
-        <i-material-symbols:refresh-rounded />
-      </button>
-    </div>
   </div>
 </template>
 
@@ -66,7 +63,8 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useMainStore } from '@/stores/main'
 import type { AppTab } from '@/stores/main'
-import { useDeviceSessionsStore, LOCAL_CLIENT_ID } from '@/stores/device-sessions'
+import { useDeviceSessionsStore } from '@/stores/device-sessions'
+import { isLocalMode } from '@/lib/local-mode'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { pushModal } from '@/components/modal'
@@ -81,8 +79,7 @@ const { currentSession, sortedSessions } = storeToRefs(deviceSessionsStore)
 const { app } = storeToRefs(useTempStore())
 const homeDeviceMenuOpen = ref(false)
 
-// True when no device session is active — local-only mode.
-const localMode = computed(() => deviceSessionsStore.currentClientId === LOCAL_CLIENT_ID)
+const localMode = computed(() => isLocalMode())
 
 const homeTabTitle = computed(() =>
   localMode.value
@@ -135,7 +132,7 @@ function switchToSession(clientId: string) {
 
 function switchToLocal() {
   homeDeviceMenuOpen.value = false
-  deviceSessionsStore.setCurrent(LOCAL_CLIENT_ID)
+  deviceSessionsStore.setCurrent('')
   window.location.href = '/'
 }
 
@@ -185,8 +182,7 @@ function refreshPage() {
   user-select: none;
 }
 
-.left-controls,
-.right-controls {
+.left-controls {
   display: flex;
   align-items: center;
   gap: 2px;

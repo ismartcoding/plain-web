@@ -74,7 +74,7 @@ fn member_ids_by_status(members_json: &str, statuses: &[&str]) -> Vec<String> {
         .filter_map(|m| {
             let id = m.get("id").and_then(|v| v.as_str())?.to_string();
             let st = m.get("status").and_then(|v| v.as_str()).unwrap_or("");
-            if statuses.iter().any(|s| *s == st) {
+            if statuses.contains(&st) {
                 Some(id)
             } else {
                 None

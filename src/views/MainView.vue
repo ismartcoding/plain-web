@@ -59,7 +59,6 @@
         </div>
       </div>
         <div class="quick-actions">
-          <header-actions :logged-in="true" @toggle-quick="toggleQuick" />
             <template v-if="!localMode">
                 <v-icon-button
                   v-if="hasTasks || store.quick === 'upload'"

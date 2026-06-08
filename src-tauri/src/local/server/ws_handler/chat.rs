@@ -67,10 +67,10 @@ pub(super) async fn handle<S>(
                             "local_server chat_ws: forwarding event type={} to cid={cid}",
                             ev.event_type
                         );
-                        if let Some(bytes) = encode_ws_event(&ev, &token) {
-                            if sink.send(Message::Binary(bytes.into())).await.is_err() {
-                                break;
-                            }
+                        if let Some(bytes) = encode_ws_event(&ev, &token)
+                            && sink.send(Message::Binary(bytes)).await.is_err()
+                        {
+                            break;
                         }
                     }
                     Err(broadcast::error::RecvError::Lagged(n)) => {

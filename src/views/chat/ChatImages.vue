@@ -15,6 +15,7 @@ import { computed } from 'vue'
 import type { ISource } from '@/components/lightbox/types'
 import { formatSeconds, formatFileSize } from '@/lib/format'
 import { useTempStore } from '@/stores/temp'
+import { useOpenMedia } from '@/hooks/open-media'
 import ChatDownloadOverlay from './ChatDownloadOverlay.vue'
 
 const tempStore = useTempStore()
@@ -51,14 +52,6 @@ function getPreview(source: ISource) {
   return `${source.src}&w=512&h=512`
 }
 
-function view(index: number) {
-  tempStore.lightbox = {
-    sources: sources.value,
-    index: index,
-    visible: true,
-  }
-}
-
 const sources = computed(() => {
   const data = props.data
   const files = data?._content?.value?.items ?? []
@@ -79,5 +72,8 @@ const sources = computed(() => {
 
   return items
 })
+
+const { open: openMedia } = useOpenMedia(sources)
+function view(index: number) { openMedia(index) }
 </script>
 

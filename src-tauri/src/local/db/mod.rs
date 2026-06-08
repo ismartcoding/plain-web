@@ -44,6 +44,22 @@ impl ChatDb {
     }
 
     pub fn open(db_path: &Path) -> rusqlite::Result<Self> {
+        if let Some(parent) = db_path.parent()
+            && !parent.as_os_str().is_empty()
+        {
+            std::fs::create_dir_all(parent).map_err(|e| {
+                rusqlite::Error::SqliteFailure(
+                    rusqlite::ffi::Error {
+                        code: rusqlite::ffi::ErrorCode::CannotOpen,
+                        extended_code: 0,
+                    },
+                    Some(format!(
+                        "failed to create database parent dir {}: {e}",
+                        parent.display()
+                    )),
+                )
+            })?;
+        }
         let conn = Connection::open(db_path)?;
         conn.execute_batch("PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;")?;
         conn.execute_batch(
@@ -138,5 +154,47 @@ impl ChatDb {
             conn.execute(&format!("ALTER TABLE {table} ADD COLUMN {column} {definition}"), [])?;
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ChatDb;
+    use std::path::PathBuf;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn unique_tmp_dir(label: &str) -> PathBuf {
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(0);
+        let pid = std::process::id();
+        std::env::temp_dir().join(format!("plainapp-{label}-{pid}-{nanos}"))
+    }
+
+    #[test]
+    fn open_creates_missing_parent_dirs() {
+        let nested = unique_tmp_dir("open-parent").join("a/b/c");
+        let db_path = nested.join("local_chat.db");
+
+        let db = ChatDb::open(&db_path).expect("should create missing parents");
+
+        assert!(nested.exists(), "nested parent directory should be created");
+        assert!(db_path.exists(), "db file should be created");
+
+        // Second open on the same path should also succeed (reopen existing DB).
+        let _reopen = ChatDb::open(&db_path).expect("should reopen existing DB");
+
+        // Verify the wrapper actually wraps a live connection.
+        db.with_conn(|_| ());
+    }
+
+    #[test]
+    fn open_works_when_db_already_exists() {
+        let dir = unique_tmp_dir("open-existing");
+        let db_path = dir.join("local_chat.db");
+
+        let _ = ChatDb::open(&db_path).expect("first open");
+        let _ = ChatDb::open(&db_path).expect("second open");
     }
 }

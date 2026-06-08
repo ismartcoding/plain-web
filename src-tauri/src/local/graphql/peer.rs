@@ -243,10 +243,10 @@ pub async fn deliver_channel_system_message(
             .header("c-id", &peer.id)
             .header(reqwest::header::CONTENT_TYPE, "application/json")
             .body(encrypted.clone());
-        if let Some(cid) = channel_id_opt {
-            if !cid.is_empty() {
-                req = req.header("c-cid", cid);
-            }
+        if let Some(cid) = channel_id_opt
+            && !cid.is_empty()
+        {
+            req = req.header("c-cid", cid);
         }
         let resp = req.send().await;
         let Ok(resp) = resp else { continue };

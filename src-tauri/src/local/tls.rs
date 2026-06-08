@@ -38,7 +38,7 @@ pub fn ensure_cert(dir: &Path) -> std::io::Result<(Vec<u8>, Vec<u8>)> {
 
     let subject_alt_names = vec!["localhost".to_string(), "127.0.0.1".to_string()];
     let CertifiedKey { cert, key_pair } = generate_simple_self_signed(subject_alt_names)
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+        .map_err(std::io::Error::other)?;
 
     let cert_pem = cert.pem().into_bytes();
     let key_pem = key_pair.serialize_pem().into_bytes();
@@ -56,20 +56,20 @@ pub fn build_acceptor(cert_pem: &[u8], key_pem: &[u8]) -> std::io::Result<TlsAcc
         let mut r = BufReader::new(cert_pem);
         certs(&mut r)
             .collect::<Result<Vec<_>, _>>()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?
+            .map_err(std::io::Error::other)?
     };
 
     let key: PrivateKeyDer<'static> = {
         let mut r = BufReader::new(key_pem);
         private_key(&mut r)
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?
-            .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::Other, "no private key found"))?
+            .map_err(std::io::Error::other)?
+            .ok_or_else(|| std::io::Error::other("no private key found"))?
     };
 
     let config = ServerConfig::builder()
         .with_no_client_auth()
         .with_single_cert(certs, key)
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+        .map_err(std::io::Error::other)?;
 
     Ok(TlsAcceptor::from(Arc::new(config)))
 }

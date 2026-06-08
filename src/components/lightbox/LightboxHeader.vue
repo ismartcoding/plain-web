@@ -1,13 +1,26 @@
 <template>
-  <header v-if="current" class="toolbar">
-    <div v-if="current.name" class="source-name">
-      <v-icon-button v-tooltip="$t('close')" class="close-btn" @click="$emit('close')">
-        <i-material-symbols:close-rounded />
+  <header
+    v-if="current"
+    class="toolbar"
+    :class="{ 'toolbar--popup': popup }"
+    :data-tauri-drag-region="isTauri"
+  >
+    <div v-if="current.name && !popup" class="source-name">
+      <v-icon-button v-if="!isTauri" v-tooltip="$t('back')" class="close-btn" @click="$emit('close')">
+        <i-material-symbols:arrow-back-rounded />
       </v-icon-button>
-      <span class="file-name">{{ current.name }}</span>
+      <span v-if="!isTauri" class="file-name">{{ current.name }}</span>
     </div>
 
     <div class="actions">
+      <template v-if="!popup && isTauri">
+        <v-icon-button v-tooltip="$t('back')" class="close-btn" @click="$emit('close')">
+          <i-material-symbols:arrow-back-rounded />
+        </v-icon-button>
+        <v-icon-button v-tooltip="$t('open_in_window')" @click="$emit('open-in-window')">
+          <i-material-symbols:open-in-new-rounded />
+        </v-icon-button>
+      </template>
       <template v-if="isImage(current.name)">
         <v-icon-button v-if="!current.viewOriginImage && !isHeic(current.name)" v-tooltip="$t('view_origin_image')" @click="$emit('view-origin')">
           <i-material-symbols:image-outline-rounded />
@@ -45,8 +58,11 @@
 import { isImage, isHeic } from '@/lib/file'
 import type { ISource } from './types'
 
+const isTauri = __IS_TAURI__
+
 defineProps<{
   current: ISource | undefined
+  popup?: boolean
 }>()
 
 defineEmits<{
@@ -58,6 +74,7 @@ defineEmits<{
   'rotate-left': []
   'rotate-right': []
   'toggle-info': []
+  'open-in-window': []
 }>()
 </script>
 
@@ -101,6 +118,15 @@ defineEmits<{
     flex-shrink: 0;
     flex-wrap: wrap;
     gap: 4px;
+  }
+
+  &.toolbar--popup {
+    padding-left: 80px; /* leave room for macOS traffic lights */
+    -webkit-app-region: drag;
+
+    .actions {
+      margin-left: auto;
+    }
   }
 
   .info-btn {

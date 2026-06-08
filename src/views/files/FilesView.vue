@@ -72,6 +72,7 @@ import { useDragDropUpload, useFileUpload } from '@/hooks/upload'
 import { useSelectable } from '@/hooks/list'
 import { useFilesKeyEvents } from '@/hooks/key-events'
 import { openModal } from '@/components/modal'
+import { useOpenMedia } from '@/hooks/open-media'
 import KeyboardShortcutsModal from '@/components/KeyboardShortcutsModal.vue'
 import { filesKeyboardShortcuts } from '@/lib/shortcuts/files'
 import type { ISource } from '@/components/lightbox/types'
@@ -104,7 +105,12 @@ const { createPath, createVariables, createMutation } = useCreateDir(urlTokenKey
 const { renameItem, renameDone, renameMutation, renameVariables } = useRename(() => { fetch() })
 const { mounts, refetch: refetchMounts } = useMounts()
 const { downloadFile, downloadDir, downloadFiles } = useDownload(urlTokenKey)
-const { view } = useView(sources, (s: ISource[], index: number) => { tempStore.lightbox = { sources: s, index, visible: true } })
+const { open: openMedia } = useOpenMedia()
+const { view } = useView(sources, (s: ISource[], index: number) => {
+  const target = s[index]
+  if (!target) return
+  openMedia(index, s)
+})
 const { loading: pasting, canPaste, copy, cut, paste } = useCopyPaste(items, isCut, selectedFiles, fetch, refetchMounts)
 const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload(uploads)
 const { input: dirFileInput, upload: uploadDir, uploadChanged: dirUploadChanged } = useFileUpload(uploads)

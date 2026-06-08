@@ -39,7 +39,7 @@ pub fn remove_window_device_name(label: &str) {
 
 fn register_action_class() -> &'static objc2::runtime::AnyClass {
     static CLASS: OnceLock<&'static objc2::runtime::AnyClass> = OnceLock::new();
-    *CLASS.get_or_init(|| {
+    CLASS.get_or_init(|| {
         use objc2::runtime::NSObject;
         let mut builder = ClassBuilder::new(c"PlainAppDockTarget", NSObject::class())
             .expect("PlainAppDockTarget should be unique");
@@ -61,15 +61,13 @@ fn register_action_class() -> &'static objc2::runtime::AnyClass {
             sender: *mut AnyObject,
         ) {
             let tag: isize = msg_send![sender, tag];
-            if let Some(handle) = APP_HANDLE.get() {
-                if let Ok(snapshot) = window_snapshot().lock() {
-                    if let Some(label) = snapshot.get(tag as usize) {
-                        if let Some(win) = handle.get_webview_window(label) {
-                            let _ = win.show();
-                            let _ = win.set_focus();
-                        }
-                    }
-                }
+            if let Some(handle) = APP_HANDLE.get()
+                && let Ok(snapshot) = window_snapshot().lock()
+                && let Some(label) = snapshot.get(tag as usize)
+                && let Some(win) = handle.get_webview_window(label)
+            {
+                let _ = win.show();
+                let _ = win.set_focus();
             }
         }
 
@@ -81,7 +79,7 @@ fn register_action_class() -> &'static objc2::runtime::AnyClass {
             menu: *mut AnyObject,
         ) {
             let _: () = msg_send![menu, removeAllItems];
-            let mtm = MainThreadMarker::new_unchecked();
+            let mtm = unsafe { MainThreadMarker::new_unchecked() };
 
             let mut snapshot: Vec<String> = Vec::new();
 

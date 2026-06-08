@@ -1,12 +1,11 @@
 import { defineStore } from 'pinia'
 import { get as prefsGet, set as prefsSet, remove as prefsRemove } from '@/lib/prefs'
-
-/**
- * Sentinel clientId for the built-in "local" session (no connected device).
- * Stored as currentClientId to signal local mode instead of empty string,
- * so the value is always meaningful and consistent across all consumers.
- */
-export const LOCAL_CLIENT_ID = '__local__'
+import {
+  getBoundClientId,
+  setBoundClientId,
+  clearBoundClientId,
+  getWindowClientId,
+} from '@/lib/window-client'
 
 /**
  * Persistent registry of devices the user has previously logged into,
@@ -17,6 +16,11 @@ export const LOCAL_CLIENT_ID = '__local__'
  * `/auth` WebSocket handshake — see `AuthResponse` in plain-app). The host
  * (`ip:port`) is just transport addressing and is allowed to change when
  * the device moves networks; identity is the immutable `clientId`.
+ *
+ * `currentClientId` is NOT part of persisted state — it lives in
+ * sessionStorage as the bound device (see `@/lib/window-client`). The store
+ * exposes it via a getter so existing call sites (`store.currentClientId`)
+ * keep working unchanged.
  */
 
 export interface DeviceSession {
@@ -29,31 +33,24 @@ export interface DeviceSession {
 
 export type DeviceSessionsState = {
   sessions: DeviceSession[]
-  /**
-   * `clientId` of the device the app is currently connected to, or '' if
-   * the user is not logged in.
-   */
-  currentClientId: string
 }
 
 const STORAGE_KEY = 'device_sessions'
 
 function loadFromStorage(): DeviceSessionsState {
-  const fallback: DeviceSessionsState = { sessions: [], currentClientId: LOCAL_CLIENT_ID }
+  const fallback: DeviceSessionsState = { sessions: [] }
   try {
-    const parsed = prefsGet<DeviceSessionsState | null>(STORAGE_KEY, null)
+    const parsed = prefsGet<{ sessions?: unknown } | null>(STORAGE_KEY, null)
     if (!parsed || typeof parsed !== 'object') return fallback
     const sessions: DeviceSession[] = Array.isArray(parsed.sessions)
-      ? parsed.sessions.filter(
-          (s: any) =>
+      ? (parsed.sessions as any[]).filter(
+          (s) =>
             s && typeof s.clientId === 'string' && s.clientId
               && typeof s.host === 'string'
-              && typeof s.token === 'string'
+              && typeof s.token === 'string',
         )
       : []
-    const stored = typeof parsed.currentClientId === 'string' ? parsed.currentClientId : ''
-    const currentClientId = stored || LOCAL_CLIENT_ID
-    return { sessions, currentClientId }
+    return { sessions }
   } catch {
     return fallback
   }
@@ -65,16 +62,21 @@ export const useDeviceSessionsStore = defineStore('deviceSessions', {
     sortedSessions(state): DeviceSession[] {
       return [...state.sessions].sort((a, b) => b.addedAt - a.addedAt)
     },
+    /**
+     * The active device for this window. Reads the per-window binding from
+     * sessionStorage; falls back to the desktop clientId when no device is
+     * bound (local mode).
+     */
+    currentClientId(): string {
+      return getWindowClientId()
+    },
     currentSession(state): DeviceSession | undefined {
-      return state.sessions.find((s) => s.clientId === state.currentClientId)
+      return state.sessions.find((s) => s.clientId === this.currentClientId)
     },
   },
   actions: {
     persist() {
-      prefsSet(STORAGE_KEY, {
-        sessions: this.sessions,
-        currentClientId: this.currentClientId,
-      })
+      prefsSet(STORAGE_KEY, { sessions: this.sessions })
     },
     /**
      * Insert or update a session for the given device. `addedAt` is preserved
@@ -97,14 +99,24 @@ export const useDeviceSessionsStore = defineStore('deviceSessions', {
       ]
       this.persist()
     },
+    /**
+     * Bind this window to the given device. Pass the desktop clientId (from
+     * `getDesktopClientId()`) to drop back to local mode, or pass '' to
+     * clear the binding. The caller is responsible for reloading the page
+     * so all stores/sockets re-init against the new device.
+     */
     setCurrent(clientId: string) {
-      this.currentClientId = clientId
+      if (clientId) setBoundClientId(clientId)
+      else clearBoundClientId()
       this.persist()
     },
     remove(clientId: string) {
       this.sessions = this.sessions.filter((s) => s.clientId !== clientId)
-      if (this.currentClientId === clientId) this.currentClientId = LOCAL_CLIENT_ID
-      // Also clean up the persisted main state for this device.
+      if (getBoundClientId() === clientId) {
+        // Drop the per-window binding so the caller can navigate to a
+        // local-mode landing route or pick another device.
+        clearBoundClientId()
+      }
       prefsRemove(`main_state:${clientId}`)
       this.persist()
     },

@@ -50,13 +50,15 @@ import { openUrl } from '@/lib/browser'
 import { noDataKey } from '@/lib/list'
 import { useSelectable } from '@/hooks/list'
 import { useDownloadItems } from '@/hooks/files'
+import type { ISource } from '@/components/lightbox/types'
 import FileSkeletonItem from '@/views/files/FileSkeletonItem.vue'
 import { useAppFilesData, getAppFileFid, type IAppFile } from './useAppFilesData'
 import AppFileItem from './AppFileItem.vue'
+import { useOpenMedia } from '@/hooks/open-media'
 
 const isPhone = inject('isPhone') as boolean
 const { urlTokenKey } = storeToRefs(useTempStore())
-const tempStore = useTempStore()
+const { open: openMedia } = useOpenMedia()
 
 const { items, total, loading, firstInit, fetch, loadMore, refresh } = useAppFilesData()
 
@@ -110,11 +112,18 @@ function clickItem(item: IAppFile) {
 }
 
 function viewMedia(item: IAppFile) {
-  const viewable = items.value.filter((it) => canView(it.fileName))
-  const sources = viewable.map((it) => ({
-    path: `fid:${getAppFileFid(it)}`, src: getAppFileUrl(it), name: it.fileName, size: it.size, duration: 0,
-  }))
-  tempStore.lightbox = { sources, index: sources.findIndex((s) => s.path === `fid:${getAppFileFid(item)}`), visible: true }
+  const sources = items.value
+    .filter((it) => canView(it.fileName))
+    .map((it) => ({
+      path: `fid:${getAppFileFid(it)}`, src: getAppFileUrl(it), name: it.fileName, size: it.size, duration: 0,
+    })) as ISource[]
+  const targetPath = `fid:${getAppFileFid(item)}`
+  const index = sources.findIndex((s) => s.path === targetPath)
+  if (index < 0) {
+    openMedia(0, [item] as unknown as ISource[])
+    return
+  }
+  openMedia(index, sources)
 }
 
 const isActive = ref(false)

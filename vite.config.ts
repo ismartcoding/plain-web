@@ -31,7 +31,7 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0',
-    port: 3000,
+    port: 4000,
   },
   build: {
     rollupOptions: {
@@ -46,6 +46,15 @@ export default defineConfig({
             return 'assets/[name][extname]'
           }
           return 'assets/[name]-[hash][extname]'
+        },
+        manualChunks(id) {
+          // Merge all locale module files for the same language into one
+          // async chunk, so switching languages costs a single network
+          // round-trip per locale instead of N tiny requests. The fallback
+          // locale (en-US) is eagerly imported at startup, so we leave it
+          // in the main bundle to avoid an extra round-trip on cold start.
+          const localeMatch = id.match(/[\\/]locales[\\/]([^\\/]+)[\\/]/)
+          if (localeMatch && localeMatch[1] !== 'en-US') return `locale-${localeMatch[1]}`
         },
       },
     },

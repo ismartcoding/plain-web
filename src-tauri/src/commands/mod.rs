@@ -5,6 +5,7 @@ pub mod http_client;
 pub mod macos_dock;
 #[cfg(target_os = "macos")]
 pub mod macos_menu;
+pub mod media_preview_pool;
 pub mod notification;
 pub mod window;
 pub mod ws_proxy;

@@ -103,6 +103,7 @@ import MediaGridItem from '@/components/media/MediaGridItem.vue'
 import MediaToolbar from '@/components/media/MediaToolbar.vue'
 import ImageSearchButton from '@/components/ai/ImageSearchButton.vue'
 import NoDataPlaceholder from '@/components/NoDataPlaceholder.vue'
+import { useOpenMedia } from '@/hooks/open-media'
 
 const { imageSortBy, imagesCardView, imagesGroupBy, imagesScrollPaging } = storeToRefs(useMainStore())
 const items = ref<IImageItem[]>([])
@@ -168,7 +169,8 @@ const { loading, fetch } = initLazyQuery({
 const sources = computed<ISource[]>(() => items.value.map((it: IImageItem) => ({
   src: getFileUrl(it.fileId), name: getFileName(it.path), duration: 0, size: it.size, path: it.path, type: dataType, data: it,
 })) as ISource[])
-function view(index: number) { tempStore.lightbox = { sources: sources.value, index, visible: true } }
+const { open: openMedia } = useOpenMedia(sources)
+function view(index: number) { openMedia(index) }
 
 const actionsProps = useMediaPageActions({
   filterTrash: computed(() => !!filter.trash),

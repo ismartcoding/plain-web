@@ -235,17 +235,15 @@ fn macos_battery() -> Option<BatteryInfo> {
     let mut status = BatteryStatus::Full;
 
     for line in out.lines() {
-        if line.contains("drawing from") {
-            if line.contains("Battery Power") {
-                plugged = BatteryPlugged::Unplugged;
-            }
+        if line.contains("drawing from") && line.contains("Battery Power") {
+            plugged = BatteryPlugged::Unplugged;
         }
         if line.contains("InternalBattery") {
             // Extract percentage: "87%"
-            if let Some(pct_part) = line.split('%').next() {
-                if let Some(pct_str) = pct_part.split_whitespace().last() {
-                    level = pct_str.parse().unwrap_or(100);
-                }
+            if let Some(pct_part) = line.split('%').next()
+                && let Some(pct_str) = pct_part.split_whitespace().last()
+            {
+                level = pct_str.parse().unwrap_or(100);
             }
             if line.contains("discharging") {
                 status = BatteryStatus::Discharging;

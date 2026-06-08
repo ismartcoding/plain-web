@@ -9,6 +9,7 @@ export default {
   add_to_playlist: 'Add to playlist',
   added_to_playlist: 'Added to playlist!',
   view_origin_image: 'View origin image',
+  open_in_window: 'Open in window',
   mute: 'Mute',
   unmute: 'Unmute',
   pausing: 'Pausing...',

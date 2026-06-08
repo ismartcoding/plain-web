@@ -18,7 +18,8 @@ import { onMounted, onUnmounted, watch } from 'vue'
 import { useAppSocket } from '@/hooks/app-socket'
 import { useDevicePairing } from '@/hooks/use-device-pairing'
 import { openWindow, setWindowDeviceName } from '@/lib/api/tauri-window'
-import { useDeviceSessionsStore, LOCAL_CLIENT_ID } from '@/stores/device-sessions'
+import { useDeviceSessionsStore } from '@/stores/device-sessions'
+import { isLocalMode } from '@/lib/local-mode'
 import { useChatStore } from '@/stores/chat'
 
 const { wsStatus, tapPhoneMessage, closeTapPhone } = useAppSocket()
@@ -45,7 +46,9 @@ watch(
   () => deviceSessions.currentClientId,
   (clientId) => {
     const session = deviceSessions.sessions.find((s) => s.clientId === clientId)
-    const name = clientId === LOCAL_CLIENT_ID ? 'Local' : (session?.name || session?.host || 'PlainApp')
+    const name = isLocalMode()
+      ? 'Local'
+      : (session?.name || session?.host || 'PlainApp')
     setWindowDeviceName(name)
   },
   { immediate: true },

@@ -36,6 +36,7 @@ use super::messages::*;
 /// outbound broadcast payload and to refresh the local channel key
 /// cache after `handle_invite_accept` (mirrors Kotlin's
 /// `ChatCacheManager.loadKeyCacheAsync`).
+#[allow(clippy::too_many_arguments)]
 pub fn handle(
     db: &ChatDb,
     client_id: &str,
@@ -224,6 +225,7 @@ fn handle_invite(
 
 // ── ChannelInviteAccept ─────────────────────────────────────────────────────
 
+#[allow(clippy::too_many_arguments)]
 fn handle_invite_accept(
     db: &ChatDb,
     client_id: &str,

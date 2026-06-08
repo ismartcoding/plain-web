@@ -3,9 +3,8 @@ name = "PlainApp"
 version = "0.1.0"
 description = "PlainApp Desktop"
 authors = ["iSmartCoding"]
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+edition = "2024"
+rust-version = "1.96"
 
 [lib]
 name = "plainapp_lib"

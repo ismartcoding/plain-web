@@ -7,6 +7,8 @@ import { isVideo, isImage, isAudio, isTextFile, canOpenInBrowser, isAppFile } fr
 import { useTempStore } from '@/stores/temp'
 import { useMainStore } from '@/stores/main'
 import { openUrl } from '@/lib/browser'
+import { openWindow } from '@/lib/api/tauri-window'
+import { useOpenMedia } from '@/hooks/open-media'
 
 export function useChatFiles(props: { data: any; downloadInfo: any; peer: { ip: string; port: number } | null }) {
   const tempStore = useTempStore()
@@ -16,6 +18,8 @@ export function useChatFiles(props: { data: any; downloadInfo: any; peer: { ip: 
 
   const activeAudioSrc = ref<string | null>(null)
   const iconErrors = ref<string[]>([])
+
+  const { open: openMedia } = useOpenMedia()
 
   const items = computed<ISource[]>(() => {
     const files = props.data?._content?.value?.items ?? []
@@ -66,14 +70,21 @@ export function useChatFiles(props: { data: any; downloadInfo: any; peer: { ip: 
       }
       const path = `/text-file?id=${encodeURIComponent(textFileId)}`
       if (__IS_TAURI__) {
-        mainStore.openFileTab(item.name, path)
+        openWindow(path)
+        return
       }
+      mainStore.openFileTab(item.name, path)
       router.push(path)
     } else if (canOpenInBrowser(item.name)) {
       openUrl(item.src)
     } else if (isImage(item.name) || isVideo(item.name)) {
       const viewable = items.value.filter((it) => isImage(it.name) || isVideo(it.name))
-      tempStore.lightbox = { sources: viewable, index: viewable.findIndex((it) => it.src === item.src), visible: true }
+      const index = viewable.findIndex((it) => it.src === item.src)
+      if (index < 0) {
+        openMedia(0, [item])
+        return
+      }
+      openMedia(index, viewable)
     } else {
       openUrl(item.src)
     }

@@ -364,6 +364,7 @@ export function useLightboxEvents(
   onPrev: () => void,
   changeIndex: (i: number) => void,
   emit: (event: string, ...args: any[]) => void,
+  popup: Ref<boolean> = ref(false),
 ) {
   let isVideoPlaying = true
 
@@ -389,6 +390,7 @@ export function useLightboxEvents(
     if (!tempStore.lightbox.visible) return
     const evt = e as KeyboardEvent
     if (evt.key === 'Escape') {
+      if (popup.value) return
       if (document.querySelector('.vue-modal')) return
       evt.stopPropagation()
       closeDialog()

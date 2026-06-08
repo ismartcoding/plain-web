@@ -1,66 +1,79 @@
 /**
  * Synchronous accessors for the currently active device.
- * Reads directly from the `device_sessions` prefs key, kept in sync by the
- * Pinia store (`stores/device-sessions.ts`) via `persist()`.
  *
- * Works in modules that execute before Pinia is initialised (api.ts, router.ts, login.ts).
- * Both web and Tauri use the same storage structure — no branching on __IS_TAURI__.
+ * Identity comes from `@/lib/window-client`:
+ *   - `getCurrentClientId()` returns the per-window bound device, or the
+ *     desktop clientId when no device is bound.
+ *   - `getCurrentDeviceHost()` / `getCurrentAuthToken()` look the bound id
+ *     up in the persistent sessions list to find host + token.
+ *   - `getMainStateKey()` namespaces the main store snapshot per device.
+ *
+ * Works in modules that execute before Pinia is initialised (api.ts,
+ * router.ts, login.ts). Both web and Tauri use the same code path.
  */
 import { get as prefsGet, set as prefsSet } from '@/lib/prefs'
-import { LOCAL_CLIENT_ID } from '@/stores/device-sessions'
+import {
+  getWindowClientId,
+  isLocalMode as _isLocalMode,
+  clearBoundClientId,
+} from '@/lib/window-client'
 
 const SESSIONS_KEY = 'device_sessions'
 
+interface SessionEntry {
+  clientId: string
+  host: string
+  token: string
+  name?: string
+}
+
 interface SessionsStorage {
-  sessions: Array<{ clientId: string; host: string; token: string; name?: string }>
-  currentClientId: string
+  sessions: SessionEntry[]
 }
 
 function readSessionsStorage(): SessionsStorage {
   try {
     const p = prefsGet<SessionsStorage | null>(SESSIONS_KEY, null)
-    if (!p) return { sessions: [], currentClientId: '' }
-    return {
-      sessions: Array.isArray(p.sessions) ? p.sessions : [],
-      currentClientId: typeof p.currentClientId === 'string' ? p.currentClientId : '',
-    }
+    if (!p || !Array.isArray(p.sessions)) return { sessions: [] }
+    return { sessions: p.sessions }
   } catch {
-    return { sessions: [], currentClientId: '' }
+    return { sessions: [] }
   }
 }
 
 export function getCurrentClientId(): string {
-  return readSessionsStorage().currentClientId
+  return getWindowClientId()
 }
+
+export { _isLocalMode as isLocalMode }
 
 export function getCurrentDeviceHost(): string {
-  const { sessions, currentClientId } = readSessionsStorage()
-  return sessions.find((s) => s.clientId === currentClientId)?.host ?? ''
+  const { sessions } = readSessionsStorage()
+  return sessions.find((s) => s.clientId === getCurrentClientId())?.host ?? ''
 }
 
-/** Return the auth token for the current session. */
 export function getCurrentAuthToken(): string {
-  const { sessions, currentClientId } = readSessionsStorage()
-  return sessions.find((s) => s.clientId === currentClientId)?.token ?? ''
+  const { sessions } = readSessionsStorage()
+  return sessions.find((s) => s.clientId === getCurrentClientId())?.token ?? ''
 }
 
 /**
  * Clear auth on failure (e.g. 401 from server).
  * Clears the token of the current session (so the user must re-authenticate)
- * and switches the active device back to desktop local mode.
- * The session entry itself is kept in the list so the user can re-auth later.
+ * and drops the per-window binding back to local mode. The session entry
+ * itself is kept in the list so the user can re-auth later.
  */
 export function clearCurrentSession(): void {
   try {
     const p = prefsGet<SessionsStorage | null>(SESSIONS_KEY, null)
     if (!p) return
-    const currentId = typeof p.currentClientId === 'string' ? p.currentClientId : ''
+    const currentId = getCurrentClientId()
     if (currentId && Array.isArray(p.sessions)) {
-      const session = p.sessions.find((s: any) => s.clientId === currentId)
+      const session = p.sessions.find((s) => s.clientId === currentId)
       if (session) session.token = ''
+      prefsSet(SESSIONS_KEY, p)
     }
-    p.currentClientId = LOCAL_CLIENT_ID
-    prefsSet(SESSIONS_KEY, p)
+    clearBoundClientId()
   } catch {
     // Swallow storage errors (quota, disabled localStorage, etc.) so a
     // single failed clear doesn't crash the surrounding auth/UI flow.
