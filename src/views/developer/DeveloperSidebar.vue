@@ -2,22 +2,42 @@
   <left-sidebar>
     <template #body>
       <ul class="nav">
-        <li :class="{ active: activeSection === 'device-info' }" @click.prevent="navigate('/developer/device-info')">
-          <span class="icon" aria-hidden="true"><i-lucide:smartphone /></span>
-          <span class="title">{{ $t('device_info') }}</span>
-        </li>
-        <li :class="{ active: activeSection === 'datastore' }" @click.prevent="navigate('/developer/datastore')">
-          <span class="icon" aria-hidden="true"><i-lucide:archive /></span>
-          <span class="title">{{ $t('developer.datastore') }}</span>
-        </li>
-        <li :class="{ active: activeSection === 'database' }" @click.prevent="navigate('/developer/database')">
-          <span class="icon" aria-hidden="true"><i-lucide:database /></span>
-          <span class="title">{{ $t('developer.database') }}</span>
-        </li>
-        <li :class="{ active: activeSection === 'logs' }" @click.prevent="navigate('/developer/logs')">
-          <span class="icon" aria-hidden="true"><i-lucide:scroll-text /></span>
-          <span class="title">{{ $t('developer.logs') }}</span>
-        </li>
+        <SidebarListItem
+          :title="$t('device_info')"
+          :active="activeSection === 'device-info'"
+          @click="navigate('/developer/device-info')"
+        >
+          <template #start>
+            <i-lucide:smartphone />
+          </template>
+        </SidebarListItem>
+        <SidebarListItem
+          :title="$t('developer.datastore')"
+          :active="activeSection === 'datastore'"
+          @click="navigate('/developer/datastore')"
+        >
+          <template #start>
+            <i-lucide:archive />
+          </template>
+        </SidebarListItem>
+        <SidebarListItem
+          :title="$t('developer.database')"
+          :active="activeSection === 'database'"
+          @click="navigate('/developer/database')"
+        >
+          <template #start>
+            <i-lucide:database />
+          </template>
+        </SidebarListItem>
+        <SidebarListItem
+          :title="$t('developer.logs')"
+          :active="activeSection === 'logs'"
+          @click="navigate('/developer/logs')"
+        >
+          <template #start>
+            <i-lucide:scroll-text />
+          </template>
+        </SidebarListItem>
       </ul>
     </template>
   </left-sidebar>

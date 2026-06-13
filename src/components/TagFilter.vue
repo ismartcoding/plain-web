@@ -51,7 +51,6 @@ import { initMutation, createTagGQL, deleteTagGQL, updateTagGQL } from '@/lib/ap
 import EditValueModal from '@/components/EditValueModal.vue'
 import emitter from '@/plugins/eventbus'
 import { names } from '@/lib/tag'
-import SidebarListItem from '@/components/SidebarListItem.vue'
 
 const props = defineProps({
   type: { type: String, required: true },

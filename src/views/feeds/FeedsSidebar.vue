@@ -10,30 +10,44 @@
     </template>
     <template #body>
       <ul class="nav">
-        <li :class="{ active: !today && !selectedTagId && !selectedFeedId }" @click.prevent="viewAll">
-          <span class="icon" aria-hidden="true"><i-lucide:layout-grid /></span>
-          <span class="title">{{ $t('all') }}</span>
-          <span v-if="counter.feedEntries >= 0" class="count">{{ counter.feedEntries.toLocaleString() }}</span>
-        </li>
-        <li :class="{ active: today }" @click.prevent="viewToday">
-          <span class="icon" aria-hidden="true"><i-lucide:calendar-days /></span>
-          <span class="title">{{ $t('today') }}</span>
-          <span v-if="counter.feedEntriesToday >= 0" class="count">{{ counter.feedEntriesToday.toLocaleString() }}</span>
-        </li>
-        <li
+        <SidebarListItem
+          :title="$t('all')"
+          :active="!today && !selectedTagId && !selectedFeedId"
+          @click="viewAll"
+        >
+          <template #start>
+            <i-lucide:layout-grid />
+          </template>
+          <template v-if="counter.feedEntries >= 0" #end>
+            <span class="count">{{ counter.feedEntries.toLocaleString() }}</span>
+          </template>
+        </SidebarListItem>
+        <SidebarListItem
+          :title="$t('today')"
+          :active="today"
+          @click="viewToday"
+        >
+          <template #start>
+            <i-lucide:calendar-days />
+          </template>
+          <template v-if="counter.feedEntriesToday >= 0" #end>
+            <span class="count">{{ counter.feedEntriesToday.toLocaleString() }}</span>
+          </template>
+        </SidebarListItem>
+        <SidebarListItem
           v-for="item in feeds"
           :key="item.id"
-          :class="{
-            active: selectedFeedId && item.id === selectedFeedId,
-          }"
-          @click.stop.prevent="viewFeed(item)"
+          :title="item.name"
+          :active="!!selectedFeedId && item.id === selectedFeedId"
+          @click="viewFeed(item)"
         >
-          <span class="title">{{ item.name }}</span>
-          <v-icon-button :id="'feed-' + item.id" v-tooltip="$t('actions')" @click.prevent.stop="showFeedMenu(item)">
-            <i-material-symbols:more-vert />
-          </v-icon-button>
-          <span v-if="getFeedCount(item.id) >= 0" class="count">{{ getFeedCount(item.id).toLocaleString() }}</span>
-        </li>
+          <template #end>
+            <v-icon-button :id="'feed-' + item.id" v-tooltip="$t('actions')" class="sm btn-icon" @click.prevent.stop="showFeedMenu(item)">
+              <i-material-symbols:more-vert />
+            </v-icon-button>
+            <span v-if="getFeedCount(item.id) >= 0" class="count">{{ getFeedCount(item.id).toLocaleString() }}</span>
+          </template>
+        </SidebarListItem>
       </ul>
       <v-dropdown-menu v-model="addMenuVisible" anchor="add-feed-ref">
         <div v-for="item in actionItems" :key="item.text" class="dropdown-item" @click="item.click(); addMenuVisible = false">

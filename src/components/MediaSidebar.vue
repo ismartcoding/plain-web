@@ -2,23 +2,34 @@
   <left-sidebar>
     <template #body>
       <ul class="nav">
-        <li :class="{ active: !selectedTagId && !selectedBucketId && !trash && !selectedExt }" @click.prevent="viewAll">
-          <span class="icon" aria-hidden="true">
+        <SidebarListItem
+          :title="$t('all')"
+          :active="!selectedTagId && !selectedBucketId && !trash && !selectedExt"
+          @click="viewAll"
+        >
+          <template #start>
             <i-lucide:layout-grid />
-          </span>
-          <span class="title">{{ $t('all') }}</span>
-          <span v-if="total >= 0" class="count">{{ total.toLocaleString() }}</span>
-        </li>
-        <li v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)" :class="{ active: trash }" @click.prevent="viewTrash">
-          <span class="icon" aria-hidden="true">
+          </template>
+          <template v-if="total >= 0" #end>
+            <span class="count">{{ total.toLocaleString() }}</span>
+          </template>
+        </SidebarListItem>
+        <SidebarListItem
+          v-if="hasFeature(FEATURE.MEDIA_TRASH, app.osVersion)"
+          :title="$t('trash')"
+          :active="trash"
+          @click="viewTrash"
+        >
+          <template #start>
             <i-lucide:trash />
-          </span>
-          <span class="title">{{ $t('trash') }}</span>
-          <v-icon-button v-tooltip="$t('trash_tips')" class="btn-help sm">
-            <i-material-symbols:help-outline-rounded />
-          </v-icon-button>
-          <span v-if="totalTrash >= 0" class="count">{{ totalTrash.toLocaleString() }}</span>
-        </li>
+          </template>
+          <template #end>
+            <v-icon-button v-tooltip="$t('trash_tips')" class="btn-help sm">
+              <i-material-symbols:help-outline-rounded />
+            </v-icon-button>
+            <span v-if="totalTrash >= 0" class="count">{{ totalTrash.toLocaleString() }}</span>
+          </template>
+        </SidebarListItem>
       </ul>
       <ext-filter v-if="props.type === DataType.DOC" :ext-groups="extGroups" :selected="selectedExt" :view-by-ext="viewByExt" />
       <bucket-filter :type="props.type" :selected="selectedBucketId" />

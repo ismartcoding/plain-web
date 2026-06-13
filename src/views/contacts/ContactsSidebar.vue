@@ -2,11 +2,18 @@
   <left-sidebar>
     <template #body>
       <ul class="nav">
-        <li :class="{ active: !selectedTagId }" @click.prevent="viewAll">
-          <span class="icon" aria-hidden="true"><i-lucide:layout-grid /></span>
-          <span class="title">{{ $t('all') }}</span>
-          <span v-if="counter.contacts >= 0" class="count">{{ counter.contacts.toLocaleString() }}</span>
-        </li>
+        <SidebarListItem
+          :title="$t('all')"
+          :active="!selectedTagId"
+          @click="viewAll"
+        >
+          <template #start>
+            <i-lucide:layout-grid />
+          </template>
+          <template v-if="counter.contacts >= 0" #end>
+            <span class="count">{{ counter.contacts.toLocaleString() }}</span>
+          </template>
+        </SidebarListItem>
       </ul>
       <tag-filter type="CONTACT" :selected="selectedTagId" />
     </template>
@@ -23,6 +30,7 @@ import { decodeBase64 } from '@/lib/strutil'
 import { storeToRefs } from 'pinia'
 import { useTempStore } from '@/stores/temp'
 import { contactCountGQL, initLazyQuery } from '@/lib/api/query'
+import SidebarListItem from '@/components/SidebarListItem.vue'
 
 const mainStore = useMainStore()
 const { counter } = storeToRefs(useTempStore())
