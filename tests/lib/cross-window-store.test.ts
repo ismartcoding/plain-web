@@ -8,10 +8,10 @@ import { createPinia, setActivePinia } from 'pinia'
  * caches, and pre-touch the cached getters so the identity is captured
  * before a later loadAsWindow() can stomp sessionStorage.
  *
- * `boundClientId` simulates a per-window device binding (set by the user
- * via the device switcher, or by `?__cid=` from a parent window). When
- * set, `getWindowClientId()` returns it; otherwise it falls back to the
- * desktop clientId (here mocked via localStorage).
+ * This test only runs under the `cws` Vitest project (Node environment),
+ * where `vi.resetModules()` actually invalidates the module cache. Under
+ * the browser-mode `unit` project this approach cannot simulate two
+ * independent windows — the page-side module cache is shared.
  */
 const loadAsWindow = async (
   boundClientId: string | null,
@@ -22,6 +22,12 @@ const loadAsWindow = async (
   if (boundClientId) sessionStorage.setItem('__bound_client_id__', boundClientId)
   sessionStorage.setItem('__window_id__', windowId)
   localStorage.setItem('client_id', desktopClientId)
+  // `installed` (the WeakSet of stores that already had cross-window
+  // sync attached) lives on globalThis so HMR / resetModules see the
+  // same set. That means a previous test's store entries survive a
+  // resetModules and silently short-circuit `installSync` on the next
+  // window. Wipe it here so each simulated window starts from scratch.
+  delete (globalThis as any).__plainWebInstalled
   vi.resetModules()
   const wc = await import('@/lib/window-client')
   wc.getWindowId()
@@ -34,24 +40,33 @@ describe('cross-window-store', () => {
   beforeEach(() => {
     sessionStorage.clear()
     localStorage.clear()
+    // The cross-window-store module pins its `installed` WeakSet on
+    // globalThis. Tests that run earlier may have already populated it
+    // for a previously-defined store, and our loadAsWindow helper would
+    // then attach a fresh store to a stale entry. Wipe it here so each
+    // test starts with a clean install slate.
+    delete (globalThis as any).__plainWebInstalled
     setActivePinia(createPinia())
   })
 
   it('publishes only the declared syncKeys', async () => {
-    // Two windows bound to the same device.
     const { cws } = await loadAsWindow('device-1', 'win-A')
     const useStore = cws.defineCrossWindowStore<'kv-test', { a: number; b: number }>(
       'kv-test',
       { state: () => ({ a: 0, b: 0 }) },
       { syncKeys: ['a'] },
     )
+    // Call useStore() inside win-A so installSync wires the publisher's
+    // $subscribe with win-A's ownWindowId. If we defer this to after
+    // loadAsWindow(win-B), installSync would attach to win-B's identity
+    // and the self-echo filter would drop every broadcast.
+    const pubStore = useStore()
 
     const received: Array<{ a: number; b: number }> = []
     const peer = await loadAsWindow('device-1', 'win-B')
     peer.cws.subscribeForTest('kv-test', (patch) => received.push(patch as any))
 
-    const store = useStore()
-    store.$patch({ a: 1, b: 99 })
+    pubStore.$patch({ a: 1, b: 99 })
     await new Promise((r) => setTimeout(r, 0))
 
     expect(received).toEqual([{ a: 1 }])
@@ -92,7 +107,6 @@ describe('cross-window-store', () => {
   })
 
   it('delivers messages between local-mode windows sharing the desktop id', async () => {
-    // No bound clientId → both windows fall back to the desktop id.
     const pub = await loadAsWindow(null, 'win-A', 'desktop-1')
     const sub = await loadAsWindow(null, 'win-B', 'desktop-1')
 

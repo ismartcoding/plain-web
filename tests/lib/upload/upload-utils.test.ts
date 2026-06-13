@@ -7,7 +7,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 // Mock the modules that upload.ts depends on before importing
 vi.mock('@/plugins/eventbus', () => ({ default: { emit: vi.fn() } }))
-vi.mock('@/lib/api/api', () => ({ getApiBaseUrl: () => 'http://localhost:3000' }))
+vi.mock('@/lib/api/api', () => ({
+  getApiBaseUrl: () => 'http://localhost:3000',
+  getUploadBaseUrl: () => 'http://localhost:3000',
+  getLocalToken: () => '',
+  getApiHeaders: () => ({ 'Content-Type': 'multipart/form-data' }),
+}))
 vi.mock('@/lib/api/crypto', () => ({
   chachaEncrypt: (_key: Uint8Array, data: string) => new Uint8Array(new TextEncoder().encode(data)),
   bitArrayToUint8Array: (arr: Uint8Array) => arr,
@@ -20,6 +25,7 @@ vi.mock('@/lib/api/query', () => ({
 }))
 vi.mock('@/lib/api/mutation', () => ({
   mergeChunksGQL: 'mutation mergeChunks { mergeChunks }',
+  deleteChunksGQL: 'mutation deleteChunks($fileId: String!) { deleteChunks(fileId: $fileId) }',
 }))
 vi.mock('@/lib/api/gql-client', () => ({
   gqlFetch: vi.fn(),

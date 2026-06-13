@@ -137,6 +137,17 @@ export function getWindowId(): string {
 }
 
 /**
+ * Test-only helper. Drops the module-level window id cache so the next
+ * `getWindowId()` re-reads from sessionStorage. Mirrors the behaviour of
+ * `vi.resetModules()` for happy-dom (Node-side) tests, but Vitest Browser
+ * Mode keeps module-level state on the page side, so tests that need to
+ * simulate a fresh window call this instead.
+ */
+export function __resetWindowIdForTest(): void {
+  cachedWindowId = null
+}
+
+/**
  * Apply `?__cid=` from the current URL into sessionStorage.
  * Called once at app bootstrap (before pinia) so any later synchronous
  * `getBoundClientId()` reads the correct value.

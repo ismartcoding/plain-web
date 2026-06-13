@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api/core'
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import { markRaw, ref, watch } from 'vue'
+import { openModal } from '@/components/modal'
 
 export type PairingStatus = 'idle' | 'requesting' | 'waiting' | 'success' | 'failed' | 'cancelled'
 
@@ -95,7 +96,10 @@ function initListener() {
 async function initModalWatcher() {
   if (modalWatcherInitialized) return
   modalWatcherInitialized = true
-  const { openModal } = await import('@/components/modal')
+  // `IncomingPairRequestModal.vue` is otherwise unreferenced anywhere, so
+  // the dynamic import still splits it into its own chunk (loaded only when
+  // an incoming pairing request fires). `openModal` is statically imported
+  // above since `@/components/modal` is already in the main graph.
   const IncomingPairRequestModal = markRaw((await import('@/views/chat/IncomingPairRequestModal.vue')).default)
   watch(incomingRequest, (req) => {
     if (!req) return
