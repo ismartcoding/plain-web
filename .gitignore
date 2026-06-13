@@ -33,3 +33,7 @@ scripts/i18n-translated.json
 # Crowdin staging directory (JSON intermediates; not committed)
 .crowdin/
 .opencode/tmp/
+# Vitest Browser Mode artifacts
+.vitest-attachments/
+tests/lib/**/__screenshots__/
+.harness/

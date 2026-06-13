@@ -6,13 +6,20 @@
     </v-icon-button>
   </div>
   <ul class="nav">
-    <li v-for="item in tags" :key="item.id" :class="{ active: item.id === selected }" @click.prevent="view(item)">
-      <span class="title">{{ item.name }}</span>
-      <v-icon-button :id="'tag-' + item.id" v-tooltip="$t('actions')" class="sm" @click.prevent.stop="showMenu(item)">
-        <i-material-symbols:more-vert />
-      </v-icon-button>
-      <span class="count">{{ item.count.toLocaleString() }}</span>
-    </li>
+    <SidebarListItem
+      v-for="item in tags"
+      :key="item.id"
+      :title="item.name"
+      :active="item.id === selected"
+      @click="view(item)"
+    >
+      <template #end>
+        <v-icon-button :id="'tag-' + item.id" v-tooltip="$t('actions')" class="sm btn-icon" @click.prevent.stop="showMenu(item)">
+          <i-material-symbols:more-vert />
+        </v-icon-button>
+        <span class="count">{{ item.count.toLocaleString() }}</span>
+      </template>
+    </SidebarListItem>
   </ul>
   <v-dropdown-menu v-model="tagMenuVisible" :anchor="'tag-' + selectedItem?.id">
     <template v-if="!confirmingDelete">
@@ -44,6 +51,7 @@ import { initMutation, createTagGQL, deleteTagGQL, updateTagGQL } from '@/lib/ap
 import EditValueModal from '@/components/EditValueModal.vue'
 import emitter from '@/plugins/eventbus'
 import { names } from '@/lib/tag'
+import SidebarListItem from '@/components/SidebarListItem.vue'
 
 const props = defineProps({
   type: { type: String, required: true },

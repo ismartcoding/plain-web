@@ -362,6 +362,7 @@ declare module 'vue' {
     ScreenMirrorView: typeof import('./src/views/screen-mirror/ScreenMirrorView.vue')['default']
     SendSmsModal: typeof import('./src/views/messages/SendSmsModal.vue')['default']
     SessionListItem: typeof import('./src/views/login/SessionListItem.vue')['default']
+    SidebarListItem: typeof import('./src/components/SidebarListItem.vue')['default']
     SimSelector: typeof import('./src/views/messages/SimSelector.vue')['default']
     SkeletonItemPhone: typeof import('./src/components/base/SkeletonItemPhone.vue')['default']
     TagFilter: typeof import('./src/components/TagFilter.vue')['default']

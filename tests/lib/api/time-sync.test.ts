@@ -24,11 +24,11 @@ describe('wrapWithReplayProtection', () => {
     expect(ts).toBeLessThanOrEqual(after)
   })
 
-  it('second segment is a 16-char lowercase hex nonce', () => {
+  it('second segment is a 32-char lowercase hex nonce (16 bytes)', () => {
     const result = wrapWithReplayProtection('{}')
     const nonce = result.split('|')[1]
-    expect(nonce).toHaveLength(16)
-    expect(nonce).toMatch(/^[0-9a-f]{16}$/)
+    expect(nonce).toHaveLength(32)
+    expect(nonce).toMatch(/^[0-9a-f]{32}$/)
   })
 
   it('nonce is different across calls (probabilistic)', () => {
