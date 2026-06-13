@@ -22,6 +22,7 @@ export default {
   rename_channel: '重新命名頻道',
   delete_channel: '刪除頻道',
   delete_channel_confirm: '您確定要刪除該頻道嗎？所有訊息都將遺失。',
+  delete_device: '刪除裝置',
   leave_channel: '離開頻道',
   leave_channel_confirm: '您確定要離開此頻道嗎？',
   channel_info: '頻道資訊',

@@ -22,6 +22,7 @@ export default {
   rename_channel: 'Kanalı yeniden adlandır',
   delete_channel: 'Kanalı sil',
   delete_channel_confirm: 'Bu kanalı silmek istediğinizden emin misiniz? Tüm mesajlar kaybolacak.',
+  delete_device: 'Cihazı sil',
   leave_channel: 'Kanaldan ayrıl',
   leave_channel_confirm: 'Bu kanaldan ayrılmak istediğinizden emin misiniz?',
   channel_info: 'Kanal bilgisi',

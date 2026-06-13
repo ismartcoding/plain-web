@@ -22,6 +22,7 @@ export default {
   rename_channel: '채널 이름 바꾸기',
   delete_channel: '채널 삭제',
   delete_channel_confirm: '이 채널을 삭제하시겠습니까? 모든 메시지가 손실됩니다.',
+  delete_device: '장치 삭제',
   leave_channel: '채널 나가기',
   leave_channel_confirm: '정말로 이 채널에서 나가시겠습니까?',
   channel_info: '채널 정보',

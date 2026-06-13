@@ -22,6 +22,7 @@ export default {
   rename_channel: 'Đổi tên kênh',
   delete_channel: 'Xóa kênh',
   delete_channel_confirm: 'Bạn có chắc chắn muốn xóa kênh này không? Tất cả tin nhắn sẽ bị mất.',
+  delete_device: 'Xóa thiết bị',
   leave_channel: 'Rời khỏi kênh',
   leave_channel_confirm: 'Bạn có chắc chắn muốn rời khỏi kênh này không?',
   channel_info: 'Thông tin kênh',

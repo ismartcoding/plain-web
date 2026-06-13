@@ -22,6 +22,7 @@ export default {
   rename_channel: 'சேனலை மறுபெயரிடவும்',
   delete_channel: 'சேனலை நீக்கு',
   delete_channel_confirm: 'இந்த சேனலை நிச்சயமாக நீக்க விரும்புகிறீர்களா? அனைத்து செய்திகளும் இழக்கப்படும்.',
+  delete_device: 'சாதனத்தை நீக்கு',
   leave_channel: 'சேனலை விட்டு வெளியேறு',
   leave_channel_confirm: 'நிச்சயமாக இந்தச் சேனலை விட்டு வெளியேற விரும்புகிறீர்களா?',
   channel_info: 'சேனல் தகவல்',

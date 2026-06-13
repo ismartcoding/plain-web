@@ -2,15 +2,23 @@
   <left-sidebar>
     <template #body>
       <ul class="nav">
-        <PeerListItem
-          kind="local"
+        <SidebarListItem
           :active="currentChatId === 'local'"
           :title="$t('page_title.local_chat')"
           :subtitle="getLatestChatPreview('local')"
-          :time="getLatestChatCreatedAt('local')"
           @click="openChat('local')"
         >
-        </PeerListItem>
+          <template #start>
+            <span class="icon" aria-hidden="true">
+              <i-lucide:bot />
+            </span>
+          </template>
+          <template v-if="getLatestChatCreatedAt('local')" #end>
+            <span v-tooltip="formatDateTime(getLatestChatCreatedAt('local'))" class="chat-time">
+              {{ formatTimeAgo(getLatestChatCreatedAt('local')) }}
+            </span>
+          </template>
+        </SidebarListItem>
       </ul>
 
       <template v-if="loading">
@@ -26,12 +34,11 @@
           </v-icon-button>
         </div>
         <ul class="nav">
-          <PeerListItem
+          <ChannelListItem
             v-for="channel in joinedChannels"
             :key="channel.id"
-            kind="channel"
+            :channel="channel"
             :active="isChannelActive(channel.id)"
-            :title="channel.name"
             :subtitle="getLatestChatPreview(`channel:${channel.id}`)"
             :time="getLatestChatCreatedAt(`channel:${channel.id}`)"
             @click="openChat(getChannelChatRouteId(channel.id))"
@@ -49,11 +56,9 @@
             <PeerListItem
               v-for="peer in allPeers"
               :key="peer.id"
-              kind="peer"
-              :device-type="peer.deviceType"
-              :online="!!peer.online"
+              :peer="peer"
               :active="isPeerActive(peer.id)"
-              :title="peer.name"
+              :online="!!peer.online"
               :subtitle="getLatestChatPreview(`peer:${peer.id}`) || peer.ip"
               :time="getLatestChatCreatedAt(`peer:${peer.id}`)"
               @click="openChat(getPeerChatRouteId(peer.id))"
@@ -66,11 +71,23 @@
 </template>
 
 <script setup lang="ts">
-import { useChatSidebar } from './hooks/chat-sidebar'
+import { useChatSidebar } from './hooks/chat-sidebar-base'
+import { useChannelActions } from './hooks/channel-sidebar'
+import { usePeerActions } from './hooks/peer-sidebar'
 import { isLocalMode } from '@/lib/local-mode'
-import { openModal } from '@/components/modal'
-import NearbyModal from '@/views/chat/NearbyModal.vue'
+import { formatDateTime, formatTimeAgo } from '@/lib/format'
+import ChannelListItem from './components/ChannelListItem.vue'
 import PeerListItem from './components/PeerListItem.vue'
+
+const sidebar = useChatSidebar()
+const channels = useChannelActions({
+  openChat: sidebar.openChat,
+  getChannelChatRouteId: sidebar.getChannelChatRouteId,
+})
+const peers = usePeerActions({
+  openChat: sidebar.openChat,
+  getPeerChatRouteId: sidebar.getPeerChatRouteId,
+})
 
 const {
   currentChatId, loading,
@@ -78,13 +95,11 @@ const {
   isPeerActive, isChannelActive,
   getPeerChatRouteId, getChannelChatRouteId,
   getLatestChatPreview, getLatestChatCreatedAt,
-  openChat, openCreateChannel, onPeerPaired,
-} = useChatSidebar()
+  openChat,
+} = sidebar
 
-function openNearby() {
-  openModal(NearbyModal, { onPaired: onPeerPaired })
-}
-
+const { openCreateChannel } = channels
+const { openNearby } = peers
 </script>
 
 <style lang="scss" scoped>

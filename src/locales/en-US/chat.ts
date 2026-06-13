@@ -15,6 +15,7 @@ export default {
   rename_channel: 'Rename channel',
   delete_channel: 'Delete channel',
   delete_channel_confirm: 'Are you sure you want to delete this channel? All messages will be lost.',
+  delete_device: 'Delete device',
   leave_channel: 'Leave channel',
   leave_channel_confirm: 'Are you sure you want to leave this channel?',
   channel_info: 'Channel info',

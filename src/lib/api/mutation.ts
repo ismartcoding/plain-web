@@ -135,6 +135,12 @@ export const deleteChatChannelGQL = `
   }
 `
 
+export const deletePeerGQL = `
+  mutation deletePeer($id: ID!) {
+    deletePeer(id: $id)
+  }
+`
+
 export const leaveChatChannelGQL = `
   mutation leaveChatChannel($id: ID!) {
     leaveChatChannel(id: $id)

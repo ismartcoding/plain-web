@@ -22,6 +22,7 @@ export default {
   rename_channel: 'चैनल का नाम बदलें',
   delete_channel: 'चैनल हटाएँ',
   delete_channel_confirm: 'क्या आप वाकई इस चैनल को हटाना चाहते हैं? सभी संदेश खो जायेंगे.',
+  delete_device: 'डिवाइस हटाएँ',
   leave_channel: 'चैनल छोड़ें',
   leave_channel_confirm: 'क्या आप वाकई यह चैनल छोड़ना चाहते हैं?',
   channel_info: 'चैनल की जानकारी',

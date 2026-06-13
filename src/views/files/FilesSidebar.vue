@@ -36,9 +36,9 @@
             :active="item.isChecked"
             @click="openLink(item)"
           >
-            <template #end>
+            <template #actions>
               <v-icon-button
-                :id="'favorite-' + item.fullPath" v-tooltip="$t('actions')" class="sm btn-icon"
+                :id="'favorite-' + item.fullPath" v-tooltip="$t('actions')" class="sm"
                 @click.prevent.stop="showFavoriteMenu(item)"
               >
                 <i-material-symbols:more-vert />

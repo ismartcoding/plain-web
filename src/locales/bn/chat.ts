@@ -22,6 +22,7 @@ export default {
   rename_channel: 'চ্যানেলের নাম পরিবর্তন করুন',
   delete_channel: 'চ্যানেল মুছুন',
   delete_channel_confirm: 'আপনি কি এই চ্যানেলটি মুছতে চান? সব বার্তা হারিয়ে যাবে.',
+  delete_device: 'ডিভাইস মুছুন',
   leave_channel: 'চ্যানেল ছেড়ে দিন',
   leave_channel_confirm: 'আপনি কি এই চ্যানেলটি ছেড়ে যাওয়ার বিষয়ে নিশ্চিত?',
   channel_info: 'চ্যানেলের তথ্য',

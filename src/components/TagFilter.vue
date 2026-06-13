@@ -14,10 +14,12 @@
       @click="view(item)"
     >
       <template #end>
-        <v-icon-button :id="'tag-' + item.id" v-tooltip="$t('actions')" class="sm btn-icon" @click.prevent.stop="showMenu(item)">
+        <span class="count">{{ item.count.toLocaleString() }}</span>
+      </template>
+      <template #actions>
+        <v-icon-button :id="'tag-' + item.id" v-tooltip="$t('actions')" class="sm" @click.prevent.stop="showMenu(item)">
           <i-material-symbols:more-vert />
         </v-icon-button>
-        <span class="count">{{ item.count.toLocaleString() }}</span>
       </template>
     </SidebarListItem>
   </ul>

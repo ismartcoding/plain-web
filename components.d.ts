@@ -44,6 +44,7 @@ declare module 'vue' {
     CallsView: typeof import('./src/views/calls/CallsView.vue')['default']
     ChannelInfoModal: typeof import('./src/views/chat/ChannelInfoModal.vue')['default']
     ChannelInviteModal: typeof import('./src/views/chat/ChannelInviteModal.vue')['default']
+    ChannelListItem: typeof import('./src/views/chat/components/ChannelListItem.vue')['default']
     ChatAudioPlayer: typeof import('./src/views/chat/ChatAudioPlayer.vue')['default']
     ChatDeliveryStatusModal: typeof import('./src/views/chat/ChatDeliveryStatusModal.vue')['default']
     ChatDownloadOverlay: typeof import('./src/views/chat/ChatDownloadOverlay.vue')['default']
