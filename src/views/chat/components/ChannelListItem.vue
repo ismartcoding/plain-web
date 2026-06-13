@@ -1,12 +1,8 @@
 <template>
-  <SidebarListItem :title="peer.name" :subtitle="subtitle" :active="active" @click="emit('click')">
+  <SidebarListItem :title="channel.name" :subtitle="subtitle" :active="active" @click="emit('click')">
     <template #start>
       <span class="icon" aria-hidden="true">
-        <i-lucide:smartphone v-if="peer.deviceType === 'phone'" />
-        <i-lucide:tablet v-else-if="peer.deviceType === 'tablet'" />
-        <i-lucide:laptop v-else-if="peer.deviceType === 'pc'" />
-        <i-lucide:monitor v-else />
-        <span v-if="online" class="dot online-dot" />
+        <i-lucide:hash />
       </span>
     </template>
 
@@ -20,11 +16,11 @@
       <v-dropdown-menu v-model="menuVisible" :anchor="anchorId">
         <template v-if="!confirmingDelete">
           <div class="dropdown-item" @click="confirmingDelete = true">
-            {{ $t('delete_device') }}
+            {{ $t('delete_channel') }}
           </div>
         </template>
         <template v-else>
-          <inline-delete-confirm :name="peer.name" :loading="deleteLoading" @confirm="doDelete" @cancel="confirmingDelete = false" />
+          <inline-delete-confirm :name="channel.name" :loading="deleteLoading" @confirm="doDelete" @cancel="confirmingDelete = false" />
         </template>
       </v-dropdown-menu>
     </template>
@@ -39,15 +35,14 @@ import { useMainStore } from '@/stores/main'
 import { useChatStore } from '@/stores/chat'
 import { useTempStore } from '@/stores/temp'
 import { replacePath } from '@/plugins/router'
-import { deletePeerGQL, initMutation } from '@/lib/api/mutation'
+import { deleteChatChannelGQL, initMutation } from '@/lib/api/mutation'
 import { formatDateTime, formatTimeAgo } from '@/lib/format'
 import { decryptChatId } from '../hooks/chat-route'
 
 const props = defineProps<{
-  peer: { id: string; name: string; deviceType: string }
+  channel: { id: string; name: string }
   subtitle?: string
   active?: boolean
-  online?: boolean
   time?: string
 }>()
 
@@ -67,7 +62,7 @@ const currentChatId = computed(() => {
   return decryptChatId(enc, urlTokenKey.value)
 })
 
-const anchorId = computed(() => `peer-list-${props.peer.id}`)
+const anchorId = computed(() => `channel-list-${props.channel.id}`)
 
 const menuVisible = ref(false)
 const confirmingDelete = ref(false)
@@ -83,16 +78,17 @@ function showMenu() {
   menuVisible.value = true
 }
 
-const { mutate: deletePeer } = initMutation({ document: deletePeerGQL })
+const { mutate: deleteChannel } = initMutation({ document: deleteChatChannelGQL })
 
 function doDelete() {
   if (deleteLoading.value) return
   deleteLoading.value = true
-  const wasActive = currentChatId.value === `peer:${props.peer.id}`
-  deletePeer({ id: props.peer.id }).then((result) => {
+  const wasActive = currentChatId.value === `channel:${props.channel.id}`
+  deleteChannel({ id: props.channel.id }).then((result) => {
     deleteLoading.value = false
     if (!result) return
-    chatStore.fetchPeers()
+    chatStore.removeChannel(props.channel.id)
+    chatStore.fetchChannels()
     chatStore.fetchLatestChatItems()
     menuVisible.value = false
     if (wasActive) replacePath(mainStore, '/chat')
@@ -102,25 +98,11 @@ function doDelete() {
 
 <style lang="scss" scoped>
 .icon {
-  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 24px;
   height: 24px;
-}
-
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #3ddc84;
-}
-
-.online-dot {
-  position: absolute;
-  right: -1px;
-  bottom: -1px;
 }
 
 .chat-time {

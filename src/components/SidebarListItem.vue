@@ -1,5 +1,5 @@
 <template>
-  <li :class="{ active }" @click.prevent="emit('click', $event)">
+  <li :class="{ active, 'has-actions': hasActions }" @click.prevent="emit('click', $event)">
     <span v-if="$slots.start" class="start">
       <slot name="start" />
     </span>
@@ -15,6 +15,9 @@
 
     <span v-if="$slots.end" class="end">
       <slot name="end" />
+    </span>
+    <span v-if="hasActions" class="actions">
+      <slot name="actions" />
     </span>
   </li>
 </template>
@@ -40,6 +43,7 @@ const emit = defineEmits<{
 
 const slots = useSlots()
 const hasSubtitle = computed(() => !!slots.subtitle || !!props.subtitle)
+const hasActions = computed(() => !!slots.actions)
 </script>
 
 <style lang="scss" scoped>
@@ -65,6 +69,22 @@ const hasSubtitle = computed(() => !!slots.subtitle || !!props.subtitle)
   align-items: center;
   flex-shrink: 0;
   gap: 4px;
+}
+
+.actions {
+  display: none;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+li.has-actions:hover {
+  .end {
+    display: none;
+  }
+  .actions {
+    display: inline-flex;
+  }
 }
 
 .subtitle {

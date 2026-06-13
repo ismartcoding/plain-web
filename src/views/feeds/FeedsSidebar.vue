@@ -42,10 +42,12 @@
           @click="viewFeed(item)"
         >
           <template #end>
-            <v-icon-button :id="'feed-' + item.id" v-tooltip="$t('actions')" class="sm btn-icon" @click.prevent.stop="showFeedMenu(item)">
+            <span v-if="getFeedCount(item.id) >= 0" class="count">{{ getFeedCount(item.id).toLocaleString() }}</span>
+          </template>
+          <template #actions>
+            <v-icon-button :id="'feed-' + item.id" v-tooltip="$t('actions')" class="sm" @click.prevent.stop="showFeedMenu(item)">
               <i-material-symbols:more-vert />
             </v-icon-button>
-            <span v-if="getFeedCount(item.id) >= 0" class="count">{{ getFeedCount(item.id).toLocaleString() }}</span>
           </template>
         </SidebarListItem>
       </ul>

@@ -22,6 +22,7 @@ export default {
   rename_channel: 'Kanal umbenennen',
   delete_channel: 'Kanal löschen',
   delete_channel_confirm: 'Möchten Sie diesen Kanal wirklich löschen? Alle Nachrichten gehen verloren.',
+  delete_device: 'Gerät löschen',
   leave_channel: 'Kanal verlassen',
   leave_channel_confirm: 'Möchtest du diesen Kanal wirklich verlassen?',
   channel_info: 'Kanalinformationen',

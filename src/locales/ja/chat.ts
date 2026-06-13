@@ -21,6 +21,7 @@ export default {
   rename_channel: 'チャンネル名の変更',
   delete_channel: 'チャンネルの削除',
   delete_channel_confirm: 'このチャンネルを削除してもよろしいですか?すべてのメッセージが失われます。',
+  delete_device: 'デバイスの削除',
   leave_channel: 'チャンネルを離れる',
   leave_channel_confirm: 'このチャンネルを退会してもよろしいですか?',
   channel_info: 'チャンネル情報',
