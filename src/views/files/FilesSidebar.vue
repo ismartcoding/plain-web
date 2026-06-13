@@ -2,12 +2,17 @@
   <left-sidebar class="files-sidebar">
     <template #body>
       <ul class="nav">
-        <li v-for="item in quickLinks" :key="item.type" :class="{ active: item.isChecked }" @click.prevent="openLink(item)">
-          <span class="icon" aria-hidden="true">
+        <SidebarListItem
+          v-for="item in quickLinks"
+          :key="item.type"
+          :title="item.title"
+          :active="item.isChecked"
+          @click="openLink(item)"
+        >
+          <template #start>
             <i-lucide:history v-if="item.type === 'RECENTS'" />
-          </span>
-          <span class="title">{{ item.title }}</span>
-        </li>
+          </template>
+        </SidebarListItem>
       </ul>
 
       <div class="section-title">
@@ -24,15 +29,22 @@
       <template v-if="favoriteLinks.length">
         <div class="section-title">{{ $t('favorites') }}</div>
         <ul class="nav">
-          <li v-for="item in favoriteLinks" :key="item.fullPath" :class="{ active: item.isChecked }" @click.prevent="openLink(item)">
-            <span class="title">{{ item.title }}</span>
-            <v-icon-button
-              :id="'favorite-' + item.fullPath" v-tooltip="$t('actions')" class="sm"
-              @click.prevent.stop="showFavoriteMenu(item)"
-            >
-              <i-material-symbols:more-vert />
-            </v-icon-button>
-          </li>
+          <SidebarListItem
+            v-for="item in favoriteLinks"
+            :key="item.fullPath"
+            :title="item.title"
+            :active="item.isChecked"
+            @click="openLink(item)"
+          >
+            <template #end>
+              <v-icon-button
+                :id="'favorite-' + item.fullPath" v-tooltip="$t('actions')" class="sm btn-icon"
+                @click.prevent.stop="showFavoriteMenu(item)"
+              >
+                <i-material-symbols:more-vert />
+              </v-icon-button>
+            </template>
+          </SidebarListItem>
         </ul>
       </template>
 

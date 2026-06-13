@@ -2,20 +2,34 @@
   <left-sidebar>
     <template #body>
       <ul class="nav">
-        <li :class="{ active: !selectedTagId && !type }" @click.prevent="viewAll">
-          <span class="icon" aria-hidden="true"><i-lucide:layout-grid /></span>
-          <span class="title">{{ $t('all') }}</span>
-          <span v-if="counter.calls >= 0" class="count">{{ counter.calls.toLocaleString() }}</span>
-        </li>
-        <li v-for="t in ['1', '2', '3']" :key="t" :class="{ active: t === type }" @click.prevent="openByType(t)">
-          <span class="icon" aria-hidden="true">
-            <i-material-symbols:call-received v-if="t === '1'" />
-            <i-material-symbols:call-made v-else-if="t === '2'" />
+        <SidebarListItem
+          :title="$t('all')"
+          :active="allActive()"
+          @click="viewAll"
+        >
+          <template #start>
+            <i-lucide:layout-grid />
+          </template>
+          <template v-if="counter.calls >= 0" #end>
+            <span class="count">{{ counter.calls.toLocaleString() }}</span>
+          </template>
+        </SidebarListItem>
+        <SidebarListItem
+          v-for="t in types"
+          :key="t.id"
+          :title="$t(`call_type.${t.id}`)"
+          :active="isTypeActive(t.id)"
+          @click="openType(t.id)"
+        >
+          <template #start>
+            <i-material-symbols:call-received v-if="t.id === '1'" />
+            <i-material-symbols:call-made v-else-if="t.id === '2'" />
             <i-material-symbols:call-missed v-else />
-          </span>
-          <span class="title">{{ $t(`call_type.${t}`) }}</span>
-          <span v-if="getTypeCount(t) >= 0" class="count">{{ getTypeCount(t).toLocaleString() }}</span>
-        </li>
+          </template>
+          <template v-if="getTypeCount(t.id) >= 0" #end>
+            <span class="count">{{ getTypeCount(t.id).toLocaleString() }}</span>
+          </template>
+        </SidebarListItem>
       </ul>
       <tag-filter type="CALL" :selected="selectedTagId" />
     </template>
@@ -23,28 +37,23 @@
 </template>
 
 <script setup lang="ts">
-import router, { replacePath } from '@/plugins/router'
-import { useMainStore } from '@/stores/main'
-import { onMounted, onUnmounted, reactive, ref, watch } from 'vue'
-import { useSearch } from '@/hooks/search'
-import type { IFilter } from '@/lib/interfaces'
-import { decodeBase64, encodeBase64 } from '@/lib/strutil'
-import { buildQuery } from '@/lib/search'
-import { useTempStore } from '@/stores/temp'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
+import router from '@/plugins/router'
 import { storeToRefs } from 'pinia'
+import { useTempStore } from '@/stores/temp'
 import { callCountGQL, initLazyQuery } from '@/lib/api/query'
+import { useNavSection } from '@/hooks/nav-section'
 import emitter from '@/plugins/eventbus'
 
-const mainStore = useMainStore()
-const { counter } = storeToRefs(useTempStore())
-const { parseQ } = useSearch()
-const filter = reactive<IFilter>({
-  tagIds: [],
-})
+const types = [{ id: '1' }, { id: '2' }, { id: '3' }]
 
-const type = ref('')
-const selectedTagId = ref('')
+const { counter } = storeToRefs(useTempStore())
 const typesCount = ref<Map<string, number>>(new Map())
+
+const { allActive, isTypeActive, selectedTagId, viewAll, openType } = useNavSection({
+  basePath: '/calls',
+  types,
+})
 
 const { fetch } = initLazyQuery({
   handle: (data: { total: number; incoming: number; outgoing: number; missed: number }) => {
@@ -63,41 +72,12 @@ function getTypeCount(id: string) {
   return typesCount.value.get(id) ?? -1
 }
 
-function updateActive() {
-  const route = router.currentRoute.value
-  const q = decodeBase64(route.query.q?.toString() ?? '')
-  parseQ(filter, q)
-  type.value = filter.type ?? ''
-  selectedTagId.value = filter.tagIds.length === 1 ? filter.tagIds[0] : ''
-  if (type.value) {
-    selectedTagId.value = ''
-  }
-  fetch()
-}
-
-updateActive()
-
 watch(
   () => router.currentRoute.value,
   () => {
-    updateActive()
-  }
+    fetch()
+  },
 )
-
-function openByType(type: string) {
-  const q = buildQuery([
-    {
-      name: 'type',
-      op: '',
-      value: type,
-    },
-  ])
-  replacePath(mainStore, `/calls?q=${encodeBase64(q)}`)
-}
-
-function viewAll() {
-  replacePath(mainStore, '/calls')
-}
 
 const callsDeletedHandler = () => {
   fetch()

@@ -2,24 +2,43 @@
   <left-sidebar>
     <template #body>
       <ul class="nav">
-        <li :class="{ active: !selectedTagId && !type && !isArchived }" @click.prevent="viewAll">
-          <span class="icon" aria-hidden="true"><i-lucide:layout-grid /></span>
-          <span class="title">{{ $t('all') }}</span>
-          <span v-if="counter.messages >= 0" class="count">{{ counter.messages.toLocaleString() }}</span>
-        </li>
-        <li v-for="t in ['1', '2', '3']" :key="t" :class="{ active: t === type }" @click.prevent="openByType(t)">
-          <span class="icon" aria-hidden="true">
+        <SidebarListItem
+          :title="$t('all')"
+          :active="!selectedTagId && !type && !isArchived"
+          @click="viewAll"
+        >
+          <template #start>
+            <i-lucide:layout-grid />
+          </template>
+          <template v-if="counter.messages >= 0" #end>
+            <span class="count">{{ counter.messages.toLocaleString() }}</span>
+          </template>
+        </SidebarListItem>
+        <SidebarListItem
+          v-for="t in ['1', '2', '3']"
+          :key="t"
+          :title="$t(`message_type.${t}`)"
+          :active="t === type"
+          @click="openByType(t)"
+        >
+          <template #start>
             <i-material-symbols:inbox-outline-rounded v-if="t === '1'" />
             <i-material-symbols:send-outline-rounded v-else-if="t === '2'" />
             <i-material-symbols:draft-outline-rounded v-else />
-          </span>
-          <span class="title">{{ $t(`message_type.${t}`) }}</span>
-          <span v-if="getTypeCount(t) >= 0" class="count">{{ getTypeCount(t).toLocaleString() }}</span>
-        </li>
-        <li :class="{ active: isArchived }" @click.prevent="viewArchived">
-          <span class="icon" aria-hidden="true"><i-material-symbols:archive-outline-rounded /></span>
-          <span class="title">{{ $t('archived') }}</span>
-        </li>
+          </template>
+          <template v-if="getTypeCount(t) >= 0" #end>
+            <span class="count">{{ getTypeCount(t).toLocaleString() }}</span>
+          </template>
+        </SidebarListItem>
+        <SidebarListItem
+          :title="$t('archived')"
+          :active="isArchived"
+          @click="viewArchived"
+        >
+          <template #start>
+            <i-material-symbols:archive-outline-rounded />
+          </template>
+        </SidebarListItem>
       </ul>
       <tag-filter type="SMS" :selected="selectedTagId" />
     </template>
@@ -37,6 +56,7 @@ import { buildQuery } from '@/lib/search'
 import { useTempStore } from '@/stores/temp'
 import { useSmsStore } from '@/stores/sms'
 import { storeToRefs } from 'pinia'
+import SidebarListItem from '@/components/SidebarListItem.vue'
 
 const mainStore = useMainStore()
 const { counter } = storeToRefs(useTempStore())

@@ -23,7 +23,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { formatDateTime, formatTimeAgo } from '@/lib/format'
-import SidebarListItem from '@/components/SidebarListItem.vue'
 
 const props = withDefaults(
   defineProps<{
