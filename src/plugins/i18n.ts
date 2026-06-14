@@ -4,19 +4,16 @@ import en_US from '@/locales/en-US'
 
 const FALLBACK_LOCALE = 'en-US'
 
-// Static eager import for the fallback locale — it must be ready before the
-// first render so the UI never shows missing keys on cold start. All other
-// locales are loaded on demand through `loadLocaleMessages()`.
-const eagerLocaleModules = import.meta.glob<{ default: Record<string, unknown> }>(
-  '@/locales/*/index.ts',
-  { eager: true },
-)
-
+// Build the locale code list from the on-disk directory names only — we must
+// NOT eagerly glob the locale files themselves, or Vite will bundle every
+// locale into the main chunk and the lazy loaders below become useless. The
+// fallback locale's content is loaded through a single targeted eager import
+// above so the first render has something to show.
 const lazyLocaleLoaders = import.meta.glob<{ default: Record<string, unknown> }>(
   '@/locales/*/index.ts',
 )
 
-const LOCALE_DIRS = Object.keys(eagerLocaleModules)
+const LOCALE_DIRS = Object.keys(lazyLocaleLoaders)
   .map((path) => {
     const match = path.match(/\/locales\/([^/]+)\/index\.ts$/)
     return match ? match[1] : null
