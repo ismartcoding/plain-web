@@ -1,24 +1,46 @@
-import type { LocaleFunc, LocaleMap } from './interface'
+import type { TimeagoMessages } from './interface'
 
-/**
- * All supported locales
- */
-const Locales: LocaleMap = {}
+const Messages = new Map<string, TimeagoMessages>()
 
-/**
- * register a locale
- * @param locale
- * @param func
- */
-export const register = (locale: string, func: LocaleFunc) => {
-  Locales[locale] = func
+export function setMessages(locale: string, messages: TimeagoMessages): void {
+  Messages.set(locale, messages)
+}
+
+export function getMessages(locale: string): TimeagoMessages | undefined {
+  return Messages.get(locale)
+}
+
+const timeagoLoaders = import.meta.glob<{ default: TimeagoMessages }>('@/locales/*/timeago.ts')
+
+const inflight = new Map<string, Promise<void>>()
+const loaded = new Set<string>()
+
+function pathFor(locale: string): [string, () => Promise<{ default: TimeagoMessages }>] | undefined {
+  for (const [path, loader] of Object.entries(timeagoLoaders)) {
+    const match = path.match(/[\\/]locales[\\/]([^\\/]+)[\\/]timeago\.ts$/)
+    if (match && match[1] === locale) return [path, loader]
+  }
+  return undefined
 }
 
 /**
- * get a locale, default is en_US
- * @param locale
- * @returns {*}
+ * Activate a locale for the timeago formatter. Pulls the matching
+ * `src/locales/<locale>/timeago.ts` chunk on first request. Unknown
+ * locales and concurrent calls for the same locale resolve without
+ * re-fetching.
  */
-export const getLocale = (locale: string): LocaleFunc => {
-  return Locales[locale] || Locales['en_US']
+export function setLocale(locale: string): Promise<void> {
+  if (!locale || loaded.has(locale)) return Promise.resolve()
+  const existing = inflight.get(locale)
+  if (existing) return existing
+  const entry = pathFor(locale)
+  if (!entry) return Promise.resolve()
+  const promise = entry[1]()
+    .then((mod) => {
+      Messages.set(locale, mod.default)
+      loaded.add(locale)
+    })
+    .finally(() => inflight.delete(locale))
+  inflight.set(locale, promise)
+  return promise
 }

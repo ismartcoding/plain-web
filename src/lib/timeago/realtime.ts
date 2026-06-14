@@ -1,7 +1,8 @@
 import { setTimerId, getTimerId, getDateAttribute } from './utils/dom'
-import { formatDiff, diffSec, nextInterval } from './utils/date'
-import { getLocale } from './register'
-import type { LocaleFunc, Opts, TimerPool } from './interface'
+import { diffSec, nextInterval } from './utils/date'
+import { format } from './format'
+import { getMessages } from './register'
+import type { Opts, TimerPool } from './interface'
 
 // all realtime timer
 const TIMER_POOL: TimerPool = {}
@@ -16,22 +17,20 @@ const clear = (tid: number): void => {
 }
 
 // run with timer(setTimeout)
-function run(node: HTMLElement, date: string, localeFunc: LocaleFunc, opts: Opts): void {
+function run(node: HTMLElement, date: string, locale: string, opts: Opts): void {
   // clear the node's exist timer
   clear(getTimerId(node))
 
   const { relativeDate, minInterval } = opts
 
-  // get diff seconds
-  const diff = diffSec(date, relativeDate)
   // render
-  node.innerText = formatDiff(diff, localeFunc)
+  node.innerText = format(date, locale, getMessages(locale)!, opts)
 
   const tid = setTimeout(
     () => {
-      run(node, date, localeFunc, opts)
+      run(node, date, locale, opts)
     },
-    Math.min(Math.max(nextInterval(diff), minInterval || 1) * 1000, 0x7fffffff)
+    Math.min(Math.max(nextInterval(diffSec(date, relativeDate)), minInterval || 1) * 1000, 0x7fffffff)
   ) as unknown as number
 
   // there is no need to save node in object. Just save the key
@@ -58,13 +57,12 @@ export function cancel(node?: HTMLElement): void {
  * @param opts
  */
 export function render(nodes: HTMLElement | HTMLElement[] | NodeList, locale?: string, opts?: Opts) {
-  // by .length
+  const lc = locale ?? ''
   // @ts-ignore
-  // supports empty list of nodes
   const nodeList: HTMLElement[] = Object.prototype.isPrototypeOf.call(NodeList.prototype, nodes) ? nodes : [nodes]
 
   nodeList.forEach((node: HTMLElement) => {
-    run(node, getDateAttribute(node), getLocale(locale ?? ''), opts || {})
+    run(node, getDateAttribute(node), lc, opts || {})
   })
 
   return nodeList

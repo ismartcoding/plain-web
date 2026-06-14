@@ -1,12 +1,4 @@
-import * as Languages from './lang'
-import { register } from './register'
-import type { LocaleFunc } from './interface'
-
-Object.keys(Languages).forEach((locale: string) => {
-  register(locale, (Languages as Record<string, LocaleFunc>)[locale])
-})
-
 export { format } from './format'
 export { render, cancel } from './realtime'
-export { register }
-export * from './interface'
+export { setLocale, setMessages, getMessages } from './register'
+export type { Opts, TDate, TimerPool, TimeagoMessages } from './interface'

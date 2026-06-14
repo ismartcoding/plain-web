@@ -52,7 +52,8 @@ async function bootstrap() {
   // render shows the right translations instead of the en-US fallback.
   // Other locales stay on disk until the user switches to them.
   const { loadLocaleMessages } = i18nModule
-  await loadLocaleMessages(i18n.global.locale.value)
+  const { setLocale: setTimeagoLocale } = await import('./lib/timeago')
+  await Promise.all([loadLocaleMessages(i18n.global.locale.value), setTimeagoLocale(i18n.global.locale.value)])
 
   createApp(App)
     .use(VueClickAway)

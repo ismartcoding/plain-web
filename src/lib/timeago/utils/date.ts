@@ -1,4 +1,4 @@
-import type { LocaleFunc, TDate } from '../interface'
+import type { TDate } from '../interface'
 
 const SEC_ARRAY = [
   60, // 60 seconds in 1 min
@@ -31,64 +31,6 @@ export function toDate(input?: Date | string | number): Date {
 }
 
 /**
- * format the diff second to *** time ago, with setting locale
- * @param diff
- * @param localeFunc
- * @returns
- */
-export function formatDiff(diff: number, localeFunc: LocaleFunc): string {
-  /**
-   * if locale is not exist, use defaultLocale.
-   * if defaultLocale is not exist, use build-in `en`.
-   * be sure of no error when locale is not exist.
-   *
-   * If `time in`, then 1
-   * If `time ago`, then 0
-   */
-  const agoIn = diff < 0 ? 1 : 0
-
-  /**
-   * Get absolute value of number (|diff| is non-negative) value of x
-   * |diff| = diff if diff is positive
-   * |diff| = -diff if diff is negative
-   * |0| = 0
-   */
-  diff = Math.abs(diff)
-
-  /**
-   * Time in seconds
-   */
-  const totalSec = diff
-
-  /**
-   * Unit of time
-   */
-  let idx = 0
-
-  for (; diff >= SEC_ARRAY[idx] && idx < SEC_ARRAY.length; idx++) {
-    diff /= SEC_ARRAY[idx]
-  }
-
-  /**
-   * Math.floor() is alternative of ~~
-   *
-   * The differences and bugs:
-   * Math.floor(3.7) -> 4 but ~~3.7 -> 3
-   * Math.floor(1559125440000.6) -> 1559125440000 but ~~1559125440000.6 -> 52311552
-   *
-   * More information about the performance of algebraic:
-   * https://www.youtube.com/watch?v=65-RbBwZQdU
-   */
-  diff = Math.floor(diff)
-
-  idx *= 2
-
-  if (diff > (idx === 0 ? 9 : 1)) idx += 1
-
-  return localeFunc(diff, idx, totalSec)[agoIn].replace('%s', diff.toString())
-}
-
-/**
  * calculate the diff second between date to be formatted an now date.
  * @param date
  * @param relativeDate
@@ -102,11 +44,6 @@ export function diffSec(date: TDate, relativeDate?: TDate): number {
 /**
  * nextInterval: calculate the next interval time.
  * - diff: the diff sec between now and date to be formatted.
- *
- * What's the meaning?
- * diff = 61 then return 59
- * diff = 3601 (an hour + 1 second), then return 3599
- * make the interval with high performance.
  **/
 export function nextInterval(diff: number): number {
   let rst = 1,
