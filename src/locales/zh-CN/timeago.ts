@@ -1,10 +1,21 @@
 import type { TimeagoMessages } from '@/lib/timeago'
 
-const units = ['秒', '分钟', '小时', '天', '周', '个月', '年']
-
 export default {
-  justNow: ['刚刚', '片刻后'],
-  units: units.map((single) => ({ single, many: single })),
-  template: { past: '{n} {unit}前', future: '{n} {unit}后' },
-  plural: (_n, single) => single,
+  now: '刚刚',
+  short: {
+    minutes: '{n}分钟前',
+    hours: '{n}小时前',
+    days: '{n}天前',
+    weeks: '{n}周前',
+    months: '{n}个月前',
+    years: '{n}年前',
+  },
+  long: {
+    minutes: '{n}分钟前',
+    hours: '{n}小时前',
+    days: '{n}天前',
+    weeks: '{n}周前',
+    months: '{n}个月前',
+    years: '{n}年前',
+  },
 } as const satisfies TimeagoMessages

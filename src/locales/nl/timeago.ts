@@ -1,16 +1,21 @@
 import type { TimeagoMessages } from '@/lib/timeago'
 
 export default {
-  justNow: ['zojuist', 'straks'],
-  units: [
-    { single: 'seconde', many: 'seconden' },
-    { single: 'minuut', many: 'minuten' },
-    { single: 'uur', many: 'uur' },
-    { single: 'dag', many: 'dagen' },
-    { single: 'week', many: 'weken' },
-    { single: 'maand', many: 'maanden' },
-    { single: 'jaar', many: 'jaar' },
-  ],
-  template: { past: '{n} {unit} geleden', future: 'over {n} {unit}' },
-  plural: (n, single, many) => (n === 1 ? single : many),
+  now: 'Zonet',
+  short: {
+    minutes: '{n} min',
+    hours: '{n} u',
+    days: '{n} d',
+    weeks: '{n} wk',
+    months: '{n} mnd',
+    years: '{n} jr',
+  },
+  long: {
+    minutes: '{n} minuten geleden',
+    hours: '{n} uur geleden',
+    days: '{n} dagen geleden',
+    weeks: '{n} weken geleden',
+    months: '{n} maanden geleden',
+    years: '{n} jaar geleden',
+  },
 } as const satisfies TimeagoMessages

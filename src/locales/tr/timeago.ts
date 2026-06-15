@@ -1,16 +1,21 @@
 import type { TimeagoMessages } from '@/lib/timeago'
 
 export default {
-  justNow: ['şimdi', 'şimdi'],
-  units: [
-    { single: 'saniye', many: 'saniye' },
-    { single: 'dakika', many: 'dakika' },
-    { single: 'saat', many: 'saat' },
-    { single: 'gün', many: 'gün' },
-    { single: 'hafta', many: 'hafta' },
-    { single: 'ay', many: 'ay' },
-    { single: 'yıl', many: 'yıl' },
-  ],
-  template: { past: '{n} {unit} önce', future: '{n} {unit} sonra' },
-  plural: (_n, single) => single,
+  now: 'Az önce',
+  short: {
+    minutes: '{n} dk',
+    hours: '{n} sa',
+    days: '{n} g',
+    weeks: '{n} hf',
+    months: '{n} ay',
+    years: '{n} yıl',
+  },
+  long: {
+    minutes: '{n} dakika önce',
+    hours: '{n} saat önce',
+    days: '{n} gün önce',
+    weeks: '{n} hafta önce',
+    months: '{n} ay önce',
+    years: '{n} yıl önce',
+  },
 } as const satisfies TimeagoMessages

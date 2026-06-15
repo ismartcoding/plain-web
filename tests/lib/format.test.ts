@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { formatDateTime, formatDateTimeFull, formatSeconds, formatFileSize, formatDate, formatTime } from '@/lib/format'
+import { formatDateTime, formatDateTimeFull, formatSeconds, formatFileSize, formatDate, formatTime, formatTimeAgo } from '@/lib/format'
+import { format as timeagoFormat, setMessages } from '@/lib/timeago'
+import type { TimeagoMessages } from '@/lib/timeago'
 
 describe('formatSeconds', () => {
   it('formats 0 seconds as "00:00"', () => {
@@ -146,5 +148,84 @@ describe('formatTime', () => {
   it('returns a string containing time digits', () => {
     const result = formatTime('2024-06-15T14:30:00Z')
     expect(result).toMatch(/\d{1,2}:\d{2}/)
+  })
+})
+
+describe('timeago format()', () => {
+  const messages: TimeagoMessages = {
+    now: 'now',
+    short: { minutes: '{n}m', hours: '{n}h', days: '{n}d', weeks: '{n}w', months: '{n}mo', years: '{n}y' },
+    long: { minutes: '{n} min ago', hours: '{n} hr ago', days: '{n} d ago', weeks: '{n} w ago', months: '{n} mo ago', years: '{n} y ago' },
+  }
+  const now = new Date('2024-06-15T12:00:00Z').getTime()
+  const at = (sec: number) => new Date(now - sec * 1000)
+
+  it('returns the "now" string for sub-minute diffs', () => {
+    expect(timeagoFormat(at(0), 'en-US', messages, { relativeDate: now })).toBe('now')
+    expect(timeagoFormat(at(59), 'en-US', messages, { relativeDate: now })).toBe('now')
+  })
+
+  it('uses minutes for < 1 hour', () => {
+    expect(timeagoFormat(at(60), 'en-US', messages, { relativeDate: now })).toBe('1m')
+    expect(timeagoFormat(at(45 * 60), 'en-US', messages, { relativeDate: now })).toBe('45m')
+  })
+
+  it('uses hours for < 1 day', () => {
+    expect(timeagoFormat(at(60 * 60), 'en-US', messages, { relativeDate: now })).toBe('1h')
+    expect(timeagoFormat(at(23 * 60 * 60), 'en-US', messages, { relativeDate: now })).toBe('23h')
+  })
+
+  it('uses days for < 1 week', () => {
+    expect(timeagoFormat(at(24 * 60 * 60), 'en-US', messages, { relativeDate: now })).toBe('1d')
+    expect(timeagoFormat(at(6 * 24 * 60 * 60), 'en-US', messages, { relativeDate: now })).toBe('6d')
+  })
+
+  it('uses weeks for < 4 weeks', () => {
+    expect(timeagoFormat(at(7 * 24 * 60 * 60), 'en-US', messages, { relativeDate: now })).toBe('1w')
+    expect(timeagoFormat(at(3 * 7 * 24 * 60 * 60), 'en-US', messages, { relativeDate: now })).toBe('3w')
+  })
+
+  it('uses months for < 1 year', () => {
+    expect(timeagoFormat(at(30 * 24 * 60 * 60), 'en-US', messages, { relativeDate: now })).toBe('1mo')
+    expect(timeagoFormat(at(364 * 24 * 60 * 60), 'en-US', messages, { relativeDate: now })).toBe('12mo')
+  })
+
+  it('uses years for >= 1 year', () => {
+    expect(timeagoFormat(at(365 * 24 * 60 * 60), 'en-US', messages, { relativeDate: now })).toBe('1y')
+  })
+
+  it('defaults to short style when style is omitted', () => {
+    expect(timeagoFormat(at(60), 'en-US', messages, { relativeDate: now })).toBe('1m')
+  })
+
+  it('honors style: "long"', () => {
+    expect(timeagoFormat(at(60), 'en-US', messages, { relativeDate: now, style: 'long' })).toBe('1 min ago')
+    expect(timeagoFormat(at(3 * 24 * 60 * 60), 'en-US', messages, { relativeDate: now, style: 'long' })).toBe('3 d ago')
+  })
+})
+
+describe('formatTimeAgo', () => {
+  const messages: TimeagoMessages = {
+    now: 'now',
+    short: { minutes: '{n}m', hours: '{n}h', days: '{n}d', weeks: '{n}w', months: '{n}mo', years: '{n}y' },
+    long: { minutes: '{n} min ago', hours: '{n} hr ago', days: '{n} d ago', weeks: '{n} w ago', months: '{n} mo ago', years: '{n} y ago' },
+  }
+
+  beforeEach(() => {
+    setMessages('en-US', messages)
+  })
+
+  it('returns "" for the epoch sentinel', () => {
+    expect(formatTimeAgo('1970-01-01T00:00:00Z')).toBe('')
+  })
+
+  it('defaults to short style', () => {
+    const result = formatTimeAgo(new Date().toISOString())
+    expect(result).toBe('now')
+  })
+
+  it('accepts style: "long" opt-in', () => {
+    const anHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
+    expect(formatTimeAgo(anHourAgo, 'long')).toBe('1 hr ago')
   })
 })

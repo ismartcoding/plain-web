@@ -1,16 +1,21 @@
 import type { TimeagoMessages } from '@/lib/timeago'
 
 export default {
-  justNow: ['только что', 'скоро'],
-  units: [
-    { single: 'секунда', many: 'секунд' },
-    { single: 'минута', many: 'минут' },
-    { single: 'час', many: 'часов' },
-    { single: 'день', many: 'дней' },
-    { single: 'неделя', many: 'недель' },
-    { single: 'месяц', many: 'месяцев' },
-    { single: 'год', many: 'лет' },
-  ],
-  template: { past: '{n} {unit} назад', future: 'через {n} {unit}' },
-  plural: (n, single, many) => (n === 1 ? single : many),
+  now: 'Только что',
+  short: {
+    minutes: '{n} мин',
+    hours: '{n} ч',
+    days: '{n} д',
+    weeks: '{n} нед',
+    months: '{n} мес',
+    years: '{n} г',
+  },
+  long: {
+    minutes: '{n} минут назад',
+    hours: '{n} часов назад',
+    days: '{n} дней назад',
+    weeks: '{n} недель назад',
+    months: '{n} месяцев назад',
+    years: '{n} лет назад',
+  },
 } as const satisfies TimeagoMessages
