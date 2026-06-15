@@ -1,16 +1,21 @@
 import type { TimeagoMessages } from '@/lib/timeago'
 
 export default {
-  justNow: ['இப்போது', 'இப்போது'],
-  units: [
-    { single: 'வினாடி', many: 'வினாடிகள்' },
-    { single: 'நிமிடம்', many: 'நிமிடங்கள்' },
-    { single: 'மணி', many: 'மணி' },
-    { single: 'நாள்', many: 'நாட்கள்' },
-    { single: 'வாரம்', many: 'வாரங்கள்' },
-    { single: 'மாதம்', many: 'மாதங்கள்' },
-    { single: 'ஆண்டு', many: 'ஆண்டுகள்' },
-  ],
-  template: { past: '{n} {unit} முன்பு', future: '{n} {unit} இல்' },
-  plural: (n, single, many) => (n === 1 ? single : many),
+  now: 'இப்போதுதான்',
+  short: {
+    minutes: '{n} நிமி',
+    hours: '{n} மணி',
+    days: '{n} நாள்',
+    weeks: '{n} வாரம்',
+    months: '{n} மாதம்',
+    years: '{n} ஆண்டு',
+  },
+  long: {
+    minutes: '{n} நிமிடங்கள் முன்பு',
+    hours: '{n} மணி நேரம் முன்பு',
+    days: '{n} நாட்கள் முன்பு',
+    weeks: '{n} வாரங்கள் முன்பு',
+    months: '{n} மாதங்கள் முன்பு',
+    years: '{n} ஆண்டுகள் முன்பு',
+  },
 } as const satisfies TimeagoMessages

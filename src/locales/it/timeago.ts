@@ -1,16 +1,21 @@
 import type { TimeagoMessages } from '@/lib/timeago'
 
 export default {
-  justNow: ['proprio ora', 'tra poco'],
-  units: [
-    { single: 'secondo', many: 'secondi' },
-    { single: 'minuto', many: 'minuti' },
-    { single: 'ora', many: 'ore' },
-    { single: 'giorno', many: 'giorni' },
-    { single: 'settimana', many: 'settimane' },
-    { single: 'mese', many: 'mesi' },
-    { single: 'anno', many: 'anni' },
-  ],
-  template: { past: '{n} {unit} fa', future: 'tra {n} {unit}' },
-  plural: (n, single, many) => (n === 1 ? single : many),
+  now: 'Adesso',
+  short: {
+    minutes: '{n} min',
+    hours: '{n} h',
+    days: '{n} g',
+    weeks: '{n} sett',
+    months: '{n} mesi',
+    years: '{n} ann',
+  },
+  long: {
+    minutes: '{n} minuti fa',
+    hours: '{n} ore fa',
+    days: '{n} giorni fa',
+    weeks: '{n} settimane fa',
+    months: '{n} mesi fa',
+    years: '{n} anni fa',
+  },
 } as const satisfies TimeagoMessages

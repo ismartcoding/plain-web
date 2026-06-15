@@ -1,16 +1,21 @@
 import type { TimeagoMessages } from '@/lib/timeago'
 
 export default {
-  justNow: ['すこし前', 'すぐに'],
-  units: [
-    { single: '秒', many: '秒' },
-    { single: '分', many: '分' },
-    { single: '時間', many: '時間' },
-    { single: '日', many: '日' },
-    { single: '週間', many: '週間' },
-    { single: 'ヶ月', many: 'ヶ月' },
-    { single: '年', many: '年' },
-  ],
-  template: { past: '{n}{unit}前', future: '{n}{unit}以内' },
-  plural: (n, single, many) => (n === 1 ? single : many),
+  now: 'たった今',
+  short: {
+    minutes: '{n}分前',
+    hours: '{n}時間前',
+    days: '{n}日前',
+    weeks: '{n}週前',
+    months: '{n}ヶ月前',
+    years: '{n}年前',
+  },
+  long: {
+    minutes: '{n}分前',
+    hours: '{n}時間前',
+    days: '{n}日前',
+    weeks: '{n}週前',
+    months: '{n}ヶ月前',
+    years: '{n}年前',
+  },
 } as const satisfies TimeagoMessages

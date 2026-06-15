@@ -1,4 +1,5 @@
 import { format as timeagoFormat, getMessages } from './timeago'
+import type { TimeagoStyle } from './timeago'
 import { get as prefsGet } from '@/lib/prefs'
 
 function getLocale(): string {
@@ -30,12 +31,12 @@ export function formatDateTimeFull(str: string) {
   return formatDateTime(str, { dateStyle: 'long', timeStyle: 'long' })
 }
 
-export function formatTimeAgo(str: string) {
+export function formatTimeAgo(str: string, style: TimeagoStyle = 'short') {
   if (str === '1970-01-01T00:00:00Z') {
     return ''
   }
   const locale = getLocale()
-  return timeagoFormat(new Date(str), locale, getMessages(locale)!)
+  return timeagoFormat(new Date(str), locale, getMessages(locale)!, { style })
 }
 
 export function formatDate(str: string) {

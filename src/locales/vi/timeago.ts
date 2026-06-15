@@ -1,16 +1,21 @@
 import type { TimeagoMessages } from '@/lib/timeago'
 
 export default {
-  justNow: ['vừa xong', 'ngay bây giờ'],
-  units: [
-    { single: 'giây', many: 'giây' },
-    { single: 'phút', many: 'phút' },
-    { single: 'giờ', many: 'giờ' },
-    { single: 'ngày', many: 'ngày' },
-    { single: 'tuần', many: 'tuần' },
-    { single: 'tháng', many: 'tháng' },
-    { single: 'năm', many: 'năm' },
-  ],
-  template: { past: '{n} {unit} trước', future: '{n} {unit} nữa' },
-  plural: (_n, single) => single,
+  now: 'Vừa xong',
+  short: {
+    minutes: '{n} phút',
+    hours: '{n} giờ',
+    days: '{n} ngày',
+    weeks: '{n} tuần',
+    months: '{n} tháng',
+    years: '{n} năm',
+  },
+  long: {
+    minutes: '{n} phút trước',
+    hours: '{n} giờ trước',
+    days: '{n} ngày trước',
+    weeks: '{n} tuần trước',
+    months: '{n} tháng trước',
+    years: '{n} năm trước',
+  },
 } as const satisfies TimeagoMessages

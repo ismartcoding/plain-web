@@ -1,16 +1,21 @@
 import type { TimeagoMessages } from '@/lib/timeago'
 
 export default {
-  justNow: ['अभी', 'अभी'],
-  units: [
-    { single: 'सेकंड', many: 'सेकंड' },
-    { single: 'मिनट', many: 'मिनट' },
-    { single: 'घंटा', many: 'घंटे' },
-    { single: 'दिन', many: 'दिन' },
-    { single: 'हफ़्ता', many: 'हफ़्ते' },
-    { single: 'महीना', many: 'महीने' },
-    { single: 'साल', many: 'साल' },
-  ],
-  template: { past: '{n} {unit} पहले', future: '{n} {unit} में' },
-  plural: (_n, single) => single,
+  now: 'अभी',
+  short: {
+    minutes: '{n} मि',
+    hours: '{n} घं',
+    days: '{n} दि',
+    weeks: '{n} सप्ता',
+    months: '{n} माह',
+    years: '{n} वर्ष',
+  },
+  long: {
+    minutes: '{n} मिनट पहले',
+    hours: '{n} घंटे पहले',
+    days: '{n} दिन पहले',
+    weeks: '{n} सप्ताह पहले',
+    months: '{n} महीने पहले',
+    years: '{n} वर्ष पहले',
+  },
 } as const satisfies TimeagoMessages
