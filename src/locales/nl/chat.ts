@@ -22,6 +22,7 @@ export default {
   delete_channel: 'Kanaal verwijderen',
   delete_channel_confirm: 'Weet je zeker dat je dit kanaal wilt verwijderen? Alle berichten gaan verloren.',
   delete_device: 'Apparaat verwijderen',
+  delete_peer_warning: 'Het verwijderen van dit apparaat zal ook alle gerelateerde chatberichten verwijderen. Deze actie kan niet ongedaan worden gemaakt.',
   leave_channel: 'Verlaat het kanaal',
   leave_channel_confirm: 'Weet je zeker dat je dit kanaal wilt verlaten?',
   channel_info: 'Kanaalinformatie',

@@ -23,6 +23,7 @@ export default {
   delete_channel: '刪除頻道',
   delete_channel_confirm: '您確定要刪除該頻道嗎？所有訊息都將遺失。',
   delete_device: '刪除裝置',
+  delete_peer_warning: '刪除此設備將同時刪除所有相關的聊天記錄。此操作無法撤銷。',
   leave_channel: '離開頻道',
   leave_channel_confirm: '您確定要離開此頻道嗎？',
   channel_info: '頻道資訊',

@@ -96,11 +96,11 @@ export const useChatStore = defineStore('chat', () => {
 
     if (isToPeer) return `peer:${toId}`
     if (isFromPeer) return `peer:${fromId}`
-    if (isFromLocal || isToLocal) return 'local'
+    if (isFromLocal || isToLocal) return 'peer:local'
     if (toId) return `peer:${toId}`
     if (fromId) return `peer:${fromId}`
 
-    return 'local'
+    return 'peer:local'
   }
 
   function getLocalClientId(): string {
@@ -219,20 +219,20 @@ export const useChatStore = defineStore('chat', () => {
     }
   })
 
-  emitter.on('message_deleted', (ids: string[]) => {
-    if (!Array.isArray(ids) || ids.length === 0) return
-    const deleted = new Set(ids)
-    const hasLatestDeleted = Object.values(latestChatMap.value).some((item) => deleted.has(item.id))
-    if (hasLatestDeleted) _fetchLatestChatItems()
-  })
-
-  emitter.on('message_cleared', (toId: string) => {
-    const mapped = toId === 'local' ? 'local' : toId?.startsWith('channel:') ? toId : `peer:${toId}`
-    if (!mapped || !latestChatMap.value[mapped]) return
-    const next = { ...latestChatMap.value }
-    delete next[mapped]
-    latestChatMap.value = next
-    setCached<Record<string, IChatItem>>('chat:latest_items', latestChatMap.value)
+  emitter.on('message_deleted', (data: string) => {
+    if (typeof data !== 'string') return
+    if (data.startsWith('ids=')) {
+      const ids = data.slice(4).split(',').filter(Boolean)
+      if (!ids.length) return
+      const deleted = new Set(ids)
+      const hasLatestDeleted = Object.values(latestChatMap.value).some((item) => deleted.has(item.id))
+      if (hasLatestDeleted) _fetchLatestChatItems()
+    } else if (latestChatMap.value[data]) {
+      const next = { ...latestChatMap.value }
+      delete next[data]
+      latestChatMap.value = next
+      setCached<Record<string, IChatItem>>('chat:latest_items', latestChatMap.value)
+    }
   })
 
   /**

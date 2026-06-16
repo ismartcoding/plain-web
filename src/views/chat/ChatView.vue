@@ -9,9 +9,6 @@
   </Teleport>
   <div class="top-app-bar">
     <div class="title">{{ pageTitle }}</div>
-    <v-icon-button v-tooltip="$t('chat_info')" @click="openChatInfo">
-      <i-material-symbols:more-vert />
-    </v-icon-button>
   </div>
   <div ref="scrollContainer" class="chat-view-body">
     <div v-if="loading && chatItems.length === 0" class="loading-state">
@@ -50,19 +47,16 @@ import ChatInput from './ChatInput.vue'
 import ChatMessageItem from './ChatMessageItem.vue'
 import { useMainStore } from '@/stores/main'
 import { openModal } from '@/components/modal'
-import ChatInfoModal from './ChatInfoModal.vue'
-import ChannelInfoModal from './ChannelInfoModal.vue'
 import ChatDeliveryStatusModal from './ChatDeliveryStatusModal.vue'
-import { replacePath } from '@/plugins/router'
 import { useChatRouteId } from './hooks/chat-route'
 import { useChatData } from './hooks/chat-data'
 import { useChatMessages } from './hooks/chat-messages'
 import { useChatUpload } from './hooks/chat-upload'
-import type { IChatChannel, IChatItem } from '@/lib/interfaces'
+import type { IChatItem } from '@/lib/interfaces'
 
 const store = useMainStore()
 const { chatId, peerId, channelId, isChannel, appDir, openFolder } = useChatRouteId()
-const { peers, peer, channel, pageTitle, getSenderName, fetchChannels, updateChannel, removeChannel } = useChatData(chatId, peerId, isChannel, channelId)
+const { peer, channel, pageTitle, getSenderName } = useChatData(chatId, peerId, isChannel, channelId)
 
 const chatText = computed({
   get: () => store.chatTexts[chatId.value] ?? '',
@@ -72,7 +66,7 @@ const chatText = computed({
 const {
   chatItems, loading, sendLoading, deleteLoading,
   scrollContainer, scrollBottom,
-  send, retryMessage, deleteMessage, clearMessages, refetch,
+  send, retryMessage, deleteMessage, refetch,
 } = useChatMessages(chatId, channelId)
 
 const { doUploadFiles, doUploadImages, sendLongMessageAsFile, sendingText, downloadProgress } = useChatUpload(chatId, channelId, appDir, scrollBottom, chatText, chatItems)
@@ -99,19 +93,6 @@ function handleRetry(id: string, statusData?: string) {
     onResend: () => retryMessage(id),
     statusData,
   })
-}
-
-function openChatInfo() {  if (isChannel.value && channel.value) {
-    openModal(ChannelInfoModal, {
-      channel: channel.value, peers: peers.value, selfId: '',
-      onClear: clearMessages,
-      onRenamed: (renamed: IChatChannel) => updateChannel(renamed),
-      onDeleted: () => { removeChannel(channelId.value); replacePath(store, '/chat') },
-      onMemberUpdated: () => fetchChannels(),
-    })
-  } else {
-    openModal(ChatInfoModal, { peer: peer.value, onClear: clearMessages })
-  }
 }
 
 onActivated(() => { isActive.value = true })

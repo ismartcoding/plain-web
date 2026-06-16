@@ -1,5 +1,5 @@
 <template>
-  <li :class="{ active, 'has-actions': hasActions }" @click.prevent="emit('click', $event)">
+  <li :class="{ active, 'has-actions': hasActions, 'force-actions': forceActions }" @click.prevent="emit('click', $event)">
     <span v-if="$slots.start" class="start">
       <slot name="start" />
     </span>
@@ -30,10 +30,12 @@ const props = withDefaults(
     title: string
     subtitle?: string
     active?: boolean
+    forceActions?: boolean
   }>(),
   {
     active: false,
     subtitle: '',
+    forceActions: false,
   },
 )
 
@@ -78,7 +80,8 @@ const hasActions = computed(() => !!slots.actions)
   gap: 4px;
 }
 
-li.has-actions:hover {
+li.has-actions:hover,
+li.force-actions {
   .end {
     display: none;
   }

@@ -1,6 +1,6 @@
 // use upload queue instead of calling upload directly
 import { addUploadTask } from '@/lib/upload/upload-queue'
-import { sendChatItemGQL } from '@/lib/api/mutation'
+import { deleteChatItemsGQL, sendChatItemGQL, initMutation } from '@/lib/api/mutation'
 import type { IChatItem } from '@/lib/interfaces'
 import type { IUploadItem } from '@/stores/temp'
 import { gqlFetch } from '@/lib/api/gql-client'
@@ -86,5 +86,19 @@ export const useTasks = () => {
       finalized.add(messageId)
       activeTasks.delete(messageId)
     },
+    cancelByChatId(chatId: string) {
+      for (const [id, task] of activeTasks) {
+        if (task.toId === chatId) {
+          finalized.add(id)
+          activeTasks.delete(id)
+        }
+      }
+    },
   }
+}
+
+export async function clearChatMessages(chatId: string, cancelByChatId: (chatId: string) => void) {
+  cancelByChatId(chatId)
+  const { mutate: deleteItems } = initMutation({ document: deleteChatItemsGQL })
+  await deleteItems({ query: chatId })
 }

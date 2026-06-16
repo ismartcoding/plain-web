@@ -1,15 +1,22 @@
 <template>
   <div class="inline-delete-confirm" @click.stop>
-    <div class="inline-delete-confirm-msg">{{ count !== undefined ? $t('confirm_to_delete', { count }) : $t('confirm_to_delete_name', { name }) }}</div>
+    <div class="inline-delete-confirm-msg">
+      <template v-if="messageKey">
+        {{ $t(messageKey, { name, count }) }}
+      </template>
+      <template v-else>
+        {{ count !== undefined ? $t('confirm_to_delete', { count }) : $t('confirm_to_delete_name', { name }) }}
+      </template>
+    </div>
     <div class="inline-delete-confirm-actions">
       <v-outlined-button class="btn-sm" @click.stop="$emit('cancel')">{{ $t('cancel') }}</v-outlined-button>
-      <v-filled-button class="btn-sm danger" :loading="loading" @click.stop="$emit('confirm')">{{ $t('delete') }}</v-filled-button>
+      <v-filled-button class="btn-sm danger" :loading="loading" @click.stop="$emit('confirm')">{{ $t('confirm') }}</v-filled-button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-defineProps<{ name?: string; count?: number; loading?: boolean }>()
+defineProps<{ name?: string; count?: number; loading?: boolean; messageKey?: string }>()
 defineEmits<{ confirm: []; cancel: [] }>()
 </script>
 

@@ -23,6 +23,7 @@ export default {
   delete_channel: 'Eliminar canal',
   delete_channel_confirm: '¿Estás seguro de que quieres eliminar este canal? Todos los mensajes se perderán.',
   delete_device: 'Eliminar dispositivo',
+  delete_peer_warning: 'Eliminar este dispositivo también eliminará todos los mensajes de chat. Esta acción no se puede deshacer.',
   leave_channel: 'Salir del canal',
   leave_channel_confirm: '¿Estás seguro de que quieres abandonar este canal?',
   channel_info: 'Información del canal',

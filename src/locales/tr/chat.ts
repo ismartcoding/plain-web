@@ -23,6 +23,7 @@ export default {
   delete_channel: 'Kanalı sil',
   delete_channel_confirm: 'Bu kanalı silmek istediğinizden emin misiniz? Tüm mesajlar kaybolacak.',
   delete_device: 'Cihazı sil',
+  delete_peer_warning: 'Bu cihazı silmek aynı zamanda ilgili tüm sohbet mesajlarını da silecektir. Bu eylem geri alınamaz.',
   leave_channel: 'Kanaldan ayrıl',
   leave_channel_confirm: 'Bu kanaldan ayrılmak istediğinizden emin misiniz?',
   channel_info: 'Kanal bilgisi',

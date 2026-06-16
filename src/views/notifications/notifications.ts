@@ -1,11 +1,9 @@
 import { onMounted, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '@/stores/main'
 import { initQuery, notificationsGQL } from '@/lib/api/query'
 import { initMutation, cancelNotificationsGQL, replyNotificationGQL } from '@/lib/api/mutation'
-import toast from '@/components/toaster'
 import type { INotification } from '@/lib/interfaces'
 import { getFileUrlByPath } from '@/lib/api/file'
 import emitter from '@/plugins/eventbus'
@@ -14,7 +12,6 @@ import { playNotificationSound } from '@/lib/notification-sound'
 import { showDesktopNotification } from '@/lib/desktop-notification'
 
 export function useNotifications() {
-  const { t } = useI18n()
   const store = useMainStore()
   const { notificationVolume } = storeToRefs(store)
   const { app, urlTokenKey } = storeToRefs(useTempStore())

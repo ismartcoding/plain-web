@@ -23,6 +23,7 @@ export default {
   delete_channel: 'चैनल हटाएँ',
   delete_channel_confirm: 'क्या आप वाकई इस चैनल को हटाना चाहते हैं? सभी संदेश खो जायेंगे.',
   delete_device: 'डिवाइस हटाएँ',
+  delete_peer_warning: 'इस उपकरण को हटाने से संबंधित सभी चैट संदेश भी हटा दिए जाएंगे। यह क्रिया पूर्ववत नहीं की जा सकती।',
   leave_channel: 'चैनल छोड़ें',
   leave_channel_confirm: 'क्या आप वाकई यह चैनल छोड़ना चाहते हैं?',
   channel_info: 'चैनल की जानकारी',
