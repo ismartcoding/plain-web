@@ -23,6 +23,7 @@ export default {
   delete_channel: 'Xóa kênh',
   delete_channel_confirm: 'Bạn có chắc chắn muốn xóa kênh này không? Tất cả tin nhắn sẽ bị mất.',
   delete_device: 'Xóa thiết bị',
+  delete_peer_warning: 'Xóa thiết bị này cũng sẽ xóa tất cả tin nhắn trò chuyện. Hành động này không thể hoàn tác.',
   leave_channel: 'Rời khỏi kênh',
   leave_channel_confirm: 'Bạn có chắc chắn muốn rời khỏi kênh này không?',
   channel_info: 'Thông tin kênh',

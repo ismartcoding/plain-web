@@ -23,6 +23,7 @@ export default {
   delete_channel: '채널 삭제',
   delete_channel_confirm: '이 채널을 삭제하시겠습니까? 모든 메시지가 손실됩니다.',
   delete_device: '장치 삭제',
+  delete_peer_warning: '이 장치를 삭제하면 관련된 모든 채팅 메시지도 삭제됩니다. 이 작업은 되돌릴 수 없습니다.',
   leave_channel: '채널 나가기',
   leave_channel_confirm: '정말로 이 채널에서 나가시겠습니까?',
   channel_info: '채널 정보',

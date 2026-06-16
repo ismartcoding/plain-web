@@ -16,6 +16,7 @@ export default {
   delete_channel: '删除频道',
   delete_channel_confirm: '确定要删除此频道吗？所有消息将会丢失。',
   delete_device: '删除设备',
+  delete_peer_warning: '删除此设备将同时删除所有相关的聊天记录。此操作无法撤销。',
   leave_channel: '离开频道',
   leave_channel_confirm: '确定要离开此频道吗？',
   channel_info: '频道信息',

@@ -23,6 +23,7 @@ export default {
   delete_channel: 'Supprimer la chaîne',
   delete_channel_confirm: 'Êtes-vous sûr de vouloir supprimer cette chaîne ? Tous les messages seront perdus.',
   delete_device: "Supprimer l'appareil",
+  delete_peer_warning: "Supprimer cet appareil supprimera également tous les messages de chat. Cette action ne peut pas être annulée.",
   leave_channel: 'Quitter la chaîne',
   leave_channel_confirm: 'Êtes-vous sûr de vouloir quitter cette chaîne ?',
   channel_info: 'Informations sur la chaîne',

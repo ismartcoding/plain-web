@@ -13,21 +13,31 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import { popModal } from '@/components/modal'
 import { initMutation, createChatChannelGQL } from '@/lib/api/mutation'
+import { useChatStore } from '@/stores/chat'
+import { useTempStore } from '@/stores/temp'
+import { getFileId } from '@/lib/api/file'
+import type { IChatChannel } from '@/lib/interfaces'
 
-const emit = defineEmits<{
-  (e: 'created', channel: any): void
-}>()
-
+const router = useRouter()
+const { urlTokenKey } = storeToRefs(useTempStore())
 const name = ref('')
+const chatStore = useChatStore()
 
 const { mutate, loading, onDone } = initMutation({
   document: createChatChannelGQL,
 })
 
 onDone((r: any) => {
-  emit('created', { ...r.data.createChatChannel })
+  const channel = { ...r.data.createChatChannel } as IChatChannel
+  if (!chatStore.channels.some((c) => c.id === channel.id)) {
+    chatStore.channels = [...chatStore.channels, channel].sort((a, b) => a.name.localeCompare(b.name))
+  }
+  const routeId = getFileId(urlTokenKey.value, `channel:${channel.id}`)
+  router.push(`/chat?id=${encodeURIComponent(routeId)}`)
   popModal()
 })
 

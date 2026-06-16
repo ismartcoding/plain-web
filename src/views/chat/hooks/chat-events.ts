@@ -20,7 +20,7 @@ export function useChatEvents(chatId: ComputedRef<string>, chatItems: Ref<IChatI
       const peerId = chatId.value.startsWith('peer:') ? chatId.value.slice(5) : ''
       const items = data
         .filter((item) => {
-          const id = item.channelId ? `channel:${item.channelId}` : item.toId === 'local' ? 'local' : `peer:${item.toId}`
+          const id = item.channelId ? `channel:${item.channelId}` : item.toId === 'local' ? 'peer:local' : `peer:${item.toId}`
           return id === chatId.value || item.fromId === peerId
         })
         .map(normalizeChatItem)
@@ -31,18 +31,18 @@ export function useChatEvents(chatId: ComputedRef<string>, chatItems: Ref<IChatI
     }
     emitter.on('message_created', handlers.message_created)
 
-    handlers.message_deleted = (data: string[]) => {
-      const idSet = new Set(data)
-      chatItems.value = chatItems.value.filter((i) => !idSet.has(i.id))
+    handlers.message_deleted = (data: string) => {
+      if (typeof data !== 'string') return
+      if (data.startsWith('ids=')) {
+        const ids = data.slice(4).split(',').filter(Boolean)
+        if (!ids.length) return
+        const idSet = new Set(ids)
+        chatItems.value = chatItems.value.filter((i) => !idSet.has(i.id))
+      } else if (data === chatId.value) {
+        chatItems.value = []
+      }
     }
     emitter.on('message_deleted', handlers.message_deleted)
-
-    handlers.message_cleared = (toId: string) => {
-      const mapped = toId === 'local' ? 'local' : toId.startsWith('channel:') ? toId : `peer:${toId}`
-      if (mapped !== chatId.value) return
-      chatItems.value = []
-    }
-    emitter.on('message_cleared', handlers.message_cleared)
 
     handlers.message_updated = (items: any[]) => {
       const updateMap = new Map(items.map((item) => [item.id, normalizeChatItem(item)]))

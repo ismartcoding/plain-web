@@ -9,7 +9,7 @@ import { watch, onMounted, onUnmounted, nextTick } from 'vue'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
-  anchor: { type: String, required: true }
+  anchor: { type: String, required: true },
 })
 
 const emit = defineEmits(['update:modelValue'])

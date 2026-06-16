@@ -15,14 +15,14 @@ export function useChatData(chatId: ComputedRef<string>, peerId: ComputedRef<str
   const channel = computed(() => chatStore.findChannel(channelId.value))
 
   const pageTitle = computed(() => {
-    if (chatId.value === 'local') return app.value?.deviceName ?? t('my_phone')
+    if (chatId.value === 'peer:local') return app.value?.deviceName ?? t('my_phone')
     if (isChannel.value) return channel.value?.name ?? channelId.value
     return peer.value?.name ?? peerId.value
   })
 
   function getSenderName(chatItem: IChatItem) {
     if (chatItem.fromId === 'me') return t('me')
-    if (chatId.value === 'local') return app.value?.deviceName ?? t('my_phone')
+    if (chatId.value === 'peer:local') return app.value?.deviceName ?? t('my_phone')
     if (isChannel.value) {
       const senderPeer = peers.value.find((p) => p.id === chatItem.fromId)
       return senderPeer?.name ?? chatItem.fromId.substring(0, 8)

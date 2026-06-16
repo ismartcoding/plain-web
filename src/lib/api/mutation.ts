@@ -103,6 +103,12 @@ export const deleteChatItemGQL = `
   }
 `
 
+export const deleteChatItemsGQL = `
+  mutation deleteChatItems($query: String!) {
+    deleteChatItems(query: $query)
+  }
+`
+
 export const retryChatItemGQL = `
   mutation retryChatItem($id: ID!) {
     retryChatItem(id: $id) {

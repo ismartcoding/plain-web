@@ -1,5 +1,5 @@
 <template>
-  <SidebarListItem :title="peer.name" :subtitle="subtitle" :active="active" @click="emit('click')">
+  <SidebarListItem :title="peer.name" :subtitle="subtitle" :active="active" :force-actions="menuVisible" @click="emit('click')">
     <template #start>
       <span class="icon" aria-hidden="true">
         <i-lucide:smartphone v-if="peer.deviceType === 'phone'" />
@@ -18,13 +18,24 @@
         <i-material-symbols:more-vert />
       </v-icon-button>
       <v-dropdown-menu v-model="menuVisible" :anchor="anchorId">
-        <template v-if="!confirmingDelete">
+        <template v-if="!confirmingDelete && !confirmingClear">
+          <div class="dropdown-item" @click="emitInfo">
+            {{ $t('device_info') }}
+          </div>
+          <div class="dropdown-item" @click="confirmingClear = true">
+            {{ $t('clear_messages') }}
+          </div>
           <div class="dropdown-item" @click="confirmingDelete = true">
             {{ $t('delete_device') }}
           </div>
         </template>
+        <template v-else-if="confirmingClear">
+          <inline-delete-confirm
+            :name="peer.name" :loading="clearLoading"
+            message-key="clear_messages_confirm" @confirm="doClear" @cancel="confirmingClear = false" />
+        </template>
         <template v-else>
-          <inline-delete-confirm :name="peer.name" :loading="deleteLoading" @confirm="doDelete" @cancel="confirmingDelete = false" />
+          <inline-delete-confirm :name="peer.name" :loading="deleteLoading" message-key="delete_peer_warning" @confirm="doDelete" @cancel="confirmingDelete = false" />
         </template>
       </v-dropdown-menu>
     </template>
@@ -40,6 +51,7 @@ import { useChatStore } from '@/stores/chat'
 import { useTempStore } from '@/stores/temp'
 import { replacePath } from '@/plugins/router'
 import { deletePeerGQL, initMutation } from '@/lib/api/mutation'
+import { clearChatMessages, useTasks } from '../hooks/chat'
 import { formatDateTime, formatTimeAgo } from '@/lib/format'
 import { decryptChatId } from '../hooks/chat-route'
 
@@ -53,6 +65,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'click'): void
+  (e: 'info'): void
 }>()
 
 const router = useRouter()
@@ -72,9 +85,15 @@ const anchorId = computed(() => `peer-list-${props.peer.id}`)
 const menuVisible = ref(false)
 const confirmingDelete = ref(false)
 const deleteLoading = ref(false)
+const confirmingClear = ref(false)
+const clearLoading = ref(false)
+const { cancelByChatId } = useTasks()
 
 watch(menuVisible, (v) => {
-  if (!v) confirmingDelete.value = false
+  if (!v) {
+    confirmingDelete.value = false
+    confirmingClear.value = false
+  }
 })
 
 function showMenu() {
@@ -97,6 +116,20 @@ function doDelete() {
     menuVisible.value = false
     if (wasActive) replacePath(mainStore, '/chat')
   })
+}
+
+function emitInfo() {
+  menuVisible.value = false
+  emit('info')
+}
+
+async function doClear() {
+  if (clearLoading.value) return
+  clearLoading.value = true
+  await clearChatMessages(`peer:${props.peer.id}`, cancelByChatId)
+  clearLoading.value = false
+  menuVisible.value = false
+  chatStore.fetchLatestChatItems()
 }
 </script>
 
@@ -121,10 +154,5 @@ function doDelete() {
   position: absolute;
   right: -1px;
   bottom: -1px;
-}
-
-.chat-time {
-  font-size: 0.75rem;
-  opacity: 0.78;
 }
 </style>
