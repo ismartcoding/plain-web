@@ -782,6 +782,14 @@ export const dbTableRowsGQL = `
   }
 `
 
+export const dbTableInfoGQL = `
+  query DbTableInfo($table: String!) {
+    dbTableInfo(table: $table) {
+      idKey
+    }
+  }
+`
+
 export const bookmarksGQL = `
   query {
     bookmarks {

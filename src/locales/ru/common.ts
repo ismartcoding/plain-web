@@ -232,7 +232,7 @@ export default {
     number: 'Пейджинг номера',
     scroll: 'Бесконечная прокрутка',
   },
-  owner: 'Владелец',
+  creator: 'Создатель',
   downloading: 'Загрузка',
   waiting: 'Ожидающий',
   paused: 'Приостановлено',

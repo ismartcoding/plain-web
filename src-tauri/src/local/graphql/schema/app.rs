@@ -15,6 +15,7 @@ impl AppQuery {
     async fn app(&self, ctx: &Context<'_>) -> App {
         let c = ctx.data_unchecked::<Arc<AppCtx>>();
         App {
+            client_id: c.identity.client_id.clone(),
             usb_connected: false,
             url_token: c.token.clone(),
             http_port: c.port as i32,

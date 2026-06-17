@@ -236,7 +236,7 @@ export default {
     number: '번호 페이징',
     scroll: '무한 스크롤',
   },
-  owner: '소유자',
+  creator: '방장',
   unsaved_changes_warning: '저장되지 않은 변경사항이 있습니다. 종료하시겠습니까?',
   customize_ui: 'UI 사용자 정의',
   customize_ui_tab_sidebar: '사이드바',

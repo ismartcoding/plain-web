@@ -237,7 +237,7 @@ export default {
     number: 'எண் பேஜிங்',
     scroll: 'எல்லையற்ற சுருள்',
   },
-  owner: 'உரிமையாளர்',
+  creator: 'உருவாக்கியவர்',
   customize_ui: 'UI தனிப்பயனாக்கவும்',
   customize_ui_tab_sidebar: 'பக்கப்பட்டி',
   customize_ui_tab_home: 'முகப்பு',

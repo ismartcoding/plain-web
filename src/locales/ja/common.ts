@@ -236,7 +236,7 @@ export default {
     number: '番号ページング',
     scroll: '無限スクロール',
   },
-  owner: '所有者',
+  creator: '作成者',
   unsaved_changes_warning: '未保存の変更があります。終了してもよろしいですか?',
   customize_ui: 'UIをカスタマイズ',
   customize_ui_tab_sidebar: 'サイドバー',

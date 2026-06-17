@@ -254,6 +254,12 @@
   color: var(--md-sys-color-on-error-container);
 }
 
+.status-badge.warn {
+  border-color: var(--md-sys-color-tertiary-container);
+  background: var(--md-sys-color-tertiary-container);
+  color: var(--md-sys-color-on-tertiary-container);
+}
+
 .inline-edit {
   cursor: pointer;
 }
@@ -297,6 +303,21 @@
   }
 }
 
+.section-title {
+  display: flex;
+  font-size: 0.75rem;
+  color: var(--md-sys-color-on-surface-variant);
+  margin: 4px 12px 4px 16px;
+  gap: 8px;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 32px;
+  text-transform: uppercase;
+  .btn-icon {
+    @include form.btn-icon-size(32px, 20px);
+  }
+}
+
 .page-content {
   display: flex;
   grid-area: page-content;
@@ -314,17 +335,6 @@
     .sidebar-body {
       padding-inline-start: 8px;
       padding-block-end: 40px;
-
-      .section-title {
-        display: flex;
-        font-size: 0.75rem;
-        color: var(--md-sys-color-on-surface-variant);
-        margin: 8px 12px 8px 8px;
-        gap: 8px;
-        height: 40px;
-        justify-content: space-between;
-        align-items: center;
-      }
     }
 
     &.mini {
@@ -385,8 +395,8 @@
   margin: 0;
 
   li {
-    min-height: 56px;
-    padding: 0 8px 0 12px;
+    min-height: 48px;
+    padding: 8px 8px 8px 12px;
     display: flex;
     gap: 10px;
     border-radius: 10px;
@@ -397,6 +407,7 @@
     flex-direction: row;
     align-items: center;
     cursor: pointer;
+    box-sizing: border-box;
 
     .icon {
       display: inline-flex;
@@ -414,7 +425,7 @@
 
     .count {
       font-size: 0.875rem;
-      margin-inline: 8px;
+      margin-inline: 4px;
       min-width: 32px;
       text-align: center;
     }
@@ -436,7 +447,7 @@
         display: none;
       }
       .btn-icon {
-        display: inline-block;
+        display: inline-flex;
       }
     }
   }

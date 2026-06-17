@@ -43,6 +43,9 @@ type Events = {
   device_name_updated: string
   sms_sent: undefined
   image_search_updated: any
+  nearby_device_found: any
+  nearby_discovery_started: undefined
+  nearby_discovery_stopped: { reason?: string } | undefined
 }
 
 type Handler<T = any> = (event: T) => void

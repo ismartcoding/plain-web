@@ -153,7 +153,7 @@ export default {
   notes: 'Notes',
   invalid_value: 'Invalid value',
   space: ' ',
-  owner: 'Owner',
+  creator: 'Creator',
   content: 'Content',
   from: 'From',
   type: 'Type',

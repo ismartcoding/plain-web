@@ -237,7 +237,7 @@ export default {
     number: 'नंबर पेजिंग',
     scroll: 'अनंत स्क्रॉल',
   },
-  owner: 'मालिक',
+  creator: 'निर्माता',
   customize_ui: 'UI कस्टमाइज़ करें',
   customize_ui_tab_sidebar: 'साइडबार',
   customize_ui_tab_home: 'होम',

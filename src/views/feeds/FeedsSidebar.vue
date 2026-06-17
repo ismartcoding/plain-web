@@ -1,13 +1,15 @@
 <template>
+  <Teleport v-if="isActive" to="#header-start-slot" defer>
+    <v-icon-button id="add-feed-ref" v-tooltip="$t('add_subscription')" @click="() => (addMenuVisible = true)">
+      <i-material-symbols:add-rounded />
+    </v-icon-button>
+    <v-dropdown-menu v-model="addMenuVisible" anchor="add-feed-ref">
+      <div v-for="item in actionItems" :key="item.text" class="dropdown-item" @click="item.click(); addMenuVisible = false">
+        {{ $t(item.text) }}
+      </div>
+    </v-dropdown-menu>
+  </Teleport>
   <left-sidebar>
-    <template #title>
-      {{ $t('page_title.feeds') }}
-    </template>
-    <template #actions>
-      <v-icon-button id="add-feed-ref" v-tooltip="$t('add_subscription')" @click="() => (addMenuVisible = true)">
-        <i-material-symbols:add-rounded />
-      </v-icon-button>
-    </template>
     <template #body>
       <ul class="nav">
         <SidebarListItem
@@ -51,11 +53,6 @@
           </template>
         </SidebarListItem>
       </ul>
-      <v-dropdown-menu v-model="addMenuVisible" anchor="add-feed-ref">
-        <div v-for="item in actionItems" :key="item.text" class="dropdown-item" @click="item.click(); addMenuVisible = false">
-          {{ $t(item.text) }}
-        </div>
-      </v-dropdown-menu>
       <v-dropdown-menu v-model="feedMenuVisible" :anchor="'feed-' + selectedFeed?.id">
         <template v-if="!confirmingDeleteFeed">
           <div class="dropdown-item" @click="editFeed(selectedFeed!); feedMenuVisible = false">
@@ -76,6 +73,7 @@
 </template>
 
 <script setup lang="ts">
+import { onActivated, onDeactivated, ref } from 'vue'
 import { useFeedsSidebar } from '@/hooks/feeds-sidebar'
 
 const {
@@ -86,4 +84,9 @@ const {
   getFeedCount, viewFeed, viewAll, viewToday,
   uploadChanged, showFeedMenu, editFeed, deleteFeed, doDeleteFeed, cancelDeleteFeed,
 } = useFeedsSidebar()
+
+const isActive = ref(false)
+
+onActivated(() => { isActive.value = true })
+onDeactivated(() => { isActive.value = false })
 </script>

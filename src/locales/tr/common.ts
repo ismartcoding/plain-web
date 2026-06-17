@@ -237,7 +237,7 @@ export default {
     number: 'Numara sayfalama',
     scroll: 'Sonsuz kaydırma',
   },
-  owner: 'Mal sahibi',
+  creator: 'Kurucu',
   customize_ui: 'Arayüzü özelleştir',
   customize_ui_tab_sidebar: 'Kenar çubuğu',
   customize_ui_tab_home: 'Ana sayfa',

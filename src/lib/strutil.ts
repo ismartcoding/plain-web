@@ -114,10 +114,22 @@ const URL_REGEX = /(\b(((https?|ftp):\/\/)|www.)[A-Z0-9+&@#\/%?=~_|!:,.;-]*[-A-Z
 const EMAIL_REGEX = /(\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,6})/gim
 
 export function addLinksToURLs(text: string) {
-  let newText = encodeHTML(text)
-  newText = newText.replace(URL_REGEX, '<a href="$1" target="_blank">$1</a>')
-  newText = newText.replace(EMAIL_REGEX, '<a href="mailto:$1">$1</a>')
-  return newText.replace(/\n\r?/g, '<br />')
+  const placeholders: string[] = []
+  const placeholder = (i: number) => `\x00P${i}\x00`
+  let staged = text.replace(URL_REGEX, (match) => {
+    const i = placeholders.length
+    const encoded = encodeHTML(match)
+    placeholders.push(`<a href="${encoded}" target="_blank">${encoded}</a>`)
+    return placeholder(i)
+  })
+  staged = staged.replace(EMAIL_REGEX, (match) => {
+    const i = placeholders.length
+    placeholders.push(`<a href="mailto:${match}">${match}</a>`)
+    return placeholder(i)
+  })
+  staged = encodeHTML(staged)
+  staged = staged.replace(/\x00P(\d+)\x00/g, (_, i: string) => placeholders[Number(i)])
+  return staged.replace(/\n\r?/g, '<br />')
 }
 
 export function encodeHTML(html: string) {

@@ -236,7 +236,7 @@ export default {
     number: 'Nummern-Paging',
     scroll: 'Unendliches Scrollen',
   },
-  owner: 'Eigentümer',
+  creator: 'Ersteller',
   unsaved_changes_warning: 'Sie haben nicht gespeicherte Änderungen. Sind Sie sicher, dass Sie den Vorgang beenden möchten?',
   customize_ui: 'UI anpassen',
   customize_ui_tab_sidebar: 'Seitenleiste',

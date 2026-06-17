@@ -1,13 +1,5 @@
 <template>
   <aside class="sidebar" :class="{ mini: mainStore.miniSidebar }" :style="{ width: mainStore.sidebarWidth + 'px' }">
-    <div v-if="hasTopBar" class="top-app-bar">
-      <div class="title">
-        <slot name="title" />
-      </div>
-      <div class="actions" style="position: relative">
-        <slot name="actions" />
-      </div>
-    </div>
     <div class="sidebar-body" @click="handleMenuClick">
       <slot name="body" />
     </div>
@@ -16,14 +8,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, useSlots } from 'vue'
 import { useMainStore } from '@/stores/main'
 import { useLeftSidebarResize } from '@/hooks/sidebar'
 
 const mainStore = useMainStore()
-const slots = useSlots()
-
-const hasTopBar = computed(() => !!slots.title || !!slots.actions)
 
 function handleMenuClick(event: MouseEvent) {
   // Auto close sidebar on mobile when clicking menu items

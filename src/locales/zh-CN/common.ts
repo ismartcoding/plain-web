@@ -151,7 +151,7 @@ export default {
   notes: '备注',
   invalid_value: '输入有误',
   space: '',
-  owner: '所有者',
+  creator: '创建者',
   content: '内容',
   from: '来自',
   type: '类型',

@@ -7,6 +7,7 @@ mod chat_message;
 mod chat_query;
 mod datastore;
 mod db;
+mod discover;
 mod file_query;
 mod file_upload;
 mod logs;
@@ -24,6 +25,7 @@ use chat_message::ChatMessageMutation;
 use chat_query::ChatQuery;
 use datastore::{DataStoreMutation, DataStoreQuery};
 use db::{DbMutation, DbQuery};
+use discover::DiscoverMutation;
 use file_query::FileInfoQuery;
 use file_upload::{FileUploadMutation, FileUploadQuery};
 use logs::{LogsMutation, LogsQuery};
@@ -54,6 +56,7 @@ pub struct MutationRoot(
     DataStoreMutation,
     DbMutation,
     FileUploadMutation,
+    DiscoverMutation,
 );
 
 pub type LocalSchema = Schema<QueryRoot, MutationRoot, EmptySubscription>;

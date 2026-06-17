@@ -1,9 +1,14 @@
-use async_graphql::{Context, Object};
+use async_graphql::{Context, Object, SimpleObject};
 use std::sync::Arc;
 
 use super::super::context::AppCtx;
 use super::util::is_safe_identifier;
 use crate::utils::hex::bytes_to_hex;
+
+#[derive(SimpleObject, Default)]
+pub struct DbTableInfo {
+    pub id_key: String,
+}
 
 #[derive(Default)]
 pub struct DbQuery;
@@ -89,6 +94,16 @@ impl DbQuery {
             .unwrap_or_default()
         })
     }
+
+    async fn db_table_info(&self, ctx: &Context<'_>, table: String) -> Option<DbTableInfo> {
+        if !is_safe_identifier(&table) {
+            return None;
+        }
+        let c = ctx.data_unchecked::<Arc<AppCtx>>();
+        Some(DbTableInfo {
+            id_key: c.db.primary_key_column(&table),
+        })
+    }
 }
 
 #[derive(Default)]
@@ -142,12 +157,16 @@ impl DbMutation {
         if !is_safe_identifier(&table) || ids.is_empty() {
             return false;
         }
+        let c = ctx.data_unchecked::<Arc<AppCtx>>();
+        let id_key = c.db.primary_key_column(&table);
+        if !is_safe_identifier(&id_key) {
+            return false;
+        }
         let placeholders = (1..=ids.len())
             .map(|i| format!("?{i}"))
             .collect::<Vec<_>>()
             .join(", ");
-        let sql = format!("DELETE FROM `{table}` WHERE id IN ({placeholders})");
-        let c = ctx.data_unchecked::<Arc<AppCtx>>();
+        let sql = format!("DELETE FROM `{table}` WHERE `{id_key}` IN ({placeholders})");
         c.db.with_conn(|conn| {
             conn.execute(&sql, rusqlite::params_from_iter(ids.iter()))
                 .is_ok()

@@ -155,6 +155,31 @@ impl ChatDb {
         }
         Ok(())
     }
+
+    /// Return the primary key column name for `table`, or `"id"` as a
+    /// fallback when the table is missing or has no declared primary key.
+    /// Used by debug GraphQL resolvers (db_table_info, delete_db_table_rows).
+    pub fn primary_key_column(&self, table: &str) -> String {
+        const FALLBACK: &str = "id";
+        self.with_conn(|conn| {
+            let mut stmt = match conn.prepare(&format!("PRAGMA table_info(`{table}`)")) {
+                Ok(s) => s,
+                Err(_) => return FALLBACK.to_string(),
+            };
+            stmt.query_map([], |row| {
+                let name: String = row.get(1)?;
+                let pk: i64 = row.get(5)?;
+                Ok((name, pk))
+            })
+            .ok()
+            .and_then(|rows| {
+                rows.flatten()
+                    .find(|(_, pk)| *pk > 0)
+                    .map(|(name, _)| name)
+            })
+            .unwrap_or_else(|| FALLBACK.to_string())
+        })
+    }
 }
 
 #[cfg(test)]
@@ -196,5 +221,29 @@ mod tests {
 
         let _ = ChatDb::open(&db_path).expect("first open");
         let _ = ChatDb::open(&db_path).expect("second open");
+    }
+
+    #[test]
+    fn primary_key_column_returns_named_pk() {
+        let db_path = unique_tmp_dir("pk-named").join("local_chat.db");
+        let db = ChatDb::open(&db_path).expect("open db");
+
+        db.with_conn(|conn| {
+            conn.execute_batch(
+                "CREATE TABLE sessions (client_id TEXT PRIMARY KEY, token TEXT NOT NULL DEFAULT '');",
+            )
+            .expect("create sessions");
+        });
+
+        assert_eq!(db.primary_key_column("sessions"), "client_id");
+        assert_eq!(db.primary_key_column("chats"), "id");
+    }
+
+    #[test]
+    fn primary_key_column_falls_back_for_missing_table() {
+        let db_path = unique_tmp_dir("pk-fallback").join("local_chat.db");
+        let db = ChatDb::open(&db_path).expect("open db");
+
+        assert_eq!(db.primary_key_column("does_not_exist"), "id");
     }
 }

@@ -237,7 +237,7 @@ export default {
     number: '呼叫號碼',
     scroll: '無限滾動',
   },
-  owner: '擁有者',
+  creator: '創建者',
   unsaved_changes_warning: '您有未儲存的變更。您確定要退出嗎？',
   customize_ui: '自訂介面',
   customize_ui_tab_sidebar: '側邊欄',

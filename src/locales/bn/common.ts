@@ -241,7 +241,7 @@ export default {
     number: 'নম্বর পেজিং',
     scroll: 'অসীম স্ক্রল',
   },
-  owner: 'মালিক',
+  creator: 'নির্মাতা',
   customize_ui: 'UI কাস্টমাইজ করুন',
   customize_ui_tab_sidebar: 'সাইডবার',
   customize_ui_tab_home: 'হোম',

@@ -237,7 +237,7 @@ export default {
     number: 'Impaginazione dei numeri',
     scroll: 'Scorrimento infinito',
   },
-  owner: 'Proprietario',
+  creator: 'Creatore',
   unsaved_changes_warning: 'Sono presenti modifiche non salvate. Sei sicuro di voler uscire?',
   customize_ui: 'Personalizza UI',
   customize_ui_tab_sidebar: 'Barra laterale',

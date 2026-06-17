@@ -41,7 +41,7 @@
         <dev-data-table
           :columns="columns"
           :rows="rows"
-          row-key="id"
+          :row-key="idKey"
           :debug="app.debug"
           :deleting-key="deletingId"
           @delete="deleteRow"
@@ -64,7 +64,7 @@
 import { ref, computed, watch, onActivated, onDeactivated } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useTempStore } from '@/stores/temp'
-import { initQuery, initLazyQuery, dbTablesGQL, dbTableRowCountGQL, dbTableRowsGQL, dbPathGQL } from '@/lib/api/query'
+import { initQuery, initLazyQuery, dbTablesGQL, dbTableRowCountGQL, dbTableRowsGQL, dbTableInfoGQL, dbPathGQL } from '@/lib/api/query'
 import { initMutation, deleteDbTableRowsGQL } from '@/lib/api/mutation'
 import DevDataTable from './DevDataTable.vue'
 
@@ -82,6 +82,7 @@ const rows = ref<Record<string, string | null>[]>([])
 const totalCount = ref(0)
 const offset = ref(0)
 const deletingId = ref('')
+const idKey = ref('id')
 const dbPath = ref('')
 const pathOpen = ref(false)
 
@@ -123,8 +124,18 @@ const { loading: rowsLoading, fetch: fetchRows } = initLazyQuery({
   document: dbTableRowsGQL,
 })
 
+const { fetch: fetchTableInfo } = initLazyQuery({
+  handle(data: { dbTableInfo: { idKey: string } | null }, error: string) {
+    if (!error && data?.dbTableInfo?.idKey) {
+      idKey.value = data.dbTableInfo.idKey
+    }
+  },
+  document: dbTableInfoGQL,
+})
+
 function loadTable(table: string) {
   if (!table) return
+  fetchTableInfo({ table })
   fetchCount({ table })
   fetchRows({ table, offset: offset.value, limit: PAGE_SIZE })
 }

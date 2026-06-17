@@ -237,7 +237,7 @@ export default {
     number: 'Phân trang số',
     scroll: 'Cuộn vô hạn',
   },
-  owner: 'Người sở hữu',
+  creator: 'Người tạo',
   customize_ui: 'Tùy chỉnh giao diện',
   customize_ui_tab_sidebar: 'Thanh bên',
   customize_ui_tab_home: 'Trang chủ',

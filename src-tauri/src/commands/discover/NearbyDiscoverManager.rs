@@ -3,20 +3,27 @@ use super::nearby_pair_manager::NearbyPairManager;
 use super::peer_status_manager::PeerStatusManager;
 use crate::crypto::{base64_decode, base64_encode, chacha20_decrypt, chacha20_encrypt};
 use crate::local::db::{ChatDb, now_iso};
+use crate::local::graphql::{
+    WS_NEARBY_DEVICE_FOUND, WS_NEARBY_DISCOVERY_STARTED, WS_NEARBY_DISCOVERY_STOPPED, WsEvent,
+};
 use crate::local::pairing::PairingManager;
 use crate::prefs::AppIdentity;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::{
     Arc, Mutex, RwLock, mpsc,
-    atomic::{AtomicU64, Ordering},
+    atomic::{AtomicBool, AtomicU64, Ordering},
 };
 use std::time::{Duration, Instant};
+use tokio::sync::broadcast;
 
 const DISCOVER_PREFIX: &str = "DISCOVER:";
 const DISCOVER_REPLY_PREFIX: &str = "DISCOVER_REPLY:";
 const LOCAL_DEVICE_TYPE_WIRE: &str = "COMPUTER";
 const SCAN_TIMEOUT_MS: u64 = 2_500;
+/// Period between successive discover broadcasts while continuous
+/// discovery is active. Matches plain-app's `NearbyDiscoveryManager`.
+const CONTINUOUS_DISCOVER_INTERVAL_MS: u64 = 1_500;
 
 #[derive(Serialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -83,10 +90,14 @@ pub struct NearbyDiscoverManager {
     pairing: PairingManager,
     #[allow(dead_code)]
     peer_status: PeerStatusManager,
-    https_port: u16,
+    https_port: Arc<RwLock<u16>>,
     receiver: Arc<Mutex<Option<ReceiverHandle>>>,
     listeners: Arc<Mutex<Vec<DiscoverListener>>>,
     next_listener_id: Arc<AtomicU64>,
+    event_tx: Arc<RwLock<Option<broadcast::Sender<WsEvent>>>>,
+    continuous_running: Arc<AtomicBool>,
+    continuous_task: Arc<Mutex<Option<tauri::async_runtime::JoinHandle<()>>>>,
+    seen_in_session: Arc<Mutex<HashMap<String, DiscoveredDevice>>>,
 }
 
 impl NearbyDiscoverManager {
@@ -104,10 +115,85 @@ impl NearbyDiscoverManager {
             device_name,
             pairing,
             peer_status,
-            https_port,
+            https_port: Arc::new(RwLock::new(https_port)),
             receiver: Arc::new(Mutex::new(None)),
             listeners: Arc::new(Mutex::new(Vec::new())),
             next_listener_id: Arc::new(AtomicU64::new(1)),
+            event_tx: Arc::new(RwLock::new(None)),
+            continuous_running: Arc::new(AtomicBool::new(false)),
+            continuous_task: Arc::new(Mutex::new(None)),
+            seen_in_session: Arc::new(Mutex::new(HashMap::new())),
+        }
+    }
+
+    pub fn set_event_tx(&self, event_tx: broadcast::Sender<WsEvent>) {
+        *self.event_tx.write().unwrap() = Some(event_tx);
+    }
+
+    /// Called by `LocalServerState::start` once the HTTPS port is
+    /// bound. The discover reply advertises this port so other peers
+    /// can dial back for status / chat.
+    pub fn set_https_port(&self, port: u16) {
+        *self.https_port.write().unwrap() = port;
+    }
+
+    /// Start a background scan loop that broadcasts every
+    /// `CONTINUOUS_DISCOVER_INTERVAL_MS` and pushes each reply over
+    /// the local server WS as `WS_NEARBY_DEVICE_FOUND`. Mirrors
+    /// plain-app's `startDiscovering` mutation.
+    pub fn start_discovering(&self) -> bool {
+        if self.continuous_running.swap(true, Ordering::SeqCst) {
+            return false;
+        }
+        self.start();
+        {
+            let mut seen = self.seen_in_session.lock().unwrap();
+            seen.clear();
+        }
+        self.emit_event(WS_NEARBY_DISCOVERY_STARTED, "{}");
+
+        let this = self.clone();
+        let handle = tauri::async_runtime::spawn(async move {
+            while this.continuous_running.load(Ordering::SeqCst) {
+                let summary = this.broadcast_discover(DiscoverRequest::default());
+                if summary.sent == 0 {
+                    this.emit_event(
+                        WS_NEARBY_DISCOVERY_STOPPED,
+                        &serde_json::json!({ "reason": "no_receivers" }).to_string(),
+                    );
+                    this.continuous_running.store(false, Ordering::SeqCst);
+                    break;
+                }
+                tokio::time::sleep(Duration::from_millis(CONTINUOUS_DISCOVER_INTERVAL_MS)).await;
+            }
+        });
+        *self.continuous_task.lock().unwrap() = Some(handle);
+        true
+    }
+
+    /// Cancel the background scan loop started by
+    /// `start_discovering`. Mirrors plain-app's `stopDiscovering`.
+    pub fn stop_discovering(&self) -> bool {
+        if !self.continuous_running.swap(false, Ordering::SeqCst) {
+            return false;
+        }
+        if let Some(handle) = self.continuous_task.lock().unwrap().take() {
+            handle.abort();
+        }
+        {
+            let mut seen = self.seen_in_session.lock().unwrap();
+            seen.clear();
+        }
+        self.emit_event(WS_NEARBY_DISCOVERY_STOPPED, "{}");
+        true
+    }
+
+    fn emit_event(&self, event_type: i32, payload: &str) {
+        if let Some(tx) = self.event_tx.read().unwrap().clone() {
+            let _ = tx.send(WsEvent {
+                event_type,
+                payload: payload.to_string(),
+            });
         }
     }
 
@@ -246,7 +332,7 @@ impl NearbyDiscoverManager {
             id: self.identity.client_id.clone(),
             name: self.device_name.read().unwrap().clone(),
             device_type: LOCAL_DEVICE_TYPE_WIRE.to_string(),
-            port: self.https_port,
+            port: *self.https_port.read().unwrap(),
             version: env!("CARGO_PKG_VERSION").to_string(),
             platform: std::env::consts::OS.to_string(),
             ips: NearbyNetwork::local_ipv4_strs(),
@@ -264,6 +350,33 @@ impl NearbyDiscoverManager {
             return;
         };
         self.update_known_peer(&reply, sender_ip);
+
+        if self.continuous_running.load(Ordering::SeqCst) {
+            let host_ip = if !sender_ip.is_empty() {
+                sender_ip.to_string()
+            } else {
+                reply.ips.first().cloned().unwrap_or_default()
+            };
+            if !host_ip.is_empty() {
+                let device = DiscoveredDevice {
+                    id: reply.id.clone(),
+                    name: reply.name.clone(),
+                    host: format!("{host_ip}:{}", reply.port),
+                    ip: host_ip,
+                    port: reply.port,
+                    device_type: normalize_device_type(&reply.device_type),
+                };
+                {
+                    let mut seen = self.seen_in_session.lock().unwrap();
+                    seen.entry(device.id.clone()).or_insert_with(|| device.clone());
+                }
+                self.emit_event(
+                    WS_NEARBY_DEVICE_FOUND,
+                    &serde_json::to_string(&device).unwrap_or_default(),
+                );
+            }
+        }
+
         let event = DiscoverReplyEvent {
             reply,
             sender_ip: sender_ip.to_string(),
