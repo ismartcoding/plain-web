@@ -20,15 +20,11 @@ export function useMainView() {
   const sessionsStore = useDeviceSessionsStore()
   const { app, urlTokenKey } = storeToRefs(tempStore)
 
-  const loading = ref(true)
+  const appReady = ref(false)
   const errorMessage = ref('')
   let playAudio = false
 
-  // In local mode there is no device to query — suppress the loading state immediately
-  // so there is no loading flash, but still run appGQL to get the urlToken from the
-  // local server (needed for file URL encryption).
   const localMode = isLocalMode()
-  if (localMode) loading.value = false
 
   const hiddenHeaderSearchRoutes = new Set(['/files/recent', '/screen-mirror'])
   const hiddenHeaderSearchPatterns = [/^\/chat(?:\/|$)/, /^\/developer(?:\/|$)/,]
@@ -65,7 +61,6 @@ export function useMainView() {
 
   const refetchApp = initQuery({
     handle: (data: { app: IApp }, error: string) => {
-      loading.value = false
       if (error) {
         errorMessage.value = error
       } else if (data) {
@@ -80,6 +75,7 @@ export function useMainView() {
         }
         if (playAudio) { playAudio = false; emitter.emit('do_play_audio') }
       }
+      appReady.value = true
     },
     document: appGQL,
   }).refetch
@@ -131,7 +127,7 @@ export function useMainView() {
   }, { deep: true })
 
   return {
-    store, app, loading, errorMessage,
+    store, app, appReady, errorMessage,
     hasTasks, hasActiveUploads, hasLeftSidebar, showHeaderSearch, localMode,
     toggleSidebar, toggleQuick, getSidebar2CacheKey, resizeWidth,
   }

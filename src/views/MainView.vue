@@ -30,19 +30,19 @@
       <app-rail />
       <div class="page-content">
         <!-- The cache key $route.meta.group is mainly used for MediaSidebar, otherwise the component will be cached totally. -->
-        <router-view v-slot="{ Component }" name="LeftSidebar">
+        <router-view v-if="appReady" v-slot="{ Component }" name="LeftSidebar">
           <keep-alive>
             <component :is="Component" :key="$route.meta.group" />
           </keep-alive>
         </router-view>
         <!-- Mobile sidebar backdrop -->
         <div 
-          v-if="hasLeftSidebar" 
+          v-if="hasLeftSidebar && appReady"
           class="sidebar-backdrop" 
           :class="{ visible: !store.miniSidebar && isTablet }"
           @click="store.miniSidebar = true"
         ></div>
-        <main class="main" :class="'main-' + ($route.meta.className || 'default')">
+        <main v-if="appReady" class="main" :class="'main-' + ($route.meta.className || 'default')">
           <router-view v-slot="{ Component }" name="LeftSidebar2">
             <keep-alive>
               <component :is="Component" :key="getSidebar2CacheKey()" />
@@ -54,11 +54,11 @@
             </keep-alive>
           </router-view>
         </main>
-        <div v-if="loading" class="loading-overlay">
+        <div v-if="!appReady" class="loading-overlay">
           <v-circular-progress indeterminate />
         </div>
       </div>
-        <div class="quick-actions">
+        <div v-if="appReady" class="quick-actions">
             <template v-if="!localMode">
                 <v-icon-button
                   v-if="hasTasks || store.quick === 'upload'"
@@ -97,7 +97,7 @@
             </div>
         </div>
         <transition name="width">
-          <div v-show="store.quick" class="quick-content" :style="{ width: store.quickContentWidth + 'px' }">
+          <div v-if="appReady" v-show="store.quick" class="quick-content" :style="{ width: store.quickContentWidth + 'px' }">
             <upload-list v-show="store.quick === 'upload'" />
             <audio-player v-show="store.quick === 'audio'" />
             <p-notifications v-if="!localMode" v-show="store.quick === 'notification'" />
@@ -120,7 +120,7 @@ const isTablet = inject('isTablet')
 const isTauri = __IS_TAURI__
 
 const {
-  store, app, loading, errorMessage,
+  store, app, appReady, errorMessage,
   hasTasks, hasActiveUploads, hasLeftSidebar, showHeaderSearch, localMode,
   toggleSidebar, toggleQuick, getSidebar2CacheKey, resizeWidth,
 } = useMainView()
