@@ -33,6 +33,17 @@
     place-items: center;
 }
 
+@mixin btn-icon-size($size, $icon-size) {
+    width: $size;
+    height: $size;
+    flex: 0 0 $size;
+
+    *:is(svg) {
+        height: $icon-size;
+        width: $icon-size;
+    }
+}
+
 .btn-icon {
     align-items: center;
     background: none;
@@ -48,17 +59,13 @@
     user-select: none;
     z-index: 0;
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    flex: 0 0 40px; // Fix width in flex layout
     color: currentColor;
 
-    *:is(svg) {
-        height: 24px;
-        width: 24px;
+    @include btn-icon-size(40px, 24px);
+
+    &.sm {
+        @include btn-icon-size(32px, 20px);
     }
-
-
 }
 .v-outlined-button {
   display: inline-flex;

@@ -68,6 +68,14 @@ pub fn run() {
                 }
             });
             app.handle().manage(pairing_mgr.clone());
+            let discover_mgr = commands::discover::NearbyDiscoverManager::new(
+                db.clone(),
+                identity.clone(),
+                device_name.clone(),
+                pairing_mgr.clone(),
+                peer_status.clone(),
+                0,
+            );
             let local_server_state = local::server::LocalServerState::start(
                 data_dir,
                 log_dir,
@@ -76,16 +84,11 @@ pub fn run() {
                 identity.clone(),
                 device_name.clone(),
                 peer_status.clone(),
+                discover_mgr.clone(),
             );
             peer_status.set_event_tx(local_server_state.event_tx.clone());
-            let discover_mgr = commands::discover::NearbyDiscoverManager::new(
-                db,
-                identity,
-                device_name,
-                pairing_mgr.clone(),
-                peer_status.clone(),
-                local_server_state.https_port,
-            );
+            discover_mgr.set_event_tx(local_server_state.event_tx.clone());
+            discover_mgr.set_https_port(local_server_state.https_port);
             discover_mgr.start();
             peer_status.set_discover_manager(discover_mgr.clone());
             peer_status.start();

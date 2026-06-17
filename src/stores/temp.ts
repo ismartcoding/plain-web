@@ -73,7 +73,7 @@ export type TempState = {
 export const useTempStore = defineCrossWindowStore<'temp', TempState>('temp', {
   state: () =>
     ({
-      app: {} as IApp,
+      app: { clientId: '' } as IApp,
       urlTokenKey: null,
       uploads: [],
       selectedFiles: [],

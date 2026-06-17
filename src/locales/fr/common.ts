@@ -237,7 +237,7 @@ export default {
     number: 'Recherche de numéros',
     scroll: 'Défilement infini',
   },
-  owner: 'Propriétaire',
+  creator: 'Créateur',
   unsaved_changes_warning: 'Vous avez des modifications non enregistrées. Êtes-vous sûr de vouloir quitter ?',
   customize_ui: 'Personnaliser l\'interface',
   customize_ui_tab_sidebar: 'Barre latérale',

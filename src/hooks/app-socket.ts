@@ -32,6 +32,9 @@ const EventType: { [key: number]: string } = {
   20: 'peer_status_updated',
   21: 'device_name_updated',
   22: 'channel_invite_received',
+  24: 'nearby_device_found',
+  25: 'nearby_discovery_started',
+  26: 'nearby_discovery_stopped',
 }
 
 export function useAppSocket() {

@@ -2,10 +2,15 @@
   <SidebarListItem :title="peer.name" :subtitle="subtitle" :active="active" :force-actions="menuVisible" @click="emit('click')">
     <template #start>
       <span class="icon" aria-hidden="true">
-        <i-lucide:smartphone v-if="peer.deviceType === 'phone'" />
-        <i-lucide:tablet v-else-if="peer.deviceType === 'tablet'" />
-        <i-lucide:laptop v-else-if="peer.deviceType === 'pc'" />
-        <i-lucide:monitor v-else />
+        <v-dropdown v-model="infoOpen">
+          <template #trigger>
+            <i-lucide:smartphone v-if="peer.deviceType === 'phone'" />
+            <i-lucide:tablet v-else-if="peer.deviceType === 'tablet'" />
+            <i-lucide:laptop v-else-if="peer.deviceType === 'pc'" />
+            <i-lucide:monitor v-else />
+          </template>
+          <pre class="view-raw">{{ peer }}</pre>
+        </v-dropdown>
         <span v-if="online" class="dot online-dot" />
       </span>
     </template>
@@ -82,6 +87,7 @@ const currentChatId = computed(() => {
 
 const anchorId = computed(() => `peer-list-${props.peer.id}`)
 
+const infoOpen = ref(false)
 const menuVisible = ref(false)
 const confirmingDelete = ref(false)
 const deleteLoading = ref(false)

@@ -1,7 +1,7 @@
 //! Shared types, WebSocket event infrastructure, and resolver context.
 
 use crate::crypto::{base64_decode, xchacha_encrypt};
-use crate::commands::discover::PeerStatusManager;
+use crate::commands::discover::{NearbyDiscoverManager, PeerStatusManager};
 use crate::local::db::ChatDb;
 use crate::prefs::AppIdentity;
 use std::collections::HashMap;
@@ -18,6 +18,15 @@ pub const WS_CHANNEL_INVITE_RECEIVED: i32 = 22;
 /// Fired by the server when a text chat item is created; the web
 /// client listens for this to trigger its own link preview fetcher.
 pub const WS_FETCH_LINK_PREVIEWS: i32 = 23;
+/// Emitted for each LAN device that replied to a discover broadcast.
+/// Payload is a single `DiscoveredDevice` JSON object.
+pub const WS_NEARBY_DEVICE_FOUND: i32 = 24;
+/// Mirrors plain-app's `StartNearbyDiscoveryEvent` — fired when the
+/// `startDiscovering` mutation kicks off the background scan loop.
+pub const WS_NEARBY_DISCOVERY_STARTED: i32 = 25;
+/// Mirrors plain-app's `StopNearbyDiscoveryEvent` — fired when the
+/// `stopDiscovering` mutation tears the background scan loop down.
+pub const WS_NEARBY_DISCOVERY_STOPPED: i32 = 26;
 
 #[derive(Clone, Debug)]
 pub struct WsEvent {
@@ -85,6 +94,7 @@ pub struct AppCtx {
     pub db: Arc<ChatDb>,
     pub identity: Arc<AppIdentity>,
     pub peer_status: PeerStatusManager,
+    pub discover_manager: NearbyDiscoverManager,
     pub peer_key_cache: PeerKeyCache,
     pub channel_key_cache: ChannelKeyCache,
     pub event_tx: broadcast::Sender<WsEvent>,

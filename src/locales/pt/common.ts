@@ -237,7 +237,7 @@ export default {
     number: 'Paginação numérica',
     scroll: 'Rolagem infinita',
   },
-  owner: 'Proprietário',
+  creator: 'Criador',
   customize_ui: 'Personalizar UI',
   customize_ui_tab_sidebar: 'Barra lateral',
   customize_ui_tab_home: 'Início',

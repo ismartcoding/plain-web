@@ -421,6 +421,7 @@ export interface IImageSearchStatus {
 }
 
 export interface IApp {
+  clientId: string
   usbConnected: boolean
   urlToken: string
   httpPort: number

@@ -237,7 +237,7 @@ export default {
     number: 'Nummeroproep',
     scroll: 'Oneindige scroll',
   },
-  owner: 'Eigenaar',
+  creator: 'Maker',
   customize_ui: 'UI aanpassen',
   customize_ui_tab_sidebar: 'Zijbalk',
   customize_ui_tab_home: 'Startpagina',

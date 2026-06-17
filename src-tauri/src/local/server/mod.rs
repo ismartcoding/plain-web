@@ -18,7 +18,7 @@ use super::graphql::{
 };
 use super::peer_graphql::{build_schema as build_peer_schema, PeerSchema};
 use super::tls::{build_acceptor, ensure_cert};
-use crate::commands::discover::PeerStatusManager;
+use crate::commands::discover::{NearbyDiscoverManager, PeerStatusManager};
 use crate::prefs::AppIdentity;
 use std::net::TcpListener as StdTcpListener;
 use std::path::PathBuf;
@@ -44,6 +44,7 @@ pub struct LocalServerState {
 }
 
 impl LocalServerState {
+    #[allow(clippy::too_many_arguments)]
     pub fn start(
         app_data_dir: PathBuf,
         log_dir: PathBuf,
@@ -52,6 +53,7 @@ impl LocalServerState {
         identity: Arc<AppIdentity>,
         device_name: Arc<RwLock<String>>,
         peer_status: PeerStatusManager,
+        discover_manager: NearbyDiscoverManager,
     ) -> Self {
         let peer_key_cache = new_peer_key_cache();
         let channel_key_cache = new_channel_key_cache();
@@ -91,6 +93,7 @@ impl LocalServerState {
             db: db.clone(),
             identity: identity.clone(),
             peer_status: peer_status.clone(),
+            discover_manager: discover_manager.clone(),
             peer_key_cache: peer_key_cache.clone(),
             channel_key_cache: channel_key_cache.clone(),
             event_tx: event_tx.clone(),

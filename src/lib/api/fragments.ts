@@ -24,6 +24,7 @@ export const playlistAudioFragment = `
 
 export const appFragment = `
   fragment AppFragment on App {
+    clientId
     usbConnected
     urlToken
     httpPort

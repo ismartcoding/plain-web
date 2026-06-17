@@ -156,6 +156,7 @@ pub struct KeyValuePair {
 
 #[derive(SimpleObject)]
 pub struct App {
+    pub client_id: String,
     pub usb_connected: bool,
     pub url_token: String,
     pub http_port: i32,

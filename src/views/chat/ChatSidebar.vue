@@ -1,8 +1,18 @@
 <template>
+  <Teleport v-if="isActive" to="#header-start-slot" defer>
+    <v-icon-button id="chat-sidebar-add-ref" v-tooltip="$t('create_channel')" @click="() => (addMenuVisible = true)">
+      <i-material-symbols:add-rounded />
+    </v-icon-button>
+    <v-dropdown-menu v-model="addMenuVisible" anchor="chat-sidebar-add-ref">
+      <div v-for="item in actionItems" :key="item.text" class="dropdown-item" @click="item.click(); addMenuVisible = false">
+        {{ $t(item.text) }}
+      </div>
+    </v-dropdown-menu>
+  </Teleport>
   <left-sidebar>
     <template #body>
       <ul class="nav">
-<LocalListItem
+        <LocalListItem
           :active="currentChatId === 'peer:local'" :title="$t('page_title.local_chat')"
           :subtitle="getLatestChatPreview('peer:local')" :time="getLatestChatCreatedAt('peer:local')"
           @click="openChat('peer:local')" />
@@ -16,29 +26,23 @@
       <template v-else>
         <div class="section-title">
           {{ $t('channels') }}
-          <v-icon-button v-tooltip="$t('create_channel')" class="sm" @click="openCreateChannel">
-            <i-material-symbols:add-rounded />
-          </v-icon-button>
         </div>
         <ul class="nav">
           <ChannelListItem
-v-for="channel in joinedChannels" :key="channel.id" :channel="channel"
+            v-for="channel in joinedChannels" :key="channel.id" :channel="channel"
             :active="isChannelActive(channel.id)" :subtitle="getLatestChatPreview(`channel:${channel.id}`)"
             :time="getLatestChatCreatedAt(`channel:${channel.id}`)"
             @click="openChat(getChannelChatRouteId(channel.id))"
             @info="openInfo(`channel:${channel.id}`)" />
         </ul>
 
-        <template v-if="allPeers.length > 0 || isLocalMode()">
+        <template v-if="allPeers.length > 0">
           <div class="section-title">
             {{ $t('devices') }}
-            <v-icon-button v-if="isLocalMode()" v-tooltip="$t('discover_devices')" class="sm" @click="openNearby">
-              <i-lucide:radar />
-            </v-icon-button>
           </div>
           <ul class="nav">
             <PeerListItem
-v-for="peer in allPeers" :key="peer.id" :peer="peer" :active="isPeerActive(peer.id)"
+              v-for="peer in allPeers" :key="peer.id" :peer="peer" :active="isPeerActive(peer.id)"
               :online="!!peer.online" :subtitle="getLatestChatPreview(`peer:${peer.id}`) || peer.ip"
               :time="getLatestChatCreatedAt(`peer:${peer.id}`)" @click="openChat(getPeerChatRouteId(peer.id))"
               @info="openInfo(`peer:${peer.id}`)" />
@@ -50,11 +54,10 @@ v-for="peer in allPeers" :key="peer.id" :peer="peer" :active="isPeerActive(peer.
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onActivated, onDeactivated, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import { openModal } from '@/components/modal'
-import { isLocalMode } from '@/lib/local-mode'
 import { getFileId } from '@/lib/api/file'
 import { replacePath } from '@/plugins/router'
 import { decryptChatId } from './hooks/chat-route'
@@ -74,6 +77,9 @@ const mainStore = useMainStore()
 const { urlTokenKey } = storeToRefs(useTempStore())
 const chatStore = useChatStore()
 const { loading, allPeers, joinedChannels, peers } = storeToRefs(chatStore)
+
+const addMenuVisible = ref(false)
+const isActive = ref(false)
 
 const currentChatId = computed(() => {
   if (router.currentRoute.value.path.includes('app-files')) return ''
@@ -119,7 +125,6 @@ function openInfo(targetChatId: string) {
     openModal(ChannelInfoModal, {
       channel,
       peers: peers.value,
-      selfId: '',
       onMemberUpdated: () => chatStore.fetchChannels(),
     })
   }
@@ -146,7 +151,14 @@ async function openNearby() {
   })
 }
 
+const actionItems = computed(() => [
+  { text: 'create_channel', click: openCreateChannel },
+  { text: 'discover_devices', click: openNearby },
+])
+
 onMounted(() => { chatStore.init() })
+onActivated(() => { isActive.value = true })
+onDeactivated(() => { isActive.value = false })
 </script>
 
 <style lang="scss" scoped>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { bytesToHex, arrayBufferToHex } from '@/lib/strutil'
+import { bytesToHex, arrayBufferToHex, addLinksToURLs } from '@/lib/strutil'
 
 describe('bytesToHex', () => {
   it('encodes empty array', () => {
@@ -30,5 +30,35 @@ describe('arrayBufferToHex', () => {
   it('matches bytesToHex over the same bytes', () => {
     const buf = new Uint8Array([0xde, 0xad, 0xbe, 0xef]).buffer
     expect(arrayBufferToHex(buf)).toBe('deadbeef')
+  })
+})
+
+describe('addLinksToURLs', () => {
+  it('does not swallow the trailing semicolon of an HTML entity after a URL', () => {
+    // " (U+0022) is HTML-encoded to &#34; by encodeHTML. The URL regex
+    // used to match the digits of &#34; as part of the URL and leave a
+    // stray ; behind. Regression test for that bug.
+    const out = addLinksToURLs('curl "http://mi.local:8080/graphql" -H ok')
+    expect(out).toContain('href="http://mi.local:8080/graphql"')
+    expect(out).not.toContain('href="http://mi.local:8080/graphql&#')
+    expect(out).toContain('&#34;')
+    expect(out).toContain(' -H ok')
+  })
+
+  it('preserves multi-param query strings', () => {
+    const out = addLinksToURLs('see http://example.com?foo=bar&baz=qux ok')
+    expect(out).toContain('href="http://example.com?foo=bar&#38;baz=qux"')
+    expect(out).toContain(' ok')
+  })
+
+  it('leaves URL-adjacent punctuation outside the link', () => {
+    const out = addLinksToURLs('check http://example.com/page, then go')
+    expect(out).toContain('href="http://example.com/page"')
+    expect(out).toContain(', then go')
+  })
+
+  it('converts line breaks to <br />', () => {
+    const out = addLinksToURLs('line1\nline2')
+    expect(out).toBe('line1<br />line2')
   })
 })

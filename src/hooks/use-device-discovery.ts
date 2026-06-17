@@ -1,4 +1,6 @@
 import { ref } from 'vue'
+import { initMutation, startDiscoveringGQL, stopDiscoveringGQL } from '@/lib/api/mutation'
+import emitter from '@/plugins/eventbus'
 
 export interface DiscoveredDevice {
   id: string
@@ -9,81 +11,85 @@ export interface DiscoveredDevice {
   deviceType: string
 }
 
-const POLL_INTERVAL_MS = 300
-
 export type DiscoveryStatus = 'idle' | 'searching' | 'ok' | 'permission_denied' | 'network_error'
 
-interface DiscoverDevicesResult {
-  devices: DiscoveredDevice[]
-  status: 'ok' | 'permission_denied' | 'network_error'
+const devices = ref<DiscoveredDevice[]>([])
+const status = ref<DiscoveryStatus>('idle')
+
+let activeCount = 0
+let listenerInitialized = false
+
+function ensureListener() {
+  if (listenerInitialized) return
+  listenerInitialized = true
+
+  emitter.on('nearby_device_found', (raw: any) => {
+    if (!raw || !raw.id) return
+    const device: DiscoveredDevice = {
+      id: raw.id,
+      name: raw.name ?? '',
+      host: raw.host ?? `${raw.ip ?? ''}:${raw.port ?? ''}`,
+      ip: raw.ip ?? '',
+      port: raw.port ?? 0,
+      deviceType: raw.deviceType ?? '',
+    }
+    const existing = devices.value.findIndex((d) => d.id === device.id)
+    if (existing >= 0) {
+      const next = devices.value.slice()
+      next[existing] = { ...next[existing], ...device }
+      devices.value = next
+    } else {
+      devices.value = [...devices.value, device]
+    }
+    status.value = 'ok'
+  })
+
+  emitter.on('nearby_discovery_started', () => {
+    status.value = 'searching'
+  })
+
+  emitter.on('nearby_discovery_stopped', (payload: any) => {
+    status.value = payload?.reason === 'no_receivers' ? 'network_error' : 'idle'
+  })
 }
 
+const { mutate: startMutate } = initMutation({ document: startDiscoveringGQL }, false)
+const { mutate: stopMutate } = initMutation({ document: stopDiscoveringGQL }, false)
+
 export function useDeviceDiscovery() {
-  const devices = ref<DiscoveredDevice[]>([])
-  const status = ref<DiscoveryStatus>('idle')
-  let timer: ReturnType<typeof setTimeout> | null = null
-  let active = false
-  let scanning = false
+  ensureListener()
 
-  async function scan() {
-    if (!__IS_TAURI__ || scanning) return
-    scanning = true
+  async function start() {
+    activeCount += 1
+    if (activeCount > 1) return
     status.value = 'searching'
-    try {
-      const { invoke } = await import('@tauri-apps/api/core')
-      const result = await invoke<DiscoverDevicesResult | DiscoveredDevice[]>('discover_devices')
-      const normalized = Array.isArray(result)
-        ? { devices: result, status: 'ok' as const }
-        : result
-      if (active) {
-        if (normalized.devices.length > 0) {
-          devices.value = normalized.devices
-        }
-        status.value = normalized.status
-      }
-    } catch (e) {
-      console.error('device discovery failed', e)
-      if (active) {
-        status.value = 'network_error'
-      }
-    } finally {
-      scanning = false
-      if (active) {
-        timer = setTimeout(scan, POLL_INTERVAL_MS)
-      }
-    }
+    await startMutate()
   }
 
-  function start() {
-    if (active) return
-    active = true
-    scan()
-  }
-
-  function stop() {
-    active = false
+  async function stop() {
+    if (activeCount === 0) return
+    activeCount -= 1
+    if (activeCount > 0) return
+    await stopMutate()
     status.value = 'idle'
-    if (timer) {
-      clearTimeout(timer)
-      timer = null
-    }
+    devices.value = []
   }
 
   function retry() {
-    if (!active) active = true
-    if (timer) {
-      clearTimeout(timer)
-      timer = null
-    }
-    void scan()
+    status.value = 'searching'
+    void startMutate()
   }
 
   async function openLanPermissionSettings() {
-    if (!__IS_TAURI__) return
-    const { openUrl } = await import('@tauri-apps/plugin-opener')
-    await openUrl('x-apple.systempreferences:').catch(async () => {
-      await openUrl('https://support.apple.com/guide/mac-help/mchla4f49138/mac')
-    })
+    if (__IS_TAURI__) {
+      const { openUrl } = await import('@tauri-apps/plugin-opener')
+      await openUrl('x-apple.systempreferences:').catch(async () => {
+        await openUrl('https://support.apple.com/guide/mac-help/mchla4f49138/mac')
+      })
+      return
+    }
+    if (typeof window === 'undefined') return
+    window.location.href = 'x-apple.systempreferences:'
   }
 
   return { devices, status, start, stop, retry, openLanPermissionSettings }

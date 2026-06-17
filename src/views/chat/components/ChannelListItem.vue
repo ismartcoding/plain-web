@@ -2,7 +2,12 @@
   <SidebarListItem :title="channel.name" :subtitle="subtitle" :active="active" :force-actions="menuVisible" @click="emit('click')">
     <template #start>
       <span class="icon" aria-hidden="true">
-        <i-lucide:hash />
+        <v-dropdown v-model="infoOpen">
+          <template #trigger>
+            <i-lucide:hash />
+          </template>
+          <pre class="view-raw">{{ channel }}</pre>
+        </v-dropdown>
       </span>
     </template>
 
@@ -89,6 +94,7 @@ const currentChatId = computed(() => {
 
 const anchorId = computed(() => `channel-list-${props.channel.id}`)
 
+const infoOpen = ref(false)
 const menuVisible = ref(false)
 const confirmingDelete = ref(false)
 const deleteLoading = ref(false)

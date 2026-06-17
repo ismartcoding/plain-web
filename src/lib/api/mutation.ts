@@ -778,3 +778,15 @@ export const deleteDbTableRowsGQL = `
     deleteDbTableRows(table: $table, ids: $ids)
   }
 `
+
+export const startDiscoveringGQL = `
+  mutation {
+    startDiscovering
+  }
+`
+
+export const stopDiscoveringGQL = `
+  mutation {
+    stopDiscovering
+  }
+`
