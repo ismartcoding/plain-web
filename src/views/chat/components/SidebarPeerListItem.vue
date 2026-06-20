@@ -4,10 +4,7 @@
       <span class="icon" aria-hidden="true">
         <v-dropdown v-model="infoOpen">
           <template #trigger>
-            <i-lucide:smartphone v-if="peer.deviceType === 'phone'" />
-            <i-lucide:tablet v-else-if="peer.deviceType === 'tablet'" />
-            <i-lucide:laptop v-else-if="peer.deviceType === 'pc'" />
-            <i-lucide:monitor v-else />
+            <DeviceTypeIcon :device-type="peer.deviceType" />
           </template>
           <pre class="view-raw">{{ peer }}</pre>
         </v-dropdown>

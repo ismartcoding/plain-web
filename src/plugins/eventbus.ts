@@ -1,4 +1,5 @@
 import type { IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IFileDeletedEvent, IFileRenamedEvent, IMediaItemsActionedEvent, INotesActionedEvent } from '@/lib/interfaces'
+import type { PairingRequest, PairingResult } from '@/lib/pairing-types'
 import type { IUploadItem } from '@/stores/temp'
 import type { SignalingMessage } from '@/lib/webrtc-client'
 
@@ -43,6 +44,11 @@ type Events = {
   device_name_updated: string
   sms_sent: undefined
   image_search_updated: any
+  mms_sent: string
+  pairing_request_received: PairingRequest
+  pairing_success: PairingResult
+  pairing_failed: PairingResult
+  pairing_canceled: PairingResult
   nearby_device_found: any
   nearby_discovery_started: undefined
   nearby_discovery_stopped: { reason?: string } | undefined

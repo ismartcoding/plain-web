@@ -33,7 +33,7 @@ export default {
   add_member: 'உறுப்பினரைச் சேர்க்கவும்',
   invite: 'அழை',
   remove_member: 'உறுப்பினரை அகற்று',
-  member_pending: 'உறுதிப்படுத்தலுக்காக காத்திருக்கிறது',
+  waiting_for_confirmation: 'உறுதிப்படுத்தலுக்காக காத்திருக்கிறது',
   accept_invite: 'ஏற்றுக்கொள்',
   decline_invite: 'நிராகரி',
   channel_invite: 'சேனல் அழைப்பு',
@@ -43,6 +43,9 @@ export default {
   delivery_status_summary: '{delivered} / {total} வழங்கப்பட்டது',
   delivery_failed: 'பிழை',
   pair_request: 'இணைப்பு கோரிக்கை',
+  pairing_request_message: '"{name}" சாதனத்துடன் இணைக்க விரும்புகிறீர்களா?',
   allow: 'அனுமதி',
   deny: 'மறு',
+  pending: 'நிலுவையில்',
+  unpair: 'பிரிக்க',
 }

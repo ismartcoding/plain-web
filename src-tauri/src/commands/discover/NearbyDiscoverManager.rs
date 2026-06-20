@@ -140,8 +140,8 @@ impl NearbyDiscoverManager {
     /// Start a background scan loop that broadcasts every
     /// `CONTINUOUS_DISCOVER_INTERVAL_MS` and pushes each reply over
     /// the local server WS as `WS_NEARBY_DEVICE_FOUND`. Mirrors
-    /// plain-app's `startDiscovering` mutation.
-    pub fn start_discovering(&self) -> bool {
+    /// plain-app's `startDiscovery` mutation.
+    pub fn start_discovery(&self) -> bool {
         if self.continuous_running.swap(true, Ordering::SeqCst) {
             return false;
         }
@@ -172,8 +172,8 @@ impl NearbyDiscoverManager {
     }
 
     /// Cancel the background scan loop started by
-    /// `start_discovering`. Mirrors plain-app's `stopDiscovering`.
-    pub fn stop_discovering(&self) -> bool {
+    /// `start_discovery`. Mirrors plain-app's `stopDiscovery`.
+    pub fn stop_discovery(&self) -> bool {
         if !self.continuous_running.swap(false, Ordering::SeqCst) {
             return false;
         }
@@ -186,6 +186,11 @@ impl NearbyDiscoverManager {
         }
         self.emit_event(WS_NEARBY_DISCOVERY_STOPPED, "{}");
         true
+    }
+
+    /// Mirrors plain-app's `isDiscovering` query.
+    pub fn is_discovering(&self) -> bool {
+        self.continuous_running.load(Ordering::SeqCst)
     }
 
     fn emit_event(&self, event_type: i32, payload: &str) {

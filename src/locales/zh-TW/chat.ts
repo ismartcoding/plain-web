@@ -33,7 +33,7 @@ export default {
   add_member: '新增會員',
   invite: '邀請',
   remove_member: '刪除成員',
-  member_pending: '等待確認',
+  waiting_for_confirmation: '等待確認',
   accept_invite: '接受',
   decline_invite: '衰退',
   channel_invite: '頻道邀請',
@@ -43,6 +43,9 @@ export default {
   delivery_status_summary: '{delivered} / {total} 已送達',
   delivery_failed: '錯誤',
   pair_request: '配對請求',
+  pairing_request_message: '是否要與設備"{name}"配對？',
   allow: '允許',
   deny: '拒絕',
+  pending: '待確認',
+  unpair: '解除配對',
 }

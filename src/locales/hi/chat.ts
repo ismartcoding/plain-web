@@ -33,7 +33,7 @@ export default {
   add_member: 'सदस्य जोड़ें',
   invite: 'आमंत्रित',
   remove_member: 'सदस्य हटाएँ',
-  member_pending: 'पुष्टि का इंतज़ार',
+  waiting_for_confirmation: 'पुष्टि का इंतज़ार',
   accept_invite: 'स्वीकार करना',
   decline_invite: 'गिरावट',
   channel_invite: 'चैनल आमंत्रण',
@@ -43,6 +43,9 @@ export default {
   delivery_status_summary: '{delivered} / {total} डिलीवर हुए',
   delivery_failed: 'त्रुटि',
   pair_request: 'पेयरिंग अनुरोध',
+  pairing_request_message: 'क्या आप डिवाइस "{name}" के साथ जोड़ना चाहते हैं?',
   allow: 'अनुमति दें',
   deny: 'अस्वीकार करें',
+  pending: 'लंबित',
+  unpair: 'अलग करना',
 }

@@ -57,16 +57,7 @@ pub fn run() {
             let identity = Arc::new(crate::prefs::ensure_identity(&handle));
             let device_name = Arc::new(std::sync::RwLock::new(identity.device_name.clone()));
             let peer_status = commands::discover::PeerStatusManager::new(db.clone(), identity.clone());
-            let (pairing_mgr, mut pairing_rx) =
-                local::pairing::PairingManager::new(db.clone(), identity.clone());
-            // Bridge pairing broadcast → Tauri event "pairing-event".
-            let app_handle = handle.clone();
-            tauri::async_runtime::spawn(async move {
-                use tauri::Emitter;
-                while let Ok(ev) = pairing_rx.recv().await {
-                    let _ = app_handle.emit("pairing-event", ev);
-                }
-            });
+            let pairing_mgr = local::pairing::PairingManager::new(db.clone(), identity.clone());
             app.handle().manage(pairing_mgr.clone());
             let discover_mgr = commands::discover::NearbyDiscoverManager::new(
                 db.clone(),
@@ -85,6 +76,7 @@ pub fn run() {
                 device_name.clone(),
                 peer_status.clone(),
                 discover_mgr.clone(),
+                pairing_mgr.clone(),
             );
             peer_status.set_event_tx(local_server_state.event_tx.clone());
             discover_mgr.set_event_tx(local_server_state.event_tx.clone());
@@ -92,6 +84,22 @@ pub fn run() {
             discover_mgr.start();
             peer_status.set_discover_manager(discover_mgr.clone());
             peer_status.start();
+            // Bridge pairing broadcast → both Tauri "pairing-event" and the
+            // local-server WS `WS_PAIRING_*` events. The same event object
+            // fans out to both transports so desktop (Tauri) and browser-only
+            // (GraphQL/WebSocket) clients see identical pairing state.
+            {
+                let mut pairing_rx = pairing_mgr.subscribe();
+                let app_handle = app.handle().clone();
+                let ws_event_tx = local_server_state.event_tx.clone();
+                tauri::async_runtime::spawn(async move {
+                    use tauri::Emitter;
+                    while let Ok(ev) = pairing_rx.recv().await {
+                        let _ = app_handle.emit("pairing-event", ev.clone());
+                        forward_pairing_event_to_ws(&ws_event_tx, &ev);
+                    }
+                });
+            }
             app.handle().manage(discover_mgr);
             app.handle().manage(local_server_state);
             Ok(())
@@ -131,4 +139,92 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+/// Wire-format struct mirroring plain-app's `DPairingResult`
+/// (`app/src/main/java/com/ismartcoding/plain/data/DNearbyPair.kt`).
+/// Sent over the WebSocket for `PAIRING_SUCCESS` / `PAIRING_FAILED` /
+/// `PAIRING_CANCELED` so the browser sees a single flat shape regardless of
+/// whether the WebSocket is served by plain-web's local Rust server or
+/// plain-app's Android HTTP server.
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct DPairingResult<'a> {
+    device_id: &'a str,
+    device_name: &'a str,
+    error: &'a str,
+}
+
+/// Translate a `PairingEvent` into the appropriate `WsEvent` and push it
+/// to the local GraphQL WebSocket. Mirrors the event-type constants used
+/// by the browser-side `app-socket.ts` (`pairing_request_received`,
+/// `pairing_success`, `pairing_failed`, `pairing_canceled`).
+///
+/// Payload shapes — must match plain-app's NearbyPairManager:
+/// - `PAIRING_REQUEST_RECEIVED` → raw `PairingRequest` JSON
+///   (the browser parses it as a `PairingRequest`)
+/// - `PAIRING_SUCCESS` / `PAIRING_FAILED` / `PAIRING_CANCELED` → `DPairingResult`
+///   JSON: `{ deviceId, deviceName, error }`
+fn forward_pairing_event_to_ws(
+    ws_event_tx: &tokio::sync::broadcast::Sender<
+        crate::local::graphql::context::WsEvent,
+    >,
+    ev: &crate::local::pairing::PairingEvent,
+) {
+    use crate::local::graphql::context::{
+        WsEvent, WS_PAIRING_CANCELLED, WS_PAIRING_FAILED,
+        WS_PAIRING_REQUEST_RECEIVED, WS_PAIRING_SUCCESS,
+    };
+    use crate::local::pairing::PairingEventKind;
+
+    let (event_type, payload) = match &ev.kind {
+        PairingEventKind::IncomingRequest {
+            request,
+            sender_ip: _,
+        } => {
+            // plain-app sends the raw PairingRequest for `PAIRING_REQUEST_RECEIVED`.
+            // Re-emit as raw JSON so the browser can parse it directly.
+            match serde_json::to_string(request) {
+                Ok(s) => (WS_PAIRING_REQUEST_RECEIVED, s),
+                Err(_) => return,
+            }
+        }
+        PairingEventKind::Success => {
+            let result = DPairingResult {
+                device_id: &ev.device_id,
+                device_name: &ev.device_name,
+                error: "",
+            };
+            match serde_json::to_string(&result) {
+                Ok(s) => (WS_PAIRING_SUCCESS, s),
+                Err(_) => return,
+            }
+        }
+        PairingEventKind::Failed { reason } => {
+            let result = DPairingResult {
+                device_id: &ev.device_id,
+                device_name: &ev.device_name,
+                error: reason,
+            };
+            match serde_json::to_string(&result) {
+                Ok(s) => (WS_PAIRING_FAILED, s),
+                Err(_) => return,
+            }
+        }
+        PairingEventKind::Cancelled => {
+            let result = DPairingResult {
+                device_id: &ev.device_id,
+                device_name: &ev.device_name,
+                error: "",
+            };
+            match serde_json::to_string(&result) {
+                Ok(s) => (WS_PAIRING_CANCELLED, s),
+                Err(_) => return,
+            }
+        }
+    };
+    let _ = ws_event_tx.send(WsEvent {
+        event_type,
+        payload,
+    });
 }

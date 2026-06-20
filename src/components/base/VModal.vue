@@ -1,7 +1,12 @@
 <template>
   <teleport to="body">
     <div class="v-modal-backdrop" @mousedown="onBackdropMousedown" @click="handleBackdropClick">
-      <div class="v-modal-container" :class="modalId ? `modal-${modalId}` : ''" @click.stop>
+      <div
+        class="v-modal-container"
+        :class="modalId ? `modal-${modalId}` : ''"
+        :style="width ? { width, minWidth: width, maxWidth: width } : undefined"
+        @click.stop
+      >
         <div class="v-modal-content">
           <!-- Headline slot -->
           <div v-if="$slots.headline" class="v-modal-headline">
@@ -30,12 +35,20 @@ interface Props {
   type?: string
   backgroundClose?: boolean
   modalId?: string
+  /**
+   * Optional fixed CSS width (e.g. `"480px"`). When set, the modal uses
+   * this exact width for `width` / `min-width` / `max-width`, so it never
+   * resizes as content changes. When omitted, falls back to the default
+   * (`min-width: 460px; max-width: 90vw`).
+   */
+  width?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   type: 'default',
   backgroundClose: true,
-  modalId: ''
+  modalId: '',
+  width: ''
 })
 
 // 禁用属性自动继承，因为teleport会导致警告
@@ -138,6 +151,9 @@ defineExpose({
   font-size: 1.375rem;
   font-weight: 500;
   line-height: 1.6;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   color: var(--md-sys-color-on-surface);
 }
 

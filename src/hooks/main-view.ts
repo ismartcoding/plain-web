@@ -12,6 +12,9 @@ import { getMainStateKey } from '@/lib/device-current'
 import { get as prefsGet, set as prefsSet } from '@/lib/prefs'
 import { useDeviceSessionsStore } from '@/stores/device-sessions'
 import { isLocalMode } from '@/lib/local-mode'
+import { openModal } from '@/components/modal'
+import type { PairingRequest } from '@/lib/pairing-types'
+import PairingRequestModal from '@/views/chat/PairingRequestModal.vue'
 
 export function useMainView() {
   const store = useMainStore()
@@ -101,11 +104,16 @@ export function useMainView() {
     }
   }
 
+  const pairingRequestHandler = (request: PairingRequest) => {
+    openModal(PairingRequestModal, { request })
+  }
+
   onMounted(() => {
     emitter.on('refetch_app', refetchAppHandler)
     emitter.on('play_audio', playAudioHandler)
     emitter.on('media_items_actioned', mediaItemsActionedHandler)
     emitter.on('device_name_updated', deviceNameUpdatedHandler)
+    emitter.on('pairing_request_received', pairingRequestHandler)
   })
 
   onUnmounted(() => {
@@ -113,6 +121,7 @@ export function useMainView() {
     emitter.off('play_audio', playAudioHandler)
     emitter.off('media_items_actioned', mediaItemsActionedHandler)
     emitter.off('device_name_updated', deviceNameUpdatedHandler)
+    emitter.off('pairing_request_received', pairingRequestHandler)
   })
 
   // Restore persisted state from prefs

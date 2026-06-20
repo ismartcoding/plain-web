@@ -11,6 +11,7 @@ mod discover;
 mod file_query;
 mod file_upload;
 mod logs;
+mod pairing;
 mod stub;
 mod tag;
 pub mod types;
@@ -25,10 +26,11 @@ use chat_message::ChatMessageMutation;
 use chat_query::ChatQuery;
 use datastore::{DataStoreMutation, DataStoreQuery};
 use db::{DbMutation, DbQuery};
-use discover::DiscoverMutation;
+use discover::{DiscoverMutation, DiscoverQuery};
 use file_query::FileInfoQuery;
 use file_upload::{FileUploadMutation, FileUploadQuery};
 use logs::{LogsMutation, LogsQuery};
+use pairing::PairingMutation;
 use stub::StubQuery;
 use tag::TagQuery;
 
@@ -43,6 +45,7 @@ pub struct QueryRoot(
     FileUploadQuery,
     FileInfoQuery,
     TagQuery,
+    DiscoverQuery,
     StubQuery,
 );
 
@@ -57,6 +60,7 @@ pub struct MutationRoot(
     DbMutation,
     FileUploadMutation,
     DiscoverMutation,
+    PairingMutation,
 );
 
 pub type LocalSchema = Schema<QueryRoot, MutationRoot, EmptySubscription>;

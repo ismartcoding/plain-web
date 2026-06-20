@@ -32,7 +32,7 @@ export default {
   add_member: 'সদস্য যোগ করুন',
   invite: 'আমন্ত্রণ',
   remove_member: 'সদস্য সরান',
-  member_pending: 'নিশ্চিতকরণের জন্য অপেক্ষা',
+  waiting_for_confirmation: 'নিশ্চিতকরণের জন্য অপেক্ষা',
   accept_invite: 'গ্রহণ করুন',
   decline_invite: 'প্রত্যাখ্যান',
   channel_invite: 'চ্যানেলের আমন্ত্রণ',
@@ -42,6 +42,9 @@ export default {
   delivery_status_summary: '{delivered} / {total} ডেলিভার হয়েছে',
   delivery_failed: 'ত্রুটি',
   pair_request: 'পেয়ারিং অনুরোধ',
+  pairing_request_message: 'আপনি কি ডিভাইস "{name}" এর সাথে জোড়া লাগাতে চান?',
   allow: 'অনুমতি দিন',
   deny: 'অস্বীকার করুন',
+  pending: 'অপেক্ষমাণ',
+  unpair: 'আলাদা করা',
 }

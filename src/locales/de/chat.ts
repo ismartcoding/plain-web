@@ -32,7 +32,7 @@ export default {
   add_member: 'Mitglied hinzufügen',
   invite: 'Einladen',
   remove_member: 'Mitglied entfernen',
-  member_pending: 'Wartet auf Bestätigung',
+  waiting_for_confirmation: 'Wartet auf Bestätigung',
   accept_invite: 'Akzeptieren',
   decline_invite: 'Abfall',
   channel_invite: 'Kanaleinladung',
@@ -42,6 +42,9 @@ export default {
   delivery_status_summary: '{delivered} / {total} zugestellt',
   delivery_failed: 'Fehler',
   pair_request: 'Kopplungsanfrage',
+  pairing_request_message: 'Möchten Sie mit dem Gerät "{name}" koppeln?',
   allow: 'Erlauben',
   deny: 'Verweigern',
+  pending: 'Ausstehend',
+  unpair: 'Entkoppeln',
 }
