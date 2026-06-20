@@ -8,25 +8,25 @@
 
       <div class="section-title">{{ $t('channel_members') }} ({{ channel.members.length }})</div>
       <ul class="card list-items">
-        <MemberListItem v-for="member in enrichedMembers" :key="member.id" :member="member">
+        <ChannelMemberListItem v-for="member in enrichedMembers" :key="member.id" :member="member">
           <template v-if="isOwner && !member.isSelf && member.id !== channel.owner" #end>
             <v-outlined-button v-if="member.status === 'pending'" class="btn-sm" :loading="pendingIds.has(member.id)" :disabled="pendingIds.has(member.id)" @click.stop="cancelInvite(member.id)">{{ $t('cancel') }}</v-outlined-button>
             <v-icon-button v-else v-tooltip="$t('remove_member')" class="sm" :loading="pendingIds.has(member.id)" :disabled="pendingIds.has(member.id)" @click.stop="removeMember(member.id)">
               <i-material-symbols:close-rounded />
             </v-icon-button>
           </template>
-        </MemberListItem>
+        </ChannelMemberListItem>
       </ul>
 
       <template v-if="isOwner && availablePeers.length > 0">
         <div class="section-title">{{ $t('add_member') }}</div>
         <ul class="card list-items">
-          <MemberListItem
+          <ChannelMemberListItem
 v-for="peer in availablePeers" :key="peer.id" :member="{ id: peer.id, name: peer.name, ip: peer.ip, deviceType: peer.deviceType, isSelf: false, isOwner: false, status: peer.status }">
             <template #end>
               <v-outlined-button class="btn-sm" :loading="pendingIds.has(peer.id)" :disabled="pendingIds.has(peer.id)" @click.stop="addMember(peer.id)">{{ $t('invite') }}</v-outlined-button>
             </template>
-          </MemberListItem>
+          </ChannelMemberListItem>
         </ul>
       </template>
     </template>
@@ -43,7 +43,7 @@ import type { IChatChannel, IPeer } from '@/lib/interfaces'
 import { popModal } from '@/components/modal'
 import { initMutation, addChatChannelMemberGQL, removeChatChannelMemberGQL } from '@/lib/api/mutation'
 import { useTempStore } from '@/stores/temp'
-import type { IMemberListItem } from './components/MemberListItem.vue'
+import type { IChannelMemberListItem } from './components/ChannelMemberListItem.vue'
 
 const props = defineProps({
   channel: { type: Object as PropType<IChatChannel>, required: true },
@@ -59,7 +59,7 @@ const isOwner = computed(() => channel.value.owner === 'me')
 const memberIds = computed(() => new Set(channel.value.members.map((m) => m.id)))
 const availablePeers = computed(() => props.peers.filter((p) => p.status === 'paired' && !memberIds.value.has(p.id)))
 
-const enrichedMembers = computed<IMemberListItem[]>(() =>
+const enrichedMembers = computed<IChannelMemberListItem[]>(() =>
   channel.value.members.map((m) => {
     const peer = props.peers.find((p) => p.id === m.id)
     const isSelf = m.id === selfId

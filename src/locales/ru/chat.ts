@@ -33,7 +33,7 @@ export default {
   add_member: 'Добавить участника',
   invite: 'Пригласить',
   remove_member: 'Удалить участника',
-  member_pending: 'Ожидает подтверждения',
+  waiting_for_confirmation: 'Ожидает подтверждения',
   accept_invite: 'Принимать',
   decline_invite: 'Отклонить',
   channel_invite: 'Приглашение на канал',
@@ -43,6 +43,9 @@ export default {
   delivery_status_summary: '{delivered} / {total} доставлено',
   delivery_failed: 'Ошибка',
   pair_request: 'Запрос на сопряжение',
+  pairing_request_message: 'Хотите сопрячь с устройством "{name}"?',
   allow: 'Разрешить',
   deny: 'Отклонить',
+  pending: 'Ожидание',
+  unpair: 'Отсоединить',
 }

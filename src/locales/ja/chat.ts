@@ -32,7 +32,7 @@ export default {
   add_member: 'メンバーを追加',
   invite: '招待',
   remove_member: 'メンバーの削除',
-  member_pending: '確認待ち',
+  waiting_for_confirmation: '確認待ち',
   accept_invite: '受け入れる',
   decline_invite: '衰退',
   channel_invite: 'チャンネルへの招待',
@@ -42,6 +42,9 @@ export default {
   delivery_status_summary: '{delivered} / {total} 件配信済み',
   delivery_failed: 'エラー',
   pair_request: 'ペアリング要求',
+  pairing_request_message: 'デバイス "{name}" とペアリングしますか？',
   allow: '許可',
   deny: '拒否',
+  pending: '保留中',
+  unpair: 'ペアリング解除',
 }

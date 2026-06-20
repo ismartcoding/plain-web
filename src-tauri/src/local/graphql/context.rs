@@ -3,6 +3,7 @@
 use crate::crypto::{base64_decode, xchacha_encrypt};
 use crate::commands::discover::{NearbyDiscoverManager, PeerStatusManager};
 use crate::local::db::ChatDb;
+use crate::local::pairing::PairingManager;
 use crate::prefs::AppIdentity;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
@@ -14,19 +15,29 @@ pub const WS_MESSAGE_UPDATED: i32 = 3;
 pub const WS_BOOKMARK_UPDATED: i32 = 15;
 pub const WS_CHANNELS_UPDATED: i32 = 18;
 pub const WS_PEER_STATUS_UPDATED: i32 = 20;
-pub const WS_CHANNEL_INVITE_RECEIVED: i32 = 22;
-/// Fired by the server when a text chat item is created; the web
-/// client listens for this to trigger its own link preview fetcher.
-pub const WS_FETCH_LINK_PREVIEWS: i32 = 23;
+/// Mirrors plain-app's `PairingRequestReceivedEvent` — fired when the local
+/// pairing manager receives an incoming PAIR_REQUEST that the user must
+/// accept or reject. Payload is a `PairingEvent` JSON object.
+pub const WS_PAIRING_REQUEST_RECEIVED: i32 = 22;
+/// Mirrors plain-app's `PairingSuccessEvent` — fired when a pairing
+/// handshake completes successfully.
+pub const WS_PAIRING_SUCCESS: i32 = 23;
+/// Mirrors plain-app's `PairingFailedEvent` — fired when a pairing
+/// handshake fails or is rejected by the remote device.
+pub const WS_PAIRING_FAILED: i32 = 24;
+/// Mirrors plain-app's `PairingCanceledEvent` — fired when an in-progress
+/// pairing is cancelled by either side.
+pub const WS_PAIRING_CANCELLED: i32 = 25;
 /// Emitted for each LAN device that replied to a discover broadcast.
 /// Payload is a single `DiscoveredDevice` JSON object.
-pub const WS_NEARBY_DEVICE_FOUND: i32 = 24;
+pub const WS_NEARBY_DEVICE_FOUND: i32 = 26;
+pub const WS_CHANNEL_INVITE_RECEIVED: i32 = 27;
 /// Mirrors plain-app's `StartNearbyDiscoveryEvent` — fired when the
-/// `startDiscovering` mutation kicks off the background scan loop.
-pub const WS_NEARBY_DISCOVERY_STARTED: i32 = 25;
+/// `startDiscovery` mutation kicks off the background scan loop.
+pub const WS_NEARBY_DISCOVERY_STARTED: i32 = 29;
 /// Mirrors plain-app's `StopNearbyDiscoveryEvent` — fired when the
-/// `stopDiscovering` mutation tears the background scan loop down.
-pub const WS_NEARBY_DISCOVERY_STOPPED: i32 = 26;
+/// `stopDiscovery` mutation tears the background scan loop down.
+pub const WS_NEARBY_DISCOVERY_STOPPED: i32 = 30;
 
 #[derive(Clone, Debug)]
 pub struct WsEvent {
@@ -95,6 +106,7 @@ pub struct AppCtx {
     pub identity: Arc<AppIdentity>,
     pub peer_status: PeerStatusManager,
     pub discover_manager: NearbyDiscoverManager,
+    pub pairing_manager: PairingManager,
     pub peer_key_cache: PeerKeyCache,
     pub channel_key_cache: ChannelKeyCache,
     pub event_tx: broadcast::Sender<WsEvent>,

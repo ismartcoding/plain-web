@@ -33,7 +33,7 @@ export default {
   add_member: 'Üye ekle',
   invite: 'Davet et',
   remove_member: 'Üyeyi kaldır',
-  member_pending: 'Onay bekleniyor',
+  waiting_for_confirmation: 'Onay bekleniyor',
   accept_invite: 'Kabul etmek',
   decline_invite: 'Reddetmek',
   channel_invite: 'Kanal daveti',
@@ -43,6 +43,9 @@ export default {
   delivery_status_summary: '{delivered} / {total} teslim edildi',
   delivery_failed: 'Hata',
   pair_request: 'Eşleştirme isteği',
+  pairing_request_message: '"{name}" cihazı ile eşleştirmek istiyor musunuz?',
   allow: 'İzin ver',
   deny: 'Reddet',
+  pending: 'Beklemede',
+  unpair: 'Eşleştirmeyi kaldır',
 }

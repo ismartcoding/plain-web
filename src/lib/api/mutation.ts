@@ -779,14 +779,32 @@ export const deleteDbTableRowsGQL = `
   }
 `
 
-export const startDiscoveringGQL = `
+export const startDiscoveryGQL = `
   mutation {
-    startDiscovering
+    startDiscovery
   }
 `
 
-export const stopDiscoveringGQL = `
+export const stopDiscoveryGQL = `
   mutation {
-    stopDiscovering
+    stopDiscovery
+  }
+`
+
+export const pairDeviceGQL = `
+  mutation pairDevice($input: PairingDeviceInput!) {
+    pairDevice(input: $input)
+  }
+`
+
+export const cancelPairingGQL = `
+  mutation cancelPairing($deviceId: String!) {
+    cancelPairing(deviceId: $deviceId)
+  }
+`
+
+export const respondToPairingGQL = `
+  mutation respondToPairing($input: PairingRequestInput!, $accepted: Boolean!) {
+    respondToPairing(input: $input, accepted: $accepted)
   }
 `

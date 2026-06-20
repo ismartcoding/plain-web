@@ -3,8 +3,7 @@ use serde_json::{json, Value};
 use std::sync::Arc;
 
 use super::super::context::{
-    AppCtx, WsEvent, WS_FETCH_LINK_PREVIEWS, WS_MESSAGE_CREATED, WS_MESSAGE_DELETED,
-    WS_MESSAGE_UPDATED,
+    AppCtx, WsEvent, WS_MESSAGE_CREATED, WS_MESSAGE_DELETED, WS_MESSAGE_UPDATED,
 };
 use super::super::peer::{deliver_to_peer, peer_graphql_urls};
 use super::types::ChatItem;
@@ -56,14 +55,6 @@ fn peer_delivery_status_data(peer_id: &str, peer_name: &str, error: &str) -> Str
         }]
     })
     .to_string()
-}
-
-fn is_text_content(content: &str) -> bool {
-    serde_json::from_str::<Value>(content)
-        .ok()
-        .and_then(|v| v.get("type").and_then(|t| t.as_str()).map(|s| s.to_string()))
-        .map(|t| t == "text")
-        .unwrap_or(false)
 }
 
 #[derive(Default)]
@@ -266,17 +257,6 @@ impl ChatMessageMutation {
                     }
                 }
             }
-        }
-
-        // Link preview: Kotlin fires `FetchLinkPreviewsEvent` when the
-        // message is text. We emit a WS event the web client can listen
-        // for to trigger its own preview fetcher. The event carries
-        // the chat id so the frontend can correlate.
-        if is_text_content(&content) && (!chat.to_id.is_empty() || !chat.channel_id.is_empty()) {
-            let _ = c.event_tx.send(WsEvent {
-                event_type: WS_FETCH_LINK_PREVIEWS,
-                payload: json!({ "chatId": chat.id }).to_string(),
-            });
         }
 
         let _ = c.event_tx.send(WsEvent {

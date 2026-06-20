@@ -27,14 +27,19 @@ const EventType: { [key: number]: string } = {
   14: 'screen_mirror_audio_granted',
   15: 'bookmark_updated',
   16: 'download_progress',
+  17: 'mms_sent',
   18: 'channels_updated',
   19: 'image_search_updated',
   20: 'peer_status_updated',
   21: 'device_name_updated',
-  22: 'channel_invite_received',
-  24: 'nearby_device_found',
-  25: 'nearby_discovery_started',
-  26: 'nearby_discovery_stopped',
+  22: 'pairing_request_received',
+  23: 'pairing_success',
+  24: 'pairing_failed',
+  25: 'pairing_canceled',
+  26: 'nearby_device_found',
+  27: 'channel_invite_received',
+  29: 'nearby_discovery_started',
+  30: 'nearby_discovery_stopped',
 }
 
 export function useAppSocket() {

@@ -33,7 +33,7 @@ export default {
   add_member: 'Thêm thành viên',
   invite: 'Mời',
   remove_member: 'Xóa thành viên',
-  member_pending: 'Đang chờ xác nhận',
+  waiting_for_confirmation: 'Đang chờ xác nhận',
   accept_invite: 'Chấp nhận',
   decline_invite: 'Sự suy sụp',
   channel_invite: 'Mời kênh',
@@ -43,6 +43,9 @@ export default {
   delivery_status_summary: '{delivered} / {total} đã gửi',
   delivery_failed: 'Lỗi',
   pair_request: 'Yêu cầu ghép nối',
+  pairing_request_message: 'Bạn có muốn ghép nối với thiết bị "{name}"?',
   allow: 'Cho phép',
   deny: 'Từ chối',
+  pending: 'Đang chờ',
+  unpair: 'Hủy ghép nối',
 }

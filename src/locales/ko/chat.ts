@@ -33,7 +33,7 @@ export default {
   add_member: '회원 추가',
   invite: '초대',
   remove_member: '회원 삭제',
-  member_pending: '확인 대기 중',
+  waiting_for_confirmation: '확인 대기 중',
   accept_invite: '수용하다',
   decline_invite: '감소',
   channel_invite: '채널 초대',
@@ -43,6 +43,9 @@ export default {
   delivery_status_summary: '{delivered} / {total} 전달됨',
   delivery_failed: '오류',
   pair_request: '페어링 요청',
+  pairing_request_message: '장치 "{name}"와 페어링하시겠습니까?',
   allow: '허용',
   deny: '거부',
+  pending: '대기 중',
+  unpair: '페어링 해제',
 }

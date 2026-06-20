@@ -33,7 +33,7 @@ export default {
   add_member: 'Aggiungi membro',
   invite: 'Invita',
   remove_member: 'Rimuovi membro',
-  member_pending: 'In attesa di conferma',
+  waiting_for_confirmation: 'In attesa di conferma',
   accept_invite: 'Accettare',
   decline_invite: 'Declino',
   channel_invite: 'Invito al canale',
@@ -43,6 +43,9 @@ export default {
   delivery_status_summary: '{delivered} / {total} consegnati',
   delivery_failed: 'Errore',
   pair_request: 'Richiesta di associazione',
+  pairing_request_message: 'Vuoi accoppiarti con il dispositivo "{name}"?',
   allow: 'Consenti',
   deny: 'Nega',
+  pending: 'In attesa',
+  unpair: 'Disaccoppia',
 }

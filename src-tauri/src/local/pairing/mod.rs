@@ -21,7 +21,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 pub mod commands;
-mod protocol;
+pub mod protocol;
 mod utils;
 
 pub use protocol::{PairingCancel, PairingRequest, PairingResponse};
@@ -86,18 +86,21 @@ pub enum PairingEventKind {
 }
 
 impl PairingManager {
-    pub fn new(
-        db: Arc<ChatDb>,
-        identity: Arc<AppIdentity>,
-    ) -> (Self, tokio::sync::broadcast::Receiver<PairingEvent>) {
-        let (tx, rx) = tokio::sync::broadcast::channel(32);
-        let mgr = PairingManager {
+    pub fn new(db: Arc<ChatDb>, identity: Arc<AppIdentity>) -> Self {
+        let (tx, _rx) = tokio::sync::broadcast::channel(32);
+        PairingManager {
             db,
             identity,
             sessions: Arc::new(Mutex::new(HashMap::new())),
             event_tx: tx,
-        };
-        (mgr, rx)
+        }
+    }
+
+    /// Subscribe a new listener to the pairing-event broadcast. Use this to
+    /// forward `PairingEvent`s to Tauri, to the local GraphQL WebSocket, or
+    /// to any other consumer. Multiple subscribers are supported.
+    pub fn subscribe(&self) -> tokio::sync::broadcast::Receiver<PairingEvent> {
+        self.event_tx.subscribe()
     }
 
     pub fn handle_datagram(&self, msg: &str, sender_ip: &str) -> bool {

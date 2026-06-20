@@ -32,7 +32,7 @@ export default {
   add_member: 'Lid toevoegen',
   invite: 'Uitnodigen',
   remove_member: 'Lid verwijderen',
-  member_pending: 'Wachten op bevestiging',
+  waiting_for_confirmation: 'Wachten op bevestiging',
   accept_invite: 'Accepteren',
   decline_invite: 'Afwijzen',
   channel_invite: 'Kanaaluitnodiging',
@@ -42,6 +42,9 @@ export default {
   delivery_status_summary: '{delivered} / {total} bezorgd',
   delivery_failed: 'Fout',
   pair_request: 'Koppelingsverzoek',
+  pairing_request_message: 'Wilt u koppelen met apparaat "{name}"?',
   allow: 'Toestaan',
   deny: 'Weigeren',
+  pending: 'In behandeling',
+  unpair: 'Ontkoppelen',
 }

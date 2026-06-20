@@ -32,7 +32,7 @@ export default {
   add_member: 'Agregar miembro',
   invite: 'Invitar',
   remove_member: 'Eliminar miembro',
-  member_pending: 'Esperando confirmación',
+  waiting_for_confirmation: 'Esperando confirmación',
   accept_invite: 'Aceptar',
   decline_invite: 'Rechazar',
   channel_invite: 'invitación al canal',
@@ -42,6 +42,9 @@ export default {
   delivery_status_summary: '{delivered} / {total} entregados',
   delivery_failed: 'Error',
   pair_request: 'Solicitud de emparejamiento',
+  pairing_request_message: '¿Quieres emparejar con el dispositivo "{name}"?',
   allow: 'Permitir',
   deny: 'Denegar',
+  pending: 'Pendiente',
+  unpair: 'Desemparejar',
 }

@@ -12,7 +12,7 @@
   <left-sidebar>
     <template #body>
       <ul class="nav">
-        <LocalListItem
+        <SidebarLocalListItem
           :active="currentChatId === 'peer:local'" :title="$t('page_title.local_chat')"
           :subtitle="getLatestChatPreview('peer:local')" :time="getLatestChatCreatedAt('peer:local')"
           @click="openChat('peer:local')" />
@@ -28,7 +28,7 @@
           {{ $t('channels') }}
         </div>
         <ul class="nav">
-          <ChannelListItem
+          <SidebarChannelListItem
             v-for="channel in joinedChannels" :key="channel.id" :channel="channel"
             :active="isChannelActive(channel.id)" :subtitle="getLatestChatPreview(`channel:${channel.id}`)"
             :time="getLatestChatCreatedAt(`channel:${channel.id}`)"
@@ -41,7 +41,7 @@
             {{ $t('devices') }}
           </div>
           <ul class="nav">
-            <PeerListItem
+            <SidebarPeerListItem
               v-for="peer in allPeers" :key="peer.id" :peer="peer" :active="isPeerActive(peer.id)"
               :online="!!peer.online" :subtitle="getLatestChatPreview(`peer:${peer.id}`) || peer.ip"
               :time="getLatestChatCreatedAt(`peer:${peer.id}`)" @click="openChat(getPeerChatRouteId(peer.id))"
@@ -64,9 +64,9 @@ import { decryptChatId } from './hooks/chat-route'
 import { useChatStore } from '@/stores/chat'
 import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
-import ChannelListItem from './components/ChannelListItem.vue'
-import PeerListItem from './components/PeerListItem.vue'
-import LocalListItem from './components/LocalListItem.vue'
+import SidebarChannelListItem from './components/SidebarChannelListItem.vue'
+import SidebarPeerListItem from './components/SidebarPeerListItem.vue'
+import SidebarLocalListItem from './components/SidebarLocalListItem.vue'
 import CreateChannelModal from './CreateChannelModal.vue'
 import NearbyModal from './NearbyModal.vue'
 import PeerInfoModal from './PeerInfoModal.vue'
@@ -143,12 +143,7 @@ function openCreateChannel() {
 }
 
 async function openNearby() {
-  openModal(NearbyModal, {
-    onPaired: async (peerId: string) => {
-      await chatStore.fetchPeers()
-      openChat(getPeerChatRouteId(peerId))
-    },
-  })
+  openModal(NearbyModal)
 }
 
 const actionItems = computed(() => [

@@ -54,6 +54,7 @@ impl LocalServerState {
         device_name: Arc<RwLock<String>>,
         peer_status: PeerStatusManager,
         discover_manager: NearbyDiscoverManager,
+        pairing_manager: crate::local::pairing::PairingManager,
     ) -> Self {
         let peer_key_cache = new_peer_key_cache();
         let channel_key_cache = new_channel_key_cache();
@@ -94,6 +95,7 @@ impl LocalServerState {
             identity: identity.clone(),
             peer_status: peer_status.clone(),
             discover_manager: discover_manager.clone(),
+            pairing_manager: pairing_manager.clone(),
             peer_key_cache: peer_key_cache.clone(),
             channel_key_cache: channel_key_cache.clone(),
             event_tx: event_tx.clone(),
