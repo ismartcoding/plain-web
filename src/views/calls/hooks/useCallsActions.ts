@@ -28,7 +28,7 @@ export function useCallsActions(opts: UseCallsActionsOptions) {
 
   function call(item: ICall) {
     callId.value = item.id
-    mutateCall({ number: item.number, showDialer: sims.value.length > 1 })
+    mutateCall({ number: item.number, showDialer: false })
   }
 
   const { mutate: doDeleteCall, onDone: onDeleteCallDone } = initMutation({ document: deleteCallsGQL })

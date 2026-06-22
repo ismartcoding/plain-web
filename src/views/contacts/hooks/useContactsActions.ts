@@ -64,7 +64,7 @@ export function useContactsActions(opts: UseContactsActionsOptions) {
   function call(id: string, number: string, index: number) {
     callId.value = id
     callIndex.value = index
-    mutateCall({ number, showDialer: sims.value.length > 1 })
+    mutateCall({ number, showDialer: false })
   }
 
   function sendSms(id: string, number: string, index: number) {
