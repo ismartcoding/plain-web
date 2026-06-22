@@ -74,7 +74,7 @@ export function usePhoneAction() {
 
   function callPhone() {
     if (!callNumber.value) { callNumberError.value = true; return }
-    mutateCall({ number: callNumber.value, showDialer: sims.value.length > 1 })
+    mutateCall({ number: callNumber.value, showDialer: false })
   }
 
   watch(callNumber, () => { callNumberError.value = false })
