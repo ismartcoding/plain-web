@@ -1,7 +1,6 @@
 export default {
   screenshot: 'Capture d\'écran',
   mirror_quality: 'Qualité du miroir',
-  mirror_auto: 'Auto',
   mirror_hd: 'HD',
   mirror_smooth: 'Fluide',
   mirror_audio: 'Audio miroir',

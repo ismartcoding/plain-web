@@ -11,7 +11,7 @@ import { getCurrentAuthToken } from '../device-current'
 import { get as prefsGet } from '../prefs'
 import { isLocalMode } from '../local-mode'
 
-const CHUNK_SIZE = 5 * 1024 * 1024 // 5MB — balance between resume granularity and throughput
+const CHUNK_SIZE = 10 * 1024 * 1024 // 10MB — fewer chunks, lower HTTP overhead; per-chunk retry cost acceptable on weak networks
 const PARALLEL_CHUNKS = 3 // Upload 3 chunks in parallel per file
 const UPDATE_INTERVAL = 500 // 500ms
 const MAX_CONCURRENT_CHUNKS = 4 // Global limit across ALL concurrent file uploads

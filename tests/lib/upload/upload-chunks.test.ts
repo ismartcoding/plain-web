@@ -6,7 +6,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
  * (since they're not exported) to verify correctness.
  */
 
-const CHUNK_SIZE = 5 * 1024 * 1024 // 5MB — must match upload.ts
+const CHUNK_SIZE = 10 * 1024 * 1024 // 10MB — must match upload.ts
 
 describe('Chunk creation logic', () => {
   function createChunk(fileSize: number, index: number, chunkSize: number) {
@@ -16,27 +16,27 @@ describe('Chunk creation logic', () => {
   }
 
   it('creates correct chunk for first chunk', () => {
-    const chunk = createChunk(10 * 1024 * 1024, 0, CHUNK_SIZE)
+    const chunk = createChunk(20 * 1024 * 1024, 0, CHUNK_SIZE)
     expect(chunk.start).toBe(0)
     expect(chunk.end).toBe(CHUNK_SIZE)
     expect(chunk.size).toBe(CHUNK_SIZE)
   })
 
   it('creates correct chunk for middle chunk', () => {
-    const chunk = createChunk(20 * 1024 * 1024, 2, CHUNK_SIZE)
-    expect(chunk.start).toBe(10 * 1024 * 1024)
-    expect(chunk.end).toBe(15 * 1024 * 1024)
+    const chunk = createChunk(40 * 1024 * 1024, 2, CHUNK_SIZE)
+    expect(chunk.start).toBe(20 * 1024 * 1024)
+    expect(chunk.end).toBe(30 * 1024 * 1024)
     expect(chunk.size).toBe(CHUNK_SIZE)
   })
 
   it('creates correct last chunk (smaller than CHUNK_SIZE)', () => {
-    const fileSize = 12 * 1024 * 1024 // 12MB → 3 chunks: 5MB, 5MB, 2MB
+    const fileSize = 22 * 1024 * 1024 // 22MB → 3 chunks: 10MB, 10MB, 2MB
     const totalChunks = Math.ceil(fileSize / CHUNK_SIZE)
     expect(totalChunks).toBe(3)
 
     const lastChunk = createChunk(fileSize, 2, CHUNK_SIZE)
-    expect(lastChunk.start).toBe(10 * 1024 * 1024)
-    expect(lastChunk.end).toBe(12 * 1024 * 1024)
+    expect(lastChunk.start).toBe(20 * 1024 * 1024)
+    expect(lastChunk.end).toBe(22 * 1024 * 1024)
     expect(lastChunk.size).toBe(2 * 1024 * 1024)
   })
 
@@ -104,7 +104,7 @@ describe('Chunk verification logic', () => {
   }
 
   it('accepts chunks with correct sizes', () => {
-    const fileSize = 12 * 1024 * 1024
+    const fileSize = 22 * 1024 * 1024
     const totalChunks = 3
     const result = verifyChunks(
       [`0:${CHUNK_SIZE}`, `1:${CHUNK_SIZE}`, `2:${2 * 1024 * 1024}`],
@@ -117,7 +117,7 @@ describe('Chunk verification logic', () => {
   })
 
   it('rejects chunks with size mismatch (partial write)', () => {
-    const fileSize = 12 * 1024 * 1024
+    const fileSize = 22 * 1024 * 1024
     const totalChunks = 3
     const result = verifyChunks(
       [`0:${CHUNK_SIZE}`, `1:4798891`, `2:${2 * 1024 * 1024}`],
@@ -130,10 +130,10 @@ describe('Chunk verification logic', () => {
   })
 
   it('rejects chunk with wrong last-chunk size', () => {
-    const fileSize = 12 * 1024 * 1024 // last chunk should be 2MB
+    const fileSize = 22 * 1024 * 1024 // last chunk should be 2MB
     const totalChunks = 3
     const result = verifyChunks(
-      [`2:${CHUNK_SIZE}`], // last chunk claims to be 5MB
+      [`2:${CHUNK_SIZE}`], // last chunk claims to be 10MB
       fileSize,
       totalChunks,
       CHUNK_SIZE
@@ -144,8 +144,8 @@ describe('Chunk verification logic', () => {
 
   it('ignores chunks with out-of-range index', () => {
     const result = verifyChunks(
-      ['5:5242880', '-1:5242880', 'abc:5242880'],
-      12 * 1024 * 1024,
+      ['5:10485760', '-1:10485760', 'abc:10485760'],
+      22 * 1024 * 1024,
       3,
       CHUNK_SIZE
     )
@@ -154,7 +154,7 @@ describe('Chunk verification logic', () => {
   })
 
   it('handles empty server response', () => {
-    const result = verifyChunks([], 12 * 1024 * 1024, 3, CHUNK_SIZE)
+    const result = verifyChunks([], 22 * 1024 * 1024, 3, CHUNK_SIZE)
     expect(result.verified).toEqual([])
     expect(result.rejected).toEqual([])
   })

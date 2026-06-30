@@ -5,10 +5,10 @@ import { useI18n } from 'vue-i18n'
 
 /**
  * Client-side screen recording composable.
- * Captures the video stream from a <video> element using MediaRecorder
- * and downloads the recording as a WebM file on the PC.
+ * Captures the canvas + audio via canvas.captureStream() and downloads the
+ * recording as a WebM/MP4 file on the PC.
  */
-export function useScreenRecording(videoRef: Ref<HTMLVideoElement | undefined>) {
+export function useScreenRecording(canvasRef: Ref<HTMLCanvasElement | undefined>) {
   const { t } = useI18n()
   const recording = ref(false)
   const recordingTime = ref('00:00')
@@ -26,24 +26,21 @@ export function useScreenRecording(videoRef: Ref<HTMLVideoElement | undefined>) 
   }
 
   const startRecording = () => {
-    const video = videoRef.value
-    if (!video || !video.srcObject) {
+    const canvas = canvasRef.value
+    if (!canvas || canvas.width === 0 || canvas.height === 0) {
       toast(t('recording_no_stream'), 'error')
       return
     }
 
-    const stream = video.srcObject as MediaStream
+    const stream = (canvas as HTMLCanvasElement).captureStream(30)
 
-    // Prefer MP4 (supported in Chrome 114+, Edge, Safari), fall back to WebM
     const mimeTypes = [
-      'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
-      'video/mp4;codecs=avc1.42E01E',
-      'video/mp4',
       'video/webm;codecs=vp9,opus',
       'video/webm;codecs=vp8,opus',
       'video/webm;codecs=vp9',
       'video/webm;codecs=vp8',
       'video/webm',
+      'video/mp4',
     ]
 
     let selectedMime = ''
@@ -92,7 +89,6 @@ export function useScreenRecording(videoRef: Ref<HTMLVideoElement | undefined>) 
 
       download(url, fileName)
 
-      // Clean up the object URL after a delay to ensure download starts
       setTimeout(() => URL.revokeObjectURL(url), 10_000)
       recordedChunks = []
     }
@@ -103,7 +99,7 @@ export function useScreenRecording(videoRef: Ref<HTMLVideoElement | undefined>) 
       toast(t('recording_failed'), 'error')
     }
 
-    mediaRecorder.start(1000) // Collect data every second
+    mediaRecorder.start(1000)
     recording.value = true
     startTime = Date.now()
     recordingTime.value = '00:00'

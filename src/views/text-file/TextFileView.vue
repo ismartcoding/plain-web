@@ -75,7 +75,7 @@
       <section v-else class="viewer">
         <div class="viewer-card">
           <pre
-            v-if="showRawText || (!isJsonFile && !isMarkdownFile)"
+            v-if="showRawText || (!isJsonFile && !isMarkdownFile) || (isJsonFile && !jsonData)"
             class="view-raw text-view"
             :class="{ 'text-wrap': textWrap }"
           >{{ content }}</pre>

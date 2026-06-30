@@ -73,8 +73,7 @@ export function useChatFiles(props: { data: any; downloadInfo: any; peer: { ip: 
         openWindow(path)
         return
       }
-      mainStore.openFileTab(item.name, path)
-      router.push(path)
+      openUrl(path)
     } else if (canOpenInBrowser(item.name)) {
       openUrl(item.src)
     } else if (isImage(item.name) || isVideo(item.name)) {

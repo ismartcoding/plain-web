@@ -1,7 +1,6 @@
 export default {
   screenshot: 'ஸ்கிரீன் ஷாட்',
   mirror_quality: 'திரை பிரதிமை தரம்',
-  mirror_auto: 'தானியக்கம்',
   mirror_hd: 'HD',
   mirror_smooth: 'மென்மை',
   mirror_audio: 'ஆடியோ பிரதிமை',

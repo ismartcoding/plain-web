@@ -17,7 +17,6 @@ const EventType: { [key: number]: string } = {
   3: 'message_updated',
   4: 'feeds_fetched',
   5: 'screen_mirroring',
-  6: 'webrtc_signaling',
   7: 'notification_created',
   8: 'notification_updated',
   9: 'notification_deleted',
@@ -40,7 +39,17 @@ const EventType: { [key: number]: string } = {
   27: 'channel_invite_received',
   29: 'nearby_discovery_started',
   30: 'nearby_discovery_stopped',
+  31: 'screen_mirror_video',
+  32: 'screen_mirror_video_codec',
+  33: 'screen_mirror_audio',
 }
+
+// Screen mirror binary frames (H.264 NAL / Opus) are sent raw — skip ChaCha20
+// decryption so WebCodecs consumes the bytes directly.
+const RAW_BINARY_EVENTS = new Set([
+  31, // SCREEN_MIRROR_VIDEO
+  33, // SCREEN_MIRROR_AUDIO
+])
 
 export function useAppSocket() {
   const { t } = useI18n()
@@ -76,13 +85,17 @@ export function useAppSocket() {
         const buffer = await event.data.arrayBuffer()
         const r = parseWebSocketData(buffer)
         const type = EventType[r.type]
-        console.log(`[app-socket] ws.onmessage raw type=${r.type} mapped=${type}`)
         try {
-          const json = chachaDecrypt(key, r.data)
-          emitter.emit(type as any, json ? JSON.parse(json) : null)
-          console.log(`ws.onmessage: ${type}, ${json}`)
+          if (RAW_BINARY_EVENTS.has(r.type)) {
+            const ab = r.data.buffer.slice(r.data.byteOffset, r.data.byteOffset + r.data.byteLength) as ArrayBuffer
+            emitter.emit(type as any, ab)
+          } else {
+            const json = chachaDecrypt(key, r.data)
+            emitter.emit(type as any, json ? JSON.parse(json) : null)
+            console.log(`ws.onmessage: ${type}, ${json}`)
+          }
         } catch (ex) {
-          console.error('[app-socket] ws.onmessage decrypt failed for type', type, ex)
+          console.error('[app-socket] ws.onmessage failed for type', type, ex)
         }
         wsStatus.value = ''
       }

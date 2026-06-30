@@ -39,10 +39,14 @@ function makeStorage(store: Record<string, string>) {
   }
 }
 
-if (typeof localStorage === 'undefined') {
+// Node 22+ ships a `localStorage` global but its API surface is the
+// file-backed Storage spec stub (no `clear` / `getItem` / `setItem`), which
+// would crash every test that touches it. Stub whenever the global either
+// is missing or lacks the Web Storage methods we rely on.
+if (typeof localStorage === 'undefined' || typeof localStorage.clear !== 'function') {
   vi.stubGlobal('localStorage', makeStorage(_localStore))
 }
-if (typeof sessionStorage === 'undefined') {
+if (typeof sessionStorage === 'undefined' || typeof sessionStorage.clear !== 'function') {
   vi.stubGlobal('sessionStorage', makeStorage(_sessionStore))
 }
 

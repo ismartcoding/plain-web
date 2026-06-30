@@ -65,16 +65,20 @@ export function formatSeconds(seconds: number) {
 
 export function formatFileSize(bytes: number, si = true, dp = 1) {
   const thresh = si ? 1000 : 1024
-  const units = si ? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'] : ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB']
-  let u = -1
-  const r = 10 ** dp
+  const units = si
+    ? ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+    : ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB']
+  let u = 0
 
-  do {
+  while (Math.abs(bytes) >= thresh && u < units.length - 1) {
     bytes /= thresh
     ++u
-  } while (Math.round(Math.abs(bytes) * r) / r >= thresh && u < units.length - 1)
+  }
 
-  return bytes.toFixed(dp) + ' ' + units[u]
+  // The 'B' unit never gets decimals — byte counts are integers and
+  // `1024.toFixed(1)` is noise. Apply the caller's `dp` only to higher units.
+  const effectiveDp = units[u] === 'B' ? 0 : dp
+  return bytes.toFixed(effectiveDp) + ' ' + units[u]
 }
 
 export function generateDownloadFileName(prefix: string) {
