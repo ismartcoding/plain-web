@@ -115,7 +115,7 @@ export function useTextFile() {
     if (resetViewMode) showRawText.value = false
 
     if (isJsonFile.value) {
-      try { jsonData.value = JSON.parse(textContent) } catch { error.value = t('invalid_json_format') }
+      try { jsonData.value = JSON.parse(textContent) } catch {}
     } else if (isMarkdownFile.value) {
       try { renderedMarkdown.value = await render(textContent) } catch { /* fallback to raw */ }
     }

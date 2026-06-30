@@ -1,7 +1,6 @@
 export default {
   screenshot: 'Chụp màn hình',
   mirror_quality: 'Chất lượng phản chiếu',
-  mirror_auto: 'Tự động',
   mirror_hd: 'HD',
   mirror_smooth: 'Mượt',
   mirror_audio: 'Phản chiếu âm thanh',

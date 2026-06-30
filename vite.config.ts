@@ -33,6 +33,15 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 4000,
+    // WebCodecs requires cross-origin isolation for the hardware-accelerated
+    // VideoDecoder/AudioDecoder paths — without these headers `crossOriginIsolated`
+    // is false, `decode()` throws `Decoder error` even though `isConfigSupported`
+    // reports supported. `credentialless` is preferred over `require-corp` because
+    // it does not block cross-origin subresources (avatars, fonts, etc.).
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'credentialless',
+    },
   },
   build: {
     // The `markdown` chunk (katex + markdown-it) intentionally bundles the

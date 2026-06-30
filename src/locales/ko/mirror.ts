@@ -1,7 +1,6 @@
 export default {
   screenshot: '스크린샷',
   mirror_quality: '화면 미러링 화질',
-  mirror_auto: '자동',
   mirror_hd: '고화질',
   mirror_smooth: '부드럽게',
   mirror_audio: '오디오 미러링',

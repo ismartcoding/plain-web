@@ -1,7 +1,6 @@
 export default {
   screenshot: 'স্ক্রিনশট',
   mirror_quality: 'মিরর গুন সুত্তি',
-  mirror_auto: 'স্বয়ংক্রিয়',
   mirror_hd: 'HD',
   mirror_smooth: 'মসৃণ',
   mirror_audio: 'অডিও মিরর',

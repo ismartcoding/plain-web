@@ -44,18 +44,18 @@ function sendControl(event: ScreenMirrorControlEvent) {
 }
 
 /**
- * Given a pointer event on an overlay that covers the <video> element,
+ * Given a pointer event on an overlay that covers the <canvas> element,
  * compute the normalized [0,1] coordinates relative to the actual video content
  * (accounting for letterboxing from object-fit: contain).
  */
 function normalizeCoords(
   clientX: number,
   clientY: number,
-  videoEl: HTMLVideoElement
+  canvasEl: HTMLCanvasElement
 ): { x: number; y: number } | null {
-  const rect = videoEl.getBoundingClientRect()
-  const videoWidth = videoEl.videoWidth
-  const videoHeight = videoEl.videoHeight
+  const rect = canvasEl.getBoundingClientRect()
+  const videoWidth = canvasEl.width
+  const videoHeight = canvasEl.height
   if (!videoWidth || !videoHeight) return null
 
   const containerW = rect.width
@@ -109,7 +109,7 @@ interface GestureState {
 /**
  * Composable that manages screen mirror control input on a transparent overlay.
  *
- * @param videoRef - Ref to the <video> element (for coordinate normalization)
+ * @param canvasRef - Ref to the <canvas> element (for coordinate normalization)
  * @param enabled - Ref<boolean> indicating if control mode is on
  */
 // ---- Touch indicator helpers ----
@@ -149,7 +149,7 @@ function hideIndicator(dot: HTMLElement, isTap: boolean) {
 // ---- Composable ----
 
 export function useScreenMirrorControl(
-  videoRef: Ref<HTMLVideoElement | undefined>,
+  canvasRef: Ref<HTMLCanvasElement | undefined>,
   enabled: Ref<boolean>
 ) {
   const overlayRef = ref<HTMLDivElement>()
@@ -166,10 +166,10 @@ export function useScreenMirrorControl(
 
   const onPointerDown = (e: PointerEvent) => {
     if (!enabled.value) return
-    const video = videoRef.value
-    if (!video) return
+    const canvas = canvasRef.value
+    if (!canvas) return
 
-    const coords = normalizeCoords(e.clientX, e.clientY, video)
+    const coords = normalizeCoords(e.clientX, e.clientY, canvas)
     if (!coords) return
 
     e.preventDefault()
@@ -232,8 +232,8 @@ export function useScreenMirrorControl(
 
   const onPointerUp = (e: PointerEvent) => {
     if (!gesture || !enabled.value) return
-    const video = videoRef.value
-    if (!video) {
+    const canvas = canvasRef.value
+    if (!canvas) {
       gesture = null
       return
     }
@@ -260,7 +260,7 @@ export function useScreenMirrorControl(
       // Already sent long_press on timer
     } else if (distance > SWIPE_THRESHOLD) {
       // Swipe
-      const endCoords = normalizeCoords(e.clientX, e.clientY, video)
+      const endCoords = normalizeCoords(e.clientX, e.clientY, canvas)
       if (endCoords) {
         sendControl({
           action: 'SWIPE',
@@ -296,10 +296,10 @@ export function useScreenMirrorControl(
 
   const onWheel = (e: WheelEvent) => {
     if (!enabled.value) return
-    const video = videoRef.value
-    if (!video) return
+    const canvas = canvasRef.value
+    if (!canvas) return
 
-    const coords = normalizeCoords(e.clientX, e.clientY, video)
+    const coords = normalizeCoords(e.clientX, e.clientY, canvas)
     if (!coords) return
 
     e.preventDefault()

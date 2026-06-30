@@ -589,12 +589,6 @@ export const updateScreenMirrorQualityGQL = `
   }
 `
 
-export const sendWebRtcSignalingGQL = `
-  mutation sendWebRtcSignaling($payload: WebRtcSignalingMessage!) {
-    sendWebRtcSignaling(payload: $payload)
-  }
-`
-
 export const saveFeedEntriesToNotesGQL = `
   mutation saveFeedEntriesToNotes($query: String!) {
     saveFeedEntriesToNotes(query: $query)

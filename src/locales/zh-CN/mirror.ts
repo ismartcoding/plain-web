@@ -1,7 +1,6 @@
 export default {
   screenshot: '截屏',
   mirror_quality: '镜像画质',
-  mirror_auto: '自动',
   mirror_hd: '高清',
   mirror_smooth: '流畅',
   mirror_audio: '镜像声音',

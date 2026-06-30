@@ -1,7 +1,7 @@
 import type { IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IFileDeletedEvent, IFileRenamedEvent, IMediaItemsActionedEvent, INotesActionedEvent } from '@/lib/interfaces'
 import type { PairingRequest, PairingResult } from '@/lib/pairing-types'
 import type { IUploadItem } from '@/stores/temp'
-import type { SignalingMessage } from '@/lib/webrtc-client'
+import type { ScreenMirrorVideoCodec } from '@/views/screen-mirror/screen-mirror-pipeline'
 
 type Events = {
   upload_task_done: IUploadItem
@@ -33,8 +33,10 @@ type Events = {
   app_socket_connection_changed: boolean
   pomodoro_action: any
   pomodoro_settings_update: any
-  webrtc_signaling: SignalingMessage
   screen_mirroring: string
+  screen_mirror_video: ArrayBuffer
+  screen_mirror_audio: ArrayBuffer
+  screen_mirror_video_codec: ScreenMirrorVideoCodec
   screen_mirror_audio_granted: boolean
   bookmark_updated: any
   download_progress: any[]

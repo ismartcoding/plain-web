@@ -34,9 +34,6 @@
         <template #trigger>
           <v-icon-button><i-material-symbols:more-vert /></v-icon-button>
         </template>
-        <div class="dropdown-item" :class="{ active: qualityMode === 'AUTO' }" @click="setQuality('AUTO')">
-          <i-material-symbols:check-rounded v-if="qualityMode === 'AUTO'" /><span v-else class="check-placeholder" />{{ $t('mirror_auto') }}
-        </div>
         <div class="dropdown-item" :class="{ active: qualityMode === 'HD' }" @click="setQuality('HD')">
           <i-material-symbols:check-rounded v-if="qualityMode === 'HD'" /><span v-else class="check-placeholder" />{{ $t('mirror_hd') }}
         </div>
@@ -82,7 +79,7 @@ defineProps<{
   idle: boolean
   showLoading: boolean
   stopServiceLoading: boolean
-  qualityMode: 'AUTO' | 'HD' | 'SMOOTH'
+  qualityMode: 'HD' | 'SMOOTH'
   recording: boolean
   recordingTime: string
   controlEnabled: boolean
@@ -95,7 +92,7 @@ defineProps<{
 
 const emit = defineEmits<{
   (e: 'stopService'): void
-  (e: 'setQualityMode', mode: 'AUTO' | 'HD' | 'SMOOTH'): void
+  (e: 'setQualityMode', mode: 'HD' | 'SMOOTH'): void
   (e: 'takeScreenshot'): void
   (e: 'toggleRecording'): void
   (e: 'toggleControl'): void
@@ -108,7 +105,7 @@ const emit = defineEmits<{
 
 const moreMenuVisible = ref(false)
 
-function setQuality(mode: 'AUTO' | 'HD' | 'SMOOTH') {
+function setQuality(mode: 'HD' | 'SMOOTH') {
   emit('setQualityMode', mode)
   moreMenuVisible.value = false
 }

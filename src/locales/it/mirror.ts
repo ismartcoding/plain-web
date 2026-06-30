@@ -1,7 +1,6 @@
 export default {
   screenshot: 'Schermata',
   mirror_quality: 'Qualità visualizzazione',
-  mirror_auto: 'Automatico',
   mirror_hd: 'HD',
   mirror_smooth: 'Fluido',
   mirror_audio: 'Riproduci audio',

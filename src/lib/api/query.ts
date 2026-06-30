@@ -641,6 +641,15 @@ export const screenMirrorStateGQL = `
   }
 `
 
+export const screenMirrorVideoCodecGQL = `
+  query {
+    screenMirrorVideoCodec {
+      annexB
+      keyFrame
+    }
+  }
+`
+
 export const screenMirrorControlEnabledGQL = `
   query {
     screenMirrorControlEnabled

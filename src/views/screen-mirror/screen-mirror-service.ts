@@ -18,7 +18,7 @@ export function useScreenMirrorService() {
   const { t } = useI18n()
   const state = ref<MirrorState>('idle')
   const seconds = ref(0)
-  const qualityMode = ref('AUTO')
+  const qualityMode = ref('HD')
   const controlEnabled = ref(false)
   const audioRequesting = ref(false)
   let accessibilityEnabled = false
@@ -29,10 +29,8 @@ export function useScreenMirrorService() {
   let retryTimer: ReturnType<typeof setTimeout>
   let relaunchPending = false
 
-  const modeLabels: Record<string, string> = { AUTO: 'mirror_auto', HD: 'mirror_hd', SMOOTH: 'mirror_smooth' }
-  const modeLabel = computed(() => t(modeLabels[qualityMode.value] || 'mirror_auto'))
   const clearCountdown = () => { clearInterval(countdownTimer); seconds.value = 0 }
-  const setWebRTC = (connect: () => void, cleanup: () => void) => { connectFn = connect; cleanupFn = cleanup }
+  const setPipeline = (connect: () => void, cleanup: () => void) => { connectFn = connect; cleanupFn = cleanup }
 
   const fullReset = () => {
     state.value = 'idle'; clearCountdown(); clearTimeout(retryTimer)
@@ -122,7 +120,7 @@ export function useScreenMirrorService() {
 
   const showLoading = computed(() => fetchStateLoading.value || startLoading.value || relaunchLoading.value || stopLoading.value)
 
-  // --- WebRTC callbacks ---
+  // --- Pipeline callbacks ---
   const onStreamReady = () => { state.value = 'streaming'; clearCountdown(); retryCount = 0 }
   const onDisconnected = () => {
     if (state.value === 'streaming' && retryCount < 3) {
@@ -141,8 +139,8 @@ export function useScreenMirrorService() {
   const onAudioGranted = () => window.location.reload()
 
   return {
-    state, seconds, qualityMode, controlEnabled, audioRequesting, modeLabel,
-    showLoading, relaunchLoading, stopLoading, setWebRTC, fetchState, start, stop,
+    state, seconds, qualityMode, controlEnabled, audioRequesting,
+    showLoading, relaunchLoading, stopLoading, setPipeline, fetchState, start, stop,
     setQualityMode, requestAudioPermission, relaunchApp, toggleControl,
     onStreamReady, onDisconnected, onScreenMirroring, onSocketReconnect, onAudioGranted, deactivate,
   }

@@ -37,3 +37,4 @@ scripts/i18n-translated.json
 .vitest-attachments/
 tests/lib/**/__screenshots__/
 .harness/
+docs

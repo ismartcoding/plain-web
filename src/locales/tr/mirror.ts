@@ -1,7 +1,6 @@
 export default {
   screenshot: 'Ekran Görüntüsü',
   mirror_quality: 'Yansıma kalitesi',
-  mirror_auto: 'Otomatik',
   mirror_hd: 'HD',
   mirror_smooth: 'Akıcı',
   mirror_audio: 'Ses yansıtma',

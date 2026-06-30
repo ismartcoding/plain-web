@@ -24,7 +24,12 @@
     </template>
 
     <div v-show="mirroring && !showLoading" class="video-wrapper">
-      <video :ref="setVideoRef" class="video" autoplay playsinline muted></video>
+      <canvas :ref="setCanvasRef" class="video"></canvas>
+      <audio :ref="setAudioRef" autoplay></audio>
+      <div v-if="!supported" class="unsupported-overlay">
+        <p class="unsupported-title">{{ $t('screen_mirror_unsupported_title') }}</p>
+        <p class="unsupported-hint">{{ $t('screen_mirror_unsupported_hint') }}</p>
+      </div>
       <div v-if="controlEnabled" :ref="setControlOverlayRef" class="control-overlay" tabindex="0"></div>
     </div>
   </div>
@@ -40,7 +45,9 @@ defineProps<{
   failed: boolean
   mirroring: boolean
   controlEnabled: boolean
-  setVideoRef: (el: Element | ComponentPublicInstance | null) => void
+  supported: boolean
+  setCanvasRef: (el: Element | ComponentPublicInstance | null) => void
+  setAudioRef: (el: Element | ComponentPublicInstance | null) => void
   setControlOverlayRef: (el: Element | ComponentPublicInstance | null) => void
 }>()
 
@@ -63,6 +70,23 @@ defineEmits<{ (e: 'start'): void }>()
 
 .video-wrapper { position: relative; width: 100%; height: 0; flex: 1 1 auto; min-height: 0; overflow: hidden; }
 .video { margin: 0 auto; display: block; width: 100%; height: 100%; object-fit: contain; }
+
+.unsupported-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  text-align: center;
+  z-index: 5;
+}
+.unsupported-title { font-size: 1.2rem; font-weight: 500; margin: 0; }
+.unsupported-hint { font-size: 0.9rem; opacity: 0.85; margin: 0; line-height: 1.5; }
 
 .control-overlay {
   position: absolute;
