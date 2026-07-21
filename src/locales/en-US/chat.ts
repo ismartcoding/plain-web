@@ -27,6 +27,8 @@ export default {
   invite: 'Invite',
   remove_member: 'Remove member',
   waiting_for_confirmation: 'Waiting for confirmation',
+  discovered_via_bluetooth: 'Discovered via Bluetooth',
+  discovered_via_lan: 'Discovered via Wi-Fi',
   accept_invite: 'Accept',
   decline_invite: 'Decline',
   channel_invite: 'Channel invite',
@@ -70,4 +72,7 @@ export default {
   rescan: 'Rescan',
   pending: 'Pending',
   unpair: 'Unpair',
+  unpaired: 'Unpaired',
+  channel_left_notice: 'You have left this channel and can no longer send messages.',
+  channel_kicked_notice: 'You were removed from this channel and can no longer send messages.',
 }

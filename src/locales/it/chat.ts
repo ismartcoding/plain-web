@@ -48,4 +48,7 @@ export default {
   deny: 'Nega',
   pending: 'In attesa',
   unpair: 'Disaccoppia',
+  unpaired: 'Non accoppiato',
+  channel_left_notice: 'Hai abbandonato questo canale e non puoi più inviare messaggi.',
+  channel_kicked_notice: 'Sei stato rimosso da questo canale e non puoi più inviare messaggi.',
 }

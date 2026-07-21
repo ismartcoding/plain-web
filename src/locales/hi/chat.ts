@@ -48,4 +48,7 @@ export default {
   deny: 'अस्वीकार करें',
   pending: 'लंबित',
   unpair: 'अलग करना',
+  unpaired: 'अलग किया गया',
+  channel_left_notice: 'आप इस चैनल को छोड़ चुके हैं और संदेश नहीं भेज सकते।',
+  channel_kicked_notice: 'आपको इस चैनल से हटा दिया गया है और संदेश नहीं भेज सकते।',
 }

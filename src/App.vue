@@ -16,16 +16,16 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useAppSocket } from '@/hooks/app-socket'
-import { useDevicePairing } from '@/hooks/use-device-pairing'
 import { openWindow, setWindowDeviceName } from '@/lib/api/tauri-window'
 import { useDeviceSessionsStore } from '@/stores/device-sessions'
 import { isLocalMode } from '@/lib/local-mode'
 import { useChatStore } from '@/stores/chat'
+import { useDeviceDiscovery } from './hooks/use-device-discovery'
 
 const { wsStatus, tapPhoneMessage, closeTapPhone } = useAppSocket()
 // Initialize the device pairing listener (and global incoming-request modal) early
 // so pairing requests are handled even if the user never opens the Nearby modal.
-useDevicePairing()
+useDeviceDiscovery()
 // Eagerly instantiate the chat store so the global eventbus listeners
 // (`channels_updated`, `peer_status_updated`, `channel_invite_received`,
 // message events) are registered for the whole app lifetime — not only

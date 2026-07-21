@@ -51,6 +51,7 @@ type Events = {
   pairing_success: PairingResult
   pairing_failed: PairingResult
   pairing_canceled: PairingResult
+  pairing_started: PairingResult
   nearby_device_found: any
   nearby_discovery_started: undefined
   nearby_discovery_stopped: { reason?: string } | undefined

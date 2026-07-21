@@ -47,4 +47,7 @@ export default {
   deny: '拒否',
   pending: '保留中',
   unpair: 'ペアリング解除',
+  unpaired: 'ペアリング未設定',
+  channel_left_notice: 'このチャンネルから退出したため、メッセージを送信できません。',
+  channel_kicked_notice: 'このチャンネルから削除されたため、メッセージを送信できません。',
 }

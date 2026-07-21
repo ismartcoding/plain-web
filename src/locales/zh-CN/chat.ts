@@ -27,6 +27,8 @@ export default {
   invite: '邀请',
   remove_member: '移除成员',
   waiting_for_confirmation: '等待确认',
+  discovered_via_bluetooth: '通过蓝牙发现',
+  discovered_via_lan: '通过 Wi-Fi 发现',
   accept_invite: '接受',
   decline_invite: '拒绝',
   channel_invite: '频道邀请',
@@ -64,4 +66,7 @@ export default {
   pair: '配对',
   pending: '待确认',
   unpair: '解除配对',
+  unpaired: '未配对',
+  channel_left_notice: '你已离开此频道，无法再发送消息。',
+  channel_kicked_notice: '你已被踢出此频道，无法再发送消息。',
 }

@@ -47,4 +47,7 @@ export default {
   deny: 'Weigeren',
   pending: 'In behandeling',
   unpair: 'Ontkoppelen',
+  unpaired: 'Niet gekoppeld',
+  channel_left_notice: 'U heeft dit kanaal verlaten en kunt geen berichten meer verzenden.',
+  channel_kicked_notice: 'U bent uit dit kanaal verwijderd en kunt geen berichten meer verzenden.',
 }

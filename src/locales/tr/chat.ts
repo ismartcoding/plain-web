@@ -48,4 +48,7 @@ export default {
   deny: 'Reddet',
   pending: 'Beklemede',
   unpair: 'Eşleştirmeyi kaldır',
+  unpaired: 'Eşleştirilmedi',
+  channel_left_notice: 'Bu kanaldan ayrıldınız ve artık mesaj gönderemezsiniz.',
+  channel_kicked_notice: 'Bu kanaldan kaldırıldınız ve artık mesaj gönderemezsiniz.',
 }

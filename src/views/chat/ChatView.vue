@@ -30,8 +30,9 @@
       />
     </template>
   </div>
+  <div v-if="notAllowChat" class="chat-notice">{{ noticeText }}</div>
   <ChatInput
-    v-if="isChannel || !peer || peer.status === 'paired'"
+    v-else
     v-model="chatText"
     :create-loading="sendLoading"
     @send-message="handleSend"
@@ -42,6 +43,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onActivated, onDeactivated } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { formatDate } from '@/lib/format'
 import ChatInput from './ChatInput.vue'
 import ChatMessageItem from './ChatMessageItem.vue'
@@ -54,9 +56,27 @@ import { useChatMessages } from './hooks/chat-messages'
 import { useChatUpload } from './hooks/chat-upload'
 import type { IChatItem } from '@/lib/interfaces'
 
+const { t } = useI18n()
 const store = useMainStore()
 const { chatId, peerId, channelId, isChannel, appDir, openFolder } = useChatRouteId()
 const { peer, channel, pageTitle, getSenderName } = useChatData(chatId, peerId, isChannel, channelId)
+
+const notAllowChat = computed(() => {
+  if (isChannel.value) {
+    return !!channel.value && channel.value.status !== 'joined'
+  }
+  return peer.value?.status === 'unpaired'
+})
+
+const noticeText = computed(() => {
+  if (!isChannel.value && peer.value?.status === 'unpaired') {
+    return t('unpaired')
+  }
+  if (channel.value?.status === 'kicked') {
+    return t('channel_kicked_notice')
+  }
+  return t('channel_left_notice')
+})
 
 const chatText = computed({
   get: () => store.chatTexts[chatId.value] ?? '',
@@ -116,5 +136,12 @@ onDeactivated(() => { isActive.value = false })
   display: flex;
   justify-content: center;
   padding: 40px;
+}
+
+.chat-notice {
+  padding: 12px 16px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--md-sys-color-on-surface);
 }
 </style>

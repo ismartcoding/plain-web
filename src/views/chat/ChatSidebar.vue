@@ -29,7 +29,7 @@
         </div>
         <ul class="nav">
           <SidebarChannelListItem
-            v-for="channel in joinedChannels" :key="channel.id" :channel="channel"
+            v-for="channel in channels" :key="channel.id" :channel="channel"
             :active="isChannelActive(channel.id)" :subtitle="getLatestChatPreview(`channel:${channel.id}`)"
             :time="getLatestChatCreatedAt(`channel:${channel.id}`)"
             @click="openChat(getChannelChatRouteId(channel.id))"
@@ -76,7 +76,7 @@ const router = useRouter()
 const mainStore = useMainStore()
 const { urlTokenKey } = storeToRefs(useTempStore())
 const chatStore = useChatStore()
-const { loading, allPeers, joinedChannels, peers } = storeToRefs(chatStore)
+const { loading, allPeers, channels, peers } = storeToRefs(chatStore)
 
 const addMenuVisible = ref(false)
 const isActive = ref(false)

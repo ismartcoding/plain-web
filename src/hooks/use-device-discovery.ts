@@ -3,24 +3,20 @@ import { initMutation, startDiscoveryGQL, stopDiscoveryGQL } from '@/lib/api/mut
 import { gqlFetch } from '@/lib/api/gql-client'
 import { isDiscoveringGQL } from '@/lib/api/query'
 import emitter from '@/plugins/eventbus'
+import type { PairingResult } from '@/lib/pairing-types'
+import { useChatStore } from '@/stores/chat'
 
 export interface DiscoveredDevice {
   id: string
   name: string
-  host: string
-  ip: string
+  ips: string[]
   port: number
   deviceType: string
-  /** All advertised IPs from the discover reply — used as unicast
-   * candidates when initiating pairing. The first non-empty entry is
-   * picked by the GraphQL `pairDevice` resolver. */
-  ips?: string[]
-  /** App version reported by the discovered device (e.g. "1.2.3"). */
-  version?: string
-  /** Platform string reported by the discovered device (e.g. "android"). */
-  platform?: string
-  /** ISO-8601 timestamp of when the device was last seen. */
-  lastSeen?: string
+  version: string
+  platform: string
+  lastSeen: string
+  status: string
+  discoveryMethods: string[]
 }
 
 export type DiscoveryStatus = 'idle' | 'searching' | 'ok' | 'permission_denied' | 'network_error'
@@ -60,20 +56,7 @@ function ensureListener() {
   if (listenerInitialized) return
   listenerInitialized = true
 
-  emitter.on('nearby_device_found', (raw: any) => {
-    if (!raw || !raw.id) return
-    const device: DiscoveredDevice = {
-      id: raw.id,
-      name: raw.name ?? '',
-      host: raw.host ?? `${raw.ip ?? ''}:${raw.port ?? ''}`,
-      ip: raw.ip ?? '',
-      port: raw.port ?? 0,
-      deviceType: raw.deviceType ?? '',
-      ips: Array.isArray(raw.ips) ? raw.ips : [],
-      version: raw.version,
-      platform: raw.platform,
-      lastSeen: raw.lastSeen,
-    }
+  emitter.on('nearby_device_found', (device: DiscoveredDevice) => {
     const existing = devices.value.findIndex((d) => d.id === device.id)
     if (existing >= 0) {
       const next = devices.value.slice()
@@ -91,6 +74,35 @@ function ensureListener() {
 
   emitter.on('nearby_discovery_stopped', (payload: any) => {
     status.value = payload?.reason === 'no_receivers' ? 'network_error' : 'idle'
+  })
+
+  emitter.on('pairing_success', (result: PairingResult) => {
+    const device = devices.value.find((d) => d.id === result.deviceId)
+    if (device) {
+      device.status = 'PAIRED'
+    }
+    useChatStore().fetchPeers()
+  })
+
+  emitter.on('pairing_failed', (result: PairingResult) => {
+    const device = devices.value.find((d) => d.id === result.deviceId)
+    if (device) {
+      device.status = 'UNPAIRED'
+    }
+  })
+  
+  emitter.on('pairing_canceled', (result: PairingResult) => {
+    const device = devices.value.find((d) => d.id === result.deviceId)
+    if (device) {
+      device.status = 'UNPAIRED'
+    }
+  })
+
+  emitter.on('pairing_started', (result: PairingResult) => {
+    const device = devices.value.find((d) => d.id === result.deviceId)
+    if (device) {
+      device.status = 'PAIRING'
+    }
   })
 }
 

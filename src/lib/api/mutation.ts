@@ -147,6 +147,12 @@ export const deletePeerGQL = `
   }
 `
 
+export const unpairPeerGQL = `
+  mutation unpairPeer($id: ID!) {
+    unpairPeer(id: $id)
+  }
+`
+
 export const leaveChatChannelGQL = `
   mutation leaveChatChannel($id: ID!) {
     leaveChatChannel(id: $id)

@@ -48,4 +48,7 @@ export default {
   deny: 'Từ chối',
   pending: 'Đang chờ',
   unpair: 'Hủy ghép nối',
+  unpaired: 'Chưa ghép nối',
+  channel_left_notice: 'Bạn đã rời khỏi kênh này và không thể gửi tin nhắn.',
+  channel_kicked_notice: 'Bạn đã bị xóa khỏi kênh này và không thể gửi tin nhắn.',
 }
