@@ -48,4 +48,7 @@ export default {
   deny: '拒絕',
   pending: '待確認',
   unpair: '解除配對',
+  unpaired: '未配對',
+  channel_left_notice: '你已離開此頻道，無法再發送訊息。',
+  channel_kicked_notice: '你已被踢出此頻道，無法再發送訊息。',
 }

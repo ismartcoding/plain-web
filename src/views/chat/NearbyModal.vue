@@ -1,11 +1,7 @@
 <template>
   <v-modal width="480px" @close="handleClose">
     <template #headline>
-      <v-circular-progress
-        indeterminate
-        class="sm"
-        aria-label="scanning"
-      />
+      <v-circular-progress indeterminate class="sm" aria-label="scanning" />
       <span>{{ $t('scanning_devices') }}</span>
     </template>
     <template #content>
@@ -14,41 +10,30 @@
       </div>
 
       <ul v-else class="card list-items">
-        <VListItem
-          v-for="d in discoveredDevices"
-          :key="d.id"
-          :title="d.name"
-          :subtitle="d.ip"
-          :active="pendingIds.has(d.id)"
-        >
+        <VListItem v-for="d in discoveredDevices" :key="d.id" :subtitle="d.ips.join(', ')">
+          <template #title>
+            <span>{{ d.name }}</span>
+            <i-lucide:bluetooth v-if="d.discoveryMethods.includes('BLE')" v-tooltip="$t('discovered_via_bluetooth')"
+              class="discovery-icon" />
+            <i-lucide:wifi v-if="d.discoveryMethods.includes('LAN')" v-tooltip="$t('discovered_via_lan')"
+              class="discovery-icon" />
+            <span v-if="d.status === 'PAIRING'" v-tooltip="$t('waiting_for_confirmation')" class="status-badge warn">{{
+              $t('pending') }}</span>
+          </template>
           <template #start>
             <DeviceTypeIcon :device-type="d.deviceType" />
           </template>
           <template #end>
-            <template v-if="pendingIds.has(d.id)">
-              <span v-tooltip="$t('waiting_for_confirmation')" class="status-badge warn">{{ $t('pending') }}</span>
-              <v-outlined-button
-                class="btn-sm"
-                :loading="pairingStatusMap.get(d.id) === 'requesting'"
-                @click.stop="cancel(d)"
-              >
-                {{ $t('cancel') }}
-              </v-outlined-button>
-            </template>
-            <v-outlined-button
-              v-else-if="isPaired(d.id)"
-              class="btn-sm danger"
-              :loading="unpairingIds.has(d.id)"
-              @click.stop="unpair(d)"
-            >
+            <v-outlined-button v-if="d.status === 'PAIRING'" class="btn-sm danger"
+              :loading="deviceStates.get(d.id) === 'canceling'" @click.stop="cancel(d)">
+              {{ $t('cancel') }}
+            </v-outlined-button>
+            <v-outlined-button v-else-if="d.status === 'UNPAIRING' || d.status === 'PAIRED'" class="btn-sm danger"
+              :loading="deviceStates.get(d.id) === 'unpairing'" @click.stop="unpair(d)">
               {{ $t('unpair') }}
             </v-outlined-button>
-            <v-outlined-button
-              v-else
-              class="btn-sm"
-              :loading="loadingPairIds.has(d.id)"
-              @click.stop="startPair(d)"
-            >
+            <v-outlined-button v-else class="btn-sm" :loading="deviceStates.get(d.id) === 'pairing'"
+              @click.stop="startPair(d)">
               {{ $t('pair') }}
             </v-outlined-button>
           </template>
@@ -62,11 +47,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, watch } from 'vue'
+import { onBeforeUnmount, onMounted } from 'vue'
 import { popModal } from '@/components/modal'
 import { useDeviceDiscovery, type DiscoveredDevice } from '@/hooks/use-device-discovery'
 import { useDevicePairing } from '@/hooks/use-device-pairing'
-import { deletePeerGQL, initMutation } from '@/lib/api/mutation'
+import { unpairPeerGQL, initMutation } from '@/lib/api/mutation'
 import { useChatStore } from '@/stores/chat'
 
 const {
@@ -75,102 +60,62 @@ const {
   stop,
 } = useDeviceDiscovery()
 const {
-  pairingStatusMap,
+  deviceStates,
   pairDevice,
   cancelPairing,
 } = useDevicePairing()
 
 const chatStore = useChatStore()
-const { peers } = chatStore
 
-const pendingIds = reactive(new Set<string>())
-const loadingPairIds = reactive(new Set<string>())
-const unpairingIds = reactive(new Set<string>())
-
-const pairedIdSet = computed(() => {
-  const set = new Set<string>()
-  for (const p of peers) {
-    if (p.status === 'paired') set.add(p.id)
-  }
-  return set
-})
-
-function isPaired(deviceId: string): boolean {
-  return pairedIdSet.value.has(deviceId)
-}
 
 async function startPair(d: DiscoveredDevice) {
-  if (pendingIds.has(d.id) || loadingPairIds.has(d.id)) return
-  loadingPairIds.add(d.id)
-  try {
-    await pairDevice({
-      id: d.id,
-      name: d.name,
-      ips: d.ips && d.ips.length > 0 ? d.ips : [d.ip],
-      port: d.port,
-      deviceType: d.deviceType,
-      version: d.version ?? '',
-      platform: d.platform ?? '',
-      lastSeen: d.lastSeen ?? '',
-    })
-  } finally {
-    loadingPairIds.delete(d.id)
-  }
-  pendingIds.add(d.id)
+  deviceStates.set(d.id, 'pairing')
+  await pairDevice({
+    id: d.id,
+    name: d.name,
+    ips: d.ips,
+    port: d.port,
+    deviceType: d.deviceType,
+    version: d.version,
+    platform: d.platform,
+    lastSeen: d.lastSeen,
+    discoveryMethods: d.discoveryMethods,
+  })
+  d.status = 'PAIRING'
+  deviceStates.delete(d.id)
 }
 
 async function cancel(d: DiscoveredDevice) {
-  if (!pendingIds.has(d.id)) return
+  deviceStates.set(d.id, 'canceling')
   await cancelPairing(d.id)
-  pendingIds.delete(d.id)
+  d.status = 'UNPAIRED'
+  deviceStates.delete(d.id)
 }
 
-const { mutate: deletePeerMutate } = initMutation({ document: deletePeerGQL })
+const { mutate: unpairPeerMute } = initMutation({ document: unpairPeerGQL })
 
 async function unpair(d: DiscoveredDevice) {
-  if (unpairingIds.has(d.id)) return
-  unpairingIds.add(d.id)
-  try {
-    const result = await deletePeerMutate({ id: d.id })
-    if (result) {
-      await chatStore.fetchPeers()
-    }
-  } finally {
-    unpairingIds.delete(d.id)
+  deviceStates.set(d.id, 'unpairing')
+  const result = await unpairPeerMute({ id: d.id })
+  if (result) {
+    d.status = 'UNPAIRED'
+    deviceStates.set(d.id, 'unpaired')
+    await chatStore.fetchPeers()
   }
+  deviceStates.delete(d.id)
 }
 
 function handleClose() {
-  for (const id of pendingIds) {
-    cancelPairing(id)
-  }
   stop()
   popModal()
 }
 
-watch(pairingStatusMap, (map) => {
-  for (const [deviceId, status] of map) {
-    if (!pendingIds.has(deviceId)) continue
-    if (status === 'success') {
-      popModal()
-      return
-    }
-    if (status === 'failed' || status === 'cancelled') {
-      pendingIds.delete(deviceId)
-      map.delete(deviceId)
-    }
-  }
-})
-
 onMounted(() => {
-   start()
-   chatStore.fetchPeers()
+  start()
+  chatStore.fetchPeers()
 })
 
 onBeforeUnmount(() => {
-  for (const id of pendingIds) {
-    cancelPairing(id)
-  }
   stop()
 })
 </script>
@@ -180,5 +125,12 @@ onBeforeUnmount(() => {
   padding-inline: 16px;
   text-align: center;
   color: var(--md-sys-color-on-surface-variant);
+}
+
+.discovery-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--md-sys-color-on-surface-variant);
+  flex-shrink: 0;
 }
 </style>

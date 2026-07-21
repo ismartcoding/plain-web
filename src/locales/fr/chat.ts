@@ -48,4 +48,7 @@ export default {
   deny: 'Refuser',
   pending: 'En attente',
   unpair: 'Découpler',
+  unpaired: 'Non couplé',
+  channel_left_notice: 'Vous avez quitté ce canal et ne pouvez plus envoyer de messages.',
+  channel_kicked_notice: 'Vous avez été retiré de ce canal et ne pouvez plus envoyer de messages.',
 }

@@ -48,4 +48,7 @@ export default {
   deny: '거부',
   pending: '대기 중',
   unpair: '페어링 해제',
+  unpaired: '페어링 안됨',
+  channel_left_notice: '이 채널에서 나갔으므로 더 이상 메시지를 보낼 수 없습니다.',
+  channel_kicked_notice: '이 채널에서 추방되었으므로 더 이상 메시지를 보낼 수 없습니다.',
 }
