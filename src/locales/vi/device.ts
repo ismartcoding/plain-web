@@ -77,4 +77,11 @@ export default {
   gpu_model: 'Mẫu GPU',
   desktop_environment: 'Môi trường máy tính để bàn',
   window_manager: 'Trình quản lý cửa sổ',
+  http_server: 'Máy chủ HTTP',
+  http_port: 'Cổng HTTP',
+  https_port: 'Cổng HTTPS',
+  http_addresses: 'Địa chỉ HTTP',
+  https_addresses: 'Địa chỉ HTTPS',
+  edit_port: 'Chỉnh sửa cổng',
+  restart_to_apply: 'Khởi động lại ứng dụng để áp dụng các thay đổi',
 }

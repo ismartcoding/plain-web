@@ -70,7 +70,7 @@ function isSecurePort(host: string): boolean {
 
 export function getWebSocketBaseUrl() {
   if (__IS_TAURI__ && _localServerPort && !(_pendingLoginHost || getCurrentDeviceHost())) {
-    return `ws://127.0.0.1:${_localServerPort}`
+    return `ws://localhost:${_localServerPort}`
   }
   if (__IS_TAURI__ && (_pendingLoginHost || getCurrentDeviceHost())) {
     const p = isSecurePort(getApiHost()) ? 'wss' : 'ws'
@@ -82,7 +82,7 @@ export function getWebSocketBaseUrl() {
 
 export function getApiBaseUrl() {
   if (__IS_TAURI__ && _localServerPort && !(_pendingLoginHost || getCurrentDeviceHost())) {
-    return `http://127.0.0.1:${_localServerPort}`
+    return `http://localhost:${_localServerPort}`
   }
   if (__IS_TAURI__ && (_pendingLoginHost || getCurrentDeviceHost())) {
     const p = isSecurePort(getApiHost()) ? 'https' : 'http'

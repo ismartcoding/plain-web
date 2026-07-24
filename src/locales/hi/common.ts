@@ -184,6 +184,7 @@ export default {
   pause: 'पॉज',
   refresh: 'रिफ्रेश',
   info: 'इन्फो',
+  other: 'अन्य',
   zoom_in: 'जूम इन',
   zoom_out: 'जूम आउट',
   resize: 'रीसाइज़',

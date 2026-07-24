@@ -13,9 +13,11 @@
         <VListItem v-for="d in discoveredDevices" :key="d.id" :subtitle="d.ips.join(', ')">
           <template #title>
             <span>{{ d.name }}</span>
-            <i-lucide:bluetooth v-if="d.discoveryMethods.includes('BLE')" v-tooltip="$t('discovered_via_bluetooth')"
+            <i-lucide:bluetooth
+v-if="d.discoveryMethods.includes('BLE')" v-tooltip="$t('discovered_via_bluetooth')"
               class="discovery-icon" />
-            <i-lucide:wifi v-if="d.discoveryMethods.includes('LAN')" v-tooltip="$t('discovered_via_lan')"
+            <i-lucide:wifi
+v-if="d.discoveryMethods.includes('LAN')" v-tooltip="$t('discovered_via_lan')"
               class="discovery-icon" />
             <span v-if="d.status === 'PAIRING'" v-tooltip="$t('waiting_for_confirmation')" class="status-badge warn">{{
               $t('pending') }}</span>
@@ -24,15 +26,18 @@
             <DeviceTypeIcon :device-type="d.deviceType" />
           </template>
           <template #end>
-            <v-outlined-button v-if="d.status === 'PAIRING'" class="btn-sm danger"
+            <v-outlined-button
+v-if="d.status === 'PAIRING'" class="btn-sm danger"
               :loading="deviceStates.get(d.id) === 'canceling'" @click.stop="cancel(d)">
               {{ $t('cancel') }}
             </v-outlined-button>
-            <v-outlined-button v-else-if="d.status === 'UNPAIRING' || d.status === 'PAIRED'" class="btn-sm danger"
+            <v-outlined-button
+v-else-if="d.status === 'UNPAIRING' || d.status === 'PAIRED'" class="btn-sm danger"
               :loading="deviceStates.get(d.id) === 'unpairing'" @click.stop="unpair(d)">
               {{ $t('unpair') }}
             </v-outlined-button>
-            <v-outlined-button v-else class="btn-sm" :loading="deviceStates.get(d.id) === 'pairing'"
+            <v-outlined-button
+v-else class="btn-sm" :loading="deviceStates.get(d.id) === 'pairing'"
               @click.stop="startPair(d)">
               {{ $t('pair') }}
             </v-outlined-button>

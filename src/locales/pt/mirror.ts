@@ -42,4 +42,5 @@ export default {
   mirror_scroll: 'Rolar',
   open_accessibility_settings: 'Abrir Configurações de Acessibilidade',
   mirror_long_press: 'Pressionar e segurar',
+  screen_mirror_need_https: 'O espelhamento de tela precisa de uma conexão segura (HTTPS).',
 }

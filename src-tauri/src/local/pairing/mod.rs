@@ -161,6 +161,9 @@ impl PairingManager {
             timestamp: ts,
             ips: local_ips,
             signature: String::new(),
+            is_qr_initiated: false,
+            aware_supported: false,
+            from_ip: String::new(),
         };
         req.signature = ed25519_sign(&kp_bytes, req.signature_data().as_bytes());
 
@@ -206,19 +209,42 @@ impl PairingManager {
 
     /// Incoming PAIR_REQUEST from a remote device.  Emits `IncomingRequest` event;
     /// the frontend calls `respond_to_pairing(request_json, accepted)` to reply.
-    fn on_pair_request(&self, req: PairingRequest, sender_ip: &str) {
+    fn on_pair_request(&self, mut req: PairingRequest, sender_ip: &str) {
+        log::info!(
+            "local_pairing: PAIR_REQUEST from_id={} from_name={} sender_ip={} timestamp={} sig_pub_len={} sig_len={}",
+            req.from_id,
+            req.from_name,
+            sender_ip,
+            req.timestamp,
+            req.signature_public_key.len(),
+            req.signature.len()
+        );
         if !timestamp_ok(req.timestamp) {
-            log::warn!("local_pairing: PAIR_REQUEST timestamp out of range");
+            log::warn!(
+                "local_pairing: PAIR_REQUEST timestamp out of range now_diff_ms={}",
+                now_ms() - req.timestamp
+            );
             return;
         }
+        let sig_input = req.signature_data();
+        log::debug!(
+            "local_pairing: PAIR_REQUEST sig_input={:?}",
+            sig_input
+        );
         if !ed25519_verify(
             &req.signature_public_key,
-            req.signature_data().as_bytes(),
+            sig_input.as_bytes(),
             &req.signature,
         ) {
             log::warn!("local_pairing: PAIR_REQUEST signature invalid");
             return;
         }
+        log::info!("local_pairing: PAIR_REQUEST signature OK, emitting IncomingRequest");
+        // Stamp the sender IP so the frontend can pass it back to
+        // `respondToPairing` and the responder knows where to UDP-send
+        // the PAIR_RESPONSE. Mirrors plain-app's `handlePairRequest`
+        // which sets `request.fromIp = senderAddress`.
+        req.from_ip = sender_ip.to_string();
         let _ = self.event_tx.send(PairingEvent {
             kind: PairingEventKind::IncomingRequest {
                 request: req.clone(),
@@ -262,16 +288,21 @@ impl PairingManager {
                 timestamp: ts,
                 ips: local_ipv4_strs(),
                 signature: String::new(),
+                aware_supported: false,
             };
             resp.signature = ed25519_sign(&kp_bytes, resp.signature_data().as_bytes());
 
             let req_pub_bytes = base64_decode(&request.ecdh_public_key);
+            log::info!(
+                "local_pairing: respond_to_pairing accepted=true req_pub_len={} sender_ip={}",
+                req_pub_bytes.len(), sender_ip
+            );
             if let Some(shared) = ecdh.compute_shared_key(&req_pub_bytes) {
                 let peer_ips = prefer_sender_ip(&request.ips, sender_ip);
                 let peer = DPeer {
                     id: request.from_id.clone(),
                     name: request.from_name.clone(),
-                    ip: peer_ips,
+                    ip: peer_ips.clone(),
                     key: base64_encode(&shared),
                     public_key: request.signature_public_key.clone(),
                     status: "paired".to_string(),
@@ -280,6 +311,10 @@ impl PairingManager {
                     created_at: now_iso(),
                     updated_at: now_iso(),
                 };
+                log::info!(
+                    "local_pairing: inserting peer id={} name={} ip={} port={} device_type={}",
+                    peer.id, peer.name, peer.ip, peer.port, peer.device_type
+                );
                 self.db.upsert_peer(&peer);
                 let msg = format!(
                     "{}{}",
@@ -307,6 +342,7 @@ impl PairingManager {
                 timestamp: ts,
                 ips: vec![],
                 signature: String::new(),
+                aware_supported: false,
             };
             resp.signature = ed25519_sign(&kp_bytes, resp.signature_data().as_bytes());
             let msg = format!(

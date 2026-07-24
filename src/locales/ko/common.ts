@@ -184,6 +184,7 @@ export default {
   pause: '일시 정지',
   refresh: '새로 고침',
   info: '정보',
+  other: '기타',
   zoom_in: '확대',
   zoom_out: '축소',
   resize: '크기 조절',

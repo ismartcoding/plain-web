@@ -34,7 +34,7 @@ const { mutate, loading, onDone } = initMutation({
 onDone((r: any) => {
   const channel = { ...r.data.createChatChannel } as IChatChannel
   if (!chatStore.channels.some((c) => c.id === channel.id)) {
-    chatStore.channels = [...chatStore.channels, channel].sort((a, b) => a.name.localeCompare(b.name))
+    chatStore.updateChannel(channel)
   }
   const routeId = getFileId(urlTokenKey.value, `channel:${channel.id}`)
   router.push(`/chat?id=${encodeURIComponent(routeId)}`)

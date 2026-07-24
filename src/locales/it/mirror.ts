@@ -42,4 +42,5 @@ export default {
   mirror_scroll: 'Scorrimento',
   open_accessibility_settings: 'Apri Impostazioni Accessibilità',
   mirror_long_press: 'Pressione prolungata',
+  screen_mirror_need_https: 'Lo specchio dello schermo richiede una connessione sicura (HTTPS).',
 }

@@ -77,4 +77,11 @@ export default {
   gpu_model: 'GPU মডেল',
   desktop_environment: 'ডেস্কটপ পরিবেশ',
   window_manager: 'উইন্ডো ম্যানেজার',
+  http_server: 'HTTP সার্ভার',
+  http_port: 'HTTP পোর্ট',
+  https_port: 'HTTPS পোর্ট',
+  http_addresses: 'HTTP ঠিকানা',
+  https_addresses: 'HTTPS ঠিকানা',
+  edit_port: 'পোর্ট সম্পাদনা',
+  restart_to_apply: 'পরিবর্তন প্রয়োগ করতে অ্যাপ পুনরায় চালু করুন',
 }

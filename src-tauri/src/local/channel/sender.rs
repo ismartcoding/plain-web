@@ -29,7 +29,7 @@
 
 use serde_json::{json, Value};
 
-use crate::crypto::base64_encode;
+use crate::crypto::{base64_encode, ed25519_sign};
 use crate::local::db::{ChatDb, DChannel, DPeer};
 use crate::local::graphql::context::PeerKeyCache;
 
@@ -41,24 +41,29 @@ use super::messages::*;
 /// ChaCha20 key is embedded in the payload so the invitee can
 /// decrypt subsequent channel traffic, and the wire itself is
 /// encrypted with that same key.
-#[allow(dead_code)]
+#[allow(dead_code, clippy::too_many_arguments)]
 pub async fn send_invite(
     channel: &DChannel,
     peer: &DPeer,
+    client_id: &str,
+    device_name: &str,
     kp_bytes: &[u8],
     db: &ChatDb,
     key_cache: &PeerKeyCache,
     channel_key: &[u8],
 ) -> bool {
-    let member_peers = build_member_peers(channel, db);
+    let member_peers = build_member_peers(channel, db, client_id, device_name, kp_bytes);
+    let sig_payload = channel_message_payload(&channel.id, channel.version, ACTION_INVITE, &peer.id);
+    let signature = ed25519_sign(kp_bytes, sig_payload.as_bytes());
     let payload = json!({
         "channelId": channel.id,
         "channelName": channel.name,
-        "owner": channel.owner,
+        "owner": client_id,
         "key": channel.key,
         "members": decode_members(&channel.members),
         "memberPeers": member_peers,
         "version": channel.version,
+        "signature": signature,
     });
     deliver_type(
         peer,
@@ -75,17 +80,26 @@ pub async fn send_invite(
 /// Send `channel_invite_accept` to the channel owner. Wire is
 /// encrypted with the per-channel key (the owner knows the channel
 /// key by virtue of having created the channel).
+///
+/// The local Ed25519 public key is extracted from `kp_bytes[32..]`
+/// (mirrors plain-app `SignatureHelper.getRawPublicKeyBase64Async()`)
+/// so the owner can store it for later signature verification on
+/// `channel_update` / `channel_kick` traffic.
 #[allow(dead_code, clippy::too_many_arguments)]
 pub async fn send_invite_accept(
     channel_id: &str,
     owner_peer: &DPeer,
     kp_bytes: &[u8],
-    public_key: &str,
     name: &str,
     device_type: &str,
     channel_key: &[u8],
     key_cache: &PeerKeyCache,
 ) -> bool {
+    let public_key = if kp_bytes.len() == 64 {
+        base64_encode(&kp_bytes[32..])
+    } else {
+        String::new()
+    };
     let payload = json!({
         "channelId": channel_id,
         "publicKey": public_key,
@@ -132,18 +146,22 @@ pub async fn send_invite_decline(
 pub async fn broadcast_update(
     channel: &DChannel,
     client_id: &str,
+    device_name: &str,
     kp_bytes: &[u8],
     db: &ChatDb,
     key_cache: &PeerKeyCache,
     channel_key: &[u8],
 ) {
-    let member_peers = build_member_peers(channel, db);
+    let member_peers = build_member_peers(channel, db, client_id, device_name, kp_bytes);
+    let sig_payload = channel_message_payload(&channel.id, channel.version, ACTION_UPDATE, "");
+    let signature = ed25519_sign(kp_bytes, sig_payload.as_bytes());
     let payload = json!({
         "channelId": channel.id,
         "channelName": channel.name,
         "members": decode_members(&channel.members),
         "memberPeers": member_peers,
         "version": channel.version,
+        "signature": signature,
     });
     let member_ids = member_ids_excluding(channel, client_id);
     for member_id in member_ids {
@@ -167,12 +185,19 @@ pub async fn broadcast_update(
 #[allow(dead_code)]
 pub async fn send_kick(
     channel_id: &str,
+    version: i64,
     peer: &DPeer,
     kp_bytes: &[u8],
     channel_key: &[u8],
     key_cache: &PeerKeyCache,
 ) -> bool {
-    let payload = json!({ "channelId": channel_id });
+    let sig_payload = channel_message_payload(channel_id, version, ACTION_KICK, &peer.id);
+    let signature = ed25519_sign(kp_bytes, sig_payload.as_bytes());
+    let payload = json!({
+        "channelId": channel_id,
+        "version": version,
+        "signature": signature,
+    });
     deliver_type(
         peer,
         kp_bytes,
@@ -197,7 +222,13 @@ pub async fn broadcast_kick(
     key_cache: &PeerKeyCache,
     channel_key: &[u8],
 ) {
-    let payload = json!({ "channelId": channel.id });
+    let sig_payload = channel_message_payload(&channel.id, channel.version, ACTION_KICK, "");
+    let signature = ed25519_sign(kp_bytes, sig_payload.as_bytes());
+    let payload = json!({
+        "channelId": channel.id,
+        "version": channel.version,
+        "signature": signature,
+    });
     let member_ids = member_ids_excluding(channel, client_id);
     for member_id in member_ids {
         if let Some(peer) = db.get_peer_by_id(&member_id) {
@@ -241,22 +272,47 @@ pub async fn send_leave(
 // ── Internals ──────────────────────────────────────────────────────────────
 
 /// Build the `MemberPeerInfo` array for the current members of the channel.
+/// Mirrors plain-app `ChannelSystemMessageSender.buildMemberPeers` — the
+/// local device (owner) is included with its own Ed25519 public key
+/// extracted from `kp_bytes[32..]`, since the owner is not in the `peers` table.
 #[allow(dead_code)]
-fn build_member_peers(channel: &DChannel, db: &ChatDb) -> Vec<Value> {
+fn build_member_peers(
+    channel: &DChannel,
+    db: &ChatDb,
+    client_id: &str,
+    device_name: &str,
+    kp_bytes: &[u8],
+) -> Vec<Value> {
+    let self_pub_key = if kp_bytes.len() == 64 {
+        base64_encode(&kp_bytes[32..])
+    } else {
+        String::new()
+    };
     decode_members(&channel.members)
         .into_iter()
         .filter_map(|m| {
             let id = m["id"].as_str()?.to_string();
-            db.get_peer_by_id(&id).map(|p| {
-                json!({
-                    "id": p.id,
-                    "name": p.name,
-                    "publicKey": p.public_key,
-                    "deviceType": p.device_type,
-                    "ip": p.ip,
-                    "port": p.port,
+            if id == client_id {
+                Some(json!({
+                    "id": id,
+                    "name": device_name,
+                    "publicKey": self_pub_key,
+                    "deviceType": "computer",
+                    "ip": "",
+                    "port": 0,
+                }))
+            } else {
+                db.get_peer_by_id(&id).map(|p| {
+                    json!({
+                        "id": p.id,
+                        "name": p.name,
+                        "publicKey": p.public_key,
+                        "deviceType": p.device_type,
+                        "ip": p.ip,
+                        "port": p.port,
+                    })
                 })
-            })
+            }
         })
         .collect()
 }

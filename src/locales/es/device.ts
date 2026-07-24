@@ -77,4 +77,11 @@ export default {
   gpu_model: 'Modelo GPU',
   desktop_environment: 'Entorno de escritorio',
   window_manager: 'Gestor de ventanas',
+  http_server: 'Servidor HTTP',
+  http_port: 'Puerto HTTP',
+  https_port: 'Puerto HTTPS',
+  http_addresses: 'Direcciones HTTP',
+  https_addresses: 'Direcciones HTTPS',
+  edit_port: 'Editar puerto',
+  restart_to_apply: 'Reinicie la aplicación para aplicar los cambios',
 }

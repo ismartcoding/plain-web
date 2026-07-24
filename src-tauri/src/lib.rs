@@ -95,6 +95,16 @@ pub fn run() {
                 tauri::async_runtime::spawn(async move {
                     use tauri::Emitter;
                     while let Ok(ev) = pairing_rx.recv().await {
+                        log::info!(
+                            "pairing_bridge: received PairingEvent kind={} device_id={}",
+                            match &ev.kind {
+                                crate::local::pairing::PairingEventKind::IncomingRequest { .. } => "IncomingRequest",
+                                crate::local::pairing::PairingEventKind::Success => "Success",
+                                crate::local::pairing::PairingEventKind::Failed { .. } => "Failed",
+                                crate::local::pairing::PairingEventKind::Cancelled => "Cancelled",
+                            },
+                            ev.device_id
+                        );
                         let _ = app_handle.emit("pairing-event", ev.clone());
                         forward_pairing_event_to_ws(&ws_event_tx, &ev);
                     }
@@ -131,6 +141,10 @@ pub fn run() {
             local::server::local_server_port,
             local::server::local_server_https_port,
             local::server::local_server_token,
+            local::server::local_ipv4_strs,
+            local::server::set_preferred_http_port,
+            local::server::set_preferred_https_port,
+            local::server::restart_server,
             local::pairing::commands::pair_device,
             local::pairing::commands::respond_pair_device,
             local::pairing::commands::cancel_pair_device,

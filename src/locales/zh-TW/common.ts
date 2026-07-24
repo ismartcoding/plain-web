@@ -186,6 +186,7 @@ export default {
   retry: '重試',
   remove: '移除',
   info: '資訊',
+  other: '其他',
   zoom_in: '放大',
   zoom_out: '縮小',
   resize: '調整大小',

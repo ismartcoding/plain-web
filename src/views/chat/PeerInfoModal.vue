@@ -6,9 +6,9 @@
         <v-list-item :title="$t('ip_address')" :value="peer.ip" />
         <v-list-item :title="$t('port')" :value="String(peer.port)" />
         <v-list-item :title="$t('device_type')" :value="deviceTypeText" />
-        <v-list-item :title="$t('status')">
+        <v-list-item v-if="statusText" :title="$t('status')">
           <template #value>
-            <span class="chat-status-badge" :class="peer.status">{{ peer.status }}</span>
+            <span class="chat-status-badge" :class="peer.status">{{ statusText }}</span>
           </template>
         </v-list-item>
       </ul>
@@ -35,8 +35,14 @@ const props = defineProps({
 const deviceTypeMap: Record<string, string> = {
   phone: 'phone',
   tablet: 'tablet',
-  pc: 'computer',
+  computer: 'computer',
   tv: 'tv',
+  other: 'other',
+}
+
+const statusMap: Record<string, string> = {
+  paired: 'paired',
+  unpaired: 'unpaired',
 }
 
 const deviceTypeText = computed(() => {
@@ -44,6 +50,13 @@ const deviceTypeText = computed(() => {
   if (!dt) return ''
   const key = deviceTypeMap[dt]
   return key ? t(key) : dt
+})
+
+const statusText = computed(() => {
+  const st = props.peer?.status
+  if (!st) return ''
+  const key = statusMap[st]
+  return key ? t(key) : ''
 })
 
 function close() {

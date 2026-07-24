@@ -42,4 +42,5 @@ export default {
   mirror_scroll: 'スクロール',
   open_accessibility_settings: 'アクセシビリティ設定を開く',
   mirror_long_press: '長押し',
+  screen_mirror_need_https: '画面ミラーリングにはセキュアな接続（HTTPS）が必要です。',
 }

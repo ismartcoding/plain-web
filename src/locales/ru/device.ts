@@ -77,4 +77,11 @@ export default {
   gpu_model: 'Модель ГПУ',
   desktop_environment: 'Рабочая среда',
   window_manager: 'Оконный менеджер',
+  http_server: 'HTTP-сервер',
+  http_port: 'HTTP-порт',
+  https_port: 'HTTPS-порт',
+  http_addresses: 'HTTP-адреса',
+  https_addresses: 'HTTPS-адреса',
+  edit_port: 'Изменить порт',
+  restart_to_apply: 'Перезапустите приложение, чтобы применить изменения',
 }

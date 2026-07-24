@@ -225,6 +225,7 @@ export default {
   retry: 'Retry',
   remove: 'Remove',
   info: 'Info',
+  other: 'Other',
   zoom_in: 'Zoom in',
   zoom_out: 'Zoom out',
   resize: 'Resize',

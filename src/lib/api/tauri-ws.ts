@@ -30,15 +30,23 @@ export class TauriWebSocket {
       const ws = new WebSocket(`ws://127.0.0.1:${port}`)
       this._ws = ws
       ws.onopen = (e) => {
+        console.error('[tauri-ws] inner WS onopen readyState=', ws.readyState)
         this.readyState = 1
         this.onopen?.(e)
       }
-      ws.onmessage = (e) => this.onmessage?.(e)
+      ws.onmessage = (e) => {
+        console.error('[tauri-ws] inner WS onmessage data type=', typeof e.data, 'size=', e.data?.size ?? e.data?.byteLength)
+        this.onmessage?.(e)
+      }
       ws.onclose = (e) => {
+        console.error('[tauri-ws] inner WS onclose code=', e.code, 'reason=', e.reason, 'wasClean=', e.wasClean)
         this.readyState = 3
         this.onclose?.(e)
       }
-      ws.onerror = (e) => this.onerror?.(e)
+      ws.onerror = (e) => {
+        console.error('[tauri-ws] inner WS onerror', e, 'readyState=', ws.readyState)
+        this.onerror?.(e)
+      }
     } catch {
       this.readyState = 3
       this.onerror?.(new Event('error'))

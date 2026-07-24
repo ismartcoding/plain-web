@@ -4,6 +4,7 @@ mod app;
 mod bookmark;
 mod chat_channel;
 mod chat_message;
+mod chat_peer;
 mod chat_query;
 mod datastore;
 mod db;
@@ -23,6 +24,7 @@ use app::{AppMutation, AppQuery};
 use bookmark::{BookmarkMutation, BookmarkQuery};
 use chat_channel::ChatChannelMutation;
 use chat_message::ChatMessageMutation;
+use chat_peer::ChatPeerMutation;
 use chat_query::ChatQuery;
 use datastore::{DataStoreMutation, DataStoreQuery};
 use db::{DbMutation, DbQuery};
@@ -55,6 +57,7 @@ pub struct MutationRoot(
     BookmarkMutation,
     ChatMessageMutation,
     ChatChannelMutation,
+    ChatPeerMutation,
     LogsMutation,
     DataStoreMutation,
     DbMutation,

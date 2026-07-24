@@ -67,11 +67,21 @@ pub async fn handle<W>(
     };
 
     // ── 2. Execute through the typed schema ──────────────────────────────
-    // The schema picks the right mutation by operation name and parses
-    // its variables into the declared Rust types. The authenticated peer
-    // (and the rest of the per-request state) is injected as `PeerCtx`;
-    // the shared `Arc<AppCtx>` is reused so we never re-allocate it per
-    // request.
+    // The plaintext payload is a GraphQL-over-HTTP JSON envelope
+    // `{"query":"...","variables":{...}}` (same shape as the local
+    // executor in `graphql/executor.rs`). Extract `query` + `variables`
+    // before handing the query string to `Request::new`.
+    let request_value: serde_json::Value = serde_json::from_str(&authed.graphql_json)
+        .unwrap_or_else(|_| serde_json::json!({ "data": null }));
+    let query_str = request_value
+        .get("query")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or_default();
+    let vars: async_graphql::Variables = request_value
+        .get("variables")
+        .and_then(|v| serde_json::from_value(v.clone()).ok())
+        .unwrap_or_default();
+
     let peer_ctx = PeerCtx {
         peer: authed.peer,
         channel_id: header_channel_id.to_string(),
@@ -80,7 +90,9 @@ pub async fn handle<W>(
     };
     let response = peer_schema
         .execute(
-            async_graphql::Request::new(&authed.graphql_json).data(peer_ctx),
+            async_graphql::Request::new(query_str)
+                .variables(vars)
+                .data(peer_ctx),
         )
         .await;
     let response_json = serde_json::to_value(&response)

@@ -2,25 +2,38 @@
   <div class="content" :class="{ 'content-centered': !mirroring || showLoading }">
     <div v-if="showLoading"><v-circular-progress indeterminate /></div>
     <template v-else>
-      <div v-if="idle && !mirroring && !failed" class="idle-screen">
-        <button class="start-button" @click="$emit('start')">
-          <i-material-symbols:cast-rounded class="start-icon" />
-        </button>
-        <p class="idle-title">{{ $t('screen_mirror') }}</p>
-        <p class="idle-hint">{{ $t('screen_mirror_idle_hint') }}</p>
+      <div v-if="needHttps" class="prompt-screen">
+        <div class="prompt-icon prompt-icon--warning">
+          <WebHttpsWarning />
+        </div>
+        <p class="prompt-title">{{ $t('screen_mirror_need_https') }}</p>
+        <v-filled-button @click="$emit('use-https')">{{ $t('use_https_link') }}</v-filled-button>
       </div>
-      <div v-else-if="seconds > 0" class="prompt-screen">
-        <div class="prompt-icon"><TouchPhone /></div>
-        <p class="prompt-title">{{ $t('screen_mirror_permission_waiting_title') }}</p>
-        <p class="prompt-hint">{{ $t('screen_mirror_permission_waiting_hint') }}</p>
-        <p class="prompt-countdown">{{ seconds }}s</p>
-      </div>
-      <div v-if="failed && !mirroring" class="prompt-screen">
-        <div class="prompt-icon prompt-icon--warning"><MobileWarning /></div>
-        <p class="prompt-title">{{ $t('screen_mirror_permission_denied_title') }}</p>
-        <p class="prompt-hint">{{ $t('screen_mirror_permission_denied_hint') }}</p>
-        <v-filled-button @click="$emit('start')">{{ $t('try_again') }}</v-filled-button>
-      </div>
+      <template v-else>
+        <div v-if="idle && !mirroring && !failed" class="idle-screen">
+          <button class="start-button" @click="$emit('start')">
+            <i-material-symbols:cast-rounded class="start-icon" />
+          </button>
+          <p class="idle-title">{{ $t('screen_mirror') }}</p>
+          <p class="idle-hint">{{ $t('screen_mirror_idle_hint') }}</p>
+        </div>
+        <div v-else-if="seconds > 0" class="prompt-screen">
+          <div class="prompt-icon">
+            <TouchPhone />
+          </div>
+          <p class="prompt-title">{{ $t('screen_mirror_permission_waiting_title') }}</p>
+          <p class="prompt-hint">{{ $t('screen_mirror_permission_waiting_hint') }}</p>
+          <p class="prompt-countdown">{{ seconds }}s</p>
+        </div>
+        <div v-if="failed && !mirroring" class="prompt-screen">
+          <div class="prompt-icon prompt-icon--warning">
+            <MobileWarning />
+          </div>
+          <p class="prompt-title">{{ $t('screen_mirror_permission_denied_title') }}</p>
+          <p class="prompt-hint">{{ $t('screen_mirror_permission_denied_hint') }}</p>
+          <v-filled-button @click="$emit('start')">{{ $t('try_again') }}</v-filled-button>
+        </div>
+      </template>
     </template>
 
     <div v-show="mirroring && !showLoading" class="video-wrapper">
@@ -46,13 +59,14 @@ defineProps<{
   mirroring: boolean
   controlEnabled: boolean
   supported: boolean
+  needHttps: boolean
   setCanvasRef: (el: Element | ComponentPublicInstance | null) => void
   setAudioRef: (el: Element | ComponentPublicInstance | null) => void
   setControlOverlayRef: (el: Element | ComponentPublicInstance | null) => void
 }>()
 
 
-defineEmits<{ (e: 'start'): void }>()
+defineEmits<{ (e: 'start'): void; (e: 'use-https'): void }>()
 </script>
 
 <style scoped lang="scss">
@@ -68,8 +82,22 @@ defineEmits<{ (e: 'start'): void }>()
   }
 }
 
-.video-wrapper { position: relative; width: 100%; height: 0; flex: 1 1 auto; min-height: 0; overflow: hidden; }
-.video { margin: 0 auto; display: block; width: 100%; height: 100%; object-fit: contain; }
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  height: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.video {
+  margin: 0 auto;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
 
 .unsupported-overlay {
   position: absolute;
@@ -85,8 +113,19 @@ defineEmits<{ (e: 'start'): void }>()
   text-align: center;
   z-index: 5;
 }
-.unsupported-title { font-size: 1.2rem; font-weight: 500; margin: 0; }
-.unsupported-hint { font-size: 0.9rem; opacity: 0.85; margin: 0; line-height: 1.5; }
+
+.unsupported-title {
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+.unsupported-hint {
+  font-size: 0.9rem;
+  opacity: 0.85;
+  margin: 0;
+  line-height: 1.5;
+}
 
 .control-overlay {
   position: absolute;
@@ -109,15 +148,40 @@ defineEmits<{ (e: 'start'): void }>()
 }
 
 .prompt-icon {
-  width: 240px;
   margin-bottom: 8px;
-  :deep(svg) { fill: var(--md-sys-color-primary); width: 100%; height: auto; }
-  &--warning :deep(svg) { fill: var(--md-sys-color-on-surface-variant); }
+
+  :deep(svg) {
+    fill: var(--md-sys-color-primary);
+    width: 100%;
+    height: auto;
+  }
+
+  &--warning :deep(svg) {
+    fill: var(--md-sys-color-on-surface-variant);
+  }
 }
 
-.prompt-title { font-size: 1.2rem; font-weight: 500; color: var(--md-sys-color-on-surface); margin: 0; }
-.prompt-hint { font-size: 0.9rem; color: var(--md-sys-color-on-surface-variant); margin: 0; text-align: center;  line-height: 1.5; }
-.prompt-countdown { font-size: 2rem; font-weight: 600; color: var(--md-sys-color-primary); margin: 4px 0 0; }
+.prompt-title {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface);
+  margin: 0;
+}
+
+.prompt-hint {
+  font-size: 0.9rem;
+  color: var(--md-sys-color-on-surface-variant);
+  margin: 0;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.prompt-countdown {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--md-sys-color-primary);
+  margin: 4px 0 0;
+}
 
 .idle-screen {
   display: flex;
@@ -146,10 +210,14 @@ defineEmits<{ (e: 'start'): void }>()
     box-shadow: 0 6px 32px color-mix(in srgb, var(--md-sys-color-primary) 40%, transparent);
   }
 
-  &:active { transform: scale(0.97); }
+  &:active {
+    transform: scale(0.97);
+  }
 }
 
-.start-icon { font-size: 48px; }
+.start-icon {
+  font-size: 48px;
+}
 
 .idle-title {
   font-size: 1.25rem;

@@ -22,7 +22,8 @@ use crate::commands::discover::{NearbyDiscoverManager, PeerStatusManager};
 use crate::prefs::AppIdentity;
 use std::net::TcpListener as StdTcpListener;
 use std::path::PathBuf;
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, Mutex, RwLock};
+use std::sync::atomic::{AtomicU16, Ordering};
 use tauri::AppHandle;
 use tokio::sync::broadcast;
 use tokio_rustls::TlsAcceptor;
@@ -36,11 +37,23 @@ mod upload;
 pub(crate) mod uri;
 mod ws_handler;
 
+struct ServerHandle {
+    http_task: tauri::async_runtime::JoinHandle<()>,
+    https_task: Option<tauri::async_runtime::JoinHandle<()>>,
+}
+
 pub struct LocalServerState {
-    pub port: u16,
-    pub https_port: u16,
     pub token: String,
     pub event_tx: broadcast::Sender<WsEvent>,
+    port: Arc<AtomicU16>,
+    https_port: Arc<AtomicU16>,
+    schema: Arc<async_graphql::Schema>,
+    peer_schema: Arc<PeerSchema>,
+    ctx: Arc<AppCtx>,
+    acceptor: Option<Arc<TlsAcceptor>>,
+    data_dir: PathBuf,
+    handle: AppHandle,
+    server: Mutex<ServerHandle>,
 }
 
 impl LocalServerState {
@@ -60,34 +73,13 @@ impl LocalServerState {
         let channel_key_cache = new_channel_key_cache();
         load_key_cache(&db, &peer_key_cache, &channel_key_cache);
         let _ = refresh_peer_key_cache;
-        let http_listener = bind_listener(HTTP_PORTS);
-        let port = http_listener
-            .local_addr()
-            .expect("local server addr")
-            .port();
-        http_listener
-            .set_nonblocking(true)
-            .expect("set_nonblocking");
-
-        let https_listener = bind_listener(HTTPS_PORTS);
-        let https_port = https_listener.local_addr().expect("https addr").port();
-        https_listener
-            .set_nonblocking(true)
-            .expect("set_nonblocking https");
-
-        crate::prefs::set_http_port(&handle, port);
-        crate::prefs::set_https_port(&handle, https_port);
+        let port = Arc::new(AtomicU16::new(0));
+        let https_port = Arc::new(AtomicU16::new(0));
 
         let token = crate::prefs::get_url_token(&handle);
 
-        // Broadcast channel for WebSocket events (chat mutations → all WS clients).
-        // 1024 is a generous buffer; the receiver would only "lag" (RecvError::Lagged)
-        // if a single WS handler is starved for that many events in a row, which is
-        // highly unlikely for chat traffic. If it does happen, we log a warning and
-        // skip ahead — see `ws_handler/chat.rs`.
         let (event_tx, _) = broadcast::channel::<WsEvent>(1024);
 
-        // Build the async-graphql schemas once; contexts are injected per-request.
         let schema = Arc::new(build_schema());
         let peer_schema: Arc<PeerSchema> = Arc::new(build_peer_schema());
         let ctx = Arc::new(AppCtx {
@@ -100,14 +92,13 @@ impl LocalServerState {
             channel_key_cache: channel_key_cache.clone(),
             event_tx: event_tx.clone(),
             token: token.clone(),
-            port,
-            https_port,
+            port: port.clone(),
+            https_port: https_port.clone(),
             data_dir: app_data_dir.clone(),
             log_dir,
             device_name,
         });
 
-        // Build TLS acceptor — generate self-signed cert if missing.
         let acceptor: Option<Arc<TlsAcceptor>> = match ensure_cert(&app_data_dir) {
             Ok((cert_pem, key_pem)) => match build_acceptor(&cert_pem, &key_pem) {
                 Ok(a) => Some(Arc::new(a)),
@@ -122,14 +113,57 @@ impl LocalServerState {
             }
         };
 
-        // ── HTTP + WebSocket listener ─────────────────────────────────────────
-        {
-            let schema = schema.clone();
-            let peer_schema = peer_schema.clone();
-            let ctx = ctx.clone();
-            let event_tx = event_tx.clone();
-            let data_dir = app_data_dir.clone();
-            let token_arc = Arc::new(token.clone());
+        let mut state = LocalServerState {
+            token: token.clone(),
+            event_tx,
+            port,
+            https_port,
+            schema,
+            peer_schema,
+            ctx,
+            acceptor,
+            data_dir: app_data_dir,
+            handle: handle.clone(),
+            server: Mutex::new(ServerHandle {
+                http_task: tauri::async_runtime::spawn(async {}),
+                https_task: None,
+            }),
+        };
+        state.rebind();
+        state
+    }
+
+    fn rebind(&self) {
+        let http_candidates: Vec<u16> = crate::prefs::get_preferred_http_port(&self.handle)
+            .into_iter()
+            .chain(HTTP_PORTS.iter().copied())
+            .collect();
+        let http_listener = bind_listener(&http_candidates);
+        let new_port = http_listener.local_addr().expect("local server addr").port();
+        http_listener.set_nonblocking(true).expect("set_nonblocking");
+
+        let https_candidates: Vec<u16> = crate::prefs::get_preferred_https_port(&self.handle)
+            .into_iter()
+            .chain(HTTPS_PORTS.iter().copied())
+            .collect();
+        let https_listener = bind_listener(&https_candidates);
+        let new_https_port = https_listener.local_addr().expect("https addr").port();
+        https_listener
+            .set_nonblocking(true)
+            .expect("set_nonblocking https");
+
+        self.port.store(new_port, Ordering::Relaxed);
+        self.https_port.store(new_https_port, Ordering::Relaxed);
+        crate::prefs::set_http_port(&self.handle, new_port);
+        crate::prefs::set_https_port(&self.handle, new_https_port);
+
+        let token_arc = Arc::new(self.token.clone());
+        let http_task = {
+            let schema = self.schema.clone();
+            let peer_schema = self.peer_schema.clone();
+            let ctx = self.ctx.clone();
+            let event_tx = self.event_tx.clone();
+            let data_dir = self.data_dir.clone();
             tauri::async_runtime::spawn(async move {
                 let listener =
                     tokio::net::TcpListener::from_std(http_listener).expect("http listener");
@@ -148,14 +182,15 @@ impl LocalServerState {
                         data_dir.clone(),
                     ));
                 }
-            });
-        }
+            })
+        };
 
-        // ── HTTPS + WSS listener ─────────────────────────────────────────────
-        if let Some(acc) = acceptor {
-            let schema = schema.clone();
-            let peer_schema = peer_schema.clone();
-            let ctx = ctx.clone();
+        let https_task = self.acceptor.as_ref().map(|acc| {
+            let schema = self.schema.clone();
+            let peer_schema = self.peer_schema.clone();
+            let ctx = self.ctx.clone();
+            let data_dir = self.data_dir.clone();
+            let acc = acc.clone();
             tauri::async_runtime::spawn(async move {
                 let listener =
                     tokio::net::TcpListener::from_std(https_listener).expect("https listener");
@@ -170,18 +205,31 @@ impl LocalServerState {
                         schema.clone(),
                         peer_schema.clone(),
                         ctx.clone(),
-                        app_data_dir.clone(),
+                        data_dir.clone(),
                     ));
                 }
-            });
-        }
+            })
+        });
 
-        LocalServerState {
-            port,
-            https_port,
-            token,
-            event_tx,
+        let mut server = self.server.lock().unwrap();
+        server.http_task.abort();
+        if let Some(t) = server.https_task.take() {
+            t.abort();
         }
+        server.http_task = http_task;
+        server.https_task = https_task;
+    }
+
+    pub fn restart(&self) {
+        self.rebind();
+    }
+
+    pub fn port(&self) -> u16 {
+        self.port.load(Ordering::Relaxed)
+    }
+
+    pub fn https_port(&self) -> u16 {
+        self.https_port.load(Ordering::Relaxed)
     }
 }
 
@@ -189,17 +237,37 @@ impl LocalServerState {
 
 #[tauri::command]
 pub fn local_server_port(state: tauri::State<'_, LocalServerState>) -> u16 {
-    state.port
+    state.port()
 }
 
 #[tauri::command]
 pub fn local_server_https_port(state: tauri::State<'_, LocalServerState>) -> u16 {
-    state.https_port
+    state.https_port()
 }
 
 #[tauri::command]
 pub fn local_server_token(state: tauri::State<'_, LocalServerState>) -> String {
     state.token.clone()
+}
+
+#[tauri::command]
+pub fn local_ipv4_strs() -> Vec<String> {
+    crate::commands::discover::discover_local_ipv4_strs()
+}
+
+#[tauri::command]
+pub fn set_preferred_http_port(handle: tauri::AppHandle, port: u16) {
+    crate::prefs::set_preferred_http_port(&handle, port);
+}
+
+#[tauri::command]
+pub fn set_preferred_https_port(handle: tauri::AppHandle, port: u16) {
+    crate::prefs::set_preferred_https_port(&handle, port);
+}
+
+#[tauri::command]
+pub fn restart_server(state: tauri::State<'_, LocalServerState>) {
+    state.restart();
 }
 
 // ── TCP listener binding ──────────────────────────────────────────────────────

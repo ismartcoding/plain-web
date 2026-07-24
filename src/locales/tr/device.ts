@@ -77,4 +77,11 @@ export default {
   gpu_model: 'GPU modeli',
   desktop_environment: 'Masaüstü ortamı',
   window_manager: 'Pencere yöneticisi',
+  http_server: 'HTTP Sunucusu',
+  http_port: 'HTTP Portu',
+  https_port: 'HTTPS Portu',
+  http_addresses: 'HTTP Adresleri',
+  https_addresses: 'HTTPS Adresleri',
+  edit_port: 'Bağlantı Noktasını Düzenle',
+  restart_to_apply: 'Değişiklikleri uygulamak için uygulamayı yeniden başlatın',
 }

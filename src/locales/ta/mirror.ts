@@ -42,4 +42,5 @@ export default {
   mirror_scroll: 'ஸ்க்ரோல்',
   open_accessibility_settings: 'அணுகல் அமைப்புகளை திற',
   mirror_long_press: 'நீண்ட அழுத்தம்',
+  screen_mirror_need_https: 'திரை பிரதிபலிப்புக்கு பாதுகாப்பான இணைப்பு (HTTPS) தேவை.',
 }

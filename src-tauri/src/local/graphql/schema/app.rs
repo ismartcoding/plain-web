@@ -18,8 +18,8 @@ impl AppQuery {
             client_id: c.identity.client_id.clone(),
             usb_connected: false,
             url_token: c.token.clone(),
-            http_port: c.port as i32,
-            https_port: c.https_port as i32,
+            http_port: c.port.load(std::sync::atomic::Ordering::Relaxed) as i32,
+            https_port: c.https_port.load(std::sync::atomic::Ordering::Relaxed) as i32,
             // Matches Android `context.appDir()` — the parent directory of the
             // content-addressable `{hash[0..1]}/{hash[2..3]}/` sharded layout.
             // The web client uses `appDir` to build `fid:` paths (see

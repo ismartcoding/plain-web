@@ -42,4 +42,5 @@ export default {
   mirror_scroll: 'Scrollen',
   open_accessibility_settings: 'Toegankelijkheidsinstellingen openen',
   mirror_long_press: 'Lang indrukken',
+  screen_mirror_need_https: 'Schermspiegeling heeft een beveiligde verbinding (HTTPS) nodig.',
 }

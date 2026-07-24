@@ -77,4 +77,11 @@ export default {
   gpu_model: 'GPU 型号',
   desktop_environment: '桌面环境',
   window_manager: '窗口管理器',
+  http_server: 'HTTP 服务器',
+  http_port: 'HTTP 端口',
+  https_port: 'HTTPS 端口',
+  http_addresses: 'HTTP 地址',
+  https_addresses: 'HTTPS 地址',
+  edit_port: '修改端口',
+  restart_to_apply: '重启应用以应用更改',
 }

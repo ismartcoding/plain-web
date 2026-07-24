@@ -77,4 +77,11 @@ export default {
   gpu_model: 'GPU மாதிரி',
   desktop_environment: 'டெஸ்க்டாப் சூழல்',
   window_manager: 'சாளர மேலாளர்',
+  http_server: 'HTTP சேவையகம்',
+  http_port: 'HTTP போர்ட்',
+  https_port: 'HTTPS போர்ட்',
+  http_addresses: 'HTTP முகவரிகள்',
+  https_addresses: 'HTTPS முகவரிகள்',
+  edit_port: 'போர்ட்டைத் திருத்து',
+  restart_to_apply: 'மாற்றங்களைப் பயன்படுத்த பயன்பாட்டை மறுதொடக்கம் செய்யவும்',
 }

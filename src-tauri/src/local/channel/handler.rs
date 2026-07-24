@@ -13,7 +13,7 @@ use tokio::sync::broadcast;
 
 use serde_json::{json, Value};
 
-use crate::crypto::base64_decode;
+use crate::crypto::{base64_decode, ed25519_verify};
 use crate::local::db::{now_iso, ChatDb, DPeer};
 use crate::local::graphql::context::{
     load_key_cache, ChannelKeyCache, PeerKeyCache, WsEvent, WS_CHANNEL_INVITE_RECEIVED,
@@ -21,6 +21,20 @@ use crate::local::graphql::context::{
 };
 
 use super::messages::*;
+
+/// Verify an Ed25519 signature on a channel system message payload.
+///
+/// Mirrors plain-app `DChatChannelExtensions.verifyEd25519Signature`:
+/// an empty `public_key_b64` or `signature_b64` is accepted (permissive
+/// for backward compatibility with older peers that did not sign). When
+/// both are present, the signature is verified against `payload` using
+/// the raw 32-byte Ed25519 public key.
+fn verify_channel_signature(public_key_b64: &str, payload: &str, signature_b64: &str) -> bool {
+    if public_key_b64.is_empty() || signature_b64.is_empty() {
+        return true;
+    }
+    ed25519_verify(public_key_b64, payload.as_bytes(), signature_b64)
+}
 
 /// Dispatch a decoded `channelSystemMessage` from `from_id` to the correct
 /// sub-handler based on `msg_type`. Returns `true` on a recognised message
@@ -40,6 +54,7 @@ use super::messages::*;
 pub fn handle(
     db: &ChatDb,
     client_id: &str,
+    device_name: &str,
     from_id: &str,
     msg_type: &str,
     payload: &str,
@@ -53,6 +68,7 @@ pub fn handle(
         TYPE_INVITE_ACCEPT => handle_invite_accept(
             db,
             client_id,
+            device_name,
             from_id,
             payload,
             event_tx,
@@ -66,6 +82,7 @@ pub fn handle(
         TYPE_LEAVE => handle_leave(
             db,
             client_id,
+            device_name,
             from_id,
             payload,
             event_tx,
@@ -90,7 +107,7 @@ pub fn handle(
 
 fn handle_invite(
     db: &ChatDb,
-    _client_id: &str,
+    client_id: &str,
     from_id: &str,
     payload: &str,
     event_tx: &broadcast::Sender<WsEvent>,
@@ -109,6 +126,7 @@ fn handle_invite(
     let members_arr = msg["members"].as_array().cloned().unwrap_or_default();
     let member_peers = msg["memberPeers"].as_array().cloned().unwrap_or_default();
     let key = msg["key"].as_str().unwrap_or("");
+    let signature = msg["signature"].as_str().unwrap_or("");
 
     if channel_id.is_empty() {
         log::warn!("[channel] invite missing channelId");
@@ -120,6 +138,31 @@ fn handle_invite(
     // since PeerGraphQL already authenticates the sender's signature).
     if owner != from_id {
         log::warn!("[channel] invite owner ({owner}) != fromId ({from_id}) — rejected");
+        return false;
+    }
+
+    // Look up the owner's publicKey from the embedded `memberPeers` array
+    // (mirrors plain-app `handleInvite`). Reject if the owner entry is
+    // missing entirely — the signature cannot be authenticated without it.
+    let owner_pub_key = match member_peers
+        .iter()
+        .find(|m| m["id"].as_str() == Some(owner))
+        .and_then(|m| m["publicKey"].as_str())
+    {
+        Some(k) => k,
+        None => {
+            log::warn!(
+                "[channel] invite for {channel_id} has no owner memberPeerInfo — rejected"
+            );
+            return false;
+        }
+    };
+
+    let sig_payload = channel_message_payload(channel_id, version, ACTION_INVITE, client_id);
+    if !verify_channel_signature(owner_pub_key, &sig_payload, signature) {
+        log::warn!(
+            "[channel] invite signature failed for {channel_id} from {from_id} — rejected"
+        );
         return false;
     }
 
@@ -229,6 +272,7 @@ fn handle_invite(
 fn handle_invite_accept(
     db: &ChatDb,
     client_id: &str,
+    device_name: &str,
     from_id: &str,
     payload: &str,
     event_tx: &broadcast::Sender<WsEvent>,
@@ -314,10 +358,12 @@ fn handle_invite_accept(
         let broadcast_event_tx = event_tx.clone();
         let broadcast_kp_bytes = kp_bytes.to_vec();
         let client_id_owned = client_id.to_string();
+        let device_name_owned = device_name.to_string();
         tokio::spawn(async move {
             crate::local::channel::sender::broadcast_update(
                 &broadcast_ch,
                 &client_id_owned,
+                &device_name_owned,
                 &broadcast_kp_bytes,
                 &broadcast_db,
                 &broadcast_peer_key_cache,
@@ -392,6 +438,29 @@ fn handle_update(db: &ChatDb, _client_id: &str, from_id: &str, payload: &str) ->
         return false;
     }
     let version = msg["version"].as_i64().unwrap_or(0);
+    let signature = msg["signature"].as_str().unwrap_or("");
+
+    // Look up the owner's publicKey from the local peers table (we
+    // already know the owner since we have the channel). Mirrors
+    // plain-app `handleUpdate`.
+    let owner_pub_key = match db.get_peer_by_id(&ch.owner) {
+        Some(p) => p.public_key,
+        None => {
+            log::warn!(
+                "[channel] update: owner peer {} not found locally — rejected",
+                ch.owner
+            );
+            return false;
+        }
+    };
+    let sig_payload = channel_message_payload(channel_id, version, ACTION_UPDATE, "");
+    if !verify_channel_signature(&owner_pub_key, &sig_payload, signature) {
+        log::warn!(
+            "[channel] update signature failed for {channel_id} from {from_id} — rejected"
+        );
+        return false;
+    }
+
     // Optimistic concurrency: stale updates are ignored.
     if version <= ch.version {
         log::debug!(
@@ -454,6 +523,29 @@ fn handle_kick(db: &ChatDb, client_id: &str, from_id: &str, payload: &str) -> bo
         );
         return false;
     }
+    let version = msg["version"].as_i64().unwrap_or(0);
+    let signature = msg["signature"].as_str().unwrap_or("");
+
+    // Look up the owner's publicKey from the local peers table. Mirrors
+    // plain-app `handleKick`.
+    let owner_pub_key = match db.get_peer_by_id(&ch.owner) {
+        Some(p) => p.public_key,
+        None => {
+            log::warn!(
+                "[channel] kick: owner peer {} not found locally — rejected",
+                ch.owner
+            );
+            return false;
+        }
+    };
+    let sig_payload = channel_message_payload(channel_id, version, ACTION_KICK, client_id);
+    if !verify_channel_signature(&owner_pub_key, &sig_payload, signature) {
+        log::warn!(
+            "[channel] kick signature failed for {channel_id} from {from_id} — rejected"
+        );
+        return false;
+    }
+
     ch.status = CHANNEL_STATUS_KICKED.to_string();
     let members: Vec<_> = decode_members(&ch.members)
         .into_iter()
@@ -468,9 +560,11 @@ fn handle_kick(db: &ChatDb, client_id: &str, from_id: &str, payload: &str) -> bo
 
 // ── ChannelLeave ────────────────────────────────────────────────────────────
 
+#[allow(clippy::too_many_arguments)]
 fn handle_leave(
     db: &ChatDb,
     client_id: &str,
+    device_name: &str,
     from_id: &str,
     payload: &str,
     event_tx: &broadcast::Sender<WsEvent>,
@@ -511,10 +605,12 @@ fn handle_leave(
         let broadcast_event_tx = event_tx.clone();
         let broadcast_kp_bytes = kp_bytes.to_vec();
         let client_id_owned = client_id.to_string();
+        let device_name_owned = device_name.to_string();
         tokio::spawn(async move {
             crate::local::channel::sender::broadcast_update(
                 &broadcast_ch,
                 &client_id_owned,
+                &device_name_owned,
                 &broadcast_kp_bytes,
                 &broadcast_db,
                 &broadcast_peer_key_cache,
@@ -529,4 +625,44 @@ fn handle_leave(
     }
     log::info!("[channel] peer {from_id} left {channel_id}");
     true
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::crypto::{base64_encode, ed25519_generate, ed25519_sign};
+
+    /// Empty `public_key` or `signature` is accepted (permissive for
+    /// backward compatibility with older peers that did not sign).
+    /// Mirrors plain-app `DChatChannelExtensions.verifyEd25519Signature`.
+    #[test]
+    fn verify_channel_signature_permissive_on_empty() {
+        let payload = "ch_x|1|invite|peer_y";
+        // Both empty → accept.
+        assert!(verify_channel_signature("", payload, ""));
+        // Empty public key, non-empty signature → accept.
+        assert!(verify_channel_signature("", payload, "AAAA"));
+        // Non-empty public key, empty signature → accept.
+        assert!(verify_channel_signature("AAAA", payload, ""));
+    }
+
+    /// A real signature round-trip should verify, and tampering should fail.
+    #[test]
+    fn verify_channel_signature_roundtrip_and_tamper() {
+        let (kp_bytes, vk_bytes) = ed25519_generate();
+        let payload = channel_message_payload("ch_5", 4, ACTION_KICK, "peer_d");
+        let sig = ed25519_sign(&kp_bytes, payload.as_bytes());
+        let pub_key_b64 = base64_encode(&vk_bytes);
+
+        assert!(
+            verify_channel_signature(&pub_key_b64, &payload, &sig),
+            "valid signature should verify"
+        );
+
+        let tampered = channel_message_payload("ch_5", 99, ACTION_KICK, "peer_d");
+        assert!(
+            !verify_channel_signature(&pub_key_b64, &tampered, &sig),
+            "tampered payload should fail verification"
+        );
+    }
 }

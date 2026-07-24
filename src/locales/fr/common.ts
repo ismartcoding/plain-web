@@ -180,6 +180,7 @@ export default {
   pause: 'Pause',
   refresh: 'Rafraîchir',
   info: 'Infos',
+  other: 'Autre',
   zoom_in: 'Zoom avant',
   zoom_out: 'Zoom arrière',
   resize: 'Redimensionner',

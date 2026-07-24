@@ -42,4 +42,5 @@ export default {
   mirror_scroll: 'स्क्रॉल',
   open_accessibility_settings: 'एक्सेसिबिलिटी सेटिंग्स खोलें',
   mirror_long_press: 'लंबे समय तक दबाएँ',
+  screen_mirror_need_https: 'स्क्रीन मिरर के लिए सुरक्षित लिंक (HTTPS) आवश्यक है।',
 }

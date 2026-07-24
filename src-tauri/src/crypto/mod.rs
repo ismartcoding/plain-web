@@ -4,6 +4,9 @@ mod ecdh;
 mod ed25519;
 mod symmetric;
 
+#[cfg(test)]
+mod cross_platform_vectors;
+
 pub use crate::utils::base64::{base64_decode, base64_encode};
 pub use ecdh::EcdhSession;
 pub use ed25519::{ed25519_generate, ed25519_sign, ed25519_verify};

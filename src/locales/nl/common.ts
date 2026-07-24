@@ -179,6 +179,7 @@ export default {
   pause: 'Pauze',
   refresh: 'Vernieuwen',
   info: 'Info',
+  other: 'Andere',
   zoom_in: 'Inzoomen',
   zoom_out: 'Uitzoomen',
   resize: 'Formaat wijzigen',

@@ -283,6 +283,32 @@ impl ChatMessageMutation {
         true
     }
 
+    /// Bulk-delete chats by query. Mirrors plain-app's
+    /// `ChatDbHelper.deleteByIdsAsync(getIdsAsync(query))`. Supported
+    /// query shapes (parsed with the same `name:value` convention as
+    /// plain-app's `SearchHelper.parse`):
+    ///   * `ids:<comma-separated-ids>` — delete the listed chat ids.
+    ///   * `channel:<channelId>`       — delete every chat in a channel.
+    ///   * `peer:<peerId>`             — delete every 1:1 chat with the peer.
+    ///   * `peer:local`                — delete every local note.
+    ///
+    /// Emits a single `WS_MESSAGE_DELETED` event whose payload is the
+    /// `ids=...` string the web's `message_deleted` handler expects.
+    async fn delete_chat_items(&self, ctx: &Context<'_>, query: String) -> bool {
+        let c = ctx.data_unchecked::<Arc<AppCtx>>();
+        let ids = resolve_chat_ids(&c.db, &query);
+        if ids.is_empty() {
+            return false;
+        }
+        c.db.delete_chats_by_ids(&ids);
+        let payload = format!("ids={}", ids.join(","));
+        let _ = c.event_tx.send(WsEvent {
+            event_type: WS_MESSAGE_DELETED,
+            payload,
+        });
+        true
+    }
+
     /// Retry a failed chat item. Mirrors Kotlin's
     /// `ChatDbHelper.retryAsync` — peer messages go back to
     /// `pending` and re-attempt delivery; channel messages flip back
@@ -378,4 +404,121 @@ impl ChatMessageMutation {
 pub(crate) fn delivery_results_to_json(results: &[ChannelDeliveryResult]) -> Value {
     let arr: Vec<Value> = results.iter().map(|r| r.to_json()).collect();
     json!({ "results": arr })
+}
+
+/// Resolve a `deleteChatItems(query)` query into the list of chat ids
+/// that should be removed. Mirrors plain-app's
+/// `ChatDbHelper.getIdsAsync(query)`:
+///   * `ids:<comma-separated-ids>` — return the listed ids verbatim.
+///   * `channel:<channelId>`       — return every chat id in the channel.
+///   * `peer:<peerId>`             — return every 1:1 chat id with the peer.
+///   * `peer:local`                — return every local-note chat id.
+///
+/// Returns an empty Vec for an unrecognized / empty query.
+fn resolve_chat_ids(db: &crate::local::db::ChatDb, query: &str) -> Vec<String> {
+    let query = query.trim();
+    if query.is_empty() {
+        return vec![];
+    }
+    let Some((name, value)) = query.split_once(':') else {
+        return vec![];
+    };
+    match name {
+        "ids" => value
+            .split(',')
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
+            .map(String::from)
+            .collect(),
+        "channel" => db.get_chats_by_channel(value).into_iter().map(|c| c.id).collect(),
+        "peer" => {
+            let peer_id = if value == "local" { "local" } else { value };
+            db.get_chats_by_peer(peer_id).into_iter().map(|c| c.id).collect()
+        }
+        _ => vec![],
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::local::db::ChatDb;
+    use std::path::PathBuf;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn unique_tmp_dir(label: &str) -> PathBuf {
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(0);
+        let pid = std::process::id();
+        std::env::temp_dir().join(format!("plainapp-resolve-{label}-{pid}-{nanos}"))
+    }
+
+    fn seed(db: &ChatDb, id: &str, from_id: &str, to_id: &str, channel_id: &str) {
+        let mut chat = DChat::new(from_id, to_id, channel_id, "{}");
+        chat.id = id.to_string();
+        db.insert_chat(&chat);
+    }
+
+    #[test]
+    fn resolve_ids_query_returns_listed_ids() {
+        let db = ChatDb::open(&unique_tmp_dir("ids").join("local_chat.db")).expect("open db");
+        seed(&db, "a", "me", "p", "");
+        seed(&db, "b", "me", "p", "");
+
+        let ids = resolve_chat_ids(&db, "ids:a,b");
+        assert_eq!(ids, vec!["a".to_string(), "b".to_string()]);
+    }
+
+    #[test]
+    fn resolve_ids_query_trims_whitespace() {
+        let db = ChatDb::open(&unique_tmp_dir("trim").join("local_chat.db")).expect("open db");
+        let ids = resolve_chat_ids(&db, "ids: a , b , ");
+        assert_eq!(ids, vec!["a".to_string(), "b".to_string()]);
+    }
+
+    #[test]
+    fn resolve_channel_query_returns_channel_chats() {
+        let db = ChatDb::open(&unique_tmp_dir("chan").join("local_chat.db")).expect("open db");
+        seed(&db, "a", "me", "", "ch1");
+        seed(&db, "b", "me", "", "ch2");
+        seed(&db, "c", "me", "", "ch1");
+
+        let mut ids = resolve_chat_ids(&db, "channel:ch1");
+        ids.sort();
+        assert_eq!(ids, vec!["a".to_string(), "c".to_string()]);
+    }
+
+    #[test]
+    fn resolve_peer_query_returns_both_directions() {
+        let db = ChatDb::open(&unique_tmp_dir("peer").join("local_chat.db")).expect("open db");
+        seed(&db, "a", "me", "p1", "");
+        seed(&db, "b", "p1", "me", "");
+        seed(&db, "c", "me", "p2", "");
+
+        let mut ids = resolve_chat_ids(&db, "peer:p1");
+        ids.sort();
+        assert_eq!(ids, vec!["a".to_string(), "b".to_string()]);
+    }
+
+    #[test]
+    fn resolve_peer_local_query_returns_local_notes() {
+        let db = ChatDb::open(&unique_tmp_dir("local").join("local_chat.db")).expect("open db");
+        seed(&db, "a", "me", "local", "");
+        seed(&db, "b", "me", "p1", "");
+
+        let ids = resolve_chat_ids(&db, "peer:local");
+        assert_eq!(ids, vec!["a".to_string()]);
+    }
+
+    #[test]
+    fn resolve_unknown_query_returns_empty() {
+        let db = ChatDb::open(&unique_tmp_dir("unknown").join("local_chat.db")).expect("open db");
+        seed(&db, "a", "me", "p", "");
+
+        assert!(resolve_chat_ids(&db, "unknown:foo").is_empty());
+        assert!(resolve_chat_ids(&db, "").is_empty());
+        assert!(resolve_chat_ids(&db, "nocolon").is_empty());
+    }
 }

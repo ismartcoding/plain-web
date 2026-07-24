@@ -30,10 +30,17 @@ const CONTINUOUS_DISCOVER_INTERVAL_MS: u64 = 1_500;
 pub struct DiscoveredDevice {
     pub id: String,
     pub name: String,
-    pub host: String,
-    pub ip: String,
+    pub ips: Vec<String>,
     pub port: u16,
     pub device_type: String,
+    #[serde(default)]
+    pub version: String,
+    #[serde(default)]
+    pub platform: String,
+    #[serde(default)]
+    pub last_seen: String,
+    #[serde(default)]
+    pub discovery_methods: Vec<String>,
 }
 
 #[derive(Serialize, Clone, Debug)]
@@ -272,6 +279,10 @@ impl NearbyDiscoverManager {
     }
 
     fn on_datagram(&self, message: String, sender_ip: String) {
+        log::debug!(
+            "nearby_discover: on_datagram sender={sender_ip} msg_prefix={:?}",
+            message.split(':').next().unwrap_or("")
+        );
         if NearbyNetwork::local_ipv4_strs().iter().any(|ip| ip == &sender_ip) {
             return;
         }
@@ -284,7 +295,10 @@ impl NearbyDiscoverManager {
             self.handle_discover_reply(payload, &sender_ip);
             return;
         }
-        let _ = NearbyPairManager::handle_datagram(&self.pairing, &message, &sender_ip);
+        let handled = NearbyPairManager::handle_datagram(&self.pairing, &message, &sender_ip);
+        log::debug!(
+            "nearby_discover: pair datagram handled={handled} sender={sender_ip}"
+        );
     }
 
     fn broadcast_discover(&self, request: DiscoverRequest) -> NearbyNetwork::MulticastSendSummary {
@@ -298,14 +312,17 @@ impl NearbyDiscoverManager {
 
     fn handle_discover_request(&self, payload: &str, sender_ip: &str) {
         let Ok(request) = serde_json::from_str::<DiscoverRequest>(payload) else {
+            log::debug!("nearby_discover: bad DISCOVER payload from {sender_ip}");
             return;
         };
         if !request.to_id.is_empty() {
             if self.is_directed_query_for_us(&request) {
+                log::debug!("nearby_discover: directed DISCOVER from {sender_ip}, replying");
                 self.send_discover_reply(sender_ip);
             }
             return;
         }
+        log::debug!("nearby_discover: broadcast DISCOVER from {sender_ip}, replying");
         self.send_discover_reply(sender_ip);
     }
 
@@ -347,13 +364,22 @@ impl NearbyDiscoverManager {
             DISCOVER_REPLY_PREFIX,
             serde_json::to_string(&reply).unwrap_or_default()
         );
+        log::debug!(
+            "nearby_discover: sending DISCOVER_REPLY to {target_ip} id={} port={} ips={:?}",
+            reply.id, reply.port, reply.ips
+        );
         NearbyNetwork::send_unicast(&message, target_ip);
     }
 
     fn handle_discover_reply(&self, payload: &str, sender_ip: &str) {
         let Ok(reply) = serde_json::from_str::<DiscoverReply>(payload) else {
+            log::debug!("nearby_discover: bad DISCOVER_REPLY payload from {sender_ip}");
             return;
         };
+        log::debug!(
+            "nearby_discover: received DISCOVER_REPLY from {sender_ip} id={} name={} port={} continuous={}",
+            reply.id, reply.name, reply.port, self.continuous_running.load(Ordering::SeqCst)
+        );
         self.update_known_peer(&reply, sender_ip);
 
         if self.continuous_running.load(Ordering::SeqCst) {
@@ -363,13 +389,20 @@ impl NearbyDiscoverManager {
                 reply.ips.first().cloned().unwrap_or_default()
             };
             if !host_ip.is_empty() {
+                let mut ips = reply.ips.clone();
+                if !ips.contains(&host_ip) {
+                    ips.insert(0, host_ip);
+                }
                 let device = DiscoveredDevice {
                     id: reply.id.clone(),
                     name: reply.name.clone(),
-                    host: format!("{host_ip}:{}", reply.port),
-                    ip: host_ip,
+                    ips,
                     port: reply.port,
                     device_type: normalize_device_type(&reply.device_type),
+                    version: reply.version.clone(),
+                    platform: reply.platform.clone(),
+                    last_seen: crate::local::db::now_iso(),
+                    discovery_methods: vec!["LAN".to_string()],
                 };
                 {
                     let mut seen = self.seen_in_session.lock().unwrap();
@@ -420,13 +453,20 @@ fn collect_discover_replies(rx: mpsc::Receiver<DiscoverReplyEvent>) -> DiscoverD
                 if host_ip.is_empty() {
                     continue;
                 }
+                let mut ips = event.reply.ips.clone();
+                if !ips.contains(&host_ip) {
+                    ips.insert(0, host_ip);
+                }
                 found.entry(event.reply.id.clone()).or_insert(DiscoveredDevice {
                     id: event.reply.id.clone(),
                     name: event.reply.name.clone(),
-                    host: format!("{host_ip}:{}", event.reply.port),
-                    ip: host_ip,
+                    ips,
                     port: event.reply.port,
                     device_type: normalize_device_type(&event.reply.device_type),
+                    version: event.reply.version.clone(),
+                    platform: event.reply.platform.clone(),
+                    last_seen: crate::local::db::now_iso(),
+                    discovery_methods: vec!["LAN".to_string()],
                 });
             }
             Err(mpsc::RecvTimeoutError::Timeout) => continue,

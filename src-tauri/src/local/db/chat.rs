@@ -224,4 +224,176 @@ impl ChatDb {
         let conn = self.0.lock().unwrap();
         let _ = conn.execute("DELETE FROM chats WHERE channel_id=?", params![channel_id]);
     }
+
+    /// Mirrors plain-app `chatDao.deleteByPeerId(peerId)` — deletes all
+    /// 1:1 chats with the given peer (both directions). Channel chats
+    /// are preserved.
+    pub fn delete_chats_by_peer(&self, peer_id: &str) {
+        let conn = self.0.lock().unwrap();
+        let _ = conn.execute(
+            "DELETE FROM chats WHERE channel_id='' AND (to_id=? OR from_id=?)",
+            params![peer_id, peer_id],
+        );
+    }
+
+    /// Mirrors plain-app `chatDao.deleteByIds(ids)` — deletes chats by
+    /// their primary key. Used by `deleteChatItems(query)` after the
+    /// query is resolved into a set of ids.
+    pub fn delete_chats_by_ids(&self, ids: &[String]) {
+        if ids.is_empty() {
+            return;
+        }
+        let conn = self.0.lock().unwrap();
+        let placeholders = ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+        let sql = format!("DELETE FROM chats WHERE id IN ({placeholders})");
+        let params: Vec<&dyn rusqlite::ToSql> = ids
+            .iter()
+            .map(|id| id as &dyn rusqlite::ToSql)
+            .collect();
+        let _ = conn.execute(&sql, params.as_slice());
+    }
+
+    /// Mirrors plain-app `chatDao.getByPeerId(peerId)` — returns all
+    /// 1:1 chats with the given peer (both directions).
+    pub fn get_chats_by_peer(&self, peer_id: &str) -> Vec<DChat> {
+        let conn = self.0.lock().unwrap();
+        let mut stmt = match conn.prepare(
+            "SELECT id,from_id,to_id,channel_id,content,status,status_data,created_at,updated_at \
+             FROM chats WHERE channel_id='' AND (to_id=? OR from_id=?) ORDER BY created_at ASC",
+        ) {
+            Ok(s) => s,
+            Err(_) => return vec![],
+        };
+        stmt.query_map(params![peer_id, peer_id], |row| {
+            Ok(DChat {
+                id: row.get(0)?,
+                from_id: row.get(1)?,
+                to_id: row.get(2)?,
+                channel_id: row.get(3)?,
+                content: row.get(4)?,
+                status: row.get(5)?,
+                status_data: row.get(6)?,
+                created_at: row.get(7)?,
+                updated_at: row.get(8)?,
+            })
+        })
+        .ok()
+        .map(|iter| iter.filter_map(|r| r.ok()).collect())
+        .unwrap_or_default()
+    }
+
+    /// Mirrors plain-app `chatDao.getByChannelId(channelId)` — returns
+    /// all chats in a channel.
+    pub fn get_chats_by_channel(&self, channel_id: &str) -> Vec<DChat> {
+        let conn = self.0.lock().unwrap();
+        let mut stmt = match conn.prepare(
+            "SELECT id,from_id,to_id,channel_id,content,status,status_data,created_at,updated_at \
+             FROM chats WHERE channel_id=? ORDER BY created_at ASC",
+        ) {
+            Ok(s) => s,
+            Err(_) => return vec![],
+        };
+        stmt.query_map(params![channel_id], |row| {
+            Ok(DChat {
+                id: row.get(0)?,
+                from_id: row.get(1)?,
+                to_id: row.get(2)?,
+                channel_id: row.get(3)?,
+                content: row.get(4)?,
+                status: row.get(5)?,
+                status_data: row.get(6)?,
+                created_at: row.get(7)?,
+                updated_at: row.get(8)?,
+            })
+        })
+        .ok()
+        .map(|iter| iter.filter_map(|r| r.ok()).collect())
+        .unwrap_or_default()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn unique_tmp_dir(label: &str) -> PathBuf {
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(0);
+        let pid = std::process::id();
+        std::env::temp_dir().join(format!("plainapp-chat-{label}-{pid}-{nanos}"))
+    }
+
+    fn seed_chat(db: &ChatDb, id: &str, from_id: &str, to_id: &str, channel_id: &str) {
+        let mut chat = DChat::new(from_id, to_id, channel_id, "{}");
+        chat.id = id.to_string();
+        db.insert_chat(&chat);
+    }
+
+    #[test]
+    fn get_chats_by_peer_returns_both_directions() {
+        let db = ChatDb::open(&unique_tmp_dir("peer-both").join("local_chat.db")).expect("open db");
+        seed_chat(&db, "a", "me", "peer1", "");
+        seed_chat(&db, "b", "peer1", "me", "");
+        seed_chat(&db, "c", "me", "peer2", "");
+        // Channel chats with the peer's id in to_id must NOT leak in.
+        seed_chat(&db, "d", "me", "peer1", "ch1");
+
+        let ids: Vec<String> = db.get_chats_by_peer("peer1").into_iter().map(|c| c.id).collect();
+        assert_eq!(ids, vec!["a".to_string(), "b".to_string()]);
+    }
+
+    #[test]
+    fn delete_chats_by_peer_preserves_channel_chats() {
+        let db =
+            ChatDb::open(&unique_tmp_dir("peer-del").join("local_chat.db")).expect("open db");
+        seed_chat(&db, "a", "me", "peer1", "");
+        seed_chat(&db, "b", "peer1", "me", "");
+        seed_chat(&db, "c", "me", "peer1", "ch1");
+
+        db.delete_chats_by_peer("peer1");
+
+        assert!(db.get_chat_by_id("a").is_none());
+        assert!(db.get_chat_by_id("b").is_none());
+        // Channel chat must survive — it's routed by channel_id, not peer id.
+        assert!(db.get_chat_by_id("c").is_some());
+    }
+
+    #[test]
+    fn delete_chats_by_ids_removes_only_listed_ids() {
+        let db = ChatDb::open(&unique_tmp_dir("ids-del").join("local_chat.db")).expect("open db");
+        seed_chat(&db, "a", "me", "p", "");
+        seed_chat(&db, "b", "me", "p", "");
+        seed_chat(&db, "c", "me", "p", "");
+
+        db.delete_chats_by_ids(&["a".to_string(), "c".to_string()]);
+
+        assert!(db.get_chat_by_id("a").is_none());
+        assert!(db.get_chat_by_id("b").is_some());
+        assert!(db.get_chat_by_id("c").is_none());
+    }
+
+    #[test]
+    fn delete_chats_by_ids_noop_for_empty_list() {
+        let db = ChatDb::open(&unique_tmp_dir("ids-empty").join("local_chat.db")).expect("open db");
+        seed_chat(&db, "a", "me", "p", "");
+        db.delete_chats_by_ids(&[]);
+        assert!(db.get_chat_by_id("a").is_some());
+    }
+
+    #[test]
+    fn get_chats_by_channel_returns_only_that_channel() {
+        let db =
+            ChatDb::open(&unique_tmp_dir("chan-get").join("local_chat.db")).expect("open db");
+        seed_chat(&db, "a", "me", "", "ch1");
+        seed_chat(&db, "b", "me", "", "ch2");
+        seed_chat(&db, "c", "me", "", "ch1");
+
+        let ids: Vec<String> =
+            db.get_chats_by_channel("ch1").into_iter().map(|c| c.id).collect();
+        assert_eq!(ids, vec!["a".to_string(), "c".to_string()]);
+    }
 }

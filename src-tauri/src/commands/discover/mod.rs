@@ -10,6 +10,7 @@ mod nearby_pair_manager;
 mod peer_status_manager;
 
 pub use nearby_discover_manager::{DiscoverDevicesResult, NearbyDiscoverManager};
+pub use nearby_network::local_ipv4_strs as discover_local_ipv4_strs;
 pub use peer_status_manager::PeerStatusManager;
 
 #[tauri::command]

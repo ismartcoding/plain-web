@@ -73,7 +73,14 @@ impl ChatQuery {
 
     async fn peers(&self, ctx: &Context<'_>) -> Vec<Peer> {
         let c = ctx.data_unchecked::<Arc<AppCtx>>();
-        c.db.get_peers().into_iter().map(Peer::from).collect()
+        c.db
+            .get_peers()
+            .into_iter()
+            .map(|p| {
+                let online = c.peer_status.is_online(&p.id);
+                Peer::from_dpeer(p, online)
+            })
+            .collect()
     }
 
     async fn latest_chat_items(&self, ctx: &Context<'_>) -> Vec<ChatItem> {

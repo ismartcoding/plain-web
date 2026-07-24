@@ -299,6 +299,7 @@ pub struct ChatItem {
     pub to_id: String,
     pub channel_id: String,
     pub created_at: String,
+    pub updated_at: String,
     pub content: String,
     pub status: String,
     pub status_data: String,
@@ -319,6 +320,7 @@ impl From<DChat> for ChatItem {
             to_id: c.to_id,
             channel_id: c.channel_id,
             created_at: c.created_at,
+            updated_at: c.updated_at,
             content: c.content,
             status: c.status,
             status_data: c.status_data,
@@ -454,19 +456,24 @@ pub struct Peer {
     pub name: String,
     pub ip: String,
     pub status: String,
+    pub online: bool,
     pub port: i32,
     pub device_type: String,
     pub created_at: String,
     pub updated_at: String,
 }
 
-impl From<DPeer> for Peer {
-    fn from(p: DPeer) -> Self {
+impl Peer {
+    /// Build the GraphQL `Peer` from a `DPeer` row plus the live online flag
+    /// from `PeerStatusManager`. Mirrors plain-app's
+    /// `DPeer.toModel()` which calls `PeerStatusManager.isOnline(id)`.
+    pub fn from_dpeer(p: DPeer, online: bool) -> Self {
         Self {
             id: p.id,
             name: p.name,
             ip: p.ip,
             status: p.status,
+            online,
             port: p.port as i32,
             device_type: p.device_type,
             created_at: p.created_at,

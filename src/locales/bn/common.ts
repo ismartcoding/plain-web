@@ -183,6 +183,7 @@ export default {
   pause: 'বিরতি',
   refresh: 'রিফ্রেশ',
   info: 'তথ্য',
+  other: 'অন্যান্য',
   zoom_in: 'জুম ইন',
   zoom_out: 'জুম আউট',
   resize: 'আকার পরিবর্তন করুন',
