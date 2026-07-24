@@ -77,4 +77,11 @@ export default {
   gpu_model: 'GPU-model',
   desktop_environment: 'Bureaubladomgeving',
   window_manager: 'Vensterbeheerder',
+  http_server: 'HTTP-server',
+  http_port: 'HTTP-poort',
+  https_port: 'HTTPS-poort',
+  http_addresses: 'HTTP-adressen',
+  https_addresses: 'HTTPS-adressen',
+  edit_port: 'Poort bewerken',
+  restart_to_apply: 'Start de app opnieuw om de wijzigingen toe te passen',
 }

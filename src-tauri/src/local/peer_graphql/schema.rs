@@ -61,6 +61,7 @@ impl PeerMutation {
         channel_system_message_from_peer(
             c.db(),
             &c.client_id,
+            &c.app.identity.device_name,
             &c.peer.id,
             &r#type,
             &payload,
@@ -69,6 +70,20 @@ impl PeerMutation {
             &c.app.channel_key_cache,
             &kp_bytes,
         )
+    }
+
+    /// Ask the peer to start its Wi-Fi Aware service (mirrors plain-app's
+    /// `startAware` mutation). The Tauri desktop build does not support
+    /// Wi-Fi Aware, so this always logs a warning and returns `false`.
+    /// Keeping the field in the schema avoids GraphQL validation errors
+    /// when a paired Android peer prewarms the transport.
+    async fn start_aware(&self, ctx: &Context<'_>) -> bool {
+        let c = ctx.data_unchecked::<PeerCtx>();
+        log::warn!(
+            "[peer_graphql] startAware requested by {} — Wi-Fi Aware not supported on desktop",
+            c.peer.id
+        );
+        false
     }
 }
 

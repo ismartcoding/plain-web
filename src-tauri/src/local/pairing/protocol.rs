@@ -18,6 +18,22 @@ pub struct PairingRequest {
     pub ips: Vec<String>,
     #[serde(default)]
     pub signature: String,
+    /// True when the pairing was initiated by scanning a QR code
+    /// (mirrors plain-app `DPairingRequest.isQrInitiated`). Excluded
+    /// from `signature_data` to match the Kotlin wire format.
+    #[serde(default)]
+    pub is_qr_initiated: bool,
+    /// Whether the requester's device supports Wi-Fi Aware (mirrors
+    /// plain-app `DPairingRequest.awareSupported`). The Tauri desktop
+    /// build always sends `false`.
+    #[serde(default)]
+    pub aware_supported: bool,
+    /// Stamped on the receiver side (mirrors plain-app
+    /// `DPairingRequest.fromIp`). Carries the requester's IP so the
+    /// responder knows where to UDP-send the PAIR_RESPONSE. Excluded
+    /// from `signature_data` to match the Kotlin wire format.
+    #[serde(default)]
+    pub from_ip: String,
 }
 
 impl PairingRequest {
@@ -51,6 +67,11 @@ pub struct PairingResponse {
     pub ips: Vec<String>,
     #[serde(default)]
     pub signature: String,
+    /// Whether the responder's device supports Wi-Fi Aware (mirrors
+    /// plain-app `DPairingResponse.awareSupported`). The Tauri desktop
+    /// build always sends `false`.
+    #[serde(default)]
+    pub aware_supported: bool,
 }
 
 impl PairingResponse {

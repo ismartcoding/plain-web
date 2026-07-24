@@ -184,6 +184,7 @@ export default {
   pause: 'Tạm dừng',
   refresh: 'Làm mới',
   info: 'Thông tin',
+  other: 'Khác',
   zoom_in: 'Phóng to',
   zoom_out: 'Thu nhỏ',
   resize: 'Thay đổi kích thước',

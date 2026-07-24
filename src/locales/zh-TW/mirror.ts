@@ -42,4 +42,5 @@ export default {
   mirror_scroll: '滾動',
   open_accessibility_settings: '開啟無障礙設定',
   mirror_long_press: '長按',
+  screen_mirror_need_https: '螢幕鏡像需要安全連結（HTTPS）。',
 }

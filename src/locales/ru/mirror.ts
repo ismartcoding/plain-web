@@ -42,4 +42,5 @@ export default {
   mirror_scroll: 'Прокрутка',
   open_accessibility_settings: 'Открыть параметры специальных возможностей',
   mirror_long_press: 'Долгое нажатие',
+  screen_mirror_need_https: 'Для трансляции экрана требуется безопасное соединение (HTTPS).',
 }

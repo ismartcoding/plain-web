@@ -42,4 +42,5 @@ export default {
   mirror_scroll: 'Kaydırma',
   open_accessibility_settings: 'Erişilebilirlik Ayarlarını Aç',
   mirror_long_press: 'Uzun basma',
+  screen_mirror_need_https: 'Ekran yansıtma güvenli bir bağlantı (HTTPS) gerektirir.',
 }

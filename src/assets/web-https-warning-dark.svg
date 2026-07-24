@@ -1,0 +1,80 @@
+<svg viewBox="60 40 280 220" xmlns="http://w3.org">
+  <defs>
+    <filter id="dark-shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="10" />
+      <feOffset dx="0" dy="12" />
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.4" />
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <style>
+      @keyframes gold-breathe-dark {
+        0%, 100% { opacity: 0.12; transform: scale(1); filter: blur(2px); }
+        50% { opacity: 0.38; transform: scale(1.18); filter: blur(4px); }
+      }
+
+      @keyframes shield-float-dark {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-3px); }
+      }
+
+      @keyframes dash-flow-right-dark {
+        to { stroke-dashoffset: -12; }
+      }
+      @keyframes signal-pulse-dark {
+        0%, 100% { opacity: 0.3; }
+        50% { opacity: 0.8; }
+      }
+
+      .guide-container { transform-origin: 200px 145px; }
+      .breathe-circle { transform-origin: 200px 145px; animation: gold-breathe-dark 2.5s infinite ease-in-out; }
+      .shield-icon { transform-origin: 200px 145px; animation: shield-float-dark 2.5s infinite ease-in-out; }
+      .flow-line { animation: dash-flow-right-dark 1.2s linear infinite; }
+      .phone-signal { animation: signal-pulse-dark 2s infinite ease-in-out; }
+    </style>
+  </defs>
+
+  <g filter="url(#dark-shadow)">
+    <rect x="80" y="60" width="240" height="150" rx="16" fill="#1C1C1E" stroke="#2C2C2E" stroke-width="1" />
+    <!-- 顶栏分割线 -->
+    <line x1="80" y1="92" x2="320" y2="92" stroke="#2C2C2E" stroke-width="1" />
+  </g>
+
+  <circle cx="98" cy="76" r="4" fill="#FF5F56" opacity="0.9" />
+  <circle cx="110" cy="76" r="4" fill="#FFBD2E" opacity="0.9" />
+  <circle cx="122" cy="76" r="4" fill="#27C93F" opacity="0.9" />
+
+  <rect x="140" y="68" width="150" height="16" rx="8" fill="#2C2C2E" />
+  <text x="152" y="79" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="8" font-weight="bold" fill="#FF453A">http://</text>
+  <text x="180" y="79" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="8" fill="#8E8E93">screenmirror...</text>
+  <circle cx="276" cy="76" r="4" fill="#FF9F0A" />
+  <rect x="275.5" y="74" width="1" height="2.5" fill="#1C1C1E" rx="0.5" />
+  <circle cx="276" cy="78" r="0.5" fill="#1C1C1E" />
+
+  <rect x="100" y="124" width="26" height="42" rx="5" fill="none" stroke="#48484A" stroke-width="2" />
+  <circle cx="113" cy="161" r="1.5" fill="#48484A" />
+  <path class="phone-signal" d="M133 139 A 10 10 0 0 1 133 151" fill="none" stroke="#48484A" stroke-width="1.5" stroke-linecap="round" />
+
+  <rect x="254" y="133" width="36" height="24" rx="4" fill="none" stroke="#48484A" stroke-width="2" />
+  <path d="M266 157 L263 163 L281 163 L278 157 Z" fill="#48484A" />
+
+  <path class="flow-line" d="M136 145 L264 145" fill="none" stroke="#FF9F0A" stroke-width="2" stroke-dasharray="6 4" opacity="0.5" />
+
+  <g class="guide-container">
+    <circle class="breathe-circle" cx="200" cy="145" r="32" fill="#FF9F0A" />
+    
+    <circle cx="200" cy="145" r="22" fill="#2C2C2E" filter="url(#dark-shadow)" />
+    <circle cx="200" cy="145" r="19" fill="#FF9F0A" />
+    
+    <g class="shield-icon">
+      <path d="M194 142 V137 A 6 6 0 0 1 206 137 V142" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" />
+      <path d="M189 142 H211 V151 C211 156 200 161 200 161 C200 161 189 156 189 151 Z" fill="#FFFFFF" />
+      <circle cx="200" cy="149" r="1.5" fill="#FF9F0A" />
+    </g>
+  </g>
+</svg>

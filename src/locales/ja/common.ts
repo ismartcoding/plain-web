@@ -179,6 +179,7 @@ export default {
   pause: '一時停止',
   refresh: '更新',
   info: '情報',
+  other: 'その他',
   zoom_in: 'ズームイン',
   zoom_out: 'ズームアウト',
   resize: 'リサイズ',

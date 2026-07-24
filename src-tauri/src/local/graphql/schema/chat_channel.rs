@@ -52,6 +52,7 @@ impl ChatChannelMutation {
             crate::local::channel::sender::broadcast_update(
                 &ch,
                 &c.identity.client_id,
+                &c.identity.device_name,
                 &kp_bytes,
                 &c.db,
                 &c.peer_key_cache,
@@ -159,6 +160,8 @@ impl ChatChannelMutation {
             let _ = crate::local::channel::sender::send_invite(
                 &ch,
                 &peer,
+                &c.identity.client_id,
+                &c.identity.device_name,
                 &kp_bytes,
                 &c.db,
                 &c.peer_key_cache,
@@ -203,6 +206,7 @@ impl ChatChannelMutation {
         if let Some(peer) = c.db.get_peer_by_id(&peer_id) {
             let _ = crate::local::channel::sender::send_kick(
                 &ch.id,
+                ch.version,
                 &peer,
                 &kp_bytes,
                 &channel_key,
@@ -213,6 +217,7 @@ impl ChatChannelMutation {
         crate::local::channel::sender::broadcast_update(
             &ch,
             &c.identity.client_id,
+            &c.identity.device_name,
             &kp_bytes,
             &c.db,
             &c.peer_key_cache,
@@ -239,7 +244,6 @@ impl ChatChannelMutation {
             &ch.id,
             &owner_peer,
             &kp_bytes,
-            "",
             &c.identity.device_name,
             "desktop",
             &channel_key,
@@ -271,6 +275,30 @@ impl ChatChannelMutation {
         refresh_peer_key_cache(&c.db, &c.peer_key_cache);
         emit_channels_updated(&c);
         true
+    }
+
+    /// Web-only convenience mutation that branches to
+    /// `acceptChatChannelInvite` or `declineChatChannelInvite` based
+    /// on the `accept` flag. The plain-app Android schema doesn't
+    /// expose this — the web client added it so the
+    /// `ChannelInviteModal` can use a single GraphQL document for
+    /// both buttons. Returns the `accept` flag verbatim so the
+    /// modal's `onDone` handler can read the chosen action back from
+    /// the mutation result.
+    async fn respond_channel_invite(
+        &self,
+        ctx: &Context<'_>,
+        id: String,
+        accept: bool,
+    ) -> bool {
+        if accept {
+            // Reuse the accept path — `accept_chat_channel_invite`
+            // already returns `Ok(true)` on success.
+            let _ = Self::accept_chat_channel_invite(self, ctx, id).await;
+        } else {
+            let _ = Self::decline_chat_channel_invite(self, ctx, id).await;
+        }
+        accept
     }
 
     async fn channel_system_message(

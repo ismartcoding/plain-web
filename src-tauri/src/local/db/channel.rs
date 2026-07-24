@@ -202,4 +202,91 @@ impl ChatDb {
         let conn = self.0.lock().unwrap();
         let _ = conn.execute("DELETE FROM chat_channels WHERE id=?", params![id]);
     }
+
+    /// Mirrors plain-app `chatChannelDao().getAll().any { it.hasMember(peerId) }`
+    /// — returns true if any local channel (regardless of status) still
+    /// lists `peer_id` as a member. Used by `PeerManager.deletePeer`
+    /// to decide between "demote to channel-only peer" and "delete
+    /// the peer row outright".
+    pub fn any_channel_has_member(&self, peer_id: &str) -> bool {
+        let conn = self.0.lock().unwrap();
+        let mut stmt = match conn.prepare("SELECT members FROM chat_channels") {
+            Ok(s) => s,
+            Err(_) => return false,
+        };
+        let rows = match stmt.query_map(params![], |row| row.get::<_, String>(0)) {
+            Ok(r) => r,
+            Err(_) => return false,
+        };
+        for row in rows {
+            let Ok(members_json) = row else { continue };
+            let Ok(items) = serde_json::from_str::<Vec<serde_json::Value>>(&members_json) else {
+                continue;
+            };
+            if items.iter().any(|m| m["id"].as_str() == Some(peer_id)) {
+                return true;
+            }
+        }
+        false
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn unique_tmp_dir(label: &str) -> PathBuf {
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(0);
+        let pid = std::process::id();
+        std::env::temp_dir().join(format!("plainapp-chan-{label}-{pid}-{nanos}"))
+    }
+
+    fn seed_channel_with_members(db: &ChatDb, id: &str, members: &[(&str, &str)]) {
+        let members_json = serde_json::to_string(
+            &members
+                .iter()
+                .map(|(mid, status)| serde_json::json!({ "id": mid, "status": status }))
+                .collect::<Vec<_>>(),
+        )
+        .unwrap_or_else(|_| "[]".to_string());
+        let now = now_iso();
+        let mut ch = DChannel::new("test", "me");
+        ch.id = id.to_string();
+        ch.members = members_json;
+        ch.created_at = now.clone();
+        ch.updated_at = now;
+        db.insert_channel(&ch);
+    }
+
+    #[test]
+    fn any_channel_has_member_returns_true_when_member_exists() {
+        let db =
+            ChatDb::open(&unique_tmp_dir("has-member").join("local_chat.db")).expect("open db");
+        seed_channel_with_members(&db, "ch1", &[("me", "joined"), ("p1", "joined")]);
+
+        assert!(db.any_channel_has_member("p1"));
+        assert!(!db.any_channel_has_member("p2"));
+    }
+
+    #[test]
+    fn any_channel_has_member_checks_all_channels() {
+        let db =
+            ChatDb::open(&unique_tmp_dir("multi-chan").join("local_chat.db")).expect("open db");
+        seed_channel_with_members(&db, "ch1", &[("me", "joined")]);
+        seed_channel_with_members(&db, "ch2", &[("me", "joined"), ("p2", "pending")]);
+
+        // p2 is only in ch2, but the scan should still find it.
+        assert!(db.any_channel_has_member("p2"));
+    }
+
+    #[test]
+    fn any_channel_has_member_false_for_empty_db() {
+        let db = ChatDb::open(&unique_tmp_dir("empty-chan").join("local_chat.db")).expect("open db");
+        assert!(!db.any_channel_has_member("anyone"));
+    }
 }

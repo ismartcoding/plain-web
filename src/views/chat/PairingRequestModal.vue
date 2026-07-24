@@ -9,6 +9,9 @@
         <p class="pairing-message">
           {{ $t('pairing_request_message', { name: request.fromName }) }}
         </p>
+        <p class="pairing-hint">
+          {{ $t('pairing_request_hint') }}
+        </p>
         <ul class="card list-items">
           <v-list-item :title="$t('ip_address')" :value="displayIp">
           </v-list-item>
@@ -131,6 +134,13 @@ async function deny() {
   font-size: 1rem;
   line-height: 1.4;
   color: var(--md-sys-color-on-surface);
+}
+
+.pairing-hint {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 .pairing-actions {

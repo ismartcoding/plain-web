@@ -185,6 +185,7 @@ export default {
   pause: 'Pausa',
   refresh: 'Aggiorna',
   info: 'Prova',
+  other: 'Altro',
   zoom_in: 'Ingrandisci',
   zoom_out: 'Riduci',
   resize: 'Ridimensiona',

@@ -179,6 +179,7 @@ export default {
   pause: 'Duraklat',
   refresh: 'Yenile',
   info: 'Bilgi',
+  other: 'Diğer',
   zoom_in: 'Yaklaştır',
   zoom_out: 'Uzaklaştır',
   resize: 'Yeniden boyutlandır',

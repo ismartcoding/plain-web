@@ -148,6 +148,7 @@ export function useScreenMirrorPipeline(
     // can reconfigure the decoder directly without a GraphQL round-trip.
     // Canvas sizing is implicit in renderFrame (frame.displayWidth/Height),
     // so the web side doesn't need to know width/height/rotation.
+    if (!supported.value || !connected) return
     if (!codec?.annexB) return
     const newConfig = b64ToBytes(codec.annexB)
     // Skip if the config is byte-identical to what the decoder already has —

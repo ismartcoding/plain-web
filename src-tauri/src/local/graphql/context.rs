@@ -7,6 +7,7 @@ use crate::local::pairing::PairingManager;
 use crate::prefs::AppIdentity;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
+use std::sync::atomic::AtomicU16;
 use tokio::sync::broadcast;
 
 pub const WS_MESSAGE_CREATED: i32 = 1;
@@ -112,8 +113,8 @@ pub struct AppCtx {
     pub channel_key_cache: ChannelKeyCache,
     pub event_tx: broadcast::Sender<WsEvent>,
     pub token: String,
-    pub port: u16,
-    pub https_port: u16,
+    pub port: Arc<AtomicU16>,
+    pub https_port: Arc<AtomicU16>,
     /// App data directory — used by debug resolvers to read prefs.json.
     pub data_dir: std::path::PathBuf,
     /// App log directory — used by debug resolvers to read/clear plain.log.

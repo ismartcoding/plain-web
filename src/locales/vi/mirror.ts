@@ -42,4 +42,5 @@ export default {
   mirror_scroll: 'Cuộn',
   open_accessibility_settings: 'Mở Cài đặt Trợ năng',
   mirror_long_press: 'Nhấn giữ',
+  screen_mirror_need_https: 'Chiếu màn hình cần kết nối bảo mật (HTTPS).',
 }

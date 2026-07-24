@@ -412,5 +412,6 @@ declare module 'vue' {
     VPagination: typeof import('./src/components/VPagination.vue')['default']
     VSelect: typeof import('./src/components/base/VSelect.vue')['default']
     VTextField: typeof import('./src/components/base/VTextField.vue')['default']
+    WebHttpsWarning: typeof import('./src/components/base/WebHttpsWarning.vue')['default']
   }
 }

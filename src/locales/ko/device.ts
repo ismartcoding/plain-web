@@ -77,4 +77,11 @@ export default {
   gpu_model: 'GPU 모델',
   desktop_environment: '데스크톱 환경',
   window_manager: '창 관리자',
+  http_server: 'HTTP 서버',
+  http_port: 'HTTP 포트',
+  https_port: 'HTTPS 포트',
+  http_addresses: 'HTTP 주소',
+  https_addresses: 'HTTPS 주소',
+  edit_port: '포트 편집',
+  restart_to_apply: '변경 사항을 적용하려면 앱을 다시 시작하세요',
 }

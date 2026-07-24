@@ -69,6 +69,7 @@ pub fn create_chat_item_from_peer(
 pub fn channel_system_message_from_peer(
     db: &ChatDb,
     client_id: &str,
+    device_name: &str,
     from_id: &str,
     msg_type: &str,
     payload: &str,
@@ -80,6 +81,7 @@ pub fn channel_system_message_from_peer(
     let ok = crate::local::channel::handler::handle(
         db,
         client_id,
+        device_name,
         from_id,
         msg_type,
         payload,

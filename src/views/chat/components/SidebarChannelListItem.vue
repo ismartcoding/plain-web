@@ -23,7 +23,7 @@
           <div class="dropdown-item" @click="emitInfo">
             {{ $t('channel_info') }}
           </div>
-          <div class="dropdown-item" @click="openRename">
+          <div v-if="isOwner" class="dropdown-item" @click="openRename">
             {{ $t('rename') }}
           </div>
           <div class="dropdown-item" @click="confirmingClear = true">

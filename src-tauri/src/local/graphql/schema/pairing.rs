@@ -36,6 +36,13 @@ pub struct PairingDeviceInput {
     /// ISO-8601 string. We don't currently use it for the protocol, but
     /// accept it so the browser can pass the full discovered device.
     pub last_seen: String,
+    /// Discovery methods that located this device (mirrors plain-app's
+    /// `PairingDeviceInput.discoveryMethods`). Accepted as free-form
+    /// strings — values are `"LAN"` and `"BLE"`. The Tauri desktop
+    /// build only discovers over LAN, so this field is currently
+    /// accepted for schema parity and otherwise unused.
+    #[graphql(default)]
+    pub discovery_methods: Vec<String>,
 }
 
 /// Incoming-pairing request payload. Mirrors plain-app's
@@ -61,6 +68,16 @@ pub struct PairingRequestInput {
     /// responder knows which IP to UDP-send the response back to.
     #[graphql(default)]
     pub from_ip: String,
+    /// True when the user scanned a QR code to start pairing (mirrors
+    /// plain-app's `PairingRequestInput.isQrInitiated`). Forwarded to
+    /// the protocol layer so the responder can apply QR-specific rules.
+    #[graphql(default)]
+    pub is_qr_initiated: bool,
+    /// Whether the requester's device supports Wi-Fi Aware (mirrors
+    /// plain-app's `PairingRequestInput.awareSupported`). Forwarded to
+    /// the protocol layer; the Tauri desktop build always sends `false`.
+    #[graphql(default)]
+    pub aware_supported: bool,
 }
 
 #[derive(Default)]
@@ -88,14 +105,14 @@ impl PairingMutation {
             &input.id,
             &input.name,
             &target_ip,
-            c.https_port,
+            c.https_port.load(std::sync::atomic::Ordering::Relaxed),
         );
         Ok(true)
     }
 
     /// Cancel an in-progress pairing we initiated. The remote peer receives
     /// a UDP PAIR_CANCEL; completion is reported via `WS_PAIRING_CANCELLED`.
-    async fn cancel_pair_device(
+    async fn cancel_pairing(
         &self,
         ctx: &Context<'_>,
         device_id: String,
@@ -108,13 +125,14 @@ impl PairingMutation {
     /// Respond to an incoming PAIR_REQUEST that the user accepted or
     /// rejected. Accepting stores the peer and sends a UDP PAIR_RESPONSE
     /// back to the requester at `input.from_ip`.
-    async fn respond_pair_device(
+    async fn respond_to_pairing(
         &self,
         ctx: &Context<'_>,
         input: PairingRequestInput,
         accepted: bool,
     ) -> GqlResult<bool> {
         let c = ctx.data_unchecked::<Arc<AppCtx>>();
+        let sender_ip = input.from_ip.clone();
         let req = PairingRequest {
             from_id: input.from_id,
             from_name: input.from_name,
@@ -125,9 +143,16 @@ impl PairingMutation {
             timestamp: input.timestamp,
             ips: input.ips,
             signature: input.signature,
+            is_qr_initiated: input.is_qr_initiated,
+            aware_supported: input.aware_supported,
+            from_ip: input.from_ip,
         };
-        c.pairing_manager
-            .respond_to_pairing(req, &input.from_ip, accepted, c.https_port);
+        c.pairing_manager.respond_to_pairing(
+            req,
+            &sender_ip,
+            accepted,
+            c.https_port.load(std::sync::atomic::Ordering::Relaxed),
+        );
         Ok(true)
     }
 }

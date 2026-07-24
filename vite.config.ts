@@ -129,7 +129,7 @@ export default defineConfig({
     },
   },
   test: {
-    // Two projects, two environments:
+    // Three projects, three environments:
     //
     // - `unit` runs in real Chromium (Playwright) — gives us native
     //   crypto.getRandomValues / Response.text() / localStorage with no
@@ -140,11 +140,16 @@ export default defineConfig({
     //   side. Vitest Browser Mode keeps module-level state across the
     //   page side, so those tests cannot simulate two windows without a
     //   Node environment.
+    // - `integration` runs in Node — hits live Rust + Android GraphQL
+    //   endpoints over HTTPS to verify cross-API schema/behavior
+    //   alignment. Gated on `.env.test.local` config; skips cleanly
+    //   when endpoints aren't configured. See
+    //   tests/integration/README.md.
     //
     // Vitest 4 projects don't inherit root `resolve.alias` or `define`,
     // so each project re-declares them.
     //
-    // Both projects run in a single thread each, sequentially across
+    // All projects run in a single thread each, sequentially across
     // projects, so vi.spyOn / vi.resetModules from one project cannot
     // stomp the other's Node-side module cache mid-flight.
     resolve: {
@@ -165,7 +170,10 @@ export default defineConfig({
         test: {
           name: 'unit',
           include: ['tests/**/*.test.ts'],
-          exclude: ['tests/lib/cross-window-store.test.ts'],
+          exclude: [
+            'tests/lib/cross-window-store.test.ts',
+            'tests/integration/**/*.test.ts',
+          ],
           browser: {
             enabled: true,
             provider: playwright(),
@@ -194,6 +202,25 @@ export default defineConfig({
           environment: 'node',
           globals: true,
           setupFiles: ['./tests/setup.cws.ts'],
+          pool: 'threads',
+          poolOptions: { threads: { singleThread: true } },
+        },
+      },
+      {
+        resolve: {
+          alias: {
+            '@': path.resolve(__dirname, 'src'),
+          },
+        },
+        define: {
+          __IS_TAURI__: JSON.stringify(process.env.VITE_APP_MODE === 'tauri'),
+        },
+        test: {
+          name: 'integration',
+          include: ['tests/integration/**/*.test.ts'],
+          environment: 'node',
+          globals: true,
+          setupFiles: ['./tests/integration/setup.ts'],
           pool: 'threads',
           poolOptions: { threads: { singleThread: true } },
         },

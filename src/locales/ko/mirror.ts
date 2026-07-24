@@ -42,4 +42,5 @@ export default {
   mirror_scroll: '스크롤',
   open_accessibility_settings: '접근성 설정 열기',
   mirror_long_press: '길게 누르기',
+  screen_mirror_need_https: '화면 미러링에는 보안 연결(HTTPS)이 필요합니다.',
 }

@@ -46,10 +46,12 @@
       :mirroring="mirroring"
       :control-enabled="controlEnabled"
       :supported="supported"
+      :need-https="needHttps"
       :set-canvas-ref="setCanvasRef"
       :set-audio-ref="setAudioRef"
       :set-control-overlay-ref="setControlOverlayRef"
       @start="start"
+      @use-https="useHttpsLink"
     />
   </div>
 </template>
@@ -99,6 +101,11 @@ const pipeline = useScreenMirrorPipeline(canvasRef, audioRef, service.onStreamRe
 const paused = pipeline.paused
 const supported = pipeline.supported
 const togglePlay = pipeline.togglePlay
+
+const needHttps = computed(() => !supported.value && !window.isSecureContext)
+const useHttpsLink = () => {
+  window.open(`https://${window.location.hostname}:${app.value.httpsPort}`, '_blank')
+}
 
 service.setPipeline(pipeline.connect, pipeline.cleanup)
 

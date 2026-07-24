@@ -2,12 +2,13 @@ import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import emitter from '@/plugins/eventbus'
 import toast from '@/components/toaster'
-import { getWebSocketBaseUrl } from '@/lib/api/api'
+import { getWebSocketBaseUrl, getLocalToken } from '@/lib/api/api'
 import { chachaDecrypt, chachaEncrypt, bitArrayToUint8Array } from '@/lib/api/crypto'
 import { parseWebSocketData } from '@/lib/api/sjcl-arraybuffer'
 import { applyDarkClass, changeColor, changeColorMode, getCurrentMode, getLastSavedAutoColorMode, isModeDark } from '@/lib/theme'
 import { tokenToKey } from '@/lib/api/file'
 import { getCurrentAuthToken } from '@/lib/device-current'
+import { isLocalMode } from '@/lib/local-mode'
 import { TauriWebSocket } from '@/lib/api/tauri-ws'
 import { get as prefsGet } from '@/lib/prefs'
 
@@ -68,16 +69,18 @@ export function useAppSocket() {
 
   async function connect() {
     const clientId = prefsGet('client_id', '')
-    const token = getCurrentAuthToken()
-    if (!token) return
+    const localMode = isLocalMode()
+    const token = localMode ? getLocalToken() : getCurrentAuthToken()
+    if (!token) {
+      return
+    }
 
     try {
       const key = tokenToKey(token)
-      const wsUrl = `${getWebSocketBaseUrl()}?cid=${clientId}`
-      ws = (__IS_TAURI__ && wsUrl.startsWith('wss://') ? new TauriWebSocket(wsUrl) : new WebSocket(wsUrl)) as unknown as WebSocket
+      const wsUrl = `${getWebSocketBaseUrl()}/?cid=${clientId}`
+      ws = (__IS_TAURI__ ? new TauriWebSocket(wsUrl) : new WebSocket(wsUrl)) as unknown as WebSocket
       ws.onopen = async () => {
         emitter.emit('app_socket_connection_changed', true)
-        console.log('[app-socket] WebSocket connected to', wsUrl)
         retryTime = 1000
         ws.send(bitArrayToUint8Array(chachaEncrypt(key, new Date().getTime().toString())))
         wsStatus.value = ''
@@ -93,20 +96,17 @@ export function useAppSocket() {
           } else {
             const json = chachaDecrypt(key, r.data)
             emitter.emit(type as any, json ? JSON.parse(json) : null)
-            console.log(`ws.onmessage: ${type}, ${json}`)
           }
         } catch (ex) {
-          console.error('[app-socket] ws.onmessage failed for type', type, ex)
+          console.error(ex)
         }
         wsStatus.value = ''
       }
-      ws.onclose = (event: CloseEvent) => {
-        console.log('[app-socket] WebSocket closed', event.code, event.reason)
+      ws.onclose = () => {
         wsStatus.value = 'closed'
         retryConnect()
       }
-      ws.onerror = (event: Event) => {
-        console.error('[app-socket] WebSocket error', event)
+      ws.onerror = () => {
         wsStatus.value = 'error'
         ws.close()
         emitter.emit('app_socket_connection_changed', false)

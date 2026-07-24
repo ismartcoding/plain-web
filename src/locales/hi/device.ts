@@ -77,4 +77,11 @@ export default {
   gpu_model: 'GPU मॉडल',
   desktop_environment: 'डेस्कटॉप वातावरण',
   window_manager: 'विंडो मैनेजर',
+  http_server: 'HTTP सर्वर',
+  http_port: 'HTTP पोर्ट',
+  https_port: 'HTTPS पोर्ट',
+  http_addresses: 'HTTP पते',
+  https_addresses: 'HTTPS पते',
+  edit_port: 'पोर्ट संपादित करें',
+  restart_to_apply: 'परिवर्तन लागू करने के लिए ऐप पुनरारंभ करें',
 }

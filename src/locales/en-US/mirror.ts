@@ -42,4 +42,5 @@ export default {
   mirror_scroll: 'Scroll',
   mirror_long_press: 'Long press',
   open_accessibility_settings: 'Open Accessibility Settings',
+  screen_mirror_need_https: 'Screen mirror needs a secure link (HTTPS).',
 }

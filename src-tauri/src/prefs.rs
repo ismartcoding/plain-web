@@ -31,6 +31,7 @@ pub fn ensure_identity(handle: &AppHandle) -> AppIdentity {
     let device_name = store
         .get("device_name")
         .and_then(|v| v.as_str().map(String::from))
+        .map(|s| s.trim().trim_end_matches('.').trim_end_matches(".local").to_string())
         .unwrap_or_else(|| {
             let name = default_device_name();
             store.set("device_name", name.as_str());
@@ -89,6 +90,41 @@ pub fn set_http_port(handle: &AppHandle, port: u16) {
 pub fn set_https_port(handle: &AppHandle, port: u16) {
     if let Ok(store) = handle.store(STORE_FILE) {
         store.set("https_port", port as u64);
+        let _ = store.save();
+    }
+}
+
+/// User-configured preferred HTTP port (set via DeviceInfo card). `None` means
+/// use the default candidate list.
+pub fn get_preferred_http_port(handle: &AppHandle) -> Option<u16> {
+    handle
+        .store(STORE_FILE)
+        .ok()
+        .and_then(|s| s.get("preferred_http_port"))
+        .and_then(|v| v.as_u64())
+        .map(|p| p as u16)
+}
+
+pub fn set_preferred_http_port(handle: &AppHandle, port: u16) {
+    if let Ok(store) = handle.store(STORE_FILE) {
+        store.set("preferred_http_port", port as u64);
+        let _ = store.save();
+    }
+}
+
+/// User-configured preferred HTTPS port (set via DeviceInfo card).
+pub fn get_preferred_https_port(handle: &AppHandle) -> Option<u16> {
+    handle
+        .store(STORE_FILE)
+        .ok()
+        .and_then(|s| s.get("preferred_https_port"))
+        .and_then(|v| v.as_u64())
+        .map(|p| p as u16)
+}
+
+pub fn set_preferred_https_port(handle: &AppHandle, port: u16) {
+    if let Ok(store) = handle.store(STORE_FILE) {
+        store.set("preferred_https_port", port as u64);
         let _ = store.save();
     }
 }

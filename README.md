@@ -48,7 +48,7 @@ QQ Group: 812409393
 
 ## Run
 
-Duplicate `.env` file to `.env.local` and update the `VITE_APP_API_HOST`.
+Duplicate `.env.example` file to `.env.local` and update the `VITE_APP_API_HOST`.
 
 ```sh
 yarn

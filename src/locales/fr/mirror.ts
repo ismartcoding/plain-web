@@ -42,4 +42,5 @@ export default {
   mirror_scroll: 'Faire défiler',
   open_accessibility_settings: 'Ouvrir les paramètres d\'accessibilité',
   mirror_long_press: 'Appui long',
+  screen_mirror_need_https: 'La duplication d\'écran nécessite une connexion sécurisée (HTTPS).',
 }

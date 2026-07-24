@@ -179,6 +179,7 @@ export default {
   pause: 'Пауза',
   refresh: 'Обновить',
   info: 'Информация',
+  other: 'Другое',
   zoom_in: 'Увеличить',
   zoom_out: 'Уменьшить',
   resize: 'Изменить размер',

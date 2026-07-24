@@ -179,6 +179,7 @@ export default {
   pause: 'இடைநிறுத்து',
   refresh: 'புதுப்பி',
   info: 'தகவல்',
+  other: 'மற்றவர்',
   zoom_in: 'மிகவும் அழுத்து',
   zoom_out: 'மிகவும் சிறிதாக்கு',
   resize: 'அளவை மாற்று',
