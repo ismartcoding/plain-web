@@ -14,6 +14,7 @@
           @rotate-right="rotateRight"
           @toggle-info="lightboxInfoVisible = !lightboxInfoVisible"
           @open-in-window="onOpenInWindow"
+          @edit-image="onEditImage"
         />
         <section class="content" @click.self="onBackdropClick">
           <div v-if="tempStore.lightbox.sources.length > 1 && (loop || imgIndex > 0)" class="btn-prev" @click="onPrev">
@@ -170,6 +171,13 @@ async function onOpenInWindow() {
   const source = current.value
   closeDialog()
   await openMediaInWindow(source)
+}
+
+function onEditImage() {
+  if (!current.value) return
+  const src = current.value.src
+  const name = current.value.name || ''
+  window.open(`/image-editor/new?src=${encodeURIComponent(src)}&name=${encodeURIComponent(name)}`, '_blank')
 }
 
 const { onMouseDown, onMouseMove, onMouseUp, onTouchStart, onTouchMove, onTouchEnd } =

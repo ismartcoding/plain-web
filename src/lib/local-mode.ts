@@ -2,7 +2,7 @@ import { isLocalMode as _isLocalMode } from '@/lib/device-current'
 
 export { isLocalMode } from '@/lib/device-current'
 
-export const LOCAL_FEATURE_IDS = ['chat']
+export const LOCAL_FEATURE_IDS = ['chat', 'image_editor']
 export const LOCAL_ROUTE_GROUPS = ['home', 'developer', ...LOCAL_FEATURE_IDS]
 
 export function isLocalFeatureId(id: string): boolean {

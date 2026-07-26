@@ -1545,6 +1545,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@pixi/colord@npm:^2.9.6":
+  version: 2.9.6
+  resolution: "@pixi/colord@npm:2.9.6"
+  checksum: 10/62f56fa1dd881f30091973465046b7a50466923f42d8a1af33ccf06a13fbad3f68499ac025c6984b50f8913ac2f5cb8f4e4d2c96ce18c87637d54f1edcb3738b
+  languageName: node
+  linkType: hard
+
 "@pkgjs/parseargs@npm:^0.11.0":
   version: 0.11.0
   resolution: "@pkgjs/parseargs@npm:0.11.0"
@@ -1885,6 +1892,13 @@ __metadata:
   version: 4.0.2
   resolution: "@types/deep-eql@npm:4.0.2"
   checksum: 10/249a27b0bb22f6aa28461db56afa21ec044fa0e303221a62dff81831b20c8530502175f1a49060f7099e7be06181078548ac47c668de79ff9880241968d43d0c
+  languageName: node
+  linkType: hard
+
+"@types/earcut@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@types/earcut@npm:3.0.0"
+  checksum: 10/f36a07fe004b38116078a8548e43cf56b56d92e61af4c20cd7f95952ed18313eca9035ddf86bdce2945d8b58c4969182e47ae2196cac5ac4b5d752d094370060
   languageName: node
   linkType: hard
 
@@ -2561,6 +2575,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@webgpu/types@npm:^0.1.69":
+  version: 0.1.71
+  resolution: "@webgpu/types@npm:0.1.71"
+  checksum: 10/15809b0de24b48ef0a4b933fc23dbaef3abcac27c0e0bcf5e47e8ce7752c5d1089aebde258f43268b6c3d8801dce05cd2289729770f1bb2ee65b0e0a9062d023
+  languageName: node
+  linkType: hard
+
+"@xmldom/xmldom@npm:^0.8.13":
+  version: 0.8.13
+  resolution: "@xmldom/xmldom@npm:0.8.13"
+  checksum: 10/f8f3d56fa91d5026885c0c5c00b07eae47647bda0d742ecbf8e51e06bb287ab30222977b20529ee15c364031606225ebca58907a8ecc76a3add6b3f10e6ddfc6
+  languageName: node
+  linkType: hard
+
 "abbrev@npm:^2.0.0":
   version: 2.0.0
   resolution: "abbrev@npm:2.0.0"
@@ -3073,6 +3101,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"earcut@npm:^3.0.2":
+  version: 3.2.3
+  resolution: "earcut@npm:3.2.3"
+  checksum: 10/3c3c6bfc214060e6df83da1da413709cf15c77139b0e094a71e6e960ffce033c88586c1e880496ea0a39d891df74a065ccfe24c18f426898ea07a51e0fc0a446
+  languageName: node
+  linkType: hard
+
 "eastasianwidth@npm:^0.2.0":
   version: 0.2.0
   resolution: "eastasianwidth@npm:0.2.0"
@@ -3374,6 +3409,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"eventemitter3@npm:^5.0.1":
+  version: 5.0.4
+  resolution: "eventemitter3@npm:5.0.4"
+  checksum: 10/54f5c8c543650d65f92d03dbef1bb73a682a920490c44699ad8f863a6b19bbca42fb7409aa09ca09cb98a44149d9a7bc1dffd55ca88a740bd928c7be0ad666a0
+  languageName: node
+  linkType: hard
+
 "expect-type@npm:^1.3.0":
   version: 1.3.0
   resolution: "expect-type@npm:1.3.0"
@@ -3554,6 +3596,15 @@ __metadata:
   version: 1.0.0-beta.2
   resolution: "gensync@npm:1.0.0-beta.2"
   checksum: 10/17d8333460204fbf1f9160d067e1e77f908a5447febb49424b8ab043026049835c9ef3974445c57dbd39161f4d2b04356d7de12b2eecaa27a7a7ea7d871cbedd
+  languageName: node
+  linkType: hard
+
+"gifuct-js@npm:^2.1.2":
+  version: 2.1.2
+  resolution: "gifuct-js@npm:2.1.2"
+  dependencies:
+    js-binary-schema-parser: "npm:^2.0.3"
+  checksum: 10/e08b3acaf04a426f7104bc14bbc0831e0d86cf0822d8f4ad095c31d63b15cba2dd379eb975baf7cb7871db4354c216b8912ae81087b6918c972560c881ae35a8
   languageName: node
   linkType: hard
 
@@ -3766,6 +3817,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ismobilejs@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "ismobilejs@npm:1.1.1"
+  checksum: 10/02db92559e85544fa5353894aede9a778c0a29d2e22db39db29eb9e4665f95fba90ee53b7105a31c2a8e8eabc63824303f6e3edbe73508ebdab6870a2b83904c
+  languageName: node
+  linkType: hard
+
+"isomorphic.js@npm:^0.2.4":
+  version: 0.2.5
+  resolution: "isomorphic.js@npm:0.2.5"
+  checksum: 10/d8d1b083f05f3c337a06628b982ac3ce6db953bbef14a9de8ad49131250c3592f864b73c12030fdc9ef138ce97b76ef55c7d96a849561ac215b1b4b9d301c8e9
+  languageName: node
+  linkType: hard
+
 "jackspeak@npm:^3.1.2":
   version: 3.4.3
   resolution: "jackspeak@npm:3.4.3"
@@ -3793,6 +3858,13 @@ __metadata:
     html-beautify: js/bin/html-beautify.js
     js-beautify: js/bin/js-beautify.js
   checksum: 10/89f874f994a409868c74d23bdf3869281a25804dd4f77c4eac170cdee671dfb3248370c3b686ea03bb9a7cc7141769c4f450ad85e9158fbed3d7d78c330ae9a1
+  languageName: node
+  linkType: hard
+
+"js-binary-schema-parser@npm:^2.0.3":
+  version: 2.0.3
+  resolution: "js-binary-schema-parser@npm:2.0.3"
+  checksum: 10/40494a1ac114a41c9601d8289428282816179be2cff7001e9a4c8a577704c522e46b33c917f73a369612a01eeb66b5602f33c1d78afba9e9b9680f5c8794c498
   languageName: node
   linkType: hard
 
@@ -3899,6 +3971,19 @@ __metadata:
     prelude-ls: "npm:^1.2.1"
     type-check: "npm:~0.4.0"
   checksum: 10/2e4720ff79f21ae08d42374b0a5c2f664c5be8b6c8f565bb4e1315c96ed3a8acaa9de788ffed82d7f2378cf36958573de07ef92336cb5255ed74d08b8318c9ee
+  languageName: node
+  linkType: hard
+
+"lib0@npm:^0.2.74, lib0@npm:^0.2.99":
+  version: 0.2.117
+  resolution: "lib0@npm:0.2.117"
+  dependencies:
+    isomorphic.js: "npm:^0.2.4"
+  bin:
+    0ecdsa-generate-keypair: bin/0ecdsa-generate-keypair.js
+    0gentesthtml: bin/gentesthtml.js
+    0serve: bin/0serve.js
+  checksum: 10/9bacc91d25f37ba9013d102350971699946ee5ee355c1f644d1afff8d979d6446f56b36eb02765197d416c530e1bd8752c911b6b426bc3207653a5f9d1258b8c
   languageName: node
   linkType: hard
 
@@ -4460,6 +4545,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"parse-svg-path@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "parse-svg-path@npm:0.2.0"
+  checksum: 10/294750978c76eda0b0a69fad7185aa72c6928ce629bb531ccf6c583f4cb78864ea5f794ff00aaf8831a1d7ea872c0bf0f38787d9d7c8994105d1c91d2e924a10
+  languageName: node
+  linkType: hard
+
 "path-browserify@npm:^1.0.1":
   version: 1.0.1
   resolution: "path-browserify@npm:1.0.1"
@@ -4541,6 +4633,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"pixi.js@npm:^8":
+  version: 8.19.0
+  resolution: "pixi.js@npm:8.19.0"
+  dependencies:
+    "@pixi/colord": "npm:^2.9.6"
+    "@types/earcut": "npm:^3.0.0"
+    "@webgpu/types": "npm:^0.1.69"
+    "@xmldom/xmldom": "npm:^0.8.13"
+    earcut: "npm:^3.0.2"
+    eventemitter3: "npm:^5.0.1"
+    gifuct-js: "npm:^2.1.2"
+    ismobilejs: "npm:^1.1.1"
+    parse-svg-path: "npm:^0.2.0"
+    tiny-lru: "npm:^11.4.7"
+  checksum: 10/784428c167461077d2ce596cb21128675aed083e5f3590060b3f6797a0746cef94ab601e652d31c82cd399fd47d0cb6f2d1c0d17ca1710d5ad469935d81dee2a
+  languageName: node
+  linkType: hard
+
 "pkg-types@npm:^1.3.1":
   version: 1.3.1
   resolution: "pkg-types@npm:1.3.1"
@@ -4617,6 +4727,7 @@ __metadata:
     markdown-it-task-lists: "npm:^2.1.1"
     markdown-it-texmath: "npm:^1.0.0"
     pinia: "npm:^3.0.2"
+    pixi.js: "npm:^8"
     playwright: "npm:^1.60.0"
     prettier: "npm:^3.5.3"
     sass: "npm:^1.89.1"
@@ -4631,6 +4742,8 @@ __metadata:
     vue-i18n: "npm:^11.1.10"
     vue-router: "npm:^4.5.1"
     vue-tsc: "npm:^2.2.10"
+    y-indexeddb: "npm:^9.0.12"
+    yjs: "npm:^13.6.31"
   languageName: unknown
   linkType: soft
 
@@ -5132,6 +5245,13 @@ __metadata:
     minizlib: "npm:^3.1.0"
     yallist: "npm:^5.0.0"
   checksum: 10/2bc2b6f0349038a6621dbba1c4522d45752d5071b2994692257113c2050cd23fafc30308f820e5f8ad6fda3f7d7f92adc9a432aa733daa04c42af2061c021c3f
+  languageName: node
+  linkType: hard
+
+"tiny-lru@npm:^11.4.7":
+  version: 11.4.7
+  resolution: "tiny-lru@npm:11.4.7"
+  checksum: 10/34756e8f243b02d71b03a8147d4b71136d1fa92397b945c3db6ac4d9b1895e27c9cc064972a4dbe92f923ada95d8d4f9bdd2e1d177d23f050f169d3194bc4b5f
   languageName: node
   linkType: hard
 
@@ -5720,6 +5840,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"y-indexeddb@npm:^9.0.12":
+  version: 9.0.12
+  resolution: "y-indexeddb@npm:9.0.12"
+  dependencies:
+    lib0: "npm:^0.2.74"
+  peerDependencies:
+    yjs: ^13.0.0
+  checksum: 10/6468ebdcb2936a5fe10e4fb57cbe2d90260c44b63c6ecf6a26cc3652d21bd3be58bb76dfb56dbe56dd71b320042bfd3663274217b89300f2f0db92611fc9e7c6
+  languageName: node
+  linkType: hard
+
 "yallist@npm:^3.0.2":
   version: 3.1.1
   resolution: "yallist@npm:3.1.1"
@@ -5731,6 +5862,15 @@ __metadata:
   version: 5.0.0
   resolution: "yallist@npm:5.0.0"
   checksum: 10/1884d272d485845ad04759a255c71775db0fac56308764b4c77ea56a20d56679fad340213054c8c9c9c26fcfd4c4b2a90df993b7e0aaf3cdb73c618d1d1a802a
+  languageName: node
+  linkType: hard
+
+"yjs@npm:^13.6.31":
+  version: 13.6.31
+  resolution: "yjs@npm:13.6.31"
+  dependencies:
+    lib0: "npm:^0.2.99"
+  checksum: 10/dff74bdd31e9b4864fcc00b8da439b2716d2ad9a171ff9dde24db343a30015c34efc62006fd613d897f0d3d51c86f843491fbc1e87d0ba5f95a9e0415fbd6d45
   languageName: node
   linkType: hard
 

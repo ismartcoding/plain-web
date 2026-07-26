@@ -26,6 +26,10 @@
           <i-material-symbols:image-outline-rounded />
         </v-icon-button>
 
+        <v-icon-button v-tooltip="$t('edit_image')" @click="$emit('edit-image')">
+          <i-material-symbols:edit-rounded />
+        </v-icon-button>
+
         <v-icon-button v-tooltip="$t('zoom_in')" @click="$emit('zoom-in')">
           <i-material-symbols:zoom-in-rounded />
         </v-icon-button>
@@ -75,6 +79,7 @@ defineEmits<{
   'rotate-right': []
   'toggle-info': []
   'open-in-window': []
+  'edit-image': []
 }>()
 </script>
 

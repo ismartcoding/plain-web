@@ -8,7 +8,7 @@
     </template>
     <template #actions>
       <v-filled-button @click="ok">
-        {{ $t('ok') }}
+        {{ $t('confirm') }}
       </v-filled-button>
     </template>
   </v-modal>

@@ -36,7 +36,7 @@
 
     <template #actions>
       <v-outlined-button value="cancel" @click="cancel">{{ $t('cancel') }}</v-outlined-button>
-      <v-filled-button value="ok" @click="chooseCurrent">{{ $t('ok') }}</v-filled-button>
+      <v-filled-button value="ok" @click="chooseCurrent">{{ $t('confirm') }}</v-filled-button>
     </template>
   </v-modal>
 </template>

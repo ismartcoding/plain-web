@@ -12,6 +12,7 @@ import ILucideMessageSquareText from '~icons/lucide/message-square-text'
 import IMaterialSymbolsCallLogOutlineRounded from '~icons/material-symbols/call-log-outline-rounded'
 import ILucideContactRound from '~icons/lucide/contact-round'
 import IMaterialSymbolsScreenRecordRounded from '~icons/material-symbols/screen-record-rounded'
+import ILucidePalette from '~icons/lucide/palette'
 
 export interface Feature {
   id: string
@@ -36,6 +37,7 @@ export const ALL_FEATURES: Feature[] = [
   { id: 'calls', group: 'calls', defaultPath: '/calls', icon: IMaterialSymbolsCallLogOutlineRounded, titleKey: 'page_title.calls', requireNonGoogle: true },
   { id: 'contacts', group: 'contacts', defaultPath: '/contacts', icon: ILucideContactRound, titleKey: 'page_title.contacts' },
   { id: 'screen_mirror', group: 'screen_mirror', defaultPath: '/screen-mirror', icon: IMaterialSymbolsScreenRecordRounded, titleKey: 'page_title.screen_mirror' },
+  { id: 'image_editor', group: 'image_editor', defaultPath: '/image-editor', icon: ILucidePalette, titleKey: 'page_title.image_editor' },
 ]
 
 export const DEFAULT_RAIL_FEATURES = ['files', 'audios', 'images', 'videos', 'chat']
