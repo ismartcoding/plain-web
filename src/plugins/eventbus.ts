@@ -55,6 +55,7 @@ type Events = {
   nearby_device_found: any
   nearby_discovery_started: undefined
   nearby_discovery_stopped: { reason?: string } | undefined
+  image_editor_update: ArrayBuffer
 }
 
 type Handler<T = any> = (event: T) => void

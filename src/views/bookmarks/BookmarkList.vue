@@ -2,7 +2,7 @@
   <div class="quick-content-main">
     <div class="top-app-bar">
       <v-icon-button v-tooltip="$t('close')" @click="store.quick = ''">
-        <i-lucide:x />
+        <i-material-symbols:arrow-back-rounded />
       </v-icon-button>
       <div class="title">{{ $t('bookmarks') }}</div>
       <div class="actions">

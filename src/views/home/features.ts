@@ -43,6 +43,7 @@ export const DEFAULT_HOME_FEATURES = [
   'calls',
   'contacts',
   'screen_mirror',
+  'image_editor',
   'clipboard',
   'call_phone',
 ]
@@ -102,6 +103,13 @@ export function normalizeHomeFeatures(ids: string[], availableIds: string[]): st
   if (result.length === 0) {
     for (const id of DEFAULT_HOME_FEATURES) {
       if (!availableSet.has(id) || seen.has(id)) continue
+      seen.add(id)
+      result.push(id)
+    }
+  }
+
+  for (const id of DEFAULT_HOME_FEATURES) {
+    if (availableSet.has(id) && !seen.has(id)) {
       seen.add(id)
       result.push(id)
     }

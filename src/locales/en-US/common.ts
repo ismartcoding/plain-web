@@ -73,6 +73,7 @@ export default {
   deleted: 'Deleted',
   create: 'Create',
   edit: 'Edit',
+  edit_image: 'Edit image',
   delete: 'Delete',
   actions: 'Actions',
   running: 'Running',
@@ -130,6 +131,7 @@ export default {
     chat: 'Chat',
     local_chat: 'Local chat',
     developer: 'Developer',
+    image_editor: 'Image Editor',
   },
   developer: {
     storage: 'Storage',

@@ -223,6 +223,13 @@ const router = createRouter({
           },
           meta: { group: 'developer' },
         },
+        {
+          path: 'image-editor',
+          components: {
+            default: () => import('@/views/image-editor/ImageEditorListView.vue'),
+          },
+          meta: { group: 'image_editor' },
+        },
       ],
     },
     {
@@ -254,6 +261,18 @@ const router = createRouter({
       path: '/text-edit',
       component: () => import('@/views/text-file/TextFileView.vue'),
       meta: { requiresAuth: true },
+    },
+    {
+      name: 'image-editor-new',
+      path: '/image-editor/new',
+      component: () => import('@/views/image-editor/ImageEditorView.vue'),
+      meta: { requiresAuth: true, group: 'image_editor' },
+    },
+    {
+      name: 'image-editor-by-id',
+      path: '/image-editor/:id',
+      component: () => import('@/views/image-editor/ImageEditorView.vue'),
+      meta: { requiresAuth: true, group: 'image_editor' },
     },
   ],
 })

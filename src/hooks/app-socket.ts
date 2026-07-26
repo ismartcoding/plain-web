@@ -44,13 +44,15 @@ const EventType: { [key: number]: string } = {
   31: 'screen_mirror_video',
   32: 'screen_mirror_video_codec',
   33: 'screen_mirror_audio',
+  34: 'image_editor_update',
 }
 
-// Screen mirror binary frames (H.264 NAL / Opus) are sent raw — skip ChaCha20
-// decryption so WebCodecs consumes the bytes directly.
+// Screen mirror binary frames (H.264 NAL / Opus) and image editor Yjs updates
+// are sent raw — skip ChaCha20 decryption so the bytes are consumed directly.
 const RAW_BINARY_EVENTS = new Set([
   31, // SCREEN_MIRROR_VIDEO
   33, // SCREEN_MIRROR_AUDIO
+  34, // IMAGE_EDITOR_UPDATE
 ])
 
 export function useAppSocket() {

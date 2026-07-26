@@ -71,6 +71,7 @@ export default {
   deleted: '已删除',
   create: '创建',
   edit: '编辑',
+  edit_image: '编辑图片',
   delete: '删除',
   actions: '操作',
   running: '运行中',
@@ -128,6 +129,7 @@ export default {
     chat: '聊天',
     local_chat: '本机聊天',
     developer: '开发者',
+    image_editor: '图片编辑器',
   },
   developer: {
     storage: '存储',

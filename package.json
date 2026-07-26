@@ -47,9 +47,12 @@
     "markdown-it-task-lists": "^2.1.1",
     "markdown-it-texmath": "^1.0.0",
     "pinia": "^3.0.2",
+    "pixi.js": "^8",
     "vue": "^3.5.16",
     "vue-i18n": "^11.1.10",
-    "vue-router": "^4.5.1"
+    "vue-router": "^4.5.1",
+    "y-indexeddb": "^9.0.12",
+    "yjs": "^13.6.31"
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.104",

@@ -2,7 +2,7 @@
   <div class="quick-content-main">
     <div class="top-app-bar">
       <button v-tooltip="$t('close')" class="btn-icon" @click="store.quick = ''">
-        <i-lucide:x />
+        <i-material-symbols:arrow-back-rounded />
       </button>
       <div class="title">{{ $t('header_actions.uploads') }}</div>
     </div>
