@@ -664,6 +664,12 @@ export const screenMirrorQualityGQL = `
   }
 `
 
+export const requestScreenMirrorKeyFrameGQL = `
+  mutation {
+    requestScreenMirrorKeyFrame
+  }
+`
+
 export const notificationsGQL = `
   query {
     notifications {

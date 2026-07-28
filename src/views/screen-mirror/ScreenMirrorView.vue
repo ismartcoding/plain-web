@@ -97,7 +97,7 @@ const toggleControl = service.toggleControl
 const relaunchApp = service.relaunchApp
 const start = service.start
 
-const pipeline = useScreenMirrorPipeline(canvasRef, audioRef, service.onStreamReady, service.onDisconnected)
+const pipeline = useScreenMirrorPipeline(canvasRef, audioRef, service.onStreamReady, service.onDisconnected, service.onScreenMirrorOff)
 const paused = pipeline.paused
 const supported = pipeline.supported
 const togglePlay = pipeline.togglePlay

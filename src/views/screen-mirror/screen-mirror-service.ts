@@ -128,9 +128,17 @@ export function useScreenMirrorService() {
       retryTimer = setTimeout(() => connectFn(), retryCount * 1500)
     } else if (state.value !== 'idle') { state.value = 'failed'; retryCount = 0 }
   }
+  const onScreenMirrorOff = () => { fullReset() }
 
   // --- Event handlers ---
-  const onScreenMirroring = () => {
+  const onScreenMirroring = (data: any) => {
+    if (data?.running === false) {
+      // Screen mirror stopped on the phone — reset to idle so the start
+      // button reappears. Without this the web page stays stuck in
+      // streaming/connecting because no video frames arrive.
+      if (state.value !== 'idle') { cleanupFn(); fullReset() }
+      return
+    }
     if (state.value === 'streaming' || state.value === 'connecting') return
     clearCountdown(); state.value = 'connecting'; retryCount = 0; connectFn()
   }
@@ -142,6 +150,6 @@ export function useScreenMirrorService() {
     state, seconds, qualityMode, controlEnabled, audioRequesting,
     showLoading, relaunchLoading, stopLoading, setPipeline, fetchState, start, stop,
     setQualityMode, requestAudioPermission, relaunchApp, toggleControl,
-    onStreamReady, onDisconnected, onScreenMirroring, onSocketReconnect, onAudioGranted, deactivate,
+    onStreamReady, onDisconnected, onScreenMirrorOff, onScreenMirroring, onSocketReconnect, onAudioGranted, deactivate,
   }
 }

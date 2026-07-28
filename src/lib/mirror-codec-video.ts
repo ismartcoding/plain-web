@@ -1,46 +1,78 @@
 /**
- * WebCodecs wrappers for screen mirroring — video.
- * VideoDecoder: H.264 NAL units → VideoFrame → canvas drawImage
+ * WebCodecs video pipeline for screen mirroring.
+ *
+ * Data flow:
+ *   VideoPacket (from WebSocket)
+ *     → loss detection (frameId gap → request IDR)
+ *     → backpressure (decodeQueueSize > 5 → drop P-frame)
+ *     → timestamp scheduler (drop stale frames)
+ *     → WebCodecs VideoDecoder
+ *     → VideoFrame
+ *     → MirrorGLRenderer (WebGL2 desynchronized, GPU-direct texture upload)
  *
  * Wire format:
  *   - Video config blob (SPS+PPS) is Annex-B (each NAL preceded by
- *     `00 00 00 01`). The pipeline then prepends this to the first IDR
- *     chunk before handing it to VideoDecoder — that is the canonical
- *     in-band parameter-set delivery for Annex-B mode (the W3C AVC
- *     codec registration does not document a reliable description
- *     path for Annex-B in current Chromium, hence we seed in-band).
+ *     `00 00 00 01`). The pipeline prepends this to the first IDR chunk
+ *     before handing it to VideoDecoder — canonical in-band parameter-set
+ *     delivery for Annex-B mode.
  *   - Video chunks are Annex-B (start-code delimited) single-NAL frames.
- *     The server's MediaCodecVideoEncoder.drainLoop calls avccToAnnexB
- *     for each output buffer before forwarding; if the encoder already
- *     emits Annex-B (the ExynosC2 path does), avccToAnnexB passes the
- *     bytes through unchanged.
+ *   - Each frame is wrapped in a VideoPacket (frameId/timestamp/flags/data).
  */
+
+import { MirrorGLRenderer } from './mirror-gl-renderer'
+import type { VideoPacket as VideoFramePacket } from './video-packet'
 
 export class ScreenMirrorVideoPipeline {
   private decoder: VideoDecoder | null = null
-  private canvas: HTMLCanvasElement | null = null
-  private ctx: CanvasRenderingContext2D | null = null
+  private renderer = new MirrorGLRenderer()
   private lastConfigKey = ''
-  private lastConfig: ArrayBuffer | null = null
+  private lastConfig: Uint8Array | null = null
   private onError: ((e: unknown) => void) | null = null
+  private onRequestKeyFrame: (() => void) | null = null
+  private onFirstFrameRendered: (() => void) | null = null
+
+  // Loss detection + error recovery
+  private lastFrameId = 0
+  private waitingForIdr = false
+  private firstFrameRendered = false
+
+  // Timestamp scheduler — drop frames older than the last rendered frame
+  private lastRenderedPts = 0
 
   attach(canvas: HTMLCanvasElement) {
-    this.canvas = canvas
-    this.ctx = canvas.getContext('2d', { alpha: false })
+    this.renderer.attach(canvas)
   }
 
   setOnError(cb: (e: unknown) => void) {
     this.onError = cb
   }
 
-  configure(config: ArrayBuffer) {
-    const u = new Uint8Array(config)
-    const codec = extractAvc1CodecStringForTest(u)
+  setOnRequestKeyFrame(cb: () => void) {
+    this.onRequestKeyFrame = cb
+  }
+
+  setOnFirstFrameRendered(cb: () => void) {
+    this.onFirstFrameRendered = cb
+  }
+
+  /**
+   * Mark the pipeline as waiting for an IDR. All P-frames will be dropped
+   * until the next keyframe arrives. Used at startup to skip the stale
+   * GraphQL keyframe (which may be a blank frame produced before
+   * VirtualDisplay rendered real screen content) and wait for a fresh IDR
+   * from the encoder.
+   */
+  requestIdr() {
+    this.waitingForIdr = true
+  }
+
+  configure(config: Uint8Array) {
+    const codec = extractAvc1CodecString(config)
     if (!codec) {
       console.error('[MirrorCodec] config is not a valid Annex-B H.264 stream (no SPS NAL found)')
       return
     }
-    const key = Array.from(u.slice(0, 16)).map(b => b.toString(16).padStart(2, '0')).join('')
+    const key = Array.from(config.slice(0, 16)).map(b => b.toString(16).padStart(2, '0')).join('')
     if (key === this.lastConfigKey && this.decoder && this.decoder.state === 'configured') {
       return
     }
@@ -50,22 +82,18 @@ export class ScreenMirrorVideoPipeline {
     }
     this.lastConfigKey = key
     this.lastConfig = config
+    this.waitingForIdr = false
+    this.firstFrameRendered = false
     console.log(`[MirrorCodec] codec=${codec}, config=${config.byteLength}B`)
     this.decoder = new VideoDecoder({
       output: (frame) => this.renderFrame(frame),
       error: (e) => {
         console.error('[MirrorCodec] decoder error', e)
+        this.waitingForIdr = true
+        this.onRequestKeyFrame?.()
         this.onError?.(e)
       },
     })
-    // Wire contract: Annex-B start-code delimited chunks. SPS/PPS are NOT
-    // passed in `description` — instead, the pipeline prepends them to the
-    // first IDR chunk via `ensureSpsPpsPrepended` (see decode()). This is
-    // the canonical in-band parameter set delivery for Annex-B over
-    // WebCodecs and the pattern used by mainstream H.264 streaming libs
-    // (mp4-muxer, h264-live-player). Passing a separate AVCDecoderConfigurationRecord
-    // in `description` alongside `avc.format: 'annexb'` is technically
-    // allowed by the spec but does not decode in current Chromium.
     this.decoder.configure({
       codec,
       avc: { format: 'annexb' },
@@ -75,66 +103,93 @@ export class ScreenMirrorVideoPipeline {
     console.log(`[MirrorCodec] configured, state=${this.decoder.state}`)
   }
 
-  decode(chunk: ArrayBuffer, isKeyFrame: boolean, timestamp: number) {
-    if (!this.decoder) {
-      console.warn('[MirrorCodec] decode dropped: no decoder')
+  decode(packet: VideoFramePacket) {
+    if (!this.decoder || this.decoder.state !== 'configured') return
+
+    // Loss detection: frameId gap means frames were lost. If the current
+    // frame is a P-frame, it can't decode correctly without the missing
+    // reference — enter waitingForIdr and request a keyframe from the server.
+    // The !waitingForIdr guard ensures we only request once per loss event;
+    // without it, every stale P-frame arriving during recovery would re-trigger
+    // the gap (lastFrameId stays frozen) and flood the server with requests.
+    if (!this.waitingForIdr && this.lastFrameId > 0 && packet.frameId > this.lastFrameId + 1) {
+      const gap = packet.frameId - this.lastFrameId - 1
+      console.warn(`[MirrorCodec] frame loss: ${gap} (frameId ${this.lastFrameId + 1}-${packet.frameId - 1})`)
+      if (!packet.isKeyFrame) {
+        this.waitingForIdr = true
+        this.onRequestKeyFrame?.()
+        this.lastFrameId = packet.frameId
+        return
+      }
+    }
+    this.lastFrameId = packet.frameId
+
+    // Error recovery: after a loss or decoder error, discard P-frames until
+    // the next IDR arrives. This prevents mosaic/garbage from accumulating.
+    if (this.waitingForIdr) {
+      if (packet.isKeyFrame) {
+        this.waitingForIdr = false
+        console.log('[MirrorCodec] recovered on IDR')
+      } else {
+        return
+      }
+    }
+
+    // Backpressure: drop stale P-frames when the decoder queue grows.
+    // Threshold of 5 tolerates HW decoder startup latency without
+    // unnecessary P-frame drops that cause visual stutter.
+    if (this.decoder.decodeQueueSize > 5 && !packet.isKeyFrame) {
       return
     }
-    if (this.decoder.state !== 'configured') {
-      console.warn(`[MirrorCodec] decode dropped: state=${this.decoder.state}`)
+
+    // Timestamp scheduler: drop frames that are older than the last
+    // rendered frame (out-of-order arrival). Real-time priority —
+    // always render the newest frame, never wait for a stale one.
+    if (packet.timestamp < this.lastRenderedPts && !packet.isKeyFrame) {
       return
     }
-    let data: ArrayBuffer = chunk
-    // First IDR after configure: WebCodecs Annex-B mode needs the SPS and PPS
-    // NALs prepended in-band to seed the decoder. The cached `lastConfig`
-    // is the original Annex-B SPS+PPS broadcast from the server
-    // (each NAL preceded by 00 00 00 01). Concatenating it ahead of the IDR
-    // NAL (which already has its own start code from MediaCodec.avccToAnnexB)
-    // produces a single access unit the decoder can ingest end-to-end.
-    if (isKeyFrame && this.lastConfig) {
+
+    let data: Uint8Array = packet.data
+    // First IDR after configure: prepend SPS+PPS in-band to seed the decoder.
+    if (packet.isKeyFrame && this.lastConfig) {
       const cfg = new Uint8Array(this.lastConfig)
-      const merged = new Uint8Array(cfg.byteLength + chunk.byteLength)
+      const merged = new Uint8Array(cfg.byteLength + packet.data.byteLength)
       merged.set(cfg, 0)
-      merged.set(new Uint8Array(chunk), cfg.byteLength)
-      data = merged.buffer
+      merged.set(packet.data, cfg.byteLength)
+      data = merged
       this.lastConfig = null
     }
+
     try {
       this.decoder.decode(new EncodedVideoChunk({
-        type: isKeyFrame ? 'key' : 'delta',
-        timestamp,
+        type: packet.isKeyFrame ? 'key' : 'delta',
+        timestamp: packet.timestamp,
         data,
       }))
     } catch (e) {
       console.error('[MirrorCodec] decode failed', e)
+      this.waitingForIdr = true
+      this.onRequestKeyFrame?.()
       this.onError?.(e)
     }
   }
 
   close() {
+    this.renderer.close()
     try { this.decoder?.close() } catch (_) { /* ignore */ }
     this.decoder = null
-    if (this.ctx && this.canvas) {
-      this.ctx.fillStyle = '#000'
-      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
-    }
+    this.lastFrameId = 0
+    this.waitingForIdr = false
+    this.firstFrameRendered = false
   }
 
   private renderFrame(frame: VideoFrame) {
-    if (!this.canvas || !this.ctx) {
-      frame.close()
-      return
+    this.lastRenderedPts = frame.timestamp
+    this.renderer.renderFrame(frame)
+    if (!this.firstFrameRendered) {
+      this.firstFrameRendered = true
+      this.onFirstFrameRendered?.()
     }
-    // The encoder's output dimensions match the phone's current orientation
-    // (Android rebuilds the encoder on rotation, so each VideoFrame arrives
-    // already in the correct orientation for the current display). We just
-    // size the canvas to the frame and draw it as-is.
-    if (this.canvas.width !== frame.displayWidth || this.canvas.height !== frame.displayHeight) {
-      this.canvas.width = frame.displayWidth
-      this.canvas.height = frame.displayHeight
-    }
-    this.ctx.drawImage(frame, 0, 0, this.canvas.width, this.canvas.height)
-    frame.close()
   }
 }
 
@@ -202,15 +257,12 @@ function skipAnnexBStartCode(u: Uint8Array, off: number): number {
  *
  * NAL type lives in the lower 5 bits of the NAL header byte; type 5 = IDR.
  */
-export function isKeyframeNalu(nalu: ArrayBuffer): boolean {
-  const u = new Uint8Array(nalu)
+export function isKeyframeNalu(nalu: Uint8Array): boolean {
+  const u = nalu
   if (u.length < 5) return false
-  if (u[0] === 0 && u[1] === 0) {
-    const is4ByteSC = u[2] === 0 && u[3] === 1
-    const is3ByteSC = u[2] === 1
-    if (is4ByteSC || is3ByteSC) {
-      return findAnnexBNals(u).some(n => n.type === 5)
-    }
+  // Annex-B: walk all NALs (SEI/AUD may precede the IDR slice).
+  if (skipAnnexBStartCode(u, 0) >= 0) {
+    return findAnnexBNals(u).some(n => n.type === 5)
   }
   // AVCC: 4-byte big-endian length, then NAL header. Reject pathological
   // lengths so we don't misread an arbitrary payload as AVCC.
@@ -221,11 +273,9 @@ export function isKeyframeNalu(nalu: ArrayBuffer): boolean {
 
 /**
  * Extract `avc1.PPCCLL` from the first SPS NAL in an Annex-B config blob.
- * Returns null if no SPS (NAL type 7) can be located. Exported under
- * `extractAvc1CodecStringForTest` so the test suite can verify the round-trip
- * through `buildAvcCFromAnnexB`.
+ * Returns null if no SPS (NAL type 7) can be located.
  */
-export function extractAvc1CodecStringForTest(u: Uint8Array): string | null {
+export function extractAvc1CodecString(u: Uint8Array): string | null {
   for (const n of findAnnexBNals(u)) {
     if (n.type === 7 && n.end - n.start >= 4) {
       const profile = u[n.start + 1].toString(16).padStart(2, '0')
@@ -235,56 +285,4 @@ export function extractAvc1CodecStringForTest(u: Uint8Array): string | null {
     }
   }
   return null
-}
-
-/**
- * Wrap an Annex-B SPS+PPS blob into the AVCDecoderConfigurationRecord bytes
- * WebCodecs wants in `VideoDecoderConfig.description`. Note: **the record
- * itself, NOT the ISO BMFF avcC box** — WebCodecs parses from byte 0 as
- * configurationVersion (must be 1), so the 4-byte size + 'avcC' magic would
- * be misread as `configurationVersion=0` and rejected.
- *
- * Layout (ISO/IEC 14496-15 §5.2.4.1):
- *   1 byte   configurationVersion (1)
- *   1 byte   AVCProfileIndication (from SPS[1])
- *   1 byte   profile_compatibility (SPS[2])
- *   1 byte   AVCLevelIndication (SPS[3])
- *   1 byte   0xFF — reserved(6) | lengthSizeMinusOne(2)=3 (4-byte NAL lengths)
- *   1 byte   0xE1 — reserved(3) | numOfSequenceParameterSets(5)=1
- *   2 bytes  SPS length (big-endian)
- *   N bytes  SPS
- *   1 byte   numOfPictureParameterSets = 1
- *   2 bytes  PPS length (big-endian)
- *   N bytes  PPS
- */
-export function buildAvcCFromAnnexB(config: Uint8Array): ArrayBuffer {
-  const nals = findAnnexBNals(config)
-  const sps = nals.find(n => n.type === 7)
-  const pps = nals.find(n => n.type === 8)
-  if (!sps) {
-    throw new Error('config is missing SPS NAL')
-  }
-  if (!pps) {
-    throw new Error('config is missing PPS NAL')
-  }
-  const spsBytes = config.subarray(sps.start, sps.end)
-  const ppsBytes = config.subarray(pps.start, pps.end)
-  const spsLen = spsBytes.length
-  const ppsLen = ppsBytes.length
-  const out = new Uint8Array(11 + spsLen + ppsLen)
-  let o = 0
-  out[o++] = 0x01 // configurationVersion
-  out[o++] = spsBytes[1] // profile
-  out[o++] = spsBytes[2] // compat
-  out[o++] = spsBytes[3] // level
-  out[o++] = 0xff // lengthSizeMinusOne(3) | reserved(0x3F)
-  out[o++] = 0xe1 // numSps(1) | reserved(0x7)
-  out[o++] = (spsLen >>> 8) & 0xff
-  out[o++] = spsLen & 0xff
-  out.set(spsBytes, o); o += spsLen
-  out[o++] = 0x01 // numPps
-  out[o++] = (ppsLen >>> 8) & 0xff
-  out[o++] = ppsLen & 0xff
-  out.set(ppsBytes, o)
-  return out.buffer
 }

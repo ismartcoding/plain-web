@@ -80,7 +80,7 @@ export class ScreenMirrorAudioPipeline {
     if (this.audio) this.audio.muted = muted
   }
 
-  decode(packet: ArrayBuffer, timestamp: number) {
+  decode(packet: Uint8Array, timestamp: number) {
     if (!this.ready || !this.decoder || !this.enabled) return
     try {
       this.decoder.decode(new EncodedAudioChunk({
