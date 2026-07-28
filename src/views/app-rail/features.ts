@@ -21,6 +21,7 @@ export interface Feature {
   icon: Component
   titleKey: string
   requireNonGoogle?: boolean
+  requireDebug?: boolean
 }
 
 export const ALL_FEATURES: Feature[] = [
@@ -37,11 +38,12 @@ export const ALL_FEATURES: Feature[] = [
   { id: 'calls', group: 'calls', defaultPath: '/calls', icon: IMaterialSymbolsCallLogOutlineRounded, titleKey: 'page_title.calls', requireNonGoogle: true },
   { id: 'contacts', group: 'contacts', defaultPath: '/contacts', icon: ILucideContactRound, titleKey: 'page_title.contacts' },
   { id: 'screen_mirror', group: 'screen_mirror', defaultPath: '/screen-mirror', icon: IMaterialSymbolsScreenRecordRounded, titleKey: 'page_title.screen_mirror' },
-  { id: 'image_editor', group: 'image_editor', defaultPath: '/image-editor', icon: ILucidePalette, titleKey: 'page_title.image_editor' },
+  { id: 'image_editor', group: 'image_editor', defaultPath: '/image-editor', icon: ILucidePalette, titleKey: 'page_title.image_editor', requireDebug: true },
 ]
 
 export const DEFAULT_RAIL_FEATURES = ['files', 'audios', 'images', 'videos', 'chat']
 
-export function getAvailableFeatures(channel: string): Feature[] {
+export function getAvailableFeatures(channel: string, debug: boolean = false): Feature[] {
   return ALL_FEATURES.filter((f) => !(f.requireNonGoogle && channel === 'GOOGLE'))
+    .filter((f) => !(f.requireDebug && !debug))
 }

@@ -206,7 +206,7 @@ onUnmounted(() => {
 })
 
 const popupFeatures = computed<Feature[]>(() => {
-  const available = getAvailableFeatures(app.value?.channel ?? '')
+  const available = getAvailableFeatures(app.value?.channel ?? '', app.value?.debug ?? false)
   return available.filter((f) => !store.railFeatures.includes(f.id))
 })
 
