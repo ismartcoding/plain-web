@@ -68,11 +68,12 @@ const HOME_PANEL_FEATURES: HomePanelFeature[] = [
   { id: 'call_phone', icon: ILucidePhoneCall, titleKey: 'call_phone', sectionType: 'call_phone' },
 ]
 
-export function getAvailableHomeFeatures(channel: string): HomeSectionFeature[] {
+export function getAvailableHomeFeatures(channel: string, debug: boolean = false): HomeSectionFeature[] {
   const routeFeatures = ALL_FEATURES
     .filter((feature) => HOME_FEATURE_IDS.has(feature.id))
     .filter((feature) => !isLocalMode() || isLocalFeatureId(feature.id))
     .filter((feature) => !(feature.requireNonGoogle && channel === 'GOOGLE'))
+    .filter((feature) => !(feature.requireDebug && !debug))
     .map((feature) => ({
       ...feature,
       sectionType: 'feature' as const,

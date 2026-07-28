@@ -42,7 +42,7 @@ const router = useRouter()
 const tempStore = useTempStore()
 const { app } = storeToRefs(tempStore)
 
-const availableFeatures = computed(() => getAvailableFeatures(app.value?.channel ?? ''))
+const availableFeatures = computed(() => getAvailableFeatures(app.value?.channel ?? '', app.value?.debug ?? false))
 
 const railFeatures = computed<Feature[]>(() => {
   const ids = localMode ? store.railFeatures.filter(isLocalFeatureId) : store.railFeatures
