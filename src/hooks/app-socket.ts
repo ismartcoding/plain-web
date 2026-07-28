@@ -93,8 +93,13 @@ export function useAppSocket() {
         const type = EventType[r.type]
         try {
           if (RAW_BINARY_EVENTS.has(r.type)) {
-            const ab = r.data.buffer.slice(r.data.byteOffset, r.data.byteOffset + r.data.byteLength) as ArrayBuffer
-            emitter.emit(type as any, ab)
+            // Zero-copy: pass the Uint8Array view directly. The view shares
+            // the underlying WebSocket buffer — no slice, no memcpy. Downstream
+            // (mirror-codec-video / mirror-codec-audio) consumes Uint8Array
+            // and never touches .buffer, so the 4-byte type prefix is never
+            // read. This matters for 1080p@60fps where each frame is ~100KB
+            // and a per-frame slice would copy ~6MB/s.
+            emitter.emit(type as any, r.data)
           } else {
             const json = chachaDecrypt(key, r.data)
             emitter.emit(type as any, json ? JSON.parse(json) : null)

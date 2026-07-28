@@ -1,10 +1,11 @@
 import { ref, type Ref, onScopeDispose } from 'vue'
-import { ScreenMirrorVideoPipeline, isKeyframeNalu } from '@/lib/mirror-codec-video'
+import { ScreenMirrorVideoPipeline } from '@/lib/mirror-codec-video'
 import { ScreenMirrorAudioPipeline } from '@/lib/mirror-codec-audio'
 import { isWebCodecsSupported } from '@/lib/mirror-codec-support'
 import { gqlFetch } from '@/lib/api/gql-client'
-import { screenMirrorVideoCodecGQL } from '@/lib/api/query'
+import { screenMirrorVideoCodecGQL, requestScreenMirrorKeyFrameGQL } from '@/lib/api/query'
 import { base64ToArrayBuffer } from '@/lib/strutil'
+import { parseVideoPacket, type VideoPacket } from '@/lib/video-packet'
 
 export interface ScreenMirrorVideoCodec {
   annexB: string
@@ -12,50 +13,33 @@ export interface ScreenMirrorVideoCodec {
 }
 
 /**
- * Wall-clock monotonic pts (microseconds) shared by audio + video frames.
- * The base anchor is captured lazily on the first call, so the first frame
- * gets pts=0 and subsequent frames are time-since-first in microseconds.
- * Video at 30fps and audio at 48kHz/20ms therefore land on the same clock
- * and stay in sync without per-stream counters.
- */
-export function makePtsClock() {
-  let baseUs = 0
-  return {
-    next(): number {
-      const nowUs = performance.now() * 1000
-      if (baseUs === 0) baseUs = nowUs
-      return nowUs - baseUs
-    },
-    reset() {
-      baseUs = 0
-    },
-  }
-}
-
-/**
  * Binary mirror pipeline: CONFIG (Annex-B SPS+PPS) pulled via GraphQL
  * `screenMirrorVideoCodec`; video NAL units decoded by WebCodecs VideoDecoder
  * and drawn to canvas; audio Opus packets decoded into <audio>.
+ *
+ * All video/audio frames arrive as VideoPacket-wrapped binary WebSocket events
+ * (see lib/video-packet.ts). The packet carries frameId (loss detection),
+ * timestamp (A/V sync), and flags (keyframe/audio) — the web side no longer
+ * generates its own PTS clock.
  */
 export function useScreenMirrorPipeline(
   canvasRef: Ref<HTMLCanvasElement | undefined>,
   audioRef: Ref<HTMLAudioElement | undefined>,
   onFirstFrame: () => void,
   onDisconnected: () => void,
+  onScreenMirrorOff: () => void,
 ) {
   const video = new ScreenMirrorVideoPipeline()
   const audio = new ScreenMirrorAudioPipeline()
   const supported = ref(isWebCodecsSupported())
   const paused = ref(false)
   let connected = false
-  // Wall-clock anchor (microseconds). Each frame's pts is `now - base`, so
-  // video and audio share one clock and need no per-stream counter.
-  const pts = makePtsClock()
   // Cached codec config so the video decoder can be re-created on error
-  // without a round-trip back to GraphQL. The encoder emits an IDR every
-  // ~1s, so once we mark the decoder broken we drop P-frames until the
-  // next IDR arrives and re-configure with the same SPS/PPS.
-  let cachedConfig: ArrayBuffer | null = null
+  // without a round-trip back to GraphQL. The encoder emits an IDR on demand
+  // (via requestScreenMirrorKeyFrame mutation), so once we mark the decoder
+  // broken we drop P-frames until the next IDR arrives and re-configure with
+  // the same SPS/PPS.
+  let cachedConfig: Uint8Array | null = null
   let decoderNeedsReset = false
 
   onScopeDispose(() => {
@@ -63,9 +47,8 @@ export function useScreenMirrorPipeline(
     audio.close()
   })
 
-  function b64ToBytes(b64: string): ArrayBuffer {
-    const u8 = base64ToArrayBuffer(b64)
-    return u8.buffer
+  function b64ToBytes(b64: string): Uint8Array {
+    return new Uint8Array(base64ToArrayBuffer(b64))
   }
 
   async function connect() {
@@ -91,50 +74,53 @@ export function useScreenMirrorPipeline(
       const annexB = r?.data?.screenMirrorVideoCodec?.annexB ?? null
       if (!annexB) {
         console.warn('[MirrorPipeline] no screenMirrorVideoCodec from server')
-        onDisconnected()
+        onScreenMirrorOff()
         return
       }
       const config = b64ToBytes(annexB)
-      const kfB64: string | null = r?.data?.screenMirrorVideoCodec?.keyFrame ?? null
-      const kf = kfB64 ? b64ToBytes(kfB64) : null
-      console.log(`[MirrorPipeline] pulled config ${config.byteLength}B${kf ? ` + keyFrame ${kf.byteLength}B` : ''}`)
+      console.log(`[MirrorPipeline] pulled config ${config.byteLength}B, requesting fresh IDR`)
       cachedConfig = config
       decoderNeedsReset = false
-      pts.reset()
       video.configure(config)
       video.setOnError(() => { decoderNeedsReset = true })
-      if (kf) {
-        video.decode(kf, true, pts.next())
-        onFirstFrame()
-      }
+      video.setOnRequestKeyFrame(requestKeyFrame)
+      video.setOnFirstFrameRendered(onFirstFrame)
+      // Don't decode the stale GraphQL keyframe. The encoder's first IDR is
+      // produced before VirtualDisplay renders real screen content, so it's
+      // a blank (green) frame. Instead, set waitingForIdr so P-frames are
+      // dropped, then request a fresh IDR — by the time it arrives the
+      // VirtualDisplay has real content.
+      video.requestIdr()
       audio.prepare()
       connected = true
+      await requestKeyFrame()
     } catch (e) {
       console.error('[MirrorPipeline] failed to fetch screenMirrorVideoCodec', e)
       onDisconnected()
     }
   }
 
-  function handleVideo(nalu: ArrayBuffer) {
+  function handleVideo(rawData: Uint8Array) {
     if (!connected || paused.value) return
-    const isKey = isKeyframeNalu(nalu)
+    const packet = parseVideoPacket(rawData)
+    if (!packet || packet.isAudio) return
     // If the decoder errored, drop everything until the next IDR, then
     // re-configure with the cached config (creates a fresh VideoDecoder in
-    // 'configured' state — see mirror-codec.configure).
-    if (decoderNeedsReset && isKey && cachedConfig) {
+    // 'configured' state — see mirror-codec.configure) before decoding the IDR.
+    if (decoderNeedsReset) {
+      if (!packet.isKeyFrame || !cachedConfig) return
       video.configure(cachedConfig)
       decoderNeedsReset = false
       console.log('[MirrorPipeline] decoder reset on IDR')
-    } else if (decoderNeedsReset) {
-      return
     }
-    video.decode(nalu, isKey, pts.next())
-    onFirstFrame()
+    video.decode(packet)
   }
 
-  function handleAudio(packet: ArrayBuffer) {
+  function handleAudio(rawData: Uint8Array) {
     if (!connected || paused.value) return
-    audio.decode(packet, pts.next())
+    const packet = parseVideoPacket(rawData)
+    if (!packet || !packet.isAudio) return
+    audio.decode(packet.data, packet.timestamp)
   }
 
   const togglePlay = () => { paused.value = !paused.value }
@@ -156,16 +142,29 @@ export function useScreenMirrorPipeline(
     // decoder and costs an IDR to recover.
     const sameAsCached = cachedConfig
       && cachedConfig.byteLength === newConfig.byteLength
-      && new Uint8Array(cachedConfig).every((b, i) => b === new Uint8Array(newConfig)[i])
+      && cachedConfig.every((b, i) => b === newConfig[i])
     if (sameAsCached) return
     cachedConfig = newConfig
     decoderNeedsReset = false
     video.configure(newConfig)
     if (codec.keyFrame) {
-      video.decode(b64ToBytes(codec.keyFrame), true, pts.next())
-      onFirstFrame()
+      video.decode(makeSyntheticKeyFrame(b64ToBytes(codec.keyFrame)))
     }
+    // Drop any residual P-frames from the old encoder (still in the WebSocket
+    // pipeline) until a fresh IDR arrives — they reference the old SPS/PPS and
+    // will produce artifacts. Then request a clean IDR that is guaranteed to
+    // have the post-resize dimensions.
+    video.requestIdr()
+    requestKeyFrame()
     console.log(`[MirrorPipeline] reconfigured decoder on config event ${newConfig.byteLength}B${codec.keyFrame ? ` + keyFrame ${codec.keyFrame.length}B` : ''}`)
+  }
+
+  async function requestKeyFrame() {
+    try {
+      await gqlFetch(requestScreenMirrorKeyFrameGQL, {})
+    } catch (e) {
+      console.error('[MirrorPipeline] requestKeyFrame failed', e)
+    }
   }
 
   function cleanup() {
@@ -186,6 +185,24 @@ export function useScreenMirrorPipeline(
     enableAudio,
     isAudioEnabled,
     setAudioMuted,
+  }
+}
+
+/**
+ * Build a synthetic VideoPacket for a keyframe pulled via GraphQL (not wrapped
+ * in the VideoPacket protocol since it travels over HTTP, not WebSocket).
+ * frameId=0 and timestamp=0 are safe because the video pipeline's loss
+ * detection only fires when lastFrameId > 0, and keyframes bypass the
+ * timestamp scheduler.
+ */
+function makeSyntheticKeyFrame(data: Uint8Array): VideoPacket {
+  return {
+    frameId: 0,
+    timestamp: 0,
+    isKeyFrame: true,
+    isConfig: false,
+    isAudio: false,
+    data,
   }
 }
 

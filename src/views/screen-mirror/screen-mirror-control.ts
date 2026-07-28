@@ -139,11 +139,9 @@ function hideIndicator(dot: HTMLElement, isTap: boolean) {
   }
   dot.classList.remove('touch-indicator--active')
   dot.classList.add('touch-indicator--fade-out')
-  const onEnd = () => {
+  dot.addEventListener('transitionend', () => {
     dot.classList.remove('touch-indicator--fade-out', 'touch-indicator--ripple')
-    dot.removeEventListener('transitionend', onEnd)
-  }
-  dot.addEventListener('transitionend', onEnd, { once: true })
+  }, { once: true })
 }
 
 // ---- Composable ----

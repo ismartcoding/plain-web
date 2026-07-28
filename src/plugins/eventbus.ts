@@ -34,8 +34,8 @@ type Events = {
   pomodoro_action: any
   pomodoro_settings_update: any
   screen_mirroring: string
-  screen_mirror_video: ArrayBuffer
-  screen_mirror_audio: ArrayBuffer
+  screen_mirror_video: Uint8Array
+  screen_mirror_audio: Uint8Array
   screen_mirror_video_codec: ScreenMirrorVideoCodec
   screen_mirror_audio_granted: boolean
   bookmark_updated: any

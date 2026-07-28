@@ -25,7 +25,7 @@
           <p class="prompt-hint">{{ $t('screen_mirror_permission_waiting_hint') }}</p>
           <p class="prompt-countdown">{{ seconds }}s</p>
         </div>
-        <div v-if="failed && !mirroring" class="prompt-screen">
+        <div v-else-if="failed && !mirroring" class="prompt-screen">
           <div class="prompt-icon prompt-icon--warning">
             <MobileWarning />
           </div>
@@ -89,14 +89,15 @@ defineEmits<{ (e: 'start'): void; (e: 'use-https'): void }>()
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .video {
-  margin: 0 auto;
   display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .unsupported-overlay {
