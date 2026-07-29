@@ -34,6 +34,8 @@ export default {
     text_placeholder: 'Enter text…',
     delete_confirm_title: 'Delete Project?',
     delete_confirm_desc: 'This project and all its changes will be permanently deleted. This action cannot be undone.',
+    delete_project_confirm: 'Delete this project? This action cannot be undone.',
+    delete_project: 'Delete Project',
     background: 'Background',
     opacity: 'Opacity',
     replace_image: 'Replace image',

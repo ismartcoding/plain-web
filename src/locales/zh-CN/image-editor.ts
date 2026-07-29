@@ -34,6 +34,8 @@ export default {
     text_placeholder: '输入文本…',
     delete_confirm_title: '删除项目？',
     delete_confirm_desc: '此项目及其所有更改将被永久删除，此操作无法撤销。',
+    delete_project_confirm: '删除此项目？此操作无法撤销。',
+    delete_project: '删除项目',
     background: '背景',
     opacity: '不透明度',
     replace_image: '替换图片',

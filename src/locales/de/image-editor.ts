@@ -34,6 +34,8 @@ export default {
     text_placeholder: 'Text eingeben…',
     delete_confirm_title: 'Projekt löschen?',
     delete_confirm_desc: 'Dieses Projekt und alle seine Änderungen werden dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.',
+    delete_project_confirm: 'Dieses Projekt löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
+    delete_project: 'Projekt löschen',
     background: 'Hintergrund',
     opacity: 'Deckkraft',
     replace_image: 'Bild ersetzen',

@@ -34,6 +34,8 @@ export default {
     text_placeholder: 'Introducir texto…',
     delete_confirm_title: '¿Eliminar proyecto?',
     delete_confirm_desc: 'Este proyecto y todos sus cambios se eliminarán permanentemente. Esta acción no se puede deshacer.',
+    delete_project_confirm: '¿Eliminar este proyecto? Esta acción no se puede deshacer.',
+    delete_project: 'Eliminar proyecto',
     background: 'Fondo',
     opacity: 'Opacidad',
     replace_image: 'Reemplazar imagen',

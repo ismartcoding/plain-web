@@ -114,6 +114,20 @@ export function useImageEditorPersistence(
     }
   }
 
+  async function deleteProject(): Promise<void> {
+    if (saveTimer) clearTimeout(saveTimer)
+    if (thumbnailTimer) clearTimeout(thumbnailTimer)
+    const id = projectId.value
+    projectId.value = null
+    if (id) {
+      await store.delete(id).catch(() => {})
+    }
+    if (typeof window !== 'undefined') {
+      window.close()
+      window.location.href = EDITOR_BASE
+    }
+  }
+
   async function loadProjectById(id: string): Promise<boolean> {
     if (typeof window === 'undefined') return false
     try {
@@ -137,6 +151,7 @@ export function useImageEditorPersistence(
     tryRestore,
     ensureProjectId,
     clearProject,
+    deleteProject,
     listRecentProjects: () => store.list(),
     loadProjectById,
   }

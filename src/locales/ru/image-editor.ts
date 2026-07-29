@@ -34,6 +34,8 @@ export default {
     text_placeholder: 'Введите текст…',
     delete_confirm_title: 'Удалить проект?',
     delete_confirm_desc: 'Этот проект и все его изменения будут удалены безвозвратно. Это действие нельзя отменить.',
+    delete_project_confirm: 'Удалить этот проект? Это действие нельзя отменить.',
+    delete_project: 'Удалить проект',
     background: 'Фон',
     opacity: 'Непрозрачность',
     replace_image: 'Заменить изображение',

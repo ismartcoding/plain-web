@@ -80,9 +80,9 @@ export function useImageEditorCore() {
 
   watch(activeTool, (tool) => {
     if (tool === 'crop') {
-      const { width: cw, height: ch } = canvasSize.value
-      cropRect.value = { x: 0, y: 0, w: cw, h: ch }
+      cropRect.value = null
       isCropping.value = true
+      drawOverlay()
     }
   })
 
@@ -195,7 +195,7 @@ export function useImageEditorCore() {
   }
 
   const {
-    projectId, scheduleSave, flushSave, tryRestore, ensureProjectId, clearProject,
+    projectId, scheduleSave, flushSave, tryRestore, ensureProjectId, clearProject, deleteProject,
     listRecentProjects, loadProjectById,
   } = useImageEditorPersistence(doc, store, editorActive, makeThumbnail, onRestored)
 
@@ -371,7 +371,7 @@ export function useImageEditorCore() {
       if (cursor) overlayCursor.value = cursor
     }
 
-    if (crop.cropPointerMove(pos, isDrawing, drawStart, draw)) return
+    if (crop.cropPointerMove(pos, isDrawing, drawStart, drawAll)) return
 
     if (!isDrawing.value || !drawStart.value) return
     if (previewLayer.value) {
@@ -526,6 +526,6 @@ export function useImageEditorCore() {
     autoResizeSticker, updateStickerText, updateStickerFontSize,
     toggleStickerBold, toggleStickerItalic,
     download, copyToClipboard, getPreviewDataUrl, resizeCanvas, setBgColor, setSourceImg, reset,
-    scheduleSave, listRecentProjects, loadProjectById,
+    scheduleSave, listRecentProjects, loadProjectById, deleteProject,
   }
 }

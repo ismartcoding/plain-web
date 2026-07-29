@@ -185,7 +185,7 @@ export function getDirFromPath(path: string) {
 }
 
 export function enrichFile(item: IFile, urlTokenKey: Uint8Array | null) {
-  const name = getFileName(item.path)
+  const name = getFileName(item.path.replace(/\/+$/, ''))
   const extension = item.isDir ? '' : getFileExtension(name)
   const hasFileId = !item.isDir && (isImage(name) || isVideo(name))
   return {
@@ -195,6 +195,28 @@ export function enrichFile(item: IFile, urlTokenKey: Uint8Array | null) {
     fileId: hasFileId ? getFileId(urlTokenKey, item.path) : '',
     extension,
   }
+}
+
+export const ZIP_SEPARATOR = '!zip!/'
+
+export function isZipFile(name: string) {
+  return name.toLowerCase().endsWith('.zip')
+}
+
+export function isZipPath(path: string) {
+  return path.includes(ZIP_SEPARATOR)
+}
+
+export function getZipFilePath(path: string) {
+  return path.split(ZIP_SEPARATOR)[0]
+}
+
+export function getZipInternalPath(path: string) {
+  return path.split(ZIP_SEPARATOR)[1] ?? ''
+}
+
+export function joinZipPath(zipFilePath: string, internalPath: string) {
+  return `${zipFilePath}${ZIP_SEPARATOR}${internalPath}`
 }
 
 /**

@@ -34,6 +34,8 @@ export default {
     text_placeholder: 'Inserisci testo…',
     delete_confirm_title: 'Eliminare il progetto?',
     delete_confirm_desc: 'Questo progetto e tutte le sue modifiche verranno eliminati definitivamente. Questa azione non può essere annullata.',
+    delete_project_confirm: 'Eliminare questo progetto? Questa azione non può essere annullata.',
+    delete_project: 'Elimina progetto',
     background: 'Sfondo',
     opacity: 'Opacità',
     replace_image: 'Sostituisci immagine',

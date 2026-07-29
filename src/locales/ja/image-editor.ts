@@ -34,6 +34,8 @@ export default {
     text_placeholder: 'テキストを入力…',
     delete_confirm_title: 'プロジェクトを削除しますか？',
     delete_confirm_desc: 'このプロジェクトとすべての変更は完全に削除されます。この操作は元に戻せません。',
+    delete_project_confirm: 'このプロジェクトを削除しますか？この操作は元に戻せません。',
+    delete_project: 'プロジェクトを削除',
     background: '背景',
     opacity: '不透明度',
     replace_image: '画像を置き換え',

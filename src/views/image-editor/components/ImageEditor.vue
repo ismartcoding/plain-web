@@ -22,14 +22,14 @@
         <HeaderActions :logged-in="isLoggedIn" class="header-actions" />
       </div>
 
-      <div v-if="isCropping && cropRect" class="crop-bar">
+      <div v-if="isCropping" class="crop-bar">
         <i-lucide-crop class="crop-icon" />
         <span class="crop-hint">{{ $t('image_editor.crop_hint') }}</span>
-        <span v-if="cropRect.w > 1 && cropRect.h > 1" class="crop-dims">
+        <span v-if="cropRect && cropRect.w > 1 && cropRect.h > 1" class="crop-dims">
           {{ Math.round(cropRect.w) }} × {{ Math.round(cropRect.h) }}px
         </span>
         <div class="crop-spacer" />
-        <button class="crop-btn apply" @click="applyCrop">
+        <button v-if="cropRect && cropRect.w > 1 && cropRect.h > 1" class="crop-btn apply" @click="applyCrop">
           {{ $t('image_editor.apply_crop') }}
         </button>
         <button class="crop-btn cancel" @click="cancelCrop">
@@ -130,6 +130,24 @@
             </button>
 
             <SaveFormatButton @save="download" @copy="copyToClipboard" />
+
+            <button
+              id="editor-delete-project-btn"
+              class="action-btn danger"
+              :disabled="deleteLoading"
+              @click="showDeleteConfirm = true"
+            >
+              <i-lucide-trash-2 />
+              {{ $t('image_editor.delete_project') }}
+            </button>
+            <v-dropdown-menu v-model="showDeleteConfirm" anchor="editor-delete-project-btn">
+              <inline-delete-confirm
+                :loading="deleteLoading"
+                message-key="image_editor.delete_project_confirm"
+                @confirm="handleDeleteProject"
+                @cancel="showDeleteConfirm = false"
+              />
+            </v-dropdown-menu>
           </div>
         </div>
       </div>
@@ -183,7 +201,7 @@ const {
   addTextLayer, addStickerLayer, addImageLayerFromFile, replaceImageLayerFile,
   autoResizeSticker,
   download, copyToClipboard, getPreviewDataUrl, resizeCanvas,
-  pushUndo,
+  pushUndo, deleteProject,
 } = useImageEditorCore()
 
 const showPreview = ref(false)
@@ -192,6 +210,19 @@ const previewImages = ref<{ src: string; label: string }[]>([])
 function openPreview() {
   previewImages.value = [{ src: getPreviewDataUrl(), label: t('image_editor.preview') }]
   showPreview.value = true
+}
+
+const showDeleteConfirm = ref(false)
+const deleteLoading = ref(false)
+
+async function handleDeleteProject() {
+  if (deleteLoading.value) return
+  deleteLoading.value = true
+  try {
+    await deleteProject()
+  } finally {
+    deleteLoading.value = false
+  }
 }
 
 const bgMode = ref<'color' | 'image'>(sourceImg.value ? 'image' : 'color')

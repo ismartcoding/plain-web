@@ -1,5 +1,5 @@
 import { type Ref, type ComputedRef } from 'vue'
-import { type IFile, canOpenInBrowser, canView, isTextFile } from '@/lib/file'
+import { type IFile, canOpenInBrowser, canView, isTextFile, isZipFile, joinZipPath } from '@/lib/file'
 import { getFileUrlByPath, getFileId } from '@/lib/api/file'
 import type { IFileFilter } from '@/lib/interfaces'
 import { useMainStore } from '@/stores/main'
@@ -54,12 +54,14 @@ export function useFilesNavigation(opts: UseFilesNavigationOptions) {
 
   function clickItem(item: IFile) {
     if (item.isDir) { navigateToDir(item.path); return }
+    if (isZipFile(item.name)) { navigateToDir(joinZipPath(item.path, '')); return }
     openFile(item)
   }
 
   function viewItem(event: Event, item: IFile) {
     if (item.isDir) return
     event.stopPropagation()
+    if (isZipFile(item.name)) { navigateToDir(joinZipPath(item.path, '')); return }
     openFile(item)
   }
 

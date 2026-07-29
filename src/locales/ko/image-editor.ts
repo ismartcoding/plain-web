@@ -34,6 +34,8 @@ export default {
     text_placeholder: '텍스트 입력…',
     delete_confirm_title: '프로젝트를 삭제하시겠습니까?',
     delete_confirm_desc: '이 프로젝트와 모든 변경 사항이 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.',
+    delete_project_confirm: '이 프로젝트를 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.',
+    delete_project: '프로젝트 삭제',
     background: '배경',
     opacity: '불투명도',
     replace_image: '이미지 교체',

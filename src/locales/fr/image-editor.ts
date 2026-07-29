@@ -34,6 +34,8 @@ export default {
     text_placeholder: 'Saisir du texte…',
     delete_confirm_title: 'Supprimer le projet ?',
     delete_confirm_desc: 'Ce projet et toutes ses modifications seront définitivement supprimés. Cette action ne peut pas être annulée.',
+    delete_project_confirm: 'Supprimer ce projet ? Cette action est irréversible.',
+    delete_project: 'Supprimer le projet',
     background: 'Arrière-plan',
     opacity: 'Opacité',
     replace_image: 'Remplacer l\'image',

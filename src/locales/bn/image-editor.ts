@@ -34,6 +34,8 @@ export default {
     text_placeholder: 'টেক্সট লিখুন…',
     delete_confirm_title: 'প্রকল্প মুছবেন?',
     delete_confirm_desc: 'এই প্রকল্প এবং এর সমস্ত পরিবর্তন স্থায়ীভাবে মুছে ফেলা হবে। এই ক্রিয়াটি পূর্বাবস্থায় ফেরানো যাবে না।',
+    delete_project_confirm: 'এই প্রজেক্টটি মুছবেন? এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।',
+    delete_project: 'প্রজেক্ট মুছুন',
     background: 'ব্যাকগ্রাউন্ড',
     opacity: 'অস্বচ্ছতা',
     replace_image: 'ছবি প্রতিস্থাপন',

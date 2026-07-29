@@ -34,6 +34,8 @@ export default {
     text_placeholder: '輸入文字…',
     delete_confirm_title: '刪除專案？',
     delete_confirm_desc: '此專案及其所有變更將被永久刪除，此操作無法復原。',
+    delete_project_confirm: '刪除此專案？此操作無法復原。',
+    delete_project: '刪除專案',
     background: '背景',
     opacity: '不透明度',
     replace_image: '取代圖片',

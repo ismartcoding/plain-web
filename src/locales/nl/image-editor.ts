@@ -34,6 +34,8 @@ export default {
     text_placeholder: 'Tekst invoeren…',
     delete_confirm_title: 'Project verwijderen?',
     delete_confirm_desc: 'Dit project en alle wijzigingen worden permanent verwijderd. Deze actie kan niet ongedaan worden gemaakt.',
+    delete_project_confirm: 'Dit project verwijderen? Deze actie kan niet ongedaan worden gemaakt.',
+    delete_project: 'Project verwijderen',
     background: 'Achtergrond',
     opacity: 'Doorzichtigheid',
     replace_image: 'Afbeelding vervangen',

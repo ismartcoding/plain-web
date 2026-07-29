@@ -34,6 +34,8 @@ export default {
     text_placeholder: 'टेक्स्ट दर्ज करें…',
     delete_confirm_title: 'प्रोजेक्ट हटाएँ?',
     delete_confirm_desc: 'यह प्रोजेक्ट और इसके सभी परिवर्तन स्थायी रूप से हटा दिए जाएँगे। इस क्रिया को पूर्ववत नहीं किया जा सकता।',
+    delete_project_confirm: 'इस प्रोजेक्ट को हटाएं? यह क्रिया पूर्ववत नहीं की जा सकती।',
+    delete_project: 'प्रोजेक्ट हटाएं',
     background: 'पृष्ठभूमि',
     opacity: 'अपारदर्शिता',
     replace_image: 'छवि बदलें',
