@@ -1,6 +1,7 @@
 import { computed, type Ref } from 'vue'
 import { formatFileSize } from '@/lib/format'
 import { getFileName } from '@/lib/api/file'
+import { isZipPath, getZipFilePath, getZipInternalPath, ZIP_SEPARATOR } from '@/lib/file'
 import type { IFileFilter, IBreadcrumbItem, IStorageMount, IApp } from '@/lib/interfaces'
 
 export function useFilesBreadcrumb(
@@ -32,7 +33,31 @@ export function useFilesBreadcrumb(
 
   const breadcrumbPaths = computed(() => {
     const paths: IBreadcrumbItem[] = []
-    let p = filter.parent
+    const parent = filter.parent
+
+    if (isZipPath(parent)) {
+      const zipFilePath = getZipFilePath(parent)
+      const internalPath = getZipInternalPath(parent)
+
+      let p = zipFilePath
+      while (p) {
+        if (p === rootDir.value) break
+        paths.unshift({ path: p, name: getFileName(p) })
+        p = p.substring(0, p.lastIndexOf('/'))
+      }
+      paths.unshift({ path: rootDir.value, name: getPageTitle() })
+      paths.push({ path: zipFilePath + ZIP_SEPARATOR, name: getFileName(zipFilePath) })
+
+      const segments = internalPath.split('/').filter((s) => s.length > 0)
+      let currentPath = zipFilePath + ZIP_SEPARATOR
+      for (const segment of segments) {
+        currentPath += segment + '/'
+        paths.push({ path: currentPath, name: segment })
+      }
+      return paths
+    }
+
+    let p = parent
     while (p) {
       if (p === rootDir.value) break
       paths.unshift({ path: p, name: getFileName(p) })

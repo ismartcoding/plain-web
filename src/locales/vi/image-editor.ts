@@ -34,6 +34,8 @@ export default {
     text_placeholder: 'Nhập văn bản…',
     delete_confirm_title: 'Xóa dự án?',
     delete_confirm_desc: 'Dự án này và tất cả các thay đổi của nó sẽ bị xóa vĩnh viễn. Hành động này không thể hoàn tác.',
+    delete_project_confirm: 'Xóa dự án này? Hành động này không thể hoàn tác.',
+    delete_project: 'Xóa dự án',
     background: 'Nền',
     opacity: 'Độ mờ',
     replace_image: 'Thay thế hình ảnh',

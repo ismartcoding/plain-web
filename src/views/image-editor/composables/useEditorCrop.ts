@@ -188,7 +188,7 @@ export function useEditorCrop(
   }
 
   function drawCropIfActive(ctx: CanvasRenderingContext2D) {
-    if (isCropping.value && cropRect.value) drawCropOverlay(ctx, cropRect.value)
+    if (isCropping.value && cropRect.value && cropRect.value.w > 1 && cropRect.value.h > 1) drawCropOverlay(ctx, cropRect.value)
   }
 
   function onDoubleClickCrop(pos: { x: number; y: number }): boolean {

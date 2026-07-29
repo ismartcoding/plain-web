@@ -34,6 +34,8 @@ export default {
     text_placeholder: 'Metin girin…',
     delete_confirm_title: 'Proje silinsin mi?',
     delete_confirm_desc: 'Bu proje ve tüm değişiklikleri kalıcı olarak silinecek. Bu işlem geri alınamaz.',
+    delete_project_confirm: 'Bu proje silinsin mi? Bu işlem geri alınamaz.',
+    delete_project: 'Projeyi Sil',
     background: 'Arka plan',
     opacity: 'Opaklık',
     replace_image: 'Görseli değiştir',

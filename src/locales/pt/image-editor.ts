@@ -35,6 +35,8 @@ export default {
     text_placeholder: 'Inserir texto…',
     delete_confirm_title: 'Excluir projeto?',
     delete_confirm_desc: 'Este projeto e todas as suas alterações serão excluídos permanentemente. Esta ação não pode ser desfeita.',
+    delete_project_confirm: 'Excluir este projeto? Esta ação não pode ser desfeita.',
+    delete_project: 'Excluir projeto',
     background: 'Fundo',
     opacity: 'Opacidade',
     replace_image: 'Substituir imagem',

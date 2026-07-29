@@ -34,6 +34,8 @@ export default {
     text_placeholder: 'உரையை உள்ளிடவும்…',
     delete_confirm_title: 'திட்டத்தை நீக்கவா?',
     delete_confirm_desc: 'இந்த திட்டம் மற்றும் அதன் அனைத்து மாற்றங்களும் நிரந்தரமாக நீக்கப்படும். இந்த செயலை செயல்தவிர்க்க முடியாது.',
+    delete_project_confirm: 'இந்த திட்டத்தை நீக்கவா? இந்த செயலை செயல்தவிர்க்க முடியாது.',
+    delete_project: 'திட்டத்தை நீக்கு',
     background: 'பின்னணி',
     opacity: 'ஒளிபுகாதன்மை',
     replace_image: 'படத்தை மாற்று',

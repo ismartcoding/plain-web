@@ -39,35 +39,41 @@
               <span>{{ formatTimeAgo(new Date(p.updatedAt).toISOString()) }}</span>
             </div>
             <button
+              :id="`project-delete-${p.id}`"
               class="delete-btn"
               :title="$t('image_editor.delete')"
-              @click.stop="confirmDelete(p)"
+              @click.stop="openDeleteMenu(p)"
             >
               <i-lucide-trash-2 />
             </button>
+            <v-dropdown-menu v-model="deleteMenuVisible[p.id]" :anchor="`project-delete-${p.id}`">
+              <inline-delete-confirm
+                :loading="deletingId === p.id"
+                message-key="image_editor.delete_project_confirm"
+                @confirm="handleDelete(p)"
+                @cancel="closeDeleteMenu(p.id)"
+              />
+            </v-dropdown-menu>
           </div>
         </div>
       </template>
     </div>
-
-    <ImageEditorDeleteConfirm v-model="showDeleteConfirm" @confirm="handleDelete" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onActivated, onDeactivated } from 'vue'
+import { ref, reactive, onActivated, onDeactivated } from 'vue'
 import { PlainAppProjectStore } from './store/plain-app-store'
 import type { ProjectSummary } from './store/project-store'
 import { formatTimeAgo } from '@/lib/format'
 import ImageDropZone from './components/ImageDropZone.vue'
-import ImageEditorDeleteConfirm from './components/ImageEditorDeleteConfirm.vue'
 
 const store = new PlainAppProjectStore()
 const isActive = ref(false)
 const loading = ref(true)
 const projects = ref<ProjectSummary[]>([])
-const showDeleteConfirm = ref(false)
-const pendingDelete = ref<ProjectSummary | null>(null)
+const deleteMenuVisible = reactive<Record<string, boolean>>({})
+const deletingId = ref<string | null>(null)
 
 async function loadProjects() {
   loading.value = true
@@ -91,17 +97,24 @@ function openProject(id: string) {
   window.open(`/image-editor/${id}`, '_blank')
 }
 
-function confirmDelete(p: ProjectSummary) {
-  pendingDelete.value = p
-  showDeleteConfirm.value = true
+function openDeleteMenu(p: ProjectSummary) {
+  deleteMenuVisible[p.id] = true
 }
 
-async function handleDelete() {
-  const p = pendingDelete.value
-  if (!p) return
-  await store.delete(p.id)
-  pendingDelete.value = null
-  await loadProjects()
+function closeDeleteMenu(id: string) {
+  deleteMenuVisible[id] = false
+}
+
+async function handleDelete(p: ProjectSummary) {
+  if (deletingId.value) return
+  deletingId.value = p.id
+  try {
+    await store.delete(p.id)
+    deleteMenuVisible[p.id] = false
+    await loadProjects()
+  } finally {
+    deletingId.value = null
+  }
 }
 
 onActivated(() => {
