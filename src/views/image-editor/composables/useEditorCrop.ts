@@ -1,10 +1,9 @@
-import { ref, nextTick, type Ref } from 'vue'
+import { ref, type Ref } from 'vue'
 import type { EditorLayer, CanvasSize } from '@/views/image-editor/utils/types'
 import { renderEditorCanvas } from '@/views/image-editor/utils/renderer'
 import type { ImageEditorDoc } from './useImageEditorDoc'
 
 export function useEditorCrop(
-  canvasRef: Ref<HTMLCanvasElement | null>,
   canvasSize: Ref<CanvasSize>,
   sourceImg: Ref<HTMLImageElement | null>,
   imgOffset: { x: number; y: number },
@@ -15,9 +14,8 @@ export function useEditorCrop(
   doc: ImageEditorDoc,
   pushUndo: () => void,
   activeTool: Ref<string>,
-  drawAll: () => void,
+  requestRender: () => void,
   scheduleSave: () => void,
-  renderScale: Ref<number>,
 ) {
   const isCropping = ref(false)
   const cropRect = ref<{ x: number; y: number; w: number; h: number } | null>(null)
@@ -91,7 +89,7 @@ export function useEditorCrop(
     return true
   }
 
-  function cropPointerMove(pos: { x: number; y: number }, isDrawing: Ref<boolean>, drawStart: Ref<{ x: number; y: number } | null>, draw: () => void): boolean {
+  function cropPointerMove(pos: { x: number; y: number }, isDrawing: Ref<boolean>, drawStart: Ref<{ x: number; y: number } | null>): boolean {
     if (activeTool.value === 'crop' && cropRect.value && !isDrawing.value) {
       return false
     }
@@ -119,7 +117,7 @@ export function useEditorCrop(
         h = Math.max(10, Math.min(ch - y, h))
         cropRect.value = { x, y, w, h }
       }
-      draw(); return true
+      requestRender(); return true
     }
     if (isDrawing.value && drawStart.value && activeTool.value === 'crop' && cropRect.value) {
       const { width: cw, height: ch } = canvasSize.value
@@ -129,7 +127,7 @@ export function useEditorCrop(
         x: Math.min(drawStart.value.x, cx), y: Math.min(drawStart.value.y, cy),
         w: Math.abs(cx - drawStart.value.x), h: Math.abs(cy - drawStart.value.y),
       }
-      draw(); return true
+      requestRender(); return true
     }
     return false
   }
@@ -152,39 +150,35 @@ export function useEditorCrop(
   }
 
   function applyCrop() {
-    if (!cropRect.value || !canvasRef.value) return
+    if (!cropRect.value) return
     const r = cropRect.value
     if (r.w < 2 || r.h < 2) { cancelCrop(); return }
-    const s = renderScale.value
+    const rw = Math.round(r.w), rh = Math.round(r.h)
     const tmp = document.createElement('canvas')
-    tmp.width = Math.round(r.w); tmp.height = Math.round(r.h)
+    tmp.width = rw; tmp.height = rh
     const tctx = tmp.getContext('2d')!
-    tctx.drawImage(
-      canvasRef.value,
-      Math.round(r.x * s), Math.round(r.y * s),
-      Math.round(r.w * s), Math.round(r.h * s),
-      0, 0, tmp.width, tmp.height,
-    )
+    tctx.translate(-Math.round(r.x), -Math.round(r.y))
+    renderEditorCanvas(tctx, sourceImg.value, imgOffset, layers, canvasSize.value, bgColor.value, null, layerImages, undefined, imgAlpha.value)
+    const dataUrl = tmp.toDataURL('image/png')
     const img = new Image()
     img.onload = () => {
       pushUndo()
-      const dataUrl = tmp.toDataURL('image/png')
       sourceImg.value = img
       doc.ydoc.transact(() => {
         doc.setSourceImage(dataUrl)
-        doc.setCanvasSize(tmp.width, tmp.height)
+        doc.setCanvasSize(rw, rh)
         doc.setImgOffset(0, 0)
         doc.clearLayers()
       })
       isCropping.value = false; cropRect.value = null; activeTool.value = 'select'
-      nextTick(() => { drawAll(); scheduleSave() })
+      requestRender(); scheduleSave()
     }
-    img.src = tmp.toDataURL('image/png')
+    img.src = dataUrl
   }
 
   function cancelCrop() {
     isCropping.value = false; cropRect.value = null; cropDragMode.value = null; cropDragStart.value = null
-    activeTool.value = 'select'; drawAll()
+    activeTool.value = 'select'; requestRender()
   }
 
   function drawCropIfActive(ctx: CanvasRenderingContext2D) {

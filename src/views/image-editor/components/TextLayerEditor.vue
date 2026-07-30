@@ -10,7 +10,7 @@
       >
         <div class="header" @pointerdown.prevent="onDragStart">
           <span class="title">{{ $t('image_editor.text_style') }}</span>
-          <button class="close-btn" @click="$emit('close')">
+          <button v-tooltip="$t('image_editor.close')" class="close-btn" @click="$emit('close')">
             <i-lucide-x />
           </button>
         </div>

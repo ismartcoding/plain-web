@@ -95,6 +95,14 @@ export function useCanvasZoom(
     }
 
     if (!(e.metaKey || e.ctrlKey)) return
+
+    const isZoomKey = e.code === 'Equal' || e.code === 'NumpadAdd' ||
+      e.code === 'Minus' || e.code === 'NumpadSubtract' ||
+      e.code === 'Digit0' || e.code === 'Numpad0'
+    if (!isZoomKey) return
+
+    e.preventDefault()
+
     const wrap = wrapRef.value
     if (!wrap || !active.value) return
     const rect = wrap.getBoundingClientRect()
@@ -102,13 +110,10 @@ export function useCanvasZoom(
     const cy = rect.top + rect.height / 2
 
     if (e.code === 'Equal' || e.code === 'NumpadAdd') {
-      e.preventDefault()
       zoomAtPoint(cx, cy, ZOOM_STEP)
     } else if (e.code === 'Minus' || e.code === 'NumpadSubtract') {
-      e.preventDefault()
       zoomAtPoint(cx, cy, 1 / ZOOM_STEP)
-    } else if (e.code === 'Digit0' || e.code === 'Numpad0') {
-      e.preventDefault()
+    } else {
       resetZoom()
     }
   }

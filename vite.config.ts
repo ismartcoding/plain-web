@@ -1,5 +1,5 @@
 /// <reference types="vitest" />
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
 import Icons from 'unplugin-icons/vite'
@@ -21,14 +21,18 @@ function sanitizeFileName(name: string): string {
 }
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  css: { 
-    preprocessorOptions: { 
-      scss: { 
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+  const apiHost = env.VITE_APP_API_HOST || ''
+
+  return {
+  css: {
+    preprocessorOptions: {
+      scss: {
         charset: false,
-        api: 'modern-compiler' 
-      } 
-    } 
+        api: 'modern-compiler'
+      }
+    }
   },
   server: {
     host: '0.0.0.0',
@@ -42,6 +46,15 @@ export default defineConfig({
       'Cross-Origin-Opener-Policy': 'same-origin',
       'Cross-Origin-Embedder-Policy': 'credentialless',
     },
+    // Dev-only proxy: forwards /fs and /proxyfs to the device server so that
+    // fetch() and WebGL textures are same-origin (no CORS / canvas tainting).
+    // In production the app is served from the device itself (same-origin).
+    ...(apiHost ? {
+      proxy: {
+        '/fs': { target: `http://${apiHost}`, changeOrigin: true },
+        '/proxyfs': { target: `http://${apiHost}`, changeOrigin: true },
+      },
+    } : {}),
   },
   build: {
     // The `markdown` chunk (katex + markdown-it) intentionally bundles the
@@ -227,4 +240,5 @@ export default defineConfig({
       },
     ],
   },
+}
 })

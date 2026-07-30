@@ -1,4 +1,4 @@
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import type {
   EditorLayer, EditorTool,
   FreehandLayer,
@@ -14,12 +14,14 @@ import { useImageEditorUndo } from './useImageEditorUndo'
 import { useImageEditorPersistence } from './useImageEditorPersistence'
 import { useImageEditorSticker } from './useImageEditorSticker'
 import { useImageEditorExport } from './useImageEditorExport'
-import { useImageEditorLayers, resetLayerCounter, nextLayerName } from './useImageEditorLayers'
+import { useImageEditorLayers, nextLayerName } from './useImageEditorLayers'
 import { useEditorTransform } from './useEditorTransform'
 import { useEditorCrop } from './useEditorCrop'
+import { useEditorImage } from './useEditorImage'
 import { PlainAppProjectStore } from '../store/plain-app-store'
 import { EventSyncTransport } from '../sync/event-sync-transport'
 import { PixiEditorRenderer } from '../pixi/PixiEditorRenderer'
+import { RenderScheduler } from './useRenderScheduler'
 
 export function useImageEditorCore() {
   const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -31,6 +33,7 @@ export function useImageEditorCore() {
   const undo = useImageEditorUndo(doc)
   const store = new PlainAppProjectStore()
   const pixi = new PixiEditorRenderer()
+  const scheduler = new RenderScheduler()
 
   const { canvasSize, bgColor, imgOffset, imgAlpha, sourceImg, layers, layerImages } = binding
 
@@ -65,16 +68,18 @@ export function useImageEditorCore() {
 
   let _pushUndo: () => void = () => {}
   let _scheduleSave: () => void = () => {}
-  let _drawAll: () => void = () => {}
+  let isLoading = false
+
+  function requestRender() { scheduler.requestMain() }
+  function requestOverlay() { scheduler.requestOverlay() }
 
   const transform = useEditorTransform(layers, selectedLayerId, doc, () => _pushUndo())
   const { overlayCursor } = transform
 
   const crop = useEditorCrop(
-    canvasRef, canvasSize, sourceImg, imgOffset, layers,
+    canvasSize, sourceImg, imgOffset, layers,
     bgColor, layerImages, imgAlpha, doc,
-    () => _pushUndo(), activeTool, () => _drawAll(), () => _scheduleSave(),
-    renderScale,
+    () => _pushUndo(), activeTool, requestRender, () => _scheduleSave(),
   )
   const { isCropping, cropRect } = crop
 
@@ -82,7 +87,7 @@ export function useImageEditorCore() {
     if (tool === 'crop') {
       cropRect.value = null
       isCropping.value = true
-      drawOverlay()
+      requestRender()
     }
   })
 
@@ -129,12 +134,12 @@ export function useImageEditorCore() {
     }
   }
 
-  function drawAll() { draw(); drawOverlay() }
+  scheduler.setRenderers(draw, drawOverlay)
 
-  watch(binding.syncVersion, () => drawAll())
-  watch(canvasSize, () => drawAll(), { deep: true })
-  watch(bgColor, () => drawAll())
-  watch(imgAlpha, () => drawAll())
+  watch(binding.syncVersion, () => requestRender())
+  watch(selectedLayerId, () => requestOverlay())
+  watch(hoveredLayerId, () => requestOverlay())
+  watch(isDraggingLayer, () => requestOverlay())
 
   watch(canvasRef, async (canvas) => {
     if (!canvas) return
@@ -145,7 +150,7 @@ export function useImageEditorCore() {
     const h = Math.max(1, Math.round(canvasSize.value.height * renderScale.value))
     pixi.resize(w, h)
     pixi.setViewport(renderScale.value, 0, 0)
-    drawAll()
+    requestRender()
   })
 
   watch(renderScale, () => {
@@ -154,6 +159,7 @@ export function useImageEditorCore() {
     const h = Math.max(1, Math.round(canvasSize.value.height * renderScale.value))
     pixi.resize(w, h)
     pixi.setViewport(renderScale.value, 0, 0)
+    requestRender()
   })
 
   const { canUndo, canRedo, pushUndo, undo: undoFn, redo: redoFn, clearHistory } = undo
@@ -181,16 +187,16 @@ export function useImageEditorCore() {
       img.onload = () => {
         sourceImg.value = img
         clearHistory()
-        nextTick(() => drawAll())
+        requestRender()
       }
       img.onerror = () => {
         clearHistory()
-        nextTick(() => drawAll())
+        requestRender()
       }
       img.src = dataUrl
     } else {
       clearHistory()
-      nextTick(() => drawAll())
+      requestRender()
     }
   }
 
@@ -203,7 +209,6 @@ export function useImageEditorCore() {
 
   _pushUndo = pushUndo
   _scheduleSave = scheduleSave
-  _drawAll = drawAll
 
   doc.ydoc.on('update', (update: Uint8Array, origin: unknown) => {
     if (origin === 'remote' || origin === 'load') return
@@ -213,49 +218,12 @@ export function useImageEditorCore() {
     doc.applyRemoteUpdate(update)
   })
 
-  watch(binding.syncVersion, () => { scheduleSave() })
+  watch(binding.syncVersion, () => { if (!isLoading) scheduleSave() })
 
-  function loadImage(file: File) {
-    return new Promise<void>((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = () => {
-        const img = new Image()
-        img.onload = () => {
-          pushUndo()
-          const dataUrl = reader.result as string
-          sourceImg.value = img
-          doc.ydoc.transact(() => {
-            doc.setSourceImage(dataUrl)
-            doc.setCanvasSize(img.naturalWidth, img.naturalHeight)
-            doc.setImgOffset(0, 0)
-            doc.clearLayers()
-          })
-          selectedLayerId.value = null; resetLayerCounter()
-          editorActive.value = true
-          nextTick(() => { drawAll() })
-          resolve()
-        }
-        img.onerror = () => reject(new Error('Failed to load image'))
-        img.src = reader.result as string
-      }
-      reader.onerror = () => reject(new Error('Failed to read file'))
-      reader.readAsDataURL(file)
-    })
-  }
-
-  function startBlank() {
-    pushUndo()
-    doc.ydoc.transact(() => {
-      doc.setSourceImage(null)
-      doc.setCanvasSize(1920, 1080)
-      doc.setImgOffset(0, 0)
-      doc.setBgColor('#ffffff')
-      doc.clearLayers()
-    })
-    selectedLayerId.value = null; resetLayerCounter()
-    editorActive.value = true
-    nextTick(() => { drawAll() })
-  }
+  const imageApi = useEditorImage({
+    doc, sourceImg, selectedLayerId, activeTool, previewLayer, editorActive,
+    pushUndo, requestRender, scheduleSave, clearHistory, clearProject,
+  })
 
   function clientToCanvas(e: PointerEvent): { x: number; y: number } | null {
     const canvas = canvasRef.value
@@ -282,11 +250,11 @@ export function useImageEditorCore() {
           pushUndo()
           isDraggingLayer.value = true
           layerDragStart.value = { mx: pos.x, my: pos.y }
-          drawOverlay()
+          requestRender()
           return
         }
       }
-      selectedLayerId.value = null; drawOverlay()
+      selectedLayerId.value = null; requestRender()
       if (sourceImg.value) {
         pushUndo()
         isDraggingImage.value = true
@@ -326,11 +294,14 @@ export function useImageEditorCore() {
         lineWidth: activeLineWidth.value,
       }
       previewLayer.value = layer
+      requestRender()
       return
     }
 
     isDrawing.value = true; drawStart.value = pos
+    selectedLayerId.value = null
     previewLayer.value = createLayerFromDrag(activeTool.value, pos, pos)
+    requestRender()
   }
 
   function onPointerMove(e: PointerEvent) {
@@ -363,7 +334,7 @@ export function useImageEditorCore() {
         const l = layers[i]!
         if (l.visible && hitTestLayer(l, pos.x, pos.y)) { newHover = l.id; break }
       }
-      if (newHover !== hoveredLayerId.value) { hoveredLayerId.value = newHover; drawOverlay() }
+      if (newHover !== hoveredLayerId.value) { hoveredLayerId.value = newHover }
     }
 
     if (activeTool.value === 'crop' && cropRect.value && !isDrawing.value) {
@@ -371,14 +342,14 @@ export function useImageEditorCore() {
       if (cursor) overlayCursor.value = cursor
     }
 
-    if (crop.cropPointerMove(pos, isDrawing, drawStart, drawAll)) return
+    if (crop.cropPointerMove(pos, isDrawing, drawStart)) return
 
     if (!isDrawing.value || !drawStart.value) return
     if (previewLayer.value) {
       if (previewLayer.value.type === 'freehand') {
-        (previewLayer.value as FreehandLayer).points.push({ x: pos.x, y: pos.y }); draw()
+        (previewLayer.value as FreehandLayer).points.push({ x: pos.x, y: pos.y }); requestRender()
       } else {
-        updateLayerFromDrag(previewLayer.value, drawStart.value, pos, e.shiftKey); draw()
+        updateLayerFromDrag(previewLayer.value, drawStart.value, pos, e.shiftKey); requestRender()
       }
     }
   }
@@ -386,7 +357,7 @@ export function useImageEditorCore() {
   function onPointerUp() {
     if (isDraggingImage.value) { isDraggingImage.value = false; imgDragStart.value = null; return }
     if (transform.isActive.value) { transform.endTransform(); return }
-    if (isDraggingLayer.value) { isDraggingLayer.value = false; layerDragStart.value = null; drawOverlay(); return }
+    if (isDraggingLayer.value) { isDraggingLayer.value = false; layerDragStart.value = null; requestRender(); return }
     if (!isDrawing.value) return
     isDrawing.value = false
     crop.cropPointerUp()
@@ -431,44 +402,16 @@ export function useImageEditorCore() {
     toggleStickerBold, toggleStickerItalic,
   } = useImageEditorSticker(layers, canvasSize, selectedLayerId, doc, pushUndo, nextLayerName)
 
-  const { download, copyToClipboard, getPreviewDataUrl } = useImageEditorExport(
+  const { download, copyToClipboard, getPreviewBlobUrl } = useImageEditorExport(
     canvasSize, sourceImg, imgOffset, layers, bgColor, layerImages, imgAlpha,
   )
 
   function resizeCanvas(w: number, h: number) {
     pushUndo()
     doc.setCanvasSize(w, h)
-    nextTick(() => drawAll())
+    requestRender()
   }
 
-  function reset() {
-    doc.ydoc.transact(() => {
-      doc.setSourceImage(null)
-      doc.setCanvasSize(1920, 1080)
-      doc.setImgOffset(0, 0)
-      doc.setBgColor('transparent')
-      doc.clearLayers()
-    })
-    clearHistory()
-    activeTool.value = 'select'
-    previewLayer.value = null; selectedLayerId.value = null; resetLayerCounter()
-    editorActive.value = false
-    clearProject()
-  }
-
-  function setBgColor(color: string) {
-    pushUndo()
-    doc.setBgColor(color)
-  }
-
-  function setSourceImg(img: HTMLImageElement | null) {
-    if (img) {
-      sourceImg.value = img
-      doc.setSourceImage(img.src)
-    } else {
-      doc.setSourceImage(null)
-    }
-  }
 
   function onKeyDown(e: KeyboardEvent) {
     const key = e.key.toLowerCase()
@@ -476,7 +419,7 @@ export function useImageEditorCore() {
     if ((e.metaKey || e.ctrlKey) && key === 'z') { e.preventDefault(); undoFn(); return }
     if (e.key === 'Escape') {
       if (isCropping.value) { crop.cancelCrop(); return }
-      selectedLayerId.value = null; activeTool.value = 'select'; drawOverlay()
+      selectedLayerId.value = null; activeTool.value = 'select'; requestRender()
     }
   }
 
@@ -491,11 +434,7 @@ export function useImageEditorCore() {
     const restored = await tryRestore()
     if (!restored) ensureProjectId()
     await transport.connect()
-    if (restored) {
-      nextTick(() => drawAll())
-    } else {
-      drawAll()
-    }
+    requestRender()
   })
   onUnmounted(() => {
     window.removeEventListener('keydown', onKeyDown)
@@ -504,6 +443,7 @@ export function useImageEditorCore() {
     document.body.style.overflow = ''; document.body.style.top = ''
     document.body.style.left = ''; document.body.style.right = ''
     pixi.destroy()
+    scheduler.dispose()
     transport.destroy()
     binding.dispose()
     undo.dispose()
@@ -513,19 +453,26 @@ export function useImageEditorCore() {
   return {
     canvasRef, overlayRef, wrapRef,
     doc, binding,
-    sourceImg, imgOffset, canvasSize, bgColor, imgAlpha, editorActive,
-    activeTool, activeColor, activeLineWidth, activeFontSize, renderScale,
-    layers, selectedLayerId, selectedLayer, layerImages,
-    isCropping, cropRect, canUndo, canRedo, isFullscreen,
-    inlineEditLayerId, overlayCursor,
-    draw: drawAll, loadImage, startBlank,
-    onPointerDown, onPointerMove, onPointerUp, onDoubleClick,
-    undo: undoFn, redo: redoFn, applyCrop: crop.applyCrop, cancelCrop: crop.cancelCrop, pushUndo,
-    clearLayers, removeLayer, reorderLayer, toggleLayerVisibility,
-    addTextLayer, addStickerLayer, addImageLayerFromFile, replaceImageLayerFile,
-    autoResizeSticker, updateStickerText, updateStickerFontSize,
-    toggleStickerBold, toggleStickerItalic,
-    download, copyToClipboard, getPreviewDataUrl, resizeCanvas, setBgColor, setSourceImg, reset,
-    scheduleSave, listRecentProjects, loadProjectById, deleteProject,
+    state: {
+      sourceImg, imgOffset, canvasSize, bgColor, imgAlpha, editorActive,
+      isFullscreen, inlineEditLayerId, renderScale,
+      layers, selectedLayerId, selectedLayer, layerImages,
+    },
+    tools: { activeTool, activeColor, activeLineWidth, activeFontSize, overlayCursor },
+    crop: { isCropping, cropRect, applyCrop: crop.applyCrop, cancelCrop: crop.cancelCrop },
+    history: { undo: undoFn, redo: redoFn, canUndo, canRedo, pushUndo },
+    render: { draw: requestRender, resizeCanvas },
+    image: imageApi,
+    pointer: { onPointerDown, onPointerMove, onPointerUp, onDoubleClick },
+    layerOps: {
+      clearLayers, removeLayer, reorderLayer, toggleLayerVisibility,
+      addTextLayer, addStickerLayer, addImageLayerFromFile, replaceImageLayerFile,
+    },
+    sticker: {
+      autoResizeSticker, updateStickerText, updateStickerFontSize,
+      toggleStickerBold, toggleStickerItalic,
+    },
+    exportOps: { download, copyToClipboard, getPreviewBlobUrl },
+    persistence: { scheduleSave, listRecentProjects, loadProjectById, deleteProject },
   }
 }

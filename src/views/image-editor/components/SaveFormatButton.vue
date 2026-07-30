@@ -1,13 +1,13 @@
 <template>
   <div ref="rootRef" class="save-format">
     <button class="save-btn" :class="buttonClass" :disabled="disabled" @click="toggle">
-      <i-lucide-save />
-      <span>{{ $t('image_editor.save') }}</span>
+      <i-lucide-download />
+      <span>{{ $t('image_editor.export_image') }}</span>
     </button>
 
     <Transition name="dropdown">
       <div v-if="open" class="menu">
-        <p class="menu-title">{{ $t('image_editor.save_format') }}</p>
+        <p class="menu-title">{{ $t('image_editor.export_format') }}</p>
         <button
           v-for="f in formats"
           :key="f.id"
