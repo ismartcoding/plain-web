@@ -40,8 +40,8 @@
             </div>
             <button
               :id="`project-delete-${p.id}`"
+              v-tooltip="$t('image_editor.delete')"
               class="delete-btn"
-              :title="$t('image_editor.delete')"
               @click.stop="openDeleteMenu(p)"
             >
               <i-lucide-trash-2 />

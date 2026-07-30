@@ -1,40 +1,32 @@
 <template>
   <div class="toolbar">
     <div class="tool-group">
-      <div
+      <button
         v-for="tool in TOOL_LIST"
         :key="tool.id"
-        class="tool-wrap"
+        v-tooltip="$t(tool.labelKey)"
+        :disabled="isCropping && tool.id !== 'crop'"
+        class="tool-btn"
+        :class="{
+          active: activeTool === tool.id,
+          disabled: isCropping && tool.id !== 'crop',
+        }"
+        @click="$emit('update:activeTool', tool.id)"
       >
-        <button
-          :title="$t(tool.labelKey)"
-          :disabled="isCropping && tool.id !== 'crop'"
-          class="tool-btn"
-          :class="{
-            active: activeTool === tool.id,
-            disabled: isCropping && tool.id !== 'crop',
-          }"
-          @click="$emit('update:activeTool', tool.id)"
-        >
-          <component :is="tool.icon" />
-        </button>
-        <div class="tooltip">{{ $t(tool.labelKey) }}</div>
-      </div>
+        <component :is="tool.icon" />
+      </button>
     </div>
 
     <div class="separator" />
 
-    <div class="tool-wrap">
-      <label
-        class="tool-btn"
-        :class="{ disabled: isCropping }"
-        :title="$t('image_editor.add_image')"
-      >
-        <i-lucide-image />
-        <input v-if="!isCropping" type="file" accept="image/*" class="hidden-input" @change="onImageFileChange" />
-      </label>
-      <div class="tooltip">{{ $t('image_editor.add_image') }}</div>
-    </div>
+    <label
+      v-tooltip="$t('image_editor.add_image')"
+      class="tool-btn"
+      :class="{ disabled: isCropping }"
+    >
+      <i-lucide-image />
+      <input v-if="!isCropping" type="file" accept="image/*" class="hidden-input" @change="onImageFileChange" />
+    </label>
 
     <div class="separator" />
 
@@ -60,58 +52,39 @@
     <div class="separator" />
 
     <div class="width-section" :class="{ disabled: isCropping }">
-      <div
+      <button
         v-for="lw in lineWidths"
         :key="lw"
-        class="tool-wrap"
+        v-tooltip="lw + 'px'"
+        class="width-btn"
+        :class="{ active: activeLineWidth === lw }"
+        @click="$emit('update:activeLineWidth', lw)"
       >
-        <button
-          class="width-btn"
-          :class="{ active: activeLineWidth === lw }"
-          @click="$emit('update:activeLineWidth', lw)"
-        >
-          <div class="width-dot" :style="{ width: Math.min(lw, 24) + 'px', height: Math.min(lw, 24) + 'px' }" />
-        </button>
-        <div class="tooltip">{{ lw }}px</div>
-      </div>
+        <div class="width-dot" :style="{ width: Math.min(lw, 24) + 'px', height: Math.min(lw, 24) + 'px' }" />
+      </button>
     </div>
 
     <div class="spacer" />
 
     <div class="actions">
-      <div class="tool-wrap">
-        <button
-          :disabled="!canUndo || isCropping"
-          class="action-btn"
-          :class="{ 'no-action': !canUndo || isCropping }"
-          @click="$emit('undo')"
-        >
-          <i-lucide-undo-2 />
-        </button>
-        <div class="tooltip">{{ $t('image_editor.undo') }}</div>
-      </div>
-      <div class="tool-wrap">
-        <button
-          :disabled="!canRedo || isCropping"
-          class="action-btn"
-          :class="{ 'no-action': !canRedo || isCropping }"
-          @click="$emit('redo')"
-        >
-          <i-lucide-redo-2 />
-        </button>
-        <div class="tooltip">{{ $t('image_editor.redo') }}</div>
-      </div>
-      <div class="tool-wrap">
-        <button
-          :disabled="isCropping"
-          class="action-btn"
-          :class="{ 'no-action': isCropping }"
-          @click="$emit('clearAll')"
-        >
-          <i-lucide-trash-2 />
-        </button>
-        <div class="tooltip">{{ $t('image_editor.clear_all') }}</div>
-      </div>
+      <button
+        v-tooltip="$t('image_editor.undo')"
+        :disabled="!canUndo || isCropping"
+        class="action-btn"
+        :class="{ 'no-action': !canUndo || isCropping }"
+        @click="$emit('undo')"
+      >
+        <i-lucide-undo-2 />
+      </button>
+      <button
+        v-tooltip="$t('image_editor.redo')"
+        :disabled="!canRedo || isCropping"
+        class="action-btn"
+        :class="{ 'no-action': !canRedo || isCropping }"
+        @click="$emit('redo')"
+      >
+        <i-lucide-redo-2 />
+      </button>
     </div>
   </div>
 </template>
@@ -145,7 +118,6 @@ const emit = defineEmits<{
   'update:activeLineWidth': [value: number]
   undo: []
   redo: []
-  clearAll: []
   addImageFile: [file: File]
 }>()
 
@@ -190,12 +162,6 @@ function onImageFileChange(e: Event) {
   border-radius: 12px;
 }
 
-.tool-wrap {
-  position: relative;
-
-  &:hover .tooltip { opacity: 1; }
-}
-
 .tool-btn {
   display: flex;
   align-items: center;
@@ -223,25 +189,6 @@ function onImageFileChange(e: Event) {
     opacity: 0.4;
     cursor: not-allowed;
   }
-}
-
-.tooltip {
-  position: absolute;
-  left: 50%;
-  top: 100%;
-  transform: translateX(-50%);
-  margin-top: 4px;
-  padding: 4px 8px;
-  font-size: 11px;
-  font-weight: 500;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.85);
-  border-radius: 6px;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s;
-  z-index: 50;
 }
 
 .separator {

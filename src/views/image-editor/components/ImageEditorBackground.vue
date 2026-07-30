@@ -4,6 +4,7 @@
       <label class="section-label">{{ $t('image_editor.background') }}</label>
       <div class="mode-toggle">
         <button
+          v-tooltip="$t('image_editor.bg_color_mode')"
           class="mode-btn"
           :class="{ active: bgMode === 'color' }"
           @click="bgMode = 'color'"
@@ -11,6 +12,7 @@
           <i-lucide-palette />
         </button>
         <button
+          v-tooltip="$t('image_editor.bg_image_mode')"
           class="mode-btn"
           :class="{ active: bgMode === 'image' }"
           @click="bgMode = 'image'"
@@ -50,7 +52,7 @@
             {{ $t('image_editor.replace_image') }}
             <input type="file" accept="image/*" class="hidden-input" @change="$emit('photoSelect', $event)" />
           </label>
-          <button class="remove-btn" :title="$t('image_editor.delete')" @click="$emit('removePhoto')">
+          <button v-tooltip="$t('image_editor.delete')" class="remove-btn" @click="$emit('removePhoto')">
             <i-lucide-circle-x />
           </button>
         </div>

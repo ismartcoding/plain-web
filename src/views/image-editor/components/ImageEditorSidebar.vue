@@ -43,34 +43,14 @@
     <div class="section">
       <div class="layers-header">
         <label class="section-label">{{ $t('image_editor.layers') }}</label>
-        <div ref="addDropdownRef" class="add-wrap">
-          <button
-            v-if="layers.length < 10"
-            class="add-btn"
-            @click="showAddDropdown = !showAddDropdown"
-          >
-            <i-lucide-plus />
-            {{ $t('image_editor.add') }}
-            <i-lucide-chevron-down />
-          </button>
-          <Transition name="dropdown">
-            <div v-if="showAddDropdown" class="add-menu">
-              <button class="add-item" @click="handleAddText">
-                <i-lucide-type />
-                {{ $t('image_editor.add_text') }}
-              </button>
-              <button class="add-item" @click="triggerImageUpload">
-                <i-lucide-image />
-                {{ $t('image_editor.add_image') }}
-              </button>
-              <button class="add-item" @click="handleAddSticker">
-                <i-lucide-sticky-note />
-                {{ $t('image_editor.add_note') }}
-              </button>
-            </div>
-          </Transition>
-          <input ref="imageInputRef" type="file" accept="image/*" class="hidden-input" @change="onImageFileChange" />
-        </div>
+        <button
+          class="clear-btn"
+          :disabled="!layers.length"
+          v-tooltip="$t('image_editor.clear_all')"
+          @click="$emit('clearAll')"
+        >
+          <i-lucide-trash-2 />
+        </button>
       </div>
 
       <div v-if="!layers.length" class="empty-layers">
@@ -114,6 +94,7 @@
                 @click.stop
               />
               <button
+                v-tooltip="$t('image_editor.edit_text')"
                 class="icon-action"
                 @click.stop="$emit('openTextEditor', layer.id)"
               >
@@ -124,7 +105,7 @@
             <template v-else-if="isEditorImageLayer(layer)">
               <i-lucide-image class="layer-type-icon" />
               <span class="layer-name">{{ layer.name }}</span>
-              <label class="icon-action cursor-pointer">
+              <label v-tooltip="$t('image_editor.replace_image')" class="icon-action cursor-pointer">
                 <i-lucide-arrow-left-right />
                 <input type="file" accept="image/*" class="hidden-input" @change="onReplaceImage(layer.id, $event)" />
               </label>
@@ -144,6 +125,7 @@
             </template>
 
             <button
+              v-tooltip="$t('image_editor.toggle_visibility')"
               class="icon-action"
               @click.stop="$emit('toggleVisibility', layer.id)"
             >
@@ -151,6 +133,7 @@
               <i-lucide-eye-off v-else />
             </button>
             <button
+              v-tooltip="$t('image_editor.delete_layer')"
               class="icon-action danger"
               @click.stop="$emit('removeLayer', realIndex(idx))"
             >
@@ -164,7 +147,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed } from 'vue'
 import MoveUpRight from '~icons/lucide/move-up-right'
 import Square from '~icons/lucide/square'
 import Circle from '~icons/lucide/circle'
@@ -190,9 +173,7 @@ const emit = defineEmits<{
   removeLayer: [idx: number]
   reorderLayer: [from: number, to: number]
   toggleVisibility: [id: string]
-  addTextLayer: []
-  addStickerLayer: []
-  addImageFile: [file: File]
+  clearAll: []
   replaceImageFile: [layerId: string, file: File]
   openTextEditor: [id: string]
 }>()
@@ -222,19 +203,6 @@ function onCustomSize(val: string, dim: 'w' | 'h') {
   emit('resize', dim === 'w' ? n : props.canvasWidth, dim === 'h' ? n : props.canvasHeight)
 }
 
-const showAddDropdown = ref(false)
-const addDropdownRef = ref<HTMLElement | null>(null)
-const imageInputRef = ref<HTMLInputElement | null>(null)
-
-function handleAddText() { emit('addTextLayer'); showAddDropdown.value = false }
-function handleAddSticker() { emit('addStickerLayer'); showAddDropdown.value = false }
-function triggerImageUpload() { showAddDropdown.value = false; imageInputRef.value?.click() }
-function onImageFileChange(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
-  if (!file) return
-  ;(e.target as HTMLInputElement).value = ''
-  emit('addImageFile', file)
-}
 function onReplaceImage(layerId: string, e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0]
   if (!file) return
@@ -252,12 +220,6 @@ function onDrop(toIdx: number) {
   dragFromIdx.value = -1
 }
 function onDragEnd() { dragOverIdx.value = null; dragFromIdx.value = -1 }
-
-function onClickOutside(e: MouseEvent) {
-  if (addDropdownRef.value && !addDropdownRef.value.contains(e.target as Node)) showAddDropdown.value = false
-}
-onMounted(() => document.addEventListener('click', onClickOutside))
-onUnmounted(() => document.removeEventListener('click', onClickOutside))
 </script>
 
 <style lang="scss" scoped>
@@ -349,52 +311,28 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside))
   justify-content: space-between;
 }
 
-.add-wrap { position: relative; }
-
-.add-btn {
+.clear-btn {
   display: flex;
   align-items: center;
-  gap: 2px;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
   border: none;
-  background: transparent;
-  color: var(--md-sys-color-primary);
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  padding: 2px 4px;
-  &:hover { filter: brightness(1.1); }
-}
-
-.add-menu {
-  position: absolute;
-  right: 0;
-  top: 100%;
-  margin-top: 4px;
-  width: 144px;
-  background: var(--md-sys-color-surface-container-high);
-  border: 1px solid var(--md-sys-color-outline-variant);
-  border-radius: 8px;
-  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
-  padding: 4px;
-  z-index: 30;
-}
-
-.add-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 6px 12px;
-  border: none;
-  background: transparent;
-  color: var(--md-sys-color-on-surface);
-  font-family: inherit;
-  font-size: 12px;
-  text-align: left;
-  cursor: pointer;
   border-radius: 6px;
-  &:hover { background: color-mix(in srgb, var(--md-sys-color-primary) 10%, transparent); }
+  background: transparent;
+  color: var(--md-sys-color-on-surface-variant);
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.15s, background 0.15s;
+
+  &:hover:not(:disabled) {
+    color: var(--md-sys-color-error);
+    background: color-mix(in srgb, var(--md-sys-color-error) 10%, transparent);
+  }
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
 }
 
 .hidden-input { display: none; }
@@ -520,13 +458,5 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside))
     background: color-mix(in srgb, var(--md-sys-color-error) 10%, transparent);
   }
   &.cursor-pointer { cursor: pointer; }
-}
-
-.dropdown-enter-active, .dropdown-leave-active {
-  transition: opacity 0.1s, transform 0.1s;
-}
-.dropdown-enter-from, .dropdown-leave-to {
-  opacity: 0;
-  transform: scale(0.95);
 }
 </style>
