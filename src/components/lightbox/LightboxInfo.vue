@@ -32,7 +32,8 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
+import { isZipPath } from '@/lib/file'
 import { DataType } from '@/lib/data'
 import { useMediaTrash, useFileTrashState } from '@/hooks/media-trash'
 import type { ITag } from '@/lib/interfaces'
@@ -73,8 +74,10 @@ const emit = defineEmits(['rename-file', 'delete-file', 'refetch-info'])
 
 const { isTrashed, canTrash } = useFileTrashState(() => props.current, () => props.osVersion)
 const { trash } = useMediaTrash()
+const inZip = computed(() => isZipPath(props.current?.path ?? ''))
 
 function handleKeyDown(event: KeyboardEvent) {
+  if (inZip.value) return
   if (event.key === 'Delete' || ((event.ctrlKey || event.metaKey) && event.key === 'Backspace')) {
     event.preventDefault()
     

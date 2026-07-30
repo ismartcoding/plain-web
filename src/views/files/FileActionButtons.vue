@@ -4,7 +4,7 @@
       <v-icon-button v-tooltip="$t('download')" class="sm" @click.stop="downloadDir(item.path)">
           <i-material-symbols:download-rounded />
       </v-icon-button>
-      <v-dropdown v-model="uploadMenuVisible">
+      <v-dropdown v-if="!inZip" v-model="uploadMenuVisible">
         <template #trigger>
           <v-icon-button v-tooltip="$t('upload')" class="sm">
               <i-material-symbols:upload-rounded />
@@ -24,10 +24,10 @@
       </v-icon-button>
     </template>
 
-    <v-icon-button v-tooltip="$t('delete')" class="sm" @click.stop="deleteItem(item)">
+    <v-icon-button v-if="!inZip" v-tooltip="$t('delete')" class="sm" @click.stop="deleteItem(item)">
         <i-material-symbols:delete-forever-outline-rounded />
     </v-icon-button>
-    
+
     <v-dropdown v-model="infoMenuVisible">
       <template #trigger>
         <v-icon-button v-tooltip="$t('info')" class="sm">
@@ -44,7 +44,7 @@
       </section>
     </v-dropdown>
 
-    <v-dropdown v-model="actionsMenuVisible">
+    <v-dropdown v-if="!inZip" v-model="actionsMenuVisible">
       <template #trigger>
         <v-icon-button v-tooltip="$t('actions')" class="sm">
             <i-material-symbols:more-vert />
@@ -82,6 +82,7 @@ import type { IFile } from '@/lib/file'
 interface Props {
   item: IFile
   canPaste: boolean
+  inZip?: boolean
 }
 
 defineProps<Props>()
