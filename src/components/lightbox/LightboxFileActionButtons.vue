@@ -1,7 +1,7 @@
 <template>
   <div class="file-action-buttons">
     <template v-if="!confirming">
-      <template v-if="!current?.isFromChat">
+      <template v-if="!current?.isFromChat && !inZip">
         <template v-if="canTrash">
           <template v-if="isTrashed">
             <v-outlined-button @click.stop="confirming = true">
@@ -45,8 +45,9 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { getFileName } from '@/lib/api/file'
+import { isZipPath } from '@/lib/file'
 import { DataType } from '@/lib/data'
 import { useMediaRestore, useMediaTrash, useFileTrashState } from '@/hooks/media-trash'
 import emitter from '@/plugins/eventbus'
@@ -71,6 +72,7 @@ const props = defineProps({
 const emit = defineEmits(['rename-file', 'delete-file', 'action-success'])
 
 const confirming = ref(false)
+const inZip = computed(() => isZipPath(props.current?.path ?? ''))
 
 function onConfirmDelete() {
   emit('delete-file')
