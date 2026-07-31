@@ -190,7 +190,7 @@ export function useChatUpload(
         if (s === 'downloading') newProgress[msgId].status = 'downloading'
         else if (s === 'paused' && cur !== 'downloading') newProgress[msgId].status = 'paused'
         else if (s === 'failed' && cur === 'pending') newProgress[msgId].status = 'failed'
-        else if (s === 'completed') { submittedDownloads.delete(msgId) }
+        else if (s === 'completed') { newProgress[msgId].status = 'completed'; submittedDownloads.delete(msgId) }
       }
       // Drop completed entries so the overlay disappears.
       for (const key of Object.keys(newProgress)) {
