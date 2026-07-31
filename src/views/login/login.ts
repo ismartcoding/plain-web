@@ -120,7 +120,7 @@ export function useLogin(options: UseLoginOptions = {}) {
         if (event.reason === 'abort' || event.reason === 'OK') return
         showError.value = true; showConfirm.value = false
         if (!event.reason) {
-          const hcUrl = `${getApiBaseUrl()}/health_check`
+          const hcUrl = `${getApiBaseUrl()}/health`
           const hcResp = (__IS_TAURI__ && hcUrl.startsWith('https://'))
             ? await tauriFetch(hcUrl)
             : await fetch(hcUrl)
