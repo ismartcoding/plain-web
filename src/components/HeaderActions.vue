@@ -8,7 +8,7 @@
       </template>
 
       <!-- Quick Actions Section -->
-      <div v-if="isTablet" class="dropdown-section">
+      <div v-if="isTablet && props.loggedIn" class="dropdown-section">
         <div class="dropdown-section-title">{{ t('quick_actions') }}</div>
         <div v-if="hasTasks || store.quick === 'upload'" class="dropdown-item" :class="{ selected: store.quick === 'upload' }" @click="toggleQuick('upload')">
           <i-material-symbols:format-list-numbered-rounded />
