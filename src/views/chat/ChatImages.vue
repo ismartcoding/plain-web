@@ -2,7 +2,7 @@
   <div class="image-container">
     <div v-for="(item, i) in sources" :key="i" class="media-item" @click="canView ? view(i) : undefined">
       <img v-if="getPreview(item)" class="image-thumb" :src="getPreview(item)" onerror="this.src='/broken-image.png'" />
-      <span class="duration">{{ isVideo(item.name) ? formatSeconds(item.duration) : formatFileSize(item.size) }}</span>
+      <span class="duration">{{ isVideo(item.name) && item.duration > 0 ? formatSeconds(item.duration) : formatFileSize(item.size) }}</span>
       <ChatDownloadOverlay :download-info="downloadInfo" :ring-size="48" border-radius="6px" @action="onDownloadAction" />
     </div>
   </div>
