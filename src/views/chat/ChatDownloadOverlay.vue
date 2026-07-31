@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isActive" class="download-overlay" :style="{ borderRadius }">
+  <div v-if="isActive" class="download-overlay" :style="{ borderRadius }" @click.stop="onClick">
     <svg
       class="progress-ring"
       :class="{ spinning: downloadInfo?.status === 'pending' }"
@@ -51,11 +51,22 @@ const props = withDefaults(
   }
 )
 
+const emit = defineEmits<{ action: [action: 'pause' | 'resume' | 'retry'] }>()
+
 const ACTIVE_STATUSES = ['pending', 'downloading', 'paused', 'failed']
 
 const isActive = computed(
   () => !!props.downloadInfo && ACTIVE_STATUSES.includes(props.downloadInfo.status)
 )
+
+// Mirrors plain-app DownloadActionButton: the icon doubles as the control.
+// downloading -> pause, paused -> resume, pending -> pause, failed -> retry.
+function onClick() {
+  const s = props.downloadInfo?.status
+  if (s === 'downloading' || s === 'pending') emit('action', 'pause')
+  else if (s === 'paused') emit('action', 'resume')
+  else if (s === 'failed') emit('action', 'retry')
+}
 
 // SVG geometry derived from ringSize: use 80 % of ringSize as viewBox, radius = 40 % of viewBox
 const viewBox = computed(() => props.ringSize)
@@ -84,7 +95,7 @@ const dashOffset = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  pointer-events: none;
+  cursor: pointer;
 }
 
 .progress-ring {

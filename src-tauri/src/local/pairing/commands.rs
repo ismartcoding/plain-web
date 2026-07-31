@@ -14,7 +14,7 @@ pub fn pair_device(
         &device_id,
         &device_name,
         &device_ip,
-        server_state.https_port,
+        server_state.https_port(),
     );
 }
 
@@ -29,7 +29,7 @@ pub fn respond_pair_device(
     server_state: tauri::State<'_, super::super::server::LocalServerState>,
 ) -> Result<(), String> {
     let req: PairingRequest = serde_json::from_str(&request_json).map_err(|e| e.to_string())?;
-    state.respond_to_pairing(req, &sender_ip, accepted, server_state.https_port);
+    state.respond_to_pairing(req, &sender_ip, accepted, server_state.https_port());
     Ok(())
 }
 

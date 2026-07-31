@@ -36,6 +36,7 @@
     <FileActionButtons
           :item="item"
           :can-paste="canPaste"
+          :in-zip="inZip"
           @download-dir="downloadDir"
           @download-file="downloadFile"
           @upload-files="uploadFiles"
@@ -88,6 +89,7 @@
       <FileActionButtons
         :item="item"
         :can-paste="canPaste"
+        :in-zip="inZip"
         @download-dir="downloadDir"
         @download-file="downloadFile"
         @upload-files="uploadFiles"
@@ -126,6 +128,7 @@ interface Props {
   imageErrorIds: string[]
   extensionImageErrorIds: string[]
   canPaste: boolean
+  inZip?: boolean
   // Functions passed from parent
   handleItemClick: (event: MouseEvent, item: IFile, index: number, callback: () => void) => void
   handleMouseOver: (event: MouseEvent, index: number) => void

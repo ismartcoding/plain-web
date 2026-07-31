@@ -23,11 +23,20 @@ export function useChatFiles(props: { data: any; downloadInfo: any; peer: { ip: 
 
   const items = computed<ISource[]>(() => {
     const files = props.data?._content?.value?.items ?? []
+    const peer = props.peer
     return (props.data?.data?.ids ?? []).map((id: string, i: number) => {
       const f = files[i]
+      const uri = f.uri
+      const peerFileId = typeof uri === 'string' && uri.startsWith('fsid:') ? uri.slice(4) : ''
+      const isGif = typeof uri === 'string' && uri.endsWith('.gif')
+      // Received from a peer (`fsid:`): route through /proxyfs with the
+      // resize/conversion query baked in (see ChatImages.vue for details).
+      const src = peer && peerFileId
+        ? getPeerProxyUrl(tempStore.urlTokenKey, peer, peerFileId, isGif ? '' : '&w=1024&h=1024&cc=false')
+        : getFileUrl(id)
       return {
-        path: f.uri, src: getFileUrl(id),
-        viewOriginImage: notId(id) || f.uri.endsWith('.gif'),
+        path: f.uri, src,
+        viewOriginImage: notId(id) || isGif,
         name: getFileName(f.fileName ?? f.uri), duration: f.duration, size: f.size,
         fileId: id, thumbnail: f.thumbnail, extension: getFileExtension(f.uri),
         summary: f.summary || undefined, isFromChat: true,
@@ -41,10 +50,12 @@ export function useChatFiles(props: { data: any; downloadInfo: any; peer: { ip: 
   function getThumb(item: ISource) {
     if (isImage(item.name) || isVideo(item.name)) {
       if (item.thumbnail) return item.thumbnail
+      // Received from a peer: `fsid:` URIs live on the peer — route through
+      // /proxyfs (the local /fs cannot resolve `fsid:`).
+      if (props.peer && item.path.startsWith('fsid:')) {
+        return getPeerProxyUrl(tempStore.urlTokenKey, props.peer, item.path.slice(4), '&w=50&h=50')
+      }
       if (isActiveDl.value) {
-        if (props.peer && item.path.startsWith('fsid:')) {
-          return getPeerProxyUrl(tempStore.urlTokenKey, props.peer, item.path.slice(4), '&w=50&h=50')
-        }
         return ''
       }
       return item.src.startsWith('blob:') ? item.src : `${item.src}&w=50&h=50`

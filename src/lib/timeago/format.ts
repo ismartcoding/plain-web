@@ -19,7 +19,8 @@ export function format(
   return formatWith(sec, messages, style)
 }
 
-function formatWith(sec: number, m: TimeagoMessages, style: TimeagoStyle): string {
+function formatWith(sec: number, m: TimeagoMessages | undefined, style: TimeagoStyle): string {
+  if (!m) return ''
   if (sec < MIN) return m.now
   const tmpl = pickBucket(sec, style, m)
   return tmpl.replace('{n}', String(computeN(sec)))

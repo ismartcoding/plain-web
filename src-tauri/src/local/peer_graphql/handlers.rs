@@ -106,13 +106,13 @@ fn item_to_json(c: &DChat, token: &str) -> Value {
         .as_ref()
         .map(|d| match d {
             crate::local::graphql::schema::types::ChatItemData::MessageImages(m) => {
-                json!({ "MessageImages": { "ids": &m.ids } })
+                json!({ "__typename": "MessageImages", "ids": &m.ids })
             }
             crate::local::graphql::schema::types::ChatItemData::MessageFiles(m) => {
-                json!({ "MessageFiles": { "ids": &m.ids } })
+                json!({ "__typename": "MessageFiles", "ids": &m.ids })
             }
             crate::local::graphql::schema::types::ChatItemData::MessageText(m) => {
-                json!({ "MessageText": { "ids": &m.ids } })
+                json!({ "__typename": "MessageText", "ids": &m.ids })
             }
         });
     json!({

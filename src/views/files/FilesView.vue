@@ -17,9 +17,9 @@
         </template>
       </div>
       <template v-if="checked">
-        <v-icon-button v-tooltip="$t('copy')" @click.stop="copyItems"><i-material-symbols:content-copy-outline-rounded /></v-icon-button>
-        <v-icon-button v-tooltip="$t('cut')" @click.stop="cutItems"><i-material-symbols:content-cut-rounded /></v-icon-button>
-        <v-icon-button v-tooltip="$t('delete')" @click.stop="deleteItems"><i-material-symbols:delete-forever-outline-rounded /></v-icon-button>
+        <v-icon-button v-if="!inZip" v-tooltip="$t('copy')" @click.stop="copyItems"><i-material-symbols:content-copy-outline-rounded /></v-icon-button>
+        <v-icon-button v-if="!inZip" v-tooltip="$t('cut')" @click.stop="cutItems"><i-material-symbols:content-cut-rounded /></v-icon-button>
+        <v-icon-button v-if="!inZip" v-tooltip="$t('delete')" @click.stop="deleteItems"><i-material-symbols:delete-forever-outline-rounded /></v-icon-button>
         <v-icon-button v-tooltip="$t('download')" :loading="downloadLoading" @click.stop="downloadItems"><i-material-symbols:download-rounded /></v-icon-button>
       </template>
     </div>
@@ -44,7 +44,7 @@
         <FileListItem
 :item="item" :index="index" :selected-ids="selectedIds" :shift-effecting-ids="shiftEffectingIds"
           :should-select="shouldSelect" :is-phone="isPhone" :image-error-ids="imageErrorIds"
-          :extension-image-error-ids="extensionImageErrorIds" :can-paste="canPaste()" :handle-item-click="handleItemClick"
+          :extension-image-error-ids="extensionImageErrorIds" :can-paste="canPaste()" :in-zip="inZip" :handle-item-click="handleItemClick"
           :handle-mouse-over="handleMouseOver" :toggle-select="toggleSelect" :on-image-error="onImageError"
           :on-extension-image-error="onExtensionImageError" :view-item="viewItem" :click-item="clickItem"
           @download-dir="downloadDir" @download-file="downloadFile" @upload-files="uploadFilesClick"
@@ -65,7 +65,7 @@ import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useTempStore } from '@/stores/temp'
 import { useFilesStore } from '@/stores/files'
-import { getSortItems } from '@/lib/file'
+import { getSortItems, isZipPath } from '@/lib/file'
 import NoDataPlaceholder from '@/components/NoDataPlaceholder.vue'
 import { useCreateDir, useRename, useMounts, useDownload, useView, useCopyPaste } from '@/hooks/files'
 import { useDragDropUpload, useFileUpload } from '@/hooks/upload'
@@ -162,8 +162,11 @@ function uploadFilesClick(dir: string) { uploadFiles(dir) }
 function uploadDirClick(dir: string) { uploadDir(dir) }
 function dropFiles2(e: DragEvent) { dropFiles(e, filter.parent, () => true) }
 
+const inZip = computed(() => isZipPath(filter.parent))
+
 const actionButtonProps = computed(() => ({
   currentDir: filter.parent,
+  inZip: inZip.value,
   canPaste: canPaste(),
   pasting: pasting.value,
   refreshing: refreshing.value,

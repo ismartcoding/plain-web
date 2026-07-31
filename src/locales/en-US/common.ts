@@ -75,6 +75,7 @@ export default {
   edit: 'Edit',
   edit_image: 'Edit image',
   delete: 'Delete',
+  switch: 'Switch',
   actions: 'Actions',
   running: 'Running',
   stopped: 'Stopped',

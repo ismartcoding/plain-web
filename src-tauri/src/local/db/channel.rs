@@ -24,7 +24,7 @@ impl DChannel {
         Self {
             id: short_id(),
             name: name.to_string(),
-            owner: "me".to_string(),
+            owner: client_id.to_string(),
             members,
             key: generate_channel_key(),
             version: 1,
