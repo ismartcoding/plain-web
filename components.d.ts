@@ -303,6 +303,7 @@ declare module 'vue' {
     'IMaterialSymbols:splitscreenOutline': typeof import('~icons/material-symbols/splitscreen-outline')['default']
     'IMaterialSymbols:stopRounded': typeof import('~icons/material-symbols/stop-rounded')['default']
     'IMaterialSymbols:sunnyOutlineRounded': typeof import('~icons/material-symbols/sunny-outline-rounded')['default']
+    'IMaterialSymbols:swapHorizRounded': typeof import('~icons/material-symbols/swap-horiz-rounded')['default']
     'IMaterialSymbols:syncRounded': typeof import('~icons/material-symbols/sync-rounded')['default']
     'IMaterialSymbols:textDecreaseRounded': typeof import('~icons/material-symbols/text-decrease-rounded')['default']
     'IMaterialSymbols:textIncreaseRounded': typeof import('~icons/material-symbols/text-increase-rounded')['default']

@@ -1,5 +1,6 @@
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { invoke } from '@tauri-apps/api/core'
 import emitter from '@/plugins/eventbus'
 import toast from '@/components/toaster'
 import { getWebSocketBaseUrl, getLocalToken } from '@/lib/api/api'
@@ -7,10 +8,10 @@ import { chachaDecrypt, chachaEncrypt, bitArrayToUint8Array } from '@/lib/api/cr
 import { parseWebSocketData } from '@/lib/api/sjcl-arraybuffer'
 import { applyDarkClass, changeColor, changeColorMode, getCurrentMode, getLastSavedAutoColorMode, isModeDark } from '@/lib/theme'
 import { tokenToKey } from '@/lib/api/file'
-import { getCurrentAuthToken } from '@/lib/device-current'
+import { getCurrentAuthToken, getCurrentClientId, getCurrentDeviceHost } from '@/lib/device-current'
 import { isLocalMode } from '@/lib/local-mode'
 import { TauriWebSocket } from '@/lib/api/tauri-ws'
-import { get as prefsGet } from '@/lib/prefs'
+import { get as prefsGet, set as prefsSet } from '@/lib/prefs'
 
 const EventType: { [key: number]: string } = {
   1: 'message_created',
@@ -62,11 +63,40 @@ export function useAppSocket() {
   const wsStatus = ref('')
   const tapPhoneMessage = ref('')
   let retryConnectTimeout: ReturnType<typeof setTimeout> | undefined
+  let clearStatusTimer: ReturnType<typeof setTimeout> | undefined
   let ws: WebSocket
   let retryTime = 1000
+  let lastDiscoveryTime = 0
+  const DISCOVERY_COOLDOWN_MS = 10_000
 
   const closeTapPhone = () => {
     tapPhoneMessage.value = ''
+  }
+
+  async function triggerDiscovery() {
+    if (!__IS_TAURI__ || isLocalMode()) return
+    const currentHost = getCurrentDeviceHost()
+    if (!currentHost) return
+    const now = Date.now()
+    if (now - lastDiscoveryTime < DISCOVERY_COOLDOWN_MS) return
+    lastDiscoveryTime = now
+    try {
+      const result = await invoke<{ devices: Array<{ id: string; ips: string[]; port: number }> }>('discover_devices')
+      const currentId = getCurrentClientId()
+      if (!currentId) return
+      const match = result.devices.find((d) => d.id === currentId)
+      if (!match || match.ips.length === 0) return
+      const newHost = `${match.ips[0]}:${match.port}`
+      if (newHost === currentHost) return
+      const data = prefsGet<{ sessions: Array<{ clientId: string; host: string }> } | null>('device_sessions', null)
+      if (!data || !Array.isArray(data.sessions)) return
+      const session = data.sessions.find((s) => s.clientId === currentId)
+      if (!session) return
+      session.host = newHost
+      prefsSet('device_sessions', data)
+    } catch (ex) {
+      console.error('discovery error', ex)
+    }
   }
 
   async function connect() {
@@ -85,7 +115,10 @@ export function useAppSocket() {
         emitter.emit('app_socket_connection_changed', true)
         retryTime = 1000
         ws.send(bitArrayToUint8Array(chachaEncrypt(key, new Date().getTime().toString())))
-        wsStatus.value = ''
+        if (clearStatusTimer) clearTimeout(clearStatusTimer)
+        clearStatusTimer = setTimeout(() => {
+          wsStatus.value = ''
+        }, 2000)
       }
       ws.onmessage = async (event: MessageEvent) => {
         const buffer = await event.data.arrayBuffer()
@@ -107,9 +140,12 @@ export function useAppSocket() {
         } catch (ex) {
           console.error(ex)
         }
-        wsStatus.value = ''
       }
       ws.onclose = () => {
+        if (clearStatusTimer) {
+          clearTimeout(clearStatusTimer)
+          clearStatusTimer = undefined
+        }
         wsStatus.value = 'closed'
         retryConnect()
       }
@@ -126,6 +162,9 @@ export function useAppSocket() {
 
   function retryConnect() {
     if (retryConnectTimeout) clearTimeout(retryConnectTimeout)
+    if (__IS_TAURI__) {
+      void triggerDiscovery()
+    }
     retryConnectTimeout = setTimeout(() => connect(), Math.min(5000, retryTime))
     retryTime += 1000
   }

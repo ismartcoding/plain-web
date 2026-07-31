@@ -1,6 +1,8 @@
 use std::sync::Mutex;
 use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
 
+use crate::utils::query::url_encode;
+
 const WARM_LABEL: &str = "media-preview-warm";
 const WARM_WARMUP_PATH: &str = "/media-preview?__warm__=1";
 
@@ -50,7 +52,7 @@ fn build_query(source: &serde_json::Value) -> String {
         if let Some(v) = source.get(k).and_then(|x| x.as_str())
             && !v.is_empty()
         {
-            params.push(format!("{}={}", k, urlencode(v)));
+            params.push(format!("{}={}", k, url_encode(v)));
         }
     };
     let push_num = |k: &str, params: &mut Vec<String>| {
@@ -81,22 +83,6 @@ fn build_query(source: &serde_json::Value) -> String {
     } else {
         format!("?{}", params.join("&"))
     }
-}
-
-fn urlencode(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
-    for b in s.bytes() {
-        match b {
-            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
-                out.push(b as char);
-            }
-            _ => {
-                out.push('%');
-                out.push_str(&format!("{:02X}", b));
-            }
-        }
-    }
-    out
 }
 
 pub fn activate(app: &AppHandle, source: serde_json::Value) -> String {

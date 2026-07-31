@@ -32,11 +32,20 @@ export function formatDateTimeFull(str: string) {
 }
 
 export function formatTimeAgo(str: string, style: TimeagoStyle = 'short') {
-  if (str === '1970-01-01T00:00:00Z') {
+  if (!str || str === '1970-01-01T00:00:00Z') {
     return ''
   }
   const locale = getLocale()
-  return timeagoFormat(new Date(str), locale, getMessages(locale)!, { style })
+  // The timeago locale chunk is loaded lazily; the requested locale (e.g.
+  // navigator.language "en-GB") may not have a registered messages bundle.
+  // Fall back to en-US, then to an empty string — never crash on `m.now`
+  // (the old `!` assertion threw "undefined is not an object", which cascaded
+  // into a stale-element `el.__vnode` render error after channel creation).
+  const messages = getMessages(locale) ?? getMessages('en-US')
+  if (!messages) {
+    return ''
+  }
+  return timeagoFormat(new Date(str), locale, messages, { style })
 }
 
 export function formatDate(str: string) {

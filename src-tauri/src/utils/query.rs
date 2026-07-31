@@ -74,6 +74,27 @@ pub(crate) fn query_get(path: &str, key: &str) -> Option<String> {
     parse_query(query).remove(key)
 }
 
+/// Percent-encode a string for use in a URL component. Mirrors plain-app's
+/// `String.urlEncode()` (`lib/extensions/UrlEncode.kt`): unreserved chars
+/// per RFC 3986 (`A–Z a–z 0–9 - _ . ~`) are passed through; every other
+/// byte (the input is already UTF-8) is encoded as `%XX` with uppercase
+/// hex. Used for `Content-Disposition` filenames and query-param values.
+pub(crate) fn url_encode(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for b in s.bytes() {
+        match b {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                out.push(b as char);
+            }
+            _ => {
+                out.push('%');
+                out.push_str(&format!("{:02X}", b));
+            }
+        }
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -154,5 +175,30 @@ mod tests {
     #[test]
     fn query_get_no_query_string() {
         assert!(query_get("/x", "a").is_none());
+    }
+
+    #[test]
+    fn url_encode_unreserved_passthrough() {
+        assert_eq!(url_encode("azAZ09-_.~"), "azAZ09-_.~");
+    }
+
+    #[test]
+    fn url_encode_spaces_and_specials() {
+        assert_eq!(url_encode("hello world"), "hello%20world");
+        assert_eq!(url_encode("a/b"), "a%2Fb");
+        assert_eq!(url_encode("a&b=c"), "a%26b%3Dc");
+    }
+
+    #[test]
+    fn url_encode_non_ascii_utf8() {
+        // café → caf%C3%A9 (UTF-8 bytes 0xC3 0xA9 for é)
+        assert_eq!(url_encode("café"), "caf%C3%A9");
+        // 中文 → %E4%B8%AD%E6%96%87
+        assert_eq!(url_encode("中文"), "%E4%B8%AD%E6%96%87");
+    }
+
+    #[test]
+    fn url_encode_uppercase_hex() {
+        assert_eq!(url_encode("\u{00e9}"), "%C3%A9");
     }
 }

@@ -24,7 +24,9 @@ function run(node: HTMLElement, date: string, locale: string, opts: Opts): void 
   const { relativeDate, minInterval } = opts
 
   // render
-  node.innerText = format(date, locale, getMessages(locale)!, opts)
+  const messages = getMessages(locale) ?? getMessages('en-US')
+  if (!messages) return
+  node.innerText = format(date, locale, messages, opts)
 
   const tid = setTimeout(
     () => {

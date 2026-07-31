@@ -55,7 +55,7 @@ const channel = ref({ ...props.channel })
 const { app } = useTempStore()
 const selfId = app.clientId
 const deviceName = computed(() => app.deviceName || selfId.substring(0, 8))
-const isOwner = computed(() => channel.value.owner === 'me')
+const isOwner = computed(() => channel.value.owner === selfId)
 const memberIds = computed(() => new Set(channel.value.members.map((m) => m.id)))
 const availablePeers = computed(() => props.peers.filter((p) => p.status === 'paired' && !memberIds.value.has(p.id)))
 
@@ -63,7 +63,7 @@ const enrichedMembers = computed<IChannelMemberListItem[]>(() =>
   channel.value.members.map((m) => {
     const peer = props.peers.find((p) => p.id === m.id)
     const isSelf = m.id === selfId
-    const isOwner = m.id === channel.value.owner || (isSelf && channel.value.owner === 'me')
+    const isOwner = m.id === channel.value.owner || (isSelf && channel.value.owner === selfId)
     return {
       id: m.id,
       status: m.status,

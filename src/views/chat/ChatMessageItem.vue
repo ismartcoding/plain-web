@@ -28,7 +28,7 @@
         <pre v-html="addLinksToURLs(data._content.value.text)"></pre>
         <ChatLinkPreviews v-if="data._content.value.linkPreviews?.length" :data="data" />
       </div>
-      <component :is="getComponent(data._content.type)" v-else :data="data" :download-info="downloadInfo" :peer="peer" />
+      <component :is="getComponent(data._content.type)" v-else :data="data" :download-info="downloadInfo" :peer="peer" @download-action="(a: 'pause' | 'resume' | 'retry') => emit('download-action', data.id, a)" />
     </div>
   </div>
 </template>
@@ -53,7 +53,7 @@ const props = defineProps<{
   peer: IPeer | null
 }>()
 
-const emit = defineEmits<{ delete: [id: string]; retry: [id: string, statusData?: string] }>()
+const emit = defineEmits<{ delete: [id: string]; retry: [id: string, statusData?: string]; 'download-action': [id: string, action: 'pause' | 'resume' | 'retry'] }>()
 const open = ref(false)
 const { t } = useI18n()
 

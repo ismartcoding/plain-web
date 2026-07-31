@@ -16,6 +16,11 @@ pub const WS_MESSAGE_UPDATED: i32 = 3;
 pub const WS_BOOKMARK_UPDATED: i32 = 15;
 pub const WS_CHANNELS_UPDATED: i32 = 18;
 pub const WS_PEER_STATUS_UPDATED: i32 = 20;
+/// Peer file download progress — payload is a JSON array of
+/// `DownloadProgressItem` (id, messageId, downloaded, total, speed, status).
+/// Mirrors plain-app's `EventType.DOWNLOAD_PROGRESS`. The web client maps
+/// event type 16 to `download_progress` (see `app-socket.ts`).
+pub const WS_DOWNLOAD_PROGRESS: i32 = 16;
 /// Mirrors plain-app's `PairingRequestReceivedEvent` — fired when the local
 /// pairing manager receives an incoming PAIR_REQUEST that the user must
 /// accept or reject. Payload is a `PairingEvent` JSON object.

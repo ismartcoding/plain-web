@@ -6,7 +6,7 @@ use super::super::context::{
     AppCtx, WsEvent, WS_MESSAGE_CREATED, WS_MESSAGE_DELETED, WS_MESSAGE_UPDATED,
 };
 use super::super::peer::{deliver_to_peer, peer_graphql_urls};
-use super::types::ChatItem;
+use super::types::{make_file_id, ChatItem};
 use crate::crypto::base64_decode;
 use crate::local::db::DChat;
 use crate::local::channel::chat_helper::{
@@ -24,18 +24,18 @@ use crate::local::graphql::schema::types::chat_item_data_from_content;
 /// `token` is the local URL token; the `data.ids` are the XChaCha20-
 /// encrypted form the web's `/fs` endpoint expects to receive (see
 /// `plain-app` `FileHelper.getFileId`).
-fn chat_to_json(c: &DChat, token: &str) -> Value {
+pub(crate) fn chat_to_json(c: &DChat, token: &str) -> Value {
     let data = chat_item_data_from_content(&c.content, token)
         .as_ref()
         .map(|d| match d {
             super::types::ChatItemData::MessageImages(m) => {
-                json!({ "MessageImages": { "ids": &m.ids } })
+                json!({ "__typename": "MessageImages", "ids": &m.ids })
             }
             super::types::ChatItemData::MessageFiles(m) => {
-                json!({ "MessageFiles": { "ids": &m.ids } })
+                json!({ "__typename": "MessageFiles", "ids": &m.ids })
             }
             super::types::ChatItemData::MessageText(m) => {
-                json!({ "MessageText": { "ids": &m.ids } })
+                json!({ "__typename": "MessageText", "ids": &m.ids })
             }
         });
     json!({
@@ -44,6 +44,40 @@ fn chat_to_json(c: &DChat, token: &str) -> Value {
         "createdAt": c.created_at, "updatedAt": c.updated_at,
         "status": c.status, "statusData": c.status_data, "data": data,
     })
+}
+
+/// Convert `fid:` URIs to `fsid:` URIs for peer delivery.
+///
+/// Mirrors plain-app's `DMessageContent.toPeerMessageContent()`: each
+/// item's `uri` is encrypted with the local URL token and prefixed with
+/// `fsid:` so the receiver can fetch it via the sender's `/fs` endpoint
+/// (see `DPeer.getFileUrl` + `parseFileId`). The stored content keeps
+/// the original `fid:` URIs — only the wire copy sent to the peer is
+/// rewritten.
+fn to_peer_content(content: &str, token: &str) -> String {
+    let Ok(mut v) = serde_json::from_str::<Value>(content) else {
+        return content.to_string();
+    };
+    let Some(items) = v
+        .get_mut("value")
+        .and_then(|v| v.get_mut("items"))
+        .and_then(|v| v.as_array_mut())
+    else {
+        return content.to_string();
+    };
+    for item in items.iter_mut() {
+        if let Some(uri) = item.get("uri").and_then(|u| u.as_str()) {
+            if uri.starts_with("fid:") {
+                let encrypted = make_file_id(uri, token);
+                if !encrypted.is_empty() {
+                    if let Some(obj) = item.as_object_mut() {
+                        obj.insert("uri".to_string(), Value::String(format!("fsid:{encrypted}")));
+                    }
+                }
+            }
+        }
+    }
+    v.to_string()
 }
 
 fn peer_delivery_status_data(peer_id: &str, peer_name: &str, error: &str) -> String {
@@ -126,7 +160,7 @@ impl ChatMessageMutation {
                     let peer_urls = peer_graphql_urls(&peer);
                     let client_id = c.identity.client_id.clone();
                     let kp_bytes = base64_decode(&c.identity.ed25519_keypair);
-                    let content_str = content.clone();
+                    let content_str = to_peer_content(&content, &c.token);
                     let event_tx = c.event_tx.clone();
                     let db = c.db.clone();
                     let token = c.token.clone();
@@ -211,7 +245,7 @@ impl ChatMessageMutation {
                         }
 
                         let chat_id = chat.id.clone();
-                        let content_str = content.clone();
+                        let content_str = to_peer_content(&content, &c.token);
                         let db = c.db.clone();
                         let event_tx = c.event_tx.clone();
                         let token = c.token.clone();
@@ -355,7 +389,7 @@ impl ChatMessageMutation {
                 let peer_urls = peer_graphql_urls(&peer);
                 let client_id = c.identity.client_id.clone();
                 let kp_bytes = base64_decode(&c.identity.ed25519_keypair);
-                let content_str = chat.content.clone();
+                let content_str = to_peer_content(&chat.content, &c.token);
                 let event_tx = c.event_tx.clone();
                 let db = c.db.clone();
                 let token = c.token.clone();
@@ -442,7 +476,9 @@ fn resolve_chat_ids(db: &crate::local::db::ChatDb, query: &str) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::crypto::xchacha_decrypt;
     use crate::local::db::ChatDb;
+    use crate::utils::base64::{base64_decode, base64_encode};
     use std::path::PathBuf;
     use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -520,5 +556,59 @@ mod tests {
         assert!(resolve_chat_ids(&db, "unknown:foo").is_empty());
         assert!(resolve_chat_ids(&db, "").is_empty());
         assert!(resolve_chat_ids(&db, "nocolon").is_empty());
+    }
+
+    #[test]
+    fn to_peer_content_converts_fid_to_fsid() {
+        let token_raw = [99u8; 32];
+        let token = base64_encode(&token_raw);
+        let content = json!({
+            "type": "images",
+            "value": {
+                "items": [
+                    {"uri": "fid:abcdef0123456789.jpg", "fileName": "cat.jpg", "size": 1234}
+                ]
+            }
+        })
+        .to_string();
+
+        let peer_content = to_peer_content(&content, &token);
+        let v: Value = serde_json::from_str(&peer_content).unwrap();
+        let uri = v["value"]["items"][0]["uri"].as_str().unwrap();
+        assert!(uri.starts_with("fsid:"), "uri should be fsid: prefix, got: {uri}");
+
+        // The encrypted part (after fsid:) must round-trip through
+        // xchacha_decrypt to the original fid: URI.
+        let encrypted_b64 = uri.strip_prefix("fsid:").unwrap();
+        let encrypted = base64_decode(encrypted_b64);
+        let plaintext = xchacha_decrypt(&token, &encrypted).expect("must decrypt");
+        let plaintext_str = std::str::from_utf8(&plaintext).unwrap();
+        assert_eq!(plaintext_str, "fid:abcdef0123456789.jpg");
+    }
+
+    #[test]
+    fn to_peer_content_preserves_non_fid_uris() {
+        let token = base64_encode(&[1u8; 32]);
+        let content = json!({
+            "type": "files",
+            "value": {
+                "items": [
+                    {"uri": "https://example.com/file.pdf", "fileName": "doc.pdf", "size": 5678}
+                ]
+            }
+        })
+        .to_string();
+
+        let peer_content = to_peer_content(&content, &token);
+        let v: Value = serde_json::from_str(&peer_content).unwrap();
+        let uri = v["value"]["items"][0]["uri"].as_str().unwrap();
+        assert_eq!(uri, "https://example.com/file.pdf");
+    }
+
+    #[test]
+    fn to_peer_content_passthrough_on_invalid_json() {
+        let token = base64_encode(&[1u8; 32]);
+        let content = "not json at all";
+        assert_eq!(to_peer_content(content, &token), content);
     }
 }
