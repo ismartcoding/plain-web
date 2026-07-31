@@ -77,7 +77,7 @@ export const useDownload = (urlTokenKey: Ref<Uint8Array | null>) => {
       download(url, name)
     },
     async downloadDir(path: string, fileName?: string) {
-      const name = fileName || `${getFileName(path)}.zip`
+      const name = fileName || `${getFileName(path.replace(/\/+$/, ''))}.zip`
       const id = getFileId(urlTokenKey.value, JSON.stringify({ path, name }))
       const url = `${getApiBaseUrl()}/zip/dir?id=${encodeURIComponent(id)}`
       download(url, name)

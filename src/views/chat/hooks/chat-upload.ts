@@ -1,4 +1,4 @@
-import { ref, reactive, onMounted, onUnmounted, type ComputedRef, type Ref } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, watch, type ComputedRef, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { IChatItem } from '@/lib/interfaces'
 import type { IUploadItem } from '@/stores/temp'
@@ -8,6 +8,8 @@ import { normalizeChatItem } from './chat-events'
 import { shortUUID } from '@/lib/strutil'
 import { formatFileSize } from '@/lib/format'
 import { getVideoData, getImageData, isVideo } from '@/lib/file'
+import { gqlFetch } from '@/lib/api/gql-client'
+import { downloadPeerFileGQL, pauseDownloadGQL, resumeDownloadGQL, retryDownloadGQL } from '@/lib/api/mutation'
 import emitter from '@/plugins/eventbus'
 
 export function useChatUpload(
@@ -102,6 +104,64 @@ export function useChatUpload(
     chatText.value = ''
   }
 
+  // --- Peer file download (mirrors plain-app DownloadQueue) ---
+  const submittedDownloads = new Set<string>()
+
+  function messageNeedsDownload(item: IChatItem): boolean {
+    const items = item._content?.value?.items
+    if (!Array.isArray(items)) return false
+    return items.some((f: any) => typeof f.uri === 'string' && f.uri.startsWith('fsid:'))
+  }
+
+  function getPeerIdForItem(item: IChatItem): string {
+    if (channelId.value) return item.fromId
+    const pid = chatId.value.startsWith('peer:') ? chatId.value.slice(5) : ''
+    return pid === 'local' ? '' : pid
+  }
+
+  async function triggerPeerDownload(messageId: string, peerId: string) {
+    if (!peerId || submittedDownloads.has(messageId)) return
+    submittedDownloads.add(messageId)
+    try {
+      await gqlFetch(downloadPeerFileGQL, { messageId, peerId })
+    } catch (e) {
+      submittedDownloads.delete(messageId)
+    }
+  }
+
+  async function pausePeerDownload(messageId: string) {
+    try { await gqlFetch(pauseDownloadGQL, { messageId }) } catch { /* */ }
+  }
+
+  async function resumePeerDownload(messageId: string, peerId: string) {
+    try { await gqlFetch(resumeDownloadGQL, { messageId, peerId }) } catch { /* */ }
+  }
+
+  async function retryPeerDownload(messageId: string, peerId: string) {
+    try { await gqlFetch(retryDownloadGQL, { messageId, peerId }) } catch { /* */ }
+  }
+
+  function handleDownloadAction(messageId: string, action: 'pause' | 'resume' | 'retry') {
+    const item = chatItems.value.find((i) => i.id === messageId)
+    const peerId = item ? getPeerIdForItem(item) : ''
+    if (action === 'pause') pausePeerDownload(messageId)
+    else if (action === 'resume') resumePeerDownload(messageId, peerId)
+    else if (action === 'retry') retryPeerDownload(messageId, peerId)
+  }
+
+  // Auto-trigger download for peer messages with fsid: URIs (mirrors
+  // plain-app ChatImageItem's LaunchedEffect).
+  watch(chatItems, (items) => {
+    for (const item of items) {
+      if (item.id.startsWith('new_')) continue
+      if (downloadProgress[item.id]) continue
+      if (!messageNeedsDownload(item)) continue
+      const peerId = getPeerIdForItem(item)
+      if (!peerId) continue
+      triggerPeerDownload(item.id, peerId)
+    }
+  }, { flush: 'post' })
+
   // Event bus handlers
   const handlers: Record<string, (...args: any[]) => any> = {}
 
@@ -130,6 +190,11 @@ export function useChatUpload(
         if (s === 'downloading') newProgress[msgId].status = 'downloading'
         else if (s === 'paused' && cur !== 'downloading') newProgress[msgId].status = 'paused'
         else if (s === 'failed' && cur === 'pending') newProgress[msgId].status = 'failed'
+        else if (s === 'completed') { submittedDownloads.delete(msgId) }
+      }
+      // Drop completed entries so the overlay disappears.
+      for (const key of Object.keys(newProgress)) {
+        if (newProgress[key].status === 'completed') delete newProgress[key]
       }
       Object.keys(downloadProgress).forEach((k) => delete downloadProgress[k])
       Object.assign(downloadProgress, newProgress)
@@ -141,5 +206,5 @@ export function useChatUpload(
     Object.entries(handlers).forEach(([event, fn]) => emitter.off(event as any, fn))
   })
 
-  return { doUploadFiles, doUploadImages, sendLongMessageAsFile, sendingAgg, sendingText, downloadProgress }
+  return { doUploadFiles, doUploadImages, sendLongMessageAsFile, sendingAgg, sendingText, downloadProgress, handleDownloadAction }
 }

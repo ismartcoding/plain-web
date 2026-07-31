@@ -14,7 +14,7 @@
 use super::db::ChatDb;
 use super::graphql::{
     build_schema, load_key_cache, new_channel_key_cache, new_peer_key_cache, refresh_peer_key_cache,
-    AppCtx, WsEvent,
+    AppCtx, LocalSchema, WsEvent,
 };
 use super::peer_graphql::{build_schema as build_peer_schema, PeerSchema};
 use super::tls::{build_acceptor, ensure_cert};
@@ -30,6 +30,7 @@ use tokio_rustls::TlsAcceptor;
 
 mod file_server;
 mod http_handler;
+mod proxy_file;
 pub(super) mod response;
 mod plain_conn;
 mod tls_conn;
@@ -47,7 +48,7 @@ pub struct LocalServerState {
     pub event_tx: broadcast::Sender<WsEvent>,
     port: Arc<AtomicU16>,
     https_port: Arc<AtomicU16>,
-    schema: Arc<async_graphql::Schema>,
+    schema: Arc<LocalSchema>,
     peer_schema: Arc<PeerSchema>,
     ctx: Arc<AppCtx>,
     acceptor: Option<Arc<TlsAcceptor>>,

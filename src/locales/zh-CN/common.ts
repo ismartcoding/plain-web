@@ -73,6 +73,7 @@ export default {
   edit: '编辑',
   edit_image: '编辑图片',
   delete: '删除',
+  switch: '切换',
   actions: '操作',
   running: '运行中',
   stopped: '停止',

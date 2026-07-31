@@ -1,36 +1,34 @@
 <template>
   <Teleport to="body">
-    <Transition name="lightbox">
-      <div v-if="modelValue" class="lightbox" @click.self="close">
-        <button class="overlay-btn close-btn" :title="$t('image_editor.close')" @click="close">
-          <i-lucide-x />
-        </button>
+    <div v-if="modelValue" class="lightbox" @click.self="close">
+      <button v-tooltip="$t('image_editor.close')" class="overlay-btn close-btn" @click="close">
+        <i-lucide-x />
+      </button>
 
-        <div class="image-wrap">
-          <img
-            v-for="(img, i) in images"
-            v-show="i === currentIndex"
-            :key="i"
-            :src="img.src"
-            :alt="img.label"
-            class="lightbox-img"
-            draggable="false"
-          />
-        </div>
-
-        <div v-if="images.length > 1" class="nav prev" @click="prev">
-          <i-lucide-chevron-left />
-        </div>
-        <div v-if="images.length > 1" class="nav next" @click="next">
-          <i-lucide-chevron-right />
-        </div>
-
-        <div v-if="currentImage.label" class="caption">
-          {{ currentImage.label }}
-          <template v-if="images.length > 1"> · {{ currentIndex + 1 }}/{{ images.length }}</template>
-        </div>
+      <div class="image-wrap">
+        <img
+          v-for="(img, i) in images"
+          v-show="i === currentIndex"
+          :key="i"
+          :src="img.src"
+          :alt="img.label"
+          class="lightbox-img"
+          draggable="false"
+        />
       </div>
-    </Transition>
+
+      <div v-if="images.length > 1" class="nav prev" @click="prev">
+        <i-lucide-chevron-left />
+      </div>
+      <div v-if="images.length > 1" class="nav next" @click="next">
+        <i-lucide-chevron-right />
+      </div>
+
+      <div v-if="currentImage.label" class="caption">
+        {{ currentImage.label }}
+        <template v-if="images.length > 1"> · {{ currentIndex + 1 }}/{{ images.length }}</template>
+      </div>
+    </div>
   </Teleport>
 </template>
 
@@ -118,7 +116,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
   cursor: pointer;
   font-size: 20px;
   z-index: 10;
-  transition: background 0.15s;
 
   &:hover { background: rgba(255, 255, 255, 0.2); }
 }
@@ -139,7 +136,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
   cursor: pointer;
   font-size: 24px;
   z-index: 10;
-  transition: background 0.15s;
 
   &:hover { background: rgba(255, 255, 255, 0.2); }
   &.prev { left: 16px; }
@@ -162,8 +158,4 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
-.lightbox-enter-active { transition: opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
-.lightbox-leave-active { transition: opacity 0.2s cubic-bezier(0.4, 0, 1, 1); }
-.lightbox-enter-from, .lightbox-leave-to { opacity: 0; }
 </style>

@@ -5,6 +5,7 @@ import i18n from '@/plugins/i18n'
 import { getCurrentAuthToken } from '@/lib/device-current'
 import { isLocalMode, isLocalModeAllowed, isLocalRouteGroup } from '@/lib/local-mode'
 import { useMainStore } from '@/stores/main'
+import { useDeviceSessionsStore } from '@/stores/device-sessions'
 
 const router = createRouter({
   strict: true,
@@ -319,7 +320,9 @@ router.afterEach((to, from) => {
   const group = (to.meta.group as string) || ''
   const titleKey = `page_title.${group}`
   const title = group ? String((i18n.global as any).t(titleKey)) : ''
-  document.title = title && title !== titleKey ? `${title} - PlainApp` : 'PlainApp'
+  const base = title && title !== titleKey ? `${title} - PlainApp` : 'PlainApp'
+  const deviceName = useDeviceSessionsStore().currentSession?.name || ''
+  document.title = deviceName ? `${deviceName} - ${base}` : base
 
   // Sync tabs in Tauri mode
   if (__IS_TAURI__) {

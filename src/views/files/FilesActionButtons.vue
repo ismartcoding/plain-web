@@ -1,8 +1,8 @@
 <template>
-  <v-icon-button v-tooltip="$t('create_folder')" @click="createDir">
+  <v-icon-button v-if="!inZip" v-tooltip="$t('create_folder')" @click="createDir">
       <i-material-symbols:create-new-folder-outline-rounded />
   </v-icon-button>
-  <v-dropdown v-model="uploadMenuVisible">
+  <v-dropdown v-if="!inZip" v-model="uploadMenuVisible">
     <template #trigger>
       <v-icon-button v-tooltip="$t('upload')">
           <i-material-symbols:upload-rounded />
@@ -15,7 +15,7 @@
       {{ $t('upload_folder') }}
     </div>
   </v-dropdown>
-  <v-icon-button v-if="canPaste" v-tooltip="$t('paste')" :loading="pasting" @click="pasteDir">
+  <v-icon-button v-if="canPaste && !inZip" v-tooltip="$t('paste')" :loading="pasting" @click="pasteDir">
       <i-material-symbols:content-paste-rounded />
   </v-icon-button>
   <v-icon-button v-tooltip="$t('refresh')" :loading="refreshing" @click="refreshCurrentDir">
@@ -72,6 +72,10 @@ const props = defineProps({
     required: true,
   },
   showHidden: {
+    type: Boolean,
+    default: false,
+  },
+  inZip: {
     type: Boolean,
     default: false,
   },

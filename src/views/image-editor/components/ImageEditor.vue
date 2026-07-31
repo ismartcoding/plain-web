@@ -16,7 +16,6 @@
           @update:active-line-width="activeLineWidth = $event"
           @undo="undo"
           @redo="redo"
-          @clear-all="clearLayers"
           @add-image-file="addImageLayerFromFile"
         />
         <HeaderActions :logged-in="isLoggedIn" class="header-actions" />
@@ -100,9 +99,7 @@
               @remove-layer="removeLayer"
               @reorder-layer="reorderLayer"
               @toggle-visibility="toggleLayerVisibility"
-              @add-text-layer="addTextLayer()"
-              @add-sticker-layer="addStickerLayer()"
-              @add-image-file="addImageLayerFromFile"
+              @clear-all="clearLayers"
               @replace-image-file="replaceImageLayerFile"
               @open-text-editor="openTextEditor"
             />
@@ -126,7 +123,7 @@
           <div class="actions-section">
             <button class="action-btn outline" @click="openPreview">
               <i-lucide-eye />
-              {{ $t('image_editor.preview') }}
+              {{ $t('image_editor.preview_image') }}
             </button>
 
             <SaveFormatButton @save="download" @copy="copyToClipboard" />
@@ -187,30 +184,54 @@ const { t } = useI18n()
 const isLoggedIn = computed(() => !!getCurrentAuthToken())
 
 const {
-  canvasRef, overlayRef, wrapRef,
-  doc,
+  canvasRef, overlayRef, wrapRef, doc,
+  state, tools, crop: cropApi, history, render: renderApi,
+  image: imageApi, pointer, layerOps, sticker: stickerApi, exportOps, persistence,
+} = useImageEditorCore()
+
+const {
   sourceImg, canvasSize, bgColor, imgAlpha, editorActive,
-  activeTool, activeColor, activeLineWidth, renderScale,
+  isFullscreen, inlineEditLayerId, renderScale,
   layers, selectedLayerId,
-  isCropping, cropRect, canUndo, canRedo,
-  isFullscreen, inlineEditLayerId, overlayCursor,
-  draw, loadImage, startBlank,
-  onPointerDown, onPointerMove, onPointerUp, onDoubleClick,
-  undo, redo, applyCrop, cancelCrop,
+} = state
+const { activeTool, activeColor, activeLineWidth, overlayCursor } = tools
+const { isCropping, cropRect, applyCrop, cancelCrop } = cropApi
+const { undo, redo, canUndo, canRedo, pushUndo } = history
+const { draw, resizeCanvas } = renderApi
+const { loadImage, loadImageFromUrl, startBlank } = imageApi
+const { onPointerDown, onPointerMove, onPointerUp, onDoubleClick } = pointer
+const {
   clearLayers, removeLayer, reorderLayer, toggleLayerVisibility,
   addTextLayer, addStickerLayer, addImageLayerFromFile, replaceImageLayerFile,
-  autoResizeSticker,
-  download, copyToClipboard, getPreviewDataUrl, resizeCanvas,
-  pushUndo, deleteProject,
-} = useImageEditorCore()
+} = layerOps
+const { autoResizeSticker } = stickerApi
+const { download, copyToClipboard, getPreviewBlobUrl } = exportOps
+const { deleteProject } = persistence
 
 const showPreview = ref(false)
 const previewImages = ref<{ src: string; label: string }[]>([])
+let previewBlobUrl: string | null = null
 
-function openPreview() {
-  previewImages.value = [{ src: getPreviewDataUrl(), label: t('image_editor.preview') }]
+async function openPreview() {
+  previewBlobUrl = await getPreviewBlobUrl()
+  previewImages.value = [{ src: previewBlobUrl, label: t('image_editor.preview_image') }]
   showPreview.value = true
 }
+
+watch(showPreview, (open) => {
+  if (!open) {
+    if (previewBlobUrl) {
+      URL.revokeObjectURL(previewBlobUrl)
+      previewBlobUrl = null
+    }
+    previewImages.value = []
+    draw()
+  }
+})
+
+onUnmounted(() => {
+  if (previewBlobUrl) URL.revokeObjectURL(previewBlobUrl)
+})
 
 const showDeleteConfirm = ref(false)
 const deleteLoading = ref(false)
@@ -232,7 +253,6 @@ const bgOffset = ref<{ x: number; y: number }>({ x: 0.5, y: 0.5 })
 
 watch(sourceImg, (img) => {
   bgMode.value = img ? 'image' : 'color'
-  draw()
 })
 
 async function onBgPhotoSelect(e: Event) {
@@ -293,7 +313,6 @@ function handleInlineInput(e: Event) {
         'min-height': `${hDisplay}px`,
       }
     }
-    draw()
   }
 }
 
@@ -347,10 +366,6 @@ watch([fitScale, canvasZoom], () => {
   renderScale.value = fitScale.value * canvasZoom.value * dpr
 }, { immediate: true })
 
-watch([canvasRenderWidth, canvasRenderHeight], () => {
-  nextTick(() => draw())
-})
-
 const canvasWrapStyle = computed(() => {
   const base: Record<string, string> = {
     aspectRatio: `${canvasSize.value.width} / ${canvasSize.value.height}`,
@@ -394,7 +409,7 @@ const { handleOverlayPointerDown, handleOverlayPointerMove, handleOverlayPointer
   { down: onPointerDown, move: onPointerMove, up: onPointerUp },
 )
 
-defineExpose({ loadImage, startBlank })
+defineExpose({ loadImage, loadImageFromUrl, startBlank })
 </script>
 
 <style lang="scss" scoped>

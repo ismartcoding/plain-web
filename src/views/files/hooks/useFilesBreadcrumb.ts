@@ -39,7 +39,7 @@ export function useFilesBreadcrumb(
       const zipFilePath = getZipFilePath(parent)
       const internalPath = getZipInternalPath(parent)
 
-      let p = zipFilePath
+      let p = zipFilePath.substring(0, zipFilePath.lastIndexOf('/'))
       while (p) {
         if (p === rootDir.value) break
         paths.unshift({ path: p, name: getFileName(p) })

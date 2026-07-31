@@ -80,7 +80,7 @@ pub fn run() {
             );
             peer_status.set_event_tx(local_server_state.event_tx.clone());
             discover_mgr.set_event_tx(local_server_state.event_tx.clone());
-            discover_mgr.set_https_port(local_server_state.https_port);
+            discover_mgr.set_https_port(local_server_state.https_port());
             discover_mgr.start();
             peer_status.set_discover_manager(discover_mgr.clone());
             peer_status.start();

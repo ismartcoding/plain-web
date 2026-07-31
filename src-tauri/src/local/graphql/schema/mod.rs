@@ -3,12 +3,13 @@
 mod app;
 mod bookmark;
 mod chat_channel;
-mod chat_message;
+pub(crate) mod chat_message;
 mod chat_peer;
 mod chat_query;
 mod datastore;
 mod db;
 mod discover;
+mod download;
 mod file_query;
 mod file_upload;
 mod logs;
@@ -29,6 +30,7 @@ use chat_query::ChatQuery;
 use datastore::{DataStoreMutation, DataStoreQuery};
 use db::{DbMutation, DbQuery};
 use discover::{DiscoverMutation, DiscoverQuery};
+use download::DownloadMutation;
 use file_query::FileInfoQuery;
 use file_upload::{FileUploadMutation, FileUploadQuery};
 use logs::{LogsMutation, LogsQuery};
@@ -64,6 +66,7 @@ pub struct MutationRoot(
     FileUploadMutation,
     DiscoverMutation,
     PairingMutation,
+    DownloadMutation,
 );
 
 pub type LocalSchema = Schema<QueryRoot, MutationRoot, EmptySubscription>;

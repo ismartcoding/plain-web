@@ -27,6 +27,7 @@
         :peer="peer"
         @delete="deleteMessage"
         @retry="handleRetry"
+        @download-action="handleDownloadAction"
       />
     </template>
   </div>
@@ -89,7 +90,7 @@ const {
   send, retryMessage, deleteMessage, refetch,
 } = useChatMessages(chatId, channelId)
 
-const { doUploadFiles, doUploadImages, sendLongMessageAsFile, sendingText, downloadProgress } = useChatUpload(chatId, channelId, appDir, scrollBottom, chatText, chatItems)
+const { doUploadFiles, doUploadImages, sendLongMessageAsFile, sendingText, downloadProgress, handleDownloadAction } = useChatUpload(chatId, channelId, appDir, scrollBottom, chatText, chatItems)
 
 const isActive = ref(false)
 

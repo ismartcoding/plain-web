@@ -71,29 +71,31 @@
       </teleport>
     </div>
 
-    <div v-if="!isTauri && !localMode" class="dropdown-item" @click="logout">
-      <i-material-symbols:logout-rounded class="feature-icon" />
-      <span>{{ $t('header_actions.logout') }}</span>
-    </div>
+    <template v-if="!isTauri && !localMode">
+      <div class="dropdown-item" @click="logout">
+        <i-material-symbols:logout-rounded class="feature-icon" />
+        <span>{{ $t('header_actions.logout') }}</span>
+      </div>
 
-    <div class="popup-divider"></div>
+      <div class="popup-divider"></div>
 
-    <div class="dropdown-item" @click="openCustomizeUI">
-      <i-lucide:layout-list class="feature-icon" />
-      <span>{{ $t('customize_ui') }}</span>
-    </div>
+      <div class="dropdown-item" @click="openCustomizeUI">
+        <i-lucide:layout-list class="feature-icon" />
+        <span>{{ $t('customize_ui') }}</span>
+      </div>
 
-    <div class="dropdown-item" @click="openExcludedDirs">
-      <i-lucide:folder-minus class="feature-icon" />
-      <span>{{ $t('exclude_directories') }}</span>
-    </div>
+      <div class="dropdown-item" @click="openExcludedDirs">
+        <i-lucide:folder-minus class="feature-icon" />
+        <span>{{ $t('exclude_directories') }}</span>
+      </div>
+    </template>
 
     <router-link to="/developer" class="dropdown-item" @click="open = false">
       <i-lucide:code-2 class="feature-icon" />
       <span>{{ $t('developer.developer_mode') }}</span>
     </router-link>
 
-    <template v-if="popupFeatures.length">
+    <template v-if="!isTauri && !localMode && popupFeatures.length">
       <div class="popup-divider"></div>
       <router-link
         v-for="feat in popupFeatures"
@@ -152,12 +154,26 @@ function positionLanguageMenu() {
   const rect = trigger.getBoundingClientRect()
   const MENU_WIDTH = 240
   const GAP = 4
-  const left = Math.min(window.innerWidth - MENU_WIDTH - 8, rect.right + GAP)
-  const top = rect.top
+  const ITEM_HEIGHT = 40
+  const MENU_PADDING = 8
+  const MENU_MAX_HEIGHT = 320
+  const VIEWPORT_MARGIN = 8
+  const vh = window.innerHeight
+  const estimatedMenuHeight = Math.min(
+    MENU_MAX_HEIGHT,
+    availableLocales.value.length * ITEM_HEIGHT + MENU_PADDING,
+  )
+  const left = Math.min(window.innerWidth - MENU_WIDTH - VIEWPORT_MARGIN, rect.right + GAP)
+  let top
+  if (rect.top + estimatedMenuHeight + VIEWPORT_MARGIN <= vh) {
+    top = rect.top
+  } else {
+    top = Math.max(VIEWPORT_MARGIN, rect.bottom - estimatedMenuHeight)
+  }
   languageMenuStyle.value = {
     position: 'fixed',
     top: `${top}px`,
-    left: `${Math.max(8, left)}px`,
+    left: `${Math.max(VIEWPORT_MARGIN, left)}px`,
     width: `${MENU_WIDTH}px`,
     visibility: 'visible',
     zIndex: '10000',

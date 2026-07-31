@@ -155,6 +155,20 @@ impl ChatDb {
         .ok()
     }
 
+    /// Update the `content` column of a chat row. Used by the peer file
+    /// download flow to rewrite `fsid:` URIs to `fid:` after a successful
+    /// download (mirrors plain-app `updateMessageFileUri`).
+    pub fn update_chat_content(&self, id: &str, content: &str) -> bool {
+        let now = now_iso();
+        let conn = self.0.lock().unwrap();
+        conn.execute(
+            "UPDATE chats SET content=?1, updated_at=?2 WHERE id=?3",
+            params![content, now, id],
+        )
+        .map(|n| n > 0)
+        .unwrap_or(false)
+    }
+
     pub fn get_all_chats(&self) -> Vec<DChat> {
         let conn = self.0.lock().unwrap();
         let mut stmt = match conn.prepare(

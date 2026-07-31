@@ -41,9 +41,13 @@ export function useImageEditorExport(
     await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
   }
 
-  function getPreviewDataUrl(): string {
-    return renderToTempCanvas().toDataURL('image/png')
+  async function getPreviewBlobUrl(): Promise<string> {
+    const blob = await new Promise<Blob | null>(resolve =>
+      renderToTempCanvas().toBlob(resolve, 'image/png'),
+    )
+    if (!blob) throw new Error('Failed to render preview')
+    return URL.createObjectURL(blob)
   }
 
-  return { download, copyToClipboard, getPreviewDataUrl }
+  return { download, copyToClipboard, getPreviewBlobUrl }
 }
