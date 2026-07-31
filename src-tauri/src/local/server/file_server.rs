@@ -1,5 +1,6 @@
+use std::io::SeekFrom;
 use std::sync::Arc;
-use tokio::io::{AsyncReadExt, AsyncWrite, AsyncWriteExt};
+use tokio::io::{AsyncReadExt, AsyncSeekExt, AsyncWrite, AsyncWriteExt};
 
 use super::super::graphql::context::AppCtx;
 use super::response::respond;
@@ -7,11 +8,11 @@ use super::uri::{parse_decrypted_id, resolve_uri};
 use crate::crypto::xchacha_decrypt;
 use crate::utils::base64::base64_decode;
 use crate::utils::mime::mime_from_ext;
-use crate::utils::query::parse_query;
+use crate::utils::query::{parse_query, url_encode};
 
 /// Serve a file via the local server's `/fs` endpoint.
 ///
-/// Mirrors `plain-app` `web/routes/Files.kt::addFiles().get("/fs")`:
+/// Mirrors `plain-app` `web/routes/FilesRoutes.kt::addFilesRoutes().get("/fs")`:
 ///   1. URL-decode the `id` query param.
 ///   2. Base64-decode + XChaCha20-decrypt with the local server's URL
 ///      token (this is how the web client delivers the path — see
@@ -22,10 +23,15 @@ use crate::utils::query::parse_query;
 ///   4. Resolve to a real on-disk path. For `fid:` the resolution is
 ///      `{data_dir}/files/{aa}/{bb}/{hash}.{ext}` — matches what
 ///      `app_file_store::import_file` writes.
-///   5. Stream the file body (don't buffer the whole file in memory).
+///   5. Byte-range short-circuit (`?offset=…&length=…`) for BLE
+///      transports — serves raw `application/octet-stream` bytes.
+///   6. Otherwise stream the file body with RFC 5987
+///      `Content-Disposition`, honoring HTTP `Range` headers (RFC 7233)
+///      so browsers can seek media.
 pub(super) async fn serve_file<W: AsyncWrite + Unpin>(
     wr: &mut W,
     query_str: &str,
+    range_header: &str,
     ctx: &Arc<AppCtx>,
 ) {
     // 1. Parse query params.
@@ -77,8 +83,34 @@ pub(super) async fn serve_file<W: AsyncWrite + Unpin>(
         respond(wr, 400, "Bad Request", b"not a file", "text/plain").await;
         return;
     }
+    let file_size = metadata.len();
 
-    // 6. Decide display filename + MIME + Content-Disposition.
+    // 6. BLE byte-range request: `?offset=…&length=…`. Mirrors plain-app
+    //    `FilesRoutes.kt`'s `readFileRange(path, rangeOffset, rangeLength)`
+    //    branch — used by low-throughput transports (BLE) to download a
+    //    file in small chunks. Only applies when `length > 0`; serves raw
+    //    `application/octet-stream` bytes with no Content-Disposition,
+    //    no thumbnails, no conversion. A request past EOF responds 404
+    //    (matching Android's `readFileRange == null` path).
+    if let (Some(off), Some(len)) = (
+        params.get("offset").and_then(|s| s.parse::<u64>().ok()),
+        params.get("length").and_then(|s| s.parse::<u64>().ok()),
+    ) {
+        if len > 0 {
+            if off >= file_size {
+                respond(wr, 404, "Not Found", b"", "text/plain").await;
+                return;
+            }
+            let clamped = len.min(file_size - off);
+            serve_range_raw(wr, &resolved, off, clamped).await;
+            return;
+        }
+    }
+
+    // 7. Display filename + MIME + Content-Disposition (RFC 5987).
+    //    plain-app URL-encodes the filename for both the legacy
+    //    `filename="…"` and the `filename*=utf-8''…` forms — we match
+    //    that exactly so non-ASCII names round-trip correctly.
     let display_name = if !json_name.is_empty() {
         json_name
     } else {
@@ -90,21 +122,32 @@ pub(super) async fn serve_file<W: AsyncWrite + Unpin>(
     };
     let mime = mime_from_ext(&display_name);
     let is_download = params.get("dl").map(|s| s.as_str()) == Some("1");
+    let encoded_name = url_encode(&display_name);
+    let disposition_kind = if is_download { "attachment" } else { "inline" };
+    let disposition = format!(
+        "{disposition_kind}; filename=\"{encoded_name}\"; filename*=utf-8''{encoded_name}"
+    );
 
-    // 7. Stream the response. We bypass `respond()` so the body can be
-    //    streamed in 64 KB chunks instead of buffered.
-    let disposition = if is_download {
-        format!("attachment; filename=\"{}\"", display_name)
-    } else {
-        format!("inline; filename=\"{}\"", display_name)
-    };
-    let file_size = metadata.len();
+    // 8. HTTP `Range` header (RFC 7233). Browsers use this for media
+    //    seeking; plain-app gets it implicitly via Ktor's `respondFile`,
+    //    the local server has to handle it explicitly. Only single-range
+    //    requests are honored; multi-range falls through to a full 200.
+    if !range_header.is_empty() {
+        if let Some((start, end)) = parse_range_header(range_header, file_size) {
+            serve_partial(wr, &resolved, start, end, file_size, &mime, &disposition).await;
+            return;
+        }
+    }
+
+    // 9. Full response (200) with `accept-ranges: bytes` so clients know
+    //    they can issue `Range` requests on subsequent calls.
     let head = format!(
         "HTTP/1.1 200 OK\r\n\
          content-type: {mime}\r\n\
          content-length: {file_size}\r\n\
          content-disposition: {disposition}\r\n\
-         access-control-expose-headers: content-disposition\r\n\
+         accept-ranges: bytes\r\n\
+         access-control-expose-headers: content-disposition, accept-ranges, content-range\r\n\
          access-control-allow-origin: *\r\n\
          access-control-allow-methods: GET, POST, PUT, DELETE, OPTIONS\r\n\
          access-control-allow-headers: *\r\n\
@@ -114,14 +157,89 @@ pub(super) async fn serve_file<W: AsyncWrite + Unpin>(
     if wr.write_all(head.as_bytes()).await.is_err() {
         return;
     }
+    stream_file(wr, &resolved, 0, file_size).await;
+}
 
-    let mut file = match tokio::fs::File::open(&resolved).await {
+/// Serve a raw byte range for BLE transport. Content-Type is
+/// `application/octet-stream` (matches plain-app), with no
+/// Content-Disposition and no Range negotiation — the caller has
+/// already validated `offset` / `length`.
+async fn serve_range_raw<W: AsyncWrite + Unpin>(
+    wr: &mut W,
+    path: &std::path::Path,
+    offset: u64,
+    length: u64,
+) {
+    let head = format!(
+        "HTTP/1.1 200 OK\r\n\
+         content-type: application/octet-stream\r\n\
+         content-length: {length}\r\n\
+         access-control-allow-origin: *\r\n\
+         access-control-allow-methods: GET, POST, PUT, DELETE, OPTIONS\r\n\
+         access-control-allow-headers: *\r\n\
+         connection: close\r\n\
+         \r\n"
+    );
+    if wr.write_all(head.as_bytes()).await.is_err() {
+        return;
+    }
+    stream_file(wr, path, offset, length).await;
+}
+
+/// Serve a `206 Partial Content` response for an HTTP `Range` request.
+async fn serve_partial<W: AsyncWrite + Unpin>(
+    wr: &mut W,
+    path: &std::path::Path,
+    start: u64,
+    end: u64,
+    file_size: u64,
+    mime: &str,
+    disposition: &str,
+) {
+    let length = end - start + 1;
+    let head = format!(
+        "HTTP/1.1 206 Partial Content\r\n\
+         content-type: {mime}\r\n\
+         content-length: {length}\r\n\
+         content-range: bytes {start}-{end}/{file_size}\r\n\
+         content-disposition: {disposition}\r\n\
+         accept-ranges: bytes\r\n\
+         access-control-expose-headers: content-disposition, accept-ranges, content-range\r\n\
+         access-control-allow-origin: *\r\n\
+         access-control-allow-methods: GET, POST, PUT, DELETE, OPTIONS\r\n\
+         access-control-allow-headers: *\r\n\
+         connection: close\r\n\
+         \r\n"
+    );
+    if wr.write_all(head.as_bytes()).await.is_err() {
+        return;
+    }
+    stream_file(wr, path, start, length).await;
+}
+
+/// Stream `length` bytes from `path` starting at `offset`, in 64 KB
+/// chunks. The header must already have been written by the caller.
+/// Errors after the header is sent are silently dropped — the
+/// `connection: close` framing means the client will see a truncated
+/// body and retry.
+async fn stream_file<W: AsyncWrite + Unpin>(
+    wr: &mut W,
+    path: &std::path::Path,
+    offset: u64,
+    length: u64,
+) {
+    let mut file = match tokio::fs::File::open(path).await {
         Ok(f) => f,
-        Err(_) => return, // headers already sent
+        Err(_) => return,
     };
+    if offset > 0 && file.seek(SeekFrom::Start(offset)).await.is_err() {
+        return;
+    }
+    let mut remaining = length as usize;
     let mut buf = vec![0u8; 64 * 1024];
-    loop {
-        let n = match file.read(&mut buf).await {
+    while remaining > 0 {
+        let to_read = remaining.min(buf.len());
+        let n = match file.read(&mut buf[..to_read]).await {
             Ok(0) => break,
             Ok(n) => n,
             Err(_) => break,
@@ -129,6 +247,106 @@ pub(super) async fn serve_file<W: AsyncWrite + Unpin>(
         if wr.write_all(&buf[..n]).await.is_err() {
             break;
         }
+        remaining -= n;
     }
     let _ = wr.flush().await;
+}
+
+/// Parse an HTTP `Range: bytes=…` header for a single byte range.
+/// Returns `(start, end_inclusive)` or `None` if the header is
+/// absent, unsupported, or out of bounds.
+///
+/// Supported forms (RFC 7233 §2.1):
+///   * `bytes=0-499`   → first 500 bytes
+///   * `bytes=500-`    → from byte 500 to end
+///   * `bytes=-500`    → last 500 bytes
+///
+/// Multi-range requests (`bytes=0-10,20-30`) are not supported — the
+/// first range is served and the rest ignored, which keeps downloads
+/// working without the multipart/byteranges dance.
+fn parse_range_header(range: &str, file_size: u64) -> Option<(u64, u64)> {
+    let spec = range.strip_prefix("bytes=")?;
+    let spec = spec.split(',').next()?.trim();
+    let (start_s, end_s) = spec.split_once('-')?;
+    let start_s = start_s.trim();
+    let end_s = end_s.trim();
+    if file_size == 0 {
+        return None;
+    }
+    let (start, end) = match (start_s.is_empty(), end_s.is_empty()) {
+        (false, false) => {
+            let start: u64 = start_s.parse().ok()?;
+            let end: u64 = end_s.parse().ok()?;
+            if start > end || start >= file_size {
+                return None;
+            }
+            (start, end.min(file_size - 1))
+        }
+        (false, true) => {
+            let start: u64 = start_s.parse().ok()?;
+            if start >= file_size {
+                return None;
+            }
+            (start, file_size - 1)
+        }
+        (true, false) => {
+            let n: u64 = end_s.parse().ok()?;
+            if n == 0 {
+                return None;
+            }
+            let start = file_size.saturating_sub(n);
+            (start, file_size - 1)
+        }
+        (true, true) => return None,
+    };
+    Some((start, end))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_range_start_end() {
+        assert_eq!(parse_range_header("bytes=0-499", 1000), Some((0, 499)));
+        assert_eq!(parse_range_header("bytes=100-199", 1000), Some((100, 199)));
+    }
+
+    #[test]
+    fn parse_range_open_end() {
+        assert_eq!(parse_range_header("bytes=500-", 1000), Some((500, 999)));
+    }
+
+    #[test]
+    fn parse_range_suffix() {
+        assert_eq!(parse_range_header("bytes=-500", 1000), Some((500, 999)));
+        assert_eq!(parse_range_header("bytes=-2000", 1000), Some((0, 999)));
+    }
+
+    #[test]
+    fn parse_range_clamps_end_to_file_size() {
+        assert_eq!(parse_range_header("bytes=900-2000", 1000), Some((900, 999)));
+    }
+
+    #[test]
+    fn parse_range_rejects_out_of_bounds_start() {
+        assert_eq!(parse_range_header("bytes=1000-", 1000), None);
+        assert_eq!(parse_range_header("bytes=2000-3000", 1000), None);
+    }
+
+    #[test]
+    fn parse_range_rejects_invalid_input() {
+        assert_eq!(parse_range_header("", 1000), None);
+        assert_eq!(parse_range_header("items=0-10", 1000), None);
+        assert_eq!(parse_range_header("bytes=abc-def", 1000), None);
+        assert_eq!(parse_range_header("bytes=-", 1000), None);
+        assert_eq!(parse_range_header("bytes=-0", 1000), None);
+        assert_eq!(parse_range_header("bytes=5-2", 1000), None);
+        assert_eq!(parse_range_header("bytes=0-10", 0), None);
+    }
+
+    #[test]
+    fn parse_range_multi_range_serves_first() {
+        assert_eq!(parse_range_header("bytes=0-10,20-30", 1000), Some((0, 10)));
+    }
 }

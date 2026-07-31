@@ -808,3 +808,27 @@ export const respondToPairingGQL = `
     respondToPairing(input: $input, accepted: $accepted)
   }
 `
+
+export const downloadPeerFileGQL = `
+  mutation downloadPeerFile($messageId: ID!, $peerId: ID!) {
+    downloadPeerFile(messageId: $messageId, peerId: $peerId)
+  }
+`
+
+export const pauseDownloadGQL = `
+  mutation pauseDownload($messageId: ID!) {
+    pauseDownload(messageId: $messageId)
+  }
+`
+
+export const resumeDownloadGQL = `
+  mutation resumeDownload($messageId: ID!, $peerId: ID!) {
+    resumeDownload(messageId: $messageId, peerId: $peerId)
+  }
+`
+
+export const retryDownloadGQL = `
+  mutation retryDownload($messageId: ID!, $peerId: ID!) {
+    retryDownload(messageId: $messageId, peerId: $peerId)
+  }
+`

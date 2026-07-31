@@ -83,7 +83,7 @@ const emit = defineEmits<{
 const router = useRouter()
 const mainStore = useMainStore()
 const chatStore = useChatStore()
-const { urlTokenKey } = storeToRefs(useTempStore())
+const { urlTokenKey, app } = storeToRefs(useTempStore())
 
 const currentChatId = computed(() => {
   if (router.currentRoute.value.path.includes('app-files')) return ''
@@ -103,7 +103,7 @@ const clearLoading = ref(false)
 const confirmingLeave = ref(false)
 const leaveLoading = ref(false)
 const { cancelByChatId } = useTasks()
-const isOwner = computed(() => props.channel.owner === 'me')
+const isOwner = computed(() => !!app.value?.clientId && props.channel.owner === app.value.clientId)
 
 watch(menuVisible, (v) => {
   if (!v) {

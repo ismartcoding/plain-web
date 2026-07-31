@@ -44,9 +44,9 @@
       <div class="layers-header">
         <label class="section-label">{{ $t('image_editor.layers') }}</label>
         <button
+          v-tooltip="$t('image_editor.clear_all')"
           class="clear-btn"
           :disabled="!layers.length"
-          v-tooltip="$t('image_editor.clear_all')"
           @click="$emit('clearAll')"
         >
           <i-lucide-trash-2 />

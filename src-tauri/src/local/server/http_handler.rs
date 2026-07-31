@@ -5,6 +5,7 @@ use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncWrite};
 use super::super::graphql::{execute_graphql, AppCtx, LocalSchema};
 use super::super::peer_graphql::{self, PeerSchema};
 use super::file_server::serve_file;
+use super::proxy_file::proxy_file;
 use super::response::{respond, APP_ID};
 use super::upload;
 use crate::crypto::{xchacha_decrypt, xchacha_encrypt};
@@ -45,6 +46,7 @@ pub(super) async fn handle<R, W>(
     let mut content_length: usize = 0;
     let mut header_client_id = String::new();
     let mut header_channel_id = String::new();
+    let mut header_range = String::new();
     loop {
         let mut line = String::new();
         if reader.read_line(&mut line).await.is_err() {
@@ -65,6 +67,8 @@ pub(super) async fn handle<R, W>(
                 header_client_id = v.to_string();
             } else if k.eq_ignore_ascii_case("c-cid") {
                 header_channel_id = v.to_string();
+            } else if k.eq_ignore_ascii_case("range") {
+                header_range = v.to_string();
             }
         }
     }
@@ -78,7 +82,10 @@ pub(super) async fn handle<R, W>(
         ("GET", "/health") => respond(&mut wr, 200, "OK", APP_ID.as_bytes(), "text/plain").await,
         ("POST", "/init") => respond(&mut wr, 200, "OK", b"", "text/plain").await,
         ("GET", "/fs") => {
-            serve_file(&mut wr, &query_str, ctx).await;
+            serve_file(&mut wr, &query_str, &header_range, ctx).await;
+        }
+        ("GET", "/proxyfs") => {
+            proxy_file(&mut wr, &query_str, &header_range, ctx).await;
         }
         ("POST", "/upload") => {
             if header_client_id.is_empty() || header_client_id != ctx.identity.client_id {

@@ -1,6 +1,13 @@
 import type { TimeagoMessages } from './interface'
+import enUSMessages from '@/locales/en-US/timeago'
 
 const Messages = new Map<string, TimeagoMessages>()
+
+// Eagerly register the fallback locale so getMessages('en-US') always
+// resolves even before setLocale() finishes the async chunk load. This
+// prevents the `m.now` TypeError that cascaded into `el.__vnode` render
+// errors after channel creation / message sending.
+Messages.set('en-US', enUSMessages)
 
 export function setMessages(locale: string, messages: TimeagoMessages): void {
   Messages.set(locale, messages)

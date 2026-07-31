@@ -11,7 +11,7 @@
         </div>
         <div class="thumb-wrap">
           <img v-if="getThumb(item)" :src="getThumb(item)" class="file-thumbnail" :class="{ 'file-icon': !isImage(item.name) && !isVideo(item.name) }" @error="onIconError(item.name)" />
-          <ChatDownloadOverlay :download-info="downloadInfo" :ring-size="40" border-radius="8px" />
+          <ChatDownloadOverlay :download-info="downloadInfo" :ring-size="40" border-radius="8px" @action="onDownloadAction" />
         </div>
       </div>
       <ChatAudioPlayer v-if="activeAudioSrc === item.src" :src="item.src" />
@@ -31,6 +31,11 @@ const props = defineProps({
   downloadInfo: { type: Object as () => { downloaded: number; total: number; speed: number; status: string } | null, default: null },
   peer: { type: Object as () => { ip: string; port: number } | null, default: null },
 })
+
+const emit = defineEmits<{ 'download-action': [action: 'pause' | 'resume' | 'retry'] }>()
+function onDownloadAction(action: 'pause' | 'resume' | 'retry') {
+  emit('download-action', action)
+}
 
 const { items, activeAudioSrc, getThumb, onIconError, clickItem } = useChatFiles(props)
 </script>
