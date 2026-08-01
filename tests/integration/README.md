@@ -130,7 +130,7 @@ with a relative path.
 **`unauthorized (401)` errors**: the token is wrong or expired. Re-fetch
 it from the `app.urlToken` GraphQL field on each server.
 
-**`web_access_disabled (403)` on Android**: the device's web access
+**`desktop_access_disabled (403)` on Android**: the device's web access
 toggle is off. Enable it in PlainApp's settings.
 
 **Connection timeout to Android**: ensure the device is on the same

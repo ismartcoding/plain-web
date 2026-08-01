@@ -60,7 +60,7 @@ export function useLogin(options: UseLoginOptions = {}) {
       ? await tauriFetch(initUrl, { method: 'POST', headers, body })
       : await fetch(initUrl, { method: 'POST', headers, body: body as BodyInit })
     if (r.status === 403) {
-      showError.value = true; webAccessDisabled.value = true; error.value = 'web_access_disabled'; return
+      showError.value = true; webAccessDisabled.value = true; error.value = 'desktop_access_disabled'; return
     }
     webAccessDisabled.value = false
     const bodyText = await r.text()

@@ -1,7 +1,7 @@
 <template>
   <div class="no-data-placeholder">
     <span>{{ $t(dataKey) }}</span>
-    <a v-if="isNoPermission" href="#" class="open-settings-link" @click.prevent="openSettings">{{ $t('open_web_settings') }}</a>
+    <a v-if="isNoPermission" href="#" class="open-settings-link" @click.prevent="openSettings">{{ $t('open_access_settings') }}</a>
   </div>
 </template>
 

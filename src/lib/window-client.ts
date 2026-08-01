@@ -37,7 +37,8 @@ let cachedWindowId: string | null
 
 function readSession(key: string): string | null {
   try {
-    return sessionStorage.getItem(key)
+    if (__IS_TAURI__) return sessionStorage.getItem(key)
+    return localStorage.getItem(key)
   } catch {
     return null
   }
@@ -45,8 +46,13 @@ function readSession(key: string): string | null {
 
 function writeSession(key: string, value: string): void {
   try {
-    if (value) sessionStorage.setItem(key, value)
-    else sessionStorage.removeItem(key)
+    if (__IS_TAURI__) {
+      if (value) sessionStorage.setItem(key, value)
+      else sessionStorage.removeItem(key)
+    } else {
+      if (value) localStorage.setItem(key, value)
+      else localStorage.removeItem(key)
+    }
   } catch {
     // sessionStorage may be disabled (private mode quirks); fall through.
   }
@@ -96,16 +102,8 @@ export function clearBoundClientId(): void {
   writeSession(BOUND_KEY, '')
 }
 
-/**
- * The effective clientId for this window: the bound device, or the desktop
- * id when no device is bound. This is what every `getCurrentClientId()` /
- * `isLocalMode()` consumer should read.
- */
 export function getWindowClientId(): string {
-  const bound = getBoundClientId()
-  if (bound) return bound
-  const desktop = getDesktopClientId()
-  return desktop
+  return getBoundClientId() || getDesktopClientId()
 }
 
 /** True when no device is bound — i.e. local-only mode. */

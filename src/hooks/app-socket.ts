@@ -8,7 +8,8 @@ import { chachaDecrypt, chachaEncrypt, bitArrayToUint8Array } from '@/lib/api/cr
 import { parseWebSocketData } from '@/lib/api/sjcl-arraybuffer'
 import { applyDarkClass, changeColor, changeColorMode, getCurrentMode, getLastSavedAutoColorMode, isModeDark } from '@/lib/theme'
 import { tokenToKey } from '@/lib/api/file'
-import { getCurrentAuthToken, getCurrentClientId, getCurrentDeviceHost } from '@/lib/device-current'
+import { getWindowClientId } from '@/lib/window-client'
+import { getCurrentAuthToken, getCurrentDeviceHost } from '@/lib/device-current'
 import { isLocalMode } from '@/lib/local-mode'
 import { TauriWebSocket } from '@/lib/api/tauri-ws'
 import { get as prefsGet, set as prefsSet } from '@/lib/prefs'
@@ -82,7 +83,7 @@ export function useAppSocket() {
     lastDiscoveryTime = now
     try {
       const result = await invoke<{ devices: Array<{ id: string; ips: string[]; port: number }> }>('discover_devices')
-      const currentId = getCurrentClientId()
+      const currentId = getWindowClientId()
       if (!currentId) return
       const match = result.devices.find((d) => d.id === currentId)
       if (!match || match.ips.length === 0) return

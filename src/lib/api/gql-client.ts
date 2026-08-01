@@ -60,9 +60,8 @@ async function doGqlFetch<T = any>(query: string, variables?: Record<string, any
         window.location.reload()
       }
       throw new GqlError('unauthorized', 401)
-    }
-    if (response.status === 403) {
-      throw new GqlError('web_access_disabled', 403)
+    } else if (response.status === 403) {
+      throw new GqlError('desktop_access_disabled', 403)
     }
 
     const arrayBuffer = await response.arrayBuffer()

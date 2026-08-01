@@ -23,7 +23,12 @@ v-if="d.discoveryMethods.includes('LAN')" v-tooltip="$t('discovered_via_lan')"
               $t('pending') }}</span>
           </template>
           <template #start>
-            <DeviceTypeIcon :device-type="d.deviceType" />
+            <v-dropdown v-model="infoOpen[d.id]">
+              <template #trigger>
+                <DeviceTypeIcon :device-type="d.deviceType" />
+              </template>
+              <pre class="view-raw">{{ d }}</pre>
+            </v-dropdown>
           </template>
           <template #end>
             <v-outlined-button
@@ -52,7 +57,7 @@ v-else class="btn-sm" :loading="deviceStates.get(d.id) === 'pairing'"
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { popModal } from '@/components/modal'
 import { useDeviceDiscovery, type DiscoveredDevice } from '@/hooks/use-device-discovery'
 import { useDevicePairing } from '@/hooks/use-device-pairing'
@@ -69,6 +74,8 @@ const {
   pairDevice,
   cancelPairing,
 } = useDevicePairing()
+
+const infoOpen = ref<Record<string, boolean>>({})
 
 const chatStore = useChatStore()
 
