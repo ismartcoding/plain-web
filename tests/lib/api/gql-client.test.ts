@@ -160,7 +160,7 @@ describe('gqlFetch', () => {
     vi.stubGlobal('fetch', vi.fn(async () => ({ status: 403, arrayBuffer: async () => new ArrayBuffer(0) })))
 
     await expect(gqlFetch('query { me }')).rejects.toMatchObject({
-      message: 'web_access_disabled',
+      message: 'desktop_access_disabled',
       status: 403,
     })
   })

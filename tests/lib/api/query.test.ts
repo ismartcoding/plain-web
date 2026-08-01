@@ -50,13 +50,13 @@ describe('initQuery', () => {
     expect(handle).toHaveBeenCalledWith(null, 'not authorized')
   })
 
-  it('calls handle(undefined, "web_access_disabled") on 403 GqlError', async () => {
-    const err = new GqlError('web_access_disabled', 403)
+  it('calls handle(undefined, "desktop_access_disabled") on 403 GqlError', async () => {
+    const err = new GqlError('desktop_access_disabled', 403)
     mockGqlFetch.mockRejectedValue(err)
     const handle = vi.fn()
     initQuery({ document: 'query { items }', handle })
     await new Promise((r) => setTimeout(r, 0))
-    expect(handle).toHaveBeenCalledWith(undefined, 'web_access_disabled')
+    expect(handle).toHaveBeenCalledWith(undefined, 'desktop_access_disabled')
   })
 
   it('calls handle(undefined, message) on other GqlError', async () => {

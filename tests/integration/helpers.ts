@@ -141,7 +141,7 @@ export async function gqlFetch<T = any>(
     throw new Error(`unauthorized (401) at ${ep.url}`)
   }
   if (response.status === 403) {
-    throw new Error(`web_access_disabled (403) at ${ep.url}`)
+    throw new Error(`desktop_access_disabled (403) at ${ep.url}`)
   }
   if (!response.ok) {
     throw new Error(`unexpected status ${response.status} at ${ep.url}`)

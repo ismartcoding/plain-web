@@ -1,16 +1,3 @@
-/**
- * Synchronous accessors for the currently active device.
- *
- * Identity comes from `@/lib/window-client`:
- *   - `getCurrentClientId()` returns the per-window bound device, or the
- *     desktop clientId when no device is bound.
- *   - `getCurrentDeviceHost()` / `getCurrentAuthToken()` look the bound id
- *     up in the persistent sessions list to find host + token.
- *   - `getMainStateKey()` namespaces the main store snapshot per device.
- *
- * Works in modules that execute before Pinia is initialised (api.ts,
- * router.ts, login.ts). Both web and Tauri use the same code path.
- */
 import { get as prefsGet, set as prefsSet } from '@/lib/prefs'
 import {
   getWindowClientId,
@@ -41,20 +28,16 @@ function readSessionsStorage(): SessionsStorage {
   }
 }
 
-export function getCurrentClientId(): string {
-  return getWindowClientId()
-}
-
 export { _isLocalMode as isLocalMode }
 
 export function getCurrentDeviceHost(): string {
   const { sessions } = readSessionsStorage()
-  return sessions.find((s) => s.clientId === getCurrentClientId())?.host ?? ''
+  return sessions.find((s) => s.clientId === getWindowClientId())?.host ?? ''
 }
 
 export function getCurrentAuthToken(): string {
   const { sessions } = readSessionsStorage()
-  return sessions.find((s) => s.clientId === getCurrentClientId())?.token ?? ''
+  return sessions.find((s) => s.clientId === getWindowClientId())?.token ?? ''
 }
 
 /**
@@ -67,7 +50,7 @@ export function clearCurrentSession(): void {
   try {
     const p = prefsGet<SessionsStorage | null>(SESSIONS_KEY, null)
     if (!p) return
-    const currentId = getCurrentClientId()
+    const currentId = getWindowClientId()
     if (currentId && Array.isArray(p.sessions)) {
       const session = p.sessions.find((s) => s.clientId === currentId)
       if (session) session.token = ''
@@ -82,6 +65,6 @@ export function clearCurrentSession(): void {
 
 /** Compute the per-device localStorage key for the main store snapshot. */
 export function getMainStateKey(): string {
-  const id = getCurrentClientId()
+  const id = getWindowClientId()
   return id ? `main_state:${id}` : 'main_state'
 }

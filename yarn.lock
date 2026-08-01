@@ -3974,7 +3974,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lib0@npm:^0.2.74, lib0@npm:^0.2.99":
+"lib0@npm:^0.2.99":
   version: 0.2.117
   resolution: "lib0@npm:0.2.117"
   dependencies:
@@ -4742,7 +4742,6 @@ __metadata:
     vue-i18n: "npm:^11.1.10"
     vue-router: "npm:^4.5.1"
     vue-tsc: "npm:^2.2.10"
-    y-indexeddb: "npm:^9.0.12"
     yjs: "npm:^13.6.31"
   languageName: unknown
   linkType: soft
@@ -5837,17 +5836,6 @@ __metadata:
   version: 4.0.0
   resolution: "xml-name-validator@npm:4.0.0"
   checksum: 10/f9582a3f281f790344a471c207516e29e293c6041b2c20d84dd6e58832cd7c19796c47e108fd4fd4b164a5e72ad94f2268f8ace8231cde4a2c6428d6aa220f92
-  languageName: node
-  linkType: hard
-
-"y-indexeddb@npm:^9.0.12":
-  version: 9.0.12
-  resolution: "y-indexeddb@npm:9.0.12"
-  dependencies:
-    lib0: "npm:^0.2.74"
-  peerDependencies:
-    yjs: ^13.0.0
-  checksum: 10/6468ebdcb2936a5fe10e4fb57cbe2d90260c44b63c6ecf6a26cc3652d21bd3be58bb76dfb56dbe56dd71b320042bfd3663274217b89300f2f0db92611fc9e7c6
   languageName: node
   linkType: hard
 

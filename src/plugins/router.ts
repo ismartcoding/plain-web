@@ -288,6 +288,7 @@ router.beforeEach(async (to, from) => {
     return { path: '/chat' }
   }
   const canAccess = getCurrentAuthToken() || (isLocalModeAllowed() && isLocalRouteGroup(to.meta.group))
+
   if (to.meta.requiresAuth && !canAccess) {
     return {
       path: '/login',
