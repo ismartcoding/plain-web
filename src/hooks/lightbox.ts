@@ -23,7 +23,7 @@ import EditValueModal from '@/components/EditValueModal.vue'
 export function useLightboxState(isPhone: boolean) {
   const tempStore = useTempStore()
   const { urlTokenKey, app } = storeToRefs(tempStore)
-  const { lightboxInfoVisible } = storeToRefs(useMainStore())
+  const { lightboxInfoVisible, imageViewQuality } = storeToRefs(useMainStore())
 
   const { imgRef, imgState, setImgSize } = useImage()
   const imgIndex = ref(0)
@@ -70,6 +70,7 @@ export function useLightboxState(isPhone: boolean) {
     urlTokenKey,
     app,
     lightboxInfoVisible,
+    imageViewQuality,
     imgRef,
     imgState,
     setImgSize,
@@ -189,6 +190,13 @@ export function useLightboxTransform(
   return { zoomIn, zoomOut, rotateLeft, rotateRight, resize, onDblclick, onWheel }
 }
 
+// The single source of truth for which URL a source displays at, given the quality
+// setting. Shared by the preloader and the visible <img> so they always agree.
+export function getImageDisplayUrl(source: ISource, quality: 'fast' | 'original'): string {
+  const useOriginal = !isHeic(source.name) && (isSvg(source.name) || source.viewOriginImage || quality === 'original')
+  return useOriginal ? source.src : source.src + '&w=1024&h=1024&cc=false'
+}
+
 export function useLightboxNavigation(
   tempStore: ReturnType<typeof useTempStore>,
   imgIndex: Ref<number>,
@@ -200,8 +208,9 @@ export function useLightboxNavigation(
   loadInfo: () => void,
   loop: Ref<boolean>,
   emit: (event: string, ...args: any[]) => void,
+  imageViewQuality: Ref<'fast' | 'original'>,
 ) {
-  const reset = () => {
+  const reset = (keepImageVisible = false) => {
     imgWrapperState.scale = 1
     imgWrapperState.lastScale = 1
     imgWrapperState.rotateDeg = 0
@@ -210,7 +219,7 @@ export function useLightboxNavigation(
     status.loadError = false
     status.dragging = false
     status.gesturing = false
-    status.loading = true
+    status.loading = !keepImageVisible
   }
 
   const closeDialog = () => {
@@ -219,14 +228,72 @@ export function useLightboxNavigation(
     imgIndex.value = 0
   }
 
+  const preloadedUrls = new Set<string>()
+  // URLs whose bytes have been fetched AND fully decoded, so swapping the visible
+  // <img> to one of these is guaranteed to paint immediately with no blank frame.
+  const decodedUrls = new Set<string>()
+  const preloadedVideoEls: HTMLVideoElement[] = []
+
+  const preloadSource = (source: ISource | undefined) => {
+    if (!source) return
+    if (!source.src) {
+      source.src = getFileUrlByPath(tempStore.urlTokenKey, source.path)
+    }
+    if (!source.src) return
+
+    if (isImage(source.name)) {
+      const url = getImageDisplayUrl(source, imageViewQuality.value)
+      if (preloadedUrls.has(url)) return
+      preloadedUrls.add(url)
+      const img = new Image()
+      img.onload = () => {
+        const markDecoded = () => decodedUrls.add(url)
+        if (img.decode) img.decode().then(markDecoded).catch(markDecoded)
+        else markDecoded()
+      }
+      img.src = url
+    } else if (isVideo(source.name)) {
+      if (preloadedUrls.has(source.src)) return
+      preloadedUrls.add(source.src)
+      const videoEl = document.createElement('video')
+      videoEl.preload = 'auto'
+      videoEl.muted = true
+      videoEl.src = source.src
+      videoEl.load()
+      preloadedVideoEls.push(videoEl)
+    }
+  }
+
+  const preloadAdjacentImages = (newIndex: number) => {
+    const { sources } = tempStore.lightbox
+    const total = sources.length
+    if (total < 2) return
+    // Preload the 3 sources most likely to be viewed next: the next two and the previous one.
+    for (const offset of [1, 2, -1]) {
+      let idx = newIndex + offset
+      if (loop.value) {
+        idx = ((idx % total) + total) % total
+      } else if (idx < 0 || idx >= total) {
+        continue
+      }
+      if (idx === newIndex) continue
+      preloadSource(sources[idx])
+    }
+  }
+
+
   const changeIndex = async (newIndex: number, actions?: IndexChangeActions) => {
     const oldIndex = imgIndex.value
-    reset()
 
     const s = tempStore.lightbox.sources[newIndex]
     if (!s.src) {
       s.src = getFileUrlByPath(tempStore.urlTokenKey, s.path)
     }
+
+    // If the target image was already preloaded and fully decoded, keep it visible
+    // throughout the swap instead of hiding it while "loading" — avoids a flash.
+    const alreadyDecoded = isImage(s.name) && decodedUrls.has(getImageDisplayUrl(s, imageViewQuality.value))
+    reset(alreadyDecoded)
 
     imgIndex.value = newIndex
     current.value = tempStore.lightbox.sources[imgIndex.value]
@@ -235,6 +302,8 @@ export function useLightboxNavigation(
       if (type && !tagsMap.has(type)) loadTags()
       loadInfo()
     }, 0)
+
+    preloadAdjacentImages(newIndex)
 
     if (oldIndex === newIndex) return
 
@@ -341,12 +410,7 @@ export function useLightboxFileActions(
     }
   }
 
-  const viewOrigin = () => {
-    if (current.value) current.value.viewOriginImage = true
-    // status.loading is set externally
-  }
-
-  return { downloadFile, deleteFile, renameFile, handleActionSuccess, viewOrigin }
+  return { downloadFile, deleteFile, renameFile, handleActionSuccess }
 }
 
 export function useLightboxEvents(

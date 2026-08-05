@@ -338,6 +338,7 @@ declare module 'vue' {
     LightboxHeader: typeof import('./src/components/lightbox/LightboxHeader.vue')['default']
     LightboxInfo: typeof import('./src/components/lightbox/LightboxInfo.vue')['default']
     LightboxKeyboardShortcuts: typeof import('./src/components/lightbox/LightboxKeyboardShortcuts.vue')['default']
+    LightboxQualityDropdown: typeof import('./src/components/lightbox/LightboxQualityDropdown.vue')['default']
     ListItemPhone: typeof import('./src/components/base/ListItemPhone.vue')['default']
     LoginForm: typeof import('./src/views/login/LoginForm.vue')['default']
     LoginView: typeof import('./src/views/login/LoginView.vue')['default']
