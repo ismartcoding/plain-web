@@ -30,6 +30,7 @@ export type MainState = {
   miniSidebar: boolean
   lastRoutes: Record<string, string>
   lightboxInfoVisible: boolean
+  imageViewQuality: 'fast' | 'original'
   videosCardView: boolean
   imagesCardView: boolean
   pageUIMode: Record<string, 'view' | 'edit'>
@@ -76,6 +77,7 @@ export const useMainStore = defineStore('main', {
       audios: [],
       audioPlaying: null,
       lightboxInfoVisible: false,
+      imageViewQuality: 'fast',
       videosCardView: false,
       imagesCardView: false,
       pageUIMode: {},

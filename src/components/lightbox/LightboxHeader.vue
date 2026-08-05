@@ -22,9 +22,7 @@
         </v-icon-button>
       </template>
       <template v-if="isImage(current.name)">
-        <v-icon-button v-if="!current.viewOriginImage && !isHeic(current.name)" v-tooltip="$t('view_origin_image')" @click="$emit('view-origin')">
-          <i-material-symbols:image-outline-rounded />
-        </v-icon-button>
+        <LightboxQualityDropdown :model-value="imageQuality" @update:model-value="$emit('update:image-quality', $event)" />
 
         <v-icon-button v-tooltip="$t('edit_image')" @click="$emit('edit-image')">
           <i-material-symbols:edit-rounded />
@@ -59,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import { isImage, isHeic } from '@/lib/file'
+import { isImage } from '@/lib/file'
 import type { ISource } from './types'
 
 const isTauri = __IS_TAURI__
@@ -67,11 +65,11 @@ const isTauri = __IS_TAURI__
 defineProps<{
   current: ISource | undefined
   popup?: boolean
+  imageQuality: 'fast' | 'original'
 }>()
 
 defineEmits<{
   close: []
-  'view-origin': []
   'zoom-in': []
   'zoom-out': []
   resize: []
@@ -80,6 +78,7 @@ defineEmits<{
   'toggle-info': []
   'open-in-window': []
   'edit-image': []
+  'update:image-quality': [value: 'fast' | 'original']
 }>()
 </script>
 

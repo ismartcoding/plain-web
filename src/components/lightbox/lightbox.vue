@@ -5,8 +5,8 @@
         <LightboxHeader
           :current="current"
           :popup="popup"
+          :image-quality="imageViewQuality"
           @close="closeDialog"
-          @view-origin="viewOrigin"
           @zoom-in="zoomIn"
           @zoom-out="zoomOut"
           @resize="resize"
@@ -15,6 +15,7 @@
           @toggle-info="lightboxInfoVisible = !lightboxInfoVisible"
           @open-in-window="onOpenInWindow"
           @edit-image="onEditImage"
+          @update:image-quality="imageViewQuality = $event"
         />
         <section class="content" @click.self="onBackdropClick">
           <div v-if="tempStore.lightbox.sources.length > 1 && (loop || imgIndex > 0)" class="btn-prev" @click="onPrev">
@@ -43,7 +44,7 @@
               draggable="false"
               class="v-img"
               :style="isSvg(current.name) ? 'min-width: ' + imgState.width + 'px;' : ''"
-              :src="current?.src + (current?.viewOriginImage ? '' : '&w=1024&h=1024&cc=false')"
+              :src="imgSrc"
               @mousedown="onMouseDown"
               @mouseup="onMouseUp"
               @mousemove="onMouseMove"
@@ -110,7 +111,7 @@
   </Teleport>
 </template>
 <script setup lang="ts">
-import { inject, toRef } from 'vue'
+import { computed, inject, toRef } from 'vue'
 import { preventDefault } from './utils/index'
 import { isVideo, isImage, isAudio, isSvg } from '@/lib/file'
 import { openMediaInWindow } from '@/lib/api/tauri-window'
@@ -122,6 +123,7 @@ import {
   useLightboxFileActions,
   useLightboxEvents,
   useLightboxMouseTouch,
+  getImageDisplayUrl,
 } from '@/hooks/lightbox'
 
 const props = defineProps({
@@ -135,7 +137,7 @@ const isPhone = inject('isPhone') as boolean
 const isTablet = inject('isTablet') as boolean
 
 const {
-  tempStore, urlTokenKey, app, lightboxInfoVisible,
+  tempStore, urlTokenKey, app, lightboxInfoVisible, imageViewQuality,
   imgRef, imgState, setImgSize, imgIndex,
   current, fileInfo, video,
   imgWrapperState, status, imgWrapperStyle,
@@ -148,15 +150,17 @@ const { zoomIn, zoomOut, rotateLeft, rotateRight, resize, onDblclick, onWheel } 
   useLightboxTransform(imgWrapperState, imgState, status)
 
 const { closeDialog, changeIndex, onNext, onPrev } =
-  useLightboxNavigation(tempStore, imgIndex, current, imgWrapperState, status, tagsMap, loadTags, loadInfo, toRef(props, 'loop'), emit as (event: string, ...args: any[]) => void)
+  useLightboxNavigation(tempStore, imgIndex, current, imgWrapperState, status, tagsMap, loadTags, loadInfo, toRef(props, 'loop'), emit as (event: string, ...args: any[]) => void, imageViewQuality)
 
-const { downloadFile, deleteFile, renameFile, handleActionSuccess, viewOrigin: viewOriginAction } =
+const { downloadFile, deleteFile, renameFile, handleActionSuccess } =
   useLightboxFileActions(current, fileInfo, tagsMap, urlTokenKey, refetchInfo, isPhone, lightboxInfoVisible)
 
-const viewOrigin = () => {
-  viewOriginAction()
-  status.loading = true
-}
+// HEIC always needs server-side conversion, so it must keep the resize query even in "original" mode.
+const imgSrc = computed(() => {
+  const s = current.value
+  if (!s) return ''
+  return getImageDisplayUrl(s, imageViewQuality.value)
+})
 
 const { onLoad, onError, onPlaying, onPause, onVolumeChange } =
   useLightboxEvents(tempStore, current, video, status, imgState, imgIndex, setImgSize, refetchInfo, updateViewOriginImageState, closeDialog, onNext, onPrev, changeIndex, emit as (event: string, ...args: any[]) => void, toRef(props, 'popup'))
