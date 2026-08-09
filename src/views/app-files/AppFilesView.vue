@@ -49,7 +49,7 @@ import { isTextFile, canOpenInBrowser, canView } from '@/lib/file'
 import { openUrl } from '@/lib/browser'
 import { noDataKey } from '@/lib/list'
 import { useSelectable } from '@/hooks/list'
-import { useDownloadItems } from '@/hooks/files'
+import { useDownload, useDownloadItems } from '@/hooks/files'
 import type { ISource } from '@/components/lightbox/types'
 import FileSkeletonItem from '@/views/files/FileSkeletonItem.vue'
 import { useAppFilesData, getAppFileFid, type IAppFile } from './useAppFilesData'
@@ -66,10 +66,19 @@ const sel = useSelectable(items)
 const { selectedIds, allChecked, realAllChecked, checked, toggleAllChecked, toggleSelect, shiftEffectingIds, handleItemClick, handleMouseOver, shouldSelect, clearSelection } = sel
 sel.total = total
 
-const { downloadItems } = useDownloadItems(urlTokenKey, 'APP_FILE', clearSelection, () => 'app-files.zip')
+const { downloadFile } = useDownload(urlTokenKey)
+const { downloadItems: downloadItemsZip } = useDownloadItems(urlTokenKey, 'APP_FILE', clearSelection, () => 'app-files.zip')
 
 function downloadSelected() {
-  downloadItems(realAllChecked.value, selectedIds.value, '')
+  if (!realAllChecked.value && selectedIds.value.length === 1) {
+    const item = items.value.find((it) => it.id === selectedIds.value[0])
+    if (item) {
+      downloadFile(`fid:${getAppFileFid(item)}`, item.fileName)
+      clearSelection()
+      return
+    }
+  }
+  downloadItemsZip(realAllChecked.value, selectedIds.value, '')
 }
 
 const sentinel = ref<HTMLElement | null>(null)

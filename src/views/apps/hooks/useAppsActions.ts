@@ -34,8 +34,20 @@ export function useAppsActions(opts: UseAppsActionsOptions) {
 
   const { input: fileInput, upload: uploadFiles, uploadChanged } = useFileUpload(uploads)
   const { dropping, fileDragEnter, fileDragLeave, dropFiles } = useDragDropUpload(uploads)
-  const { downloadItems } = useDownloadItems(urlTokenKey, DataType.PACKAGE, clearSelection, () => generateDownloadFileName('apps'))
+  const { downloadItems: downloadItemsZip } = useDownloadItems(urlTokenKey, DataType.PACKAGE, clearSelection, () => generateDownloadFileName('apps'))
   const { downloadFile } = useDownload(urlTokenKey)
+
+  function downloadItems(realAllChecked: boolean, ids: string[], query: string) {
+    if (!realAllChecked && ids.length === 1) {
+      const item = items.value.find((it) => it.id === ids[0])
+      if (item) {
+        downloadApp(item)
+        clearSelection()
+        return
+      }
+    }
+    downloadItemsZip(realAllChecked, ids, query)
+  }
 
   const { mutate: installPackageMutate } = initMutation({ document: installPackageGQL })
   const { mutate: uninstallMutate } = initMutation({ document: uninstallPackageGQL })
