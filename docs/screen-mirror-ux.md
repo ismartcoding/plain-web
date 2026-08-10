@@ -80,3 +80,7 @@ New `idle` ref in `screen-mirror-service.ts`:
 - `src/views/ScreenMirrorView.vue` — Pass `idle` prop to child components
 - `src/components/screen-mirror/ScreenMirrorContent.vue` — Added idle screen UI with start button
 - `src/components/screen-mirror/ScreenMirrorHeaderActions.vue` — Hide actions during idle state
+
+## Related
+
+- `docs/screen-mirror-touch-pipeline.md` — Remote control architecture: Web Pointer Events → pathPoints[x,y,t] packet → Android dispatchGesture with full MotionEvent DOWN/MOVE/UP fidelity (replaces the legacy TAP/SWIPE/LONG_PRESS three-command model)

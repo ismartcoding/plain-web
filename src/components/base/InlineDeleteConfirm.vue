@@ -34,6 +34,7 @@ defineEmits<{ confirm: []; cancel: [] }>()
   color: var(--md-sys-color-on-surface);
   line-height: 1.4;
   white-space: break-spaces;
+  word-break: break-all;
 }
 
 .inline-delete-confirm-actions {

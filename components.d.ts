@@ -345,6 +345,7 @@ declare module 'vue' {
     MainView: typeof import('./src/views/MainView.vue')['default']
     ManualConnectSection: typeof import('./src/views/login/ManualConnectSection.vue')['default']
     MarkdownEditor: typeof import('./src/components/MarkdownEditor.vue')['default']
+    MarkdownPreviewView: typeof import('./src/views/markdown-preview/MarkdownPreviewView.vue')['default']
     MediaGridItem: typeof import('./src/components/media/MediaGridItem.vue')['default']
     MediaKeyboardShortcuts: typeof import('./src/components/MediaKeyboardShortcuts.vue')['default']
     MediaPageActions: typeof import('./src/components/media/MediaPageActions.vue')['default']

@@ -6,10 +6,10 @@
       </button>
     </template>
     <div class="dropdown-item" @click="select('fast')">
-      <i-material-symbols:check-rounded v-if="modelValue === 'fast'" /><span v-else class="check-placeholder" />{{ $t('image_quality_fast') }}
+      {{ $t('image_quality_fast') }}<i-material-symbols:check-rounded v-if="modelValue === 'fast'" />
     </div>
     <div class="dropdown-item" @click="select('original')">
-      <i-material-symbols:check-rounded v-if="modelValue === 'original'" /><span v-else class="check-placeholder" />{{ $t('image_quality_original') }}
+      {{ $t('image_quality_original') }}<i-material-symbols:check-rounded v-if="modelValue === 'original'" />
     </div>
   </v-dropdown>
 </template>
@@ -44,10 +44,5 @@ function select(value: 'fast' | 'original') {
   font-size: 0.8125rem;
   font-weight: 500;
   white-space: nowrap;
-}
-
-.check-placeholder {
-  width: 24px;
-  flex-shrink: 0;
 }
 </style>
