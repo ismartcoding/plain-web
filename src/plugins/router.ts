@@ -258,6 +258,12 @@ const router = createRouter({
       meta: { requiresAuth: false },
     },
     {
+      name: 'markdown-preview',
+      path: '/markdown-preview',
+      component: () => import('@/views/markdown-preview/MarkdownPreviewView.vue'),
+      meta: { requiresAuth: false },
+    },
+    {
       name: 'text-edit',
       path: '/text-edit',
       component: () => import('@/views/text-file/TextFileView.vue'),

@@ -2,12 +2,12 @@
   <div class="actions">
     <template v-if="item.isDir">
       <v-icon-button v-tooltip="$t('download')" class="sm" @click.stop="downloadDir(item.path)">
-          <i-material-symbols:download-rounded />
+        <i-material-symbols:download-rounded />
       </v-icon-button>
       <v-dropdown v-if="!inZip" v-model="uploadMenuVisible">
         <template #trigger>
           <v-icon-button v-tooltip="$t('upload')" class="sm">
-              <i-material-symbols:upload-rounded />
+            <i-material-symbols:upload-rounded />
           </v-icon-button>
         </template>
         <div class="dropdown-item" @click.stop="uploadFiles(item.path); uploadMenuVisible = false">
@@ -20,18 +20,21 @@
     </template>
     <template v-else>
       <v-icon-button v-tooltip="$t('download')" class="sm" @click.stop="downloadFile(item.path)">
-          <i-material-symbols:download-rounded />
+        <i-material-symbols:download-rounded />
       </v-icon-button>
     </template>
 
-    <v-icon-button v-if="!inZip" v-tooltip="$t('delete')" class="sm" @click.stop="deleteItem(item)">
-        <i-material-symbols:delete-forever-outline-rounded />
+    <v-icon-button v-if="!inZip" :id="deleteAnchorId" v-tooltip="$t('delete')" class="sm" @click.stop="confirming = true">
+      <i-material-symbols:delete-forever-outline-rounded />
     </v-icon-button>
+    <v-dropdown-menu v-if="!inZip" v-model="confirming" :anchor="deleteAnchorId">
+      <inline-delete-confirm :name="item.name" @confirm="onConfirmDelete" @cancel="confirming = false" />
+    </v-dropdown-menu>
 
     <v-dropdown v-model="infoMenuVisible">
       <template #trigger>
         <v-icon-button v-tooltip="$t('info')" class="sm">
-            <i-material-symbols:info-outline-rounded />
+          <i-material-symbols:info-outline-rounded />
         </v-icon-button>
       </template>
       <section class="card card-info">
@@ -47,7 +50,7 @@
     <v-dropdown v-if="!inZip" v-model="actionsMenuVisible">
       <template #trigger>
         <v-icon-button v-tooltip="$t('actions')" class="sm">
-            <i-material-symbols:more-vert />
+          <i-material-symbols:more-vert />
         </v-icon-button>
       </template>
       <div class="dropdown-item" @click.stop="duplicateItem(item); actionsMenuVisible = false">
@@ -76,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import type { IFile } from '@/lib/file'
 
 interface Props {
@@ -85,7 +88,7 @@ interface Props {
   inZip?: boolean
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const emit = defineEmits<{
   downloadDir: [path: string]
@@ -105,6 +108,8 @@ const emit = defineEmits<{
 const uploadMenuVisible = ref(false)
 const infoMenuVisible = ref(false)
 const actionsMenuVisible = ref(false)
+const confirming = ref(false)
+const deleteAnchorId = computed(() => `file-delete-${props.item.id}`)
 
 function downloadDir(path: string) {
   emit('downloadDir', path)
@@ -122,8 +127,9 @@ function uploadDir(path: string) {
   emit('uploadDir', path)
 }
 
-function deleteItem(item: IFile) {
-  emit('deleteItem', item)
+function onConfirmDelete() {
+  emit('deleteItem', props.item)
+  confirming.value = false
 }
 
 function duplicateItem(item: IFile) {
@@ -160,9 +166,9 @@ function addToFavorites(item: IFile) {
   display: flex;
   gap: 4px;
   align-items: center;
-  
+
   &.mobile {
     flex-wrap: wrap;
   }
 }
-</style> 
+</style>

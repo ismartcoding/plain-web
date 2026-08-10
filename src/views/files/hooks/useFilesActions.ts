@@ -3,11 +3,10 @@ import type { IFile } from '@/lib/file'
 import type { IFileFilter } from '@/lib/interfaces'
 import { openModal } from '@/components/modal'
 import DownloadMethodModal from '@/components/DownloadMethodModal.vue'
-import DeleteFileConfirm from '@/components/DeleteFileConfirm.vue'
 import EditValueModal from '@/components/EditValueModal.vue'
 import { shortUUID } from '@/lib/strutil'
 import { getFileUrlByPath } from '@/lib/api/file'
-import { initMutation, setTempValueGQL, addFavoriteFolderGQL } from '@/lib/api/mutation'
+import { initMutation, setTempValueGQL, addFavoriteFolderGQL, deleteFilesGQL } from '@/lib/api/mutation'
 import emitter from '@/plugins/eventbus'
 import toast from '@/components/toaster'
 import { arrayRemove } from '@/lib/array'
@@ -85,14 +84,31 @@ export function useFilesActions(opts: UseFilesActionsOptions) {
     })
   }
 
-  const deleteItems = () => {
-    openModal(DeleteFileConfirm, {
-      files: items.value.filter((it) => selectedIds.value.includes(it.id)),
-      onDone: onDeleted,
-    })
-  }
+  const { mutate: deleteFilesMutate, loading: deleteLoading, onDone: onDeleteFilesDone } = initMutation({ document: deleteFilesGQL })
+  const pendingDeleteFiles = ref<IFile[]>([])
+  const confirmingDelete = ref(false)
+  const deleteCount = ref(0)
 
-  const deleteItem = (item: IFile) => { openModal(DeleteFileConfirm, { files: [item], onDone: onDeleted }) }
+  onDeleteFilesDone(() => {
+    onDeleted(pendingDeleteFiles.value)
+    pendingDeleteFiles.value = []
+    confirmingDelete.value = false
+  })
+
+  const deleteItems = () => {
+    const selected = items.value.filter((it) => selectedIds.value.includes(it.id))
+    if (selected.length === 0) { toast(t('select_first'), 'error'); return }
+    pendingDeleteFiles.value = selected
+    deleteCount.value = selected.length
+    confirmingDelete.value = true
+  }
+  const doDeleteItems = () => { deleteFilesMutate({ paths: pendingDeleteFiles.value.map((it) => it.path) }) }
+  const cancelDeleteItems = () => { confirmingDelete.value = false; pendingDeleteFiles.value = [] }
+
+  const deleteItem = (item: IFile) => {
+    pendingDeleteFiles.value = [item]
+    deleteFilesMutate({ paths: [item.path] })
+  }
   const copyItems = () => { copy(selectedIds.value); clearSelection() }
   const cutItems = () => { cut(selectedIds.value); clearSelection() }
   const pasteDir = () => { paste(filter.parent) }
@@ -145,6 +161,7 @@ export function useFilesActions(opts: UseFilesActionsOptions) {
 
   return {
     downloadLoading, downloadItems, deleteItems, deleteItem,
+    confirmingDelete, deleteCount, deleteLoading, doDeleteItems, cancelDeleteItems,
     copyItems, cutItems, pasteDir, duplicateItem, cutItem, copyItem, pasteItem,
     copyLinkItem, renameItemClick, createDir, addToFavoritesClick, onDeleted,
   }

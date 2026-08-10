@@ -35,10 +35,10 @@
           <v-icon-button><i-material-symbols:more-vert /></v-icon-button>
         </template>
         <div class="dropdown-item" :class="{ active: qualityMode === 'HD' }" @click="setQuality('HD')">
-          <i-material-symbols:check-rounded v-if="qualityMode === 'HD'" /><span v-else class="check-placeholder" />{{ $t('mirror_hd') }}
+          {{ $t('mirror_hd') }}<i-material-symbols:check-rounded v-if="qualityMode === 'HD'" />
         </div>
         <div class="dropdown-item" :class="{ active: qualityMode === 'SMOOTH' }" @click="setQuality('SMOOTH')">
-          <i-material-symbols:check-rounded v-if="qualityMode === 'SMOOTH'" /><span v-else class="check-placeholder" />{{ $t('mirror_smooth') }}
+          {{ $t('mirror_smooth') }}<i-material-symbols:check-rounded v-if="qualityMode === 'SMOOTH'" />
         </div>
         <div class="dropdown-divider" />
         <div class="dropdown-item" @click="$emit('takeScreenshot'); moreMenuVisible = false">

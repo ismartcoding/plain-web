@@ -19,7 +19,7 @@
       <template v-if="checked">
         <v-icon-button v-if="!inZip" v-tooltip="$t('copy')" @click.stop="copyItems"><i-material-symbols:content-copy-outline-rounded /></v-icon-button>
         <v-icon-button v-if="!inZip" v-tooltip="$t('cut')" @click.stop="cutItems"><i-material-symbols:content-cut-rounded /></v-icon-button>
-        <v-icon-button v-if="!inZip" v-tooltip="$t('delete')" @click.stop="deleteItems"><i-material-symbols:delete-forever-outline-rounded /></v-icon-button>
+        <bulk-delete-button v-if="!inZip" :confirming="confirmingDelete" :count="deleteCount" :loading="deleteLoading" @click="deleteItems" @confirm="doDeleteItems" @cancel="cancelDeleteItems" />
         <v-icon-button v-tooltip="$t('download')" :loading="downloadLoading" @click.stop="downloadItems"><i-material-symbols:download-rounded /></v-icon-button>
       </template>
     </div>
@@ -136,7 +136,9 @@ const { navigateToDir, toggleShowHidden, clickItem, viewItem } = useFilesNavigat
 
 // --- Actions ---
 const {
-  downloadLoading, downloadItems, deleteItems, deleteItem, copyItems, cutItems, pasteDir,
+  downloadLoading, downloadItems, deleteItems, deleteItem,
+  confirmingDelete, deleteCount, deleteLoading, doDeleteItems, cancelDeleteItems,
+  copyItems, cutItems, pasteDir,
   duplicateItem, cutItem, copyItem, pasteItem, copyLinkItem, renameItemClick, createDir,
   addToFavoritesClick, onDeleted,
 } = useFilesActions({

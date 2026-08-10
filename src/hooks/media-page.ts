@@ -129,7 +129,34 @@ export function useMediaPage(options: MediaPageOptions) {
 
   const itemsTagsUpdatedHandler = (e: IItemsTagsUpdatedEvent) => { if (e.type === dataType) { doFetch() } }
   const itemTagsUpdatedHandler = (e: IItemTagsUpdatedEvent) => { if (e.type === dataType) doFetch() }
-  const mediaItemsActionedHandler = (e: IMediaItemsActionedEvent) => { if (e.type === dataType) { sel.clearSelection(); doFetch() } }
+  function getActionedItemIds(e: IMediaItemsActionedEvent): Set<string> | null {
+    if (e.id) return new Set([e.id])
+    if (e.query?.startsWith('ids:')) {
+      const ids = e.query.slice(4).split(',').filter(Boolean)
+      return ids.length > 0 ? new Set(ids) : null
+    }
+    return null
+  }
+
+  const REMOVE_ACTIONS = new Set(['delete', 'trash', 'restore'])
+
+  const mediaItemsActionedHandler = (e: IMediaItemsActionedEvent) => {
+    if (e.type !== dataType) return
+    if (REMOVE_ACTIONS.has(e.action)) {
+      const idsToRemove = getActionedItemIds(e)
+      if (idsToRemove) {
+        const before = items.value.length
+        items.value = items.value.filter((it) => !idsToRemove.has(it.id))
+        const removed = before - items.value.length
+        if (removed > 0) sel.total.value = Math.max(0, sel.total.value - removed)
+        sel.clearSelection()
+        return
+      }
+    }
+    sel.clearSelection()
+    options.onBeforeFetch?.()
+    doFetch()
+  }
   const refetchTagsHandler = (type: string) => { if (type === dataType) fetchBucketsTags() }
   const uploadTaskDoneHandler = (r: IUploadItem) => {
     if (r.status === 'done' && fileFilter(r.fileName)) {
