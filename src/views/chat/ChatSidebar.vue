@@ -24,18 +24,19 @@
         </div>
       </template>
       <template v-else>
-        <div class="section-title">
-          {{ $t('channels') }}
-        </div>
-        <ul class="nav">
-          <SidebarChannelListItem
-            v-for="channel in channels" :key="channel.id" :channel="channel"
-            :active="isChannelActive(channel.id)" :subtitle="getLatestChatPreview(`channel:${channel.id}`)"
-            :time="getLatestChatCreatedAt(`channel:${channel.id}`)"
-            @click="openChat(getChannelChatRouteId(channel.id))"
-            @info="openInfo(`channel:${channel.id}`)" />
-        </ul>
-
+        <template v-if="channels.length > 0">
+          <div class="section-title">
+            {{ $t('channels') }}
+          </div>
+          <ul class="nav">
+            <SidebarChannelListItem
+              v-for="channel in channels" :key="channel.id" :channel="channel"
+              :active="isChannelActive(channel.id)" :subtitle="getLatestChatPreview(`channel:${channel.id}`)"
+              :time="getLatestChatCreatedAt(`channel:${channel.id}`)"
+              @click="openChat(getChannelChatRouteId(channel.id))"
+              @info="openInfo(`channel:${channel.id}`)" />
+          </ul>
+        </template>
         <template v-if="allPeers.length > 0">
           <div class="section-title">
             {{ $t('devices') }}

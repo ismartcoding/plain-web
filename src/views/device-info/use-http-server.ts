@@ -41,7 +41,7 @@ export function useHttpServer() {
     if (!__IS_TAURI__) return
     saving.value = true
     try {
-      const cmd = kind === 'http' ? 'set_preferred_http_port' : 'set_preferred_https_port'
+      const cmd = kind === 'http' ? 'set_http_port' : 'set_https_port'
       await invoke(cmd, { port })
       await invoke('restart_server')
       emitter.emit('refetch_app')

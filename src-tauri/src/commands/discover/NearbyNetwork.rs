@@ -37,8 +37,20 @@ pub fn start_receiver(on_message: Arc<dyn Fn(String, String) + Send + Sync>) -> 
     let task_running = running.clone();
     tauri::async_runtime::spawn_blocking(move || {
         while task_running.load(Ordering::SeqCst) {
-            if let Err(err) = receive_loop(on_message.clone(), task_running.clone()) {
-                log::error!("discover receiver error: {err}");
+            match receive_loop(on_message.clone(), task_running.clone()) {
+                Ok(()) => continue,
+                Err(err)
+                    if err.kind() == io::ErrorKind::AddrInUse =>
+                {
+                    log::warn!(
+                        "discover receiver: port {NEARBY_PORT} is already in use \
+                         (another app instance?), discovery receive disabled"
+                    );
+                    task_running.store(false, Ordering::SeqCst);
+                }
+                Err(err) => {
+                    log::error!("discover receiver error: {err}");
+                }
             }
             if task_running.load(Ordering::SeqCst) {
                 std::thread::sleep(Duration::from_millis(RESTART_DELAY_MS));
@@ -99,8 +111,18 @@ fn receive_loop(
     on_message: Arc<dyn Fn(String, String) + Send + Sync>,
     running: Arc<AtomicBool>,
 ) -> io::Result<()> {
-    let socket = UdpSocket::bind(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, NEARBY_PORT))?;
-    socket.set_read_timeout(Some(Duration::from_millis(RECEIVE_TIMEOUT_MS)))?;
+    let addr = SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, NEARBY_PORT);
+    let sock = socket2::Socket::new(
+        socket2::Domain::IPV4,
+        socket2::Type::DGRAM,
+        Some(socket2::Protocol::UDP),
+    )?;
+    sock.set_reuse_address(true)?;
+    #[cfg(unix)]
+    sock.set_reuse_port(true)?;
+    sock.bind(&addr.into())?;
+    sock.set_read_timeout(Some(Duration::from_millis(RECEIVE_TIMEOUT_MS)))?;
+    let socket: UdpSocket = sock.into();
     let _ = socket.join_multicast_v4(&MULTICAST_ADDR, &Ipv4Addr::UNSPECIFIED);
 
     let mut buf = [0u8; RECV_BUF_SIZE];
