@@ -78,7 +78,19 @@ pub fn set_device_name(handle: &AppHandle, name: &str) {
     }
 }
 
-/// Persist the HTTP port after the server binds.
+/// User-configured HTTP port (default 8080, set via DeviceInfo card).
+/// Matches plain-app's `HttpPortPreference` — single field is both the
+/// user preference and the bound port; no separate "preferred" slot.
+pub fn get_http_port(handle: &AppHandle) -> u16 {
+    handle
+        .store(STORE_FILE)
+        .ok()
+        .and_then(|s| s.get("http_port"))
+        .and_then(|v| v.as_u64())
+        .map(|p| p as u16)
+        .unwrap_or(8080)
+}
+
 pub fn set_http_port(handle: &AppHandle, port: u16) {
     if let Ok(store) = handle.store(STORE_FILE) {
         store.set("http_port", port as u64);
@@ -86,45 +98,20 @@ pub fn set_http_port(handle: &AppHandle, port: u16) {
     }
 }
 
-/// Persist the HTTPS port after the server binds.
+/// User-configured HTTPS port (default 8443, set via DeviceInfo card).
+pub fn get_https_port(handle: &AppHandle) -> u16 {
+    handle
+        .store(STORE_FILE)
+        .ok()
+        .and_then(|s| s.get("https_port"))
+        .and_then(|v| v.as_u64())
+        .map(|p| p as u16)
+        .unwrap_or(8443)
+}
+
 pub fn set_https_port(handle: &AppHandle, port: u16) {
     if let Ok(store) = handle.store(STORE_FILE) {
         store.set("https_port", port as u64);
-        let _ = store.save();
-    }
-}
-
-/// User-configured preferred HTTP port (set via DeviceInfo card). `None` means
-/// use the default candidate list.
-pub fn get_preferred_http_port(handle: &AppHandle) -> Option<u16> {
-    handle
-        .store(STORE_FILE)
-        .ok()
-        .and_then(|s| s.get("preferred_http_port"))
-        .and_then(|v| v.as_u64())
-        .map(|p| p as u16)
-}
-
-pub fn set_preferred_http_port(handle: &AppHandle, port: u16) {
-    if let Ok(store) = handle.store(STORE_FILE) {
-        store.set("preferred_http_port", port as u64);
-        let _ = store.save();
-    }
-}
-
-/// User-configured preferred HTTPS port (set via DeviceInfo card).
-pub fn get_preferred_https_port(handle: &AppHandle) -> Option<u16> {
-    handle
-        .store(STORE_FILE)
-        .ok()
-        .and_then(|s| s.get("preferred_https_port"))
-        .and_then(|v| v.as_u64())
-        .map(|p| p as u16)
-}
-
-pub fn set_preferred_https_port(handle: &AppHandle, port: u16) {
-    if let Ok(store) = handle.store(STORE_FILE) {
-        store.set("preferred_https_port", port as u64);
         let _ = store.save();
     }
 }

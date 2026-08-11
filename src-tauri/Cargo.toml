@@ -54,6 +54,8 @@ uuid = { version = "1", features = ["v4"] }
 async-graphql = { version = "7", default-features = false }
 # Cross-platform system information (OS version, uptime, CPU brand).
 sysinfo = { version = "0.32", default-features = false, features = ["system"] }
+# UDP socket options (SO_REUSEADDR for multicast receiver).
+socket2 = { version = "0.5", features = ["all"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6"
