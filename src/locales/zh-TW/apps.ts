@@ -1,8 +1,8 @@
 export default {
   confirm_uninstallation_on_phone: '請在手機上確認解除安裝。',
   app_type: {
-    user: '使用者',
-    system: '系統',
+    USER: '使用者',
+    SYSTEM: '系統',
   },
   apps: '應用程式',
   version: '版本',

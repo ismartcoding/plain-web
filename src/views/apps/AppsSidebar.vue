@@ -15,9 +15,9 @@
           </template>
         </SidebarListItem>
         <SidebarListItem
-          :title="$t('app_type.user')"
-          :active="'user' === type"
-          @click="openByType('user')"
+          :title="$t('app_type.USER')"
+          :active="'USER' === type"
+          @click="openByType('USER')"
         >
           <template #start>
             <i-material-symbols:person-outline-rounded />
@@ -27,9 +27,9 @@
           </template>
         </SidebarListItem>
         <SidebarListItem
-          :title="$t('app_type.system')"
-          :active="'system' === type"
-          @click="openByType('system')"
+          :title="$t('app_type.SYSTEM')"
+          :active="'SYSTEM' === type"
+          @click="openByType('SYSTEM')"
         >
           <template #start>
             <i-material-symbols:settings-outline-rounded />

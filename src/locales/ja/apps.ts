@@ -1,8 +1,8 @@
 export default {
   confirm_uninstallation_on_phone: 'お使いの携帯電話でアンインストールを確認してください。',
   app_type: {
-    user: 'ユーザー',
-    system: 'システム',
+    USER: 'ユーザー',
+    SYSTEM: 'システム',
   },
   apps: 'アプリケーション',
   version: 'バージョン',

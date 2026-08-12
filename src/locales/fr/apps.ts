@@ -1,8 +1,8 @@
 export default {
   confirm_uninstallation_on_phone: 'Veuillez confirmer la désinstallation sur votre téléphone.',
   app_type: {
-    user: 'Utilisateur',
-    system: 'Système',
+    USER: 'Utilisateur',
+    SYSTEM: 'Système',
   },
   apps: 'Applications',
   version: 'Version',

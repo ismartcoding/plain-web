@@ -57,8 +57,8 @@ export function valueOptionsForGroup(opts: {
 
   if (opts.group === 'apps') {
     base.type = [
-      { value: 'user', label: opts.t('app_type.user') },
-      { value: 'system', label: opts.t('app_type.system') },
+      { value: 'USER', label: opts.t('app_type.USER') },
+      { value: 'SYSTEM', label: opts.t('app_type.SYSTEM') },
     ]
   }
 

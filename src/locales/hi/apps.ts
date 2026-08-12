@@ -1,8 +1,8 @@
 export default {
   confirm_uninstallation_on_phone: 'कृपया अपने फ़ोन पर अनइंस्टॉलेशन की पुष्टि करें।',
   app_type: {
-    user: 'यूजर',
-    system: 'सिस्टम',
+    USER: 'यूजर',
+    SYSTEM: 'सिस्टम',
   },
   apps: 'ऐप्प्स',
   version: 'वरजन',

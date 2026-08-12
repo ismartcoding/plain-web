@@ -1,8 +1,8 @@
 export default {
   confirm_uninstallation_on_phone: 'Пожалуйста, подтвердите удаление на своем телефоне.',
   app_type: {
-    user: 'Пользовательское',
-    system: 'Системное',
+    USER: 'Пользовательское',
+    SYSTEM: 'Системное',
   },
   apps: 'Приложения',
   version: 'Версия',

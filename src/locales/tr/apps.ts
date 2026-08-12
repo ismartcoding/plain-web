@@ -1,8 +1,8 @@
 export default {
   confirm_uninstallation_on_phone: 'Lütfen telefonunuzda kaldırma işlemini onaylayın.',
   app_type: {
-    user: 'Kullanıcı',
-    system: 'Sistem',
+    USER: 'Kullanıcı',
+    SYSTEM: 'Sistem',
   },
   apps: 'Uygulamalar',
   version: 'Sürüm',
