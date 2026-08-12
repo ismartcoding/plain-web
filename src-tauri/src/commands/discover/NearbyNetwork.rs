@@ -68,20 +68,28 @@ pub fn send_multicast(message: &str) -> MulticastSendSummary {
         bind_addrs.push(Ipv4Addr::UNSPECIFIED);
     }
 
+    // Bind once to INADDR_ANY. On macOS the multicast egress interface is
+    // selected by IP_MULTICAST_IF, not by the bound source address — without
+    // setting it, multicast follows the default route (e.g. a VPN) and never
+    // reaches devices on the LAN. Mirrors plain-app's IP_MULTICAST_IF usage.
+    let socket = match socket2::Socket::new(
+        socket2::Domain::IPV4,
+        socket2::Type::DGRAM,
+        Some(socket2::Protocol::UDP),
+    ) {
+        Ok(socket) => socket,
+        Err(_) => return MulticastSendSummary::default(),
+    };
+    let _ = socket.set_multicast_ttl_v4(1);
+    let _ = socket.set_multicast_loop_v4(true);
+    let target_sa: socket2::SockAddr = SocketAddrV4::new(MULTICAST_ADDR, NEARBY_PORT).into();
+
     let mut summary = MulticastSendSummary::default();
     for ip in bind_addrs {
-        let socket = match UdpSocket::bind(SocketAddrV4::new(ip, 0)) {
-            Ok(socket) => socket,
-            Err(err) => {
-                if err.kind() == io::ErrorKind::PermissionDenied {
-                    summary.permission_denied = true;
-                }
-                continue;
-            }
-        };
-        let _ = socket.set_multicast_ttl_v4(1);
-        let _ = socket.set_multicast_loop_v4(true);
-        match socket.send_to(message.as_bytes(), target) {
+        if socket.set_multicast_if_v4(&ip).is_err() {
+            continue;
+        }
+        match socket.send_to(message.as_bytes(), &target_sa) {
             Ok(_) => summary.sent += 1,
             Err(err) => {
                 if err.kind() == io::ErrorKind::PermissionDenied {

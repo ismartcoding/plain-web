@@ -36,7 +36,6 @@
           >
             {{ session.name || session.host }}
           </div>
-          <div class="dropdown-divider"></div>
           <div v-if="!localMode" class="dropdown-item" @click="switchToLocal">
             {{ $t('home.switch_to_local') }}
           </div>
