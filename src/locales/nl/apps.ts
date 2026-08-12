@@ -1,8 +1,8 @@
 export default {
   confirm_uninstallation_on_phone: 'Bevestig de verwijdering op uw telefoon a.u.b.',
   app_type: {
-    user: 'Gebruiker',
-    system: 'Systeem',
+    USER: 'Gebruiker',
+    SYSTEM: 'Systeem',
   },
   apps: 'Apps',
   version: 'Versie',

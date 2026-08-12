@@ -1,8 +1,8 @@
 export default {
   confirm_uninstallation_on_phone: 'অনুগ্রহ করে আপনার ফোনে আনইনস্টলেশন নিশ্চিত করুন।',
   app_type: {
-    user: 'ব্যবহারকারী',
-    system: 'সিস্টেম',
+    USER: 'ব্যবহারকারী',
+    SYSTEM: 'সিস্টেম',
   },
   apps: 'অ্যাপস',
   version: 'সংস্করণ',

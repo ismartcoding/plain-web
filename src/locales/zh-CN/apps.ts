@@ -1,8 +1,8 @@
 export default {
   confirm_uninstallation_on_phone: '请在您的手机上确认卸载。',
   app_type: {
-    user: '用户',
-    system: '系统',
+    USER: '用户',
+    SYSTEM: '系统',
   },
   apps: '应用',
   version: '版本',

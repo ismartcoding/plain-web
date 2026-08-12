@@ -1,8 +1,8 @@
 export default {
   confirm_uninstallation_on_phone: '휴대폰에서 제거를 확인하십시오.',
   app_type: {
-    user: '사용자',
-    system: '시스템',
+    USER: '사용자',
+    SYSTEM: '시스템',
   },
   apps: '앱',
   version: '버전',

@@ -1,8 +1,8 @@
 export default {
   confirm_uninstallation_on_phone: 'Vui lòng xác nhận gỡ cài đặt trên điện thoại của bạn.',
   app_type: {
-    user: 'Người dùng',
-    system: 'Hệ thống',
+    USER: 'Người dùng',
+    SYSTEM: 'Hệ thống',
   },
   apps: 'Ứng dụng',
   version: 'Phiên bản',

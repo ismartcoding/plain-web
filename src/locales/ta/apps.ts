@@ -1,8 +1,8 @@
 export default {
   confirm_uninstallation_on_phone: 'உங்கள் கைபேசியில் அணைத்தலை உறுதி செய்க.',
   app_type: {
-    user: 'பயனர்',
-    system: 'அமைப்பு',
+    USER: 'பயனர்',
+    SYSTEM: 'அமைப்பு',
   },
   apps: 'பயன்பாடுகள்',
   version: 'பதிப்பு',
