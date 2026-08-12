@@ -1,6 +1,7 @@
 import { ref, computed, type ComputedRef } from 'vue'
 import { initLazyQuery, peersGQL } from '@/lib/api/query'
 import type { IPeer } from '@/lib/interfaces'
+import { PeerStatus } from '@/lib/status'
 import { chatCacher } from './chat-cacher'
 
 export type PeerTransportType = 'LAN' | 'AWARE' | 'BLE'
@@ -37,7 +38,7 @@ class PeerCacher {
     const chats = chatCacher.latestChatMap.value
     const online = this.onlineMap.value
     const list = Array.from(this.peersMap.value.values())
-      .filter((r) => r.peer.status === 'paired')
+      .filter((r) => r.peer.status === PeerStatus.PAIRED)
       .map((r) => ({ ...r.peer, online: online.get(r.peer.id) ?? r.peer.online ?? false }))
     return sortPeers(list, chats, online)
   })
@@ -46,7 +47,7 @@ class PeerCacher {
     const chats = chatCacher.latestChatMap.value
     const online = this.onlineMap.value
     const list = Array.from(this.peersMap.value.values())
-      .filter((r) => r.peer.status === 'unpaired')
+      .filter((r) => r.peer.status === PeerStatus.UNPAIRED)
       .map((r) => ({ ...r.peer, online: online.get(r.peer.id) ?? r.peer.online ?? false }))
     return sortPeers(list, chats, online)
   })
@@ -181,7 +182,7 @@ class PeerCacher {
       const keyBytes = new Uint8Array(0)
       const publicKeyBytes = new Uint8Array(0)
       runtimeMap.set(peer.id, { peer, keyBytes, publicKeyBytes })
-      if (peer.status === 'paired') {
+      if (peer.status === PeerStatus.PAIRED) {
         onlineMap.set(peer.id, !!peer.online)
       }
     }

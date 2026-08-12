@@ -7,9 +7,9 @@
         <div class="chat-title">
           <span class="name">{{ senderName }}</span>
           <time v-tooltip="formatDateTimeFull(data.createdAt)" class="time">{{ formatTime(data.createdAt) }}</time>
-          <span v-if="data.id.startsWith('new_') && data.status !== 'failed'" class="sending">{{ sendingStatus }}</span>
+          <span v-if="data.id.startsWith('new_') && data.status !== ChatStatus.FAILED" class="sending">{{ sendingStatus }}</span>
           <span
-            v-else-if="data.fromId === 'me' && (data.status === 'failed' || data.status === 'partial')"
+            v-else-if="data.fromId === 'me' && (data.status === ChatStatus.FAILED || data.status === ChatStatus.PARTIAL)"
             class="send-error"
             @click.stop="emit('retry', data.id, data.statusData)"
           >
@@ -24,7 +24,7 @@
       </div>
     </v-dropdown>
     <div class="chat-content">
-      <div v-if="data._content.type === 'text'">
+      <div v-if="data._content.type === MessageType.TEXT">
         <pre v-html="addLinksToURLs(data._content.value.text)"></pre>
         <ChatLinkPreviews v-if="data._content.value.linkPreviews?.length" :data="data" />
       </div>
@@ -42,6 +42,7 @@ import ChatImages from './ChatImages.vue'
 import ChatLinkPreviews from './ChatLinkPreviews.vue'
 import ChatFiles from './ChatFiles.vue'
 import type { IChatItem, IPeer } from '@/lib/interfaces'
+import { ChatStatus, MessageType } from '@/lib/status'
 
 const props = defineProps<{
   data: IChatItem
@@ -70,6 +71,6 @@ const deliveryLabel = computed(() => {
   return t('delivery_failed')
 })
 
-const componentMap: Record<string, any> = { images: ChatImages, files: ChatFiles, linkPreviews: ChatLinkPreviews }
+const componentMap: Record<string, any> = { [MessageType.IMAGES]: ChatImages, [MessageType.FILES]: ChatFiles, linkPreviews: ChatLinkPreviews }
 function getComponent(type: string) { return componentMap[type] }
 </script>

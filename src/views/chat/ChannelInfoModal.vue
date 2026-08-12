@@ -10,7 +10,7 @@
       <ul class="card list-items">
         <ChannelMemberListItem v-for="member in enrichedMembers" :key="member.id" :member="member">
           <template v-if="isOwner && !member.isSelf && member.id !== channel.owner" #end>
-            <v-outlined-button v-if="member.status === 'pending'" class="btn-sm" :loading="pendingIds.has(member.id)" :disabled="pendingIds.has(member.id)" @click.stop="cancelInvite(member.id)">{{ $t('cancel') }}</v-outlined-button>
+            <v-outlined-button v-if="member.status === MemberStatus.PENDING" class="btn-sm" :loading="pendingIds.has(member.id)" :disabled="pendingIds.has(member.id)" @click.stop="cancelInvite(member.id)">{{ $t('cancel') }}</v-outlined-button>
             <v-icon-button v-else v-tooltip="$t('remove_member')" class="sm" :loading="pendingIds.has(member.id)" :disabled="pendingIds.has(member.id)" @click.stop="removeMember(member.id)">
               <i-material-symbols:close-rounded />
             </v-icon-button>
@@ -40,6 +40,7 @@ v-for="peer in availablePeers" :key="peer.id" :member="{ id: peer.id, name: peer
 import { ref, reactive, computed } from 'vue'
 import type { PropType } from 'vue'
 import type { IChatChannel, IPeer } from '@/lib/interfaces'
+import { MemberStatus, PeerStatus } from '@/lib/status'
 import { popModal } from '@/components/modal'
 import { initMutation, addChatChannelMemberGQL, removeChatChannelMemberGQL } from '@/lib/api/mutation'
 import { useTempStore } from '@/stores/temp'
@@ -57,7 +58,7 @@ const selfId = app.clientId
 const deviceName = computed(() => app.deviceName || selfId.substring(0, 8))
 const isOwner = computed(() => channel.value.owner === selfId)
 const memberIds = computed(() => new Set(channel.value.members.map((m) => m.id)))
-const availablePeers = computed(() => props.peers.filter((p) => p.status === 'paired' && !memberIds.value.has(p.id)))
+const availablePeers = computed(() => props.peers.filter((p) => p.status === PeerStatus.PAIRED && !memberIds.value.has(p.id)))
 
 const enrichedMembers = computed<IChannelMemberListItem[]>(() =>
   channel.value.members.map((m) => {

@@ -104,7 +104,7 @@ pub async fn start_download(ctx: Arc<AppCtx>, message_id: String, peer_id: Strin
 
     let state = Arc::new(Mutex::new(DownloadState {
         message_id: message_id.clone(),
-        status: "pending".to_string(),
+        status: "PENDING".to_string(),
         downloaded: 0,
         total: 0,
         speed: 0,
@@ -449,14 +449,14 @@ async fn download_one(
 async fn set_failed(ctx: &Arc<AppCtx>, state: &Arc<Mutex<DownloadState>>, error: &str) {
     log::warn!("[download] failed: {error}");
     let mut s = state.lock().await;
-    s.status = "failed".to_string();
+    s.status = "FAILED".to_string();
     s.speed = 0;
     emit_progress(ctx, &s);
 }
 
 async fn set_completed(ctx: &Arc<AppCtx>, state: &Arc<Mutex<DownloadState>>) {
     let mut s = state.lock().await;
-    s.status = "completed".to_string();
+    s.status = "COMPLETED".to_string();
     s.downloaded = s.total;
     s.speed = 0;
     emit_progress(ctx, &s);

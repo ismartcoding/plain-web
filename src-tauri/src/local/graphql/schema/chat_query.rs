@@ -65,7 +65,7 @@ impl ChatQuery {
 
     async fn chat_channels(&self, ctx: &Context<'_>) -> Vec<ChatChannel> {
         let c = ctx.data_unchecked::<Arc<AppCtx>>();
-        c.db.get_channels()
+        c.db.get_channels(crate::local::enums::ChannelStatus::Joined)
             .into_iter()
             .map(ChatChannel::from)
             .collect()

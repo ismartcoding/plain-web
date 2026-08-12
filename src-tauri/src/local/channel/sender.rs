@@ -31,6 +31,7 @@ use serde_json::{json, Value};
 
 use crate::crypto::{base64_encode, ed25519_sign};
 use crate::local::db::{ChatDb, DChannel, DPeer};
+use crate::local::enums::{ChannelSystemMessageAction, ChannelSystemMessageType};
 use crate::local::graphql::context::PeerKeyCache;
 
 use super::messages::*;
@@ -53,7 +54,12 @@ pub async fn send_invite(
     channel_key: &[u8],
 ) -> bool {
     let member_peers = build_member_peers(channel, db, client_id, device_name, kp_bytes);
-    let sig_payload = channel_message_payload(&channel.id, channel.version, ACTION_INVITE, &peer.id);
+    let sig_payload = channel_message_payload(
+        &channel.id,
+        channel.version,
+        ChannelSystemMessageAction::Invite,
+        &peer.id,
+    );
     let signature = ed25519_sign(kp_bytes, sig_payload.as_bytes());
     let payload = json!({
         "channelId": channel.id,
@@ -68,7 +74,7 @@ pub async fn send_invite(
     deliver_type(
         peer,
         kp_bytes,
-        TYPE_INVITE,
+        ChannelSystemMessageType::Invite,
         &payload,
         Some(&channel.id),
         channel_key,
@@ -109,7 +115,7 @@ pub async fn send_invite_accept(
     deliver_type(
         owner_peer,
         kp_bytes,
-        TYPE_INVITE_ACCEPT,
+        ChannelSystemMessageType::InviteAccept,
         &payload,
         Some(channel_id),
         channel_key,
@@ -131,7 +137,7 @@ pub async fn send_invite_decline(
     deliver_type(
         owner_peer,
         kp_bytes,
-        TYPE_INVITE_DECLINE,
+        ChannelSystemMessageType::InviteDecline,
         &payload,
         Some(channel_id),
         channel_key,
@@ -153,7 +159,12 @@ pub async fn broadcast_update(
     channel_key: &[u8],
 ) {
     let member_peers = build_member_peers(channel, db, client_id, device_name, kp_bytes);
-    let sig_payload = channel_message_payload(&channel.id, channel.version, ACTION_UPDATE, "");
+    let sig_payload = channel_message_payload(
+        &channel.id,
+        channel.version,
+        ChannelSystemMessageAction::Update,
+        "",
+    );
     let signature = ed25519_sign(kp_bytes, sig_payload.as_bytes());
     let payload = json!({
         "channelId": channel.id,
@@ -169,7 +180,7 @@ pub async fn broadcast_update(
             let _ = deliver_type(
                 &peer,
                 kp_bytes,
-                TYPE_UPDATE,
+                ChannelSystemMessageType::Update,
                 &payload,
                 Some(&channel.id),
                 channel_key,
@@ -191,7 +202,12 @@ pub async fn send_kick(
     channel_key: &[u8],
     key_cache: &PeerKeyCache,
 ) -> bool {
-    let sig_payload = channel_message_payload(channel_id, version, ACTION_KICK, &peer.id);
+    let sig_payload = channel_message_payload(
+        channel_id,
+        version,
+        ChannelSystemMessageAction::Kick,
+        &peer.id,
+    );
     let signature = ed25519_sign(kp_bytes, sig_payload.as_bytes());
     let payload = json!({
         "channelId": channel_id,
@@ -201,7 +217,7 @@ pub async fn send_kick(
     deliver_type(
         peer,
         kp_bytes,
-        TYPE_KICK,
+        ChannelSystemMessageType::Kick,
         &payload,
         Some(channel_id),
         channel_key,
@@ -222,7 +238,12 @@ pub async fn broadcast_kick(
     key_cache: &PeerKeyCache,
     channel_key: &[u8],
 ) {
-    let sig_payload = channel_message_payload(&channel.id, channel.version, ACTION_KICK, "");
+    let sig_payload = channel_message_payload(
+        &channel.id,
+        channel.version,
+        ChannelSystemMessageAction::Kick,
+        "",
+    );
     let signature = ed25519_sign(kp_bytes, sig_payload.as_bytes());
     let payload = json!({
         "channelId": channel.id,
@@ -235,7 +256,7 @@ pub async fn broadcast_kick(
             let _ = deliver_type(
                 &peer,
                 kp_bytes,
-                TYPE_KICK,
+                ChannelSystemMessageType::Kick,
                 &payload,
                 Some(&channel.id),
                 channel_key,
@@ -260,7 +281,7 @@ pub async fn send_leave(
     deliver_type(
         owner_peer,
         kp_bytes,
-        TYPE_LEAVE,
+        ChannelSystemMessageType::Leave,
         &payload,
         Some(channel_id),
         channel_key,
@@ -297,7 +318,7 @@ fn build_member_peers(
                     "id": id,
                     "name": device_name,
                     "publicKey": self_pub_key,
-                    "deviceType": "computer",
+                    "deviceType": "COMPUTER",
                     "ip": "",
                     "port": 0,
                 }))
@@ -342,7 +363,7 @@ fn member_ids_excluding(channel: &DChannel, exclude_id: &str) -> Vec<String> {
 async fn deliver_type(
     peer: &DPeer,
     kp_bytes: &[u8],
-    msg_type: &str,
+    msg_type: ChannelSystemMessageType,
     payload: &Value,
     channel_id_opt: Option<&str>,
     channel_key: &[u8],
@@ -360,7 +381,7 @@ async fn deliver_type(
             Some(k) => k,
             None => {
                 log::debug!(
-                    "[channel] no shared key for peer {}, skipping {msg_type}",
+                    "[channel] no shared key for peer {}, skipping {msg_type:?}",
                     peer.id
                 );
                 return false;
@@ -368,6 +389,7 @@ async fn deliver_type(
         }
     };
     let payload_str = serde_json::to_string(payload).unwrap_or_default();
+    let msg_type_str = msg_type.as_str();
 
     // Borrow the existing delivery helper from graphql/peer so we don't
     // duplicate the encrypt/sign/POST/verify pipeline.
@@ -375,7 +397,7 @@ async fn deliver_type(
         peer,
         &key,
         kp_bytes,
-        msg_type,
+        msg_type_str,
         &payload_str,
         channel_id_opt,
     )

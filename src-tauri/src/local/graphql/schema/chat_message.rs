@@ -9,6 +9,7 @@ use super::super::peer::{deliver_to_peer, peer_graphql_urls};
 use super::types::{make_file_id, ChatItem};
 use crate::crypto::base64_decode;
 use crate::local::db::DChat;
+use crate::local::enums::ChatStatus;
 use crate::local::channel::chat_helper::{
     build_no_leader_status_data, build_status_data_json, compute_status, send_async,
     ChannelDeliveryResult,
@@ -137,7 +138,7 @@ impl ChatMessageMutation {
         let pending = is_peer && !peer_id.is_empty() && peer_id != "local";
         let mut chat = DChat::new("me", &to, &channel_id, &content);
         if pending {
-            chat.status = "pending".to_string();
+            chat.status = ChatStatus::Pending;
         }
         c.db.insert_chat(&chat);
 
@@ -177,9 +178,9 @@ impl ChatMessageMutation {
                         )
                         .await;
                         let (new_status, status_data) = match delivery_result {
-                            Ok(()) => ("sent", String::new()),
+                            Ok(()) => (ChatStatus::Sent, String::new()),
                             Err(error) => (
-                                "failed",
+                                ChatStatus::Failed,
                                 peer_delivery_status_data(
                                     &peer_id_for_status,
                                     &peer_name_for_status,
@@ -211,8 +212,8 @@ impl ChatMessageMutation {
                 let has_targets = member_ids.iter().any(|id| id != &client_id);
 
                 if !has_targets {
-                    chat.status = "sent".to_string();
-                    if let Some(updated) = c.db.update_chat_status(&chat.id, "sent") {
+                    chat.status = ChatStatus::Sent;
+                    if let Some(updated) = c.db.update_chat_status(&chat.id, ChatStatus::Sent) {
                         chat = updated;
                     }
                 } else {
@@ -227,20 +228,18 @@ impl ChatMessageMutation {
                         });
 
                     if !other_online {
-                        // No leader / no online peers → "failed" with
-                        // `DMessageStatusData(results=null)`.
-                        chat.status = "failed".to_string();
+                        chat.status = ChatStatus::Failed;
                         let no_leader_data = build_no_leader_status_data();
                         if let Some(updated) = c.db.update_chat_status_and_data(
                             &chat.id,
-                            "failed",
+                            ChatStatus::Failed,
                             &no_leader_data,
                         ) {
                             chat = updated;
                         }
                     } else {
-                        chat.status = "pending".to_string();
-                        if let Some(updated) = c.db.update_chat_status(&chat.id, "pending") {
+                        chat.status = ChatStatus::Pending;
+                        if let Some(updated) = c.db.update_chat_status(&chat.id, ChatStatus::Pending) {
                             chat = updated;
                         }
 
@@ -269,18 +268,18 @@ impl ChatMessageMutation {
                             .await;
                             let (status, status_data) = match result {
                                 Some(results) => {
-                                    let s = compute_status(&results).to_string();
+                                    let s = compute_status(&results);
                                     let d = build_status_data_json(&results);
                                     (s, d)
                                 }
                                 None => {
-                                    let s = "failed".to_string();
+                                    let s = ChatStatus::Failed;
                                     let d = build_no_leader_status_data();
                                     (s, d)
                                 }
                             };
                             if let Some(updated) = db
-                                .update_chat_status_and_data(&chat_id, &status, &status_data)
+                                .update_chat_status_and_data(&chat_id, status, &status_data)
                             {
                                 let _ = event_tx.send(WsEvent {
                                     event_type: WS_MESSAGE_UPDATED,
@@ -354,7 +353,7 @@ impl ChatMessageMutation {
         let is_peer = !chat.to_id.is_empty() && chat.channel_id.is_empty();
 
         if !is_peer {
-            let updated = c.db.update_chat_status(&id, "sent");
+            let updated = c.db.update_chat_status(&id, ChatStatus::Sent);
             if let Some(ref u) = updated {
                 let _ = c.event_tx.send(WsEvent {
                     event_type: WS_MESSAGE_UPDATED,
@@ -364,7 +363,7 @@ impl ChatMessageMutation {
             return updated.map(|u| ChatItem::with_data(u, &c.token));
         }
 
-        let _ = c.db.update_chat_status(&id, "pending");
+        let _ = c.db.update_chat_status(&id, ChatStatus::Pending);
         let _ = c.event_tx.send(WsEvent {
             event_type: WS_MESSAGE_UPDATED,
             payload: json!([chat_to_json(&chat, &c.token)]).to_string(),
@@ -406,9 +405,9 @@ impl ChatMessageMutation {
                     )
                     .await;
                     let (new_status, status_data) = match delivery_result {
-                        Ok(()) => ("sent", String::new()),
+                        Ok(()) => (ChatStatus::Sent, String::new()),
                         Err(error) => (
-                            "failed",
+                            ChatStatus::Failed,
                             peer_delivery_status_data(
                                 &peer_id_for_status,
                                 &peer_name_for_status,

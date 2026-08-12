@@ -5,6 +5,7 @@ use super::super::context::{refresh_peer_key_cache, AppCtx, WsEvent, WS_CHANNELS
 use super::types::ChatChannel;
 use crate::crypto::base64_decode;
 use crate::local::db::{now_iso, DChannel};
+use crate::local::enums::{ChannelStatus, MemberStatus};
 
 #[derive(Default)]
 pub struct ChatChannelMutation;
@@ -80,7 +81,7 @@ impl ChatChannelMutation {
                 )
                 .await;
             }
-            ch.status = "left".to_string();
+            ch.status = ChannelStatus::Left;
             ch.updated_at = now_iso();
             c.db.update_channel(&ch);
         }
@@ -115,7 +116,7 @@ impl ChatChannelMutation {
                     .collect();
                 ch.members = serde_json::to_string(&new_members)
                     .unwrap_or_else(|_| "[]".to_string());
-                ch.status = "left".to_string();
+                ch.status = ChannelStatus::Left;
                 ch.updated_at = now_iso();
                 c.db.update_channel(&ch);
                 refresh_peer_key_cache(&c.db, &c.peer_key_cache);
@@ -147,7 +148,7 @@ impl ChatChannelMutation {
         let mut new_members = members;
         new_members.push(serde_json::json!({
             "id": peer_id,
-            "status": "pending",
+            "status": MemberStatus::Pending.to_string(),
         }));
         ch.members = serde_json::to_string(&new_members).unwrap_or_else(|_| "[]".to_string());
         ch.version += 1;

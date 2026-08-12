@@ -5,6 +5,9 @@ import { isDiscoveringGQL } from '@/lib/api/query'
 import emitter from '@/plugins/eventbus'
 import type { PairingResult } from '@/lib/pairing-types'
 import { useChatStore } from '@/stores/chat'
+import { PeerStatus } from '@/lib/status'
+
+export type DiscoveryDeviceStatus = 'PAIRING' | 'UNPAIRING' | PeerStatus
 
 export interface DiscoveredDevice {
   id: string
@@ -15,7 +18,7 @@ export interface DiscoveredDevice {
   version: string
   platform: string
   lastSeen: string
-  status: string
+  status: DiscoveryDeviceStatus
   discoveryMethods: string[]
 }
 
@@ -79,7 +82,7 @@ function ensureListener() {
   emitter.on('pairing_success', (result: PairingResult) => {
     const device = devices.value.find((d) => d.id === result.deviceId)
     if (device) {
-      device.status = 'PAIRED'
+      device.status = PeerStatus.PAIRED
     }
     useChatStore().fetchPeers()
   })
@@ -87,14 +90,14 @@ function ensureListener() {
   emitter.on('pairing_failed', (result: PairingResult) => {
     const device = devices.value.find((d) => d.id === result.deviceId)
     if (device) {
-      device.status = 'UNPAIRED'
+      device.status = PeerStatus.UNPAIRED
     }
   })
   
   emitter.on('pairing_canceled', (result: PairingResult) => {
     const device = devices.value.find((d) => d.id === result.deviceId)
     if (device) {
-      device.status = 'UNPAIRED'
+      device.status = PeerStatus.UNPAIRED
     }
   })
 

@@ -553,7 +553,7 @@ export const videoCountGQL = `
 export const packageCountGQL = `
   query {
     total: packageCount(query: "")
-    system: packageCount(query: "type:system")
+    system: packageCount(query: "type:SYSTEM")
   }
 `
 

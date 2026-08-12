@@ -12,9 +12,14 @@
 use tokio::sync::broadcast;
 
 use serde_json::{json, Value};
+use std::str::FromStr;
 
 use crate::crypto::{base64_decode, ed25519_verify};
 use crate::local::db::{now_iso, ChatDb, DPeer};
+use crate::local::enums::{
+    ChannelStatus, ChannelSystemMessageAction, ChannelSystemMessageType, DeviceType, MemberStatus,
+    PeerStatus,
+};
 use crate::local::graphql::context::{
     load_key_cache, ChannelKeyCache, PeerKeyCache, WsEvent, WS_CHANNEL_INVITE_RECEIVED,
     WS_CHANNELS_UPDATED,
@@ -56,7 +61,7 @@ pub fn handle(
     client_id: &str,
     device_name: &str,
     from_id: &str,
-    msg_type: &str,
+    msg_type: ChannelSystemMessageType,
     payload: &str,
     event_tx: &broadcast::Sender<WsEvent>,
     kp_bytes: &[u8],
@@ -64,8 +69,8 @@ pub fn handle(
     channel_key_cache: &ChannelKeyCache,
 ) -> bool {
     let result = match msg_type {
-        TYPE_INVITE => handle_invite(db, client_id, from_id, payload, event_tx),
-        TYPE_INVITE_ACCEPT => handle_invite_accept(
+        ChannelSystemMessageType::Invite => handle_invite(db, client_id, from_id, payload, event_tx),
+        ChannelSystemMessageType::InviteAccept => handle_invite_accept(
             db,
             client_id,
             device_name,
@@ -76,10 +81,12 @@ pub fn handle(
             peer_key_cache,
             channel_key_cache,
         ),
-        TYPE_INVITE_DECLINE => handle_invite_decline(db, client_id, from_id, payload),
-        TYPE_UPDATE => handle_update(db, client_id, from_id, payload),
-        TYPE_KICK => handle_kick(db, client_id, from_id, payload),
-        TYPE_LEAVE => handle_leave(
+        ChannelSystemMessageType::InviteDecline => {
+            handle_invite_decline(db, client_id, from_id, payload)
+        }
+        ChannelSystemMessageType::Update => handle_update(db, client_id, from_id, payload),
+        ChannelSystemMessageType::Kick => handle_kick(db, client_id, from_id, payload),
+        ChannelSystemMessageType::Leave => handle_leave(
             db,
             client_id,
             device_name,
@@ -89,10 +96,6 @@ pub fn handle(
             kp_bytes,
             peer_key_cache,
         ),
-        other => {
-            log::warn!("[channel] unknown system message type: {other}");
-            return false;
-        }
     };
     if result {
         let _ = event_tx.send(WsEvent {
@@ -158,7 +161,12 @@ fn handle_invite(
         }
     };
 
-    let sig_payload = channel_message_payload(channel_id, version, ACTION_INVITE, client_id);
+    let sig_payload = channel_message_payload(
+        channel_id,
+        version,
+        ChannelSystemMessageAction::Invite,
+        client_id,
+    );
     if !verify_channel_signature(owner_pub_key, &sig_payload, signature) {
         log::warn!(
             "[channel] invite signature failed for {channel_id} from {from_id} — rejected"
@@ -175,7 +183,7 @@ fn handle_invite(
     let existing = db.get_channel_by_id(channel_id);
     let is_reinvite = existing
         .as_ref()
-        .map(|ch| ch.status == CHANNEL_STATUS_LEFT || ch.status == CHANNEL_STATUS_KICKED)
+        .map(|ch| ch.status == ChannelStatus::Left || ch.status == ChannelStatus::Kicked)
         .unwrap_or(false);
 
     if existing.is_some() && !is_reinvite {
@@ -190,17 +198,18 @@ fn handle_invite(
             continue;
         }
         let now = now_iso();
+        let device_type = DeviceType::from_str(member["deviceType"].as_str().unwrap_or(""))
+            .unwrap_or(DeviceType::Unknown);
         let new_peer = DPeer::new(
             id,
             member["name"].as_str().unwrap_or(""),
             member["ip"].as_str().unwrap_or(""),
             member["port"].as_u64().unwrap_or(0) as u16,
-            member["deviceType"].as_str().unwrap_or(""),
+            device_type,
         );
         let mut p = new_peer;
         p.public_key = member["publicKey"].as_str().unwrap_or("").to_string();
-        p.status = PEER_STATUS_CHANNEL.to_string();
-        // Preserve original created_at from now (DPeer::new uses now already).
+        p.status = PeerStatus::Channel;
         p.created_at = now.clone();
         p.updated_at = now;
         db.upsert_peer(&p);
@@ -212,7 +221,6 @@ fn handle_invite(
         .unwrap_or_default();
 
     if let Some(mut ch) = existing {
-        // Re-invite after leaving / kicked → restore to joined and refresh metadata.
         ch.name = channel_name.to_string();
         ch.owner = from_id.to_string();
         ch.members = encode_members(&members_arr);
@@ -220,11 +228,10 @@ fn handle_invite(
             ch.key = key.to_string();
         }
         ch.version = version;
-        ch.status = CHANNEL_STATUS_JOINED.to_string();
+        ch.status = ChannelStatus::Joined;
         ch.updated_at = now_iso();
         db.update_channel(&ch);
     } else {
-        // First-time invite: insert a brand new local channel row.
         let now = now_iso();
         let ch = crate::local::db::DChannel {
             id: channel_id.to_string(),
@@ -233,7 +240,7 @@ fn handle_invite(
             members: encode_members(&members_arr),
             key: key.to_string(),
             version,
-            status: CHANNEL_STATUS_JOINED.to_string(),
+            status: ChannelStatus::Joined,
             created_at: now.clone(),
             updated_at: now,
         };
@@ -304,13 +311,15 @@ fn handle_invite_accept(
     // Make sure a peer record exists for the accepter.
     let pub_key = msg["publicKey"].as_str().unwrap_or("").to_string();
     let name = msg["name"].as_str().unwrap_or("").to_string();
-    let device_type = msg["deviceType"].as_str().unwrap_or("").to_string();
+    let device_type_str = msg["deviceType"].as_str().unwrap_or("").to_string();
     match db.get_peer_by_id(from_id) {
         None => {
             let now = now_iso();
-            let mut p = DPeer::new(from_id, &name, "", 0, &device_type);
+            let device_type =
+                DeviceType::from_str(&device_type_str).unwrap_or(DeviceType::Unknown);
+            let mut p = DPeer::new(from_id, &name, "", 0, device_type);
             p.public_key = pub_key;
-            p.status = PEER_STATUS_CHANNEL.to_string();
+            p.status = PeerStatus::Channel;
             p.created_at = now.clone();
             p.updated_at = now;
             db.upsert_peer(&p);
@@ -335,12 +344,14 @@ fn handle_invite_accept(
 
     // pending → joined (or append as joined if member not found).
     let mut members = decode_members(&ch.members);
+    let pending_str = MemberStatus::Pending.to_string();
+    let joined_str = MemberStatus::Joined.to_string();
     if let Some(idx) = members.iter().position(|m| m["id"].as_str() == Some(from_id)) {
-        if members[idx]["status"].as_str() == Some(MEMBER_STATUS_PENDING) {
-            members[idx]["status"] = json!(MEMBER_STATUS_JOINED);
+        if members[idx]["status"].as_str() == Some(&pending_str) {
+            members[idx]["status"] = json!(joined_str);
         }
     } else {
-        members.push(json!({ "id": from_id, "status": MEMBER_STATUS_JOINED }));
+        members.push(json!({ "id": from_id, "status": joined_str }));
     }
     ch.members = encode_members(&members);
     ch.version += 1;
@@ -453,7 +464,8 @@ fn handle_update(db: &ChatDb, _client_id: &str, from_id: &str, payload: &str) ->
             return false;
         }
     };
-    let sig_payload = channel_message_payload(channel_id, version, ACTION_UPDATE, "");
+    let sig_payload =
+        channel_message_payload(channel_id, version, ChannelSystemMessageAction::Update, "");
     if !verify_channel_signature(&owner_pub_key, &sig_payload, signature) {
         log::warn!(
             "[channel] update signature failed for {channel_id} from {from_id} — rejected"
@@ -478,15 +490,17 @@ fn handle_update(db: &ChatDb, _client_id: &str, from_id: &str, payload: &str) ->
             continue;
         }
         let now = now_iso();
+        let device_type = DeviceType::from_str(member["deviceType"].as_str().unwrap_or(""))
+            .unwrap_or(DeviceType::Unknown);
         let mut p = DPeer::new(
             id,
             member["name"].as_str().unwrap_or(""),
             member["ip"].as_str().unwrap_or(""),
             member["port"].as_u64().unwrap_or(0) as u16,
-            member["deviceType"].as_str().unwrap_or(""),
+            device_type,
         );
         p.public_key = member["publicKey"].as_str().unwrap_or("").to_string();
-        p.status = PEER_STATUS_CHANNEL.to_string();
+        p.status = PeerStatus::Channel;
         p.created_at = now.clone();
         p.updated_at = now;
         db.upsert_peer(&p);
@@ -538,7 +552,12 @@ fn handle_kick(db: &ChatDb, client_id: &str, from_id: &str, payload: &str) -> bo
             return false;
         }
     };
-    let sig_payload = channel_message_payload(channel_id, version, ACTION_KICK, client_id);
+    let sig_payload = channel_message_payload(
+        channel_id,
+        version,
+        ChannelSystemMessageAction::Kick,
+        client_id,
+    );
     if !verify_channel_signature(&owner_pub_key, &sig_payload, signature) {
         log::warn!(
             "[channel] kick signature failed for {channel_id} from {from_id} — rejected"
@@ -546,7 +565,7 @@ fn handle_kick(db: &ChatDb, client_id: &str, from_id: &str, payload: &str) -> bo
         return false;
     }
 
-    ch.status = CHANNEL_STATUS_KICKED.to_string();
+    ch.status = ChannelStatus::Kicked;
     let members: Vec<_> = decode_members(&ch.members)
         .into_iter()
         .filter(|m| m["id"].as_str() != Some(client_id))
@@ -650,7 +669,7 @@ mod tests {
     #[test]
     fn verify_channel_signature_roundtrip_and_tamper() {
         let (kp_bytes, vk_bytes) = ed25519_generate();
-        let payload = channel_message_payload("ch_5", 4, ACTION_KICK, "peer_d");
+        let payload = channel_message_payload("ch_5", 4, ChannelSystemMessageAction::Kick, "peer_d");
         let sig = ed25519_sign(&kp_bytes, payload.as_bytes());
         let pub_key_b64 = base64_encode(&vk_bytes);
 
@@ -659,7 +678,7 @@ mod tests {
             "valid signature should verify"
         );
 
-        let tampered = channel_message_payload("ch_5", 99, ACTION_KICK, "peer_d");
+        let tampered = channel_message_payload("ch_5", 99, ChannelSystemMessageAction::Kick, "peer_d");
         assert!(
             !verify_channel_signature(&pub_key_b64, &tampered, &sig),
             "tampered payload should fail verification"

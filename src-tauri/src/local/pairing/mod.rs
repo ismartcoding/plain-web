@@ -15,9 +15,11 @@
 
 use super::db::{now_iso, ChatDb, DPeer};
 use crate::crypto::{base64_decode, base64_encode, ed25519_sign, ed25519_verify, EcdhSession};
+use crate::local::enums::{DeviceType, PeerStatus};
 use crate::prefs::AppIdentity;
 use serde::Serialize;
 use std::collections::HashMap;
+use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 
 pub mod commands;
@@ -27,7 +29,7 @@ mod utils;
 pub use protocol::{PairingCancel, PairingRequest, PairingResponse};
 
 use utils::{
-    device_type_signature_value, local_ipv4_strs, now_ms, prefer_sender_ip, send_udp,
+    local_ipv4_strs, now_ms, prefer_sender_ip, send_udp,
     timestamp_ok, NEARBY_PORT,
 };
 
@@ -305,9 +307,9 @@ impl PairingManager {
                     ip: peer_ips.clone(),
                     key: base64_encode(&shared),
                     public_key: request.signature_public_key.clone(),
-                    status: "paired".to_string(),
+                    status: PeerStatus::Paired,
                     port: request.port,
-                    device_type: device_type_signature_value(&request.device_type),
+                    device_type: DeviceType::from_str(&request.device_type).unwrap_or(DeviceType::Unknown),
                     created_at: now_iso(),
                     updated_at: now_iso(),
                 };
@@ -417,9 +419,9 @@ impl PairingManager {
             ip: peer_ips,
             key: base64_encode(&shared),
             public_key: resp.signature_public_key.clone(),
-            status: "paired".to_string(),
+            status: PeerStatus::Paired,
             port: resp.port,
-            device_type: device_type_signature_value(&resp.device_type),
+            device_type: DeviceType::from_str(&resp.device_type).unwrap_or(DeviceType::Unknown),
             created_at: now_iso(),
             updated_at: now_iso(),
         };

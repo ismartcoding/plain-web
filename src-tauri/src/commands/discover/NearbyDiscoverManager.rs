@@ -3,6 +3,7 @@ use super::nearby_pair_manager::NearbyPairManager;
 use super::peer_status_manager::PeerStatusManager;
 use crate::crypto::{base64_decode, base64_encode, chacha20_decrypt, chacha20_encrypt};
 use crate::local::db::{ChatDb, now_iso};
+use crate::local::enums::DeviceType;
 use crate::local::graphql::{
     WS_NEARBY_DEVICE_FOUND, WS_NEARBY_DISCOVERY_STARTED, WS_NEARBY_DISCOVERY_STOPPED, WsEvent,
 };
@@ -10,6 +11,7 @@ use crate::local::pairing::PairingManager;
 use crate::prefs::AppIdentity;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::str::FromStr;
 use std::sync::{
     Arc, Mutex, RwLock, mpsc,
     atomic::{AtomicBool, AtomicU64, Ordering},
@@ -398,7 +400,7 @@ impl NearbyDiscoverManager {
                     name: reply.name.clone(),
                     ips,
                     port: reply.port,
-                    device_type: normalize_device_type(&reply.device_type),
+                    device_type: normalize_device_type(&reply.device_type).to_string(),
                     version: reply.version.clone(),
                     platform: reply.platform.clone(),
                     last_seen: crate::local::db::now_iso(),
@@ -462,7 +464,7 @@ fn collect_discover_replies(rx: mpsc::Receiver<DiscoverReplyEvent>) -> DiscoverD
                     name: event.reply.name.clone(),
                     ips,
                     port: event.reply.port,
-                    device_type: normalize_device_type(&event.reply.device_type),
+                    device_type: normalize_device_type(&event.reply.device_type).to_string(),
                     version: event.reply.version.clone(),
                     platform: event.reply.platform.clone(),
                     last_seen: crate::local::db::now_iso(),
@@ -492,15 +494,8 @@ fn prefer_sender_ip(ips: &[String], sender_ip: &str) -> String {
     all.join(",")
 }
 
-fn normalize_device_type(wire: &str) -> String {
-    match wire {
-        "COMPUTER" => "computer".to_string(),
-        "PHONE" => "phone".to_string(),
-        "TABLET" => "tablet".to_string(),
-        "TV" => "tv".to_string(),
-        "OTHER" => "other".to_string(),
-        value => value.to_string(),
-    }
+fn normalize_device_type(wire: &str) -> DeviceType {
+    DeviceType::from_str(wire).unwrap_or(DeviceType::Unknown)
 }
 
 pub async fn discover_devices_impl(

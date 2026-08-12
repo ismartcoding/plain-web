@@ -2,7 +2,7 @@
 //!
 //! Encapsulates the trust chain that gates every incoming peer message:
 //!   1. Look up the peer by the `c-id` header.
-//!   2. Confirm the peer has been paired (status == "paired").
+//!   2. Confirm the peer has been paired (status == "PAIRED").
 //!   3. Pick the decryption key — if `c-cid` is set, use the
 //!      per-channel key from `channel_key_cache[c-cid]`; otherwise use
 //!      the peer's shared key. This mirrors Kotlin's

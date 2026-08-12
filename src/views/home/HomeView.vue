@@ -40,6 +40,7 @@ import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { buildQuery } from '@/lib/search'
 import { encodeBase64 } from '@/lib/strutil'
+import { DriveType } from '@/lib/status'
 import { useHomeData, useClipboardAction } from './home'
 import { useHomeFeatureCards } from './useHomeFeatureCards'
 import CallPhoneCard from './CallPhoneCard.vue'
@@ -51,7 +52,7 @@ const { mounts } = useHomeData()
 const { clipText, clipTextError, setClipLoading, pasteClipboardText, sendClipboard } = useClipboardAction()
 
 const filesPath = computed(() => {
-  const internalRoot = mounts.value.find((m) => m.driveType === 'INTERNAL_STORAGE')?.mountPoint || app.value.internalStoragePath
+  const internalRoot = mounts.value.find((m) => m.driveType === DriveType.INTERNAL_STORAGE)?.mountPoint || app.value.internalStoragePath
   const q = buildQuery([
     { name: 'parent', op: '', value: internalRoot },
     { name: 'type', op: '', value: 'INTERNAL_STORAGE' },

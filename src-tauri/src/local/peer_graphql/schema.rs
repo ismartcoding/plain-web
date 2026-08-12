@@ -12,6 +12,7 @@ use async_graphql::{Context, EmptySubscription, Object, Schema};
 
 use super::context::PeerCtx;
 use super::handlers::{channel_system_message_from_peer, create_chat_item_from_peer};
+use crate::local::enums::ChannelSystemMessageType;
 use crate::local::graphql::schema::types::ChatItem;
 
 #[derive(Default)]
@@ -49,11 +50,11 @@ impl PeerMutation {
     }
 
     /// Receive a channel system message from an authenticated peer.
-    /// Wire format: `mutation ChannelSystemMessage($type: String!, $payload: String!) { channelSystemMessage(type: $type, payload: $payload) }`
+    /// Wire format: `mutation ChannelSystemMessage($type: ChannelSystemMessageType!, $payload: String!) { channelSystemMessage(type: $type, payload: $payload) }`
     async fn channel_system_message(
         &self,
         ctx: &Context<'_>,
-        #[graphql(name = "type", desc = "System message type discriminator")] r#type: String,
+        #[graphql(name = "type", desc = "System message type discriminator")] r#type: ChannelSystemMessageType,
         payload: String,
     ) -> bool {
         let c = ctx.data_unchecked::<PeerCtx>();
@@ -63,7 +64,7 @@ impl PeerMutation {
             &c.client_id,
             &c.app.identity.device_name,
             &c.peer.id,
-            &r#type,
+            r#type,
             &payload,
             c.event_tx(),
             &c.app.peer_key_cache,

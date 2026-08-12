@@ -69,7 +69,7 @@ impl ChatDb {
                 to_id       TEXT NOT NULL DEFAULT '',
                 channel_id  TEXT NOT NULL DEFAULT '',
                 content     TEXT NOT NULL DEFAULT '{}',
-                status      TEXT NOT NULL DEFAULT 'sent',
+                status      TEXT NOT NULL DEFAULT 'SENT',
                 status_data TEXT NOT NULL DEFAULT '',
                 created_at  TEXT NOT NULL DEFAULT '',
                 updated_at  TEXT NOT NULL DEFAULT ''
@@ -83,7 +83,7 @@ impl ChatDb {
                 members    TEXT NOT NULL DEFAULT '[]',
                 key        TEXT NOT NULL DEFAULT '',
                 version    INTEGER NOT NULL DEFAULT 1,
-                status     TEXT NOT NULL DEFAULT 'joined',
+                status     TEXT NOT NULL DEFAULT 'JOINED',
                 created_at TEXT NOT NULL DEFAULT '',
                 updated_at TEXT NOT NULL DEFAULT ''
             );
@@ -93,7 +93,7 @@ impl ChatDb {
                 ip          TEXT NOT NULL DEFAULT '',
                 key         TEXT NOT NULL DEFAULT '',
                 public_key  TEXT NOT NULL DEFAULT '',
-                status      TEXT NOT NULL DEFAULT 'unpaired',
+                status      TEXT NOT NULL DEFAULT 'UNPAIRED',
                 port        INTEGER NOT NULL DEFAULT 0,
                 device_type TEXT NOT NULL DEFAULT '',
                 created_at  TEXT NOT NULL DEFAULT '',

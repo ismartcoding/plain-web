@@ -73,7 +73,7 @@
                   </span>
                 </v-icon-button>
                 <v-icon-button
-                  v-if="!localMode && app.channel !== 'GOOGLE'"
+                  v-if="!localMode && app.channel !== AppChannelType.GOOGLE"
                   v-tooltip="$t('header_actions.notifications')"
                   class="q-action"
                   toggle
@@ -114,6 +114,7 @@
 import { inject } from 'vue'
 import HeaderSearch from '@/components/HeaderSearch.vue'
 import BookmarkList from '@/views/bookmarks/BookmarkList.vue'
+import { AppChannelType } from '@/lib/status'
 import { useMainView } from '@/hooks/main-view'
 
 const isTablet = inject('isTablet')

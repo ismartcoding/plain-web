@@ -7,6 +7,7 @@
 //! data-plane lives in the `peer_graphql` module.
 
 use crate::local::db::{ChatDb, DChat};
+use crate::local::enums::{ChannelStatus, ChannelSystemMessageType};
 use crate::local::graphql::context::{
     WsEvent, WS_CHANNELS_UPDATED, WS_MESSAGE_CREATED,
 };
@@ -29,7 +30,7 @@ pub fn create_chat_item_from_peer(
     // `PeerGraphQL.createChatItem` IllegalStateException("Channel not joined")).
     if !channel_id.is_empty() {
         match db.get_channel_by_id(channel_id) {
-            Some(ch) if ch.status == "joined" || ch.status == "kicked" => {}
+            Some(ch) if ch.status == ChannelStatus::Joined || ch.status == ChannelStatus::Kicked => {}
             Some(_) => {
                 log::warn!(
                     "[peer_graphql] dropping chat for channel {channel_id} in status {}",
@@ -71,7 +72,7 @@ pub fn channel_system_message_from_peer(
     client_id: &str,
     device_name: &str,
     from_id: &str,
-    msg_type: &str,
+    msg_type: ChannelSystemMessageType,
     payload: &str,
     event_tx: &broadcast::Sender<WsEvent>,
     peer_key_cache: &crate::local::graphql::context::PeerKeyCache,

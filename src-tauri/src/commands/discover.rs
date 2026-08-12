@@ -231,11 +231,11 @@ fn is_cgnat(o: &[u8; 4]) -> bool {
 
 fn normalize_device_type(wire: &str) -> String {
     match wire {
-        "COMPUTER" => "computer".to_string(),
-        "PHONE" => "phone".to_string(),
-        "TABLET" => "tablet".to_string(),
-        "TV" => "tv".to_string(),
-        "OTHER" => "other".to_string(),
+        "COMPUTER" => "COMPUTER".to_string(),
+        "PHONE" => "PHONE".to_string(),
+        "TABLET" => "TABLET".to_string(),
+        "TV" => "TV".to_string(),
+        "OTHER" => "OTHER".to_string(),
         v => v.to_string(),
     }
 }

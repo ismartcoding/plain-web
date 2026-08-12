@@ -1,24 +1,11 @@
-//! Wire constants for `channelSystemMessage` GraphQL payloads.
+//! Wire helpers for `channelSystemMessage` GraphQL payloads.
 //!
 //! Mirrors plain-app `ChannelSystemMessages` (see
 //! `plain-app/.../channel/ChannelSystemMessage.kt`). The peer uses
-//! these `type` strings as a discriminator so the receiver can route
-//! the JSON payload to the correct handler.
+//! these helpers to build the canonical signature payload and to
+//! encode/decode the members JSON array.
 
-#![allow(dead_code)]
-
-pub const TYPE_INVITE: &str = "channel_invite";
-pub const TYPE_INVITE_ACCEPT: &str = "channel_invite_accept";
-pub const TYPE_INVITE_DECLINE: &str = "channel_invite_decline";
-pub const TYPE_UPDATE: &str = "channel_update";
-pub const TYPE_KICK: &str = "channel_kick";
-pub const TYPE_LEAVE: &str = "channel_leave";
-
-// Action constants used inside the Ed25519 signature payload.
-// Mirrors plain-app `ChannelSystemMessages.ACTION_*`.
-pub const ACTION_INVITE: &str = "invite";
-pub const ACTION_UPDATE: &str = "update";
-pub const ACTION_KICK: &str = "kick";
+use crate::local::enums::ChannelSystemMessageAction;
 
 /// Build the canonical signature payload for a channel system message.
 /// Mirrors plain-app `channelMessagePayload(channelId, version, action, target)`:
@@ -29,23 +16,13 @@ pub const ACTION_KICK: &str = "kick";
 pub fn channel_message_payload(
     channel_id: &str,
     version: i64,
-    action: &str,
+    action: ChannelSystemMessageAction,
     target: &str,
 ) -> String {
     format!("{channel_id}|{version}|{action}|{target}")
 }
 
-// Member membership status (per-member; lives inside the `members` JSON array).
-pub const MEMBER_STATUS_JOINED: &str = "joined";
-pub const MEMBER_STATUS_PENDING: &str = "pending";
-
-// Channel-level status (the channel's own `status` column).
-pub const CHANNEL_STATUS_JOINED: &str = "joined";
-pub const CHANNEL_STATUS_LEFT: &str = "left";
-pub const CHANNEL_STATUS_KICKED: &str = "kicked";
-
-// Peer status used when auto-creating peer records from channel metadata.
-pub const PEER_STATUS_CHANNEL: &str = "channel";
+// ── Members helpers ──────────────────────────────────────────────────────
 
 /// Helper: format a `Vec<{id, status}>` JSON value back to the storage string.
 pub fn encode_members(members: &[serde_json::Value]) -> String {
@@ -63,6 +40,7 @@ pub fn has_member(members: &[serde_json::Value], peer_id: &str) -> bool {
 }
 
 /// Helper: find a member entry by peer id.
+#[allow(dead_code)]
 pub fn find_member<'a>(
     members: &'a [serde_json::Value],
     peer_id: &str,
@@ -80,17 +58,16 @@ mod tests {
     #[test]
     fn payload_format_matches_android() {
         assert_eq!(
-            channel_message_payload("ch_abc", 3, ACTION_INVITE, "peer_xyz"),
-            "ch_abc|3|invite|peer_xyz"
-        );
-        // Empty target for `update` and broadcast `kick`.
-        assert_eq!(
-            channel_message_payload("ch_abc", 5, ACTION_UPDATE, ""),
-            "ch_abc|5|update|"
+            channel_message_payload("ch_abc", 3, ChannelSystemMessageAction::Invite, "peer_xyz"),
+            "ch_abc|3|INVITE|peer_xyz"
         );
         assert_eq!(
-            channel_message_payload("ch_abc", 9, ACTION_KICK, ""),
-            "ch_abc|9|kick|"
+            channel_message_payload("ch_abc", 5, ChannelSystemMessageAction::Update, ""),
+            "ch_abc|5|UPDATE|"
+        );
+        assert_eq!(
+            channel_message_payload("ch_abc", 9, ChannelSystemMessageAction::Kick, ""),
+            "ch_abc|9|KICK|"
         );
     }
 
@@ -99,7 +76,7 @@ mod tests {
     #[test]
     fn signature_roundtrip_invite() {
         let (kp_bytes, vk_bytes) = ed25519_generate();
-        let payload = channel_message_payload("ch_1", 1, ACTION_INVITE, "peer_a");
+        let payload = channel_message_payload("ch_1", 1, ChannelSystemMessageAction::Invite, "peer_a");
         let sig = ed25519_sign(&kp_bytes, payload.as_bytes());
         assert!(!sig.is_empty(), "signature should not be empty");
         let pub_key_b64 = base64_encode(&vk_bytes);
@@ -112,7 +89,7 @@ mod tests {
     #[test]
     fn signature_roundtrip_update() {
         let (kp_bytes, vk_bytes) = ed25519_generate();
-        let payload = channel_message_payload("ch_2", 7, ACTION_UPDATE, "");
+        let payload = channel_message_payload("ch_2", 7, ChannelSystemMessageAction::Update, "");
         let sig = ed25519_sign(&kp_bytes, payload.as_bytes());
         let pub_key_b64 = base64_encode(&vk_bytes);
         assert!(ed25519_verify(&pub_key_b64, payload.as_bytes(), &sig));
@@ -121,7 +98,7 @@ mod tests {
     #[test]
     fn signature_roundtrip_kick() {
         let (kp_bytes, vk_bytes) = ed25519_generate();
-        let payload = channel_message_payload("ch_3", 2, ACTION_KICK, "peer_b");
+        let payload = channel_message_payload("ch_3", 2, ChannelSystemMessageAction::Kick, "peer_b");
         let sig = ed25519_sign(&kp_bytes, payload.as_bytes());
         let pub_key_b64 = base64_encode(&vk_bytes);
         assert!(ed25519_verify(&pub_key_b64, payload.as_bytes(), &sig));
@@ -131,19 +108,19 @@ mod tests {
     #[test]
     fn signature_tamper_fails() {
         let (kp_bytes, vk_bytes) = ed25519_generate();
-        let payload = channel_message_payload("ch_4", 1, ACTION_INVITE, "peer_c");
+        let payload = channel_message_payload("ch_4", 1, ChannelSystemMessageAction::Invite, "peer_c");
         let sig = ed25519_sign(&kp_bytes, payload.as_bytes());
         let pub_key_b64 = base64_encode(&vk_bytes);
 
         // Tamper with version in the payload.
-        let tampered = channel_message_payload("ch_4", 99, ACTION_INVITE, "peer_c");
+        let tampered = channel_message_payload("ch_4", 99, ChannelSystemMessageAction::Invite, "peer_c");
         assert!(
             !ed25519_verify(&pub_key_b64, tampered.as_bytes(), &sig),
             "tampered payload should fail verification"
         );
 
         // Tamper with the target peer id.
-        let tampered_target = channel_message_payload("ch_4", 1, ACTION_INVITE, "peer_evil");
+        let tampered_target = channel_message_payload("ch_4", 1, ChannelSystemMessageAction::Invite, "peer_evil");
         assert!(
             !ed25519_verify(&pub_key_b64, tampered_target.as_bytes(), &sig),
             "tampered target should fail verification"

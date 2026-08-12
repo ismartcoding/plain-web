@@ -47,15 +47,16 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { IImageSearchStatus } from '@/lib/interfaces'
+import { ImageSearchStatusType } from '@/lib/status'
 import { useImageSearchActions } from '@/hooks/ai/use-image-search-actions'
 
 const props = defineProps<{ status: IImageSearchStatus }>()
 const { t } = useI18n()
 const { startIndex, cancelIndex, disable, cancelDownload, startIndexLoading, cancelIndexLoading, disableLoading, cancelDownloadLoading } = useImageSearchActions()
 
-const isDownloading = computed(() => props.status.status === 'DOWNLOADING')
-const isLoading = computed(() => props.status.status === 'LOADING')
-const isReady = computed(() => props.status.status === 'READY')
+const isDownloading = computed(() => props.status.status === ImageSearchStatusType.DOWNLOADING)
+const isLoading = computed(() => props.status.status === ImageSearchStatusType.LOADING)
+const isReady = computed(() => props.status.status === ImageSearchStatusType.READY)
 
 const indexProgress = computed(() => {
   if (!props.status || props.status.totalImages === 0) return 0
