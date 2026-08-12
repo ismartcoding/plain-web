@@ -114,25 +114,6 @@ to stream the body in 64 KB chunks.
 - Add tests for every new behavior; mirror the existing test layout.
 - All tests must pass before opening a PR.
 
-## Project-specific workflow
-
-Read **`.trae/rules/project_rules.md`** first. It codifies the user's
-workflow: single-agent mode, plan-before-code, flip boxes as you go,
-verify between steps, stay in scope, no filler prose.
-
-The default workflow on this repo is **single-agent in one context**.
-`.harness/reins/chat-expert` and `.harness/reins/developer` are
-on-disk role descriptions (project context), not standing assignments —
-the orchestrator (`.harness/agent.md`) only spawns them when the task
-genuinely benefits.
-
-## PR & commit conventions
-
-- Branch from `main`; never push to it directly.
-- Commit message: short, imperative, scoped (e.g. `chat: add channel key
-  cache migration`, `upload: fix local-mode chunk reassembly`).
-- Open PR via `gh pr create` once CI is green.
-
 ## Security
 
 - Never commit secrets — `.env` is in `.gitignore`.
@@ -144,10 +125,6 @@ genuinely benefits.
 ## Related docs
 
 - `docs/ARCHITECTURE.md` — full project map (read first when lost)
-- `docs/chat-plain-app-alignment-plan.md` — Kotlin parity checklist
-  for the chat system (the canonical reference for the in-flight work)
-- `docs/chat-local-mode-upload-fix.md` — local-mode chat upload path
 - `docs/graphql-client.md` — GraphQL transport notes
 - `docs/tauri-proxy-strategy.md` — Tauri proxy performance/stability
 - `docs/file-upload.md` — generic file upload flow
-- `.trae/rules/project_rules.md` — workflow + comment conventions
