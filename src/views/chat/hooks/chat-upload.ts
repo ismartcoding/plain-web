@@ -6,6 +6,7 @@ import { useChatFilesUpload } from '@/hooks/upload'
 import { useTasks } from './chat'
 import { normalizeChatItem } from './chat-events'
 import { shortUUID } from '@/lib/strutil'
+import { MessageType } from '@/lib/status'
 import { formatFileSize } from '@/lib/format'
 import { getVideoData, getImageData, isVideo } from '@/lib/file'
 import { gqlFetch } from '@/lib/api/gql-client'
@@ -36,7 +37,7 @@ export function useChatUpload(
     return `${t('sending')} ${formatFileSize(agg.uploaded)} (${formatFileSize(agg.speed)}/s)`
   }
 
-  async function handleContentUpload(files: File[], contentType: string, options: { summary?: string } = {}) {
+  async function handleContentUpload(files: File[], contentType: MessageType, options: { summary?: string } = {}) {
     const uploads = getUploads(appDir, files)
     uploads.forEach((u) => { u.status = 'pending'; u.isAppFile = true })
 
@@ -87,11 +88,11 @@ export function useChatUpload(
   }
 
   async function doUploadFiles(files: File[]) {
-    if (files.length) await handleContentUpload(files, 'files')
+    if (files.length) await handleContentUpload(files, MessageType.FILES)
   }
 
   async function doUploadImages(files: File[]) {
-    if (files.length) await handleContentUpload(files, 'images')
+    if (files.length) await handleContentUpload(files, MessageType.IMAGES)
   }
 
   async function sendLongMessageAsFile(message: string) {
@@ -100,7 +101,7 @@ export function useChatUpload(
     const summary = summaryText.lastIndexOf(' ') > 230
       ? summaryText.substring(0, summaryText.lastIndexOf(' ')) + '...'
       : summaryText + '...'
-    await handleContentUpload([file], 'files', { summary })
+    await handleContentUpload([file], MessageType.FILES, { summary })
     chatText.value = ''
   }
 

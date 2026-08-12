@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed } from 'vue'
 import type { IPeer, IChatChannel, IChatItem } from '@/lib/interfaces'
+import { ChannelStatus } from '@/lib/status'
 import emitter from '@/plugins/eventbus'
 import { getCached, setCached } from '@/lib/api/cache'
 import { openModal } from '@/components/modal'
@@ -25,7 +26,7 @@ export const useChatStore = defineStore('chat', () => {
   const pairedPeers = computed(() => peerCacher.pairedPeers.value)
   const unpairedPeers = computed(() => peerCacher.unpairedPeers.value)
   const allPeers = computed(() => [...pairedPeers.value, ...unpairedPeers.value])
-  const joinedChannels = computed(() => channels.value.filter((c) => c.status === 'joined'))
+  const joinedChannels = computed(() => channels.value.filter((c) => c.status === ChannelStatus.JOINED))
 
   function findPeer(id: string): IPeer | null {
     return peerCacher.getPeer(id)

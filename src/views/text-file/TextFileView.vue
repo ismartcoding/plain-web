@@ -1,7 +1,11 @@
 <!-- eslint-disable vue/no-v-html -->
 <template>
   <div class="page">
-    <header class="topbar">
+    <header
+      class="topbar"
+      :class="{ 'topbar--tauri': isTauri }"
+      :data-tauri-drag-region="isTauri"
+    >
       <div class="title-wrap">
         <div class="title">{{ displayTitle }}</div>
         <div class="meta">
@@ -92,6 +96,8 @@ import { formatDateTime, formatFileSize, formatTimeAgo } from '@/lib/format'
 import JsonViewer from '@/components/jsonviewer/json-viewer.vue'
 import { useTextFile } from './text-file'
 
+const isTauri = __IS_TAURI__
+
 const {
   loading, error, content, draft, fileName, fileSize, lastModified,
   jsonData, renderedMarkdown, showRawText, textWrap, saving,
@@ -118,6 +124,15 @@ const {
   padding: 12px 16px;
   border-bottom: 1px solid var(--md-sys-color-outline-variant);
   background: var(--md-sys-color-surface);
+}
+
+.topbar--tauri {
+  padding-left: 80px;
+  -webkit-app-region: drag;
+}
+
+.topbar--tauri .actions {
+  -webkit-app-region: no-drag;
 }
 
 .title-wrap {

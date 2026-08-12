@@ -2,6 +2,7 @@ use rusqlite::params;
 
 use super::utils::{now_iso, short_id};
 use super::ChatDb;
+use crate::local::enums::ChatStatus;
 
 #[derive(Clone, Debug)]
 pub struct DChat {
@@ -10,7 +11,7 @@ pub struct DChat {
     pub to_id: String,
     pub channel_id: String,
     pub content: String,
-    pub status: String,
+    pub status: ChatStatus,
     pub status_data: String,
     pub created_at: String,
     pub updated_at: String,
@@ -25,7 +26,7 @@ impl DChat {
             to_id: to_id.to_string(),
             channel_id: channel_id.to_string(),
             content: content.to_string(),
-            status: "sent".to_string(),
+            status: ChatStatus::Sent,
             status_data: String::new(),
             created_at: now.clone(),
             updated_at: now,
@@ -103,7 +104,7 @@ impl ChatDb {
             .unwrap_or(false)
     }
 
-    pub fn update_chat_status(&self, id: &str, status: &str) -> Option<DChat> {
+    pub fn update_chat_status(&self, id: &str, status: ChatStatus) -> Option<DChat> {
         let now = now_iso();
         {
             let conn = self.0.lock().unwrap();
@@ -118,7 +119,7 @@ impl ChatDb {
     pub fn update_chat_status_and_data(
         &self,
         id: &str,
-        status: &str,
+        status: ChatStatus,
         status_data: &str,
     ) -> Option<DChat> {
         let now = now_iso();
@@ -155,9 +156,6 @@ impl ChatDb {
         .ok()
     }
 
-    /// Update the `content` column of a chat row. Used by the peer file
-    /// download flow to rewrite `fsid:` URIs to `fid:` after a successful
-    /// download (mirrors plain-app `updateMessageFileUri`).
     pub fn update_chat_content(&self, id: &str, content: &str) -> bool {
         let now = now_iso();
         let conn = self.0.lock().unwrap();
@@ -239,9 +237,6 @@ impl ChatDb {
         let _ = conn.execute("DELETE FROM chats WHERE channel_id=?", params![channel_id]);
     }
 
-    /// Mirrors plain-app `chatDao.deleteByPeerId(peerId)` — deletes all
-    /// 1:1 chats with the given peer (both directions). Channel chats
-    /// are preserved.
     pub fn delete_chats_by_peer(&self, peer_id: &str) {
         let conn = self.0.lock().unwrap();
         let _ = conn.execute(
@@ -250,9 +245,6 @@ impl ChatDb {
         );
     }
 
-    /// Mirrors plain-app `chatDao.deleteByIds(ids)` — deletes chats by
-    /// their primary key. Used by `deleteChatItems(query)` after the
-    /// query is resolved into a set of ids.
     pub fn delete_chats_by_ids(&self, ids: &[String]) {
         if ids.is_empty() {
             return;
@@ -267,8 +259,6 @@ impl ChatDb {
         let _ = conn.execute(&sql, params.as_slice());
     }
 
-    /// Mirrors plain-app `chatDao.getByPeerId(peerId)` — returns all
-    /// 1:1 chats with the given peer (both directions).
     pub fn get_chats_by_peer(&self, peer_id: &str) -> Vec<DChat> {
         let conn = self.0.lock().unwrap();
         let mut stmt = match conn.prepare(
@@ -296,8 +286,6 @@ impl ChatDb {
         .unwrap_or_default()
     }
 
-    /// Mirrors plain-app `chatDao.getByChannelId(channelId)` — returns
-    /// all chats in a channel.
     pub fn get_chats_by_channel(&self, channel_id: &str) -> Vec<DChat> {
         let conn = self.0.lock().unwrap();
         let mut stmt = match conn.prepare(
@@ -353,7 +341,6 @@ mod tests {
         seed_chat(&db, "a", "me", "peer1", "");
         seed_chat(&db, "b", "peer1", "me", "");
         seed_chat(&db, "c", "me", "peer2", "");
-        // Channel chats with the peer's id in to_id must NOT leak in.
         seed_chat(&db, "d", "me", "peer1", "ch1");
 
         let ids: Vec<String> = db.get_chats_by_peer("peer1").into_iter().map(|c| c.id).collect();
@@ -372,7 +359,6 @@ mod tests {
 
         assert!(db.get_chat_by_id("a").is_none());
         assert!(db.get_chat_by_id("b").is_none());
-        // Channel chat must survive — it's routed by channel_id, not peer id.
         assert!(db.get_chat_by_id("c").is_some());
     }
 

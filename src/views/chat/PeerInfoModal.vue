@@ -25,6 +25,7 @@ import type { PropType } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { IPeer } from '@/lib/interfaces'
 import { popModal } from '@/components/modal'
+import { DeviceType, PeerStatus } from '@/lib/status'
 
 const { t } = useI18n()
 
@@ -32,17 +33,18 @@ const props = defineProps({
   peer: { type: Object as PropType<IPeer | null>, default: null },
 })
 
-const deviceTypeMap: Record<string, string> = {
-  phone: 'phone',
-  tablet: 'tablet',
-  computer: 'computer',
-  tv: 'tv',
-  other: 'other',
+const deviceTypeMap: Record<DeviceType, string> = {
+  [DeviceType.PHONE]: 'phone',
+  [DeviceType.TABLET]: 'tablet',
+  [DeviceType.COMPUTER]: 'computer',
+  [DeviceType.TV]: 'tv',
+  [DeviceType.OTHER]: 'other',
 }
 
-const statusMap: Record<string, string> = {
-  paired: 'paired',
-  unpaired: 'unpaired',
+const statusMap: Record<PeerStatus, string> = {
+  [PeerStatus.PAIRED]: 'paired',
+  [PeerStatus.UNPAIRED]: 'unpaired',
+  [PeerStatus.CHANNEL]: 'unpaired',
 }
 
 const deviceTypeText = computed(() => {

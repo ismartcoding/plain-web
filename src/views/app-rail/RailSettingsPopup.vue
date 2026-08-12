@@ -120,6 +120,7 @@ import { useMainStore } from '@/stores/main'
 import { useDeviceSessionsStore } from '@/stores/device-sessions'
 import { storeToRefs } from 'pinia'
 import { pushModal, openModal } from '@/components/modal'
+import { AppChannelType } from '@/lib/status'
 import { getAvailableFeatures, type Feature } from './features'
 import { isLocalMode } from '@/lib/local-mode'
 import { clear as prefsClear } from '@/lib/prefs'
@@ -222,7 +223,7 @@ onUnmounted(() => {
 })
 
 const popupFeatures = computed<Feature[]>(() => {
-  const available = getAvailableFeatures(app.value?.channel ?? '', app.value?.debug ?? false)
+  const available = getAvailableFeatures(app.value?.channel ?? AppChannelType.GITHUB, app.value?.debug ?? false)
   return available.filter((f) => !store.railFeatures.includes(f.id))
 })
 

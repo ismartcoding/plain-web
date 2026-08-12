@@ -56,6 +56,7 @@ import { useChatData } from './hooks/chat-data'
 import { useChatMessages } from './hooks/chat-messages'
 import { useChatUpload } from './hooks/chat-upload'
 import type { IChatItem } from '@/lib/interfaces'
+import { ChannelStatus, PeerStatus } from '@/lib/status'
 
 const { t } = useI18n()
 const store = useMainStore()
@@ -64,16 +65,16 @@ const { peer, channel, pageTitle, getSenderName } = useChatData(chatId, peerId, 
 
 const notAllowChat = computed(() => {
   if (isChannel.value) {
-    return !!channel.value && channel.value.status !== 'joined'
+    return !!channel.value && channel.value.status !== ChannelStatus.JOINED
   }
-  return peer.value?.status === 'unpaired'
+  return peer.value?.status === PeerStatus.UNPAIRED
 })
 
 const noticeText = computed(() => {
-  if (!isChannel.value && peer.value?.status === 'unpaired') {
+  if (!isChannel.value && peer.value?.status === PeerStatus.UNPAIRED) {
     return t('unpaired')
   }
-  if (channel.value?.status === 'kicked') {
+  if (channel.value?.status === ChannelStatus.KICKED) {
     return t('channel_kicked_notice')
   }
   return t('channel_left_notice')

@@ -2,6 +2,7 @@ import type { Component } from 'vue'
 import ILucideClipboard from '~icons/lucide/clipboard'
 import ILucidePhoneCall from '~icons/lucide/phone-call'
 import { ALL_FEATURES, type Feature } from '@/views/app-rail/features'
+import { AppChannelType } from '@/lib/status'
 import { isLocalFeatureId, isLocalMode } from '@/lib/local-mode'
 
 export type HomeFeatureCountKey =
@@ -68,11 +69,11 @@ const HOME_PANEL_FEATURES: HomePanelFeature[] = [
   { id: 'call_phone', icon: ILucidePhoneCall, titleKey: 'call_phone', sectionType: 'call_phone' },
 ]
 
-export function getAvailableHomeFeatures(channel: string, debug: boolean = false): HomeSectionFeature[] {
+export function getAvailableHomeFeatures(channel: AppChannelType, debug: boolean = false): HomeSectionFeature[] {
   const routeFeatures = ALL_FEATURES
     .filter((feature) => HOME_FEATURE_IDS.has(feature.id))
     .filter((feature) => !isLocalMode() || isLocalFeatureId(feature.id))
-    .filter((feature) => !(feature.requireNonGoogle && channel === 'GOOGLE'))
+    .filter((feature) => !(feature.requireNonGoogle && channel === AppChannelType.GOOGLE))
     .filter((feature) => !(feature.requireDebug && !debug))
     .map((feature) => ({
       ...feature,

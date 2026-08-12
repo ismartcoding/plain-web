@@ -1,4 +1,5 @@
 import type { IFile } from './file'
+import { ChatStatus, ChannelStatus, ChannelSystemMessageAction, ChannelSystemMessageType, DeviceType, DriveType, ImageSearchStatusType, MemberStatus, PackageType, PeerStatus, AppChannelType, ScreenMirrorMode } from './status'
 
 export interface IData {
   id: string
@@ -246,7 +247,7 @@ export interface IChatItem extends IData {
   _content: any
   __typename: string
   data: any
-  status?: string
+  status?: ChatStatus
   statusData?: string
 }
 
@@ -254,17 +255,17 @@ export interface IPeer {
   id: string
   name: string
   ip: string
-  status: string
+  status: PeerStatus
   online?: boolean
   port: number
-  deviceType: string
+  deviceType: DeviceType
   createdAt: string
   updatedAt: string
 }
 
 export interface IChatChannelMember {
   id: string
-  status: string
+  status: MemberStatus
 }
 
 export interface IChatChannel {
@@ -273,7 +274,7 @@ export interface IChatChannel {
   owner: string
   members: IChatChannelMember[]
   version: number
-  status: string
+  status: ChannelStatus
   createdAt: string
   updatedAt: string
 }
@@ -318,7 +319,7 @@ export interface INotification extends IData {
 export interface IPackage extends IData {
   id: string
   name: string
-  type: string
+  type: PackageType
   version: string
   path: string
   size: number
@@ -384,7 +385,7 @@ export interface IStorageMount {
   freeBytes: number
   remote: boolean
   alias: string
-  driveType: string
+  driveType: DriveType
   diskID: string
 }
 
@@ -410,7 +411,7 @@ export interface IFavoriteFolder {
 }
 
 export interface IImageSearchStatus {
-  status: string
+  status: ImageSearchStatusType
   downloadProgress: number
   errorMessage: string
   modelSize: number
@@ -431,7 +432,7 @@ export interface IApp {
   battery: number
   appVersion: string
   osVersion: number
-  channel: string
+  channel: AppChannelType
   permissions: string[]
   audios: IPlaylistAudio[]
   audioCurrent: string

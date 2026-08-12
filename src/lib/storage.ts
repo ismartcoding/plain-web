@@ -1,12 +1,13 @@
 import type { IStorageMount } from '@/lib/interfaces'
+import { DriveType } from '@/lib/status'
 import { formatFileSize } from '@/lib/format'
 import type { ComposerTranslation } from 'vue-i18n'
 
 export function driveRank(m: IStorageMount): number {
-  if (m.driveType === 'INTERNAL_STORAGE') return 0
-  if (m.driveType === 'SDCARD') return 1
-  if (m.driveType === 'USB_STORAGE') return 2
-  if (m.driveType === 'APP') return 3
+  if (m.driveType === DriveType.INTERNAL_STORAGE) return 0
+  if (m.driveType === DriveType.SDCARD) return 1
+  if (m.driveType === DriveType.USB_STORAGE) return 2
+  if (m.driveType === DriveType.APP) return 3
   return 9
 }
 
@@ -21,17 +22,17 @@ export function sortMounts(mounts: IStorageMount[]): IStorageMount[] {
 
 export function buildUsbIndexMap(mounts: IStorageMount[]): Map<string, number> {
   const usbPoints = mounts
-    .filter((m) => m.driveType === 'USB_STORAGE')
+    .filter((m) => m.driveType === DriveType.USB_STORAGE)
     .map((m) => m.mountPoint)
     .filter(Boolean)
   return new Map(usbPoints.map((p, i) => [p, i + 1]))
 }
 
 export function mountTitle(m: IStorageMount, usbIndexMap: Map<string, number>, t: ComposerTranslation): string {
-  if (m.driveType === 'INTERNAL_STORAGE') return t('internal_storage')
-  if (m.driveType === 'APP') return t('app_data')
-  if (m.driveType === 'SDCARD') return t('sdcard')
-  if (m.driveType === 'USB_STORAGE') {
+  if (m.driveType === DriveType.INTERNAL_STORAGE) return t('internal_storage')
+  if (m.driveType === DriveType.APP) return t('app_data')
+  if (m.driveType === DriveType.SDCARD) return t('sdcard')
+  if (m.driveType === DriveType.USB_STORAGE) {
     const idx = usbIndexMap.get(m.mountPoint) ?? 1
     return `${t('usb_storage')} ${idx}`
   }

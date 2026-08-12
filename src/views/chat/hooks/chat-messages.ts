@@ -4,6 +4,7 @@ import { initQuery, chatItemsGQL } from '@/lib/api/query'
 import { sendChatItemGQL, deleteChatItemGQL, retryChatItemGQL, initMutation } from '@/lib/api/mutation'
 import toast from '@/components/toaster'
 import type { IChatItem } from '@/lib/interfaces'
+import { ChatStatus, MessageType } from '@/lib/status'
 import { shortUUID } from '@/lib/strutil'
 import { useTasks } from './chat'
 import { useChatEvents } from './chat-events'
@@ -65,7 +66,7 @@ export function useChatMessages(chatId: ComputedRef<string>, channelId: Computed
     const r = await sendMutate({ toId, content })
     if (r == null) {
       const item = chatItems.value.find((i) => i.id === tempId)
-      if (item) item.status = 'failed'
+      if (item) item.status = ChatStatus.FAILED
     } else {
       chatItems.value = chatItems.value.filter((i) => i.id !== tempId)
     }
@@ -77,11 +78,11 @@ export function useChatMessages(chatId: ComputedRef<string>, channelId: Computed
     const tempItem: IChatItem = {
       id: tempId, fromId: 'me', toId: chatId.value, channelId: channelId.value,
       createdAt: new Date().toISOString(),
-      content: JSON.stringify({ type: 'text', value: { text: chatText.value } }),
-      _content: { type: 'text', value: { text: chatText.value } },
+      content: JSON.stringify({ type: MessageType.TEXT, value: { text: chatText.value } }),
+      _content: { type: MessageType.TEXT, value: { text: chatText.value } },
       __typename: 'ChatItem',
       data: { ids: [] },
-      status: 'pending',
+      status: ChatStatus.PENDING,
     }
     chatItems.value = [...chatItems.value, tempItem]
     chatText.value = ''
@@ -92,7 +93,7 @@ export function useChatMessages(chatId: ComputedRef<string>, channelId: Computed
   async function retryMessage(id: string) {
     const item = chatItems.value.find((i) => i.id === id)
     if (!item) return
-    item.status = 'pending'
+    item.status = ChatStatus.PENDING
     if (id.startsWith('new_')) {
       // Network error: item was never saved on server → resend as new message
       await doSend(id, chatId.value, item.content)
@@ -103,7 +104,7 @@ export function useChatMessages(chatId: ComputedRef<string>, channelId: Computed
         const updated = normalizeChatItem(r.data.retryChatItem)
         chatItems.value = chatItems.value.map((i) => i.id === id ? { ...i, ...updated } : i)
       } else {
-        item.status = 'failed'
+        item.status = ChatStatus.FAILED
       }
     }
   }

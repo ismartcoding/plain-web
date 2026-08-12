@@ -110,25 +110,22 @@ pub fn ext_from_mime(mime_type: &str) -> &'static str {
 
 /// Derive the canonical destination path for a `{hash, ext}` pair.
 pub fn dest_path(data_dir: &Path, hash: &str, ext: &str) -> PathBuf {
-    if hash.len() < 4 {
-        // Caller bug — fall back to a flat layout under `files/`.
-        let name = if ext.is_empty() {
-            hash.to_string()
-        } else {
-            format!("{hash}.{ext}")
-        };
-        return data_dir.join("files").join(name);
-    }
+    data_dir.join(relative_dest_path(hash, ext))
+}
+
+/// Relative portion of [dest_path] — `files/{aa}/{bb}/{name}` — stored in
+/// the `app_files.real_path` column to avoid repeating the platform-
+/// specific `data_dir` prefix on every row.
+pub fn relative_dest_path(hash: &str, ext: &str) -> String {
     let name = if ext.is_empty() {
         hash.to_string()
     } else {
         format!("{hash}.{ext}")
     };
-    data_dir
-        .join("files")
-        .join(&hash[..2])
-        .join(&hash[2..4])
-        .join(name)
+    if hash.len() < 4 {
+        return format!("files/{name}");
+    }
+    format!("files/{}/{}/{}", &hash[..2], &hash[2..4], name)
 }
 
 /// Compute the strong (full-file) SHA-256 hex digest.
@@ -252,7 +249,7 @@ pub fn import_file(
         id: strong_hash.clone(),
         size: size as i64,
         mime_type: effective_mime.clone(),
-        real_path: real_path.to_string_lossy().into_owned(),
+        real_path: relative_dest_path(&strong_hash, ext),
         ref_count: 1,
         weak_hash,
         created_at: now.clone(),
@@ -333,7 +330,7 @@ pub fn import_bytes(
         id: strong_hash.clone(),
         size: data.len() as i64,
         mime_type: effective_mime.clone(),
-        real_path: real_path.to_string_lossy().into_owned(),
+        real_path: relative_dest_path(&strong_hash, ext),
         ref_count: 1,
         weak_hash,
         created_at: now.clone(),
@@ -482,5 +479,36 @@ mod tests {
         let mut full = Sha256::new();
         full.update(&data);
         assert_ne!(h, bytes_to_hex(&full.finalize()));
+    }
+
+    #[test]
+    fn relative_dest_path_sharded() {
+        assert_eq!(
+            relative_dest_path("abcdef0123456789", "jpg"),
+            "files/ab/cd/abcdef0123456789.jpg"
+        );
+    }
+
+    #[test]
+    fn relative_dest_path_without_ext() {
+        assert_eq!(
+            relative_dest_path("abcdef0123456789", ""),
+            "files/ab/cd/abcdef0123456789"
+        );
+    }
+
+    #[test]
+    fn relative_dest_path_short_hash_falls_back_flat() {
+        assert_eq!(relative_dest_path("ab", "jpg"), "files/ab.jpg");
+        assert_eq!(relative_dest_path("ab", ""), "files/ab");
+    }
+
+    #[test]
+    fn dest_path_joins_data_dir_with_relative() {
+        let dir = std::path::Path::new("/data");
+        assert_eq!(
+            dest_path(dir, "abcdef0123456789", "jpg"),
+            std::path::PathBuf::from("/data/files/ab/cd/abcdef0123456789.jpg")
+        );
     }
 }

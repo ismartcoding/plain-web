@@ -7,7 +7,7 @@
       </div>
 
       <AISearchSetupView
-        v-else-if="status.status === 'UNAVAILABLE' || status.status === 'ERROR'"
+        v-else-if="status.status === ImageSearchStatusType.UNAVAILABLE || status.status === ImageSearchStatusType.ERROR"
         :status="status"
       />
 
@@ -24,6 +24,7 @@
 
 <script setup lang="ts">
 import { useImageSearchStatus } from '@/hooks/ai/use-image-search-status'
+import { ImageSearchStatusType } from '@/lib/status'
 import AISearchSetupView from './AISearchSetupView.vue'
 import AISearchActiveView from './AISearchActiveView.vue'
 

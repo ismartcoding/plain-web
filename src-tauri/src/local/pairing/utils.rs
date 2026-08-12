@@ -3,7 +3,6 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 pub(super) const NEARBY_PORT: u16 = 52352;
 const MAX_TIMESTAMP_DIFF_MS: i64 = 5 * 60 * 1000;
-const LOCAL_DEVICE_TYPE_VALUE: &str = "computer";
 
 pub(super) fn now_ms() -> i64 {
     SystemTime::now()
@@ -18,11 +17,11 @@ pub(super) fn timestamp_ok(ts: i64) -> bool {
 
 pub(super) fn device_type_signature_value(wire: &str) -> String {
     match wire {
-        "COMPUTER" => LOCAL_DEVICE_TYPE_VALUE.to_string(),
-        "PHONE" => "phone".to_string(),
-        "TABLET" => "tablet".to_string(),
-        "TV" => "tv".to_string(),
-        "OTHER" => "other".to_string(),
+        "COMPUTER" => "COMPUTER".to_string(),
+        "PHONE" => "PHONE".to_string(),
+        "TABLET" => "TABLET".to_string(),
+        "TV" => "TV".to_string(),
+        "OTHER" => "OTHER".to_string(),
         v => v.to_string(),
     }
 }

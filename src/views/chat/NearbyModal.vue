@@ -37,7 +37,7 @@ v-if="d.status === 'PAIRING'" class="btn-sm danger"
               {{ $t('cancel') }}
             </v-outlined-button>
             <v-outlined-button
-v-else-if="d.status === 'UNPAIRING' || d.status === 'PAIRED'" class="btn-sm danger"
+v-else-if="d.status === 'UNPAIRING' || d.status === PeerStatus.PAIRED" class="btn-sm danger"
               :loading="deviceStates.get(d.id) === 'unpairing'" @click.stop="unpair(d)">
               {{ $t('unpair') }}
             </v-outlined-button>
@@ -63,6 +63,7 @@ import { useDeviceDiscovery, type DiscoveredDevice } from '@/hooks/use-device-di
 import { useDevicePairing } from '@/hooks/use-device-pairing'
 import { unpairPeerGQL, initMutation } from '@/lib/api/mutation'
 import { useChatStore } from '@/stores/chat'
+import { PeerStatus } from '@/lib/status'
 
 const {
   devices: discoveredDevices,
@@ -100,7 +101,7 @@ async function startPair(d: DiscoveredDevice) {
 async function cancel(d: DiscoveredDevice) {
   deviceStates.set(d.id, 'canceling')
   await cancelPairing(d.id)
-  d.status = 'UNPAIRED'
+  d.status = PeerStatus.UNPAIRED
   deviceStates.delete(d.id)
 }
 
@@ -110,7 +111,7 @@ async function unpair(d: DiscoveredDevice) {
   deviceStates.set(d.id, 'unpairing')
   const result = await unpairPeerMute({ id: d.id })
   if (result) {
-    d.status = 'UNPAIRED'
+    d.status = PeerStatus.UNPAIRED
     deviceStates.set(d.id, 'unpaired')
     await chatStore.fetchPeers()
   }

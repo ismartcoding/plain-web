@@ -32,6 +32,7 @@ import { storeToRefs } from 'pinia'
 import { popModal } from '@/components/modal'
 import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
+import { AppChannelType } from '@/lib/status'
 import { getAvailableFeatures } from './features'
 import { DEFAULT_HOME_FEATURES, getAvailableHomeFeatures, normalizeHomeFeatures } from '../home/features'
 import FeatureSortToggleList from './FeatureSortToggleList.vue'
@@ -42,8 +43,8 @@ const store = useMainStore()
 const { app } = storeToRefs(useTempStore())
 const activeTab = ref<UITab>('sidebar')
 
-const sidebarFeatures = computed(() => getAvailableFeatures(app.value?.channel ?? '', app.value?.debug ?? false))
-const homeFeatures = computed(() => getAvailableHomeFeatures(app.value?.channel ?? '', app.value?.debug ?? false))
+const sidebarFeatures = computed(() => getAvailableFeatures(app.value?.channel ?? AppChannelType.GITHUB, app.value?.debug ?? false))
+const homeFeatures = computed(() => getAvailableHomeFeatures(app.value?.channel ?? AppChannelType.GITHUB, app.value?.debug ?? false))
 
 const sidebarEnabledIds = ref(
   store.railFeatures.filter((id: string) => sidebarFeatures.value.some((feature) => feature.id === id))

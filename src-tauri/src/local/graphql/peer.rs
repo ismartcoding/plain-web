@@ -212,7 +212,7 @@ pub async fn deliver_channel_system_message(
     use std::time::{SystemTime, UNIX_EPOCH};
 
     let graphql_json = serde_json::to_string(&json!({
-        "query": "mutation ChannelSystemMessage($type: String!, $payload: String!) { channelSystemMessage(type: $type, payload: $payload) }",
+        "query": "mutation ChannelSystemMessage($type: ChannelSystemMessageType!, $payload: String!) { channelSystemMessage(type: $type, payload: $payload) }",
         "variables": { "type": msg_type, "payload": payload }
     }))
     .unwrap_or_default();

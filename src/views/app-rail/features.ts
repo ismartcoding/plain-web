@@ -13,6 +13,7 @@ import IMaterialSymbolsCallLogOutlineRounded from '~icons/material-symbols/call-
 import ILucideContactRound from '~icons/lucide/contact-round'
 import IMaterialSymbolsScreenRecordRounded from '~icons/material-symbols/screen-record-rounded'
 import ILucidePalette from '~icons/lucide/palette'
+import { AppChannelType } from '@/lib/status'
 
 export interface Feature {
   id: string
@@ -43,7 +44,7 @@ export const ALL_FEATURES: Feature[] = [
 
 export const DEFAULT_RAIL_FEATURES = ['files', 'audios', 'images', 'videos', 'chat']
 
-export function getAvailableFeatures(channel: string, debug: boolean = false): Feature[] {
-  return ALL_FEATURES.filter((f) => !(f.requireNonGoogle && channel === 'GOOGLE'))
+export function getAvailableFeatures(channel: AppChannelType, debug: boolean = false): Feature[] {
+  return ALL_FEATURES.filter((f) => !(f.requireNonGoogle && channel === AppChannelType.GOOGLE))
     .filter((f) => !(f.requireDebug && !debug))
 }

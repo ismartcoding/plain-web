@@ -48,7 +48,7 @@
           <i-material-symbols:fiber-manual-record v-if="!recording" /><i-material-symbols:stop-rounded v-else />
           {{ recording ? $t('stop_recording') : $t('start_recording') }}
         </div>
-        <template v-if="channel !== 'GOOGLE'">
+        <template v-if="channel !== AppChannelType.GOOGLE">
           <div class="dropdown-divider" />
           <div class="dropdown-item" :class="{ active: controlEnabled }" @click="$emit('toggleControl'); moreMenuVisible = false">
             <i-material-symbols:check-rounded v-if="controlEnabled" /><i-material-symbols:touch-app-rounded />{{ $t('remote_control') }}
@@ -73,6 +73,7 @@
 import { ref } from 'vue'
 import { openModal } from '@/components/modal'
 import KeyboardShortcutsModal from '@/components/KeyboardShortcutsModal.vue'
+import { AppChannelType } from '@/lib/status'
 
 defineProps<{
   mirroring: boolean
@@ -84,7 +85,7 @@ defineProps<{
   recordingTime: string
   controlEnabled: boolean
   relaunchAppLoading: boolean
-  channel: string
+  channel: AppChannelType
   paused: boolean
   isFullscreen: boolean
   muted: boolean

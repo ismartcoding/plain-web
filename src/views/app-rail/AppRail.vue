@@ -31,6 +31,7 @@ import { useRouter } from 'vue-router'
 import { useMainStore } from '@/stores/main'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
+import { AppChannelType } from '@/lib/status'
 import { ALL_FEATURES, getAvailableFeatures, type Feature } from './features'
 import { isLocalFeatureId, isLocalMode } from '@/lib/local-mode'
 import RailSettingsPopup from './RailSettingsPopup.vue'
@@ -42,7 +43,7 @@ const router = useRouter()
 const tempStore = useTempStore()
 const { app } = storeToRefs(tempStore)
 
-const availableFeatures = computed(() => getAvailableFeatures(app.value?.channel ?? '', app.value?.debug ?? false))
+const availableFeatures = computed(() => getAvailableFeatures(app.value?.channel ?? AppChannelType.GITHUB, app.value?.debug ?? false))
 
 const railFeatures = computed<Feature[]>(() => {
   const ids = localMode ? store.railFeatures.filter(isLocalFeatureId) : store.railFeatures

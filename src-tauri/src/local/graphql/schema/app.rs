@@ -6,6 +6,7 @@ use super::types::{
     App, BatteryHealth, BatteryInfo, BatteryPlugged, BatteryStatus, DesktopDeviceInfo, DeviceInfo,
     DevicePlatform, Sim,
 };
+use crate::local::enums::AppChannelType;
 
 #[derive(Default)]
 pub struct AppQuery;
@@ -31,7 +32,7 @@ impl AppQuery {
             battery: String::new(),
             app_version: String::new(),
             os_version: String::new(),
-            channel: "LOCAL".to_string(),
+            channel: AppChannelType::Github,
             permissions: vec![],
             audios: vec![],
             audio_current: String::new(),

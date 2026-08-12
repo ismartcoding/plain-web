@@ -1,8 +1,10 @@
 use async_graphql::{Enum, InputObject, SimpleObject, Union};
 use serde_json::Value;
+use std::str::FromStr;
 
 use crate::crypto::xchacha_encrypt;
 use crate::local::db::{DAppFile, DBookmark, DBookmarkGroup, DChannel, DChat, DPeer};
+use crate::local::enums::{AppChannelType, ChannelStatus, ChatStatus, DeviceType, DriveType, MemberStatus, PeerStatus};
 use crate::utils::base64::base64_encode;
 
 // ── Output types ──────────────────────────────────────────────────────────────
@@ -166,7 +168,7 @@ pub struct App {
     pub battery: String,
     pub app_version: String,
     pub os_version: String,
-    pub channel: String,
+    pub channel: AppChannelType,
     pub permissions: Vec<String>,
     pub audios: Vec<PlaylistAudio>,
     pub audio_current: String,
@@ -193,7 +195,7 @@ pub struct Mount {
     pub free_bytes: i64,
     pub remote: bool,
     pub alias: String,
-    pub drive_type: String,
+    pub drive_type: DriveType,
     #[graphql(name = "diskID")]
     pub disk_id: String,
 }
@@ -301,19 +303,13 @@ pub struct ChatItem {
     pub created_at: String,
     pub updated_at: String,
     pub content: String,
-    pub status: String,
+    pub status: ChatStatus,
     pub status_data: String,
     pub data: Option<ChatItemData>,
 }
 
 impl From<DChat> for ChatItem {
     fn from(c: DChat) -> Self {
-        // `data` is None here because building it requires the URL token
-        // (XChaCha20 encryption of `{path, name}` JSON — see
-        // `plain-app/.../helpers/FileHelper.kt::getFileId`). Resolvers
-        // and WS event emitters that have access to `AppCtx` should call
-        // `ChatItem::with_data` instead, or populate `data` directly
-        // after construction.
         Self {
             id: c.id,
             from_id: c.from_id,
@@ -412,7 +408,7 @@ pub(crate) fn make_file_id(path: &str, token: &str) -> String {
 #[derive(SimpleObject, Clone)]
 pub struct ChatChannelMember {
     pub id: String,
-    pub status: String,
+    pub status: MemberStatus,
 }
 
 #[derive(SimpleObject)]
@@ -422,7 +418,7 @@ pub struct ChatChannel {
     pub owner: String,
     pub members: Vec<ChatChannelMember>,
     pub version: i64,
-    pub status: String,
+    pub status: ChannelStatus,
     pub created_at: String,
     pub updated_at: String,
 }
@@ -432,9 +428,13 @@ impl From<DChannel> for ChatChannel {
         let members = serde_json::from_str::<Vec<serde_json::Value>>(&ch.members)
             .unwrap_or_default()
             .into_iter()
-            .map(|m| ChatChannelMember {
-                id: m["id"].as_str().unwrap_or("").to_string(),
-                status: m["status"].as_str().unwrap_or("").to_string(),
+            .map(|m| {
+                let status_str = m["status"].as_str().unwrap_or("");
+                let status = MemberStatus::from_str(status_str).unwrap_or(MemberStatus::Pending);
+                ChatChannelMember {
+                    id: m["id"].as_str().unwrap_or("").to_string(),
+                    status,
+                }
             })
             .collect();
         Self {
@@ -455,10 +455,10 @@ pub struct Peer {
     pub id: String,
     pub name: String,
     pub ip: String,
-    pub status: String,
+    pub status: PeerStatus,
     pub online: bool,
     pub port: i32,
-    pub device_type: String,
+    pub device_type: DeviceType,
     pub created_at: String,
     pub updated_at: String,
 }

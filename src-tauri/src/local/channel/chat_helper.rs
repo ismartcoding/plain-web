@@ -20,6 +20,7 @@ use crate::commands::discover::PeerStatusManager;
 use crate::crypto::base64_decode;
 use crate::local::db::{ChatDb, DChannel, DPeer};
 use crate::local::graphql::context::{ChannelKeyCache, PeerKeyCache};
+use crate::local::enums::ChatStatus;
 use crate::local::graphql::peer::{deliver_to_peer, peer_graphql_urls};
 
 /// One delivery attempt result, in the same shape as Kotlin's
@@ -182,22 +183,22 @@ fn channel_key_from_cache_or_peer(
 
 /// Aggregate per-peer results into the same status string Kotlin's
 /// `ChannelChatHelper.sendAsync` produces:
-///   * all success → `"sent"`
-///   * all failure → `"failed"`
-///   * mixed       → `"partial"`
+///   * all success → `"SENT"`
+///   * all failure → `"FAILED"`
+///   * mixed       → `"PARTIAL"`
 ///   * no leader   → caller is expected to short-circuit and persist
 ///     `DMessageStatusData(results=null)`.
-pub fn compute_status(results: &[ChannelDeliveryResult]) -> &'static str {
+pub fn compute_status(results: &[ChannelDeliveryResult]) -> ChatStatus {
     if results.is_empty() {
-        return "sent";
+        return ChatStatus::Sent;
     }
     let failed = results.iter().filter(|r| r.error.is_some()).count();
     if failed == 0 {
-        "sent"
+        ChatStatus::Sent
     } else if failed == results.len() {
-        "failed"
+        ChatStatus::Failed
     } else {
-        "partial"
+        ChatStatus::Partial
     }
 }
 

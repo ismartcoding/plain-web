@@ -2,6 +2,7 @@ use rusqlite::params;
 
 use super::utils::now_iso;
 use super::ChatDb;
+use crate::local::enums::{DeviceType, PeerStatus};
 
 /// Matches plain-app `DPeer` entity.
 #[derive(Clone, Debug)]
@@ -13,18 +14,16 @@ pub struct DPeer {
     pub key: String,
     /// Base64-encoded raw Ed25519 public key (32 bytes).
     pub public_key: String,
-    /// "paired" | "unpaired" | "channel"
-    pub status: String,
+    pub status: PeerStatus,
     pub port: u16,
-    /// "phone" | "tablet" | "pc" | "mac"
-    pub device_type: String,
+    pub device_type: DeviceType,
     pub created_at: String,
     pub updated_at: String,
 }
 
 #[allow(dead_code)]
 impl DPeer {
-    pub fn new(id: &str, name: &str, ip: &str, port: u16, device_type: &str) -> Self {
+    pub fn new(id: &str, name: &str, ip: &str, port: u16, device_type: DeviceType) -> Self {
         let now = now_iso();
         Self {
             id: id.to_string(),
@@ -32,19 +31,18 @@ impl DPeer {
             ip: ip.to_string(),
             key: String::new(),
             public_key: String::new(),
-            status: "unpaired".to_string(),
+            status: PeerStatus::Unpaired,
             port,
-            device_type: device_type.to_string(),
+            device_type,
             created_at: now.clone(),
             updated_at: now,
         }
     }
 
     pub fn is_paired(&self) -> bool {
-        self.status == "paired"
+        self.status == PeerStatus::Paired
     }
 
-    /// Return the best reachable IP (first item — caller should implement LAN preference).
     pub fn best_ip(&self) -> &str {
         self.ip.split(',').next().unwrap_or(&self.ip).trim()
     }
@@ -144,11 +142,7 @@ impl ChatDb {
         let _ = conn.execute("DELETE FROM peers WHERE id=?", params![id]);
     }
 
-    /// Mirrors plain-app `peerDao.update(peer)` for the
-    /// `PeerManager.markUnpaired` flow — only flips `status` and
-    /// `updated_at`, leaving the key intact so a future re-pair can
-    /// reuse the stored credentials.
-    pub fn update_peer_status(&self, id: &str, status: &str) {
+    pub fn update_peer_status(&self, id: &str, status: PeerStatus) {
         let now = now_iso();
         let conn = self.0.lock().unwrap();
         let _ = conn.execute(
@@ -157,11 +151,7 @@ impl ChatDb {
         );
     }
 
-    /// Mirrors plain-app `peerDao.update(peer)` for the
-    /// `PeerManager.deletePeer` "channel member" branch — clears the
-    /// shared key and flips `status` to "channel" so the peer row
-    /// stays around for channel routing without holding a paired key.
-    pub fn update_peer_status_and_key(&self, id: &str, status: &str, key: &str) {
+    pub fn update_peer_status_and_key(&self, id: &str, status: PeerStatus, key: &str) {
         let now = now_iso();
         let conn = self.0.lock().unwrap();
         let _ = conn.execute(
@@ -186,9 +176,9 @@ mod tests {
         std::env::temp_dir().join(format!("plainapp-peer-{label}-{pid}-{nanos}"))
     }
 
-    fn seed_peer(db: &ChatDb, id: &str, status: &str, key: &str) {
-        let mut peer = DPeer::new(id, id, "10.0.0.1", 12345, "phone");
-        peer.status = status.to_string();
+    fn seed_peer(db: &ChatDb, id: &str, status: PeerStatus, key: &str) {
+        let mut peer = DPeer::new(id, id, "10.0.0.1", 12345, DeviceType::Phone);
+        peer.status = status;
         peer.key = key.to_string();
         db.upsert_peer(&peer);
     }
@@ -197,16 +187,14 @@ mod tests {
     fn update_peer_status_flips_status_and_bumps_updated_at() {
         let db =
             ChatDb::open(&unique_tmp_dir("status-flip").join("local_chat.db")).expect("open db");
-        seed_peer(&db, "p1", "paired", "k");
+        seed_peer(&db, "p1", PeerStatus::Paired, "k");
         let before = db.get_peer_by_id("p1").expect("peer exists");
-        assert_eq!(before.status, "paired");
+        assert_eq!(before.status, PeerStatus::Paired);
 
-        db.update_peer_status("p1", "unpaired");
+        db.update_peer_status("p1", PeerStatus::Unpaired);
 
         let after = db.get_peer_by_id("p1").expect("peer still exists");
-        assert_eq!(after.status, "unpaired");
-        // Key must be preserved — markUnpaired keeps it so a re-pair
-        // can reuse the stored credentials.
+        assert_eq!(after.status, PeerStatus::Unpaired);
         assert_eq!(after.key, "k");
         assert!(after.updated_at >= before.updated_at);
     }
@@ -215,12 +203,12 @@ mod tests {
     fn update_peer_status_and_key_clears_key_for_channel_demotion() {
         let db =
             ChatDb::open(&unique_tmp_dir("key-clear").join("local_chat.db")).expect("open db");
-        seed_peer(&db, "p1", "paired", "secret-key");
+        seed_peer(&db, "p1", PeerStatus::Paired, "secret-key");
 
-        db.update_peer_status_and_key("p1", "channel", "");
+        db.update_peer_status_and_key("p1", PeerStatus::Channel, "");
 
         let after = db.get_peer_by_id("p1").expect("peer demoted, not deleted");
-        assert_eq!(after.status, "channel");
+        assert_eq!(after.status, PeerStatus::Channel);
         assert_eq!(after.key, "");
     }
 
@@ -228,7 +216,7 @@ mod tests {
     fn delete_peer_removes_row() {
         let db =
             ChatDb::open(&unique_tmp_dir("delete").join("local_chat.db")).expect("open db");
-        seed_peer(&db, "p1", "paired", "k");
+        seed_peer(&db, "p1", PeerStatus::Paired, "k");
         assert!(db.get_peer_by_id("p1").is_some());
 
         db.delete_peer("p1");
