@@ -99,6 +99,7 @@ impl LocalServerState {
             data_dir: app_data_dir.clone(),
             log_dir,
             device_name,
+            handle: handle.clone(),
         });
 
         let acceptor: Option<Arc<TlsAcceptor>> = match ensure_cert(&app_data_dir) {
@@ -140,6 +141,15 @@ impl LocalServerState {
         let old_https = self.https_port.load(Ordering::Relaxed);
         let http_port = crate::prefs::get_http_port(&self.handle);
         let https_port = crate::prefs::get_https_port(&self.handle);
+
+        {
+            let mut server = self.server.lock().unwrap();
+            server.http_task.abort();
+            if let Some(t) = server.https_task.take() {
+                t.abort();
+            }
+        }
+        std::thread::sleep(std::time::Duration::from_millis(100));
 
         let http_listener = match bind_listener(http_port) {
             Ok(l) => l,
@@ -235,10 +245,6 @@ impl LocalServerState {
         });
 
         let mut server = self.server.lock().unwrap();
-        server.http_task.abort();
-        if let Some(t) = server.https_task.take() {
-            t.abort();
-        }
         server.http_task = http_task;
         server.https_task = https_task;
         Ok(())

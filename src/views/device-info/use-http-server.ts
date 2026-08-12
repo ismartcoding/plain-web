@@ -5,6 +5,7 @@ import { storeToRefs } from 'pinia'
 import toast from '@/components/toaster'
 import { useI18n } from 'vue-i18n'
 import emitter from '@/plugins/eventbus'
+import { setLocalServerPort, setLocalServerHttpsPort } from '@/lib/api/api'
 import type { VSelectOption } from '@/components/base/VSelect.vue'
 
 // Mirrors plain-app's `web/HttpServerPorts.kt` — fixed port candidates
@@ -44,6 +45,12 @@ export function useHttpServer() {
       const cmd = kind === 'http' ? 'set_http_port' : 'set_https_port'
       await invoke(cmd, { port })
       await invoke('restart_server')
+      const [httpPort, httpsPort] = await Promise.all([
+        invoke<number>('local_server_port'),
+        invoke<number>('local_server_https_port'),
+      ])
+      setLocalServerPort(httpPort)
+      setLocalServerHttpsPort(httpsPort)
       emitter.emit('refetch_app')
       toast(t('saved'))
     } catch (e) {

@@ -1,7 +1,8 @@
 use async_graphql::{Context, Object};
+use serde_json::json;
 use std::sync::Arc;
 
-use super::super::context::AppCtx;
+use super::super::context::{AppCtx, WsEvent, WS_DEVICE_NAME_UPDATED};
 use super::types::{
     App, BatteryHealth, BatteryInfo, BatteryPlugged, BatteryStatus, DesktopDeviceInfo, DeviceInfo,
     DevicePlatform, Sim,
@@ -116,12 +117,12 @@ impl AppMutation {
     async fn update_device_name(&self, ctx: &Context<'_>, name: String) -> bool {
         let c = ctx.data_unchecked::<Arc<AppCtx>>();
         *c.device_name.write().unwrap() = name.clone();
-        let prefs_path = c.data_dir.join("prefs.json");
-        let text = std::fs::read_to_string(&prefs_path).unwrap_or_else(|_| "{}".to_string());
-        let mut obj: serde_json::Map<String, serde_json::Value> =
-            serde_json::from_str(&text).unwrap_or_default();
-        obj.insert("device_name".to_string(), serde_json::Value::String(name));
-        std::fs::write(&prefs_path, serde_json::to_string(&obj).unwrap_or_default()).is_ok()
+        crate::prefs::set_device_name(&c.handle, &name);
+        let _ = c.event_tx.send(WsEvent {
+            event_type: WS_DEVICE_NAME_UPDATED,
+            payload: json!(name).to_string(),
+        });
+        true
     }
 }
 

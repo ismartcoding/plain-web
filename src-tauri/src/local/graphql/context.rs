@@ -8,6 +8,7 @@ use crate::prefs::AppIdentity;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use std::sync::atomic::AtomicU16;
+use tauri::AppHandle;
 use tokio::sync::broadcast;
 
 pub const WS_MESSAGE_CREATED: i32 = 1;
@@ -16,6 +17,7 @@ pub const WS_MESSAGE_UPDATED: i32 = 3;
 pub const WS_BOOKMARK_UPDATED: i32 = 15;
 pub const WS_CHANNELS_UPDATED: i32 = 18;
 pub const WS_PEER_STATUS_UPDATED: i32 = 20;
+pub const WS_DEVICE_NAME_UPDATED: i32 = 21;
 /// Peer file download progress — payload is a JSON array of
 /// `DownloadProgressItem` (id, messageId, downloaded, total, speed, status).
 /// Mirrors plain-app's `EventType.DOWNLOAD_PROGRESS`. The web client maps
@@ -126,4 +128,6 @@ pub struct AppCtx {
     pub log_dir: std::path::PathBuf,
     /// Mutable device display name — updated by the updateDeviceName mutation.
     pub device_name: Arc<std::sync::RwLock<String>>,
+    /// Tauri AppHandle — used by resolvers that need tauri_plugin_store.
+    pub handle: AppHandle,
 }

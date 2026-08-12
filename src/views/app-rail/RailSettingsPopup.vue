@@ -125,6 +125,7 @@ import { getAvailableFeatures, type Feature } from './features'
 import { isLocalMode } from '@/lib/local-mode'
 import { clear as prefsClear } from '@/lib/prefs'
 import { useLocaleSwitch } from '@/composables/useLocaleSwitch'
+import emitter from '@/plugins/eventbus'
 import ThemeChanger from '@/components/ThemeChanger.vue'
 import CustomizeUIModal from './CustomizeUIModal.vue'
 import ExcludedDirsModal from './ExcludedDirsModal.vue'
@@ -137,7 +138,8 @@ const { t } = useI18n()
 
 const { app } = storeToRefs(useTempStore())
 const store = useMainStore()
-const { currentSession } = storeToRefs(useDeviceSessionsStore())
+const sessionsStore = useDeviceSessionsStore()
+const { currentSession } = storeToRefs(sessionsStore)
 const router = useRouter()
 const open = ref(false)
 const isTauri = __IS_TAURI__
@@ -255,6 +257,10 @@ function editDeviceName() {
     getVariables: (value: string) => ({ name: value }),
     done: (value: string) => {
       if (app.value) app.value.deviceName = value
+      if (value && sessionsStore.currentClientId) {
+        sessionsStore.updateName(sessionsStore.currentClientId, value)
+      }
+      emitter.emit('device_name_updated', value)
     },
   })
 }
