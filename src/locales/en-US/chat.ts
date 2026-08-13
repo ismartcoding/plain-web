@@ -1,4 +1,11 @@
 export default {
+  image: 'Image',
+  images: 'Images',
+  video: 'Video',
+  videos: 'Videos',
+  file: 'File',
+  files: 'Files',
+  message: 'Message',
   send_to_phone_clipboard: 'Send to phone clipboard',
   clipboard_text: 'Clipboard text',
   my_phone: 'My phone',

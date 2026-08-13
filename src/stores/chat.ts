@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed } from 'vue'
 import type { IPeer, IChatChannel, IChatItem } from '@/lib/interfaces'
-import { ChannelStatus } from '@/lib/status'
+import { ChannelStatus, MessageType } from '@/lib/status'
 import emitter from '@/plugins/eventbus'
 import { getCached, setCached } from '@/lib/api/cache'
 import { openModal } from '@/components/modal'
@@ -9,6 +9,7 @@ import ChannelInviteModal from '@/views/chat/ChannelInviteModal.vue'
 import { chatCacher, normalizeChatItem } from '@/lib/chat/chat-cacher'
 import { peerCacher } from '@/lib/chat/peer-cacher'
 import { channelCacher } from '@/lib/chat/channel-cacher'
+import { i18n } from '@/plugins/i18n'
 
 export const useChatStore = defineStore('chat', () => {
   const peers = computed(() => {
@@ -55,16 +56,31 @@ export const useChatStore = defineStore('chat', () => {
     const item = getLatestChat(chatId)
     if (!item) return ''
     const content = item._content
-    if (content?.type === 'text') return (content?.value?.text ?? '').slice(0, 50)
-    if (content?.type === 'images') {
-      const count = content?.value?.ids?.length ?? 0
-      return count > 1 ? `[${count} images]` : '[Image]'
+    const t = i18n.global.t
+    if (content?.type === MessageType.TEXT) {
+      const text = content?.value?.text
+      if (text) return text.slice(0, 50)
+      return t('message')
     }
-    if (content?.type === 'files') {
-      const count = content?.value?.ids?.length ?? 0
-      return count > 1 ? `[${count} files]` : '[File]'
+    if (content?.type === MessageType.IMAGES) {
+      const items = content?.value?.items ?? []
+      const videoCount = items.filter((it: any) => it.duration > 0).length
+      const imageCount = items.length - videoCount
+      if (imageCount > 0 && videoCount > 0) {
+        const imgPart = imageCount > 1 ? `${imageCount} ${t('images')}` : t('image')
+        const vidPart = videoCount > 1 ? `${videoCount} ${t('videos')}` : t('video')
+        return `${imgPart}, ${vidPart}`
+      }
+      if (videoCount > 0) {
+        return videoCount > 1 ? `${videoCount} ${t('videos')}` : t('video')
+      }
+      return imageCount > 1 ? `${imageCount} ${t('images')}` : t('image')
     }
-    return '[Message]'
+    if (content?.type === MessageType.FILES) {
+      const count = content?.value?.items?.length ?? 0
+      return count > 1 ? `${count} ${t('files')}` : t('file')
+    }
+    return t('message')
   }
 
   function getLatestChatCreatedAt(chatId: string): string {

@@ -12,6 +12,7 @@
 //! Per-connection dispatch lives in [`plain_conn`] (HTTP/WS) and
 //! [`tls_conn`] (HTTPS/WSS); the listener loops here only accept and spawn.
 
+use super::chat_cacher::ChatCacher;
 use super::db::ChatDb;
 use super::graphql::{
     build_schema, load_key_cache, new_channel_key_cache, new_peer_key_cache, refresh_peer_key_cache,
@@ -82,6 +83,9 @@ impl LocalServerState {
 
         let (event_tx, _) = broadcast::channel::<WsEvent>(1024);
 
+        let chat_cacher = Arc::new(ChatCacher::new());
+        chat_cacher.load(&db);
+
         let schema = Arc::new(build_schema());
         let peer_schema: Arc<PeerSchema> = Arc::new(build_peer_schema());
         let ctx = Arc::new(AppCtx {
@@ -92,6 +96,7 @@ impl LocalServerState {
             pairing_manager: pairing_manager.clone(),
             peer_key_cache: peer_key_cache.clone(),
             channel_key_cache: channel_key_cache.clone(),
+            chat_cacher: chat_cacher.clone(),
             event_tx: event_tx.clone(),
             token: token.clone(),
             port: port.clone(),
