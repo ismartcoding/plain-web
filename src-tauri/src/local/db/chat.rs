@@ -194,10 +194,28 @@ impl ChatDb {
         .unwrap_or_default()
     }
 
+    /// Direct translation of plain-app `ChatDao.getAllLatestChats()`:
+    /// ```kotlin
+    /// @Query("""
+    ///     SELECT c.* FROM chats c
+    ///     INNER JOIN (
+    ///         SELECT '' as from_id, '' as to_id, channel_id, MAX(created_at) as max_created_at
+    ///         FROM chats WHERE channel_id != '' GROUP BY channel_id
+    ///         UNION ALL
+    ///         SELECT from_id, to_id, '' as channel_id, MAX(created_at) as max_created_at
+    ///         FROM chats WHERE channel_id = '' GROUP BY from_id, to_id
+    ///     ) latest ON (
+    ///         (c.channel_id != '' AND c.channel_id = latest.channel_id AND c.created_at = latest.max_created_at)
+    ///         OR (c.channel_id = '' AND c.from_id = latest.from_id AND c.to_id = latest.to_id AND c.created_at = latest.max_created_at)
+    ///     )
+    ///     ORDER BY c.created_at DESC
+    /// """)
+    /// suspend fun getAllLatestChats(): List<DChat>
+    /// ```
     pub fn get_all_latest_chats(&self) -> Vec<DChat> {
         let conn = self.0.lock().unwrap();
         let mut stmt = match conn.prepare(
-            "SELECT id,from_id,to_id,channel_id,content,status,status_data,created_at,updated_at \
+            "SELECT c.id,c.from_id,c.to_id,c.channel_id,c.content,c.status,c.status_data,c.created_at,c.updated_at \
              FROM chats c \
              INNER JOIN ( \
                  SELECT '' as from_id, '' as to_id, channel_id, MAX(created_at) as max_created_at \
@@ -212,9 +230,12 @@ impl ChatDb {
              ORDER BY c.created_at DESC",
         ) {
             Ok(s) => s,
-            Err(_) => return vec![],
+            Err(e) => {
+                log::error!("[chat] get_all_latest_chats prepare error: {e}");
+                return vec![];
+            }
         };
-        stmt.query_map(params![], |row| {
+        match stmt.query_map(params![], |row| {
             Ok(DChat {
                 id: row.get(0)?,
                 from_id: row.get(1)?,
@@ -226,10 +247,13 @@ impl ChatDb {
                 created_at: row.get(7)?,
                 updated_at: row.get(8)?,
             })
-        })
-        .ok()
-        .map(|iter| iter.filter_map(|r| r.ok()).collect())
-        .unwrap_or_default()
+        }) {
+            Ok(iter) => iter.filter_map(|r| r.map_err(|e| log::error!("[chat] get_all_latest_chats row error: {e}")).ok()).collect(),
+            Err(e) => {
+                log::error!("[chat] get_all_latest_chats query_map error: {e}");
+                vec![]
+            }
+        }
     }
 
     pub fn delete_chats_by_channel(&self, channel_id: &str) {
@@ -395,5 +419,36 @@ mod tests {
         let ids: Vec<String> =
             db.get_chats_by_channel("ch1").into_iter().map(|c| c.id).collect();
         assert_eq!(ids, vec!["a".to_string(), "c".to_string()]);
+    }
+
+    #[test]
+    fn get_all_latest_chats_returns_local_chat() {
+        let db = ChatDb::open(&unique_tmp_dir("latest-local").join("local_chat.db")).expect("open db");
+        seed_chat(&db, "a", "me", "local", "");
+
+        let latest = db.get_all_latest_chats();
+        assert_eq!(latest.len(), 1, "should return 1 latest chat, got {latest:?}");
+        assert_eq!(latest[0].from_id, "me");
+        assert_eq!(latest[0].to_id, "local");
+    }
+
+    #[test]
+    fn get_all_latest_chats_returns_peer_and_channel() {
+        let db = ChatDb::open(&unique_tmp_dir("latest-mixed").join("local_chat.db")).expect("open db");
+        seed_chat(&db, "a", "me", "local", "");
+        seed_chat(&db, "b", "me", "peer1", "");
+        seed_chat(&db, "c", "peer1", "me", "");
+        seed_chat(&db, "d", "me", "", "ch1");
+
+        let latest = db.get_all_latest_chats();
+        // 4 conversations: me↔local, me→peer1, peer1→me, ch1
+        assert_eq!(latest.len(), 4, "should return 4 latest chats, got {latest:?}");
+    }
+
+    #[test]
+    fn get_all_latest_chats_returns_empty_when_no_chats() {
+        let db = ChatDb::open(&unique_tmp_dir("latest-empty").join("local_chat.db")).expect("open db");
+        let latest = db.get_all_latest_chats();
+        assert!(latest.is_empty());
     }
 }

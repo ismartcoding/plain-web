@@ -2,6 +2,7 @@
 
 use crate::crypto::{base64_decode, xchacha_encrypt};
 use crate::commands::discover::{NearbyDiscoverManager, PeerStatusManager};
+use crate::local::chat_cacher::ChatCacher;
 use crate::local::db::ChatDb;
 use crate::local::enums::ChannelStatus;
 use crate::local::pairing::PairingManager;
@@ -153,6 +154,7 @@ pub struct AppCtx {
     pub pairing_manager: PairingManager,
     pub peer_key_cache: PeerKeyCache,
     pub channel_key_cache: ChannelKeyCache,
+    pub chat_cacher: Arc<ChatCacher>,
     pub event_tx: broadcast::Sender<WsEvent>,
     pub token: String,
     pub port: Arc<AtomicU16>,

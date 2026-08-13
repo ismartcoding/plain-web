@@ -103,6 +103,35 @@ impl ChatDb {
         .unwrap_or_default()
     }
 
+    /// Return all channels regardless of status. Mirrors Kotlin's
+    /// `chatChannelDao().getAll()` used by `ChatCacher.load()`.
+    pub fn get_all_channels(&self) -> Vec<DChannel> {
+        let conn = self.0.lock().unwrap();
+        let mut stmt = match conn.prepare(
+            "SELECT id,name,owner,members,key,version,status,created_at,updated_at \
+             FROM chat_channels ORDER BY name ASC",
+        ) {
+            Ok(s) => s,
+            Err(_) => return vec![],
+        };
+        stmt.query_map([], |row| {
+            Ok(DChannel {
+                id: row.get(0)?,
+                name: row.get(1)?,
+                owner: row.get(2)?,
+                members: row.get(3)?,
+                key: row.get(4)?,
+                version: row.get::<_, i64>(5)?,
+                status: row.get(6)?,
+                created_at: row.get(7)?,
+                updated_at: row.get(8)?,
+            })
+        })
+        .ok()
+        .map(|iter| iter.filter_map(|r| r.ok()).collect())
+        .unwrap_or_default()
+    }
+
     pub fn get_channels_with_key(&self) -> Vec<DChannel> {
         let conn = self.0.lock().unwrap();
         let mut stmt = match conn.prepare(
