@@ -2,7 +2,8 @@ use rusqlite::params;
 
 use super::utils::now_iso;
 use super::ChatDb;
-use crate::local::enums::{ChannelStatus, MemberStatus};
+use crate::local::channel::messages::decode_members;
+use crate::local::enums::ChannelStatus;
 use crate::utils::short_uuid::short_uuid;
 
 #[derive(Clone, Debug)]
@@ -35,17 +36,28 @@ impl DChannel {
     }
 
     pub fn joined_member_ids(&self) -> Vec<String> {
-        let members: Vec<serde_json::Value> =
-            serde_json::from_str(&self.members).unwrap_or_default();
-        let joined = MemberStatus::Joined.to_string();
-        members
+        decode_members(&self.members)
             .into_iter()
-            .filter(|m| m["status"].as_str() == Some(&joined))
-            .filter_map(|m| m["id"].as_str().map(String::from))
+            .filter(|m| m.is_joined())
+            .map(|m| m.id)
             .collect()
     }
 
+    /// Elect a leader for this channel from the online joined members.
+    ///
+    /// Mirrors plain-app `DChatChannel.electLeader`:
+    /// 1. Prefer the owner if online.
+    /// 2. Fall back to the smallest online joined member id.
+    /// 3. Returns `None` if no eligible member is online.
     pub fn elect_leader(&self, online_ids: &std::collections::HashSet<String>, my_id: &str) -> Option<String> {
+        if online_ids.is_empty() {
+            return None;
+        }
+        // Owner is preferred (plain-app resolves "me" sentinel → my_id).
+        if online_ids.contains(&self.owner) {
+            return Some(self.owner.clone());
+        }
+        // Fallback: smallest id among online members.
         online_ids
             .iter()
             .filter(|id| id.as_str() != my_id)
@@ -193,10 +205,11 @@ impl ChatDb {
         };
         while let Ok(Some(row)) = rows.next() {
             let members_json: String = row.get(0).unwrap_or_default();
-            if let Ok(members) = serde_json::from_str::<Vec<serde_json::Value>>(&members_json) {
-                if members.iter().any(|m| m["id"].as_str() == Some(peer_id)) {
-                    return true;
-                }
+            if decode_members(&members_json)
+                .iter()
+                .any(|m| m.id == peer_id)
+            {
+                return true;
             }
         }
         false

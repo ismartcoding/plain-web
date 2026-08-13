@@ -148,10 +148,11 @@ impl FromSql for ChannelStatus {
 
 // ── MemberStatus ───────────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, Enum)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, serde::Serialize, serde::Deserialize, Enum)]
 #[graphql(name = "MemberStatus", rename_items = "SCREAMING_SNAKE_CASE")]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum MemberStatus {
+    #[default]
     Joined,
     Pending,
 }
@@ -191,10 +192,11 @@ impl FromSql for MemberStatus {
 
 // ── DeviceType ─────────────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, Enum)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, serde::Serialize, serde::Deserialize, Enum)]
 #[graphql(name = "DeviceType", rename_items = "SCREAMING_SNAKE_CASE")]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum DeviceType {
+    #[default]
     Phone,
     Tablet,
     Computer,

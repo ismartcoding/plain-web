@@ -11,14 +11,12 @@
 
 use tokio::sync::broadcast;
 
-use serde_json::{json, Value};
-use std::str::FromStr;
+use serde_json::json;
 
 use crate::crypto::{base64_decode, ed25519_verify};
-use crate::local::db::{now_iso, ChatDb, DPeer};
+use crate::local::db::{now_iso, ChatDb, DChannel, DPeer};
 use crate::local::enums::{
-    ChannelStatus, ChannelSystemMessageAction, ChannelSystemMessageType, DeviceType, MemberStatus,
-    PeerStatus,
+    ChannelStatus, ChannelSystemMessageAction, ChannelSystemMessageType, MemberStatus, PeerStatus,
 };
 use crate::local::graphql::context::{
     channels_updated_payload, load_key_cache, ChannelKeyCache, PeerKeyCache, WsEvent,
@@ -115,21 +113,15 @@ fn handle_invite(
     payload: &str,
     event_tx: &broadcast::Sender<WsEvent>,
 ) -> bool {
-    let msg: Value = match serde_json::from_str(payload) {
+    let msg: ChannelInvite = match serde_json::from_str(payload) {
         Ok(v) => v,
         Err(e) => {
             log::warn!("[channel] invite payload parse error: {e}");
             return false;
         }
     };
-    let channel_id = msg["channelId"].as_str().unwrap_or("");
-    let channel_name = msg["channelName"].as_str().unwrap_or("");
-    let owner = msg["owner"].as_str().unwrap_or("");
-    let version = msg["version"].as_i64().unwrap_or(0);
-    let members_arr = msg["members"].as_array().cloned().unwrap_or_default();
-    let member_peers = msg["memberPeers"].as_array().cloned().unwrap_or_default();
-    let key = msg["key"].as_str().unwrap_or("");
-    let signature = msg["signature"].as_str().unwrap_or("");
+    let channel_id = &msg.channel_id;
+    let channel_name = &msg.channel_name;
 
     if channel_id.is_empty() {
         log::warn!("[channel] invite missing channelId");
@@ -139,21 +131,25 @@ fn handle_invite(
     // Reject invites from non-owners (the wire says `owner` but the actual
     // sender must equal it — the from_id check below acts as a sanity gate
     // since PeerGraphQL already authenticates the sender's signature).
-    if owner != from_id {
-        log::warn!("[channel] invite owner ({owner}) != fromId ({from_id}) — rejected");
+    if msg.owner != from_id {
+        log::warn!(
+            "[channel] invite owner ({}) != fromId ({from_id}) — rejected",
+            msg.owner
+        );
         return false;
     }
 
     // Look up the owner's publicKey from the embedded `memberPeers` array
     // (mirrors plain-app `handleInvite`). Reject if the owner entry is
     // missing entirely — the signature cannot be authenticated without it.
-    let owner_pub_key = match member_peers
+    let owner_pub_key = match msg
+        .member_peers
         .iter()
-        .find(|m| m["id"].as_str() == Some(owner))
-        .and_then(|m| m["publicKey"].as_str())
+        .find(|m| m.id == msg.owner)
+        .map(|m| &m.public_key)
     {
-        Some(k) => k,
-        None => {
+        Some(k) if !k.is_empty() => k.clone(),
+        _ => {
             log::warn!(
                 "[channel] invite for {channel_id} has no owner memberPeerInfo — rejected"
             );
@@ -163,11 +159,11 @@ fn handle_invite(
 
     let sig_payload = channel_message_payload(
         channel_id,
-        version,
+        msg.version,
         ChannelSystemMessageAction::Invite,
         client_id,
     );
-    if !verify_channel_signature(owner_pub_key, &sig_payload, signature) {
+    if !verify_channel_signature(&owner_pub_key, &sig_payload, &msg.signature) {
         log::warn!(
             "[channel] invite signature failed for {channel_id} from {from_id} — rejected"
         );
@@ -192,23 +188,19 @@ fn handle_invite(
     }
 
     // Auto-create peer records for members we don't already know about.
-    for member in &member_peers {
-        let id = member["id"].as_str().unwrap_or("");
-        if id.is_empty() || id == from_id || db.get_peer_by_id(id).is_some() {
+    for member in &msg.member_peers {
+        if member.id.is_empty() || member.id == from_id || db.get_peer_by_id(&member.id).is_some() {
             continue;
         }
         let now = now_iso();
-        let device_type = DeviceType::from_str(member["deviceType"].as_str().unwrap_or(""))
-            .unwrap_or(DeviceType::Unknown);
-        let new_peer = DPeer::new(
-            id,
-            member["name"].as_str().unwrap_or(""),
-            member["ip"].as_str().unwrap_or(""),
-            member["port"].as_u64().unwrap_or(0) as u16,
-            device_type,
+        let mut p = DPeer::new(
+            &member.id,
+            &member.name,
+            &member.ip,
+            member.port,
+            member.device_type,
         );
-        let mut p = new_peer;
-        p.public_key = member["publicKey"].as_str().unwrap_or("").to_string();
+        p.public_key = member.public_key.clone();
         p.status = PeerStatus::Channel;
         p.created_at = now.clone();
         p.updated_at = now;
@@ -221,25 +213,25 @@ fn handle_invite(
         .unwrap_or_default();
 
     if let Some(mut ch) = existing {
-        ch.name = channel_name.to_string();
+        ch.name = channel_name.clone();
         ch.owner = from_id.to_string();
-        ch.members = encode_members(&members_arr);
-        if !key.is_empty() {
-            ch.key = key.to_string();
+        ch.members = encode_members(&msg.members);
+        if !msg.key.is_empty() {
+            ch.key = msg.key.clone();
         }
-        ch.version = version;
+        ch.version = msg.version;
         ch.status = ChannelStatus::Joined;
         ch.updated_at = now_iso();
         db.update_channel(&ch);
     } else {
         let now = now_iso();
-        let ch = crate::local::db::DChannel {
-            id: channel_id.to_string(),
-            name: channel_name.to_string(),
+        let ch = DChannel {
+            id: channel_id.clone(),
+            name: channel_name.clone(),
             owner: from_id.to_string(),
-            members: encode_members(&members_arr),
-            key: key.to_string(),
-            version,
+            members: encode_members(&msg.members),
+            key: msg.key,
+            version: msg.version,
             status: ChannelStatus::Joined,
             created_at: now.clone(),
             updated_at: now,
@@ -287,14 +279,14 @@ fn handle_invite_accept(
     peer_key_cache: &PeerKeyCache,
     channel_key_cache: &ChannelKeyCache,
 ) -> bool {
-    let msg: Value = match serde_json::from_str(payload) {
+    let msg: ChannelInviteAccept = match serde_json::from_str(payload) {
         Ok(v) => v,
         Err(e) => {
             log::warn!("[channel] invite_accept payload parse error: {e}");
             return false;
         }
     };
-    let channel_id = msg["channelId"].as_str().unwrap_or("");
+    let channel_id = &msg.channel_id;
     if channel_id.is_empty() {
         return false;
     }
@@ -309,15 +301,12 @@ fn handle_invite_accept(
     }
 
     // Make sure a peer record exists for the accepter.
-    let pub_key = msg["publicKey"].as_str().unwrap_or("").to_string();
-    let name = msg["name"].as_str().unwrap_or("").to_string();
-    let device_type_str = msg["deviceType"].as_str().unwrap_or("").to_string();
+    let pub_key = msg.public_key.clone();
+    let name = msg.name.clone();
     match db.get_peer_by_id(from_id) {
         None => {
             let now = now_iso();
-            let device_type =
-                DeviceType::from_str(&device_type_str).unwrap_or(DeviceType::Unknown);
-            let mut p = DPeer::new(from_id, &name, "", 0, device_type);
+            let mut p = DPeer::new(from_id, &name, "", 0, msg.device_type);
             p.public_key = pub_key;
             p.status = PeerStatus::Channel;
             p.created_at = now.clone();
@@ -344,14 +333,12 @@ fn handle_invite_accept(
 
     // pending → joined (or append as joined if member not found).
     let mut members = decode_members(&ch.members);
-    let pending_str = MemberStatus::Pending.to_string();
-    let joined_str = MemberStatus::Joined.to_string();
-    if let Some(idx) = members.iter().position(|m| m["id"].as_str() == Some(from_id)) {
-        if members[idx]["status"].as_str() == Some(&pending_str) {
-            members[idx]["status"] = json!(joined_str);
+    if let Some(idx) = members.iter().position(|m| m.id == from_id) {
+        if members[idx].is_pending() {
+            members[idx].status = MemberStatus::Joined;
         }
     } else {
-        members.push(json!({ "id": from_id, "status": joined_str }));
+        members.push(ChannelMember::new(from_id));
     }
     ch.members = encode_members(&members);
     ch.version += 1;
@@ -395,14 +382,14 @@ fn handle_invite_accept(
 // ── ChannelInviteDecline ────────────────────────────────────────────────────
 
 fn handle_invite_decline(db: &ChatDb, client_id: &str, from_id: &str, payload: &str) -> bool {
-    let msg: Value = match serde_json::from_str(payload) {
+    let msg: ChannelInviteDecline = match serde_json::from_str(payload) {
         Ok(v) => v,
         Err(e) => {
             log::warn!("[channel] invite_decline payload parse error: {e}");
             return false;
         }
     };
-    let channel_id = msg["channelId"].as_str().unwrap_or("");
+    let channel_id = &msg.channel_id;
     let Some(mut ch) = db.get_channel_by_id(channel_id) else {
         return false;
     };
@@ -415,7 +402,7 @@ fn handle_invite_decline(db: &ChatDb, client_id: &str, from_id: &str, payload: &
     }
     let members: Vec<_> = members
         .into_iter()
-        .filter(|m| m["id"].as_str() != Some(from_id))
+        .filter(|m| m.id != from_id)
         .collect();
     ch.members = encode_members(&members);
     ch.version += 1;
@@ -428,14 +415,14 @@ fn handle_invite_decline(db: &ChatDb, client_id: &str, from_id: &str, payload: &
 // ── ChannelUpdate ───────────────────────────────────────────────────────────
 
 fn handle_update(db: &ChatDb, _client_id: &str, from_id: &str, payload: &str) -> bool {
-    let msg: Value = match serde_json::from_str(payload) {
+    let msg: ChannelUpdate = match serde_json::from_str(payload) {
         Ok(v) => v,
         Err(e) => {
             log::warn!("[channel] update payload parse error: {e}");
             return false;
         }
     };
-    let channel_id = msg["channelId"].as_str().unwrap_or("");
+    let channel_id = &msg.channel_id;
     let Some(mut ch) = db.get_channel_by_id(channel_id) else {
         log::warn!("[channel] update for unknown channel {channel_id}");
         return false;
@@ -448,8 +435,7 @@ fn handle_update(db: &ChatDb, _client_id: &str, from_id: &str, payload: &str) ->
         );
         return false;
     }
-    let version = msg["version"].as_i64().unwrap_or(0);
-    let signature = msg["signature"].as_str().unwrap_or("");
+    let version = msg.version;
 
     // Look up the owner's publicKey from the local peers table (we
     // already know the owner since we have the channel). Mirrors
@@ -466,7 +452,7 @@ fn handle_update(db: &ChatDb, _client_id: &str, from_id: &str, payload: &str) ->
     };
     let sig_payload =
         channel_message_payload(channel_id, version, ChannelSystemMessageAction::Update, "");
-    if !verify_channel_signature(&owner_pub_key, &sig_payload, signature) {
+    if !verify_channel_signature(&owner_pub_key, &sig_payload, &msg.signature) {
         log::warn!(
             "[channel] update signature failed for {channel_id} from {from_id} — rejected"
         );
@@ -483,32 +469,27 @@ fn handle_update(db: &ChatDb, _client_id: &str, from_id: &str, payload: &str) ->
     }
 
     // Auto-create peers for any new members we don't know.
-    let member_peers = msg["memberPeers"].as_array().cloned().unwrap_or_default();
-    for member in &member_peers {
-        let id = member["id"].as_str().unwrap_or("");
-        if id.is_empty() || id == from_id || db.get_peer_by_id(id).is_some() {
+    for member in &msg.member_peers {
+        if member.id.is_empty() || member.id == from_id || db.get_peer_by_id(&member.id).is_some() {
             continue;
         }
         let now = now_iso();
-        let device_type = DeviceType::from_str(member["deviceType"].as_str().unwrap_or(""))
-            .unwrap_or(DeviceType::Unknown);
         let mut p = DPeer::new(
-            id,
-            member["name"].as_str().unwrap_or(""),
-            member["ip"].as_str().unwrap_or(""),
-            member["port"].as_u64().unwrap_or(0) as u16,
-            device_type,
+            &member.id,
+            &member.name,
+            &member.ip,
+            member.port,
+            member.device_type,
         );
-        p.public_key = member["publicKey"].as_str().unwrap_or("").to_string();
+        p.public_key = member.public_key.clone();
         p.status = PeerStatus::Channel;
         p.created_at = now.clone();
         p.updated_at = now;
         db.upsert_peer(&p);
     }
 
-    let members_arr = msg["members"].as_array().cloned().unwrap_or_default();
-    ch.name = msg["channelName"].as_str().unwrap_or("").to_string();
-    ch.members = encode_members(&members_arr);
+    ch.name = msg.channel_name.clone();
+    ch.members = encode_members(&msg.members);
     ch.version = version;
     ch.updated_at = now_iso();
     db.update_channel(&ch);
@@ -519,14 +500,14 @@ fn handle_update(db: &ChatDb, _client_id: &str, from_id: &str, payload: &str) ->
 // ── ChannelKick ─────────────────────────────────────────────────────────────
 
 fn handle_kick(db: &ChatDb, client_id: &str, from_id: &str, payload: &str) -> bool {
-    let msg: Value = match serde_json::from_str(payload) {
+    let msg: ChannelKick = match serde_json::from_str(payload) {
         Ok(v) => v,
         Err(e) => {
             log::warn!("[channel] kick payload parse error: {e}");
             return false;
         }
     };
-    let channel_id = msg["channelId"].as_str().unwrap_or("");
+    let channel_id = &msg.channel_id;
     let Some(mut ch) = db.get_channel_by_id(channel_id) else {
         return false;
     };
@@ -537,8 +518,7 @@ fn handle_kick(db: &ChatDb, client_id: &str, from_id: &str, payload: &str) -> bo
         );
         return false;
     }
-    let version = msg["version"].as_i64().unwrap_or(0);
-    let signature = msg["signature"].as_str().unwrap_or("");
+    let version = msg.version;
 
     // Look up the owner's publicKey from the local peers table. Mirrors
     // plain-app `handleKick`.
@@ -558,7 +538,7 @@ fn handle_kick(db: &ChatDb, client_id: &str, from_id: &str, payload: &str) -> bo
         ChannelSystemMessageAction::Kick,
         client_id,
     );
-    if !verify_channel_signature(&owner_pub_key, &sig_payload, signature) {
+    if !verify_channel_signature(&owner_pub_key, &sig_payload, &msg.signature) {
         log::warn!(
             "[channel] kick signature failed for {channel_id} from {from_id} — rejected"
         );
@@ -568,7 +548,7 @@ fn handle_kick(db: &ChatDb, client_id: &str, from_id: &str, payload: &str) -> bo
     ch.status = ChannelStatus::Kicked;
     let members: Vec<_> = decode_members(&ch.members)
         .into_iter()
-        .filter(|m| m["id"].as_str() != Some(client_id))
+        .filter(|m| m.id != client_id)
         .collect();
     ch.members = encode_members(&members);
     ch.updated_at = now_iso();
@@ -590,14 +570,14 @@ fn handle_leave(
     kp_bytes: &[u8],
     peer_key_cache: &PeerKeyCache,
 ) -> bool {
-    let msg: Value = match serde_json::from_str(payload) {
+    let msg: ChannelLeave = match serde_json::from_str(payload) {
         Ok(v) => v,
         Err(e) => {
             log::warn!("[channel] leave payload parse error: {e}");
             return false;
         }
     };
-    let channel_id = msg["channelId"].as_str().unwrap_or("");
+    let channel_id = &msg.channel_id;
     let Some(mut ch) = db.get_channel_by_id(channel_id) else {
         return false;
     };
@@ -607,7 +587,7 @@ fn handle_leave(
     }
     let members: Vec<_> = decode_members(&ch.members)
         .into_iter()
-        .filter(|m| m["id"].as_str() != Some(from_id))
+        .filter(|m| m.id != from_id)
         .collect();
     ch.members = encode_members(&members);
     ch.version += 1;

@@ -5,9 +5,12 @@ use super::super::context::{
     channels_updated_payload, refresh_peer_key_cache, AppCtx, WsEvent, WS_CHANNELS_UPDATED,
 };
 use super::types::ChatChannel;
-use crate::crypto::base64_decode;
+use crate::crypto::{base64_decode, base64_encode, random_bytes};
+use crate::local::channel::messages::{
+    decode_members, encode_members, has_member, ChannelMember,
+};
 use crate::local::db::{now_iso, DChannel};
-use crate::local::enums::{ChannelStatus, MemberStatus};
+use crate::local::enums::ChannelStatus;
 
 #[derive(Default)]
 pub struct ChatChannelMutation;
@@ -27,7 +30,14 @@ fn emit_channels_updated(c: &AppCtx) {
 impl ChatChannelMutation {
     async fn create_chat_channel(&self, ctx: &Context<'_>, name: String) -> ChatChannel {
         let c = ctx.data_unchecked::<Arc<AppCtx>>();
-        let ch = DChannel::new(name.trim(), &c.identity.client_id);
+        let mut ch = DChannel::new(name.trim(), &c.identity.client_id);
+        // Mirror plain-app `ChannelManager.createChannel`: the owner is a
+        // member from the start (JOINED) and the per-channel ChaCha20 key is
+        // generated immediately. Without the owner in `members`,
+        // `build_member_peers` omits it from the invite's `memberPeers`, so
+        // the invitee rejects the invite ("no owner memberPeerInfo").
+        ch.members = encode_members(&[ChannelMember::new(&c.identity.client_id)]);
+        ch.key = base64_encode(&random_bytes(32));
         c.db.insert_channel(&ch);
         let channel = ChatChannel::from(ch);
         emit_channels_updated(c);
@@ -104,20 +114,18 @@ impl ChatChannelMutation {
                     let _ = crate::local::channel::sender::send_leave(
                         &ch.id,
                         &owner_peer,
+                        &c.identity.client_id,
                         &kp_bytes,
                         &channel_key,
                         &c.peer_key_cache,
                     )
                     .await;
                 }
-                let members: Vec<serde_json::Value> =
-                    serde_json::from_str(&ch.members).unwrap_or_default();
-                let new_members: Vec<serde_json::Value> = members
+                let new_members: Vec<ChannelMember> = decode_members(&ch.members)
                     .into_iter()
-                    .filter(|m| m["id"].as_str() != Some(c.identity.client_id.as_str()))
+                    .filter(|m| m.id != c.identity.client_id)
                     .collect();
-                ch.members = serde_json::to_string(&new_members)
-                    .unwrap_or_else(|_| "[]".to_string());
+                ch.members = encode_members(&new_members);
                 ch.status = ChannelStatus::Left;
                 ch.updated_at = now_iso();
                 c.db.update_channel(&ch);
@@ -142,17 +150,12 @@ impl ChatChannelMutation {
         if ch.owner != c.identity.client_id {
             return Err(gql_err("Only owner can add members"));
         }
-        let members: Vec<serde_json::Value> =
-            serde_json::from_str(&ch.members).unwrap_or_default();
-        if members.iter().any(|m| m["id"].as_str() == Some(&peer_id)) {
+        let mut new_members = decode_members(&ch.members);
+        if has_member(&new_members, &peer_id) {
             return Err(gql_err("Already a member"));
         }
-        let mut new_members = members;
-        new_members.push(serde_json::json!({
-            "id": peer_id,
-            "status": MemberStatus::Pending.to_string(),
-        }));
-        ch.members = serde_json::to_string(&new_members).unwrap_or_else(|_| "[]".to_string());
+        new_members.push(ChannelMember::pending(&peer_id));
+        ch.members = encode_members(&new_members);
         ch.version += 1;
         ch.updated_at = now_iso();
         c.db.update_channel(&ch);
@@ -190,16 +193,15 @@ impl ChatChannelMutation {
         if ch.owner != c.identity.client_id {
             return Err(gql_err("Only owner can remove members"));
         }
-        let members: Vec<serde_json::Value> =
-            serde_json::from_str(&ch.members).unwrap_or_default();
-        if !members.iter().any(|m| m["id"].as_str() == Some(&peer_id)) {
+        let members = decode_members(&ch.members);
+        if !has_member(&members, &peer_id) {
             return Err(gql_err("Not a member"));
         }
-        let new_members: Vec<serde_json::Value> = members
+        let new_members: Vec<ChannelMember> = members
             .into_iter()
-            .filter(|m| m["id"].as_str() != Some(&peer_id))
+            .filter(|m| m.id != peer_id)
             .collect();
-        ch.members = serde_json::to_string(&new_members).unwrap_or_else(|_| "[]".to_string());
+        ch.members = encode_members(&new_members);
         ch.version += 1;
         ch.updated_at = now_iso();
         c.db.update_channel(&ch);
@@ -211,6 +213,7 @@ impl ChatChannelMutation {
                 &ch.id,
                 ch.version,
                 &peer,
+                &c.identity.client_id,
                 &kp_bytes,
                 &channel_key,
                 &c.peer_key_cache,
@@ -246,6 +249,7 @@ impl ChatChannelMutation {
         let _ = crate::local::channel::sender::send_invite_accept(
             &ch.id,
             &owner_peer,
+            &c.identity.client_id,
             &kp_bytes,
             &c.identity.device_name,
             "desktop",
@@ -267,6 +271,7 @@ impl ChatChannelMutation {
             let _ = crate::local::channel::sender::send_invite_decline(
                 &ch.id,
                 &owner_peer,
+                &c.identity.client_id,
                 &kp_bytes,
                 &channel_key,
                 &c.peer_key_cache,

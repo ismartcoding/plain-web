@@ -96,7 +96,7 @@ pub async fn deliver_to_peer(
         let mut req = client
             .post(peer_graphql_url)
             .header("c-id", client_id)
-            .header(reqwest::header::CONTENT_TYPE, "application/json")
+            .header(reqwest::header::CONTENT_TYPE, "application/octet-stream")
             .body(encrypted.clone());
 
         if let Some(cid) = channel_id {
@@ -204,6 +204,7 @@ pub async fn deliver_to_peer(
 pub async fn deliver_channel_system_message(
     peer: &DPeer,
     key: &[u8],
+    client_id: &str,
     kp_bytes: &[u8],
     msg_type: &str,
     payload: &str,
@@ -240,8 +241,8 @@ pub async fn deliver_channel_system_message(
     for url in peer_graphql_urls(peer) {
         let mut req = client
             .post(&url)
-            .header("c-id", &peer.id)
-            .header(reqwest::header::CONTENT_TYPE, "application/json")
+            .header("c-id", client_id)
+            .header(reqwest::header::CONTENT_TYPE, "application/octet-stream")
             .body(encrypted.clone());
         if let Some(cid) = channel_id_opt
             && !cid.is_empty()
