@@ -222,12 +222,10 @@ impl ChatMessageMutation {
                         &c.peer_status,
                         &client_id,
                     );
-                    let other_online = leader_opt.is_some()
-                        || member_ids.iter().any(|id| {
-                            id != &client_id && c.peer_status.is_online(id)
-                        });
 
-                    if !other_online {
+                    // No online joined members at all → NoLeader.
+                    // Mirrors plain-app `ChannelChatSender.send()`.
+                    if leader_opt.is_none() {
                         chat.status = ChatStatus::Failed;
                         let no_leader_data = build_no_leader_status_data();
                         if let Some(updated) = c.db.update_chat_status_and_data(

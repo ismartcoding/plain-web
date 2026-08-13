@@ -119,16 +119,15 @@ pub fn channels_updated_payload(db: &ChatDb) -> String {
         .iter()
         .map(|ch| {
             let members: Vec<serde_json::Value> =
-                serde_json::from_str::<Vec<serde_json::Value>>(&ch.members)
-                    .unwrap_or_default()
+                crate::local::channel::messages::decode_members(&ch.members)
                     .into_iter()
-                .map(|m| {
-                    serde_json::json!({
-                        "id": m["id"].as_str().unwrap_or("").to_string(),
-                        "status": m["status"].as_str().unwrap_or("PENDING").to_string(),
+                    .map(|m| {
+                        serde_json::json!({
+                            "id": m.id,
+                            "status": m.status.to_string(),
+                        })
                     })
-                })
-                .collect();
+                    .collect();
             serde_json::json!({
                 "id": ch.id,
                 "name": ch.name,

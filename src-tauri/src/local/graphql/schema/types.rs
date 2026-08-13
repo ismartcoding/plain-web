@@ -1,6 +1,5 @@
 use async_graphql::{Enum, InputObject, SimpleObject, Union};
 use serde_json::Value;
-use std::str::FromStr;
 
 use crate::crypto::xchacha_encrypt;
 use crate::local::db::{DAppFile, DBookmark, DBookmarkGroup, DChannel, DChat, DPeer};
@@ -342,7 +341,7 @@ pub(crate) fn chat_item_data_from_content(content: &str, token: &str) -> Option<
     let msg_type = v.get("type")?.as_str()?;
     let value = v.get("value")?;
     match msg_type {
-        "images" => {
+        "IMAGES" => {
             let ids = value
                 .get("items")?
                 .as_array()?
@@ -355,7 +354,7 @@ pub(crate) fn chat_item_data_from_content(content: &str, token: &str) -> Option<
                 .collect();
             Some(ChatItemData::MessageImages(MessageImages { ids }))
         }
-        "files" => {
+        "FILES" => {
             let ids = value
                 .get("items")?
                 .as_array()?
@@ -368,7 +367,7 @@ pub(crate) fn chat_item_data_from_content(content: &str, token: &str) -> Option<
                 .collect();
             Some(ChatItemData::MessageFiles(MessageFiles { ids }))
         }
-        "text" => {
+        "TEXT" => {
             // For text messages, the encryption input is the bare
             // `imageLocalPath` (not wrapped in JSON) — matches plain-app
             // `ChatItem.getContentData()`'s `MessageText` branch.
@@ -425,16 +424,11 @@ pub struct ChatChannel {
 
 impl From<DChannel> for ChatChannel {
     fn from(ch: DChannel) -> Self {
-        let members = serde_json::from_str::<Vec<serde_json::Value>>(&ch.members)
-            .unwrap_or_default()
+        let members = crate::local::channel::messages::decode_members(&ch.members)
             .into_iter()
-            .map(|m| {
-                let status_str = m["status"].as_str().unwrap_or("");
-                let status = MemberStatus::from_str(status_str).unwrap_or(MemberStatus::Pending);
-                ChatChannelMember {
-                    id: m["id"].as_str().unwrap_or("").to_string(),
-                    status,
-                }
+            .map(|m| ChatChannelMember {
+                id: m.id,
+                status: m.status,
             })
             .collect();
         Self {
@@ -635,7 +629,7 @@ mod tests {
         let token_b64 = base64_encode(&[99u8; 32]);
 
         let content = serde_json::json!({
-            "type": "images",
+            "type": "IMAGES",
             "value": {
                 "items": [
                     { "uri": "fid:00112233.jpg", "fileName": "first.jpg" },

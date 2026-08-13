@@ -42,13 +42,10 @@ impl ChannelDeliveryResult {
     }
 }
 
-/// Pick a leader for the channel from its joined, online members
-/// excluding the local device. Returns `None` if there is no
-/// candidate (e.g. the local device is alone, or all peers are
-/// offline).
-///
-/// `DChannel::elect_leader` does the heavy lifting; this wrapper just
-/// collects the online ids from the status manager.
+/// Pick a leader for the channel from its joined members.
+/// Mirrors plain-app `DChatChannel.electLeader` which considers
+/// self (`my_id`) as always online. Returns `None` if no eligible
+/// member (including self) is online.
 pub fn elect_leader(
     channel: &DChannel,
     peer_status: &PeerStatusManager,
@@ -57,7 +54,9 @@ pub fn elect_leader(
     let online_ids: HashSet<String> = channel
         .joined_member_ids()
         .into_iter()
-        .filter(|id| id != my_id && peer_status.is_online(id))
+        .filter(|id| {
+            id == my_id || peer_status.is_online(id)
+        })
         .collect();
     channel.elect_leader(&online_ids, my_id)
 }
@@ -95,10 +94,11 @@ pub async fn send_async(
     }
 
     let targets: Vec<String> = match leader.as_deref() {
-        // I am the leader (or no leader could be elected — fall back
-        // to broadcasting ourselves) — broadcast to every member.
+        // I am the leader — broadcast to every member.
         Some(lid) if lid == client_id => other_ids,
-        None => other_ids,
+        // No leader available — return NoLeader. Mirrors plain-app
+        // `ChannelChatSender.send()` which returns `Result.NoLeader`.
+        None => return None,
         // Send only to the elected leader.
         Some(lid) => vec![lid.to_string()],
     };
@@ -114,11 +114,9 @@ pub async fn send_async(
             continue;
         };
 
-        // Choose the encryption key: prefer the channel key from
-        // `channel_key_cache` (so the receiver, which checks `c-cid`,
-        // can decrypt). Fall back to the peer's shared key if the
-        // channel key is not loaded yet (legacy / partially
-        // migrated peers).
+        // Choose the encryption key. Mirrors plain-app
+        // `PeerGraphQLClient.createChannelChatItem` which REQUIRES
+        // `ChannelCacher.getKeyBytes(channelId)` — no fallback to peer key.
         let key = channel_key_from_cache_or_peer(
             channel_key_cache,
             peer_key_cache,
