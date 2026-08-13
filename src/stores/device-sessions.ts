@@ -1,11 +1,10 @@
 import { defineStore } from 'pinia'
 import { get as prefsGet, set as prefsSet, remove as prefsRemove } from '@/lib/prefs'
 import {
-  getBoundClientId,
-  setBoundClientId,
-  clearBoundClientId,
-  getWindowClientId,
-} from '@/lib/window-client'
+  getRemoteClientId,
+  setRemoteClientId,
+  clearRemoteClientId,
+} from '@/lib/device/client-id'
 
 /**
  * Persistent registry of devices the user has previously logged into,
@@ -18,7 +17,7 @@ import {
  * the device moves networks; identity is the immutable `clientId`.
  *
  * `currentClientId` is NOT part of persisted state — it lives in
- * sessionStorage as the bound device (see `@/lib/window-client`). The store
+ * sessionStorage as the bound device (see `@/lib/device/client-id`). The store
  * exposes it via a getter so existing call sites (`store.currentClientId`)
  * keep working unchanged.
  */
@@ -64,12 +63,12 @@ export const useDeviceSessionsStore = defineStore('deviceSessions', {
       return [...state.sessions].sort((a, b) => b.addedAt - a.addedAt)
     },
     /**
-     * The active device for this window. Reads the per-window binding from
-     * sessionStorage; falls back to the desktop clientId when no device is
-     * bound (local mode).
+     * The bound remote device for this window, or '' in local mode. This is
+     * the key used to look up `currentSession` — sessions are keyed only by
+     * remote device ids, so an unbound (local) window correctly has no session.
      */
     currentClientId(): string {
-      return getWindowClientId()
+      return getRemoteClientId()
     },
     currentSession(state): DeviceSession | undefined {
       return state.sessions.find((s) => s.clientId === this.currentClientId)
@@ -108,16 +107,16 @@ export const useDeviceSessionsStore = defineStore('deviceSessions', {
      * so all stores/sockets re-init against the new device.
      */
     setCurrent(clientId: string) {
-      if (clientId) setBoundClientId(clientId)
-      else clearBoundClientId()
+      if (clientId) setRemoteClientId(clientId)
+      else clearRemoteClientId()
       this.persist()
     },
     remove(clientId: string) {
       this.sessions = this.sessions.filter((s) => s.clientId !== clientId)
-      if (getBoundClientId() === clientId) {
+      if (getRemoteClientId() === clientId) {
         // Drop the per-window binding so the caller can navigate to a
         // local-mode landing route or pick another device.
-        clearBoundClientId()
+        clearRemoteClientId()
       }
       prefsRemove(`main_state:${clientId}`)
       this.persist()

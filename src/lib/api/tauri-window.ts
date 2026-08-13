@@ -1,6 +1,6 @@
 import { invoke } from '@tauri-apps/api/core'
 import type { ISource } from '@/components/lightbox/types'
-import { getWindowClientId, isLocalClientId } from '@/lib/window-client'
+import { getRemoteClientId } from '@/lib/device/client-id'
 
 /**
  * Open a new app window at the given router path (e.g. "/messages").
@@ -17,10 +17,10 @@ import { getWindowClientId, isLocalClientId } from '@/lib/window-client'
  */
 export async function openWindow(path: string): Promise<void> {
   if (!__IS_TAURI__) return
-  const cid = getWindowClientId()
+  const cid = getRemoteClientId()
   const sep = path.includes('?') ? '&' : '?'
   const finalPath =
-    cid && !isLocalClientId(cid)
+    cid
       ? `${path}${sep}__cid=${encodeURIComponent(cid)}`
       : path
   await invoke('open_window', { path: finalPath })

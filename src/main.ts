@@ -11,7 +11,7 @@ import { shortUUID } from './lib/strutil'
 import { getIsPhone, getIsTablet } from './hooks/device'
 import { setHttpProxyPort, setLocalServerPort, setLocalServerToken, setLocalServerHttpsPort } from './lib/api/api'
 import { preload as preloadPrefs, get as prefsGet, set as prefsSet } from './lib/prefs'
-import { applyUrlClientId } from './lib/window-client'
+import { applyUrlClientId } from './lib/device/client-id'
 
 // Pull `?__cid=` (set by `openWindow` when spawning child windows) into
 // sessionStorage before anything else reads the clientId. Idempotent.

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { gqlFetch, GqlError } from '@/lib/api/gql-client'
 import { hashToKey, chachaEncrypt, bitArrayToBase64 } from '@/lib/api/crypto'
 import { set as prefsSet } from '@/lib/prefs'
-import { setBoundClientId } from '@/lib/window-client'
+import { setRemoteClientId } from '@/lib/device/client-id'
 
 // gqlFetch calls `window.location.reload()` on 401 (after clearing the
 // session). The reload function is a non-configurable own property of
@@ -10,8 +10,8 @@ import { setBoundClientId } from '@/lib/window-client'
 // instead stub `clearCurrentSession` (the other side-effect of the 401
 // path) so we can observe the state mutation without triggering a real
 // page reload that would tear down the test iframe.
-vi.mock('@/lib/device-current', async () => {
-  const actual = await vi.importActual<typeof import('@/lib/device-current')>('@/lib/device-current')
+vi.mock('@/lib/device/current', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/device/current')>('@/lib/device/current')
   return {
     ...actual,
     clearCurrentSession: vi.fn(),
@@ -25,8 +25,8 @@ vi.mock('@/lib/device-current', async () => {
 // mode. Individual tests can flip `(globalThis as any).__forceLocalMode = true`
 // before running gqlFetch to take the no-reload branch.
 let forceLocalMode = false
-vi.mock('@/lib/local-mode', async () => {
-  const actual = await vi.importActual<typeof import('@/lib/local-mode')>('@/lib/local-mode')
+vi.mock('@/lib/device/local-mode', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/device/local-mode')>('@/lib/device/local-mode')
   return {
     ...actual,
     isLocalMode: () => (globalThis as any).__forceLocalMode === true,
@@ -92,7 +92,7 @@ describe('gqlFetch', () => {
   const base64Token = btoa(plainToken)
 
   beforeEach(() => {
-    setBoundClientId('test-client')
+    setRemoteClientId('test-client')
     prefsSet('device_sessions', {
       sessions: [{ clientId: 'test-client', host: 'phone.local', token: base64Token }],
     })

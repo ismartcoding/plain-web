@@ -12,6 +12,7 @@ export default {
   },
   device_discovery: {
     searching: 'Đang tìm kiếm thiết bị PlainApp gần đây…',
+    local: 'Cục bộ',
     lan_permission_denied_title: 'Local network access is required',
     lan_permission_denied_hint: 'Allow PlainApp to access your local network in system settings, then retry scan.',
     open_system_settings: 'Open system settings',
@@ -26,6 +27,5 @@ export default {
     current: 'Hiện tại',
     no_devices_yet: 'Chưa có thiết bị. Tìm kiếm hoặc nhập địa chỉ bên dưới.',
     remove_device_confirm: 'Xóa thiết bị này khỏi danh sách?',
-    switch_to_local: 'Switch to Local',
   },
 }

@@ -12,6 +12,7 @@ export default {
   },
   device_discovery: {
     searching: '正在搜索附近的 PlainApp 设备…',
+    local: '本地',
     lan_permission_denied_title: '需要局域网访问权限',
     lan_permission_denied_hint: '请在系统设置中允许 PlainApp 访问局域网，然后重试扫描。',
     open_system_settings: '打开系统设置',
@@ -26,6 +27,5 @@ export default {
     current: '当前',
     no_devices_yet: '暂无设备，请在下方搜索或输入地址。',
     remove_device_confirm: '从列表中移除此设备？',
-    switch_to_local: '切换到本地',
   },
 }

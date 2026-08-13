@@ -110,10 +110,6 @@ li {
   gap: 4px;
 }
 
-.actions {
-  display: none;
-}
-
 .active {
   background: var(--md-sys-color-surface-variant);
 }
@@ -124,15 +120,5 @@ li {
 
 .clickable:hover {
   background: var(--md-sys-color-surface-container);
-}
-
-.has-actions:hover,
-.force-actions {
-  .end {
-    display: none;
-  }
-  .actions {
-    display: inline-flex;
-  }
 }
 </style>

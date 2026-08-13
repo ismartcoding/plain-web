@@ -28,6 +28,10 @@
               <i-material-symbols:keyboard-arrow-down-rounded />
             </button>
           </template>
+          <div v-if="!localMode" class="dropdown-item" @click="switchToLocal">
+            <span>{{ selfDevice?.name }}</span>
+            <span class="status-badge on">{{ $t('device_discovery.local') }}</span>
+          </div>
           <div
             v-for="session in switchableSessions"
             :key="session.clientId"
@@ -35,9 +39,6 @@
             @click="switchToSession(session.clientId)"
           >
             {{ session.name || session.host }}
-          </div>
-          <div v-if="!localMode" class="dropdown-item" @click="switchToLocal">
-            {{ $t('home.switch_to_local') }}
           </div>
           <div class="dropdown-item" @click="openDeviceSwitcher">
             {{ $t('device_discovery.add_device') }}
@@ -63,12 +64,13 @@ import { useRouter, useRoute } from 'vue-router'
 import { useMainStore } from '@/stores/main'
 import type { AppTab } from '@/stores/main'
 import { useDeviceSessionsStore } from '@/stores/device-sessions'
-import { isLocalMode } from '@/lib/local-mode'
+import { isLocalMode } from '@/lib/device/local-mode'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { pushModal } from '@/components/modal'
 import DeviceSwitcherModal from '@/components/DeviceSwitcherModal.vue'
 import i18n from '@/plugins/i18n'
+import { loadSelfDevice, type SelfDevice } from '@/lib/device/self-device'
 
 const router = useRouter()
 const route = useRoute()
@@ -77,13 +79,12 @@ const deviceSessionsStore = useDeviceSessionsStore()
 const { currentSession, sortedSessions } = storeToRefs(deviceSessionsStore)
 const { app } = storeToRefs(useTempStore())
 const homeDeviceMenuOpen = ref(false)
+const selfDevice = ref<SelfDevice | null>(null)
 
 const localMode = computed(() => isLocalMode())
 
 const homeTabTitle = computed(() =>
-  localMode.value
-    ? String((i18n.global as any).t('home.local_mode'))
-    : app.value?.deviceName
+    app.value?.deviceName
       || currentSession.value?.name
       || currentSession.value?.host
       || String((i18n.global as any).t('my_phone'))
@@ -95,6 +96,7 @@ const switchableSessions = computed(() =>
 
 onMounted(() => {
   window.addEventListener('tauri-open-tab', handleOpenTab)
+  void loadSelf()
   // Sync current route on first mount (e.g. page reload)
   const group = (route.meta?.group as string) || ''
   if (group && group !== 'home') {
@@ -133,6 +135,10 @@ function switchToLocal() {
   homeDeviceMenuOpen.value = false
   deviceSessionsStore.setCurrent('')
   window.location.href = '/'
+}
+
+async function loadSelf() {
+  selfDevice.value = await loadSelfDevice()
 }
 
 function openDeviceSwitcher() {

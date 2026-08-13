@@ -4,7 +4,7 @@
  * `vi.resetModules()` works on the Node side, so we don't need a
  * `__reset*ForTest()` escape hatch in source. The test's loadAsWindow()
  * helper sets up sessionStorage / localStorage per simulated window and
- * resets the module cache to get a fresh window-client / cross-window-store
+ * resets the module cache to get a fresh client-id / cross-window-store
  * pair each time.
  *
  * Node 22+ has a built-in localStorage / sessionStorage only when run with

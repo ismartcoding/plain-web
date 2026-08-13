@@ -11,9 +11,10 @@
         <ChannelMemberListItem v-for="member in enrichedMembers" :key="member.id" :member="member">
           <template v-if="isOwner && !member.isSelf && member.id !== channel.owner" #end>
             <v-outlined-button v-if="member.status === MemberStatus.PENDING" class="btn-sm" :loading="pendingIds.has(member.id)" :disabled="pendingIds.has(member.id)" @click.stop="cancelInvite(member.id)">{{ $t('cancel') }}</v-outlined-button>
-            <v-icon-button v-else v-tooltip="$t('remove_member')" class="sm" :loading="pendingIds.has(member.id)" :disabled="pendingIds.has(member.id)" @click.stop="removeMember(member.id)">
-              <i-material-symbols:close-rounded />
-            </v-icon-button>
+            <v-outlined-button
+v-else v-tooltip="$t('remove_member')" class="btn-sm" 
+            :loading="pendingIds.has(member.id)" :disabled="pendingIds.has(member.id)" 
+            @click.stop="removeMember(member.id)" >{{ $t('remove') }}</v-outlined-button>
           </template>
         </ChannelMemberListItem>
       </ul>

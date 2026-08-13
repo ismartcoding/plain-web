@@ -12,6 +12,7 @@ export default {
   },
   device_discovery: {
     searching: '근처 PlainApp 기기 검색 중…',
+    local: '로컬',
     lan_permission_denied_title: 'Local network access is required',
     lan_permission_denied_hint: 'Allow PlainApp to access your local network in system settings, then retry scan.',
     open_system_settings: 'Open system settings',
@@ -26,6 +27,5 @@ export default {
     current: '현재',
     no_devices_yet: '기기 없음. 아래에서 검색하거나 주소를 입력하세요.',
     remove_device_confirm: '이 기기를 목록에서 제거할까요?',
-    switch_to_local: 'Switch to Local',
   },
 }

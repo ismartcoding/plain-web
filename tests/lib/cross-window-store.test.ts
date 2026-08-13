@@ -29,9 +29,9 @@ const loadAsWindow = async (
   // window. Wipe it here so each simulated window starts from scratch.
   delete (globalThis as any).__plainWebInstalled
   vi.resetModules()
-  const wc = await import('@/lib/window-client')
+  const wc = await import('@/lib/device/client-id')
   wc.getWindowId()
-  wc.getWindowClientId()
+  wc.getActiveClientId()
   const cws = await import('@/lib/cross-window-store')
   return { wc, cws }
 }

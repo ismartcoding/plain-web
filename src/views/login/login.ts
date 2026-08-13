@@ -7,7 +7,7 @@ import { getApiBaseUrl, getApiHeaders, getPendingLoginHost, clearPendingLoginHos
 import { randomUUID } from '@/lib/strutil'
 import { tokenToKey } from '@/lib/api/file'
 import { useDeviceSessionsStore } from '@/stores/device-sessions'
-import { getCurrentAuthToken } from '@/lib/device-current'
+import { getCurrentAuthToken } from '@/lib/device/current'
 import { tauriFetch } from '@/lib/api/tauri-fetch'
 import { performLoginHandshake } from '@/lib/api/login-handshake'
 import { get as prefsGet } from '@/lib/prefs'

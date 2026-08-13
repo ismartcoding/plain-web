@@ -12,6 +12,7 @@ export default {
   },
   device_discovery: {
     searching: '正在搜尋附近的 PlainApp 設備…',
+    local: '本地',
     lan_permission_denied_title: 'Local network access is required',
     lan_permission_denied_hint: 'Allow PlainApp to access your local network in system settings, then retry scan.',
     open_system_settings: 'Open system settings',
@@ -26,6 +27,5 @@ export default {
     current: '當前',
     no_devices_yet: '暫無設備，請在下方搜尋或輸入地址。',
     remove_device_confirm: '從列表中移除此設備？',
-    switch_to_local: 'Switch to Local',
   },
 }

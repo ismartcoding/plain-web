@@ -18,9 +18,11 @@ import { onMounted, onUnmounted, watch } from 'vue'
 import { useAppSocket } from '@/hooks/app-socket'
 import { openWindow, setWindowDeviceName } from '@/lib/api/tauri-window'
 import { useDeviceSessionsStore } from '@/stores/device-sessions'
-import { isLocalMode } from '@/lib/local-mode'
+import { isLocalMode } from '@/lib/device/local-mode'
 import { useChatStore } from '@/stores/chat'
 import { useDeviceDiscovery } from './hooks/use-device-discovery'
+import { useTempStore } from '@/stores/temp'
+import { storeToRefs } from 'pinia'
 
 const { wsStatus, tapPhoneMessage, closeTapPhone } = useAppSocket()
 // Initialize the device pairing listener (and global incoming-request modal) early
@@ -33,6 +35,7 @@ useDeviceDiscovery()
 // arriving while the user is on another page would be dropped silently.
 useChatStore()
 const deviceSessions = useDeviceSessionsStore()
+const { app } = storeToRefs(useTempStore())
 
 function onKeydown(e: KeyboardEvent) {
   if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'N') {
@@ -43,11 +46,11 @@ function onKeydown(e: KeyboardEvent) {
 
 // Keep the dock right-click menu label up to date for this window.
 watch(
-  () => deviceSessions.currentClientId,
-  (clientId) => {
+  () => [deviceSessions.currentClientId, app.value?.deviceName],
+  ([clientId]) => {
     const session = deviceSessions.sessions.find((s) => s.clientId === clientId)
     const name = isLocalMode()
-      ? 'Local'
+      ? (app.value?.deviceName || 'PlainApp')
       : (session?.name || session?.host || 'PlainApp')
     setWindowDeviceName(name)
   },

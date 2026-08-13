@@ -7,9 +7,9 @@ import { tokenToKey } from '../api/file'
 import { uploadedChunksGQL } from '../api/query'
 import { mergeChunksGQL, deleteChunksGQL } from '../api/mutation'
 import { gqlFetch } from '../api/gql-client'
-import { getCurrentAuthToken } from '../device-current'
+import { getCurrentAuthToken } from '../device/current'
 import { get as prefsGet } from '../prefs'
-import { isLocalMode } from '../local-mode'
+import { isLocalMode } from '../device/local-mode'
 
 const CHUNK_SIZE = 10 * 1024 * 1024 // 10MB — fewer chunks, lower HTTP overhead; per-chunk retry cost acceptable on weak networks
 const PARALLEL_CHUNKS = 3 // Upload 3 chunks in parallel per file

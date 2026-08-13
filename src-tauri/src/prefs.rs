@@ -78,6 +78,16 @@ pub fn set_device_name(handle: &AppHandle, name: &str) {
     }
 }
 
+/// Read the currently saved device display name.
+pub fn get_device_name(handle: &AppHandle) -> String {
+    handle
+        .store(STORE_FILE)
+        .ok()
+        .and_then(|s| s.get("device_name"))
+        .and_then(|v| v.as_str().map(String::from))
+        .unwrap_or_default()
+}
+
 /// User-configured HTTP port (default 8080, set via DeviceInfo card).
 /// Matches plain-app's `HttpPortPreference` — single field is both the
 /// user preference and the bound port; no separate "preferred" slot.

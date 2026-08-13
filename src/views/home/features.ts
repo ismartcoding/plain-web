@@ -3,7 +3,7 @@ import ILucideClipboard from '~icons/lucide/clipboard'
 import ILucidePhoneCall from '~icons/lucide/phone-call'
 import { ALL_FEATURES, type Feature } from '@/views/app-rail/features'
 import { AppChannelType } from '@/lib/status'
-import { isLocalFeatureId, isLocalMode } from '@/lib/local-mode'
+import { isLocalFeatureId, isLocalMode } from '@/lib/device/local-mode'
 
 export type HomeFeatureCountKey =
   | 'audios'

@@ -41,8 +41,17 @@ pub fn cancel_pair_device(device_id: String, state: tauri::State<'_, PairingMana
 
 /// Return the local device's identity (client_id, device_name, public key).
 #[tauri::command]
-pub fn get_device_identity(state: tauri::State<'_, PairingManager>) -> serde_json::Value {
+pub fn get_device_identity(
+    state: tauri::State<'_, PairingManager>,
+    app: tauri::AppHandle,
+) -> serde_json::Value {
     let identity = &state.identity;
+    let saved_name = crate::prefs::get_device_name(&app);
+    let device_name = if saved_name.is_empty() {
+        identity.device_name.clone()
+    } else {
+        saved_name
+    };
     let kp = crate::crypto::base64_decode(&identity.ed25519_keypair);
     let pub_key_b64 = if kp.len() == 64 {
         crate::crypto::base64_encode(&kp[32..])
@@ -51,7 +60,7 @@ pub fn get_device_identity(state: tauri::State<'_, PairingManager>) -> serde_jso
     };
     serde_json::json!({
         "clientId": identity.client_id,
-        "deviceName": identity.device_name,
+        "deviceName": device_name,
         "publicKey": pub_key_b64,
     })
 }

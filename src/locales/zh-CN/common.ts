@@ -270,7 +270,6 @@ export default {
     connect_device: '连接设备',
     connect_device_desc: '连接手机以访问文件、媒体等内容。',
     local_mode: '本地',
-    switch_to_local: '切换到本地模式',
     server_card_title: '本地服务器',
     server_http: 'HTTP',
     server_https: 'HTTPS',
