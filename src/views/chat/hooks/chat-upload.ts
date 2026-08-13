@@ -183,19 +183,19 @@ export function useChatUpload(
       const newProgress: Record<string, { downloaded: number; total: number; speed: number; status: string }> = {}
       for (const item of items) {
         const msgId = item.messageId
-        if (!newProgress[msgId]) newProgress[msgId] = { downloaded: 0, total: 0, speed: 0, status: 'pending' }
+        if (!newProgress[msgId]) newProgress[msgId] = { downloaded: 0, total: 0, speed: 0, status: 'PENDING' }
         newProgress[msgId].downloaded += item.downloaded
         newProgress[msgId].total += item.total
         newProgress[msgId].speed += item.speed
         const s = item.status; const cur = newProgress[msgId].status
-        if (s === 'downloading') newProgress[msgId].status = 'downloading'
-        else if (s === 'paused' && cur !== 'downloading') newProgress[msgId].status = 'paused'
-        else if (s === 'failed' && cur === 'pending') newProgress[msgId].status = 'failed'
-        else if (s === 'completed') { newProgress[msgId].status = 'completed'; submittedDownloads.delete(msgId) }
+        if (s === 'DOWNLOADING') newProgress[msgId].status = 'DOWNLOADING'
+        else if (s === 'PAUSED' && cur !== 'DOWNLOADING') newProgress[msgId].status = 'PAUSED'
+        else if (s === 'FAILED' && cur === 'PENDING') newProgress[msgId].status = 'FAILED'
+        else if (s === 'COMPLETED') { newProgress[msgId].status = 'COMPLETED'; submittedDownloads.delete(msgId) }
       }
       // Drop completed entries so the overlay disappears.
       for (const key of Object.keys(newProgress)) {
-        if (newProgress[key].status === 'completed') delete newProgress[key]
+        if (newProgress[key].status === 'COMPLETED') delete newProgress[key]
       }
       Object.keys(downloadProgress).forEach((k) => delete downloadProgress[k])
       Object.assign(downloadProgress, newProgress)

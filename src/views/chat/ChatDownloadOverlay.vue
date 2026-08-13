@@ -2,14 +2,14 @@
   <div v-if="isActive" class="download-overlay" :style="{ borderRadius }" @click.stop="onClick">
     <svg
       class="progress-ring"
-      :class="{ spinning: downloadInfo?.status === 'pending' }"
+      :class="{ spinning: downloadInfo?.status === 'PENDING' }"
       :width="ringSize"
       :height="ringSize"
       :viewBox="`0 0 ${viewBox} ${viewBox}`"
     >
       <circle class="ring-track" :cx="center" :cy="center" :r="radius" />
       <circle
-        v-if="downloadInfo?.status !== 'pending'"
+        v-if="downloadInfo?.status !== 'PENDING'"
         class="ring-progress"
         :cx="center"
         :cy="center"
@@ -18,10 +18,10 @@
       />
     </svg>
     <span class="overlay-icon" :style="{ fontSize: iconSize + 'px' }">
-      <i-material-symbols:pause-rounded v-if="downloadInfo?.status === 'downloading'" />
-      <i-material-symbols:download-rounded v-else-if="downloadInfo?.status === 'paused'" />
-      <i-material-symbols:close-rounded v-else-if="downloadInfo?.status === 'pending'" />
-      <i-material-symbols:refresh-rounded v-else-if="downloadInfo?.status === 'failed'" />
+      <i-material-symbols:pause-rounded v-if="downloadInfo?.status === 'DOWNLOADING'" />
+      <i-material-symbols:download-rounded v-else-if="downloadInfo?.status === 'PAUSED'" />
+      <i-material-symbols:close-rounded v-else-if="downloadInfo?.status === 'PENDING'" />
+      <i-material-symbols:refresh-rounded v-else-if="downloadInfo?.status === 'FAILED'" />
     </span>
   </div>
 </template>
@@ -53,7 +53,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{ action: [action: 'pause' | 'resume' | 'retry'] }>()
 
-const ACTIVE_STATUSES = ['pending', 'downloading', 'paused', 'failed']
+const ACTIVE_STATUSES = ['PENDING', 'DOWNLOADING', 'PAUSED', 'FAILED']
 
 const isActive = computed(
   () => !!props.downloadInfo && ACTIVE_STATUSES.includes(props.downloadInfo.status)
@@ -63,9 +63,9 @@ const isActive = computed(
 // downloading -> pause, paused -> resume, pending -> pause, failed -> retry.
 function onClick() {
   const s = props.downloadInfo?.status
-  if (s === 'downloading' || s === 'pending') emit('action', 'pause')
-  else if (s === 'paused') emit('action', 'resume')
-  else if (s === 'failed') emit('action', 'retry')
+  if (s === 'DOWNLOADING' || s === 'PENDING') emit('action', 'pause')
+  else if (s === 'PAUSED') emit('action', 'resume')
+  else if (s === 'FAILED') emit('action', 'retry')
 }
 
 // SVG geometry derived from ringSize: use 80 % of ringSize as viewBox, radius = 40 % of viewBox
