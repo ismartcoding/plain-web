@@ -1,18 +1,20 @@
 //! Peer authentication for `/peer_graphql` requests.
 //!
-//! Encapsulates the trust chain that gates every incoming peer message:
-//!   1. Look up the peer by the `c-id` header.
-//!   2. Confirm the peer has been paired (status == "PAIRED").
-//!   3. Pick the decryption key — if `c-cid` is set, use the
-//!      per-channel key from `channel_key_cache[c-cid]`; otherwise use
-//!      the peer's shared key. This mirrors Kotlin's
-//!      `PeerGraphQL.install()`.
-//!   4. Decrypt the body with the chosen XChaCha20 key.
-//!   5. Verify the request timestamp is within the freshness window.
-//!   6. Verify the Ed25519 signature over `{timestamp}{graphql_json}`.
+//! Faithful translation of plain-app `PeerGraphQLService.handle` +
+//! `PeerChatParser.decrypt`.
 //!
-//! Each step produces a structured error that the caller maps to an HTTP
-//! response, keeping this module free of any I/O concerns.
+//! Trust chain:
+//!   1. Look up the peer by the `c-id` header (must exist — needed for
+//!      the Ed25519 public key).
+//!   2. Pick the decryption key:
+//!      * `c-cid` present → use channel key from `channel_key_cache`.
+//!        Supports non-paired channel members (they have `PeerStatus::Channel`,
+//!        not `Paired`). No paired check.
+//!      * `c-cid` absent → require paired peer, use peer's shared key.
+//!   3. Decrypt the body with XChaCha20-Poly1305.
+//!   4. Split `signature|timestamp|{graphql_json}`.
+//!   5. Verify timestamp is within ±5 minutes.
+//!   6. Verify Ed25519 signature over `{timestamp}{graphql_json}`.
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -21,15 +23,13 @@ use crate::local::db::{ChatDb, DPeer};
 use crate::local::graphql::context::ChannelKeyCache;
 
 /// Maximum allowed clock skew (forward or backward) for a peer request.
+/// Mirrors `PeerChatParser.MAX_TIMESTAMP_DIFF_MS`.
 const TIMESTAMP_WINDOW_MS: i64 = 5 * 60 * 1000;
 
 /// Outcome of the auth chain. On success, carries the peer's key and the
 /// parsed plaintext payload (already split into `signature`, `timestamp`,
 /// and the GraphQL JSON body).
-#[allow(dead_code)] // `signature_b64` and `timestamp` are part of the public
-                    // auth result surface; current callers only need the key
-                    // and the GraphQL JSON, but downstream code may want
-                    // them for audit logging.
+#[allow(dead_code)]
 pub struct AuthenticatedPeer {
     pub peer: DPeer,
     pub key: Vec<u8>,
@@ -47,7 +47,6 @@ pub enum AuthError {
     TimestampExpired,
     BadSignature,
     MissingFields,
-    #[allow(dead_code)] // kept for completeness; current path falls back to peer key
     NoChannelKey,
 }
 
@@ -69,6 +68,9 @@ impl AuthError {
 
 /// Run the full auth chain for an incoming peer request.
 ///
+/// Direct translation of `PeerGraphQLService.handle` (key selection) +
+/// `PeerChatParser.decrypt` (decryption + signature/timestamp verification).
+///
 /// `header_client_id` is the peer id from the `c-id` header;
 /// `header_channel_id` is the channel id from the `c-cid` header
 /// (used to look up a per-channel key when present);
@@ -81,32 +83,42 @@ pub fn authenticate(
     body: &[u8],
     channel_key_cache: &ChannelKeyCache,
 ) -> Result<AuthenticatedPeer, AuthError> {
+    // The peer must exist — we need its publicKey for signature verification.
+    // Mirrors plain-app: `PeerCacher.getPublicKeyBytes(clientId)` returns null
+    // if the peer isn't in the cache, which triggers UNAUTHORIZED.
     let peer = db
         .get_peer_by_id(header_client_id)
         .ok_or(AuthError::UnknownPeer)?;
-    if !peer.is_paired() {
-        return Err(AuthError::NotPaired);
-    }
 
-    // Pick the decryption key: prefer the per-channel key when the
-    // request carries a `c-cid` header and we know that key locally;
-    // otherwise fall back to the peer's shared key. Mirrors
-    // `PeerGraphQL.install()`'s `if (channelId != "") channelKeyCache
-    // else peerKeyCache` branch.
+    // ── Key selection — mirrors `PeerGraphQLService.handle` ──
+    //
+    // val token = if (channelId.isNotEmpty()) {
+    //     ChannelCacher.getKeyBytes(channelId)        // NO paired check
+    // } else {
+    //     val peer = PeerCacher.getPeer(clientId)
+    //     if (peer == null || !peer.isPaired()) {     // paired check HERE
+    //         call.respondNoBody(HttpStatus.FORBIDDEN)
+    //         return
+    //     }
+    //     PeerCacher.getKeyBytes(clientId)
+    // }
     let key = if !header_channel_id.is_empty() {
+        // Channel message: use channel key, no paired check.
+        // Non-paired channel members (PeerStatus::Channel) are allowed.
         let cache = channel_key_cache.read().unwrap();
-        match cache.get(header_channel_id).cloned() {
-            Some(k) => k,
-            None => {
-                log::debug!(
-                    "auth: no channel key for {header_channel_id}, falling back to peer key"
-                );
-                base64_decode(&peer.key)
-            }
-        }
+        cache
+            .get(header_channel_id)
+            .cloned()
+            .ok_or(AuthError::NoChannelKey)?
     } else {
+        // Direct peer-to-peer message: require paired peer.
+        if !peer.is_paired() {
+            return Err(AuthError::NotPaired);
+        }
         base64_decode(&peer.key)
     };
+
+    // ── Decrypt — mirrors `PeerChatParser.decrypt` ──
     let plaintext_bytes = xchacha_decrypt_raw(&key, body).ok_or(AuthError::DecryptFailed)?;
     let plaintext = std::str::from_utf8(&plaintext_bytes)
         .map_err(|_| AuthError::NotUtf8)?
@@ -123,6 +135,8 @@ pub fn authenticate(
     }
 
     let timestamp: i64 = ts_str.parse().unwrap_or(0);
+
+    // ── Timestamp freshness — mirrors `PeerChatParser.decrypt` ──
     let now_ms = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()
@@ -131,8 +145,8 @@ pub fn authenticate(
         return Err(AuthError::TimestampExpired);
     }
 
-    // Signature is computed over `{timestamp}{graphql_json}` (no separator),
-    // matching the sender side in `graphql/peer.rs::deliver_to_peer`.
+    // ── Signature verification — mirrors `PeerChatParser.decrypt` ──
+    // Signature is computed over `{timestamp}{graphql_json}` (no separator).
     let sig_data = format!("{timestamp}{graphql_json}");
     if !ed25519_verify(&peer.public_key, sig_data.as_bytes(), &signature_b64) {
         return Err(AuthError::BadSignature);

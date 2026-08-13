@@ -2,7 +2,7 @@ use async_graphql::{Context, Error as GqlError, Object, Result as GqlResult};
 use std::sync::Arc;
 
 use super::super::context::{
-    channels_updated_payload, refresh_peer_key_cache, AppCtx, WsEvent, WS_CHANNELS_UPDATED,
+    channels_updated_payload, load_key_cache, refresh_peer_key_cache, AppCtx, WsEvent, WS_CHANNELS_UPDATED,
 };
 use super::types::ChatChannel;
 use crate::crypto::{base64_decode, base64_encode, random_bytes};
@@ -246,6 +246,7 @@ impl ChatChannelMutation {
             .ok_or_else(|| gql_err("Owner peer not found"))?;
         let kp_bytes = base64_decode(&c.identity.ed25519_keypair);
         let channel_key = base64_decode(&ch.key);
+        load_key_cache(&c.db, &c.peer_key_cache, &c.channel_key_cache);
         let _ = crate::local::channel::sender::send_invite_accept(
             &ch.id,
             &owner_peer,

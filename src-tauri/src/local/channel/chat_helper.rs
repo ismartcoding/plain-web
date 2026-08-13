@@ -1,30 +1,41 @@
-//! Channel chat delivery helper — mirrors plain-app's
-//! `ChannelChatHelper` (see
-//! `plain-app/.../channel/ChannelChatHelper.kt`).
+//! Faithful translation of plain-app `ChannelChatSender.kt`.
 //!
-//! Channel chat is **star-topology**: every member in `joined` status
-//! is reachable through one elected leader (the lexicographically
-//! smallest online, non-self member id). The local node either
-//! broadcasts to all members directly (when it is the leader) or
-//! forwards the message to the leader (which will then broadcast).
+//! ```kotlin
+//! object ChannelChatSender {
+//!     sealed class Result {
+//!         data class Status(val data: DMessageStatusData) : Result()
+//!         data object NoLeader : Result()
+//!         data class LeaderPeerMissing(val leaderId: String) : Result()
+//!     }
+//!     suspend fun send(channel, content, onlinePeerIds = emptySet()): Result
+//!     private suspend fun broadcastAsLeader(channel, content): DMessageStatusData
+//!     suspend fun sendToRecipients(channel, recipientIds, content): DMessageStatusData
+//!     private suspend fun sendToLeader(channel, leaderId, content): Result
+//!     suspend fun sendToMember(channel, peer, content): DMessageDeliveryResult
+//! }
+//! ```
 //!
-//! This keeps the fan-out bounded by `O(members)` per channel and
-//! gives a clear failure surface: if no leader can be elected, the
-//! message fails with `DMessageStatusData(results=null)`.
+//! Key behavioural notes (verified against the Kotlin source):
+//! * `send()` is called with `onlinePeerIds = emptySet()` (default) — only
+//!   self is considered online. Self is always the leader when joined.
+//! * `sendToMember()` calls `PeerGraphQLClient.createChannelChatItem()` which
+//!   REQUIRES `ChannelCacher.getKeyBytes(channelId)` — no fallback to peer key.
+//! * The `c-cid` header is always set for channel chat items, so the receiver
+//!   uses the channel key for decryption (no paired check).
 
 use std::collections::HashSet;
 
 use serde_json::{json, Value};
 
-use crate::commands::discover::PeerStatusManager;
-use crate::crypto::base64_decode;
 use crate::local::db::{ChatDb, DChannel, DPeer};
-use crate::local::graphql::context::{ChannelKeyCache, PeerKeyCache};
+use crate::local::graphql::context::ChannelKeyCache;
 use crate::local::enums::ChatStatus;
 use crate::local::graphql::peer::{deliver_to_peer, peer_graphql_urls};
 
-/// One delivery attempt result, in the same shape as Kotlin's
-/// `ChannelDeliveryResult` (`peerId` / `peerName` / `error`).
+// ── DMessageDeliveryResult ──────────────────────────────────────────────────
+
+/// One delivery attempt result, matching Kotlin's `DMessageDeliveryResult`.
+/// `error` is `None` when the message was delivered successfully.
 #[derive(Debug, Clone)]
 pub struct ChannelDeliveryResult {
     pub peer_id: String,
@@ -42,150 +53,274 @@ impl ChannelDeliveryResult {
     }
 }
 
-/// Pick a leader for the channel from its joined members.
-/// Mirrors plain-app `DChatChannel.electLeader` which considers
-/// self (`my_id`) as always online. Returns `None` if no eligible
-/// member (including self) is online.
-pub fn elect_leader(
-    channel: &DChannel,
-    peer_status: &PeerStatusManager,
-    my_id: &str,
-) -> Option<String> {
-    let online_ids: HashSet<String> = channel
-        .joined_member_ids()
-        .into_iter()
-        .filter(|id| {
-            id == my_id || peer_status.is_online(id)
-        })
-        .collect();
-    channel.elect_leader(&online_ids, my_id)
+// ── ChannelChatSender.Result ────────────────────────────────────────────────
+
+/// Direct translation of `ChannelChatSender.Result` sealed class.
+pub enum SendResult {
+    /// `Result.Status(data)` — delivery attempted, carries per-member results.
+    Status(Vec<ChannelDeliveryResult>),
+    /// `Result.NoLeader` — no online joined member to relay through.
+    NoLeader,
+    /// `Result.LeaderPeerMissing(leaderId)` — leader was elected but not in DB.
+    LeaderPeerMissing(String),
 }
+
+// ── ChannelChatSender.send ──────────────────────────────────────────────────
 
 /// Send a chat item to the channel.
 ///
-/// * If the local device is the leader (or there is no leader to
-///   elect — e.g. solo channel), broadcast to every joined member.
-/// * Otherwise, send the item to the leader only.
-/// * If no leader can be elected (no online peers), return `None`
-///   so the caller can persist a `DMessageStatusData(results=null)`.
+/// Direct translation of `ChannelChatSender.send`:
+/// ```kotlin
+/// suspend fun send(
+///     channel: DChatChannel,
+///     content: DMessageContent,
+///     onlinePeerIds: Set<String> = emptySet(),
+/// ): Result {
+///     val leaderId = channel.electLeader(onlinePeerIds, TempData.clientId)
+///     if (leaderId == null) return Result.NoLeader
+///     return if (leaderId == TempData.clientId) {
+///         Result.Status(broadcastAsLeader(channel, content))
+///     } else {
+///         sendToLeader(channel, leaderId, content)
+///     }
+/// }
+/// ```
+///
+/// In practice `onlinePeerIds` is always `emptySet()` (the sole caller
+/// `ChatSender.sendToChannel` does not pass it), so only self is considered
+/// online. This means self is always the leader when it is a joined member.
 #[allow(clippy::too_many_arguments)]
-pub async fn send_async(
+pub async fn send(
     channel: &DChannel,
     client_id: &str,
-    chat_id: &str,
     content: &str,
     db: &ChatDb,
-    peer_status: &PeerStatusManager,
-    peer_key_cache: &PeerKeyCache,
     channel_key_cache: &ChannelKeyCache,
     kp_bytes: &[u8],
-) -> Option<Vec<ChannelDeliveryResult>> {
-    let leader = elect_leader(channel, peer_status, client_id);
+) -> SendResult {
+    // onlinePeerIds defaults to emptySet() — only self is online.
+    let online_ids: HashSet<String> = channel
+        .joined_member_ids()
+        .into_iter()
+        .filter(|id| id == client_id)
+        .collect();
 
-    // Solo channel (no peers besides self). Kotlin treats this as an
-    // implicit success with no per-peer results.
-    let member_ids = channel.joined_member_ids();
-    let other_ids: Vec<String> = member_ids
+    let leader_id = channel.elect_leader(&online_ids, client_id);
+
+    match leader_id {
+        None => SendResult::NoLeader,
+        Some(lid) if lid == client_id => {
+            SendResult::Status(broadcast_as_leader(channel, client_id, content, db, channel_key_cache, kp_bytes).await)
+        }
+        Some(lid) => {
+            send_to_leader(channel, &lid, client_id, content, db, channel_key_cache, kp_bytes).await
+        }
+    }
+}
+
+// ── ChannelChatSender.broadcastAsLeader ─────────────────────────────────────
+
+/// Broadcast to every joined member except self.
+///
+/// Direct translation of:
+/// ```kotlin
+/// private suspend fun broadcastAsLeader(channel, content): DMessageStatusData {
+///     return sendToRecipients(channel, channel.getRecipientIds(), content)
+/// }
+/// ```
+async fn broadcast_as_leader(
+    channel: &DChannel,
+    client_id: &str,
+    content: &str,
+    db: &ChatDb,
+    channel_key_cache: &ChannelKeyCache,
+    kp_bytes: &[u8],
+) -> Vec<ChannelDeliveryResult> {
+    // getRecipientIds(): joined members excluding self
+    let recipient_ids: Vec<String> = channel
+        .joined_member_ids()
         .into_iter()
         .filter(|id| id != client_id)
         .collect();
-    if other_ids.is_empty() {
-        return Some(Vec::new());
+
+    send_to_recipients(channel, &recipient_ids, content, db, channel_key_cache, client_id, kp_bytes).await
+}
+
+// ── ChannelChatSender.sendToRecipients ──────────────────────────────────────
+
+/// Send to a specific list of recipient IDs.
+///
+/// Direct translation of `ChannelChatSender.sendToRecipients`:
+/// ```kotlin
+/// suspend fun sendToRecipients(channel, recipientIds, content): DMessageStatusData = withIO {
+///     if (recipientIds.isEmpty()) {
+///         DMessageStatusData()
+///     } else {
+///         val results = mutableListOf<DMessageDeliveryResult>()
+///         for (memberId in recipientIds) {
+///             val memberPeer = peerDao.getById(memberId)
+///             if (memberPeer == null) {
+///                 results.add(DMessageDeliveryResult(memberId, memberId, "Peer not found in database"))
+///                 continue
+///             }
+///             results.add(sendToMember(channel, memberPeer, content))
+///         }
+///         DMessageStatusData(results)
+///     }
+/// }
+/// ```
+async fn send_to_recipients(
+    channel: &DChannel,
+    recipient_ids: &[String],
+    content: &str,
+    db: &ChatDb,
+    channel_key_cache: &ChannelKeyCache,
+    client_id: &str,
+    kp_bytes: &[u8],
+) -> Vec<ChannelDeliveryResult> {
+    if recipient_ids.is_empty() {
+        return Vec::new();
     }
 
-    let targets: Vec<String> = match leader.as_deref() {
-        // I am the leader — broadcast to every member.
-        Some(lid) if lid == client_id => other_ids,
-        // No leader available — return NoLeader. Mirrors plain-app
-        // `ChannelChatSender.send()` which returns `Result.NoLeader`.
-        None => return None,
-        // Send only to the elected leader.
-        Some(lid) => vec![lid.to_string()],
+    let mut results = Vec::with_capacity(recipient_ids.len());
+    for member_id in recipient_ids {
+        let member_peer = match db.get_peer_by_id(member_id) {
+            Some(p) => p,
+            None => {
+                results.push(ChannelDeliveryResult {
+                    peer_id: member_id.clone(),
+                    peer_name: member_id.clone(),
+                    error: Some("Peer not found in database".to_string()),
+                });
+                continue;
+            }
+        };
+        results.push(
+            send_to_member(channel, &member_peer, content, channel_key_cache, client_id, kp_bytes).await,
+        );
+    }
+    results
+}
+
+// ── ChannelChatSender.sendToLeader ──────────────────────────────────────────
+
+/// Forward the message to the elected leader.
+///
+/// Direct translation of:
+/// ```kotlin
+/// private suspend fun sendToLeader(channel, leaderId, content): Result {
+///     val leaderPeer = peerDao.getById(leaderId)
+///     if (leaderPeer == null) return Result.LeaderPeerMissing(leaderId)
+///     val result = sendToMember(channel, leaderPeer, content)
+///     return Result.Status(DMessageStatusData(listOf(result)))
+/// }
+/// ```
+async fn send_to_leader(
+    channel: &DChannel,
+    leader_id: &str,
+    client_id: &str,
+    content: &str,
+    db: &ChatDb,
+    channel_key_cache: &ChannelKeyCache,
+    kp_bytes: &[u8],
+) -> SendResult {
+    let leader_peer = match db.get_peer_by_id(leader_id) {
+        Some(p) => p,
+        None => return SendResult::LeaderPeerMissing(leader_id.to_string()),
+    };
+    let result = send_to_member(channel, &leader_peer, content, channel_key_cache, client_id, kp_bytes).await;
+    SendResult::Status(vec![result])
+}
+
+// ── ChannelChatSender.sendToMember ──────────────────────────────────────────
+
+/// Send to a single member peer.
+///
+/// Direct translation of:
+/// ```kotlin
+/// suspend fun sendToMember(channel, peer, content): DMessageDeliveryResult = withIO {
+///     try {
+///         val modifiedContent = content.toPeerMessageContent()
+///         val response = PeerGraphQLClient.createChannelChatItem(peer, channel.id, modifiedContent)
+///         if (response.isSuccess) {
+///             DMessageDeliveryResult(peer.id, peer.name, null)
+///         } else {
+///             DMessageDeliveryResult(peer.id, peer.name, response.getError())
+///         }
+///     } catch (e: Exception) {
+///         DMessageDeliveryResult(peer.id, peer.name, e.toString())
+///     }
+/// }
+/// ```
+///
+/// `PeerGraphQLClient.createChannelChatItem` requires the channel key:
+/// ```kotlin
+/// val keyBytes = requireNotNull(ChannelCacher.getKeyBytes(channelId)) {
+///     "ChannelCacher has no key bytes for channel $channelId"
+/// }
+/// ```
+/// The `c-cid` header is set to `channelId`, and the body is encrypted with
+/// the channel key. NO fallback to peer key.
+async fn send_to_member(
+    channel: &DChannel,
+    peer: &DPeer,
+    content: &str,
+    channel_key_cache: &ChannelKeyCache,
+    client_id: &str,
+    kp_bytes: &[u8],
+) -> ChannelDeliveryResult {
+    // requireNotNull(ChannelCacher.getKeyBytes(channelId))
+    let key = {
+        let cache = channel_key_cache.read().unwrap();
+        cache.get(&channel.id).cloned()
+    };
+    let Some(key) = key else {
+        return ChannelDeliveryResult {
+            peer_id: peer.id.clone(),
+            peer_name: peer.name.clone(),
+            error: Some(format!(
+                "ChannelCacher has no key bytes for channel {}",
+                channel.id
+            )),
+        };
     };
 
-    let mut results = Vec::with_capacity(targets.len());
-    for target_id in targets {
-        let Some(peer) = db.get_peer_by_id(&target_id) else {
-            results.push(ChannelDeliveryResult {
-                peer_id: target_id,
-                peer_name: String::new(),
-                error: Some("peer not found".to_string()),
-            });
-            continue;
-        };
+    let peer_urls = peer_graphql_urls(peer);
+    let result = deliver_to_peer(
+        &peer_urls,
+        &key,
+        client_id,
+        kp_bytes,
+        content,
+        Some(&channel.id),
+    )
+    .await;
 
-        // Choose the encryption key. Mirrors plain-app
-        // `PeerGraphQLClient.createChannelChatItem` which REQUIRES
-        // `ChannelCacher.getKeyBytes(channelId)` — no fallback to peer key.
-        let key = channel_key_from_cache_or_peer(
-            channel_key_cache,
-            peer_key_cache,
-            &channel.id,
-            &peer.id,
-        );
-        let Some(key) = key else {
-            results.push(ChannelDeliveryResult {
-                peer_id: peer.id.clone(),
-                peer_name: peer.name.clone(),
-                error: Some("no shared key".to_string()),
-            });
-            continue;
-        };
-
-        let peer_urls = peer_graphql_urls(&peer);
-        let res = deliver_to_peer(
-            &peer_urls,
-            &key,
-            client_id,
-            kp_bytes,
-            content,
-            Some(&channel.id),
-        )
-        .await;
-        let chat_id_owned = chat_id.to_string();
-        let _ = chat_id_owned; // (kept for symmetry with Kotlin)
-        match res {
-            Ok(()) => results.push(ChannelDeliveryResult {
-                peer_id: peer.id.clone(),
-                peer_name: peer.name.clone(),
-                error: None,
-            }),
-            Err(e) => results.push(ChannelDeliveryResult {
-                peer_id: peer.id.clone(),
-                peer_name: peer.name.clone(),
-                error: Some(e),
-            }),
-        }
+    match result {
+        Ok(()) => ChannelDeliveryResult {
+            peer_id: peer.id.clone(),
+            peer_name: peer.name.clone(),
+            error: None,
+        },
+        Err(e) => ChannelDeliveryResult {
+            peer_id: peer.id.clone(),
+            peer_name: peer.name.clone(),
+            error: Some(e),
+        },
     }
-
-    Some(results)
 }
 
-fn channel_key_from_cache_or_peer(
-    channel_key_cache: &ChannelKeyCache,
-    peer_key_cache: &PeerKeyCache,
-    channel_id: &str,
-    peer_id: &str,
-) -> Option<Vec<u8>> {
-    {
-        let cache = channel_key_cache.read().unwrap();
-        if let Some(k) = cache.get(channel_id)
-            && !k.is_empty()
-        {
-            return Some(k.clone());
-        }
-    }
-    let cache = peer_key_cache.read().unwrap();
-    cache.get(peer_id).cloned()
-}
+// ── DMessageStatusData helpers ──────────────────────────────────────────────
 
-/// Aggregate per-peer results into the same status string Kotlin's
-/// `ChannelChatHelper.sendAsync` produces:
-///   * all success → `"SENT"`
-///   * all failure → `"FAILED"`
-///   * mixed       → `"PARTIAL"`
-///   * no leader   → caller is expected to short-circuit and persist
-///     `DMessageStatusData(results=null)`.
+/// Aggregate per-peer results into the coarse-grained `ChatStatus`.
+/// Direct translation of `DMessageStatusData.aggregateStatus()`:
+/// ```kotlin
+/// fun aggregateStatus(): ChatStatus = when {
+///     total == 0 || allDelivered -> ChatStatus.SENT
+///     allFailed -> ChatStatus.FAILED
+///     else -> ChatStatus.PARTIAL
+/// }
+/// ```
 pub fn compute_status(results: &[ChannelDeliveryResult]) -> ChatStatus {
     if results.is_empty() {
         return ChatStatus::Sent;
@@ -200,10 +335,8 @@ pub fn compute_status(results: &[ChannelDeliveryResult]) -> ChatStatus {
     }
 }
 
-/// Build the JSON-encoded `DMessageStatusData` payload that the
-/// web frontend reads back. Mirrors `DMessageStatusData.results`,
-/// returning an empty-string JSON when there are no per-peer results
-/// (to match `if (statusData.total == 0) "" else ...` in Kotlin).
+/// Build the JSON-encoded `DMessageStatusData` payload.
+/// Mirrors `DMessageStatusData(results)` serialization.
 pub fn build_status_data_json(results: &[ChannelDeliveryResult]) -> String {
     if results.is_empty() {
         return String::new();
@@ -212,27 +345,8 @@ pub fn build_status_data_json(results: &[ChannelDeliveryResult]) -> String {
     json!({ "results": arr }).to_string()
 }
 
-/// `DMessageStatusData(results=null)` — used when the channel has
-/// no leader available to relay to. Mirrors Kotlin's
-/// `DMessageStatusData(null)`.
+/// `DMessageStatusData(results=null)` — used for NoLeader / LeaderPeerMissing.
+/// Mirrors `ChatDbHelper.updateChannelChatItemStatus(item, null)`.
 pub fn build_no_leader_status_data() -> String {
     json!({ "results": Value::Null }).to_string()
-}
-
-#[allow(dead_code)]
-pub fn decode_channel_key(b64: &str) -> Vec<u8> {
-    base64_decode(b64)
-}
-
-/// Snapshot of all joined peer ids (for tests / debugging).
-#[allow(dead_code)]
-pub fn joined_ids(channel: &DChannel) -> Vec<String> {
-    channel.joined_member_ids()
-}
-
-/// Look up a DPeer record by id from a list. Helper for the rare
-/// "leader != me, only forward to leader" case.
-#[allow(dead_code)]
-pub fn find_peer<'a>(peers: &'a [DPeer], id: &str) -> Option<&'a DPeer> {
-    peers.iter().find(|p| p.id == id)
 }
