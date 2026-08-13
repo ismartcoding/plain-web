@@ -71,8 +71,8 @@
       </teleport>
     </div>
 
-    <template v-if="!isTauri && !localMode">
-      <div class="dropdown-item" @click="logout">
+    <template v-if="!localMode">
+      <div v-if="!isTauri" class="dropdown-item" @click="logout">
         <i-material-symbols:logout-rounded class="feature-icon" />
         <span>{{ $t('header_actions.logout') }}</span>
       </div>
@@ -95,7 +95,7 @@
       <span>{{ $t('developer.developer_mode') }}</span>
     </router-link>
 
-    <template v-if="!isTauri && !localMode && popupFeatures.length">
+    <template v-if="!localMode && popupFeatures.length">
       <div class="popup-divider"></div>
       <router-link
         v-for="feat in popupFeatures"
