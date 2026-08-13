@@ -67,7 +67,7 @@ pub fn handle(
     channel_key_cache: &ChannelKeyCache,
 ) -> bool {
     let result = match msg_type {
-        ChannelSystemMessageType::Invite => handle_invite(db, client_id, from_id, payload, event_tx),
+        ChannelSystemMessageType::Invite => handle_invite(db, client_id, from_id, payload, event_tx, peer_key_cache, channel_key_cache),
         ChannelSystemMessageType::InviteAccept => handle_invite_accept(
             db,
             client_id,
@@ -112,6 +112,8 @@ fn handle_invite(
     from_id: &str,
     payload: &str,
     event_tx: &broadcast::Sender<WsEvent>,
+    peer_key_cache: &PeerKeyCache,
+    channel_key_cache: &ChannelKeyCache,
 ) -> bool {
     let msg: ChannelInvite = match serde_json::from_str(payload) {
         Ok(v) => v,
@@ -238,6 +240,7 @@ fn handle_invite(
         };
         db.insert_channel(&ch);
     }
+    load_key_cache(db, peer_key_cache, channel_key_cache);
     log::info!("[channel] invite accepted: {channel_name} ({channel_id}) from {from_id}");
 
     // Mirror plain-app's `ChannelInviteReceivedEvent`: notify the UI so it

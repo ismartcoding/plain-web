@@ -3,7 +3,7 @@ use serde_json::{json, Value};
 use std::sync::Arc;
 
 use super::super::context::{
-    AppCtx, WsEvent, WS_MESSAGE_CREATED, WS_MESSAGE_DELETED, WS_MESSAGE_UPDATED,
+    load_key_cache, AppCtx, WsEvent, WS_MESSAGE_CREATED, WS_MESSAGE_DELETED, WS_MESSAGE_UPDATED,
 };
 use super::super::peer::{deliver_to_peer, peer_graphql_urls};
 use super::types::{make_file_id, ChatItem};
@@ -11,8 +11,8 @@ use crate::crypto::base64_decode;
 use crate::local::db::DChat;
 use crate::local::enums::ChatStatus;
 use crate::local::channel::chat_helper::{
-    build_no_leader_status_data, build_status_data_json, compute_status, send_async,
-    ChannelDeliveryResult,
+    build_no_leader_status_data, build_status_data_json, compute_status, send, ChannelDeliveryResult,
+    SendResult,
 };
 use crate::local::graphql::schema::types::chat_item_data_from_content;
 
@@ -200,93 +200,83 @@ impl ChatMessageMutation {
                 }
             }
         } else if is_channel {
-            // Channel route: star topology, leader election.
-            let channel = c.db.get_channel_by_id(&channel_id);
-            if let Some(channel) = channel {
+            // ── Channel route — mirrors `ChatSender.sendToChannel` ──
+            //
+            // ChatSender.sendToChannel(item, channel, onlinePeerIds):
+            //   when (val result = ChannelChatSender.send(channel, item.content)) {
+            //       is Result.Status          -> updateChannelChatItemStatus(item, result.data)
+            //       Result.NoLeader           -> updateChannelChatItemStatus(item, null)
+            //       is Result.LeaderPeerMissing -> updateChannelChatItemStatus(item, null)
+            //   }
+            //
+            // All leader election, broadcast, and per-member delivery logic
+            // lives inside `ChannelChatSender.send()` (chat_helper.rs).
+            if let Some(channel) = c.db.get_channel_by_id(&channel_id) {
                 let client_id = c.identity.client_id.clone();
                 let kp_bytes = base64_decode(&c.identity.ed25519_keypair);
 
-                // Peers that are joined but not me — match Kotlin's
-                // `ChannelChatHelper.sendAsync` precheck.
-                let member_ids = channel.joined_member_ids();
-                let has_targets = member_ids.iter().any(|id| id != &client_id);
+                chat.status = ChatStatus::Pending;
+                if let Some(updated) = c.db.update_chat_status(&chat.id, ChatStatus::Pending) {
+                    chat = updated;
+                }
 
-                if !has_targets {
-                    chat.status = ChatStatus::Sent;
-                    if let Some(updated) = c.db.update_chat_status(&chat.id, ChatStatus::Sent) {
-                        chat = updated;
+                let chat_id = chat.id.clone();
+                let content_str = to_peer_content(&content, &c.token);
+                let db = c.db.clone();
+                let event_tx = c.event_tx.clone();
+                let token = c.token.clone();
+                let peer_key_cache = c.peer_key_cache.clone();
+                let channel_key_cache = c.channel_key_cache.clone();
+                let channel_for_send = channel.clone();
+
+                tokio::spawn(async move {
+                    // Ensure the channel key is in cache before delivery.
+                    // After app restart the in-memory cache starts empty;
+                    // the DB still has `channel.key`, so refresh here.
+                    // Mirrors ChannelCacher.load() which runs on app start.
+                    {
+                        let cache = channel_key_cache.read().unwrap();
+                        if !cache.contains_key(&channel_for_send.id) {
+                            drop(cache);
+                            load_key_cache(&db, &peer_key_cache, &channel_key_cache);
+                        }
                     }
-                } else {
-                    let leader_opt = crate::local::channel::chat_helper::elect_leader(
-                        &channel,
-                        &c.peer_status,
+
+                    // ChannelChatSender.send(channel, content)
+                    let result = send(
+                        &channel_for_send,
                         &client_id,
-                    );
+                        &content_str,
+                        &db,
+                        &channel_key_cache,
+                        &kp_bytes,
+                    )
+                    .await;
 
-                    // No online joined members at all → NoLeader.
-                    // Mirrors plain-app `ChannelChatSender.send()`.
-                    if leader_opt.is_none() {
-                        chat.status = ChatStatus::Failed;
-                        let no_leader_data = build_no_leader_status_data();
-                        if let Some(updated) = c.db.update_chat_status_and_data(
-                            &chat.id,
-                            ChatStatus::Failed,
-                            &no_leader_data,
-                        ) {
-                            chat = updated;
+                    // Match on Result — mirrors ChatSender.sendToChannel's when-block.
+                    let (status, status_data) = match result {
+                        SendResult::Status(results) => {
+                            let s = compute_status(&results);
+                            let d = build_status_data_json(&results);
+                            (s, d)
                         }
-                    } else {
-                        chat.status = ChatStatus::Pending;
-                        if let Some(updated) = c.db.update_chat_status(&chat.id, ChatStatus::Pending) {
-                            chat = updated;
+                        SendResult::NoLeader | SendResult::LeaderPeerMissing(_) => {
+                            // ChatDbHelper.updateChannelChatItemStatus(item, null)
+                            let s = ChatStatus::Failed;
+                            let d = build_no_leader_status_data();
+                            (s, d)
                         }
+                    };
 
-                        let chat_id = chat.id.clone();
-                        let content_str = to_peer_content(&content, &c.token);
-                        let db = c.db.clone();
-                        let event_tx = c.event_tx.clone();
-                        let token = c.token.clone();
-                        let peer_key_cache = c.peer_key_cache.clone();
-                        let channel_key_cache = c.channel_key_cache.clone();
-                        let peer_status = c.peer_status.clone();
-                        let channel_for_send = channel.clone();
-
-                        tokio::spawn(async move {
-                            let result = send_async(
-                                &channel_for_send,
-                                &client_id,
-                                &chat_id,
-                                &content_str,
-                                &db,
-                                &peer_status,
-                                &peer_key_cache,
-                                &channel_key_cache,
-                                &kp_bytes,
-                            )
-                            .await;
-                            let (status, status_data) = match result {
-                                Some(results) => {
-                                    let s = compute_status(&results);
-                                    let d = build_status_data_json(&results);
-                                    (s, d)
-                                }
-                                None => {
-                                    let s = ChatStatus::Failed;
-                                    let d = build_no_leader_status_data();
-                                    (s, d)
-                                }
-                            };
-                            if let Some(updated) = db
-                                .update_chat_status_and_data(&chat_id, status, &status_data)
-                            {
-                                let _ = event_tx.send(WsEvent {
-                                    event_type: WS_MESSAGE_UPDATED,
-                                    payload: json!([chat_to_json(&updated, &token)]).to_string(),
-                                });
-                            }
+                    if let Some(updated) =
+                        db.update_chat_status_and_data(&chat_id, status, &status_data)
+                    {
+                        let _ = event_tx.send(WsEvent {
+                            event_type: WS_MESSAGE_UPDATED,
+                            payload: json!([chat_to_json(&updated, &token)]).to_string(),
                         });
                     }
-                }
+                });
             }
         }
 
