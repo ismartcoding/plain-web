@@ -12,6 +12,7 @@ export default {
   },
   device_discovery: {
     searching: 'அருகிலுள்ள PlainApp சாதனங்களை தேடுகிறது…',
+    local: 'உள்ளூர்',
     lan_permission_denied_title: 'Local network access is required',
     lan_permission_denied_hint: 'Allow PlainApp to access your local network in system settings, then retry scan.',
     open_system_settings: 'Open system settings',
@@ -26,6 +27,5 @@ export default {
     current: 'தற்போதைய',
     no_devices_yet: 'சாதனங்கள் இல்லை. கீழே தேடுங்கள் அல்லது முகவரி உள்ளிடுங்கள்.',
     remove_device_confirm: 'இந்த சாதனத்தை பட்டியலிலிருந்து நீக்கவும்?',
-    switch_to_local: 'Switch to Local',
   },
 }

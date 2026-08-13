@@ -19,7 +19,7 @@
               </template>
               <template #title>
                 <span>{{ selfDevice.name }}</span>
-                <span class="status-badge on">{{ $t('this_device') }}</span>
+                <span class="status-badge on">{{ $t('device_discovery.local') }}</span>
                 <span v-if="localMode" class="status-badge on">{{
                   $t('device_discovery.current')
                 }}</span>
@@ -29,7 +29,7 @@
                   v-if="!localMode"
                   v-tooltip="$t('switch')"
                   class="icon-btn"
-                  :aria-label="$t('device_discovery.switch_to_local')"
+                  :aria-label="$t('device_discovery.change_device')"
                   @click.stop="switchToLocal"
                 >
                   <i-material-symbols:swap-horiz-rounded />
@@ -126,7 +126,6 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
-import { invoke } from '@tauri-apps/api/core'
 import { popModal } from './modal/methods'
 import DeviceDiscoveryStatus from './DeviceDiscoveryStatus.vue'
 import LoginForm from '@/views/login/LoginForm.vue'
@@ -134,8 +133,9 @@ import { useDeviceDiscovery, type DiscoveredDevice } from '@/hooks/use-device-di
 import { useDeviceSessionsStore } from '@/stores/device-sessions'
 import type { DeviceSession } from '@/stores/device-sessions'
 import { clearPendingLoginHost, setPendingLoginHost } from '@/lib/api/api'
-import { isLocalMode } from '@/lib/local-mode'
-import { getDesktopClientId } from '@/lib/window-client'
+import { isLocalMode } from '@/lib/device/local-mode'
+import { getDesktopClientId } from '@/lib/device/client-id'
+import { loadSelfDevice, type SelfDevice } from '@/lib/device/self-device'
 
 const store = useDeviceSessionsStore()
 const { devices, status, start, stop, retry, openLanPermissionSettings } = useDeviceDiscovery()
@@ -146,7 +146,7 @@ const localMode = computed(() => isLocalMode())
 const isLoginStep = ref(false)
 const loginHost = ref('')
 const loginFormRef = ref<InstanceType<typeof LoginForm> | null>(null)
-const selfDevice = ref<{ name: string; host: string } | null>(null)
+const selfDevice = ref<SelfDevice | null>(null)
 
 const desktopClientId = getDesktopClientId()
 const newDevices = computed(() =>
@@ -164,18 +164,7 @@ onMounted(() => {
 onUnmounted(() => stop())
 
 async function loadSelf() {
-  if (!__IS_TAURI__) return
-  try {
-    const [identity, ips, port] = await Promise.all([
-      invoke<{ deviceName: string }>('get_device_identity'),
-      invoke<string[]>('local_ipv4_strs'),
-      invoke<number>('local_server_https_port'),
-    ])
-    const ip = ips.find((v) => !v.startsWith('127.')) || ips[0] || ''
-    selfDevice.value = { name: identity.deviceName || '', host: ip ? `${ip}:${port}` : '' }
-  } catch (e) {
-    console.error('load self device failed', e)
-  }
+  selfDevice.value = await loadSelfDevice()
 }
 
 function close() {

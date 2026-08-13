@@ -12,6 +12,7 @@ export default {
   },
   device_discovery: {
     searching: 'Procurando dispositivos PlainApp próximos…',
+    local: 'Local',
     lan_permission_denied_title: 'Local network access is required',
     lan_permission_denied_hint: 'Allow PlainApp to access your local network in system settings, then retry scan.',
     open_system_settings: 'Open system settings',
@@ -26,6 +27,5 @@ export default {
     current: 'Atual',
     no_devices_yet: 'Nenhum dispositivo. Pesquise ou insira um endereço abaixo.',
     remove_device_confirm: 'Remover este dispositivo da lista?',
-    switch_to_local: 'Switch to Local',
   },
 }

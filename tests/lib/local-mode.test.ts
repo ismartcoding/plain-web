@@ -7,12 +7,12 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 // is a one-liner (`__IS_TAURI__ && isLocalMode()`) and is exercised
 // manually in the desktop app.
 const loadLocalMode = async () => {
-  const mod = await import('@/lib/local-mode')
+  const mod = await import('@/lib/device/local-mode')
   return mod
 }
 
-const loadWindowClient = async () => {
-  const mod = await import('@/lib/window-client')
+const loadClientId = async () => {
+  const mod = await import('@/lib/device/client-id')
   return mod
 }
 
@@ -29,7 +29,7 @@ describe('local-mode', () => {
 
   it('isLocalModeAllowed() is false in web builds even when no device is bound', async () => {
     const lm = await loadLocalMode()
-    const wc = await loadWindowClient()
+    const wc = await loadClientId()
     // Sanity: the underlying state really is "local mode" — no bound device,
     // no session token. The whole point of this test is that the helper
     // refuses to act on that in a web build.
@@ -39,8 +39,8 @@ describe('local-mode', () => {
 
   it('isLocalModeAllowed() is false in web builds even after binding a device', async () => {
     const lm = await loadLocalMode()
-    const wc = await loadWindowClient()
-    wc.setBoundClientId('device-xyz')
+    const wc = await loadClientId()
+    wc.setRemoteClientId('device-xyz')
     expect(wc.isLocalMode()).toBe(false)
     expect(lm.isLocalModeAllowed()).toBe(false)
   })

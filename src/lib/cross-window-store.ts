@@ -15,7 +15,7 @@
  *   - Each BroadcastChannel message carries `{ windowId, clientId, patch }`.
  *     The receiver drops the message when:
  *       - `windowId === getWindowId()` (self-broadcast echo), OR
- *       - `clientId !== getWindowClientId()` (different window identity).
+ *       - `clientId !== getActiveClientId()` (different window identity).
  *     Same-clientId-only filtering means a window bound to device A will not
  *     pick up state from a window bound to device B.
  *   - Remote applications go through `$patch` with a replay guard
@@ -29,7 +29,7 @@
  */
 import { defineStore, type Store, type _GettersTree, type _ActionsTree } from 'pinia'
 import { toRaw } from 'vue'
-import { getWindowClientId, getWindowId } from '@/lib/window-client'
+import { getActiveClientId, getWindowId } from '@/lib/device/client-id'
 
 const CHANNEL_PREFIX = 'plain-web:store:'
 
@@ -58,7 +58,7 @@ function getOrCreateChannel(name: string): ChannelEntry {
   bc.onmessage = (ev: MessageEvent<SyncMessage>) => {
     const m = ev.data
     if (!m || m.windowId === getWindowId()) return
-    if (m.clientId !== getWindowClientId()) return
+    if (m.clientId !== getActiveClientId()) return
     for (const fn of subscribers) fn(m.patch)
   }
   entry = { bc, subscribers }
@@ -80,7 +80,7 @@ export const publishForTest = (
   const entry = getOrCreateChannel(name)
   const msg: SyncMessage = {
     windowId: windowId ?? getWindowId(),
-    clientId: clientId ?? getWindowClientId(),
+    clientId: clientId ?? getActiveClientId(),
     patch,
   }
   entry.bc.postMessage(msg)
@@ -147,7 +147,7 @@ function installSync<S extends object>(
       const patch = JSON.parse(JSON.stringify(raw))
       const msg: SyncMessage = {
         windowId: getWindowId(),
-        clientId: getWindowClientId(),
+        clientId: getActiveClientId(),
         patch,
       }
       channel.bc.postMessage(msg)

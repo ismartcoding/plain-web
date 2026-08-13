@@ -10,7 +10,7 @@ import { gqlFetch } from '@/lib/api/gql-client'
 import { appGQL } from '@/lib/api/query'
 import { tokenToKey } from '@/lib/api/file'
 import { chachaDecrypt } from '@/lib/api/crypto'
-import { getCurrentAuthToken } from '@/lib/device-current'
+import { getCurrentAuthToken } from '@/lib/device/current'
 
 export function useTextFile() {
   const { t } = useI18n()

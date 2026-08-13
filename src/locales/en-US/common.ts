@@ -270,7 +270,6 @@ export default {
     connect_device: 'Connect Device',
     connect_device_desc: 'Connect your phone to access files, media, and more.',
     local_mode: 'Local',
-    switch_to_local: 'Switch to Local',
     server_card_title: 'Local Server',
     server_http: 'HTTP',
     server_https: 'HTTPS',

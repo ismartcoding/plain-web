@@ -176,7 +176,7 @@ import { useEditorPopups } from '@/views/image-editor/composables/useEditorPopup
 import { useCanvasZoom } from '@/views/image-editor/composables/useCanvasZoom'
 import { useOverlayPointer } from '@/views/image-editor/composables/useOverlayPointer'
 import { useImageEditorKeyboard } from '@/views/image-editor/composables/useImageEditorKeyboard'
-import { getCurrentAuthToken } from '@/lib/device-current'
+import { getCurrentAuthToken } from '@/lib/device/current'
 import HeaderActions from '@/components/HeaderActions.vue'
 
 const { t } = useI18n()

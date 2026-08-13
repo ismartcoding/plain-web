@@ -2,9 +2,9 @@ import { getApiBaseUrl, getApiHeaders, getLocalToken } from './api'
 import { chachaEncrypt, chachaDecrypt, arrayBufferToBitArray, bitArrayToUint8Array } from './crypto'
 import { tokenToKey } from './file'
 import { wrapWithReplayProtection } from './time-sync'
-import { getCurrentAuthToken, clearCurrentSession } from '../device-current'
+import { getCurrentAuthToken, clearCurrentSession } from '../device/current'
 import { tauriFetch } from './tauri-fetch'
-import { isLocalMode } from '../local-mode'
+import { isLocalMode } from '../device/local-mode'
 
 const TIMEOUT = 30000
 

@@ -12,6 +12,7 @@ export default {
   },
   device_discovery: {
     searching: 'নিকটবর্তী PlainApp ডিভাইস খোঁজা হচ্ছে…',
+    local: 'স্থানীয়',
     lan_permission_denied_title: 'Local network access is required',
     lan_permission_denied_hint: 'Allow PlainApp to access your local network in system settings, then retry scan.',
     open_system_settings: 'Open system settings',
@@ -26,6 +27,5 @@ export default {
     current: 'বর্তমান',
     no_devices_yet: 'কোনো ডিভাইস নেই। নিচে খুঁজুন বা ঠিকানা দিন।',
     remove_device_confirm: 'এই ডিভাইসটি তালিকা থেকে সরাবেন?',
-    switch_to_local: 'Switch to Local',
   },
 }

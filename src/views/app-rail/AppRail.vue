@@ -33,7 +33,7 @@ import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { AppChannelType } from '@/lib/status'
 import { ALL_FEATURES, getAvailableFeatures, type Feature } from './features'
-import { isLocalFeatureId, isLocalMode } from '@/lib/local-mode'
+import { isLocalFeatureId, isLocalMode } from '@/lib/device/local-mode'
 import RailSettingsPopup from './RailSettingsPopup.vue'
 const isTauri = __IS_TAURI__
 const localMode = isLocalMode()

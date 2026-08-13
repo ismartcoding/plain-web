@@ -4,7 +4,7 @@ import { getUploadUrl } from '@/lib/upload/upload'
 import { chachaEncrypt, bitArrayToUint8Array } from '@/lib/api/crypto'
 import { tokenToKey } from '@/lib/api/file'
 import toast from '@/components/toaster'
-import { getCurrentAuthToken } from '@/lib/device-current'
+import { getCurrentAuthToken } from '@/lib/device/current'
 import { get as prefsGet } from '@/lib/prefs'
 
 const ACCEPTED = new Set(['mobileclip_s2_image.tflite', 'mobileclip_s2_text.tflite', 'tokenizer.json'])
