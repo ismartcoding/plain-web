@@ -2,7 +2,7 @@ import { createI18n } from 'vue-i18n'
 import { get as prefsGet } from '@/lib/prefs'
 import en_US from '@/locales/en-US'
 
-const FALLBACK_LOCALE = 'en-US'
+const FALLBACK_LOCALE: string = 'en-US'
 
 // Build the locale code list from the on-disk directory names only — we must
 // NOT eagerly glob the locale files themselves, or Vite will bundle every
@@ -97,6 +97,16 @@ export async function loadLocaleMessages(locale: string): Promise<Record<string,
 
 export function isLocaleLoaded(locale: string): boolean {
   return loadedLocales.has(locale)
+}
+
+export function syncLocaleFromPrefs(): string {
+  const persisted = prefsGet<string>('locale', '')
+  if (persisted && LOCALE_DIRS.includes(persisted)) {
+    if (i18n.global.locale.value !== persisted) {
+      i18n.global.locale.value = persisted
+    }
+  }
+  return i18n.global.locale.value
 }
 
 export default i18n

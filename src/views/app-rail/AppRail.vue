@@ -1,6 +1,6 @@
 <template>
   <nav class="app-rail">
-    <router-link v-if="!isTauri" to="/" class="rail-brand" aria-label="PlainApp home">
+    <router-link v-if="!localMode" to="/" class="rail-brand" aria-label="PlainApp home">
       <span class="brand-logo" aria-hidden="true"></span>
     </router-link>
 
