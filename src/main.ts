@@ -48,12 +48,18 @@ async function bootstrap() {
   // the persisted locale from the prefs cache instead of localStorage.
   const i18nModule = await import('./plugins/i18n')
   const i18n = i18nModule.default
+  const { loadLocaleMessages, syncLocaleFromPrefs } = i18nModule
+
+  // The initialLocale IIFE inside i18n.ts reads from the in-memory cache at
+  // module-import time. As a safety net, re-verify the persisted locale
+  // here and correct it before any locale-dependent code runs.
+  const locale = syncLocaleFromPrefs()
+
   // Pre-load the persisted locale's chunk synchronously so the first
   // render shows the right translations instead of the en-US fallback.
   // Other locales stay on disk until the user switches to them.
-  const { loadLocaleMessages } = i18nModule
   const { setLocale: setTimeagoLocale } = await import('./lib/timeago')
-  await Promise.all([loadLocaleMessages(i18n.global.locale.value), setTimeagoLocale(i18n.global.locale.value)])
+  await Promise.all([loadLocaleMessages(locale), setTimeagoLocale(locale)])
 
   createApp(App)
     .use(VueClickAway)
