@@ -28,6 +28,7 @@ export interface DeviceSession {
   host: string // "ip:port"
   name?: string
   token: string
+  signaturePublicKey?: string  // TOFU: server Ed25519 public key for signature verification
   addedAt: number
 }
 
@@ -83,7 +84,7 @@ export const useDeviceSessionsStore = defineStore('deviceSessions', {
      * across updates so an existing entry doesn't jump to the top of the list
      * just because the user re-authenticated.
      */
-    save(input: { clientId: string; host: string; name?: string; token: string }) {
+    save(input: { clientId: string; host: string; name?: string; token: string; signaturePublicKey?: string }) {
       if (!input.clientId) return
       const existing = this.sessions.find((s) => s.clientId === input.clientId)
       const next: DeviceSession = {
@@ -91,6 +92,7 @@ export const useDeviceSessionsStore = defineStore('deviceSessions', {
         host: input.host,
         name: input.name,
         token: input.token,
+        signaturePublicKey: input.signaturePublicKey ?? existing?.signaturePublicKey,
         addedAt: existing?.addedAt ?? Date.now(),
       }
       this.sessions = [

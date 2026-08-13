@@ -1,15 +1,15 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import router from '@/plugins/router'
-import { sha512, hashToKey, chachaEncrypt, chachaDecrypt, bitArrayToUint8Array } from '@/lib/api/crypto'
-import { getApiBaseUrl, getApiHeaders, getWebSocketBaseUrl, getPendingLoginHost, clearPendingLoginHost } from '@/lib/api/api'
-import { getAccurateAgent } from '@/lib/agent/agent'
+import { sha512, chachaEncrypt, bitArrayToUint8Array } from '@/lib/api/crypto'
+import type { InitResponse } from '@/lib/api/crypto'
+import { getApiBaseUrl, getApiHeaders, getPendingLoginHost, clearPendingLoginHost } from '@/lib/api/api'
 import { randomUUID } from '@/lib/strutil'
 import { tokenToKey } from '@/lib/api/file'
 import { useDeviceSessionsStore } from '@/stores/device-sessions'
 import { getCurrentAuthToken } from '@/lib/device-current'
 import { tauriFetch } from '@/lib/api/tauri-fetch'
-import { TauriWebSocket } from '@/lib/api/tauri-ws'
+import { performLoginHandshake } from '@/lib/api/login-handshake'
 import { get as prefsGet } from '@/lib/prefs'
 
 type UseLoginOptions = {
@@ -34,8 +34,8 @@ export function useLogin(options: UseLoginOptions = {}) {
   const password = ref('')
   const passwordError = ref('')
   const isSubmitting = ref(false)
-  let ws: WebSocket
   const redirectOnSuccess = options.redirectOnSuccess !== false
+  let lastInitSignaturePublicKey = ''
 
   async function finishLoginSuccess() {
     if (options.onSuccess) {
@@ -67,8 +67,20 @@ export function useLogin(options: UseLoginOptions = {}) {
     if (r.status === 200 && token && !bodyText) {
       await finishLoginSuccess(); return
     }
-    if (bodyText) { password.value = bodyText; showPasswordInput.value = false }
-    else { showPasswordInput.value = true }
+    if (bodyText) {
+      const initData = JSON.parse(bodyText) as InitResponse
+      if (initData.signaturePublicKey) {
+        lastInitSignaturePublicKey = initData.signaturePublicKey
+      }
+      if (initData.password) {
+        password.value = initData.password
+        showPasswordInput.value = false
+      } else {
+        showPasswordInput.value = true
+      }
+    } else {
+      showPasswordInput.value = true
+    }
   }
 
   async function onSubmit() {
@@ -76,64 +88,57 @@ export function useLogin(options: UseLoginOptions = {}) {
     passwordError.value = ''
     if (isSubmitting.value) return
     isSubmitting.value = true
-    const clientId = prefsGet('client_id', '')
-    const pass = password.value ?? ''
-    const hash = sha512(pass)
-    const key = hashToKey(hash)
-    error.value = ''; showError.value = false
+    showError.value = false; error.value = ''
 
-    await new Promise<void>((resolve) => {
-      const wsUrl = `${getWebSocketBaseUrl()}?cid=${clientId}&auth=1`
-      ws = ((__IS_TAURI__ && wsUrl.startsWith('wss://')) ? new TauriWebSocket(wsUrl) : new WebSocket(wsUrl)) as unknown as WebSocket
-      ws.onopen = async () => {
-        const ua = await getAccurateAgent()
-        const browserName = __IS_TAURI__ ? 'PlainApp' : ua.browser.name
-        const browserVersion = __IS_TAURI__ ? '' : ua.browser.version
-        const enc = chachaEncrypt(key, JSON.stringify({
-          password: hash, 
-          browserName: browserName, 
-          browserVersion: browserVersion,
-          osName: ua.os.name, 
-          osVersion: ua.os.version, 
-          isMobile: ua.isMobile,
-        }))
-        ws.send(bitArrayToUint8Array(enc) as unknown as ArrayBuffer)
+    const hash = sha512(password.value)
+    const myClientId = prefsGet('client_id', '')
+
+    try {
+      const { clientId, token, signaturePublicKey } = await performLoginHandshake({
+        passwordHash: hash,
+        clientId: myClientId,
+        storedSignaturePublicKey: sessionsStore.currentSession?.signaturePublicKey,
+        initSignaturePublicKey: lastInitSignaturePublicKey,
+        onPending: () => { showConfirm.value = true },
+      })
+
+      const host = getPendingLoginHost() || sessionsStore.currentSession?.host || window.location.host || ''
+      if (host && clientId) {
+        sessionsStore.save({
+          clientId,
+          host,
+          name: currentSessionName(host),
+          token,
+          signaturePublicKey,
+        })
+        sessionsStore.setCurrent(clientId)
+        clearPendingLoginHost()
       }
-      ws.onmessage = async (event: MessageEvent) => {
-        const d = chachaDecrypt(key, new Uint8Array(await event.data.arrayBuffer()))
-        const r = JSON.parse(d)
-        if (r.status === 'PENDING') { showConfirm.value = true }
-        else {
-          const host = getPendingLoginHost() || sessionsStore.currentSession?.host || window.location.host || ''
-          if (host && r.clientId) {
-            sessionsStore.save({ clientId: r.clientId, host, name: r.name || host, token: r.token })
-            sessionsStore.setCurrent(r.clientId)
-            clearPendingLoginHost()
-          }
-          ws.close()
-          void finishLoginSuccess()
-        }
+      void finishLoginSuccess()
+    } catch (e) {
+      showError.value = true; showConfirm.value = false
+      const reason = typeof e === 'string' ? e : ''
+      if (!reason) {
+        const hcUrl = `${getApiBaseUrl()}/health`
+        const hcResp = (__IS_TAURI__ && hcUrl.startsWith('https://'))
+          ? await tauriFetch(hcUrl)
+          : await fetch(hcUrl)
+        if (hcResp.status === 200) { error.value = 'failed_connect_ws'; return }
       }
-      ws.onclose = async (event: CloseEvent) => {
-        resolve()
-        isSubmitting.value = false
-        if (event.reason === 'abort' || event.reason === 'OK') return
-        showError.value = true; showConfirm.value = false
-        if (!event.reason) {
-          const hcUrl = `${getApiBaseUrl()}/health`
-          const hcResp = (__IS_TAURI__ && hcUrl.startsWith('https://'))
-            ? await tauriFetch(hcUrl)
-            : await fetch(hcUrl)
-          if (hcResp.status === 200) { error.value = 'failed_connect_ws'; return }
-        }
-        error.value = `login.${event.reason ? event.reason : 'failed'}`
-      }
-      window.setTimeout(() => { if (ws.readyState !== 1) ws.close(3001, 'timeout') }, 5000)
-    })
+      error.value = `login.${reason ? reason : 'failed'}`
+    } finally {
+      isSubmitting.value = false
+    }
+  }
+
+  function currentSessionName(host: string): string {
+    return sessionsStore.currentSession?.host === host
+      ? (sessionsStore.currentSession.name || host)
+      : host
   }
 
   function cancel() {
-    showConfirm.value = false; showError.value = false; isSubmitting.value = false; ws.close(3001, 'abort')
+    showConfirm.value = false; showError.value = false; isSubmitting.value = false
   }
 
   return {

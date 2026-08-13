@@ -1344,16 +1344,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@noble/curves@npm:^2.2.0":
-  version: 2.2.0
-  resolution: "@noble/curves@npm:2.2.0"
+"@noble/curves@npm:^2.3.0":
+  version: 2.3.0
+  resolution: "@noble/curves@npm:2.3.0"
   dependencies:
-    "@noble/hashes": "npm:2.2.0"
-  checksum: 10/f9545e55bb8b6cdf2618c936870b9229339c90b25f129fc368b4b534e723f274e5c0daf8abca2f891bcf0a59c3b49c5ac5205899aec07f5251f545ec616e3aa9
+    "@noble/hashes": "npm:2.3.0"
+  checksum: 10/c46c6441957a6ac1c9a4fca5a67fc13ed09df646559aa4b4fcce5fcd894e7af3b54e12c3cb28ce2a30f9d9a3177a82afd329e92086e7a8264a3dee61da1f087f
   languageName: node
   linkType: hard
 
-"@noble/hashes@npm:2.2.0, @noble/hashes@npm:^2.0.1":
+"@noble/hashes@npm:2.3.0":
+  version: 2.3.0
+  resolution: "@noble/hashes@npm:2.3.0"
+  checksum: 10/2a980fa3257269d0f2f0c65ad30033a395121a523cb207bd5e481054cabf21af3cce87a8d657a3d7409924ec28f7fcaaf3fb01150813ac3c9e16964a95ae0ab7
+  languageName: node
+  linkType: hard
+
+"@noble/hashes@npm:^2.0.1":
   version: 2.2.0
   resolution: "@noble/hashes@npm:2.2.0"
   checksum: 10/b1b78bedc2a01394be047429f3d888905015fe8a09f1b7e43e0b5736b54133df62f73dcc73ede43af38e96e86156afb45b86973fdeaa95d9f0880333c3fc0907
@@ -4689,7 +4696,7 @@ __metadata:
     "@iconify-json/lucide": "npm:^1.2.104"
     "@iconify-json/material-symbols": "npm:^1.2.69"
     "@noble/ciphers": "npm:^1.3.0"
-    "@noble/curves": "npm:^2.2.0"
+    "@noble/curves": "npm:^2.3.0"
     "@noble/hashes": "npm:^2.0.1"
     "@tauri-apps/api": "npm:^2"
     "@tauri-apps/cli": "npm:^2"
