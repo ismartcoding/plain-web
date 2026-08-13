@@ -9,7 +9,7 @@
 use crate::local::db::{ChatDb, DChat};
 use crate::local::enums::{ChannelStatus, ChannelSystemMessageType};
 use crate::local::graphql::context::{
-    WsEvent, WS_CHANNELS_UPDATED, WS_MESSAGE_CREATED,
+    channels_updated_payload, WsEvent, WS_CHANNELS_UPDATED, WS_MESSAGE_CREATED,
 };
 use crate::local::graphql::schema::types::{chat_item_data_from_content, ChatItem};
 use serde_json::{json, Value};
@@ -93,7 +93,7 @@ pub fn channel_system_message_from_peer(
     );
     let _ = event_tx.send(WsEvent {
         event_type: WS_CHANNELS_UPDATED,
-        payload: "{}".to_string(),
+        payload: channels_updated_payload(db),
     });
     ok
 }

@@ -21,8 +21,8 @@ use crate::local::enums::{
     PeerStatus,
 };
 use crate::local::graphql::context::{
-    load_key_cache, ChannelKeyCache, PeerKeyCache, WsEvent, WS_CHANNEL_INVITE_RECEIVED,
-    WS_CHANNELS_UPDATED,
+    channels_updated_payload, load_key_cache, ChannelKeyCache, PeerKeyCache, WsEvent,
+    WS_CHANNEL_INVITE_RECEIVED, WS_CHANNELS_UPDATED,
 };
 
 use super::messages::*;
@@ -100,7 +100,7 @@ pub fn handle(
     if result {
         let _ = event_tx.send(WsEvent {
             event_type: WS_CHANNELS_UPDATED,
-            payload: "{}".to_string(),
+            payload: channels_updated_payload(db),
         });
     }
     result
@@ -383,7 +383,7 @@ fn handle_invite_accept(
             .await;
             let _ = broadcast_event_tx.send(WsEvent {
                 event_type: WS_CHANNELS_UPDATED,
-                payload: "{}".to_string(),
+                payload: channels_updated_payload(&broadcast_db),
             });
         });
     }
@@ -638,7 +638,7 @@ fn handle_leave(
             .await;
             let _ = broadcast_event_tx.send(WsEvent {
                 event_type: WS_CHANNELS_UPDATED,
-                payload: "{}".to_string(),
+                payload: channels_updated_payload(&broadcast_db),
             });
         });
     }

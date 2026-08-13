@@ -3,6 +3,7 @@
 use crate::crypto::{base64_decode, xchacha_encrypt};
 use crate::commands::discover::{NearbyDiscoverManager, PeerStatusManager};
 use crate::local::db::ChatDb;
+use crate::local::enums::ChannelStatus;
 use crate::local::pairing::PairingManager;
 use crate::prefs::AppIdentity;
 use std::collections::HashMap;
@@ -106,6 +107,41 @@ pub fn encode_ws_event(ev: &WsEvent, token: &str) -> Option<Vec<u8>> {
     msg.extend_from_slice(&ev.event_type.to_be_bytes());
     msg.extend_from_slice(&encrypted);
     Some(msg)
+}
+
+/// Serialize all joined channels into the wire format the web client's
+/// `channels_updated` handler expects — a JSON array of channel models
+/// with camelCase fields. Mirrors plain-app's `channelsToJsonModelString`
+/// (`ChannelManager.kt`), which wraps `channels.map { it.toModel() }`.
+pub fn channels_updated_payload(db: &ChatDb) -> String {
+    let channels = db.get_channels(ChannelStatus::Joined);
+    let arr: Vec<serde_json::Value> = channels
+        .iter()
+        .map(|ch| {
+            let members: Vec<serde_json::Value> =
+                serde_json::from_str::<Vec<serde_json::Value>>(&ch.members)
+                    .unwrap_or_default()
+                    .into_iter()
+                .map(|m| {
+                    serde_json::json!({
+                        "id": m["id"].as_str().unwrap_or("").to_string(),
+                        "status": m["status"].as_str().unwrap_or("PENDING").to_string(),
+                    })
+                })
+                .collect();
+            serde_json::json!({
+                "id": ch.id,
+                "name": ch.name,
+                "owner": ch.owner,
+                "members": members,
+                "version": ch.version,
+                "status": ch.status.to_string(),
+                "createdAt": ch.created_at,
+                "updatedAt": ch.updated_at,
+            })
+        })
+        .collect();
+    serde_json::to_string(&arr).unwrap_or_else(|_| "[]".to_string())
 }
 
 /// All server-level dependencies bundled for injection into async-graphql resolvers.

@@ -1,7 +1,9 @@
 use async_graphql::{Context, Error as GqlError, Object, Result as GqlResult};
 use std::sync::Arc;
 
-use super::super::context::{refresh_peer_key_cache, AppCtx, WsEvent, WS_CHANNELS_UPDATED};
+use super::super::context::{
+    channels_updated_payload, refresh_peer_key_cache, AppCtx, WsEvent, WS_CHANNELS_UPDATED,
+};
 use super::types::ChatChannel;
 use crate::crypto::base64_decode;
 use crate::local::db::{now_iso, DChannel};
@@ -17,7 +19,7 @@ fn gql_err(msg: impl Into<String>) -> GqlError {
 fn emit_channels_updated(c: &AppCtx) {
     let _ = c.event_tx.send(WsEvent {
         event_type: WS_CHANNELS_UPDATED,
-        payload: "{}".to_string(),
+        payload: channels_updated_payload(&c.db),
     });
 }
 
