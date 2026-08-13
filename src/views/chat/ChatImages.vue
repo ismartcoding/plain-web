@@ -30,7 +30,7 @@ function onDownloadAction(action: 'pause' | 'resume' | 'retry') {
   emit('download-action', action)
 }
 
-const ACTIVE_STATUSES = ['pending', 'downloading', 'paused', 'failed']
+const ACTIVE_STATUSES = ['PENDING', 'DOWNLOADING', 'PAUSED', 'FAILED']
 function isActiveStatus(status: string) {
   return ACTIVE_STATUSES.includes(status)
 }

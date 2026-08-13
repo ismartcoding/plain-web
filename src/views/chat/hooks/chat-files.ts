@@ -44,7 +44,7 @@ export function useChatFiles(props: { data: any; downloadInfo: any; peer: { ip: 
     })
   })
 
-  const ACTIVE_STATUSES = ['pending', 'downloading', 'paused', 'failed']
+  const ACTIVE_STATUSES = ['PENDING', 'DOWNLOADING', 'PAUSED', 'FAILED']
   const isActiveDl = computed(() => !!props.downloadInfo && ACTIVE_STATUSES.includes(props.downloadInfo.status))
 
   function getThumb(item: ISource) {

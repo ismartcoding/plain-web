@@ -139,7 +139,7 @@ pub async fn pause_download(message_id: &str) -> bool {
             let _ = abort.send(());
         }
         let mut s = entry.state.lock().await;
-        s.status = "paused".to_string();
+        s.status = "PAUSED".to_string();
         return true;
     }
     false
@@ -246,7 +246,7 @@ async fn execute_download(
     let total: u64 = to_download.iter().map(|(_, _, _, s)| s).sum();
     {
         let mut s = state.lock().await;
-        s.status = "downloading".to_string();
+        s.status = "DOWNLOADING".to_string();
         s.total = total;
         s.downloaded = 0;
         s.speed = 0;
@@ -273,7 +273,7 @@ async fn execute_download(
     for (item_index, file_id, file_name, file_size) in &to_download {
         if abort_rx.try_recv().is_ok() {
             let mut s = state.lock().await;
-            s.status = "paused".to_string();
+            s.status = "PAUSED".to_string();
             emit_progress(&ctx, &s);
             cleanup(&message_id).await;
             return;
