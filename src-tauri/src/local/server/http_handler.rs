@@ -1,6 +1,6 @@
 use serde_json::{json, Value};
 use std::sync::Arc;
-use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncWrite};
+use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncReadExt, AsyncWrite};
 
 use super::super::graphql::{execute_graphql, AppCtx, LocalSchema};
 use super::super::peer_graphql::{self, PeerSchema};
@@ -8,7 +8,7 @@ use super::file_server::serve_file;
 use super::proxy_file::proxy_file;
 use super::response::{respond, APP_ID};
 use super::upload;
-use crate::crypto::{xchacha_decrypt, xchacha_encrypt};
+use crate::crypto::{base64_decode, base64_encode, xchacha_decrypt, xchacha_encrypt};
 
 pub(super) async fn handle<R, W>(
     rd: R,
@@ -80,7 +80,38 @@ pub(super) async fn handle<R, W>(
 
     match (method.as_str(), path.as_str()) {
         ("GET", "/health") => respond(&mut wr, 200, "OK", APP_ID.as_bytes(), "text/plain").await,
-        ("POST", "/init") => respond(&mut wr, 200, "OK", b"", "text/plain").await,
+        ("POST", "/init") => {
+            // Mirrors Kotlin SystemRoutes `/init`:
+            //   1. If body encrypted with token → client is authenticated →
+            //      return empty body (frontend: token + empty body → auto-login)
+            //   2. Otherwise return InitResponse(signaturePublicKey) as JSON
+            //      so the frontend can proceed with the handshake.
+            //
+            // The Tauri desktop app has no password management. The
+            // signaturePublicKey is the Ed25519 verifying key (last 32
+            // bytes of the 64-byte keypair).
+            let mut authenticated = false;
+            if content_length > 0 && !ctx.token.is_empty() {
+                let mut body = vec![0u8; content_length];
+                if reader.read_exact(&mut body).await.is_ok() {
+                    authenticated = crate::crypto::xchacha_decrypt(&ctx.token, &body).is_some();
+                }
+            }
+
+            if authenticated {
+                // Frontend: `r.status === 200 && token && !bodyText` → finishLoginSuccess()
+                respond(&mut wr, 200, "OK", b"", "text/plain").await;
+            } else {
+                let kp_bytes = base64_decode(&ctx.identity.ed25519_keypair);
+                let signature_public_key = if kp_bytes.len() == 64 {
+                    base64_encode(&kp_bytes[32..])
+                } else {
+                    String::new()
+                };
+                let json = json!({ "signaturePublicKey": signature_public_key });
+                respond(&mut wr, 200, "OK", json.to_string().as_bytes(), "application/json").await;
+            }
+        }
         ("GET", "/fs") => {
             serve_file(&mut wr, &query_str, &header_range, ctx).await;
         }

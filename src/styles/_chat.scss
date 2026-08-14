@@ -100,21 +100,11 @@
 }
 
 .delivery-result-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 8px 0;
-
   &:not(:last-child) {
     border-bottom: 1px solid var(--md-sys-color-outline-variant);
   }
 
   .delivery-icon {
-    flex-shrink: 0;
-    width: 18px;
-    height: 18px;
-    margin-top: 1px;
-
     &.delivered {
       color: var(--md-sys-color-primary);
     }
@@ -122,18 +112,6 @@
     &.failed {
       color: var(--md-sys-color-error);
     }
-  }
-
-  .delivery-peer-name {
-    font-weight: 500;
-    flex: 1;
-    min-width: 0;
-  }
-
-  .delivery-error-text {
-    color: var(--md-sys-color-error);
-    font-size: 0.8rem;
-    word-break: break-word;
   }
 }
 

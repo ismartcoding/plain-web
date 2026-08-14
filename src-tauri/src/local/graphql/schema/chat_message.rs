@@ -92,6 +92,137 @@ fn peer_delivery_status_data(peer_id: &str, peer_name: &str, error: &str) -> Str
     .to_string()
 }
 
+// ── ChatSender.send equivalents ────────────────────────────────────────────
+
+/// Mirrors `ChatSender.sendToPeer` — spawn async peer delivery and
+/// update the chat status from the result.
+fn spawn_peer_delivery(c: &Arc<AppCtx>, chat: &DChat) {
+    let peer_id = chat.to_id.clone();
+    let Some(peer) = c.db.get_peer_by_id(&peer_id) else {
+        return;
+    };
+    let key = {
+        let cache = c.peer_key_cache.read().unwrap();
+        cache.get(&peer_id).cloned()
+    }
+    .or_else(|| {
+        let raw = base64_decode(&peer.key);
+        if raw.len() == 32 {
+            Some(raw)
+        } else {
+            None
+        }
+    });
+    let Some(key) = key else { return };
+
+    let chat_id = chat.id.clone();
+    let peer_urls = peer_graphql_urls(&peer);
+    let client_id = c.identity.client_id.clone();
+    let kp_bytes = base64_decode(&c.identity.ed25519_keypair);
+    let content_str = to_peer_content(&chat.content, &c.token);
+    let event_tx = c.event_tx.clone();
+    let db = c.db.clone();
+    let token = c.token.clone();
+    let peer_id_for_status = peer.id.clone();
+    let peer_name_for_status = peer.name.clone();
+    tokio::spawn(async move {
+        let delivery_result = deliver_to_peer(
+            &peer_urls,
+            &key,
+            &client_id,
+            &kp_bytes,
+            &content_str,
+            None,
+        )
+        .await;
+        let (new_status, status_data) = match delivery_result {
+            Ok(()) => (ChatStatus::Sent, String::new()),
+            Err(error) => (
+                ChatStatus::Failed,
+                peer_delivery_status_data(&peer_id_for_status, &peer_name_for_status, &error),
+            ),
+        };
+        if let Some(updated) = db.update_chat_status_and_data(&chat_id, new_status, &status_data) {
+            let _ = event_tx.send(WsEvent {
+                event_type: WS_MESSAGE_UPDATED,
+                payload: json!([chat_to_json(&updated, &token)]).to_string(),
+            });
+        }
+    });
+}
+
+/// Mirrors `ChatSender.sendToChannel` — spawn async channel delivery
+/// and update the chat status from the per-member results.
+fn spawn_channel_delivery(c: &Arc<AppCtx>, chat: &DChat) {
+    let channel_id = chat.channel_id.clone();
+    let Some(channel) = c.db.get_channel_by_id(&channel_id) else {
+        return;
+    };
+
+    let client_id = c.identity.client_id.clone();
+    let kp_bytes = base64_decode(&c.identity.ed25519_keypair);
+    let chat_id = chat.id.clone();
+    let content_str = to_peer_content(&chat.content, &c.token);
+    let db = c.db.clone();
+    let event_tx = c.event_tx.clone();
+    let token = c.token.clone();
+    let peer_key_cache = c.peer_key_cache.clone();
+    let channel_key_cache = c.channel_key_cache.clone();
+    let channel_for_send = channel.clone();
+
+    tokio::spawn(async move {
+        {
+            let cache = channel_key_cache.read().unwrap();
+            if !cache.contains_key(&channel_for_send.id) {
+                drop(cache);
+                load_key_cache(&db, &peer_key_cache, &channel_key_cache);
+            }
+        }
+
+        let result = send(
+            &channel_for_send,
+            &client_id,
+            &content_str,
+            &db,
+            &channel_key_cache,
+            &kp_bytes,
+        )
+        .await;
+
+        let (status, status_data) = match result {
+            SendResult::Status(results) => {
+                let s = compute_status(&results);
+                let d = build_status_data_json(&results);
+                (s, d)
+            }
+            SendResult::NoLeader | SendResult::LeaderPeerMissing(_) => {
+                (ChatStatus::Failed, build_no_leader_status_data())
+            }
+        };
+
+        if let Some(updated) = db.update_chat_status_and_data(&chat_id, status, &status_data) {
+            let _ = event_tx.send(WsEvent {
+                event_type: WS_MESSAGE_UPDATED,
+                payload: json!([chat_to_json(&updated, &token)]).to_string(),
+            });
+        }
+    });
+}
+
+/// Mirrors `ChatSender.send` — route to peer or channel delivery.
+/// `ChatSender.sendToPeer` / `sendToChannel` are called based on the
+/// chat item's target. Local notes (`to_id == "local"`) are skipped.
+fn spawn_delivery(c: &Arc<AppCtx>, chat: &DChat) {
+    if chat.to_id == "local" {
+        return;
+    }
+    if !chat.to_id.is_empty() && chat.channel_id.is_empty() {
+        spawn_peer_delivery(c, chat);
+    } else if !chat.channel_id.is_empty() {
+        spawn_channel_delivery(c, chat);
+    }
+}
+
 #[derive(Default)]
 pub struct ChatMessageMutation;
 
@@ -135,149 +266,15 @@ impl ChatMessageMutation {
             to_id.clone()
         };
 
-        let pending = is_peer && !peer_id.is_empty() && peer_id != "local";
+        let is_remote = (is_peer && !peer_id.is_empty() && peer_id != "local") || is_channel;
         let mut chat = DChat::new("me", &to, &channel_id, &content);
-        if pending {
+        if is_remote {
             chat.status = ChatStatus::Pending;
         }
         c.db.insert_chat(&chat);
 
-        if pending {
-            if let Some(peer) = c.db.get_peer_by_id(&peer_id) {
-                let key = {
-                    let cache = c.peer_key_cache.read().unwrap();
-                    cache.get(&peer_id).cloned()
-                }
-                .or_else(|| {
-                    let raw = base64_decode(&peer.key);
-                    if raw.len() == 32 {
-                        Some(raw)
-                    } else {
-                        None
-                    }
-                });
-                if let Some(key) = key {
-                    let chat_id = chat.id.clone();
-                    let peer_urls = peer_graphql_urls(&peer);
-                    let client_id = c.identity.client_id.clone();
-                    let kp_bytes = base64_decode(&c.identity.ed25519_keypair);
-                    let content_str = to_peer_content(&content, &c.token);
-                    let event_tx = c.event_tx.clone();
-                    let db = c.db.clone();
-                    let token = c.token.clone();
-                    let peer_id_for_status = peer.id.clone();
-                    let peer_name_for_status = peer.name.clone();
-                    tokio::spawn(async move {
-                        let delivery_result = deliver_to_peer(
-                            &peer_urls,
-                            &key,
-                            &client_id,
-                            &kp_bytes,
-                            &content_str,
-                            None,
-                        )
-                        .await;
-                        let (new_status, status_data) = match delivery_result {
-                            Ok(()) => (ChatStatus::Sent, String::new()),
-                            Err(error) => (
-                                ChatStatus::Failed,
-                                peer_delivery_status_data(
-                                    &peer_id_for_status,
-                                    &peer_name_for_status,
-                                    &error,
-                                ),
-                            ),
-                        };
-                        if let Some(updated) =
-                            db.update_chat_status_and_data(&chat_id, new_status, &status_data)
-                        {
-                            let _ = event_tx.send(WsEvent {
-                                event_type: WS_MESSAGE_UPDATED,
-                                payload: json!([chat_to_json(&updated, &token)]).to_string(),
-                            });
-                        }
-                    });
-                }
-            }
-        } else if is_channel {
-            // ── Channel route — mirrors `ChatSender.sendToChannel` ──
-            //
-            // ChatSender.sendToChannel(item, channel, onlinePeerIds):
-            //   when (val result = ChannelChatSender.send(channel, item.content)) {
-            //       is Result.Status          -> updateChannelChatItemStatus(item, result.data)
-            //       Result.NoLeader           -> updateChannelChatItemStatus(item, null)
-            //       is Result.LeaderPeerMissing -> updateChannelChatItemStatus(item, null)
-            //   }
-            //
-            // All leader election, broadcast, and per-member delivery logic
-            // lives inside `ChannelChatSender.send()` (chat_helper.rs).
-            if let Some(channel) = c.db.get_channel_by_id(&channel_id) {
-                let client_id = c.identity.client_id.clone();
-                let kp_bytes = base64_decode(&c.identity.ed25519_keypair);
-
-                chat.status = ChatStatus::Pending;
-                if let Some(updated) = c.db.update_chat_status(&chat.id, ChatStatus::Pending) {
-                    chat = updated;
-                }
-
-                let chat_id = chat.id.clone();
-                let content_str = to_peer_content(&content, &c.token);
-                let db = c.db.clone();
-                let event_tx = c.event_tx.clone();
-                let token = c.token.clone();
-                let peer_key_cache = c.peer_key_cache.clone();
-                let channel_key_cache = c.channel_key_cache.clone();
-                let channel_for_send = channel.clone();
-
-                tokio::spawn(async move {
-                    // Ensure the channel key is in cache before delivery.
-                    // After app restart the in-memory cache starts empty;
-                    // the DB still has `channel.key`, so refresh here.
-                    // Mirrors ChannelCacher.load() which runs on app start.
-                    {
-                        let cache = channel_key_cache.read().unwrap();
-                        if !cache.contains_key(&channel_for_send.id) {
-                            drop(cache);
-                            load_key_cache(&db, &peer_key_cache, &channel_key_cache);
-                        }
-                    }
-
-                    // ChannelChatSender.send(channel, content)
-                    let result = send(
-                        &channel_for_send,
-                        &client_id,
-                        &content_str,
-                        &db,
-                        &channel_key_cache,
-                        &kp_bytes,
-                    )
-                    .await;
-
-                    // Match on Result — mirrors ChatSender.sendToChannel's when-block.
-                    let (status, status_data) = match result {
-                        SendResult::Status(results) => {
-                            let s = compute_status(&results);
-                            let d = build_status_data_json(&results);
-                            (s, d)
-                        }
-                        SendResult::NoLeader | SendResult::LeaderPeerMissing(_) => {
-                            // ChatDbHelper.updateChannelChatItemStatus(item, null)
-                            let s = ChatStatus::Failed;
-                            let d = build_no_leader_status_data();
-                            (s, d)
-                        }
-                    };
-
-                    if let Some(updated) =
-                        db.update_chat_status_and_data(&chat_id, status, &status_data)
-                    {
-                        let _ = event_tx.send(WsEvent {
-                            event_type: WS_MESSAGE_UPDATED,
-                            payload: json!([chat_to_json(&updated, &token)]).to_string(),
-                        });
-                    }
-                });
-            }
+        if is_remote {
+            spawn_delivery(&c, &chat);
         }
 
         let _ = c.event_tx.send(WsEvent {
@@ -330,26 +327,14 @@ impl ChatMessageMutation {
         true
     }
 
-    /// Retry a failed chat item. Mirrors Kotlin's
-    /// `ChatDbHelper.retryAsync` — peer messages go back to
-    /// `pending` and re-attempt delivery; channel messages flip back
-    /// to `sent` if the per-member delivery already partially
-    /// succeeded.
+    /// Retry a failed chat item. Mirrors Kotlin's `retryChatItem`
+    /// mutation: set status to `PENDING`, emit `WS_MESSAGE_UPDATED`,
+    /// then re-deliver via the same `ChatSender.send` path used by
+    /// `send_chat_item`. The final status is computed from the
+    /// actual delivery results.
     async fn retry_chat_item(&self, ctx: &Context<'_>, id: String) -> Option<ChatItem> {
         let c = ctx.data_unchecked::<Arc<AppCtx>>().clone();
         let chat = c.db.get_chat_by_id(&id)?;
-        let is_peer = !chat.to_id.is_empty() && chat.channel_id.is_empty();
-
-        if !is_peer {
-            let updated = c.db.update_chat_status(&id, ChatStatus::Sent);
-            if let Some(ref u) = updated {
-                let _ = c.event_tx.send(WsEvent {
-                    event_type: WS_MESSAGE_UPDATED,
-                    payload: json!([chat_to_json(u, &c.token)]).to_string(),
-                });
-            }
-            return updated.map(|u| ChatItem::with_data(u, &c.token));
-        }
 
         let _ = c.db.update_chat_status(&id, ChatStatus::Pending);
         let _ = c.event_tx.send(WsEvent {
@@ -357,63 +342,7 @@ impl ChatMessageMutation {
             payload: json!([chat_to_json(&chat, &c.token)]).to_string(),
         });
 
-        let peer_id = chat.to_id.clone();
-        if let Some(peer) = c.db.get_peer_by_id(&peer_id) {
-            let key = {
-                let cache = c.peer_key_cache.read().unwrap();
-                cache.get(&peer_id).cloned()
-            }
-            .or_else(|| {
-                let raw = base64_decode(&peer.key);
-                if raw.len() == 32 {
-                    Some(raw)
-                } else {
-                    None
-                }
-            });
-            if let Some(key) = key {
-                let chat_id = id.clone();
-                let peer_urls = peer_graphql_urls(&peer);
-                let client_id = c.identity.client_id.clone();
-                let kp_bytes = base64_decode(&c.identity.ed25519_keypair);
-                let content_str = to_peer_content(&chat.content, &c.token);
-                let event_tx = c.event_tx.clone();
-                let db = c.db.clone();
-                let token = c.token.clone();
-                let peer_id_for_status = peer.id.clone();
-                let peer_name_for_status = peer.name.clone();
-                tokio::spawn(async move {
-                    let delivery_result = deliver_to_peer(
-                        &peer_urls,
-                        &key,
-                        &client_id,
-                        &kp_bytes,
-                        &content_str,
-                        None,
-                    )
-                    .await;
-                    let (new_status, status_data) = match delivery_result {
-                        Ok(()) => (ChatStatus::Sent, String::new()),
-                        Err(error) => (
-                            ChatStatus::Failed,
-                            peer_delivery_status_data(
-                                &peer_id_for_status,
-                                &peer_name_for_status,
-                                &error,
-                            ),
-                        ),
-                    };
-                    if let Some(updated) =
-                        db.update_chat_status_and_data(&chat_id, new_status, &status_data)
-                    {
-                        let _ = event_tx.send(WsEvent {
-                            event_type: WS_MESSAGE_UPDATED,
-                            payload: json!([chat_to_json(&updated, &token)]).to_string(),
-                        });
-                    }
-                });
-            }
-        }
+        spawn_delivery(&c, &chat);
 
         c.db.get_chat_by_id(&id).map(|u| ChatItem::with_data(u, &c.token))
     }
