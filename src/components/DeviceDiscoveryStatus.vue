@@ -3,7 +3,7 @@
     <v-circular-progress indeterminate class="sm" />
     <span>{{ $t('device_discovery.searching') }}</span>
   </div>
-  <div v-if="status === 'permission_denied'" class="status-tip status-tip--error">
+  <div v-if="status === DiscoveryStatus.PERMISSION_DENIED" class="status-tip status-tip--error">
     <p class="status-title">{{ $t('device_discovery.lan_permission_denied_title') }}</p>
     <p class="status-body">{{ $t('device_discovery.lan_permission_denied_hint') }}</p>
     <div class="status-actions">
@@ -15,7 +15,7 @@
       </v-filled-button>
     </div>
   </div>
-  <div v-else-if="status === 'network_error'" class="status-tip">
+  <div v-else-if="status === DiscoveryStatus.NETWORK_ERROR" class="status-tip">
     <p class="status-title">{{ $t('device_discovery.search_failed_title') }}</p>
     <p class="status-body">{{ $t('device_discovery.search_failed_hint') }}</p>
     <div class="status-actions">
@@ -27,8 +27,10 @@
 </template>
 
 <script setup lang="ts">
+import { DiscoveryStatus } from '@/hooks/use-device-discovery'
+
 defineProps<{
-  status: 'idle' | 'searching' | 'ok' | 'permission_denied' | 'network_error'
+  status: DiscoveryStatus
 }>()
 
 defineEmits<{

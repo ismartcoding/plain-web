@@ -22,10 +22,16 @@ export interface DiscoveredDevice {
   discoveryMethods: string[]
 }
 
-export type DiscoveryStatus = 'idle' | 'searching' | 'ok' | 'permission_denied' | 'network_error'
+export enum DiscoveryStatus {
+  IDLE,
+  SEARCHING,
+  OK,
+  PERMISSION_DENIED,
+  NETWORK_ERROR,
+}
 
 const devices = ref<DiscoveredDevice[]>([])
-const status = ref<DiscoveryStatus>('idle')
+const status = ref<DiscoveryStatus>(DiscoveryStatus.IDLE)
 
 let activeCount = 0
 let listenerInitialized = false
@@ -68,15 +74,15 @@ function ensureListener() {
     } else {
       devices.value = [...devices.value, device]
     }
-    status.value = 'ok'
+    status.value = DiscoveryStatus.OK
   })
 
   emitter.on('nearby_discovery_started', () => {
-    status.value = 'searching'
+    status.value = DiscoveryStatus.SEARCHING
   })
 
   emitter.on('nearby_discovery_stopped', (payload: any) => {
-    status.value = payload?.reason === 'no_receivers' ? 'network_error' : 'idle'
+    status.value = payload?.reason === 'no_receivers' ? DiscoveryStatus.NETWORK_ERROR : DiscoveryStatus.IDLE
   })
 
   emitter.on('pairing_success', (result: PairingResult) => {
@@ -118,7 +124,7 @@ export function useDeviceDiscovery() {
   async function start() {
     activeCount += 1
     if (activeCount > 1) return
-    status.value = 'searching'
+    status.value = DiscoveryStatus.SEARCHING
     await startMutate()
     startPolling()
   }
@@ -129,12 +135,12 @@ export function useDeviceDiscovery() {
     if (activeCount > 0) return
     stopPolling()
     await stopMutate()
-    status.value = 'idle'
+    status.value = DiscoveryStatus.IDLE
     devices.value = []
   }
 
   function retry() {
-    status.value = 'searching'
+    status.value = DiscoveryStatus.SEARCHING
     void startMutate()
   }
 

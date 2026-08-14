@@ -104,6 +104,32 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: bash build-desktop.sh
 
+      - name: Notarize and staple macOS DMG
+        if: matrix.platform == 'macos'
+        shell: bash
+        env:
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(src-tauri/target/release/bundle/dmg/*.dmg)
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "::error::No macOS DMG artifacts found"
+            exit 1
+          fi
+          for file in "${files[@]}"; do
+            xcrun codesign --force --sign "$APPLE_SIGNING_IDENTITY" "$file"
+            xcrun notarytool submit "$file" \
+              --apple-id "$APPLE_ID" \
+              --password "$APPLE_PASSWORD" \
+              --team-id "$APPLE_TEAM_ID" \
+              --wait
+            xcrun stapler staple "$file"
+          done
+
       - name: Verify macOS notarization
         if: matrix.platform == 'macos'
         shell: bash
