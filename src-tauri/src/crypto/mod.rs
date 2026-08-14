@@ -1,5 +1,3 @@
-use std::io::Read;
-
 mod ecdh;
 mod ed25519;
 mod symmetric;
@@ -12,10 +10,13 @@ pub use ecdh::EcdhSession;
 pub use ed25519::{ed25519_generate, ed25519_sign, ed25519_verify};
 pub use symmetric::{chacha20_decrypt, chacha20_encrypt, xchacha_decrypt, xchacha_encrypt, xchacha_decrypt_raw, xchacha_encrypt_raw};
 
-pub(crate) fn gen_random(buf: &mut [u8]) {
+pub(crate) fn gen_random(_buf: &mut [u8]) {
     #[cfg(unix)]
-    if let Ok(mut f) = std::fs::File::open("/dev/urandom") {
-        let _ = f.read_exact(buf);
+    {
+        use std::io::Read;
+        if let Ok(mut f) = std::fs::File::open("/dev/urandom") {
+            let _ = f.read_exact(_buf);
+        }
     }
 }
 

@@ -21,6 +21,7 @@ use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
 
 use crate::local::app_file_store::import_file;
+use crate::local::enums::DownloadStatus;
 use crate::local::graphql::context::{
     AppCtx, WsEvent, WS_DOWNLOAD_PROGRESS, WS_MESSAGE_UPDATED,
 };
@@ -30,7 +31,7 @@ use crate::utils::mime::mime_from_ext;
 #[derive(Clone, Debug)]
 pub struct DownloadState {
     pub message_id: String,
-    pub status: String,
+    pub status: DownloadStatus,
     pub downloaded: u64,
     pub total: u64,
     pub speed: u64,
@@ -104,7 +105,7 @@ pub async fn start_download(ctx: Arc<AppCtx>, message_id: String, peer_id: Strin
 
     let state = Arc::new(Mutex::new(DownloadState {
         message_id: message_id.clone(),
-        status: "PENDING".to_string(),
+        status: DownloadStatus::Pending,
         downloaded: 0,
         total: 0,
         speed: 0,
@@ -139,7 +140,7 @@ pub async fn pause_download(message_id: &str) -> bool {
             let _ = abort.send(());
         }
         let mut s = entry.state.lock().await;
-        s.status = "PAUSED".to_string();
+        s.status = DownloadStatus::Paused;
         return true;
     }
     false
@@ -246,7 +247,7 @@ async fn execute_download(
     let total: u64 = to_download.iter().map(|(_, _, _, s)| s).sum();
     {
         let mut s = state.lock().await;
-        s.status = "DOWNLOADING".to_string();
+        s.status = DownloadStatus::Downloading;
         s.total = total;
         s.downloaded = 0;
         s.speed = 0;
@@ -273,7 +274,7 @@ async fn execute_download(
     for (item_index, file_id, file_name, file_size) in &to_download {
         if abort_rx.try_recv().is_ok() {
             let mut s = state.lock().await;
-            s.status = "PAUSED".to_string();
+            s.status = DownloadStatus::Paused;
             emit_progress(&ctx, &s);
             cleanup(&message_id).await;
             return;
@@ -449,14 +450,14 @@ async fn download_one(
 async fn set_failed(ctx: &Arc<AppCtx>, state: &Arc<Mutex<DownloadState>>, error: &str) {
     log::warn!("[download] failed: {error}");
     let mut s = state.lock().await;
-    s.status = "FAILED".to_string();
+    s.status = DownloadStatus::Failed;
     s.speed = 0;
     emit_progress(ctx, &s);
 }
 
 async fn set_completed(ctx: &Arc<AppCtx>, state: &Arc<Mutex<DownloadState>>) {
     let mut s = state.lock().await;
-    s.status = "COMPLETED".to_string();
+    s.status = DownloadStatus::Completed;
     s.downloaded = s.total;
     s.speed = 0;
     emit_progress(ctx, &s);

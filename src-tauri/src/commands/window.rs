@@ -46,12 +46,13 @@ pub fn create_window(app: &AppHandle, path: String) {
             .as_millis()
     );
     let url = tauri::WebviewUrl::App(path.into());
-    match tauri::WebviewWindowBuilder::new(app, &label, url)
+    let win = tauri::WebviewWindowBuilder::new(app, &label, url)
         .title("")
         .inner_size(1200.0, 800.0)
-        .min_inner_size(900.0, 600.0)
-        .title_bar_style(tauri::TitleBarStyle::Overlay)
-        .build()
+        .min_inner_size(900.0, 600.0);
+    #[cfg(target_os = "macos")]
+    let win = win.title_bar_style(tauri::TitleBarStyle::Overlay);
+    match win.build()
     {
         Ok(win) => cascade_from_focused(app, &win),
         Err(e) => log::error!("open_window failed: {e}"),
@@ -69,12 +70,13 @@ pub fn new_window(app: &AppHandle) {
             .as_millis()
     );
     let url = tauri::WebviewUrl::App("/".into());
-    if let Err(e) = tauri::WebviewWindowBuilder::new(app, &label, url)
+    let win = tauri::WebviewWindowBuilder::new(app, &label, url)
         .title("")
         .inner_size(1200.0, 800.0)
-        .min_inner_size(900.0, 600.0)
-        .title_bar_style(tauri::TitleBarStyle::Overlay)
-        .build()
+        .min_inner_size(900.0, 600.0);
+    #[cfg(target_os = "macos")]
+    let win = win.title_bar_style(tauri::TitleBarStyle::Overlay);
+    if let Err(e) = win.build()
     {
         log::error!("new_window failed: {e}");
     }
@@ -90,7 +92,7 @@ pub fn open_window(app: AppHandle, path: String) {
 /// Update the display name shown for this window in the macOS dock right-click menu.
 /// The frontend calls this whenever the active device session changes.
 #[tauri::command]
-pub fn set_window_device_name(window: tauri::Window, name: String) {
+pub fn set_window_device_name(_window: tauri::Window, _name: String) {
     #[cfg(target_os = "macos")]
-    crate::commands::macos_dock::set_window_device_name(window.label(), &name);
+    crate::commands::macos_dock::set_window_device_name(_window.label(), &_name);
 }

@@ -38,9 +38,10 @@ fn build_warm(app: &AppHandle) -> tauri::Result<String> {
         .title("")
         .inner_size(1200.0, 800.0)
         .min_inner_size(900.0, 600.0)
-        .title_bar_style(tauri::TitleBarStyle::Overlay)
-        .visible(false)
-        .build()?;
+        .visible(false);
+    #[cfg(target_os = "macos")]
+    let win = win.title_bar_style(tauri::TitleBarStyle::Overlay);
+    let win = win.build()?;
     crate::commands::window::cascade_from_focused(app, &win);
     log::info!("media_preview: built warm window");
     Ok(WARM_LABEL.to_string())
@@ -113,12 +114,13 @@ pub fn activate(app: &AppHandle, source: serde_json::Value) -> String {
             .as_millis()
     );
     let url = WebviewUrl::App(visible_path.into());
-    match WebviewWindowBuilder::new(app, &label, url)
+    let win = WebviewWindowBuilder::new(app, &label, url)
         .title("")
         .inner_size(1200.0, 800.0)
-        .min_inner_size(900.0, 600.0)
-        .title_bar_style(tauri::TitleBarStyle::Overlay)
-        .build()
+        .min_inner_size(900.0, 600.0);
+    #[cfg(target_os = "macos")]
+    let win = win.title_bar_style(tauri::TitleBarStyle::Overlay);
+    match win.build()
     {
         Ok(win) => {
             crate::commands::window::cascade_from_focused(app, &win);
