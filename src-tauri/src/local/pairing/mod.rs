@@ -464,4 +464,10 @@ impl PairingManager {
             send_udp(&msg, &s.device_ip, NEARBY_PORT);
         }
     }
+
+    /// Whether a pairing session is currently in progress for `device_id`.
+    /// Mirrors plain-app's `NearbyViewModel.itemStatus[deviceId] == PAIRING`.
+    pub fn is_pairing(&self, device_id: &str) -> bool {
+        self.sessions.lock().unwrap().contains_key(device_id)
+    }
 }

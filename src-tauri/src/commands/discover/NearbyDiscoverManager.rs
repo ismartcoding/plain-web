@@ -42,6 +42,8 @@ pub struct DiscoveredDevice {
     #[serde(default)]
     pub last_seen: String,
     #[serde(default)]
+    pub status: String,
+    #[serde(default)]
     pub discovery_methods: Vec<String>,
 }
 
@@ -404,6 +406,7 @@ impl NearbyDiscoverManager {
                     version: reply.version.clone(),
                     platform: reply.platform.clone(),
                     last_seen: crate::local::db::now_iso(),
+                    status: self.get_device_status(&reply.id),
                     discovery_methods: vec!["LAN".to_string()],
                 };
                 {
@@ -435,6 +438,19 @@ impl NearbyDiscoverManager {
         peer.device_type = normalize_device_type(&reply.device_type);
         peer.updated_at = now_iso();
         self.db.upsert_peer(&peer);
+    }
+
+    /// Mirrors plain-app's `NearbyViewModel.getStatus(deviceId, paired)`:
+    /// PAIRING if a pairing session is in flight, else PAIRED if the peer
+    /// exists in the DB with Paired status, else UNPAIRED.
+    fn get_device_status(&self, device_id: &str) -> String {
+        if self.pairing.is_pairing(device_id) {
+            return "PAIRING".to_string();
+        }
+        match self.db.get_peer_by_id(device_id) {
+            Some(peer) if peer.is_paired() => "PAIRED".to_string(),
+            _ => "UNPAIRED".to_string(),
+        }
     }
 }
 
@@ -468,6 +484,7 @@ fn collect_discover_replies(rx: mpsc::Receiver<DiscoverReplyEvent>) -> DiscoverD
                     version: event.reply.version.clone(),
                     platform: event.reply.platform.clone(),
                     last_seen: crate::local::db::now_iso(),
+                    status: "UNPAIRED".to_string(),
                     discovery_methods: vec!["LAN".to_string()],
                 });
             }

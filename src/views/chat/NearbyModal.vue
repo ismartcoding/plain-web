@@ -33,16 +33,16 @@ v-if="d.discoveryMethods.includes('LAN')" v-tooltip="$t('discovered_via_lan')"
           <template #end>
             <v-outlined-button
 v-if="d.status === 'PAIRING'" class="btn-sm danger"
-              :loading="deviceStates.get(d.id) === 'canceling'" @click.stop="cancel(d)">
+              :loading="deviceStates.get(d.id) === DeviceState.CANCELING" @click.stop="cancel(d)">
               {{ $t('cancel') }}
             </v-outlined-button>
             <v-outlined-button
 v-else-if="d.status === 'UNPAIRING' || d.status === PeerStatus.PAIRED" class="btn-sm danger"
-              :loading="deviceStates.get(d.id) === 'unpairing'" @click.stop="unpair(d)">
+              :loading="deviceStates.get(d.id) === DeviceState.UNPAIRING" @click.stop="unpair(d)">
               {{ $t('unpair') }}
             </v-outlined-button>
             <v-outlined-button
-v-else class="btn-sm" :loading="deviceStates.get(d.id) === 'pairing'"
+v-else class="btn-sm" :loading="deviceStates.get(d.id) === DeviceState.PAIRING"
               @click.stop="startPair(d)">
               {{ $t('pair') }}
             </v-outlined-button>
@@ -60,7 +60,7 @@ v-else class="btn-sm" :loading="deviceStates.get(d.id) === 'pairing'"
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { popModal } from '@/components/modal'
 import { useDeviceDiscovery, type DiscoveredDevice } from '@/hooks/use-device-discovery'
-import { useDevicePairing } from '@/hooks/use-device-pairing'
+import { useDevicePairing, DeviceState } from '@/hooks/use-device-pairing'
 import { unpairPeerGQL, initMutation } from '@/lib/api/mutation'
 import { useChatStore } from '@/stores/chat'
 import { PeerStatus } from '@/lib/status'
@@ -82,7 +82,7 @@ const chatStore = useChatStore()
 
 
 async function startPair(d: DiscoveredDevice) {
-  deviceStates.set(d.id, 'pairing')
+  deviceStates.set(d.id, DeviceState.PAIRING)
   await pairDevice({
     id: d.id,
     name: d.name,
@@ -99,7 +99,7 @@ async function startPair(d: DiscoveredDevice) {
 }
 
 async function cancel(d: DiscoveredDevice) {
-  deviceStates.set(d.id, 'canceling')
+  deviceStates.set(d.id, DeviceState.CANCELING)
   await cancelPairing(d.id)
   d.status = PeerStatus.UNPAIRED
   deviceStates.delete(d.id)
@@ -108,11 +108,11 @@ async function cancel(d: DiscoveredDevice) {
 const { mutate: unpairPeerMute } = initMutation({ document: unpairPeerGQL })
 
 async function unpair(d: DiscoveredDevice) {
-  deviceStates.set(d.id, 'unpairing')
+  deviceStates.set(d.id, DeviceState.UNPAIRING)
   const result = await unpairPeerMute({ id: d.id })
   if (result) {
     d.status = PeerStatus.UNPAIRED
-    deviceStates.set(d.id, 'unpaired')
+    deviceStates.set(d.id, DeviceState.UNPAIRED)
     await chatStore.fetchPeers()
   }
   deviceStates.delete(d.id)

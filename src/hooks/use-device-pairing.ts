@@ -4,13 +4,26 @@ import {
   pairDeviceGQL,
   respondToPairingGQL,
 } from '@/lib/api/mutation'
-import type { PairingRequest, PairingResult } from '@/lib/pairing-types'
+import type { PairingRequest } from '@/lib/pairing-types'
 import { reactive } from 'vue'
 
 export type { PairingRequest }
-export type PairingStatus = 'idle' | 'requesting' | 'waiting' | 'success' | 'failed' | 'cancelled'
+export enum PairingStatus {
+  IDLE,
+  REQUESTING,
+  WAITING,
+  SUCCESS,
+  FAILED,
+  CANCELLED,
+}
 
-export type DeviceState = 'unpaired' | 'pairing' | 'paired' | 'unpairing' | 'canceling'
+export enum DeviceState {
+  UNPAIRED,
+  PAIRING,
+  PAIRED,
+  UNPAIRING,
+  CANCELING,
+}
 const deviceStates = reactive(new Map<string, DeviceState>())
 const { mutate: pairDeviceMutate } = initMutation({ document: pairDeviceGQL }, false)
 const { mutate: cancelPairingMutate } = initMutation({ document: cancelPairingGQL }, false)
