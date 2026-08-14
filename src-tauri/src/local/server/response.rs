@@ -2,7 +2,7 @@ use tokio::io::{AsyncWrite, AsyncWriteExt};
 
 use crate::utils::http::CORS;
 
-pub(super) const APP_ID: &str = "com.ismartcoding.plainapp";
+pub(super) const APP_ID: &str = "com.ismartcoding.plain.desktop";
 
 /// Public to the crate so sibling modules (e.g. `peer_graphql`) can write
 /// HTTP responses without duplicating the framing logic.
