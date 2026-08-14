@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "identifier": "com.ismartcoding.plainapp",
+  "identifier": "com.ismartcoding.plain.desktop",
   "windows": ["main", "window-*", "media-preview-warm", "media-preview-*"],
   "permissions": [
     "core:default",
