@@ -121,7 +121,7 @@ impl LocalServerState {
             }
         };
 
-        let mut state = LocalServerState {
+        let state = LocalServerState {
             token: token.clone(),
             event_tx,
             port,

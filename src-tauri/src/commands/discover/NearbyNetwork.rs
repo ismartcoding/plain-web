@@ -61,7 +61,6 @@ pub fn start_receiver(on_message: Arc<dyn Fn(String, String) + Send + Sync>) -> 
 }
 
 pub fn send_multicast(message: &str) -> MulticastSendSummary {
-    let target = SocketAddrV4::new(MULTICAST_ADDR, NEARBY_PORT);
     let interfaces = if_addrs::get_if_addrs().unwrap_or_default();
     let mut bind_addrs = local_ipv4_addrs(&interfaces);
     if bind_addrs.is_empty() {
