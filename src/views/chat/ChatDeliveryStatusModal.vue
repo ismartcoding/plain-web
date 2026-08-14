@@ -6,12 +6,14 @@
         {{ $t('delivery_status_summary', { delivered: deliveredCount, total: results.length }) }}
       </p>
       <ul v-if="results.length > 1" class="delivery-result-list">
-        <li v-for="r in results" :key="r.peerId" class="delivery-result-item">
-          <i-material-symbols:check-rounded v-if="!r.error" class="delivery-icon delivered" />
-          <i-material-symbols:error-outline-rounded v-else class="delivery-icon failed" />
-          <span class="delivery-peer-name">{{ r.peerName }}</span>
-          <span v-if="r.error" class="delivery-error-text">{{ r.error }}</span>
-        </li>
+        <VListItem v-for="r in results" :key="r.peerId" class="delivery-result-item">
+          <template #start>
+            <i-material-symbols:check-rounded v-if="!r.error" class="delivery-icon delivered" />
+            <i-material-symbols:error-outline-rounded v-else class="delivery-icon failed" />
+          </template>
+          <template #title>{{ r.peerName }}</template>
+          <template v-if="r.error" #subtitle>{{ r.error }}</template>
+        </VListItem>
       </ul>
       <p v-else-if="peerError" class="delivery-error-single">{{ peerError }}</p>
     </template>
@@ -62,3 +64,16 @@ function doResend() {
   popModal()
 }
 </script>
+
+<style lang="scss" scoped>
+.delivery-result-item {
+  :deep(.subtitle) {
+    color: var(--md-sys-color-error);
+    font-size: 0.8rem;
+    white-space: normal;
+    word-break: break-word;
+    overflow: visible;
+    text-overflow: unset;
+  }
+}
+</style>
