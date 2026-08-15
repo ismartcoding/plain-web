@@ -93,6 +93,28 @@ jobs:
           done
           exit "$missing"
 
+      - name: Import macOS signing certificate
+        if: matrix.platform == 'macos'
+        shell: bash
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          cert_path="$RUNNER_TEMP/build_certificate.p12"
+          keychain_path="$RUNNER_TEMP/app-signing.keychain-db"
+          keychain_password="$(openssl rand -hex 32)"
+          echo "$APPLE_CERTIFICATE" | base64 --decode > "$cert_path"
+          security create-keychain -p "$keychain_password" "$keychain_path"
+          security set-keychain-settings -lut 21600 "$keychain_path"
+          security unlock-keychain -p "$keychain_password" "$keychain_path"
+          security import "$cert_path" \
+            -P "$APPLE_CERTIFICATE_PASSWORD" \
+            -A -t cert -f pkcs12 -k "$keychain_path"
+          security list-keychains -d user -s "$keychain_path" login
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$keychain_password" "$keychain_path"
+          security find-identity -v -p codesigning
+
       - name: Build desktop app
         shell: bash
         env:
@@ -145,6 +167,13 @@ jobs:
             xcrun stapler validate "$file"
             spctl -a -vv -t open "$file"
           done
+
+      - name: Cleanup macOS signing keychain
+        if: matrix.platform == 'macos' && always()
+        shell: bash
+        run: |
+          security delete-keychain "$RUNNER_TEMP/app-signing.keychain-db" || true
+          rm -f "$RUNNER_TEMP/build_certificate.p12"
 
       - name: Collect artifacts
         shell: bash
