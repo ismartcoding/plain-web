@@ -2,6 +2,8 @@ export default {
   device_info: 'Apparaatinformatie',
   basic_info: 'Basisinformatie',
   device_name: 'Apparaatnaam',
+  platform: 'Platform',
+  language: 'Taal',
   model: 'Model',
   device: 'Apparaat',
   board: 'Bord',

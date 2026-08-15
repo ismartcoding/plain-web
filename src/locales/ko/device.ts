@@ -2,6 +2,8 @@ export default {
   device_info: '장치 정보',
   basic_info: '기본 정보',
   device_name: '장치 이름',
+  platform: '플랫폼',
+  language: '언어',
   model: '모델',
   device: '장치',
   board: '보드',

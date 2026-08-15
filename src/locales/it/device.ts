@@ -2,6 +2,8 @@ export default {
   device_info: 'Informazioni sul dispositivo',
   basic_info: 'Informazioni di base',
   device_name: 'Nome dispositivo',
+  platform: 'Piattaforma',
+  language: 'Lingua',
   model: 'Modello',
   device: 'Dispositivo',
   board: 'Scheda',

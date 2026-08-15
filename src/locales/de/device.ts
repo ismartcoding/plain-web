@@ -2,6 +2,8 @@ export default {
   device_info: 'Geräteinformationen',
   basic_info: 'Grundlegende Informationen',
   device_name: 'Gerätename',
+  platform: 'Plattform',
+  language: 'Sprache',
   model: 'Modell',
   device: 'Gerät',
   board: 'Platine',

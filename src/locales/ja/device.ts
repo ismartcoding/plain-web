@@ -2,6 +2,8 @@ export default {
   device_info: 'デバイス情報',
   basic_info: '基本情報',
   device_name: 'デバイス名',
+  platform: 'プラットフォーム',
+  language: '言語',
   model: 'モデル',
   device: 'デバイス',
   board: 'ボード',
