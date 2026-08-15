@@ -152,29 +152,6 @@ jobs:
             xcrun stapler staple "$file"
           done
 
-      - name: Verify macOS notarization
-        if: matrix.platform == 'macos'
-        shell: bash
-        run: |
-          set -euo pipefail
-          shopt -s nullglob
-          files=(src-tauri/target/release/bundle/dmg/*.dmg)
-          if [ "${#files[@]}" -eq 0 ]; then
-            echo "::error::No macOS DMG artifacts found"
-            exit 1
-          fi
-          for file in "${files[@]}"; do
-            xcrun stapler validate "$file"
-            spctl -a -vv -t open "$file"
-          done
-
-      - name: Cleanup macOS signing keychain
-        if: matrix.platform == 'macos' && always()
-        shell: bash
-        run: |
-          security delete-keychain "$RUNNER_TEMP/app-signing.keychain-db" || true
-          rm -f "$RUNNER_TEMP/build_certificate.p12"
-
       - name: Collect artifacts
         shell: bash
         run: |
@@ -213,6 +190,39 @@ jobs:
           path: release-artifacts/*
           if-no-files-found: error
           retention-days: 1
+
+      - name: Verify macOS notarization
+        if: matrix.platform == 'macos'
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(src-tauri/target/release/bundle/dmg/*.dmg)
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "::error::No macOS DMG artifacts found"
+            exit 1
+          fi
+          for file in "${files[@]}"; do
+            xcrun stapler validate "$file"
+            mount_dir="$(mktemp -d)"
+            hdiutil attach -readonly -nobrowse -mountpoint "$mount_dir" "$file" >/dev/null
+            app_path="$(find "$mount_dir" -maxdepth 2 -type d -name '*.app' | head -n 1)"
+            if [ -z "$app_path" ]; then
+              hdiutil detach "$mount_dir" >/dev/null
+              echo "::error::No .app bundle found inside $file"
+              exit 1
+            fi
+            codesign --verify --deep --strict --verbose=2 "$app_path"
+            spctl -a -vv -t open --context context:primary-signature "$app_path"
+            hdiutil detach "$mount_dir" >/dev/null
+          done
+
+      - name: Cleanup macOS signing keychain
+        if: matrix.platform == 'macos' && always()
+        shell: bash
+        run: |
+          security delete-keychain "$RUNNER_TEMP/app-signing.keychain-db" || true
+          rm -f "$RUNNER_TEMP/build_certificate.p12"
 
   package:
     needs: build
