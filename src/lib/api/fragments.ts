@@ -31,6 +31,7 @@ export const appFragment = `
     httpsPort
     appDir
     deviceName
+    deviceType
     battery
     appVersion
     osVersion

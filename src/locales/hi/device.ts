@@ -84,4 +84,13 @@ export default {
   https_addresses: 'HTTPS पते',
   edit_port: 'पोर्ट संपादित करें',
   restart_to_apply: 'परिवर्तन लागू करने के लिए ऐप पुनरारंभ करें',
+  mdns_hostname: 'mDNS होस्टनाम',
+  mdns_hostname_invalid: 'होस्टनाम का अंत .local से होना चाहिए',
+  mdns_debug: 'mDNS Debug',
+  mdns_service_type: 'Service',
+  mdns_instance: 'Instance',
+  mdns_ips: 'IPs',
+  mdns_txt: 'TXT',
+  mdns_no_devices: 'No nearby devices found',
+  not_available: 'लागू नहीं',
 }

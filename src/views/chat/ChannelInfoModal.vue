@@ -74,7 +74,7 @@ const enrichedMembers = computed<IChannelMemberListItem[]>(() =>
       isOwner,
       name: isSelf ? deviceName.value : peer?.name ?? m.id.substring(0, 8),
       ip: isSelf ? undefined : peer?.ip,
-      deviceType: peer?.deviceType,
+      deviceType: isSelf ? app.deviceType : peer?.deviceType,
     }
   }),
 )

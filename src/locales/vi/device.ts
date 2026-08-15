@@ -84,4 +84,13 @@ export default {
   https_addresses: 'Địa chỉ HTTPS',
   edit_port: 'Chỉnh sửa cổng',
   restart_to_apply: 'Khởi động lại ứng dụng để áp dụng các thay đổi',
+  mdns_hostname: 'Tên máy chủ mDNS',
+  mdns_hostname_invalid: 'Tên máy chủ phải kết thúc bằng .local',
+  mdns_debug: 'mDNS Debug',
+  mdns_service_type: 'Service',
+  mdns_instance: 'Instance',
+  mdns_ips: 'IPs',
+  mdns_txt: 'TXT',
+  mdns_no_devices: 'No nearby devices found',
+  not_available: 'Không có',
 }

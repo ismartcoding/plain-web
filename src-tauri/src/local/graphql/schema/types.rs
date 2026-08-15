@@ -164,6 +164,7 @@ pub struct App {
     pub https_port: i32,
     pub app_dir: String,
     pub device_name: String,
+    pub device_type: DeviceType,
     pub battery: String,
     pub app_version: String,
     pub os_version: String,

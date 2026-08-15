@@ -84,4 +84,13 @@ export default {
   https_addresses: 'HTTPS 주소',
   edit_port: '포트 편집',
   restart_to_apply: '변경 사항을 적용하려면 앱을 다시 시작하세요',
+  mdns_hostname: 'mDNS 호스트명',
+  mdns_hostname_invalid: '호스트명은 .local로 끝나야 합니다',
+  mdns_debug: 'mDNS Debug',
+  mdns_service_type: 'Service',
+  mdns_instance: 'Instance',
+  mdns_ips: 'IPs',
+  mdns_txt: 'TXT',
+  mdns_no_devices: 'No nearby devices found',
+  not_available: '해당 없음',
 }

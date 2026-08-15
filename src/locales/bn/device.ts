@@ -84,4 +84,13 @@ export default {
   https_addresses: 'HTTPS ঠিকানা',
   edit_port: 'পোর্ট সম্পাদনা',
   restart_to_apply: 'পরিবর্তন প্রয়োগ করতে অ্যাপ পুনরায় চালু করুন',
+  mdns_hostname: 'mDNS হোস্টনেম',
+  mdns_hostname_invalid: 'হোস্টনেম অবশ্যই .local দিয়ে শেষ হতে হবে',
+  mdns_debug: 'mDNS Debug',
+  mdns_service_type: 'Service',
+  mdns_instance: 'Instance',
+  mdns_ips: 'IPs',
+  mdns_txt: 'TXT',
+  mdns_no_devices: 'No nearby devices found',
+  not_available: 'প্রযোজ্য নয়',
 }

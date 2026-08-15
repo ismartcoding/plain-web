@@ -8,7 +8,7 @@ use super::types::{
 };
 #[cfg(target_os = "macos")]
 use super::types::{BatteryHealth, BatteryPlugged, BatteryStatus};
-use crate::local::enums::AppChannelType;
+use crate::local::enums::{AppChannelType, DeviceType};
 
 #[derive(Default)]
 pub struct AppQuery;
@@ -31,6 +31,7 @@ impl AppQuery {
             // (`/fs` route) reads from.
             app_dir: c.data_dir.join("files").to_string_lossy().into_owned(),
             device_name: c.device_name.read().unwrap().clone(),
+            device_type: DeviceType::Computer,
             battery: String::new(),
             app_version: String::new(),
             os_version: String::new(),

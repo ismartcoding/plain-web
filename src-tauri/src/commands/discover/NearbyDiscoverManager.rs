@@ -11,7 +11,7 @@
 //! instead of UDP (see `local::pairing`).
 
 use super::mdns::host_responder;
-use super::mdns::service_browser::{FoundDevice, MdnsServiceBrowser};
+use super::mdns::service_browser::{FoundDevice, MdnsServiceBrowser, MdnsServiceSnapshot};
 use super::peer_status_manager::PeerStatusManager;
 use crate::local::db::{ChatDb, now_iso};
 use crate::local::graphql::{
@@ -72,6 +72,7 @@ pub struct NearbyDiscoverManager {
     db: Arc<ChatDb>,
     identity: Arc<AppIdentity>,
     device_name: Arc<RwLock<String>>,
+    mdns_hostname: Arc<RwLock<String>>,
     pairing: PairingManager,
     peer_status: PeerStatusManager,
     https_port: Arc<AtomicU16>,
@@ -85,6 +86,7 @@ impl NearbyDiscoverManager {
         db: Arc<ChatDb>,
         identity: Arc<AppIdentity>,
         device_name: Arc<RwLock<String>>,
+        mdns_hostname: Arc<RwLock<String>>,
         pairing: PairingManager,
         peer_status: PeerStatusManager,
         https_port: u16,
@@ -93,17 +95,22 @@ impl NearbyDiscoverManager {
             db,
             identity,
             device_name,
+            mdns_hostname,
             pairing,
             peer_status,
             https_port: Arc::new(AtomicU16::new(https_port)),
             event_tx: Arc::new(RwLock::new(None)),
-            browser: MdnsServiceBrowser::new(String::new(), String::new(), |_| {}),
+            browser: MdnsServiceBrowser::new(
+                String::new(),
+                Arc::new(RwLock::new(String::new())),
+                |_| {},
+            ),
             seen_in_session: Arc::new(Mutex::new(HashMap::new())),
         };
         let callback_state = this.clone();
         let browser = MdnsServiceBrowser::new(
             this.identity.client_id.clone(),
-            mdns_hostname(&this.identity.client_id),
+            this.mdns_hostname.clone(),
             move |device: FoundDevice| callback_state.on_device_found(device),
         );
         Self { browser, ..this }
@@ -125,29 +132,52 @@ impl NearbyDiscoverManager {
     /// instance name is the device name; TXT records carry the identity
     /// (id / device type / version / platform).
     pub fn publish_service(&self) {
-        let hostname = mdns_hostname(&self.identity.client_id);
+        let hostname = self.mdns_hostname();
         let port = self.https_port.load(Ordering::SeqCst);
-        if port == 0 {
-            return;
-        }
-        let service = super::mdns::service_info::build_service_info(
-            &self.device_name.read().unwrap().clone(),
-            &hostname,
-            port,
-            &self.identity.client_id,
-            LOCAL_DEVICE_TYPE_WIRE,
-            env!("CARGO_PKG_VERSION"),
-            std::env::consts::OS,
-            host_responder::local_ipv4_strs(),
-        );
-        host_responder::start(&hostname, Some(service));
+        let service = (port > 0).then(|| {
+            super::mdns::service_info::build_service_info(
+                &self.device_name.read().unwrap().clone(),
+                &hostname,
+                port,
+                &self.identity.client_id,
+                LOCAL_DEVICE_TYPE_WIRE,
+                env!("CARGO_PKG_VERSION"),
+                std::env::consts::OS,
+                host_responder::local_ipv4_strs(),
+            )
+        });
+        host_responder::start(&hostname, service);
     }
 
     /// Ensures the shared mDNS responder socket is up so the browser can
     /// send queries and the responder can answer PTR/SRV/TXT/A queries.
     /// Service registration itself happens with the HTTPS server lifecycle.
     pub fn start(&self) {
-        host_responder::ensure_started(&mdns_hostname(&self.identity.client_id));
+        host_responder::ensure_started(&self.mdns_hostname());
+    }
+
+    /// Current mDNS hostname — mirrors plain-app's `TempData.mdnsHostname`.
+    pub fn mdns_hostname(&self) -> String {
+        self.mdns_hostname.read().unwrap().clone()
+    }
+
+    /// Persists and applies a new mDNS hostname — mirrors plain-app's
+    /// `MdnsHostnamePreference` + `WebAddressBar` save path, applied
+    /// immediately by re-publishing on the shared responder socket.
+    pub fn set_mdns_hostname(&self, handle: &tauri::AppHandle, hostname: &str) {
+        crate::prefs::set_mdns_hostname(handle, hostname);
+        *self.mdns_hostname.write().unwrap() = hostname.to_string();
+        self.publish_service();
+        // Drop instances cached under the previous hostname and re-browse so
+        // the debug snapshot reflects the change instead of showing stale data.
+        self.browser.clear_instances();
+        self.browser.send_ptr_query();
+    }
+
+    /// Read-only snapshot of every known `_plainapp._tcp.local` instance —
+    /// mirrors plain-app's `MdnsServiceBrowser.snapshot` (`MdnsDebugPage`).
+    pub fn mdns_snapshot(&self) -> Vec<MdnsServiceSnapshot> {
+        self.browser.snapshot()
     }
 
     /// Mirrors plain-app's `startDiscovery` mutation: runs the mDNS browser
@@ -269,7 +299,9 @@ impl NearbyDiscoverManager {
     /// Refreshes a known peer's address info from an mDNS response — mirrors
     /// plain-app's `PeerManager.applyDeviceDiscovered` (bumps `updatedAt`).
     fn update_known_peer(&self, device: &FoundDevice) {
-        let Some(mut peer) = self.db.get_peer_by_id(&device.id) else {
+        // Mirrors plain-app's PeerManager.applyDeviceDiscovered: only a known,
+        // paired peer gets its address refreshed.
+        let Some(mut peer) = self.db.get_peer_by_id(&device.id).filter(|p| p.is_paired()) else {
             return;
         };
         peer.name = device.name.clone();
@@ -294,33 +326,9 @@ impl NearbyDiscoverManager {
     }
 }
 
-/// Deterministic mDNS hostname for this device — e.g. `plainapp-a1b2c3d4.local`.
-pub fn mdns_hostname(client_id: &str) -> String {
-    let suffix: String = client_id
-        .chars()
-        .filter(|c| c.is_ascii_alphanumeric())
-        .take(8)
-        .collect();
-    format!("plainapp-{suffix}")
-}
-
 pub async fn discover_devices_impl(
     state: tauri::State<'_, NearbyDiscoverManager>,
 ) -> Result<DiscoverDevicesResult, String> {
     Ok(state.discover_devices().await)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn mdns_hostname_uses_client_id_prefix() {
-        assert_eq!(
-            mdns_hostname("a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d"),
-            "plainapp-a1b2c3d4"
-        );
-        assert_eq!(mdns_hostname("short"), "plainapp-short");
-        assert_eq!(mdns_hostname(""), "plainapp-");
-    }
-}
