@@ -318,18 +318,26 @@ export function useLightboxNavigation(
   }
 
   const onNext = () => {
+    const total = tempStore.lightbox.sources.length
+    if (total == 1) {
+      return
+    }
     const oldIndex = imgIndex.value
     const newIndex = loop.value ? (oldIndex + 1) % tempStore.lightbox.sources.length : oldIndex + 1
-    if (!loop.value && newIndex > tempStore.lightbox.sources.length - 1) return
+    if (!loop.value && newIndex > total - 1) return
     changeIndex(newIndex, ['on-next', 'on-next-click'])
   }
 
   const onPrev = () => {
+    const total = tempStore.lightbox.sources.length
+    if (total == 1) {
+      return
+    }
     const oldIndex = imgIndex.value
     let newIndex = oldIndex - 1
     if (oldIndex === 0) {
       if (!loop.value) return
-      newIndex = tempStore.lightbox.sources.length - 1
+      newIndex = total - 1
     }
     changeIndex(newIndex, ['on-prev', 'on-prev-click'])
   }
