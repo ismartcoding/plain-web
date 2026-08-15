@@ -232,6 +232,9 @@ export function useLightboxNavigation(
   // URLs whose bytes have been fetched AND fully decoded, so swapping the visible
   // <img> to one of these is guaranteed to paint immediately with no blank frame.
   const decodedUrls = new Set<string>()
+  // Video URLs whose preloaded element has reached CAN_PLAY, so the current
+  // <video> can swap to them without a loading flash.
+  const readyVideoUrls = new Set<string>()
   const preloadedVideoEls: HTMLVideoElement[] = []
 
   const preloadSource = (source: ISource | undefined) => {
@@ -260,6 +263,7 @@ export function useLightboxNavigation(
       videoEl.muted = true
       videoEl.src = source.src
       videoEl.load()
+      videoEl.addEventListener('canplay', () => readyVideoUrls.add(source.src))
       preloadedVideoEls.push(videoEl)
     }
   }
@@ -292,7 +296,9 @@ export function useLightboxNavigation(
 
     // If the target image was already preloaded and fully decoded, keep it visible
     // throughout the swap instead of hiding it while "loading" — avoids a flash.
-    const alreadyDecoded = isImage(s.name) && decodedUrls.has(getImageDisplayUrl(s, imageViewQuality.value))
+    const alreadyDecoded =
+      (isImage(s.name) && decodedUrls.has(getImageDisplayUrl(s, imageViewQuality.value))) ||
+      (isVideo(s.name) && readyVideoUrls.has(s.src))
     reset(alreadyDecoded)
 
     imgIndex.value = newIndex
