@@ -2,6 +2,8 @@ export default {
   device_info: 'கருவி தகவல்',
   basic_info: 'அடிப்படை தகவல்',
   device_name: 'கருவி பெயர்',
+  platform: 'தளம்',
+  language: 'மொழி',
   model: 'மாதிரி',
   device: 'கருவி',
   board: 'போர்டு',

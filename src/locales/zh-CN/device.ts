@@ -2,6 +2,8 @@ export default {
   device_info: '设备信息',
   basic_info: '基本信息',
   device_name: '设备名称',
+  platform: '平台',
+  language: '语言',
   model: '型号',
   device: '设备',
   board: '主板',

@@ -2,6 +2,8 @@ export default {
   device_info: 'Cihaz bilgisi',
   basic_info: 'Temel bilgi',
   device_name: 'Cihaz adı',
+  platform: 'Platform',
+  language: 'Dil',
   model: 'Model',
   device: 'Cihaz',
   board: 'Anakart',

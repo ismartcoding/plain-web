@@ -2,6 +2,8 @@ export default {
   device_info: 'Thông tin thiết bị',
   basic_info: 'Thông tin cơ bản',
   device_name: 'Tên thiết bị',
+  platform: 'Nền tảng',
+  language: 'Ngôn ngữ',
   model: 'Mẫu',
   device: 'Thiết bị',
   board: 'Bảng mạch',

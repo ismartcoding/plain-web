@@ -2,6 +2,8 @@ export default {
   device_info: 'डिवाइस जानकारी',
   basic_info: 'मौलिक जानकारी',
   device_name: 'डिवाइस नाम',
+  platform: 'प्लेटफ़ॉर्म',
+  language: 'भाषा',
   model: 'मॉडल',
   device: 'डिवाइस',
   board: 'बोर्ड',
