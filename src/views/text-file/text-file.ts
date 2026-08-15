@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { useMarkdown } from '@/hooks/markdown'
-import { getApiBaseUrl } from '@/lib/api/api'
+import { getProxyUrl } from '@/lib/api/api'
 import { initMutation, runMutation, writeTextFileGQL } from '@/lib/api/mutation'
 import { gqlFetch } from '@/lib/api/gql-client'
 import { appGQL } from '@/lib/api/query'
@@ -128,7 +128,11 @@ export function useTextFile() {
       const id = route.query.id as string
       if (!id) { error.value = t('invalid_file_id'); return }
 
-      const response = await fetch(`${getApiBaseUrl()}/fs?id=${encodeURIComponent(id)}`)
+      // Route through the local HTTP reverse proxy (getProxyUrl) so Tauri
+      // can accept the device's self-signed HTTPS cert — a direct fetch to
+      // https://<device>/fs fails cert validation. Matches how chat images
+      // are loaded (getFileUrl → getProxyUrl).
+      const response = await fetch(getProxyUrl(`/fs?id=${encodeURIComponent(id)}`))
       if (!response.ok) {
         error.value = response.status === 404 ? t('file_not_found')
           : response.status === 403 ? t('access_denied')
