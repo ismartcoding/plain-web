@@ -1,4 +1,8 @@
 export default {
+  image: '圖片',
+  video: '影片',
+  file: '檔案',
+  message: '訊息',
   my_phone: '我的手機',
   me: '我',
   this_device: '本裝置',

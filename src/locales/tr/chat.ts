@@ -1,4 +1,8 @@
 export default {
+  image: 'Resim',
+  video: 'Video',
+  file: 'Dosya',
+  message: 'Mesaj',
   my_phone: 'Benim telefonum',
   me: 'Ben',
   this_device: 'Bu cihaz',

@@ -1,4 +1,8 @@
 export default {
+  image: 'படம்',
+  video: 'வீடியோ',
+  file: 'கோப்பு',
+  message: 'செய்தி',
   my_phone: 'என் மொபைல்',
   me: 'எனக்கு',
   this_device: 'இந்தச் சாதனம்',

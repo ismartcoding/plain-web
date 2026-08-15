@@ -1,4 +1,8 @@
 export default {
+  image: '图片',
+  video: '视频',
+  file: '文件',
+  message: '消息',
   send_to_phone_clipboard: '发送到手机剪贴板',
   clipboard_text: '剪贴板内容',
   my_phone: '我的手机',

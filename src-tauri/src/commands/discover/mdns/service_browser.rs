@@ -283,6 +283,7 @@ fn handle_packet(inner: &Inner, data: &[u8]) {
     }
 
     let mut touched: HashSet<String> = HashSet::new();
+    let mut discovered: Vec<String> = Vec::new(); // instances first seen in this packet
     {
         let mut state = inner.state.lock().unwrap();
         for record in parsed.all_records() {
@@ -290,6 +291,9 @@ fn handle_packet(inner: &Inner, data: &[u8]) {
                 TYPE_PTR => {
                     if let Some(target) = record.ptr_target() {
                         if let Some((key, instance)) = find_instance(&state.instances, &target) {
+                            if !state.instances.contains_key(&key) {
+                                discovered.push(key.clone());
+                            }
                             state.instances.insert(key.clone(), instance);
                             touched.insert(key);
                         }
@@ -358,6 +362,39 @@ fn handle_packet(inner: &Inner, data: &[u8]) {
                 _ => {}
             }
         }
+    }
+
+    // Immediately resolve newly discovered instances instead of waiting for
+    // the next browse_once() cycle (up to 5 s). This is the single most
+    // impactful latency optimization for first device appearance.
+    let queries: Vec<String> = {
+        let mut state = inner.state.lock().unwrap();
+        let now = now_ms();
+        discovered
+            .into_iter()
+            .filter_map(|key| {
+                let (instance_name, complete) = {
+                    let instance = state.instances.get(&key)?;
+                    (instance.instance_name.clone(), instance.complete())
+                };
+                // Skip when the same packet already carried SRV/TXT.
+                if complete {
+                    return None;
+                }
+                state.srv_txt_queried_at.insert(key, now);
+                Some(instance_name)
+            })
+            .collect()
+    };
+    for instance_name in queries {
+        host_responder::send_query(&packet_codec::build_srv_query(
+            &instance_name,
+            PLAINAPP_SERVICE_TYPE,
+        ));
+        host_responder::send_query(&packet_codec::build_txt_query(
+            &instance_name,
+            PLAINAPP_SERVICE_TYPE,
+        ));
     }
 
     let complete: Vec<Instance> = {

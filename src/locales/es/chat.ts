@@ -1,4 +1,8 @@
 export default {
+  image: 'Imagen',
+  video: 'Vídeo',
+  file: 'Archivo',
+  message: 'Mensaje',
   my_phone: 'Mi teléfono',
   me: 'Yo',
   this_device: 'Este dispositivo',

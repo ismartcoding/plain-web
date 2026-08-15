@@ -1,5 +1,9 @@
 export default {
-  my_phone: 'माय फ़ोन',
+  image: 'इमेज',
+  video: 'वीडियो',
+  file: 'फ़ाइल',
+  message: 'संदेश',
+  my_phone: 'माय फ़ोन',
   me: 'में',
   this_device: 'यह डिवाइस',
   chat_input_hint: 'आपके मन में क्या है?',

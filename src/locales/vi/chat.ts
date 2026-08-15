@@ -1,4 +1,8 @@
 export default {
+  image: 'Ảnh',
+  video: 'Video',
+  file: 'Tệp',
+  message: 'Tin nhắn',
   my_phone: 'Điện thoại của tôi',
   me: 'Tôi',
   this_device: 'Thiết bị này',
