@@ -125,6 +125,7 @@ fn spawn_peer_delivery(c: &Arc<AppCtx>, chat: &DChat) {
     let token = c.token.clone();
     let peer_id_for_status = peer.id.clone();
     let peer_name_for_status = peer.name.clone();
+    let discover_manager = c.discover_manager.clone();
     tokio::spawn(async move {
         let delivery_result = deliver_to_peer(
             &peer_urls,
@@ -135,6 +136,12 @@ fn spawn_peer_delivery(c: &Arc<AppCtx>, chat: &DChat) {
             None,
         )
         .await;
+        if delivery_result.is_err() {
+            // Mirrors ChatSender.triggerPeerRediscovery: a failed send usually
+            // means the peer's IP/port changed — kick an mDNS browse so the
+            // reply refreshes the peer row for the next attempt/reconnect.
+            discover_manager.browse();
+        }
         let (new_status, status_data) = match delivery_result {
             Ok(()) => (ChatStatus::Sent, String::new()),
             Err(error) => (
@@ -169,6 +176,7 @@ fn spawn_channel_delivery(c: &Arc<AppCtx>, chat: &DChat) {
     let peer_key_cache = c.peer_key_cache.clone();
     let channel_key_cache = c.channel_key_cache.clone();
     let channel_for_send = channel.clone();
+    let discover_manager = c.discover_manager.clone();
 
     tokio::spawn(async move {
         {
@@ -196,6 +204,10 @@ fn spawn_channel_delivery(c: &Arc<AppCtx>, chat: &DChat) {
                 (s, d)
             }
             SendResult::NoLeader | SendResult::LeaderPeerMissing(_) => {
+                // Mirrors ChatSender.sendToChannel: no reachable leader/member
+                // means stale peer addresses — trigger an mDNS browse so the
+                // peers' IP/port refresh for the next delivery/reconnect.
+                discover_manager.browse();
                 (ChatStatus::Failed, build_no_leader_status_data())
             }
         };

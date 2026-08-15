@@ -6,7 +6,7 @@
   </Teleport>
   <div class="scroll-content">
     <div class="grids">
-      <div v-if="isTauri">
+      <div v-if="localMode">
         <section class="card">
           <h5 class="card-title">{{ $t('http_server') }}</h5>
           <div class="card-body">
@@ -31,6 +31,18 @@
                 {{ httpsPort }}
                 <v-icon-button class="btn-sm" @click="openPortDialog('https')">
                   <i-material-symbols:edit-rounded />
+                </v-icon-button>
+              </div>
+            </div>
+            <div class="key-value">
+              <div class="key">{{ $t('mdns_hostname') }}</div>
+              <div class="value">
+                {{ mdnsHostname }}
+                <v-icon-button class="btn-sm" @click="openMdnsDialog">
+                  <i-material-symbols:edit-rounded />
+                </v-icon-button>
+                <v-icon-button v-tooltip="$t('mdns_debug')" class="btn-sm" @click="openMdnsDebug">
+                  <i-material-symbols:bug-report-rounded />
                 </v-icon-button>
               </div>
             </div>
@@ -114,63 +126,60 @@
       </div>
     </div>
   </div>
-  <v-modal v-if="portDialogVisible" width="360px" @close="closePortDialog">
-    <template #headline>{{ $t('edit_port') }}</template>
-    <template #content>
-      <div class="port-dialog-body">
-        <v-select
-          v-model="portDialogValue"
-          :options="portDialogKind === 'http' ? httpPortOptions : httpsPortOptions"
-          :placeholder="$t('port')"
-        />
-      </div>
-    </template>
-    <template #actions>
-      <v-filled-button :loading="saving" @click="confirmPort">{{ $t('confirm') }}</v-filled-button>
-    </template>
-  </v-modal>
 </template>
 
 <script setup lang="ts">
 import { ref, onActivated, onDeactivated } from 'vue'
 import { formatDateTime, formatDateTimeFull } from '@/lib/format'
+import { openModal } from '@/components/modal'
 import { useDeviceInfo } from './device-info'
 import { useHttpServer } from './use-http-server'
+import { useMdns } from './use-mdns'
+import { isLocalMode } from '@/lib/device/client-id'
+import MdnsDebugModal from './MdnsDebugModal.vue'
+import MdnsHostnameDialog from './MdnsHostnameDialog.vue'
+import PortEditDialog from './PortEditDialog.vue'
 
 const isActive = ref(false)
-const isTauri = __IS_TAURI__
 onActivated(() => { isActive.value = true })
 onDeactivated(() => { isActive.value = false })
+const localMode = isLocalMode()
 
 const { basicInfos, systemInfos, hardwareInfos, platformInfos, batteryInfos, loading, refetch } = useDeviceInfo()
 
 const {
   httpPort, httpsPort, httpAddresses, httpsAddresses,
-  httpPortOptions, httpsPortOptions, saving, loadIps, savePort,
+  httpPortOptions, httpsPortOptions, loadIps, savePort,
 } = useHttpServer()
 
-const portDialogVisible = ref(false)
-const portDialogKind = ref<'http' | 'https'>('http')
-const portDialogValue = ref<number | undefined>(0)
+const {
+  hostname: mdnsHostname,
+  loadHostname: loadMdnsHostname, saveHostname: saveMdnsHostname,
+} = useMdns()
+
+function openMdnsDialog() {
+  openModal(MdnsHostnameDialog, {
+    hostname: mdnsHostname.value,
+    onSave: saveMdnsHostname,
+  })
+}
 
 function openPortDialog(kind: 'http' | 'https') {
-  portDialogKind.value = kind
-  portDialogValue.value = kind === 'http' ? httpPort.value : httpsPort.value
-  portDialogVisible.value = true
+  openModal(PortEditDialog, {
+    current: kind === 'http' ? httpPort.value : httpsPort.value,
+    options: kind === 'http' ? httpPortOptions.value : httpsPortOptions.value,
+    onSave: (port: number) => savePort(kind, port),
+  })
 }
 
-function closePortDialog() {
-  if (saving.value) return
-  portDialogVisible.value = false
+function openMdnsDebug() {
+  openModal(MdnsDebugModal)
 }
 
-async function confirmPort() {
-  if (portDialogValue.value == null) return
-  await savePort(portDialogKind.value, portDialogValue.value)
-  portDialogVisible.value = false
-}
-
-onActivated(() => { loadIps() })
+onActivated(() => {
+  loadIps()
+  if (localMode) loadMdnsHostname()
+})
 </script>
 <style lang="scss" scoped>
 .scroll-content {
@@ -203,12 +212,6 @@ onActivated(() => { loadIps() })
   font-family: monospace;
   font-size: 0.875rem;
   word-break: break-all;
-}
-
-.port-dialog-body {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
 }
 
 </style>

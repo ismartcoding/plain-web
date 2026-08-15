@@ -84,4 +84,13 @@ export default {
   https_addresses: 'HTTPS முகவரிகள்',
   edit_port: 'போர்ட்டைத் திருத்து',
   restart_to_apply: 'மாற்றங்களைப் பயன்படுத்த பயன்பாட்டை மறுதொடக்கம் செய்யவும்',
+  mdns_hostname: 'mDNS ஹோஸ்ட்நேம்',
+  mdns_hostname_invalid: 'ஹோஸ்ட்நேம் .local உடன் முடிவடைய வேண்டும்',
+  mdns_debug: 'mDNS Debug',
+  mdns_service_type: 'Service',
+  mdns_instance: 'Instance',
+  mdns_ips: 'IPs',
+  mdns_txt: 'TXT',
+  mdns_no_devices: 'No nearby devices found',
+  not_available: 'பொருந்தாது',
 }

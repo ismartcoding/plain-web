@@ -84,4 +84,13 @@ export default {
   https_addresses: 'HTTPS 地址',
   edit_port: '修改端口',
   restart_to_apply: '重启应用以应用更改',
+  mdns_hostname: 'mDNS主机名',
+  mdns_hostname_invalid: '主机名必须以.local结尾',
+  mdns_debug: 'mDNS 调试',
+  mdns_service_type: '服务类型',
+  mdns_instance: '实例名',
+  mdns_ips: 'IP 地址',
+  mdns_txt: 'TXT 记录',
+  mdns_no_devices: '未发现附近的设备',
+  not_available: '不可用',
 }

@@ -38,8 +38,8 @@ export function useHttpServer() {
     }
   }
 
-  async function savePort(kind: 'http' | 'https', port: number) {
-    if (!__IS_TAURI__) return
+  async function savePort(kind: 'http' | 'https', port: number): Promise<boolean> {
+    if (!__IS_TAURI__) return false
     saving.value = true
     try {
       const cmd = kind === 'http' ? 'set_http_port' : 'set_https_port'
@@ -53,9 +53,11 @@ export function useHttpServer() {
       setLocalServerHttpsPort(httpsPort)
       emitter.emit('refetch_app')
       toast(t('saved'))
+      return true
     } catch (e) {
       console.error('save port failed', e)
       toast(t('failed'), 'error')
+      return false
     } finally {
       saving.value = false
     }
@@ -74,6 +76,6 @@ export function useHttpServer() {
 
   return {
     ips, httpPort, httpsPort, httpAddresses, httpsAddresses,
-    httpPortOptions, httpsPortOptions, saving, loadIps, savePort,
+    httpPortOptions, httpsPortOptions, loadIps, savePort,
   }
 }

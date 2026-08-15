@@ -429,6 +429,7 @@ export interface IApp {
   httpsPort: number
   appDir: string
   deviceName: string
+  deviceType: DeviceType
   battery: number
   appVersion: string
   osVersion: number

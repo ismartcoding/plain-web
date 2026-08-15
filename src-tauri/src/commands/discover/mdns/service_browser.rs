@@ -17,7 +17,7 @@ use crate::local::enums::DeviceType;
 use std::collections::{HashMap, HashSet};
 use std::str::FromStr;
 use std::sync::{
-    Arc, Mutex,
+    Arc, Mutex, RwLock,
     atomic::{AtomicBool, Ordering},
 };
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -50,6 +50,7 @@ struct Instance {
     platform: String,
     target_hostname: String,
     ips: HashSet<String>,
+    txt_records: Vec<String>,
 }
 
 impl Instance {
@@ -64,6 +65,7 @@ impl Instance {
             platform: String::new(),
             target_hostname: String::new(),
             ips: HashSet::new(),
+            txt_records: Vec::new(),
         }
     }
 
@@ -88,7 +90,7 @@ struct Inner {
     task: Mutex<Option<tauri::async_runtime::JoinHandle<()>>>,
     listener: Mutex<Option<host_responder::PacketListener>>,
     client_id: String,
-    mdns_hostname: String,
+    mdns_hostname: Arc<RwLock<String>>,
     on_device: Box<dyn Fn(FoundDevice) + Send + Sync>,
 }
 
@@ -102,7 +104,7 @@ pub(crate) struct MdnsServiceBrowser {
 impl MdnsServiceBrowser {
     pub(crate) fn new(
         client_id: String,
-        mdns_hostname: String,
+        mdns_hostname: Arc<RwLock<String>>,
         on_device: impl Fn(FoundDevice) + Send + Sync + 'static,
     ) -> Self {
         MdnsServiceBrowser {
@@ -165,7 +167,6 @@ impl MdnsServiceBrowser {
     }
 
     /// Read-only snapshot of every currently-known service instance.
-    #[allow(dead_code)]
     pub(crate) fn snapshot(&self) -> Vec<MdnsServiceSnapshot> {
         let state = self.inner.state.lock().unwrap();
         let mut list: Vec<MdnsServiceSnapshot> = state
@@ -178,6 +179,7 @@ impl MdnsServiceBrowser {
                 hostname: instance.target_hostname.clone(),
                 port: instance.port,
                 ips: instance.ips.iter().cloned().collect(),
+                txt_records: instance.txt_records.clone(),
                 complete: instance.complete(),
             })
             .collect();
@@ -185,20 +187,30 @@ impl MdnsServiceBrowser {
         list
     }
 
+    /// Drops all accumulated instance state so the next browse cycle
+    /// re-discovers every instance from scratch. Used after the local mDNS
+    /// hostname changes so the debug snapshot no longer shows stale instances
+    /// under the previous hostname.
+    pub(crate) fn clear_instances(&self) {
+        self.clear_state();
+    }
+
     fn clear_state(&self) {
         *self.inner.state.lock().unwrap() = BrowserState::default();
     }
 }
 
-/// Read-only mDNS details for one discovered device (debug surface).
-#[derive(Debug, Clone)]
-#[allow(dead_code)]
+/// Read-only mDNS details for one discovered device — mirrors plain-app's
+/// `MdnsServiceSnapshot` (mDNS debug page wire data).
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub(crate) struct MdnsServiceSnapshot {
     pub service_type: String,
     pub instance_name: String,
     pub instance_fqdn: String,
     pub hostname: String,
     pub port: u16,
+    pub txt_records: Vec<String>,
     pub ips: Vec<String>,
     pub complete: bool,
 }
@@ -206,7 +218,7 @@ pub(crate) struct MdnsServiceSnapshot {
 fn browse_once(inner: &Inner) {
     // Self-heal after an external socket teardown (e.g. HTTP service stop):
     // the responder keeps packet listeners, so discovery resumes seamlessly.
-    host_responder::ensure_started(&inner.mdns_hostname);
+    host_responder::ensure_started(&inner.mdns_hostname.read().unwrap());
     host_responder::send_query(&packet_codec::build_ptr_query(PLAINAPP_SERVICE_TYPE));
     // Follow up on instances that still lack port / metadata / IPs, re-asking
     // periodically because multicast responses can be dropped.
@@ -321,6 +333,7 @@ fn handle_packet(inner: &Inner, data: &[u8]) {
                         if let Some((key, instance)) = find_instance(&state.instances, &record.name)
                         {
                             let mut updated = instance.clone();
+                            updated.txt_records = strings.clone();
                             for entry in &strings {
                                 let Some(eq) = entry.find('=') else {
                                     continue;
@@ -506,5 +519,23 @@ mod tests {
         inst.ips.insert("192.168.1.2".to_string());
         assert!(inst.complete());
         assert_eq!(key, "x._plainapp._tcp.local");
+    }
+
+    #[test]
+    fn clear_instances_resets_accumulated_state() {
+        let browser =
+            MdnsServiceBrowser::new(String::new(), Arc::new(RwLock::new(String::new())), |_| {});
+        {
+            let mut state = browser.inner.state.lock().unwrap();
+            state.instances.insert(
+                "Pixel 7._plainapp._tcp.local".to_string(),
+                Instance::new(
+                    "Pixel 7._plainapp._tcp.local".to_string(),
+                    "Pixel 7".to_string(),
+                ),
+            );
+        }
+        browser.clear_instances();
+        assert!(browser.inner.state.lock().unwrap().instances.is_empty());
     }
 }

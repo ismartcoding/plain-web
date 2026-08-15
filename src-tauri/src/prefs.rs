@@ -126,6 +126,59 @@ pub fn set_https_port(handle: &AppHandle, port: u16) {
     }
 }
 
+/// Allowed chars for the random mDNS host label — mirrors plain-app's
+/// `MdnsHostnamePreference`: `('a'..'z')` minus the ambiguous `i l o v`.
+const MDNS_HOSTNAME_CHARS: &[u8] = b"abcdefghjkmnpqrstuwxyz";
+
+fn random_mdns_hostname_label() -> String {
+    use rand::Rng;
+    let mut rng = rand::thread_rng();
+    (0..2)
+        .map(|_| MDNS_HOSTNAME_CHARS[rng.gen_range(0..MDNS_HOSTNAME_CHARS.len())] as char)
+        .collect()
+}
+
+/// mDNS hostname for local-network discovery — mirrors plain-app's
+/// `MdnsHostnamePreference.ensureValueAsync`: returns the stored value, or on
+/// first run generates a random two-char host under `.local` and persists it.
+pub fn ensure_mdns_hostname(handle: &AppHandle) -> String {
+    let store = handle.store(STORE_FILE).expect("prefs store");
+    if let Some(hostname) = store
+        .get("mdns_hostname")
+        .and_then(|v| v.as_str().map(String::from))
+        .filter(|s| !s.is_empty())
+    {
+        return hostname;
+    }
+    let hostname = format!("{}.local", random_mdns_hostname_label());
+    store.set("mdns_hostname", hostname.as_str());
+    let _ = store.save();
+    hostname
+}
+
+pub fn set_mdns_hostname(handle: &AppHandle, hostname: &str) {
+    if let Ok(store) = handle.store(STORE_FILE) {
+        store.set("mdns_hostname", hostname);
+        let _ = store.save();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn random_mdns_hostname_label_is_two_allowed_chars() {
+        for _ in 0..100 {
+            let label = random_mdns_hostname_label();
+            assert_eq!(label.len(), 2);
+            assert!(label
+                .chars()
+                .all(|c| MDNS_HOSTNAME_CHARS.contains(&(c as u8))));
+        }
+    }
+}
+
 fn default_device_name() -> String {
     std::process::Command::new("hostname")
         .output()

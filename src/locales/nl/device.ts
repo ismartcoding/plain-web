@@ -84,4 +84,13 @@ export default {
   https_addresses: 'HTTPS-adressen',
   edit_port: 'Poort bewerken',
   restart_to_apply: 'Start de app opnieuw om de wijzigingen toe te passen',
+  mdns_hostname: 'mDNS-hostnaam',
+  mdns_hostname_invalid: 'Hostnaam moet eindigen met .local',
+  mdns_debug: 'mDNS Debug',
+  mdns_service_type: 'Service',
+  mdns_instance: 'Instance',
+  mdns_ips: 'IPs',
+  mdns_txt: 'TXT',
+  mdns_no_devices: 'No nearby devices found',
+  not_available: 'N.v.t.',
 }

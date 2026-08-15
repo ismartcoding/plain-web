@@ -15,6 +15,8 @@ use tokio_tungstenite::tungstenite::Message;
 
 const INITIAL_RECONNECT_DELAY_MS: u64 = 1_000;
 const MAX_RECONNECT_DELAY_MS: u64 = 60_000;
+/// Window a reconnect waits for the directed mDNS browse reply.
+const DISCOVER_REPLY_WAIT_MS: u64 = 2_000;
 
 #[derive(Default)]
 struct PeerState {
@@ -141,12 +143,24 @@ impl PeerStatusManager {
             return;
         }
 
+        // Record updated_at before the directed browse so we can detect
+        // whether the reply actually arrived. Without this check, a stale IP
+        // in the DB would be reused forever — the socket would fail against
+        // the dead address and schedule another reconnect, never giving the
+        // discover reply a chance to refresh the IP (mirrors plain-app's
+        // PeerStatusManager.reconnectPeer).
+        let updated_at_before = peer.updated_at.clone();
         if let Some(discover_manager) = self.inner.discover_manager.read().unwrap().clone() {
             discover_manager.browse();
-            std::thread::sleep(Duration::from_millis(500));
+            std::thread::sleep(Duration::from_millis(DISCOVER_REPLY_WAIT_MS));
         }
 
         let refreshed_peer = self.inner.db.get_peer_by_id(&peer.id).unwrap_or(peer);
+        if refreshed_peer.updated_at == updated_at_before {
+            log::debug!("peer status: no discover reply peer={} — rescheduling", refreshed_peer.id);
+            self.schedule_reconnect(refreshed_peer.id.clone());
+            return;
+        }
         if refreshed_peer.ip.is_empty() || refreshed_peer.port == 0 {
             self.schedule_reconnect(refreshed_peer.id.clone());
             return;

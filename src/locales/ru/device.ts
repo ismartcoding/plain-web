@@ -84,4 +84,13 @@ export default {
   https_addresses: 'HTTPS-адреса',
   edit_port: 'Изменить порт',
   restart_to_apply: 'Перезапустите приложение, чтобы применить изменения',
+  mdns_hostname: 'Имя хоста mDNS',
+  mdns_hostname_invalid: 'Имя хоста должно заканчиваться на .local',
+  mdns_debug: 'mDNS Debug',
+  mdns_service_type: 'Service',
+  mdns_instance: 'Instance',
+  mdns_ips: 'IPs',
+  mdns_txt: 'TXT',
+  mdns_no_devices: 'No nearby devices found',
+  not_available: 'Н/Д',
 }

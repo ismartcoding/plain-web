@@ -84,4 +84,13 @@ export default {
   https_addresses: 'HTTPS Adresleri',
   edit_port: 'Bağlantı Noktasını Düzenle',
   restart_to_apply: 'Değişiklikleri uygulamak için uygulamayı yeniden başlatın',
+  mdns_hostname: 'mDNS ana bilgisayar adı',
+  mdns_hostname_invalid: 'Ana bilgisayar adı .local ile bitmelidir',
+  mdns_debug: 'mDNS Debug',
+  mdns_service_type: 'Service',
+  mdns_instance: 'Instance',
+  mdns_ips: 'IPs',
+  mdns_txt: 'TXT',
+  mdns_no_devices: 'No nearby devices found',
+  not_available: 'Uygulanamaz',
 }

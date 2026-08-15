@@ -84,4 +84,13 @@ export default {
   https_addresses: 'HTTPS 位址',
   edit_port: '編輯連接埠',
   restart_to_apply: '重新啟動應用程式以套用變更',
+  mdns_hostname: 'mDNS主機名',
+  mdns_hostname_invalid: '主機名必須以.local結尾',
+  mdns_debug: 'mDNS Debug',
+  mdns_service_type: 'Service',
+  mdns_instance: 'Instance',
+  mdns_ips: 'IPs',
+  mdns_txt: 'TXT',
+  mdns_no_devices: 'No nearby devices found',
+  not_available: '不可用',
 }

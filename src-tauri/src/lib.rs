@@ -56,6 +56,9 @@ pub fn run() {
             let handle = app.handle().clone();
             let identity = Arc::new(crate::prefs::ensure_identity(&handle));
             let device_name = Arc::new(std::sync::RwLock::new(identity.device_name.clone()));
+            let mdns_hostname = Arc::new(std::sync::RwLock::new(
+                crate::prefs::ensure_mdns_hostname(&handle),
+            ));
             let peer_status = commands::discover::PeerStatusManager::new(db.clone(), identity.clone());
             let pairing_mgr = local::pairing::PairingManager::new(db.clone(), identity.clone());
             app.handle().manage(pairing_mgr.clone());
@@ -63,6 +66,7 @@ pub fn run() {
                 db.clone(),
                 identity.clone(),
                 device_name.clone(),
+                mdns_hostname,
                 pairing_mgr.clone(),
                 peer_status.clone(),
                 0,
@@ -130,6 +134,11 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             commands::discover::discover_devices,
+            commands::discover::mdns_snapshot,
+            commands::discover::mdns_start_browse,
+            commands::discover::mdns_stop_browse,
+            commands::discover::mdns_get_hostname,
+            commands::discover::mdns_set_hostname,
             commands::http_client::http_request,
             commands::ws_proxy::ws_start_proxy,
             commands::notification::send_macos_notification,

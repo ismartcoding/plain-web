@@ -84,4 +84,13 @@ export default {
   https_addresses: 'Direcciones HTTPS',
   edit_port: 'Editar puerto',
   restart_to_apply: 'Reinicie la aplicación para aplicar los cambios',
+  mdns_hostname: 'Nombre de host mDNS',
+  mdns_hostname_invalid: 'El nombre de host debe terminar con .local',
+  mdns_debug: 'mDNS Debug',
+  mdns_service_type: 'Service',
+  mdns_instance: 'Instance',
+  mdns_ips: 'IPs',
+  mdns_txt: 'TXT',
+  mdns_no_devices: 'No nearby devices found',
+  not_available: 'N/D',
 }

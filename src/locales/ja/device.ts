@@ -84,4 +84,13 @@ export default {
   https_addresses: 'HTTPSアドレス',
   edit_port: 'ポートを編集',
   restart_to_apply: '変更を適用するにはアプリを再起動してください',
+  mdns_hostname: 'mDNSホスト名',
+  mdns_hostname_invalid: 'ホスト名は.localで終わる必要があります',
+  mdns_debug: 'mDNS Debug',
+  mdns_service_type: 'Service',
+  mdns_instance: 'Instance',
+  mdns_ips: 'IPs',
+  mdns_txt: 'TXT',
+  mdns_no_devices: 'No nearby devices found',
+  not_available: 'なし',
 }
