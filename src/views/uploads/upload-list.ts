@@ -32,18 +32,22 @@ function batchStatus(items: Upload[]): string {
   return 'created'
 }
 
+const batchCreatedAt = (items: Upload[]) => {
+  let min = ''
+  for (const it of items) {
+    const v = it.createdAt ?? ''
+    if (!min || v < min) min = v
+  }
+  return min
+}
+
 function inProgressTasks(uploads: Upload[]): TaskListItem[] {
   const sortKeys = new Map([['uploading', 0], ['saving', 1], ['pending', 2], ['paused', 3], ['created', 4]])
-  const batchCreatedAt = (items: Upload[]) => {
-    let min = Number.POSITIVE_INFINITY
-    for (const it of items) { const v = typeof it.createdAt === 'number' ? it.createdAt : 0; if (v < min) min = v }
-    return min === Number.POSITIVE_INFINITY ? 0 : min
-  }
   return Array.from(groupByBatch(uploads).entries())
     .filter(([_, items]) => items.some((it) => !completedStates.has(it.status)))
     .sort((a, b) => {
       const sa = sortKeys.get(batchStatus(a[1])) ?? 5, sb = sortKeys.get(batchStatus(b[1])) ?? 5
-      return sa !== sb ? sa - sb : batchCreatedAt(b[1]) - batchCreatedAt(a[1])
+      return sa !== sb ? sa - sb : batchCreatedAt(a[1]).localeCompare(batchCreatedAt(b[1]))
     })
     .map(([batchId, uploads]) => ({ id: batchId, kind: 'upload_batch' as const, batchId, uploads }))
 }
@@ -83,7 +87,9 @@ export function useUploadList() {
     if (created.length === 0) return
     const batches = new Map<string, typeof newUploads>()
     for (const it of created) { const k = keyOf(it); const list = batches.get(k); if (list) list.push(it); else batches.set(k, [it]) }
-    const ordered = Array.from(batches.entries()).sort((a, b) => Math.min(...a[1].map((x) => x.createdAt || 0)) - Math.min(...b[1].map((x) => x.createdAt || 0)))
+    const ordered = Array.from(batches.entries()).sort(
+      (a, b) => batchCreatedAt(a[1]).localeCompare(batchCreatedAt(b[1])),
+    )
     for (const [_, newItems] of ordered) { for (const item of newItems) { if (item.status !== 'created') continue; addUploadTask(item, true); item.status = 'pending' } }
   })
 

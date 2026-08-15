@@ -6,7 +6,7 @@ function createUploadItem(file: File, dir: string, batchId: string, baseDir?: st
   return {
     id: shortUUID(),
     batchId,
-    createdAt: Date.now(),
+    createdAt: new Date().toISOString(),
     dir: dir,
     baseDir,
     relativePath,

@@ -29,7 +29,7 @@ export interface DeviceSession {
   token: string
   signaturePublicKey?: string  // TOFU: server Ed25519 public key for signature verification
   deviceType?: string
-  addedAt: number
+  createdAt: string
 }
 
 export type DeviceSessionsState = {
@@ -39,21 +39,17 @@ export type DeviceSessionsState = {
 const STORAGE_KEY = 'device_sessions'
 
 function loadFromStorage(): DeviceSessionsState {
-  const fallback: DeviceSessionsState = { sessions: [] }
   try {
-    const parsed = prefsGet<{ sessions?: unknown } | null>(STORAGE_KEY, null)
-    if (!parsed || typeof parsed !== 'object') return fallback
-    const sessions: DeviceSession[] = Array.isArray(parsed.sessions)
-      ? (parsed.sessions as any[]).filter(
-          (s) =>
-            s && typeof s.clientId === 'string' && s.clientId
-              && typeof s.host === 'string'
-              && typeof s.token === 'string',
-        )
-      : []
-    return { sessions }
+    const data = prefsGet<{ sessions: DeviceSession[] }>(STORAGE_KEY, { sessions: [] })
+    const now = new Date().toISOString()
+    return {
+      sessions: (data?.sessions ?? []).map((s) => ({
+        ...s,
+        createdAt: s.createdAt ?? now,
+      })),
+    }
   } catch {
-    return fallback
+    return { sessions: [] }
   }
 }
 
@@ -61,7 +57,7 @@ export const useDeviceSessionsStore = defineStore('deviceSessions', {
   state: (): DeviceSessionsState => loadFromStorage(),
   getters: {
     sortedSessions(state): DeviceSession[] {
-      return [...state.sessions].sort((a, b) => b.addedAt - a.addedAt)
+      return [...state.sessions].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     },
     /**
      * The bound remote device for this window, or '' in local mode. This is
@@ -80,7 +76,7 @@ export const useDeviceSessionsStore = defineStore('deviceSessions', {
       prefsSet(STORAGE_KEY, { sessions: this.sessions })
     },
     /**
-     * Insert or update a session for the given device. `addedAt` is preserved
+     * Insert or update a session for the given device. `createdAt` is preserved
      * across updates so an existing entry doesn't jump to the top of the list
      * just because the user re-authenticated.
      */
@@ -94,7 +90,7 @@ export const useDeviceSessionsStore = defineStore('deviceSessions', {
         token: input.token,
         signaturePublicKey: input.signaturePublicKey ?? existing?.signaturePublicKey,
         deviceType: input.deviceType ?? existing?.deviceType,
-        addedAt: existing?.addedAt ?? Date.now(),
+        createdAt: existing?.createdAt ?? new Date().toISOString(),
       }
       this.sessions = [
         ...this.sessions.filter((s) => s.clientId !== input.clientId),
