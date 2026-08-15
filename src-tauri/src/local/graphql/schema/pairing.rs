@@ -65,14 +65,9 @@ pub struct PairingRequestInput {
     #[graphql(default)]
     pub signature: String,
     /// Stamped on the receiver side; carried in the input so the
-    /// responder knows which IP to UDP-send the response back to.
+    /// responder knows which IP to POST the response back to.
     #[graphql(default)]
     pub from_ip: String,
-    /// True when the user scanned a QR code to start pairing (mirrors
-    /// plain-app's `PairingRequestInput.isQrInitiated`). Forwarded to
-    /// the protocol layer so the responder can apply QR-specific rules.
-    #[graphql(default)]
-    pub is_qr_initiated: bool,
     /// Whether the requester's device supports Wi-Fi Aware (mirrors
     /// plain-app's `PairingRequestInput.awareSupported`). Forwarded to
     /// the protocol layer; the Tauri desktop build always sends `false`.
@@ -85,9 +80,9 @@ pub struct PairingMutation;
 
 #[Object]
 impl PairingMutation {
-    /// Initiate pairing with a discovered device. Sends a UDP PAIR_REQUEST
-    /// to the target. Completion (success / fail / timeout / cancel) is
-    /// reported via `WS_PAIRING_*` push events.
+    /// Initiate pairing with a discovered device. POSTs a PAIR_REQUEST to the
+    /// target's `POST /nearby` endpoint. Completion (success / fail / timeout /
+    /// cancel) is reported via `WS_PAIRING_*` push events.
     async fn pair_device(
         &self,
         ctx: &Context<'_>,
@@ -95,23 +90,26 @@ impl PairingMutation {
     ) -> GqlResult<bool> {
         let c = ctx.data_unchecked::<Arc<AppCtx>>();
         // The Rust PairingManager.start_pairing only needs (id, name, ip,
-        // https_port). The other input fields (ips, version, platform,
-        // last_seen) are unused for the outgoing handshake — the response
-        // carries the target's own fields back. We pick the first IP as
-        // the unicast target, falling back to empty (which the network
-        // layer will reject, surfacing as a `PAIRING_FAILED` event).
-        let target_ip = input.ips.first().cloned().unwrap_or_default();
+        // port). The other input fields (ips, version, platform, last_seen)
+        // are unused for the outgoing handshake — the response carries the
+        // target's own fields back. We pick the best-subnet-match IP as the
+        // POST target (mirrors plain-app's `getBestIp`); an empty result is
+        // rejected by the network layer, surfacing as a `PAIRING_FAILED`
+        // event.
+        let target_ip = crate::commands::discover::discover_get_best_ip(&input.ips);
         c.pairing_manager.start_pairing(
             &input.id,
             &input.name,
             &target_ip,
+            input.port as u16,
             c.https_port.load(std::sync::atomic::Ordering::Relaxed),
         );
         Ok(true)
     }
 
     /// Cancel an in-progress pairing we initiated. The remote peer receives
-    /// a UDP PAIR_CANCEL; completion is reported via `WS_PAIRING_CANCELLED`.
+    /// a PAIR_CANCEL via `POST /nearby`; completion is reported via
+    /// `WS_PAIRING_CANCELLED`.
     async fn cancel_pairing(
         &self,
         ctx: &Context<'_>,
@@ -123,7 +121,7 @@ impl PairingMutation {
     }
 
     /// Respond to an incoming PAIR_REQUEST that the user accepted or
-    /// rejected. Accepting stores the peer and sends a UDP PAIR_RESPONSE
+    /// rejected. Accepting stores the peer and POSTs a PAIR_RESPONSE
     /// back to the requester at `input.from_ip`.
     async fn respond_to_pairing(
         &self,
@@ -143,7 +141,6 @@ impl PairingMutation {
             timestamp: input.timestamp,
             ips: input.ips,
             signature: input.signature,
-            is_qr_initiated: input.is_qr_initiated,
             aware_supported: input.aware_supported,
             from_ip: input.from_ip,
         };

@@ -7,6 +7,7 @@ pub fn pair_device(
     device_id: String,
     device_name: String,
     device_ip: String,
+    device_port: u16,
     state: tauri::State<'_, PairingManager>,
     server_state: tauri::State<'_, super::super::server::LocalServerState>,
 ) {
@@ -14,6 +15,7 @@ pub fn pair_device(
         &device_id,
         &device_name,
         &device_ip,
+        device_port,
         server_state.https_port(),
     );
 }

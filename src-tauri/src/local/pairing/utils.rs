@@ -1,7 +1,5 @@
-use std::net::UdpSocket;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-pub(super) const NEARBY_PORT: u16 = 52352;
 const MAX_TIMESTAMP_DIFF_MS: i64 = 5 * 60 * 1000;
 
 pub(super) fn now_ms() -> i64 {
@@ -37,14 +35,6 @@ pub(super) fn prefer_sender_ip(ips: &[String], sender_ip: &str) -> String {
         }
     }
     all.join(",")
-}
-
-#[allow(dead_code)]
-pub(super) fn send_udp(msg: &str, ip: &str, port: u16) {
-    if let Ok(socket) = UdpSocket::bind("0.0.0.0:0") {
-        let addr = format!("{ip}:{port}");
-        let _ = socket.send_to(msg.as_bytes(), &addr);
-    }
 }
 
 #[allow(dead_code)]

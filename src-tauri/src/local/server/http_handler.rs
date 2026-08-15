@@ -17,6 +17,7 @@ pub(super) async fn handle<R, W>(
     peer_schema: &Arc<PeerSchema>,
     ctx: &Arc<AppCtx>,
     data_dir: &std::path::Path,
+    remote_ip: &str,
 ) where
     R: AsyncRead + Unpin,
     W: AsyncWrite + Unpin,
@@ -166,6 +167,29 @@ pub(super) async fn handle<R, W>(
                 peer_schema,
             )
             .await;
+        }
+        // `POST /nearby` — LAN transport for pairing messages. The request
+        // body is the same prefix-prefixed wire format the BLE nearby
+        // service uses ("PAIR_REQUEST:{…}"). Mirrors plain-app `NearbyRoutes`.
+        ("POST", "/nearby") => {
+            let mut body = vec![0u8; content_length];
+            if content_length > 0
+                && tokio::io::AsyncReadExt::read_exact(&mut reader, &mut body).await.is_err()
+            {
+                return;
+            }
+            let text = String::from_utf8_lossy(&body).to_string();
+            let known = ctx.pairing_manager.handle_nearby_post(&text, remote_ip);
+            if known {
+                respond(&mut wr, 200, "OK", b"1", "text/plain").await;
+            } else {
+                log::error!(
+                    "NearbyRoutes: unknown message type, body={}",
+                    &text.chars().take(50).collect::<String>()
+                );
+                respond(&mut wr, 400, "Bad Request", b"unknown message type", "text/plain")
+                    .await;
+            }
         }
         _ => respond(&mut wr, 404, "Not Found", b"", "text/plain").await,
     }

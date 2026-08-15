@@ -18,6 +18,10 @@ pub(super) async fn serve(
     ctx: Arc<AppCtx>,
     data_dir: PathBuf,
 ) {
+    let remote_ip = stream
+        .peer_addr()
+        .map(|a| a.ip().to_string())
+        .unwrap_or_default();
     let tls_stream = match acc.accept(stream).await {
         Ok(s) => s,
         Err(e) => {
@@ -39,6 +43,6 @@ pub(super) async fn serve(
         }
     } else {
         let (rd, wr) = tokio::io::split(peek_reader);
-        http_handler::handle(rd, wr, &schema, &peer_schema, &ctx, &data_dir).await;
+        http_handler::handle(rd, wr, &schema, &peer_schema, &ctx, &data_dir, &remote_ip).await;
     }
 }

@@ -252,6 +252,11 @@ impl LocalServerState {
         let mut server = self.server.lock().unwrap();
         server.http_task = http_task;
         server.https_task = https_task;
+
+        // Publish the `_plainapp._tcp.local` mDNS service with the bound
+        // HTTPS port — mirrors plain-app's `NsdHelper.registerService` being
+        // driven by the HTTP service lifecycle.
+        self.ctx.discover_manager.set_https_port(new_https_port);
         Ok(())
     }
 

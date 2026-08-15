@@ -142,7 +142,7 @@ impl PeerStatusManager {
         }
 
         if let Some(discover_manager) = self.inner.discover_manager.read().unwrap().clone() {
-            discover_manager.discover_specific_device(&peer.id, &key);
+            discover_manager.browse();
             std::thread::sleep(Duration::from_millis(500));
         }
 

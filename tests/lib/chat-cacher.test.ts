@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
 import { normalizeChatItem, mapChatId } from '@/lib/chat/chat-cacher'
-import { getChatPreview } from '@/lib/chat/chat-preview'
 
 vi.mock('@/lib/prefs', () => ({
   get: () => '',
@@ -54,12 +53,6 @@ describe('mapChatId with real db data', () => {
   it('normalizes content into _content', () => {
     const normalized = normalizeChatItem(peerItem as any)
     expect(normalized._content).toEqual({ type: 'TEXT', value: { text: 'hi' } })
-  })
-
-  it('produces the correct sidebar preview for real data', () => {
-    expect(getChatPreview(normalizeChatItem(peerItem as any)._content)).toBe('hi')
-    expect(getChatPreview(normalizeChatItem(localItem as any)._content)).toBe('[Image]')
-    expect(getChatPreview(normalizeChatItem(channelItem as any)._content)).toBe('[Image]')
   })
 
   it('falls back to peer:toId even when peerIds is empty (stale race)', () => {

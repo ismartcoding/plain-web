@@ -18,11 +18,6 @@ pub struct PairingRequest {
     pub ips: Vec<String>,
     #[serde(default)]
     pub signature: String,
-    /// True when the pairing was initiated by scanning a QR code
-    /// (mirrors plain-app `DPairingRequest.isQrInitiated`). Excluded
-    /// from `signature_data` to match the Kotlin wire format.
-    #[serde(default)]
-    pub is_qr_initiated: bool,
     /// Whether the requester's device supports Wi-Fi Aware (mirrors
     /// plain-app `DPairingRequest.awareSupported`). The Tauri desktop
     /// build always sends `false`.

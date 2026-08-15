@@ -1,14 +1,19 @@
-//! Peer-pairing protocol — mirrors plain-app `NearbyPairManager`.
+//! Peer-pairing protocol — mirrors plain-app `PairingCore` + `PairingMessenger`.
 //!
-//! The pairing handshake:
-//!   Initiator → Target : `PAIR_REQUEST:{json}`  (UDP unicast to Target's IP:52352)
-//!   Target   → Initiator: `PAIR_RESPONSE:{json}` (UDP unicast)
+//! The pairing handshake rides the LAN HTTPS transport (`POST /nearby`,
+//! mirroring plain-app `NearbyRoutes` / `NearbyHttpClient`) instead of UDP:
+//!   Initiator → Target : `PAIR_REQUEST:{json}`  (HTTPS POST to Target's ip:port)
+//!   Target   → Initiator: `PAIR_RESPONSE:{json}` (HTTPS POST back)
 //!   Either   → Other    : `PAIR_CANCEL:{json}`   (abort)
 //!
 //! Security:
 //!   - ECDH P-256 ephemeral key exchange; 32-byte raw shared secret = XChaCha20 key.
 //!   - Ed25519 signatures on canonical string to prevent MITM.
 //!   - Timestamp in payload (±5 min) prevents replay attacks.
+//!
+//! The peer's HTTPS server presents a self-signed certificate and uses a local
+//! IP as hostname, so the outbound client accepts invalid certs (mirrors
+//! plain-app's `createUnsafeHttpClient`).
 //!
 //! After a successful handshake the peer is written to the `peers` table and the
 //! ChatDb's key-cache is considered stale (callers should re-query `get_peers`).
@@ -21,6 +26,7 @@ use serde::Serialize;
 use std::collections::HashMap;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 
 pub mod commands;
 pub mod protocol;
@@ -28,26 +34,25 @@ mod utils;
 
 pub use protocol::{PairingCancel, PairingRequest, PairingResponse};
 
-use utils::{
-    local_ipv4_strs, now_ms, prefer_sender_ip, send_udp,
-    timestamp_ok, NEARBY_PORT,
-};
+use utils::{local_ipv4_strs, now_ms, prefer_sender_ip, timestamp_ok};
 
 const PAIR_REQUEST_PREFIX: &str = "PAIR_REQUEST:";
 const PAIR_RESPONSE_PREFIX: &str = "PAIR_RESPONSE:";
 const PAIR_CANCEL_PREFIX: &str = "PAIR_CANCEL:";
 const LOCAL_DEVICE_TYPE_WIRE: &str = "COMPUTER";
+/// Pairing is interactive; a stale/unreachable peer must fail fast.
+const REQUEST_TIMEOUT_MS: u64 = 5_000;
+/// Mirrors plain-app `PairingInitiator.PAIR_RESPONSE_TIMEOUT_MS`.
+const PAIR_RESPONSE_TIMEOUT_MS: u64 = 90_000;
 
 // ── Internal session state ────────────────────────────────────────────────────
 
-#[allow(dead_code)]
 struct PairingSession {
-    device_id: String,
     device_name: String,
     device_ip: String,
+    device_port: u16,
     /// Ephemeral ECDH session.  Consumed when shared key is derived.
     ecdh: Option<EcdhSession>,
-    created_at_ms: i64,
 }
 
 // ── Pairing manager ───────────────────────────────────────────────────────────
@@ -78,6 +83,8 @@ pub enum PairingEventKind {
         request: PairingRequest,
         sender_ip: String,
     },
+    /// PAIR_REQUEST was delivered; waiting for the peer's response.
+    Started,
     /// Pairing completed successfully.
     Success,
     /// Pairing failed or was rejected.
@@ -105,20 +112,22 @@ impl PairingManager {
         self.event_tx.subscribe()
     }
 
-    pub fn handle_datagram(&self, msg: &str, sender_ip: &str) -> bool {
-        if let Some(payload) = msg.strip_prefix(PAIR_REQUEST_PREFIX) {
+    /// `POST /nearby` entry — mirrors plain-app `NearbyRoutes`. Returns
+    /// `false` when the body carries no known message-type prefix.
+    pub fn handle_nearby_post(&self, body: &str, remote_ip: &str) -> bool {
+        if let Some(payload) = body.strip_prefix(PAIR_REQUEST_PREFIX) {
             match serde_json::from_str::<PairingRequest>(payload) {
-                Ok(req) => self.on_pair_request(req, sender_ip),
+                Ok(req) => self.on_pair_request(req, remote_ip),
                 Err(e) => log::debug!("local_pairing: bad PAIR_REQUEST: {e}"),
             }
             true
-        } else if let Some(payload) = msg.strip_prefix(PAIR_RESPONSE_PREFIX) {
+        } else if let Some(payload) = body.strip_prefix(PAIR_RESPONSE_PREFIX) {
             match serde_json::from_str::<PairingResponse>(payload) {
-                Ok(resp) => self.on_pair_response(resp, sender_ip),
+                Ok(resp) => self.on_pair_response(resp, remote_ip),
                 Err(e) => log::debug!("local_pairing: bad PAIR_RESPONSE: {e}"),
             }
             true
-        } else if let Some(payload) = msg.strip_prefix(PAIR_CANCEL_PREFIX) {
+        } else if let Some(payload) = body.strip_prefix(PAIR_CANCEL_PREFIX) {
             match serde_json::from_str::<PairingCancel>(payload) {
                 Ok(cancel) => self.on_pair_cancel(cancel),
                 Err(e) => log::debug!("local_pairing: bad PAIR_CANCEL: {e}"),
@@ -131,13 +140,16 @@ impl PairingManager {
 
     // ── Initiator side ────────────────────────────────────────────────────────
 
-    /// Send a PAIR_REQUEST and let the shared discover receiver deliver the
-    /// matching PAIR_RESPONSE / PAIR_CANCEL datagrams back into this manager.
+    /// Send a PAIR_REQUEST to the peer's `POST /nearby` endpoint. Mirrors
+    /// plain-app `PairingInitiator.start`: on delivery a `Started` event is
+    /// emitted and a response timeout is armed; on failure the session is
+    /// dropped and a `Failed` event emitted.
     pub fn start_pairing(
         &self,
         device_id: &str,
         device_name: &str,
         device_ip: &str,
+        device_port: u16,
         local_port: u16,
     ) {
         let identity = &self.identity;
@@ -152,7 +164,6 @@ impl PairingManager {
         let sig_pub_b64 = base64_encode(&vk_bytes);
 
         let ts = now_ms();
-        let local_ips = local_ipv4_strs();
         let mut req = PairingRequest {
             from_id: identity.client_id.clone(),
             from_name: identity.device_name.clone(),
@@ -161,9 +172,8 @@ impl PairingManager {
             ecdh_public_key: ecdh_pub_b64,
             signature_public_key: sig_pub_b64,
             timestamp: ts,
-            ips: local_ips,
+            ips: local_ipv4_strs(),
             signature: String::new(),
-            is_qr_initiated: false,
             aware_supported: false,
             from_ip: String::new(),
         };
@@ -174,11 +184,10 @@ impl PairingManager {
             sessions.insert(
                 device_id.to_string(),
                 PairingSession {
-                    device_id: device_id.to_string(),
                     device_name: device_name.to_string(),
                     device_ip: device_ip.to_string(),
+                    device_port,
                     ecdh: Some(ecdh),
-                    created_at_ms: ts,
                 },
             );
         }
@@ -188,17 +197,23 @@ impl PairingManager {
             PAIR_REQUEST_PREFIX,
             serde_json::to_string(&req).unwrap_or_default()
         );
+        let mgr = self.clone();
         let device_id = device_id.to_string();
         let device_name = device_name.to_string();
-        let mgr = self.clone();
-        send_udp(&msg, device_ip, NEARBY_PORT);
-
-        std::thread::spawn(move || {
-            std::thread::sleep(std::time::Duration::from_secs(30));
-            if mgr.sessions.lock().unwrap().remove(&device_id).is_some() {
+        let target_ip = device_ip.to_string();
+        tauri::async_runtime::spawn(async move {
+            if post_nearby(&msg, &target_ip, device_port).await {
+                let _ = mgr.event_tx.send(PairingEvent {
+                    kind: PairingEventKind::Started,
+                    device_id: device_id.clone(),
+                    device_name: device_name.clone(),
+                });
+                mgr.arm_response_timeout(device_id, device_name).await;
+            } else {
+                mgr.sessions.lock().unwrap().remove(&device_id);
                 let _ = mgr.event_tx.send(PairingEvent {
                     kind: PairingEventKind::Failed {
-                        reason: "Pairing timed out".to_string(),
+                        reason: "Failed to send pairing request".to_string(),
                     },
                     device_id,
                     device_name,
@@ -207,19 +222,35 @@ impl PairingManager {
         });
     }
 
+    /// Fails the pairing when the peer never answers. The session is removed
+    /// by `on_pair_response` (or cancel) on the happy paths, so its continued
+    /// existence after the timeout means no response arrived. Mirrors
+    /// plain-app `PairingInitiator.awaitPairResponse`.
+    async fn arm_response_timeout(&self, device_id: String, device_name: String) {
+        tokio::time::sleep(Duration::from_millis(PAIR_RESPONSE_TIMEOUT_MS)).await;
+        if self.sessions.lock().unwrap().remove(&device_id).is_some() {
+            log::error!("local_pairing: response timeout for {device_name}");
+            let _ = self.event_tx.send(PairingEvent {
+                kind: PairingEventKind::Failed {
+                    reason: "Pairing timed out".to_string(),
+                },
+                device_id,
+                device_name,
+            });
+        }
+    }
+
     // ── Responder side ────────────────────────────────────────────────────────
 
     /// Incoming PAIR_REQUEST from a remote device.  Emits `IncomingRequest` event;
     /// the frontend calls `respond_to_pairing(request_json, accepted)` to reply.
     fn on_pair_request(&self, mut req: PairingRequest, sender_ip: &str) {
         log::info!(
-            "local_pairing: PAIR_REQUEST from_id={} from_name={} sender_ip={} timestamp={} sig_pub_len={} sig_len={}",
+            "local_pairing: PAIR_REQUEST from_id={} from_name={} sender_ip={} timestamp={}",
             req.from_id,
             req.from_name,
             sender_ip,
-            req.timestamp,
-            req.signature_public_key.len(),
-            req.signature.len()
+            req.timestamp
         );
         if !timestamp_ok(req.timestamp) {
             log::warn!(
@@ -228,14 +259,9 @@ impl PairingManager {
             );
             return;
         }
-        let sig_input = req.signature_data();
-        log::debug!(
-            "local_pairing: PAIR_REQUEST sig_input={:?}",
-            sig_input
-        );
         if !ed25519_verify(
             &req.signature_public_key,
-            sig_input.as_bytes(),
+            req.signature_data().as_bytes(),
             &req.signature,
         ) {
             log::warn!("local_pairing: PAIR_REQUEST signature invalid");
@@ -243,7 +269,7 @@ impl PairingManager {
         }
         log::info!("local_pairing: PAIR_REQUEST signature OK, emitting IncomingRequest");
         // Stamp the sender IP so the frontend can pass it back to
-        // `respondToPairing` and the responder knows where to UDP-send
+        // `respondToPairing` and the responder knows where to POST
         // the PAIR_RESPONSE. Mirrors plain-app's `handlePairRequest`
         // which sets `request.fromIp = senderAddress`.
         req.from_ip = sender_ip.to_string();
@@ -274,6 +300,11 @@ impl PairingManager {
         };
         let sig_pub_b64 = base64_encode(&vk_bytes);
         let ts = now_ms();
+        let target_ip = if sender_ip.is_empty() {
+            request.from_ip.clone()
+        } else {
+            sender_ip.to_string()
+        };
 
         if accepted {
             let ecdh = EcdhSession::generate();
@@ -297,10 +328,11 @@ impl PairingManager {
             let req_pub_bytes = base64_decode(&request.ecdh_public_key);
             log::info!(
                 "local_pairing: respond_to_pairing accepted=true req_pub_len={} sender_ip={}",
-                req_pub_bytes.len(), sender_ip
+                req_pub_bytes.len(),
+                target_ip
             );
             if let Some(shared) = ecdh.compute_shared_key(&req_pub_bytes) {
-                let peer_ips = prefer_sender_ip(&request.ips, sender_ip);
+                let peer_ips = prefer_sender_ip(&request.ips, &target_ip);
                 let peer = DPeer {
                     id: request.from_id.clone(),
                     name: request.from_name.clone(),
@@ -309,13 +341,18 @@ impl PairingManager {
                     public_key: request.signature_public_key.clone(),
                     status: PeerStatus::Paired,
                     port: request.port,
-                    device_type: DeviceType::from_str(&request.device_type).unwrap_or(DeviceType::Unknown),
+                    device_type: DeviceType::from_str(&request.device_type)
+                        .unwrap_or(DeviceType::Unknown),
                     created_at: now_iso(),
                     updated_at: now_iso(),
                 };
                 log::info!(
                     "local_pairing: inserting peer id={} name={} ip={} port={} device_type={}",
-                    peer.id, peer.name, peer.ip, peer.port, peer.device_type
+                    peer.id,
+                    peer.name,
+                    peer.ip,
+                    peer.port,
+                    peer.device_type
                 );
                 self.db.upsert_peer(&peer);
                 let msg = format!(
@@ -323,7 +360,10 @@ impl PairingManager {
                     PAIR_RESPONSE_PREFIX,
                     serde_json::to_string(&resp).unwrap_or_default()
                 );
-                send_udp(&msg, sender_ip, NEARBY_PORT);
+                let target_port = request.port;
+                tauri::async_runtime::spawn(async move {
+                    post_nearby(&msg, &target_ip, target_port).await;
+                });
                 let _ = self.event_tx.send(PairingEvent {
                     kind: PairingEventKind::Success,
                     device_id: request.from_id.clone(),
@@ -352,7 +392,10 @@ impl PairingManager {
                 PAIR_RESPONSE_PREFIX,
                 serde_json::to_string(&resp).unwrap_or_default()
             );
-            send_udp(&msg, sender_ip, NEARBY_PORT);
+            let target_port = request.port;
+            tauri::async_runtime::spawn(async move {
+                post_nearby(&msg, &target_ip, target_port).await;
+            });
         }
     }
 
@@ -445,7 +488,9 @@ impl PairingManager {
         });
     }
 
-    /// Cancel an in-progress pairing session (initiated by us).
+    /// Cancel an in-progress pairing session (initiated by us). Mirrors
+    /// plain-app `PairingInitiator.cancel`: sends PAIR_CANCEL to the peer,
+    /// emits `Cancelled`, and drops the session.
     pub fn cancel_pairing(&self, device_id: &str) {
         let session = {
             let mut sessions = self.sessions.lock().unwrap();
@@ -461,7 +506,17 @@ impl PairingManager {
                 PAIR_CANCEL_PREFIX,
                 serde_json::to_string(&cancel).unwrap_or_default()
             );
-            send_udp(&msg, &s.device_ip, NEARBY_PORT);
+            let target_ip = s.device_ip.clone();
+            let target_port = s.device_port;
+            tauri::async_runtime::spawn(async move {
+                post_nearby(&msg, &target_ip, target_port).await;
+            });
+            let _ = self.event_tx.send(PairingEvent {
+                kind: PairingEventKind::Cancelled,
+                device_id: device_id.to_string(),
+                device_name: s.device_name.clone(),
+            });
+            log::debug!("Pairing cancelled for device: {device_id}");
         }
     }
 
@@ -469,5 +524,45 @@ impl PairingManager {
     /// Mirrors plain-app's `NearbyViewModel.itemStatus[deviceId] == PAIRING`.
     pub fn is_pairing(&self, device_id: &str) -> bool {
         self.sessions.lock().unwrap().contains_key(device_id)
+    }
+}
+
+// ── LAN HTTPS transport ───────────────────────────────────────────────────────
+
+/// Unsafe (self-signed-cert-trusting) HTTPS client for peer `POST /nearby`
+/// calls — mirrors plain-app `NearbyHttpClient`.
+fn nearby_client() -> &'static reqwest::Client {
+    static CLIENT: std::sync::OnceLock<reqwest::Client> = std::sync::OnceLock::new();
+    CLIENT.get_or_init(|| {
+        reqwest::Client::builder()
+            .danger_accept_invalid_certs(true)
+            .timeout(Duration::from_millis(REQUEST_TIMEOUT_MS))
+            .build()
+            .expect("nearby https client")
+    })
+}
+
+/// POSTs `body` to `https://[target_ip]:[target_port]/nearby`. Returns true
+/// when the peer answered with a 2xx status.
+async fn post_nearby(body: &str, target_ip: &str, target_port: u16) -> bool {
+    let url = format!("https://{target_ip}:{target_port}/nearby");
+    let result = nearby_client()
+        .post(&url)
+        .header("Content-Type", "application/json")
+        .body(body.to_string())
+        .send()
+        .await;
+    match result {
+        Ok(resp) => {
+            let ok = resp.status().is_success();
+            if !ok {
+                log::error!("NearbyHttpClient: rejected {}", resp.status());
+            }
+            ok
+        }
+        Err(e) => {
+            log::error!("NearbyHttpClient: failed {e}");
+            false
+        }
     }
 }
