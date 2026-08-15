@@ -7,7 +7,7 @@ import type { IApp } from '@/lib/interfaces'
 export interface IUploadItem {
   id: string
   batchId?: string
-  createdAt?: number
+  createdAt?: string
   dir: string
   baseDir?: string
   relativePath?: string
