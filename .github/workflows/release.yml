@@ -17,7 +17,7 @@ jobs:
       matrix:
         include:
           - platform: macos
-            os: macos-latest
+            os: macos-15
           - platform: windows
             os: windows-latest
           - platform: linux
@@ -59,6 +59,26 @@ jobs:
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
+
+      - name: Select Xcode with macOS 15 SDK
+        if: matrix.platform == 'macos'
+        shell: bash
+        run: |
+          set -euo pipefail
+          for xc in /Applications/Xcode*.app; do
+            sdk="$(DEVELOPER_DIR="$xc" xcrun --sdk macosx --show-sdk-version)"
+            if [[ "$sdk" == 15.* ]]; then
+              sudo xcode-select -s "$xc"
+              break
+            fi
+          done
+          sdk="$(xcrun --sdk macosx --show-sdk-version)"
+          if [[ "$sdk" != 15.* ]]; then
+            echo "::error::No Xcode with macOS 15 SDK found (active SDK: $sdk). Binaries signed with Runtime Version > 15 are killed at launch on macOS 15."
+            exit 1
+          fi
+          xcodebuild -version
+          echo "Active macOS SDK: $sdk"
 
       - name: Add macOS Rust targets
         if: matrix.platform == 'macos'
@@ -229,6 +249,20 @@ jobs:
               exit 1
             fi
             codesign --verify --deep --strict --verbose=2 "$app_path"
+            ents_xml="$(codesign -d --entitlements :- "$app_path" 2>&1 || true)"
+            if grep -q 'com\.apple\.developer\.' <<<"$ents_xml"; then
+              hdiutil detach "$mount_dir" >/dev/null
+              echo "::error::$file carries restricted entitlements (com.apple.developer.*). Developer ID apps without an embedded provisioning profile are killed at launch by taskgated (CODESIGNING 1 / 'no eligible provisioning profiles found')."
+              exit 1
+            fi
+            runtime="$(codesign -dvv "$app_path" 2>&1 | sed -n 's/^Runtime Version=//p' | head -n 1)"
+            major="${runtime%%.*}"
+            if [ -z "$runtime" ] || ! [[ "$runtime" =~ ^[0-9]+(\.[0-9]+)*$ ]] || [ "${major:-0}" -gt 15 ]; then
+              hdiutil detach "$mount_dir" >/dev/null
+              echo "::error::$file has Runtime Version=$runtime — macOS kills binaries whose runtime version exceeds the OS version (e.g. 26.x runtime is killed on macOS 15). Build with the macOS 15 SDK."
+              exit 1
+            fi
+            echo "$file: Runtime Version=$runtime OK"
             spctl -a -vv -t open --context context:primary-signature "$app_path"
             hdiutil detach "$mount_dir" >/dev/null
           done
