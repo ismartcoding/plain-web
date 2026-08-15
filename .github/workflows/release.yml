@@ -60,6 +60,10 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Add macOS Rust targets
+        if: matrix.platform == 'macos'
+        run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
+
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
         with:
@@ -137,7 +141,8 @@ jobs:
         run: |
           set -euo pipefail
           shopt -s nullglob
-          files=(src-tauri/target/release/bundle/dmg/*.dmg)
+          files=(src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
+                 src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg)
           if [ "${#files[@]}" -eq 0 ]; then
             echo "::error::No macOS DMG artifacts found"
             exit 1
@@ -162,7 +167,8 @@ jobs:
 
           case "${{ matrix.platform }}" in
             macos)
-              files=(src-tauri/target/release/bundle/dmg/*.dmg)
+              files=(src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
+                     src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg)
               ;;
             windows)
               files=(src-tauri/target/release/bundle/msi/*.msi src-tauri/target/release/bundle/nsis/*.exe)
@@ -174,13 +180,22 @@ jobs:
 
           if [ "${#files[@]}" -eq 0 ]; then
             echo "No bundle artifacts found for ${{ matrix.platform }}" >&2
-            find src-tauri/target/release/bundle -type f -maxdepth 4 2>/dev/null || true
+            if [ "${{ matrix.platform }}" = "macos" ]; then
+              find src-tauri/target -path '*/bundle/dmg/*.dmg' -type f 2>/dev/null || true
+            else
+              find src-tauri/target/release/bundle -type f -maxdepth 4 2>/dev/null || true
+            fi
             exit 1
           fi
 
           for file in "${files[@]}"; do
             ext="${file##*.}"
-            cp "$file" "release-artifacts/PlainApp-${VERSION}-${{ matrix.platform }}.${ext}"
+            arch=""
+            if [ "${{ matrix.platform }}" = "macos" ]; then
+              base="$(basename "$file" ".$ext")"
+              arch="-${base##*_}"
+            fi
+            cp "$file" "release-artifacts/PlainApp-${VERSION}-${{ matrix.platform }}${arch}.${ext}"
           done
 
       - name: Upload platform artifacts
@@ -197,7 +212,8 @@ jobs:
         run: |
           set -euo pipefail
           shopt -s nullglob
-          files=(src-tauri/target/release/bundle/dmg/*.dmg)
+          files=(src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
+                 src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg)
           if [ "${#files[@]}" -eq 0 ]; then
             echo "::error::No macOS DMG artifacts found"
             exit 1
