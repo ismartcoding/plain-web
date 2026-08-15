@@ -95,4 +95,21 @@ describe('client-id', () => {
     wc.applyUrlClientId()
     expect(wc.getActiveClientId()).toBe(before)
   })
+
+  it('applyUrlClientId drops a device __cid when the desktop client_id is not loaded yet', async () => {
+    // Contract behind main.ts bootstrap ordering: before prefs are preloaded
+    // (Tauri plugin-store), getDesktopClientId() reads as '' and any __cid is
+    // treated as local and stripped. That is why applyUrlClientId() must run
+    // AFTER preloadPrefs() — otherwise child windows lose their device
+    // binding and fall back to the local server (wrong /fs host → 401).
+    window.history.replaceState({}, '', '/?__cid=device-42')
+    const wc = await loadClientId()
+    wc.applyUrlClientId()
+    // Assert on sessionStorage, not getRemoteClientId(): the module-level
+    // cachedRemote can leak across tests in browser mode (vi.resetModules
+    // doesn't always re-evaluate the module), so the getter is unreliable —
+    // but nothing being written to sessionStorage is the real contract.
+    expect(sessionStorage.getItem('__bound_client_id__')).toBe(null)
+    expect(window.location.search).not.toContain('__cid')
+  })
 })
