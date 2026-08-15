@@ -8,11 +8,11 @@
     <ul v-if="devices.length > 0" class="list-items discovery-list">
       <DiscoverItem
         v-for="d in devices"
-        :key="d.host"
+        :key="d.id"
         :name="d.name"
-        :host="d.host"
+        :host="deviceHost(d)"
         :disabled="connecting"
-        @select="select(d.host)"
+        @select="select(d)"
       />
     </ul>
   </div>
@@ -23,6 +23,7 @@ import { onMounted, onUnmounted } from 'vue'
 import DiscoverItem from './DiscoverItem.vue'
 import DeviceDiscoveryStatus from '@/components/DeviceDiscoveryStatus.vue'
 import { useDeviceDiscovery } from '@/hooks/use-device-discovery'
+import type { DiscoveredDevice } from '@/hooks/use-device-discovery'
 
 defineProps<{
   connecting?: boolean
@@ -42,8 +43,12 @@ onUnmounted(() => {
   stop()
 })
 
-function select(host: string) {
-  emit('device-selected', host)
+function deviceHost(d: DiscoveredDevice): string {
+  return `${d.ips[0]}:${d.port}`
+}
+
+function select(d: DiscoveredDevice) {
+  emit('device-selected', deviceHost(d))
 }
 </script>
 

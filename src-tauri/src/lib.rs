@@ -80,7 +80,6 @@ pub fn run() {
             );
             peer_status.set_event_tx(local_server_state.event_tx.clone());
             discover_mgr.set_event_tx(local_server_state.event_tx.clone());
-            discover_mgr.set_https_port(local_server_state.https_port());
             discover_mgr.start();
             peer_status.set_discover_manager(discover_mgr.clone());
             peer_status.start();
@@ -99,6 +98,7 @@ pub fn run() {
                             "pairing_bridge: received PairingEvent kind={} device_id={}",
                             match &ev.kind {
                                 crate::local::pairing::PairingEventKind::IncomingRequest { .. } => "IncomingRequest",
+                                crate::local::pairing::PairingEventKind::Started => "Started",
                                 crate::local::pairing::PairingEventKind::Success => "Success",
                                 crate::local::pairing::PairingEventKind::Failed { .. } => "Failed",
                                 crate::local::pairing::PairingEventKind::Cancelled => "Cancelled",
@@ -187,7 +187,7 @@ fn forward_pairing_event_to_ws(
 ) {
     use crate::local::graphql::context::{
         WsEvent, WS_PAIRING_CANCELLED, WS_PAIRING_FAILED,
-        WS_PAIRING_REQUEST_RECEIVED, WS_PAIRING_SUCCESS,
+        WS_PAIRING_REQUEST_RECEIVED, WS_PAIRING_STARTED, WS_PAIRING_SUCCESS,
     };
     use crate::local::pairing::PairingEventKind;
 
@@ -200,6 +200,17 @@ fn forward_pairing_event_to_ws(
             // Re-emit as raw JSON so the browser can parse it directly.
             match serde_json::to_string(request) {
                 Ok(s) => (WS_PAIRING_REQUEST_RECEIVED, s),
+                Err(_) => return,
+            }
+        }
+        PairingEventKind::Started => {
+            let result = DPairingResult {
+                device_id: &ev.device_id,
+                device_name: &ev.device_name,
+                error: "",
+            };
+            match serde_json::to_string(&result) {
+                Ok(s) => (WS_PAIRING_STARTED, s),
                 Err(_) => return,
             }
         }
