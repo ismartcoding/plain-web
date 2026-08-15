@@ -4,10 +4,15 @@ import { get as prefsGet } from '../prefs'
 // Temporary host set during the login flow (before the session is committed to the store).
 // Allows api.ts to route requests to the target device before clientId is known.
 let _pendingLoginHost = ''
+let _pendingLoginDeviceType = ''
 
 export function setPendingLoginHost(host: string): void { _pendingLoginHost = host }
 export function clearPendingLoginHost(): void { _pendingLoginHost = '' }
 export function getPendingLoginHost(): string { return _pendingLoginHost }
+
+export function setPendingLoginDeviceType(deviceType: string): void { _pendingLoginDeviceType = deviceType }
+export function clearPendingLoginDeviceType(): void { _pendingLoginDeviceType = '' }
+export function getPendingLoginDeviceType(): string { return _pendingLoginDeviceType }
 
 // Port of the local HTTP reverse proxy (Tauri only). Initialized at app start via
 // invoke('http_proxy_port'). Used by file uploads so XHR progress events work and

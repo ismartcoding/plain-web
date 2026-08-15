@@ -15,7 +15,12 @@
           <ul class="card list-items">
             <VListItem v-if="selfDevice" :subtitle="selfDevice.host">
               <template #start>
-                <DeviceTypeIcon device-type="computer" />
+                <v-dropdown v-model="infoOpen['self']">
+                  <template #trigger>
+                    <DeviceTypeIcon :device-type="selfDevice.deviceType" />
+                  </template>
+                  <pre class="view-raw">{{ selfDevice }}</pre>
+                </v-dropdown>
               </template>
               <template #title>
                 <span>{{ selfDevice.name }}</span>
@@ -38,7 +43,12 @@
             </VListItem>
             <VListItem v-for="s in sessions" :key="s.clientId" :subtitle="s.host">
               <template #start>
-                <DeviceTypeIcon />
+                <v-dropdown v-model="infoOpen[s.clientId]">
+                  <template #trigger>
+                    <DeviceTypeIcon :device-type="s.deviceType" />
+                  </template>
+                  <pre class="view-raw">{{ s }}</pre>
+                </v-dropdown>
               </template>
               <template #title>
                 <span>{{ s.name || s.host }}</span>
@@ -95,7 +105,12 @@
                 >
               </template>
               <template #start>
-                <DeviceTypeIcon :device-type="d.deviceType" />
+                <v-dropdown v-model="infoOpen[d.id]">
+                  <template #trigger>
+                    <DeviceTypeIcon :device-type="d.deviceType" />
+                  </template>
+                  <pre class="view-raw">{{ d }}</pre>
+                </v-dropdown>
               </template>
               <template #end>
                 <v-outlined-button
@@ -132,7 +147,7 @@ import LoginForm from '@/views/login/LoginForm.vue'
 import { useDeviceDiscovery, type DiscoveredDevice } from '@/hooks/use-device-discovery'
 import { useDeviceSessionsStore } from '@/stores/device-sessions'
 import type { DeviceSession } from '@/stores/device-sessions'
-import { clearPendingLoginHost, setPendingLoginHost } from '@/lib/api/api'
+import { clearPendingLoginHost, setPendingLoginHost, setPendingLoginDeviceType, clearPendingLoginDeviceType } from '@/lib/api/api'
 import { isLocalMode } from '@/lib/device/local-mode'
 import { getDesktopClientId } from '@/lib/device/client-id'
 import { loadSelfDevice, type SelfDevice } from '@/lib/device/self-device'
@@ -147,6 +162,7 @@ const isLoginStep = ref(false)
 const loginHost = ref('')
 const loginFormRef = ref<InstanceType<typeof LoginForm> | null>(null)
 const selfDevice = ref<SelfDevice | null>(null)
+const infoOpen = ref<Record<string, boolean>>({})
 
 const desktopClientId = getDesktopClientId()
 const newDevices = computed(() =>
@@ -170,6 +186,7 @@ async function loadSelf() {
 function close() {
   if (isLoginStep.value) {
     clearPendingLoginHost()
+    clearPendingLoginDeviceType()
   }
   popModal()
 }
@@ -177,6 +194,7 @@ function close() {
 function switchTo(s: DeviceSession) {
   if (!s.token) {
     store.setCurrent('')
+    if (s.deviceType) setPendingLoginDeviceType(s.deviceType)
     void startLoginStep(s.host)
     return
   }
@@ -201,6 +219,7 @@ function startLogin(d: DiscoveredDevice) {
   const host = d.ips[0] ? `${d.ips[0]}:${d.port}` : ''
   if (!host) return
   store.setCurrent('')
+  setPendingLoginDeviceType(d.deviceType)
   void startLoginStep(host)
 }
 
@@ -214,6 +233,7 @@ async function startLoginStep(host: string) {
 
 function cancelLoginStep() {
   clearPendingLoginHost()
+  clearPendingLoginDeviceType()
   isLoginStep.value = false
   loginHost.value = ''
 }

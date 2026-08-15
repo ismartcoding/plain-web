@@ -3,7 +3,7 @@ import { useI18n } from 'vue-i18n'
 import router from '@/plugins/router'
 import { sha512, chachaEncrypt, bitArrayToUint8Array } from '@/lib/api/crypto'
 import type { InitResponse } from '@/lib/api/crypto'
-import { getApiBaseUrl, getApiHeaders, getPendingLoginHost, clearPendingLoginHost } from '@/lib/api/api'
+import { getApiBaseUrl, getApiHeaders, getPendingLoginHost, clearPendingLoginHost, getPendingLoginDeviceType, clearPendingLoginDeviceType } from '@/lib/api/api'
 import { randomUUID } from '@/lib/strutil'
 import { tokenToKey } from '@/lib/api/file'
 import { useDeviceSessionsStore } from '@/stores/device-sessions'
@@ -103,6 +103,7 @@ export function useLogin(options: UseLoginOptions = {}) {
       })
 
       const host = getPendingLoginHost() || sessionsStore.currentSession?.host || window.location.host || ''
+      const deviceType = getPendingLoginDeviceType()
       if (host && clientId) {
         sessionsStore.save({
           clientId,
@@ -110,9 +111,11 @@ export function useLogin(options: UseLoginOptions = {}) {
           name: currentSessionName(host),
           token,
           signaturePublicKey,
+          deviceType: deviceType || undefined,
         })
         sessionsStore.setCurrent(clientId)
         clearPendingLoginHost()
+        clearPendingLoginDeviceType()
       }
       void finishLoginSuccess()
     } catch (e) {
