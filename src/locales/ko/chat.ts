@@ -1,4 +1,8 @@
 export default {
+  image: '이미지',
+  video: '비디오',
+  file: '파일',
+  message: '메시지',
   my_phone: '내 휴대폰',
   me: '나',
   this_device: '이 기기',

@@ -1,4 +1,8 @@
 export default {
+  image: '画像',
+  video: 'ビデオ',
+  file: 'ファイル',
+  message: 'メッセージ',
   my_phone: 'マイフォン',
   me: '私',
   this_device: 'このデバイス',

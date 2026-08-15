@@ -1,4 +1,8 @@
 export default {
+  image: 'ছবি',
+  video: 'ভিডিও',
+  file: 'ফাইল',
+  message: 'বার্তা',
   my_phone: 'আমার ফোন',
   me: 'আমি',
   this_device: 'এই ডিভাইস',
