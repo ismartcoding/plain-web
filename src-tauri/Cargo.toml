@@ -30,8 +30,8 @@ tauri-plugin-notification = "2.3.3"
 tauri-plugin-log = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
-# XChaCha20-Poly1305 for local server request encryption — required for security correctness.
-chacha20poly1305 = "0.10"
+# Shared Rust primitives (crypto + utils).
+plain_rs = { git = "https://github.com/plainhub/plain-rs", package = "plain-rs" }
 # Self-signed TLS certificate generation for local HTTPS server.
 # ring feature enables the required crypto backend (generate_simple_self_signed needs it).
 rcgen = { version = "0.13", default-features = false, features = ["pem", "ring"] }
@@ -40,16 +40,10 @@ tokio-rustls = { version = "0.26", default-features = false, features = ["ring",
 rustls-pemfile = "2"
 # SQLite for local chat/channel storage. Bundled builds SQLite from source — no system dependency.
 rusqlite = { version = "0.32", features = ["bundled"] }
-# ECDH P-256 (secp256r1) — matches Android CryptoHelper.generateECDHKeyPair() / computeECDHSharedKey().
-p256 = { version = "0.13", default-features = false, features = ["ecdh", "pkcs8", "std"] }
-# Ed25519 signing + verification — matches Android Tink Ed25519Verify (raw 32-byte public key).
-ed25519-dalek = { version = "2", features = ["rand_core"] }
 # SHA-256 for content-addressable file store.
 sha2 = "0.10"
-# CSPRNG used by ed25519-dalek key generation.
+# CSPRNG used in prefs tests.
 rand = "0.8"
-# UUID v4 for persistent device client-id.
-uuid = { version = "1", features = ["v4"] }
 # Typed GraphQL schema with derive macros for clean resolver code.
 async-graphql = { version = "7", default-features = false }
 # Cross-platform system information (OS version, uptime, CPU brand).

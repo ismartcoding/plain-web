@@ -1,8 +1,8 @@
 use tauri::AppHandle;
 use tauri_plugin_store::StoreExt;
 
-use crate::crypto::{base64_encode, ed25519_generate, gen_token};
-use crate::utils::short_uuid;
+use plain_rs::{base64_encode, ed25519_generate, gen_token};
+use plain_rs::short_uuid;
 
 pub const STORE_FILE: &str = "prefs.json";
 

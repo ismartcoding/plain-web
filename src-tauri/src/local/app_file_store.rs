@@ -28,7 +28,7 @@ use std::path::{Path, PathBuf};
 use sha2::{Digest, Sha256};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
-use crate::utils::hex::bytes_to_hex;
+use plain_rs::hex::bytes_to_hex;
 
 use crate::local::db::{ChatDb, DAppFile};
 

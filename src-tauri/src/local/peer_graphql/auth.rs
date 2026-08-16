@@ -18,7 +18,7 @@
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::crypto::{base64_decode, ed25519_verify, xchacha_decrypt_raw};
+use plain_rs::{base64_decode, ed25519_verify, xchacha_decrypt_raw};
 use crate::local::db::{ChatDb, DPeer};
 use crate::local::graphql::context::ChannelKeyCache;
 

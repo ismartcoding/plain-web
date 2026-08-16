@@ -13,7 +13,7 @@ use tokio::sync::broadcast;
 use tokio_tungstenite::tungstenite::Message;
 
 use super::super::super::graphql::{AppCtx, WsEvent, encode_ws_event};
-use crate::crypto::xchacha_decrypt;
+use plain_rs::xchacha_decrypt;
 
 pub(super) async fn handle<S>(
     ws: tokio_tungstenite::WebSocketStream<S>,

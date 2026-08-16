@@ -1,6 +1,6 @@
 use tokio::io::{AsyncWrite, AsyncWriteExt};
 
-use crate::utils::http::CORS;
+use plain_rs::http::CORS;
 
 pub(super) const APP_ID: &str = "com.ismartcoding.plain.desktop";
 

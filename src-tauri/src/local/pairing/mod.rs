@@ -19,7 +19,7 @@
 //! ChatDb's key-cache is considered stale (callers should re-query `get_peers`).
 
 use super::db::{now_iso, ChatDb, DPeer};
-use crate::crypto::{base64_decode, base64_encode, ed25519_sign, ed25519_verify, EcdhSession};
+use plain_rs::{base64_decode, base64_encode, ed25519_sign, ed25519_verify, EcdhSession};
 use crate::local::enums::{DeviceType, PeerStatus};
 use crate::prefs::AppIdentity;
 use serde::Serialize;

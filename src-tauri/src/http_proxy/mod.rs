@@ -27,7 +27,7 @@ use tokio::net::TcpStream;
 mod tests;
 mod utils;
 
-use crate::utils::http::CORS;
+use plain_rs::http::CORS;
 use utils::extract_pt;
 
 // ─── Public state ─────────────────────────────────────────────────────────────

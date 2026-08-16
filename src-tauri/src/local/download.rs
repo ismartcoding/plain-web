@@ -25,7 +25,7 @@ use crate::local::enums::DownloadStatus;
 use crate::local::graphql::context::{
     AppCtx, WsEvent, WS_DOWNLOAD_PROGRESS, WS_MESSAGE_UPDATED,
 };
-use crate::utils::mime::mime_from_ext;
+use plain_rs::mime::mime_from_ext;
 
 /// Download task state. Mirrors plain-app `DownloadStatus`.
 #[derive(Clone, Debug)]

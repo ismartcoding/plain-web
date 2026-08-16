@@ -203,7 +203,7 @@ pub fn find_member<'a>(members: &'a [ChannelMember], peer_id: &str) -> Option<&'
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::crypto::{base64_encode, ed25519_generate, ed25519_sign, ed25519_verify};
+    use plain_rs::{base64_encode, ed25519_generate, ed25519_sign, ed25519_verify};
 
     /// Verify the canonical payload format matches plain-app's
     /// `channelMessagePayload`: `"$channelId|$version|$action|$target"`.

@@ -1,9 +1,7 @@
 mod commands;
-mod crypto;
 mod http_proxy;
 mod local;
 mod prefs;
-mod utils;
 
 use std::sync::Arc;
 use tauri::Manager;

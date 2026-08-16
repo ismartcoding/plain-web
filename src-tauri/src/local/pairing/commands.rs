@@ -54,9 +54,9 @@ pub fn get_device_identity(
     } else {
         saved_name
     };
-    let kp = crate::crypto::base64_decode(&identity.ed25519_keypair);
+    let kp = plain_rs::base64_decode(&identity.ed25519_keypair);
     let pub_key_b64 = if kp.len() == 64 {
-        crate::crypto::base64_encode(&kp[32..])
+        plain_rs::base64_encode(&kp[32..])
     } else {
         String::new()
     };

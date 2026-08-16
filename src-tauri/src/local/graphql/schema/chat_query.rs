@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use super::super::context::AppCtx;
 use super::types::{AppFile, ChatChannel, ChatItem, Peer};
-use crate::utils::mime::mime_extension;
+use plain_rs::mime::mime_extension;
 
 #[derive(Default)]
 pub struct ChatQuery;

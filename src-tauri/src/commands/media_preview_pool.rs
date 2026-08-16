@@ -1,7 +1,7 @@
 use std::sync::Mutex;
 use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
 
-use crate::utils::query::url_encode;
+use plain_rs::query::url_encode;
 
 const WARM_LABEL: &str = "media-preview-warm";
 const WARM_WARMUP_PATH: &str = "/media-preview?__warm__=1";

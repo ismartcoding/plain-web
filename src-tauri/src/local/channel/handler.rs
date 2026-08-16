@@ -13,7 +13,7 @@ use tokio::sync::broadcast;
 
 use serde_json::json;
 
-use crate::crypto::{base64_decode, ed25519_verify};
+use plain_rs::{base64_decode, ed25519_verify};
 use crate::local::db::{now_iso, ChatDb, DChannel, DPeer};
 use crate::local::enums::{
     ChannelStatus, ChannelSystemMessageAction, ChannelSystemMessageType, MemberStatus, PeerStatus,
@@ -632,7 +632,7 @@ fn handle_leave(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::crypto::{base64_encode, ed25519_generate, ed25519_sign};
+    use plain_rs::{base64_encode, ed25519_generate, ed25519_sign};
 
     /// Empty `public_key` or `signature` is accepted (permissive for
     /// backward compatibility with older peers that did not sign).

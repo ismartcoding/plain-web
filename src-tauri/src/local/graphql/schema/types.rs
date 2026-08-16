@@ -1,10 +1,10 @@
 use async_graphql::{Enum, InputObject, SimpleObject, Union};
 use serde_json::Value;
 
-use crate::crypto::xchacha_encrypt;
+use plain_rs::xchacha_encrypt;
 use crate::local::db::{DAppFile, DBookmark, DBookmarkGroup, DChannel, DChat, DPeer};
 use crate::local::enums::{AppChannelType, ChannelStatus, ChatStatus, DeviceType, DriveType, MemberStatus, PeerStatus};
-use crate::utils::base64::base64_encode;
+use plain_rs::base64_encode;
 
 // ── Output types ──────────────────────────────────────────────────────────────
 
@@ -574,8 +574,8 @@ impl AppFile {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::crypto::xchacha_decrypt;
-    use crate::utils::base64::{base64_decode, base64_encode};
+    use plain_rs::xchacha_decrypt;
+    use plain_rs::{base64_decode, base64_encode};
 
     /// Roundtrip the `make_file_id_json` output through the same
     /// decryption the `/fs` handler does. This is the contract that
