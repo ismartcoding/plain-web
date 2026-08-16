@@ -432,7 +432,7 @@ jobs:
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          tag: desktop-v${{ needs.package.outputs.version_name }}
+          tag: v${{ needs.package.outputs.version_name }}
           name: Desktop Release ${{ needs.package.outputs.version_name }}
           body: |
             ## What's Changed

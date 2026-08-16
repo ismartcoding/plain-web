@@ -11,6 +11,6 @@
     <!-- Disable App Sandbox so UDP multicast + raw sockets work freely
          on macOS desktop (non-App Store distribution). -->
     <key>com.apple.security.app-sandbox</key>
-    <false/>
+    <true/>
 </dict>
 </plist>

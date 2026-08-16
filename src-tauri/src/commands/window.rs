@@ -59,6 +59,26 @@ pub fn create_window(app: &AppHandle, path: String) {
     }
 }
 
+/// Open the About window at "/about". Existing window is focused instead.
+/// The view runs the update check automatically on mount.
+pub fn open_about(app: &AppHandle) {
+    let label = "about";
+    if let Some(win) = app.get_webview_window(label) {
+        let _ = win.set_focus();
+        return;
+    }
+    let win = tauri::WebviewWindowBuilder::new(app, label, tauri::WebviewUrl::App("/about".into()))
+        .title("About PlainApp")
+        .inner_size(400.0, 560.0)
+        .resizable(false)
+        .center();
+    #[cfg(target_os = "macos")]
+    let win = win.title_bar_style(tauri::TitleBarStyle::Overlay);
+    if let Err(e) = win.build() {
+        log::error!("open_about failed: {e}");
+    }
+}
+
 /// Always creates a new window at "/" without checking for an existing one.
 /// Used by the macOS dock "New Window" action.
 pub fn new_window(app: &AppHandle) {
