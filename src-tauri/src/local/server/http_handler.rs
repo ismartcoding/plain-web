@@ -8,7 +8,7 @@ use super::file_server::serve_file;
 use super::proxy_file::proxy_file;
 use super::response::{respond, APP_ID};
 use super::upload;
-use crate::crypto::{base64_decode, base64_encode, xchacha_decrypt, xchacha_encrypt};
+use plain_rs::{base64_decode, base64_encode, xchacha_decrypt, xchacha_encrypt};
 
 pub(super) async fn handle<R, W>(
     rd: R,
@@ -95,7 +95,7 @@ pub(super) async fn handle<R, W>(
             if content_length > 0 && !ctx.token.is_empty() {
                 let mut body = vec![0u8; content_length];
                 if reader.read_exact(&mut body).await.is_ok() {
-                    authenticated = crate::crypto::xchacha_decrypt(&ctx.token, &body).is_some();
+                    authenticated = plain_rs::xchacha_decrypt(&ctx.token, &body).is_some();
                 }
             }
 

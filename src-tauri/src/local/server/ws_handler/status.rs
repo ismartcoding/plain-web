@@ -12,7 +12,7 @@ use std::sync::Arc;
 use tokio_tungstenite::tungstenite::Message;
 
 use super::super::super::graphql::AppCtx;
-use crate::crypto::{base64_decode, xchacha_decrypt_raw, ed25519_verify};
+use plain_rs::{base64_decode, xchacha_decrypt_raw, ed25519_verify};
 
 pub(super) async fn handle<S>(
     ws: tokio_tungstenite::WebSocketStream<S>,

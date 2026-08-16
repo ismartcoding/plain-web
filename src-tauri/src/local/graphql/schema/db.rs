@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use super::super::context::AppCtx;
 use super::util::is_safe_identifier;
-use crate::utils::hex::bytes_to_hex;
+use plain_rs::hex::bytes_to_hex;
 
 #[derive(SimpleObject, Default)]
 pub struct DbTableInfo {

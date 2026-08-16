@@ -1,6 +1,6 @@
 //! Shared types, WebSocket event infrastructure, and resolver context.
 
-use crate::crypto::{base64_decode, xchacha_encrypt};
+use plain_rs::{base64_decode, xchacha_encrypt};
 use crate::commands::discover::{NearbyDiscoverManager, PeerStatusManager};
 use crate::local::chat_cacher::ChatCacher;
 use crate::local::db::ChatDb;

@@ -29,7 +29,7 @@
 
 use std::str::FromStr;
 
-use crate::crypto::{base64_encode, ed25519_sign};
+use plain_rs::{base64_encode, ed25519_sign};
 use crate::local::db::{ChatDb, DChannel, DPeer};
 use crate::local::enums::{
     ChannelSystemMessageAction, ChannelSystemMessageType, DeviceType,
@@ -431,7 +431,7 @@ pub fn encode_channel_key(raw: &[u8]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::crypto::{base64_encode, ed25519_generate};
+    use plain_rs::{base64_encode, ed25519_generate};
     use crate::local::enums::{DeviceType, MemberStatus};
     use std::path::PathBuf;
     use std::time::{SystemTime, UNIX_EPOCH};

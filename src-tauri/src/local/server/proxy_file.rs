@@ -3,10 +3,10 @@ use tokio::io::{AsyncWrite, AsyncWriteExt};
 
 use super::super::graphql::context::AppCtx;
 use super::response::respond;
-use crate::crypto::xchacha_decrypt;
-use crate::utils::base64::base64_decode;
-use crate::utils::http::CORS;
-use crate::utils::query::parse_query;
+use plain_rs::xchacha_decrypt;
+use plain_rs::base64_decode;
+use plain_rs::http::CORS;
+use plain_rs::query::parse_query;
 
 /// Proxy a peer file through the local server's `/proxyfs` endpoint.
 ///

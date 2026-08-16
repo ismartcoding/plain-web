@@ -91,7 +91,7 @@ pub(super) async fn handle_upload<R, W>(
     };
 
     // Decrypt info JSON.
-    let Some(plaintext) = crate::crypto::xchacha_decrypt(&ctx.token, info_bytes) else {
+    let Some(plaintext) = plain_rs::xchacha_decrypt(&ctx.token, info_bytes) else {
         respond(&mut wr, 401, "Unauthorized", b"", "text/plain").await;
         return;
     };
@@ -220,7 +220,7 @@ pub(super) async fn handle_upload_chunk<R, W>(
         }
     };
 
-    let Some(plaintext) = crate::crypto::xchacha_decrypt(&ctx.token, info_bytes) else {
+    let Some(plaintext) = plain_rs::xchacha_decrypt(&ctx.token, info_bytes) else {
         respond(&mut wr, 401, "Unauthorized", b"", "text/plain").await;
         return;
     };

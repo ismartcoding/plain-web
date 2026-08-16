@@ -22,7 +22,7 @@ mod schema;
 use std::sync::Arc;
 use tokio::io::AsyncWrite;
 
-use crate::crypto::xchacha_encrypt_raw;
+use plain_rs::xchacha_encrypt_raw;
 use crate::local::graphql::context::AppCtx;
 use crate::local::server::response::respond;
 

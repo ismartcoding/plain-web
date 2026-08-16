@@ -1,5 +1,5 @@
 use super::nearby_discover_manager::NearbyDiscoverManager;
-use crate::crypto::{base64_decode, chacha20_encrypt, ed25519_sign};
+use plain_rs::{base64_decode, chacha20_encrypt, ed25519_sign};
 use crate::local::db::{ChatDb, DPeer};
 use crate::local::graphql::{WS_PEER_STATUS_UPDATED, WsEvent};
 use crate::prefs::AppIdentity;

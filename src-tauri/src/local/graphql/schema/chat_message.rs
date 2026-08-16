@@ -7,7 +7,7 @@ use super::super::context::{
 };
 use super::super::peer::{deliver_to_peer, peer_graphql_urls};
 use super::types::{make_file_id, ChatItem};
-use crate::crypto::base64_decode;
+use plain_rs::base64_decode;
 use crate::local::db::DChat;
 use crate::local::enums::ChatStatus;
 use crate::local::channel::chat_helper::{
@@ -404,9 +404,9 @@ fn resolve_chat_ids(db: &crate::local::db::ChatDb, query: &str) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::crypto::xchacha_decrypt;
+    use plain_rs::xchacha_decrypt;
     use crate::local::db::ChatDb;
-    use crate::utils::base64::{base64_decode, base64_encode};
+    use plain_rs::{base64_decode, base64_encode};
     use std::path::PathBuf;
     use std::time::{SystemTime, UNIX_EPOCH};
 

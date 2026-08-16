@@ -4,7 +4,7 @@ use super::utils::now_iso;
 use super::ChatDb;
 use crate::local::channel::messages::decode_members;
 use crate::local::enums::ChannelStatus;
-use crate::utils::short_uuid::short_uuid;
+use plain_rs::short_uuid::short_uuid;
 
 #[derive(Clone, Debug)]
 pub struct DChannel {

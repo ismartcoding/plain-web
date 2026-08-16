@@ -1,4 +1,4 @@
-use crate::utils::query::percent_decode;
+use plain_rs::query::percent_decode;
 
 /// Remove `_pt` from query string; return `(cleaned_path, decoded_pt_value)`.
 ///

@@ -5,10 +5,10 @@ use tokio::io::{AsyncReadExt, AsyncSeekExt, AsyncWrite, AsyncWriteExt};
 use super::super::graphql::context::AppCtx;
 use super::response::respond;
 use super::uri::{parse_decrypted_id, resolve_uri};
-use crate::crypto::xchacha_decrypt;
-use crate::utils::base64::base64_decode;
-use crate::utils::mime::mime_from_ext;
-use crate::utils::query::{parse_query, url_encode};
+use plain_rs::xchacha_decrypt;
+use plain_rs::base64_decode;
+use plain_rs::mime::mime_from_ext;
+use plain_rs::query::{parse_query, url_encode};
 
 /// Serve a file via the local server's `/fs` endpoint.
 ///

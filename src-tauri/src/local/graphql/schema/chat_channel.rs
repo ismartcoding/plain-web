@@ -5,7 +5,7 @@ use super::super::context::{
     channels_updated_payload, load_key_cache, refresh_peer_key_cache, AppCtx, WsEvent, WS_CHANNELS_UPDATED,
 };
 use super::types::ChatChannel;
-use crate::crypto::{base64_decode, base64_encode, random_bytes};
+use plain_rs::{base64_decode, base64_encode, random_bytes};
 use crate::local::channel::messages::{
     decode_members, encode_members, has_member, ChannelMember,
 };
