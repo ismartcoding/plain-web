@@ -22,11 +22,11 @@ The file upload system supports both direct (small file) and chunked (large file
            │
      ┌─────┴──────┐
      ▼            ▼
- POST /upload   POST /upload_chunk   (backend: HttpModule.kt)
+ POST /upload   POST /upload_chunk   (backend: local/server/upload.rs)
  (single file)  (per-chunk, 5MB each)
                      │
                      ▼
-               mergeChunks           (GraphQL mutation: FileUploadGraphQL.kt)
+               mergeChunks           (GraphQL mutation: local/graphql/schema/file_upload.rs)
                (concatenate + verify)
 ```
 
@@ -199,6 +199,5 @@ Each file gets a deterministic ID based on `SHA-256(name + size + lastModified +
 | IUploadItem type | `src/stores/temp.ts` |
 | GraphQL queries | `src/lib/api/query.ts` (uploadedChunksGQL) |
 | GraphQL mutations | `src/lib/api/mutation.ts` (mergeChunksGQL) |
-| Backend HTTP endpoints | `app/.../web/HttpModule.kt` (/upload, /upload_chunk) |
-| Backend GraphQL schema | `app/.../web/schemas/FileUploadGraphQL.kt` |
-| Backend data classes | `app/.../data/UploadInfo.kt` |
+| Backend HTTP endpoints | `src-tauri/src/local/server/upload.rs` (/upload, /upload_chunk) |
+| Backend GraphQL schema | `src-tauri/src/local/graphql/schema/file_upload.rs` |
