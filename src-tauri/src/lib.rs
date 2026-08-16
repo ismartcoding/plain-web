@@ -142,6 +142,8 @@ pub fn run() {
             commands::http_client::http_request,
             commands::ws_proxy::ws_start_proxy,
             commands::notification::send_macos_notification,
+            commands::updater::get_app_info,
+            commands::updater::check_for_updates,
             commands::window::open_window,
             commands::window::set_window_device_name,
             commands::media_preview_pool::media_preview_init,

@@ -2,12 +2,15 @@ use tauri::menu::{MenuBuilder, MenuItemBuilder, PredefinedMenuItem, SubmenuBuild
 
 pub fn setup(app: &mut tauri::App) -> tauri::Result<()> {
     // ── App menu (first menu on macOS is the app name) ────────────────────
+    let about = MenuItemBuilder::with_id("about", "About PlainApp").build(app)?;
     let services = PredefinedMenuItem::services(app, None)?;
     let hide = PredefinedMenuItem::hide(app, None)?;
     let hide_others = PredefinedMenuItem::hide_others(app, None)?;
     let show_all = PredefinedMenuItem::show_all(app, None)?;
     let quit = PredefinedMenuItem::quit(app, Some("Quit PlainApp"))?;
     let app_submenu = SubmenuBuilder::new(app, "PlainApp")
+        .item(&about)
+        .separator()
         .item(&services)
         .separator()
         .item(&hide)
@@ -56,8 +59,15 @@ pub fn setup(app: &mut tauri::App) -> tauri::Result<()> {
 
     // ── Menu event handler ────────────────────────────────────────────────
     app.on_menu_event(|app, event| {
-        if event.id().as_ref() == "new-window" {
-            super::window::create_window(app, "/".to_string());
+        let id = event.id().as_ref();
+        match id {
+            "new-window" => {
+                super::window::create_window(app, "/".to_string());
+            }
+            "about" => {
+                super::window::open_about(app);
+            }
+            _ => {}
         }
     });
 
