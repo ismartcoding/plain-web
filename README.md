@@ -1,6 +1,6 @@
-# Plain Web
+# Plain Desktop
 
-This is web ui source code of [PlainApp](https://github.com/plainhub/plain-app).
+This is desktop app and web ui source code of [PlainApp](https://github.com/plainhub/plain-app).
 
 PlainApp is an open-source app that lets you securely manage your phone from a web browser. Access files, media, contacts, SMS, calls, and more through a simple, easy-to-use interface on your desktop.
 
@@ -53,6 +53,7 @@ Duplicate `.env.example` file to `.env.local` and update the `VITE_APP_API_HOST`
 ```sh
 yarn
 yarn dev
+yarn dev:tauri
 ```
 
 ## Build
