@@ -5,9 +5,11 @@
 //!
 //! Each listener binds the user-configured port stored in `prefs` (default
 //! 8080 / 8443, matching plain-app's `HttpPortPreference` / `HttpsPortPreference`).
-//! On conflict the bind fails and surfaces an error to the caller — there is
-//! no automatic fallback. The bound port is recorded in `LocalServerState`
-//! so downstream consumers (pairing, discovery, GraphQL) see the actual value.
+//! On conflict it walks the candidate lists [`HTTP_PORTS`] / [`HTTPS_PORTS`]
+//! starting from the configured port and binds the first free one, so the app
+//! keeps running instead of crashing. The bound port is recorded in
+//! `LocalServerState` so downstream consumers (pairing, discovery, GraphQL)
+//! see the actual value.
 //!
 //! Per-connection dispatch lives in [`plain_conn`] (HTTP/WS) and
 //! [`tls_conn`] (HTTPS/WSS); the listener loops here only accept and spawn.
@@ -156,7 +158,7 @@ impl LocalServerState {
         }
         std::thread::sleep(std::time::Duration::from_millis(100));
 
-        let http_listener = match bind_listener(http_port) {
+        let http_listener = match bind_listener_fallback(http_port, &HTTP_PORTS) {
             Ok(l) => l,
             Err(e) => {
                 if old_http != 0 {
@@ -171,7 +173,7 @@ impl LocalServerState {
             .port();
         http_listener.set_nonblocking(true).expect("set_nonblocking");
 
-        let https_listener = match bind_listener(https_port) {
+        let https_listener = match bind_listener_fallback(https_port, &HTTPS_PORTS) {
             Ok(l) => l,
             Err(e) => {
                 drop(http_listener);
@@ -326,6 +328,40 @@ fn bind_listener(port: u16) -> std::io::Result<StdTcpListener> {
     }
 }
 
+/// Candidate HTTP ports tried in order when the configured one is occupied,
+/// matching plain-app's mobile port list.
+const HTTP_PORTS: [u16; 10] = [8080, 8180, 8280, 8380, 8480, 8580, 8680, 8780, 8880, 8980];
+
+/// Candidate HTTPS ports tried in order when the configured one is occupied.
+const HTTPS_PORTS: [u16; 10] = [8043, 8143, 8243, 8343, 8443, 8543, 8643, 8743, 8843, 8943];
+
+/// Bind the configured port; on `AddrInUse` walk `candidates` starting from the
+/// configured port and bind the first free one. Keeps the app running instead
+/// of panicking when the preferred port is occupied.
+fn bind_listener_fallback(
+    preferred: u16,
+    candidates: &[u16],
+) -> std::io::Result<StdTcpListener> {
+    let start = candidates
+        .iter()
+        .position(|&p| p == preferred)
+        .unwrap_or(0);
+    for i in 0..candidates.len() {
+        let port = candidates[(start + i) % candidates.len()];
+        match bind_listener(port) {
+            Ok(l) => return Ok(l),
+            Err(e) if e.kind() == std::io::ErrorKind::AddrInUse => {
+                log::warn!("local_server: port {port} is in use, trying next candidate");
+            }
+            Err(e) => return Err(e),
+        }
+    }
+    Err(std::io::Error::new(
+        std::io::ErrorKind::AddrInUse,
+        "all candidate ports are in use",
+    ))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -380,6 +416,39 @@ mod tests {
             err.kind()
         );
         drop(taken_hold);
+    }
+
+    #[test]
+    fn bind_listener_fallback_succeeds_when_port_taken() {
+        let _guard = SERIAL.lock().unwrap();
+        let (taken_hold, taken) = grab_port();
+        let (free_hold, free) = grab_port();
+        drop(free_hold);
+        let l = bind_listener_fallback(taken, &[taken, free])
+            .expect("fallback should bind the next free candidate");
+        assert_eq!(l.local_addr().unwrap().port(), free);
+        drop(taken_hold);
+    }
+
+    #[test]
+    fn bind_listener_fallback_prefers_free_configured_port() {
+        let _guard = SERIAL.lock().unwrap();
+        let (probe_hold, free_port) = grab_port();
+        drop(probe_hold);
+        let l = bind_listener_fallback(free_port, &[free_port, free_port + 1])
+            .expect("a free preferred port should be used");
+        assert_eq!(l.local_addr().unwrap().port(), free_port);
+    }
+
+    #[test]
+    fn bind_listener_fallback_fails_when_all_candidates_taken() {
+        let _guard = SERIAL.lock().unwrap();
+        let (a, pa) = grab_port();
+        let (b, pb) = grab_port();
+        let err = bind_listener_fallback(pa, &[pa, pb]).unwrap_err();
+        assert_eq!(err.kind(), std::io::ErrorKind::AddrInUse);
+        drop(a);
+        drop(b);
     }
 }
 
