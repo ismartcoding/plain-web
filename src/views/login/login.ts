@@ -64,20 +64,21 @@ export function useLogin(options: UseLoginOptions = {}) {
     }
     webAccessDisabled.value = false
     const bodyText = await r.text()
-    if (r.status === 200 && token && !bodyText) {
-      await finishLoginSuccess(); return
-    }
+    let initData: InitResponse | undefined
     if (bodyText) {
-      const initData = JSON.parse(bodyText) as InitResponse
+      initData = JSON.parse(bodyText) as InitResponse
       if (initData.signaturePublicKey) {
         lastInitSignaturePublicKey = initData.signaturePublicKey
       }
-      if (initData.password) {
-        password.value = initData.password
-        showPasswordInput.value = false
-      } else {
-        showPasswordInput.value = true
-      }
+    }
+    // The server only omits the `password` field when it accepted the token we
+    // presented, so a 200 with no password means we are already authenticated.
+    if (r.status === 200 && token && !initData?.password) {
+      await finishLoginSuccess(); return
+    }
+    if (initData?.password) {
+      password.value = initData.password
+      showPasswordInput.value = false
     } else {
       showPasswordInput.value = true
     }
