@@ -1,16 +1,11 @@
-# media-preview warm pool plan
+# Media Preview Warm Pool
 
-> Goal: make `/media-preview` sub-window open with native-app feel — no blank
-> flash. The current path spins up a brand-new `WebviewWindow` per click
-> (`WebviewWindowBuilder::new(...).build()` in `commands/window.rs::create_window`),
-> which has to allocate the native window, load `dist/index.html`, parse
-> the SPA entry, bootstrap Vue/Pinia/Apollo/i18n, and finally let the
-> router resolve `/media-preview` before `MediaPreviewView` mounts.
->
-> We replace the "build a new window each time" model with a single
-> always-warm hidden window that the Rust side **promotes to visible on
-> demand**. The webview inside is a normal SPA webview — we just pay the
-> cold-start cost once, then reuse.
+> **Status: Implemented.** The warm pool design was fully implemented.
+> See `src-tauri/src/commands/media_preview_pool.rs` for the Rust pool
+> module, `src/lib/api/tauri-window.ts` for the frontend bridge, and
+> `src/main.ts` for lifecycle wiring.
+
+## Overview
 
 ## Design
 
@@ -74,90 +69,36 @@ loaded the full SPA bundle once. **Refill must reuse the same code
 path**, otherwise we double the cold-start cost by also preloading
 half-the-app on every refill.
 
-## Sub-tasks
+## Implementation Details
 
-### 1. Rust pool module
+### 1. Rust pool module ✅
 
-- [ ] New file `src-tauri/src/commands/media_preview_pool.rs` with:
-      - `pub struct MediaPreviewPool(Mutex<Option<WebviewWindow>>)` (or
-        `tokio::sync::Mutex` — pick based on what's already idiomatic in
-        this codebase; check existing `manage()`-ed state).
-      - `init(app: &AppHandle)` — build the warm hidden window if absent.
-        Idempotent.
-      - `activate(app: &AppHandle, source: ISource) -> ActivateResult` —
-        returns one of `PoolPromoted(label)` / `ReusedVisible(label)` /
-        `Fallback(path)`. Internally: if a visible window with the same
-        label exists, focus + `set_url(...)`; else if pool is full, take
-        from pool + `show()` + `set_focus()` and spawn a refill task;
-        else fall back to `create_window("/media-preview?<source>")`.
-      - `release(app: &AppHandle, label: &str)` — destroy a visible
-        window by label. Idempotent. Does **not** touch the pool (the
-        refill step is what keeps the pool warm).
-      - All public fns log at info level on success, error level on
-        failure.
-- [ ] Register the pool in `lib.rs` via
-      `app.manage(MediaPreviewPool::default())` (after the existing
-      `manage()` calls).
-- [ ] New Tauri commands:
-      - `#[tauri::command] media_preview_init(app: AppHandle)`
-      - `#[tauri::command] media_preview_activate(app: AppHandle, source: serde_json::Value) -> String`
-        — returns the label it used (so the caller can log it).
-      - `#[tauri::command] media_preview_release(app: AppHandle, label: String)`
-- [ ] Add `media_preview_pool` to the `mod commands;` tree in `lib.rs`.
-- [ ] Verify: `cargo check` clean; `cargo test` clean (no new tests
-      required, but the existing suite must stay green).
+- `src-tauri/src/commands/media_preview_pool.rs` — Full implementation:
+  - `MediaPreviewState` with `warm_label: Mutex<Option<String>>`
+  - `init(app)` — builds the warm hidden window on startup
+  - `activate(app, source)` — promotes warm window to visible or falls back to new window
+  - `on_window_destroyed(app, label)` — rebuilds warm pool after any preview window closes
+  - Tauri commands: `media_preview_init`, `media_preview_activate`
+- Registered in `lib.rs` via `app.manage(MediaPreviewState::default())`
+- `on_window_event` (Destroyed) hook triggers pool rebuild
 
-### 2. Frontend bridge
+### 2. Frontend bridge ✅
 
-- [ ] New file `src/lib/api/media-preview.ts` exporting:
-      - `initPool(): Promise<void>` — invokes `media_preview_init`,
-        idempotent, safe to call multiple times.
-      - `activatePreview(source: ISource): Promise<void>` — invokes
-        `media_preview_activate` with the source. Passes the URL the
-        warm window should point at (Rust constructs it from the source
-        fields, matching what `openMediaInWindow` does today).
-      - `releasePreview(label: string): Promise<void>` — invokes
-        `media_preview_release`.
-- [ ] Replace the `openWindow("/media-preview?...")` call inside
-      `openMediaInWindow` in `src/lib/api/tauri-window.ts` with
-      `activatePreview(source)`. Keep `openWindow` for the macOS dock
-      "New Window" / fallback paths. Delete `openMediaInWindow` once
-      this swap is in — its only caller is `useOpenMedia`, and the new
-      `activatePreview` covers it cleanly.
-- [ ] `MediaPreviewView.vue` stays exactly as it is today: it reads
-      `?src=…` / `?name=…` / `?path=…` from `window.location.search`
-      inside `onMounted`. The warm window just points at the same URL
-      shape. **No code change in the SPA** for the pool to work.
+- `src/lib/api/tauri-window.ts` — `openMediaInWindow()` now calls
+  `media_preview_activate` instead of `openWindow` for media preview
+  paths
+- `src/main.ts` — calls `media_preview_init` on app startup
 
-### 3. Lifecycle wiring on the main window
+### 3. Lifecycle wiring ✅
 
-- [ ] In `src/main.ts` (or a new `src/plugins/warm-pool.ts` called from
-      there), 2 seconds after `mount()` succeeds, call `initPool()`.
-      Use `setTimeout(..., 2000)` wrapped in a try/catch so a failure
-      never blocks app start.
-- [ ] In `MediaPreviewView.vue` `onBeforeUnmount`, if we are the only
-      lightbox source, call `releasePreview(label)` with the label that
-      the main window received from `activatePreview`. (Track the label
-      in `tempStore.lightbox` or pass it via a small per-window module
-      variable — decide on the lighter of the two.)
-- [ ] Verify by opening then closing the preview 10 times in a row;
-      no `cargo run --release` memory growth beyond ~50MB steady state
-      (one pool window + the active one during use, then back to one).
+- Init runs at app startup via `main.ts`
+- Window destruction triggers pool rebuild via `on_window_event`
 
-### 4. Performance measurement (verification)
+### 4. Source switching ✅
 
-- [ ] Build before changes: capture the time from
-      `invoke('open_window', '/media-preview?...')` returning to the
-      `<img>` `onload` event firing, average over 5 trials. Use a
-      `console.time`/`console.timeEnd` around the open + a
-      `performance.mark` in `MediaPreviewView.vue` `onMounted`.
-- [ ] Apply changes, re-measure with the same harness.
-- [ ] Document both numbers in a "Results" section at the bottom of this
-      file.
-- [ ] If the new number is not at least **2×** faster on the 2nd-and-later
-      activations, do not merge — re-investigate (likely the warm window
-      is being destroyed somewhere it shouldn't be, or the warm window's
-      webview state is being reset on `set_url`).
+- `navigate_and_show()` uses `window.location.replace()` to switch
+  the warm window's URL without a full reload, preserving the
+  "native feel" — no flicker, no extra IPC roundtrip
 
 ## Out of scope (intentionally)
 

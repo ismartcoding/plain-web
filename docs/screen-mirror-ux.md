@@ -75,11 +75,10 @@ New `idle` ref in `screen-mirror-service.ts`:
 
 ## Files Changed
 
-- `src/hooks/screen-mirror-service.ts` — Added `idle` state; removed auto-start on initial query
-- `src/hooks/use-screen-mirror-view.ts` — Pass `idle` state through
-- `src/views/ScreenMirrorView.vue` — Pass `idle` prop to child components
-- `src/components/screen-mirror/ScreenMirrorContent.vue` — Added idle screen UI with start button
-- `src/components/screen-mirror/ScreenMirrorHeaderActions.vue` — Hide actions during idle state
+- `src/views/screen-mirror/screen-mirror-service.ts` — Added `idle` state; removed auto-start on initial query
+- `src/views/screen-mirror/ScreenMirrorView.vue` — Pass `idle` prop to child components
+- `src/views/screen-mirror/ScreenMirrorContent.vue` — Added idle screen UI with start button
+- `src/views/screen-mirror/ScreenMirrorHeaderActions.vue` — Hide actions during idle state
 
 ## Related
 

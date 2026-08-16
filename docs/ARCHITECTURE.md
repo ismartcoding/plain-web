@@ -10,7 +10,7 @@
 | Bundler | Vite 5.4 |
 | Language | TypeScript 5.8 |
 | State | Pinia 3.0 |
-| API | Apollo Client (GraphQL over HTTP/WebSocket) |
+| API | Custom fetch-based GraphQL client (`gql-client.ts`) |
 | i18n | vue-i18n 11 (per-feature module files) |
 | Styling | SCSS (no CSS framework) |
 | Encryption | XChaCha20-Poly1305 (`@noble/ciphers`) |
@@ -37,7 +37,6 @@ src/
 │   │   └── ...                # VChipSet, VFilterChip, VInputChip
 │   ├── {feature}/             # Feature-specific components
 │   │   ├── chat/              # Chat components
-│   │   ├── feeds/             # RSS feed components
 │   │   ├── files/             # File browser components
 │   │   ├── notes/             # Notes editor components
 │   │   ├── audio/             # Audio player components
@@ -94,10 +93,10 @@ src/
 │   └── ...                    # strutil, validator, theme, etc.
 │
 ├── plugins/                   # Vue plugin setup
-│   ├── apollo.ts              # Apollo Client config
+│   ├── eventbus.ts            # mitt event bus for cross-component events
 │   ├── router.ts              # Vue Router routes
 │   ├── i18n.ts                # vue-i18n initialization
-│   └── ...                    # eventbus, tooltip, ripple, etc.
+│   └── ...                    # tooltip, ripple, tapphone, clickaway, etc.
 │
 ├── locales/                   # i18n translations (17 languages)
 │   └── en-US/                 # English — per-feature modules
@@ -114,14 +113,15 @@ src/
 ## Data Flow
 
 ```
-Vue Component → Composable Hook → Apollo (GraphQL) → Ktor Server on Android device
+Vue Component → Composable Hook → gqlFetch() → Local Rust Server (Tauri) / Remote Android Device
                      ↕                    ↕
-               Pinia Store          WebSocket subscriptions
+               Pinia Store          WebSocket event bus (mitt)
 ```
 
-- **Queries/Mutations**: Via `@vue/apollo-composable` (`useQuery`, `useMutation`)
-- **Custom wrapper**: `initMutation()` / `initQuery()` in hooks
-- **Real-time**: GraphQL subscriptions over WebSocket
+- **Queries/Mutations**: Via `initQuery()` / `initMutation()` wrappers in `src/lib/api/`
+- **Core client**: `gqlFetch()` in `src/lib/api/gql-client.ts` — encrypts with XChaCha20-Poly1305, fetches, decrypts
+- **Real-time**: Event-driven updates via mitt event bus (no GraphQL subscriptions)
+- **Transport**: `tauriFetch()` via Tauri IPC for small API calls; local HTTP proxy for uploads/media; WebSocket proxy for real-time events
 - **State**: Pinia for cross-component state; `ref`/`reactive` for local state
 
 ## Build Commands
