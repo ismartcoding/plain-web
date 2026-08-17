@@ -95,4 +95,7 @@ export default {
   mdns_txt: 'TXT',
   mdns_no_devices: 'No nearby devices found',
   not_available: 'பொருந்தாது',
+  dlna_receiver: 'காஸ்ட் ரிசீவர்',
+  dlna_receiver_desc: 'மற்றொரு சாதனத்திலிருந்து வீடியோக்கள், இசை மற்றும் புகைப்படங்களை இயக்கவும்.',
+  error: 'பிழை',
 }

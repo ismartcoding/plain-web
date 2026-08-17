@@ -145,18 +145,17 @@ import { popModal } from './modal/methods'
 import DeviceDiscoveryStatus from './DeviceDiscoveryStatus.vue'
 import LoginForm from '@/views/login/LoginForm.vue'
 import { useDeviceDiscovery, type DiscoveredDevice } from '@/hooks/use-device-discovery'
-import { useDeviceSessionsStore } from '@/stores/device-sessions'
-import type { DeviceSession } from '@/stores/device-sessions'
+import { loginPeers, clearLoginPeer, type LoginPeer } from '@/lib/device/login-peers'
 import { clearPendingLoginHost, setPendingLoginHost, setPendingLoginDeviceType, clearPendingLoginDeviceType } from '@/lib/api/api'
 import { isLocalMode } from '@/lib/device/local-mode'
-import { getDesktopClientId } from '@/lib/device/client-id'
+import { getDesktopClientId, getRemoteClientId, setRemoteClientId, clearRemoteClientId } from '@/lib/device/client-id'
 import { loadSelfDevice, type SelfDevice } from '@/lib/device/self-device'
+import { remove as prefsRemove } from '@/lib/prefs'
 
-const store = useDeviceSessionsStore()
 const { devices, status, start, stop, retry, openLanPermissionSettings } = useDeviceDiscovery()
 
-const sessions = computed(() => store.sortedSessions)
-const currentClientId = computed(() => store.currentClientId)
+const sessions = computed(() => loginPeers.value)
+const currentClientId = computed(() => getRemoteClientId())
 const localMode = computed(() => isLocalMode())
 const isLoginStep = ref(false)
 const loginHost = ref('')
@@ -193,25 +192,21 @@ function close() {
   popModal()
 }
 
-function switchTo(s: DeviceSession) {
-  if (!s.token) {
-    store.setCurrent('')
-    if (s.deviceType) setPendingLoginDeviceType(s.deviceType)
-    void startLoginStep(s.host)
-    return
-  }
+function switchTo(s: LoginPeer) {
   if (s.clientId === currentClientId.value) {
     close()
     return
   }
-  store.setCurrent(s.clientId)
+  setRemoteClientId(s.clientId)
   window.location.href = '/'
 }
 
-function remove(s: DeviceSession) {
+function remove(s: LoginPeer) {
   const isCurrent = s.clientId === currentClientId.value
-  store.remove(s.clientId)
+  void clearLoginPeer(s.clientId)
+  prefsRemove(`main_state:${s.clientId}`)
   if (isCurrent) {
+    clearRemoteClientId()
     close()
     window.location.href = '/'
   }
@@ -220,7 +215,7 @@ function remove(s: DeviceSession) {
 function startLogin(d: DiscoveredDevice) {
   const host = d.ips[0] ? `${d.ips[0]}:${d.port}` : ''
   if (!host) return
-  store.setCurrent('')
+  clearRemoteClientId()
   setPendingLoginDeviceType(d.deviceType)
   void startLoginStep(host)
 }
@@ -250,7 +245,7 @@ function switchToLocal() {
     close()
     return
   }
-  store.setCurrent('')
+  clearRemoteClientId()
   close()
   window.location.href = '/'
 }

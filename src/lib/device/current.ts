@@ -1,61 +1,35 @@
-import { get as prefsGet, set as prefsSet } from '@/lib/prefs'
 import {
   getRemoteClientId,
   getActiveClientId,
   isLocalMode as _isLocalMode,
   clearRemoteClientId,
 } from '@/lib/device/client-id'
-
-const SESSIONS_KEY = 'device_sessions'
-
-interface SessionEntry {
-  clientId: string
-  host: string
-  token: string
-  name?: string
-}
-
-interface SessionsStorage {
-  sessions: SessionEntry[]
-}
-
-function readSessionsStorage(): SessionsStorage {
-  try {
-    const p = prefsGet<SessionsStorage | null>(SESSIONS_KEY, null)
-    if (!p || !Array.isArray(p.sessions)) return { sessions: [] }
-    return { sessions: p.sessions }
-  } catch {
-    return { sessions: [] }
-  }
-}
+import { findLoginPeer, clearLoginPeer } from '@/lib/device/login-peers'
 
 export { _isLocalMode as isLocalMode }
 
+/** Current remote-device host (`ip:port`). Web mode has no stored host —
+ *  requests target `window.location.host` via `getApiHost`'s fallback. */
 export function getCurrentDeviceHost(): string {
-  const { sessions } = readSessionsStorage()
-  return sessions.find((s) => s.clientId === getRemoteClientId())?.host ?? ''
+  if (!__IS_TAURI__) return ''
+  return findLoginPeer(getRemoteClientId())?.host ?? ''
 }
 
+/** Current login token: Tauri reads it from the peers table mirror,
+ *  web reads the single `auth_token` from localStorage. */
 export function getCurrentAuthToken(): string {
-  const { sessions } = readSessionsStorage()
-  return sessions.find((s) => s.clientId === getRemoteClientId())?.token ?? ''
+  if (!__IS_TAURI__) return localStorage.getItem('auth_token') ?? ''
+  return findLoginPeer(getRemoteClientId())?.token ?? ''
 }
 
+/** Drops the login of the bound device (401 handler). Keeps the peer row. */
 export function clearCurrentSession(): void {
-  try {
-    const p = prefsGet<SessionsStorage | null>(SESSIONS_KEY, null)
-    if (!p) return
-    const currentId = getRemoteClientId()
-    if (currentId && Array.isArray(p.sessions)) {
-      const session = p.sessions.find((s) => s.clientId === currentId)
-      if (session) session.token = ''
-      prefsSet(SESSIONS_KEY, p)
-    }
-    clearRemoteClientId()
-  } catch {
-    // Swallow storage errors (quota, disabled localStorage, etc.) so a
-    // single failed clear doesn't crash the surrounding auth/UI flow.
+  if (!__IS_TAURI__) {
+    localStorage.removeItem('auth_token')
+  } else {
+    void clearLoginPeer(getRemoteClientId())
   }
+  clearRemoteClientId()
 }
 
 export function getMainStateKey(): string {

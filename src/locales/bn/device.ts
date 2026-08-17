@@ -95,4 +95,7 @@ export default {
   mdns_txt: 'TXT',
   mdns_no_devices: 'No nearby devices found',
   not_available: 'প্রযোজ্য নয়',
+  dlna_receiver: 'কাস্ট রিসিভার',
+  dlna_receiver_desc: 'অন্য ডিভাইস থেকে ভিডিও, সঙ্গীত এবং ছবি চালান।',
+  error: 'ত্রুটি',
 }

@@ -63,7 +63,8 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useMainStore } from '@/stores/main'
 import type { AppTab } from '@/stores/main'
-import { useDeviceSessionsStore } from '@/stores/device-sessions'
+import { loginPeers, findLoginPeer } from '@/lib/device/login-peers'
+import { getRemoteClientId, setRemoteClientId, clearRemoteClientId } from '@/lib/device/client-id'
 import { isLocalMode } from '@/lib/device/local-mode'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
@@ -75,13 +76,12 @@ import { loadSelfDevice, type SelfDevice } from '@/lib/device/self-device'
 const router = useRouter()
 const route = useRoute()
 const mainStore = useMainStore()
-const deviceSessionsStore = useDeviceSessionsStore()
-const { currentSession, sortedSessions } = storeToRefs(deviceSessionsStore)
 const { app } = storeToRefs(useTempStore())
 const homeDeviceMenuOpen = ref(false)
 const selfDevice = ref<SelfDevice | null>(null)
 
 const localMode = computed(() => isLocalMode())
+const currentSession = computed(() => findLoginPeer(getRemoteClientId()))
 
 const homeTabTitle = computed(() =>
     app.value?.deviceName
@@ -91,7 +91,7 @@ const homeTabTitle = computed(() =>
 )
 
 const switchableSessions = computed(() =>
-  sortedSessions.value.filter((session) => session.clientId !== deviceSessionsStore.currentClientId)
+  loginPeers.value.filter((session) => session.clientId !== getRemoteClientId())
 )
 
 onMounted(() => {
@@ -126,14 +126,14 @@ function closeTab(id: string) {
 
 function switchToSession(clientId: string) {
   homeDeviceMenuOpen.value = false
-  deviceSessionsStore.setCurrent(clientId)
+  setRemoteClientId(clientId)
   // Full reload so all stores/sockets re-init against the selected device.
   window.location.href = '/'
 }
 
 function switchToLocal() {
   homeDeviceMenuOpen.value = false
-  deviceSessionsStore.setCurrent('')
+  clearRemoteClientId()
   window.location.href = '/'
 }
 

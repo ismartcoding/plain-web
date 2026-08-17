@@ -19,14 +19,23 @@ export class TauriWebSocket {
   onerror: ((event: Event) => void) | null = null
 
   private _ws: WebSocket | null = null
+  private _clientId: string
 
-  constructor(url: string) {
+  /**
+   * @param url target WS URL. When `clientId` is given (remote-device mode)
+   *   the authority part is re-resolved from the peers table right before
+   *   dialing, so a device that changed IPs reconnects on its fresh address
+   *   even if `url` was built from a stale login session host.
+   */
+  constructor(url: string, clientId = '') {
+    this._clientId = clientId
     this._start(url)
   }
 
   private async _start(url: string): Promise<void> {
     try {
-      const port = await invoke<number>('ws_start_proxy', { url })
+      const targetUrl = await this._resolveUrl(url)
+      const port = await invoke<number>('ws_start_proxy', { url: targetUrl })
       const ws = new WebSocket(`ws://127.0.0.1:${port}`)
       this._ws = ws
       ws.onopen = (e) => {
@@ -51,6 +60,21 @@ export class TauriWebSocket {
       this.readyState = 3
       this.onerror?.(new Event('error'))
       this.onclose?.(new CloseEvent('close', { wasClean: false, code: 1006 }))
+    }
+  }
+
+  /** Replaces the URL's authority with the peer's current `ip:port` from the
+   *  peers table (kept fresh by the resident mDNS listener). No-op when the
+   *  peer is unknown — dialing the original URL is then the only option. */
+  private async _resolveUrl(url: string): Promise<string> {
+    if (!this._clientId) return url
+    try {
+      const host = await invoke<string | null>('peer_address', { id: this._clientId })
+      if (!host || host === new URL(url).host) return url
+      console.error('[tauri-ws] resolve', this._clientId, ':', new URL(url).host, '->', host)
+      return url.replace(/:\/\/[^/]+/, `://${host}`)
+    } catch {
+      return url
     }
   }
 

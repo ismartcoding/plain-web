@@ -73,6 +73,7 @@ impl LocalServerState {
         peer_status: PeerStatusManager,
         discover_manager: NearbyDiscoverManager,
         pairing_manager: crate::local::pairing::PairingManager,
+        dlna_engine: Arc<crate::local::dlna::receiver_engine::DlnaEngine>,
     ) -> Self {
         let peer_key_cache = new_peer_key_cache();
         let channel_key_cache = new_channel_key_cache();
@@ -99,6 +100,7 @@ impl LocalServerState {
             peer_key_cache: peer_key_cache.clone(),
             channel_key_cache: channel_key_cache.clone(),
             chat_cacher: chat_cacher.clone(),
+            dlna_engine: dlna_engine.clone(),
             event_tx: event_tx.clone(),
             token: token.clone(),
             port: port.clone(),
