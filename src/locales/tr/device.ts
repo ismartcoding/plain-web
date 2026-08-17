@@ -95,4 +95,7 @@ export default {
   mdns_txt: 'TXT',
   mdns_no_devices: 'No nearby devices found',
   not_available: 'Uygulanamaz',
+  dlna_receiver: 'Alıcıyı yayınla',
+  dlna_receiver_desc: 'Başka bir cihazdan video, müzik ve fotoğraf oynatın.',
+  error: 'Hata',
 }

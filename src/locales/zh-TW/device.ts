@@ -95,4 +95,7 @@ export default {
   mdns_txt: 'TXT',
   mdns_no_devices: 'No nearby devices found',
   not_available: '不可用',
+  dlna_receiver: '投影接收器',
+  dlna_receiver_desc: '播放來自其他裝置的影片、音樂和相片。',
+  error: '錯誤',
 }

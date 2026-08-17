@@ -95,4 +95,7 @@ export default {
   mdns_txt: 'TXT 记录',
   mdns_no_devices: '未发现附近的设备',
   not_available: '不可用',
+  dlna_receiver: '投屏接收器',
+  dlna_receiver_desc: '播放来自其他设备的视频、音乐和照片。',
+  error: '错误',
 }

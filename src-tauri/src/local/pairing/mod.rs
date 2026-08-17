@@ -333,6 +333,11 @@ impl PairingManager {
             );
             if let Some(shared) = ecdh.compute_shared_key(&req_pub_bytes) {
                 let peer_ips = prefer_sender_ip(&request.ips, &target_ip);
+                let token = self
+                    .db
+                    .get_peer_by_id(&request.from_id)
+                    .map(|p| p.token)
+                    .unwrap_or_default();
                 let peer = DPeer {
                     id: request.from_id.clone(),
                     name: request.from_name.clone(),
@@ -343,6 +348,7 @@ impl PairingManager {
                     port: request.port,
                     device_type: DeviceType::from_str(&request.device_type)
                         .unwrap_or(DeviceType::Unknown),
+                    token,
                     created_at: now_iso(),
                     updated_at: now_iso(),
                 };
@@ -456,6 +462,11 @@ impl PairingManager {
         };
 
         let peer_ips = prefer_sender_ip(&resp.ips, sender_ip);
+        let token = self
+            .db
+            .get_peer_by_id(&resp.from_id)
+            .map(|p| p.token)
+            .unwrap_or_default();
         let peer = DPeer {
             id: resp.from_id.clone(),
             name: session.device_name.clone(),
@@ -465,6 +476,7 @@ impl PairingManager {
             status: PeerStatus::Paired,
             port: resp.port,
             device_type: DeviceType::from_str(&resp.device_type).unwrap_or(DeviceType::Unknown),
+            token,
             created_at: now_iso(),
             updated_at: now_iso(),
         };

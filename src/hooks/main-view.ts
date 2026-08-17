@@ -10,7 +10,8 @@ import type { IApp, IMediaItemsActionedEvent } from '@/lib/interfaces'
 import { useRightSidebarResize } from '@/hooks/sidebar'
 import { getMainStateKey } from '@/lib/device/current'
 import { get as prefsGet, set as prefsSet } from '@/lib/prefs'
-import { useDeviceSessionsStore } from '@/stores/device-sessions'
+import { updateLoginPeerName } from '@/lib/device/login-peers'
+import { getRemoteClientId } from '@/lib/device/client-id'
 import { isLocalMode } from '@/lib/device/local-mode'
 import { openModal } from '@/components/modal'
 import type { PairingRequest } from '@/lib/pairing-types'
@@ -20,7 +21,6 @@ export function useMainView() {
   const store = useMainStore()
   const router = useRouter()
   const tempStore = useTempStore()
-  const sessionsStore = useDeviceSessionsStore()
   const { app, urlTokenKey } = storeToRefs(tempStore)
 
   const appReady = ref(false)
@@ -73,8 +73,8 @@ export function useMainView() {
         if (oldToken !== newToken) window.fileIdMap = new Map<string, string>()
         app.value = data.app
         // Keep the session name in sync with the device's reported name.
-        if (data.app.deviceName && sessionsStore.currentClientId) {
-          sessionsStore.updateName(sessionsStore.currentClientId, data.app.deviceName)
+        if (data.app.deviceName) {
+          void updateLoginPeerName(getRemoteClientId(), data.app.deviceName)
         }
         if (playAudio) { playAudio = false; emitter.emit('do_play_audio') }
       }
@@ -99,8 +99,8 @@ export function useMainView() {
   }
   const deviceNameUpdatedHandler = (name: string) => {
     if (app.value) app.value.deviceName = name
-    if (name && sessionsStore.currentClientId) {
-      sessionsStore.updateName(sessionsStore.currentClientId, name)
+    if (name) {
+      void updateLoginPeerName(getRemoteClientId(), name)
     }
   }
 

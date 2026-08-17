@@ -8,6 +8,7 @@ use super::file_server::serve_file;
 use super::proxy_file::proxy_file;
 use super::response::{respond, APP_ID};
 use super::upload;
+use crate::local::dlna;
 use plain_rs::{base64_decode, base64_encode, xchacha_decrypt, xchacha_encrypt};
 
 pub(super) async fn handle<R, W>(
@@ -48,6 +49,8 @@ pub(super) async fn handle<R, W>(
     let mut header_client_id = String::new();
     let mut header_channel_id = String::new();
     let mut header_range = String::new();
+    let mut header_soap_action = String::new();
+    let mut header_sender_name = String::new();
     loop {
         let mut line = String::new();
         if reader.read_line(&mut line).await.is_err() {
@@ -70,8 +73,65 @@ pub(super) async fn handle<R, W>(
                 header_channel_id = v.to_string();
             } else if k.eq_ignore_ascii_case("range") {
                 header_range = v.to_string();
+            } else if k.eq_ignore_ascii_case("soapaction") {
+                header_soap_action = v.to_string();
+            } else if k.eq_ignore_ascii_case("c-name") {
+                header_sender_name = v.to_string();
             }
         }
+    }
+
+    // DLNA MediaRenderer receiver routes — served plain (no token) so remote
+    // control points can reach them. Gated by the DLNA toggle + running engine,
+    // mirroring plain-app's `handleDlnaReceiver` (returns 404 when disabled).
+    if dlna::is_receiver_path(&method, &path) {
+        if !crate::prefs::get_dlna_enabled(&ctx.handle) || !ctx.dlna_engine.is_running() {
+            respond(&mut wr, 404, "Not Found", b"", "text/plain").await;
+            return;
+        }
+        let body = if content_length > 0 {
+            let mut buf = vec![0u8; content_length];
+            if tokio::io::AsyncReadExt::read_exact(&mut reader, &mut buf).await.is_err() {
+                return;
+            }
+            String::from_utf8_lossy(&buf).to_string()
+        } else {
+            String::new()
+        };
+        let mut headers = std::collections::HashMap::new();
+        if !header_soap_action.is_empty() {
+            headers.insert("soapaction".to_string(), header_soap_action);
+        }
+        if !header_sender_name.is_empty() {
+            headers.insert("c-name".to_string(), header_sender_name);
+        }
+        let local_ip = crate::commands::discover::discover_local_ipv4_strs()
+            .into_iter()
+            .next()
+            .unwrap_or_else(|| "127.0.0.1".to_string());
+        let device_name = ctx.device_name.read().unwrap().clone();
+        let allowed = crate::prefs::get_dlna_allowed_senders(&ctx.handle);
+        let denied = crate::prefs::get_dlna_denied_senders(&ctx.handle);
+        let Some(command_tx) = ctx.dlna_engine.command_sender() else {
+            respond(&mut wr, 404, "Not Found", b"", "text/plain").await;
+            return;
+        };
+        let resp = dlna::http_router::route(
+            &ctx.dlna_engine.state,
+            &method,
+            &path,
+            &headers,
+            &body,
+            ctx.dlna_engine.device_uuid(),
+            &device_name,
+            &local_ip,
+            &command_tx,
+            &allowed,
+            &denied,
+        )
+        .await;
+        respond_dlna(&mut wr, &resp).await;
+        return;
     }
 
     if method == "OPTIONS" {
@@ -207,4 +267,34 @@ fn strip_replay_prefix(payload: &[u8]) -> &[u8] {
         }
     }
     payload
+}
+
+/// Write a DLNA HTTP response, including the custom headers needed for GENA
+/// SUBSCRIBE (SID / TIMEOUT). Uses `AsyncWrite` directly because DLNA responses
+/// bypass the shared `respond` framing.
+async fn respond_dlna<W: AsyncWrite + Unpin>(wr: &mut W, resp: &dlna::http_router::DlnaHttpResponse) {
+    use tokio::io::AsyncWriteExt;
+    let mut head = format!(
+        "HTTP/1.1 {} {}\r\ncontent-length: {}\r\nconnection: close\r\n",
+        resp.status,
+        reason(resp.status),
+        resp.body.len()
+    );
+    if let Some(ct) = &resp.content_type {
+        head.push_str(&format!("content-type: {ct}\r\n"));
+    }
+    for (k, v) in &resp.headers {
+        head.push_str(&format!("{k}: {v}\r\n"));
+    }
+    head.push_str("\r\n");
+    let _ = wr.write_all(head.as_bytes()).await;
+    let _ = wr.write_all(resp.body.as_bytes()).await;
+}
+
+fn reason(status: u16) -> &'static str {
+    match status {
+        200 => "OK",
+        404 => "Not Found",
+        _ => "Internal Server Error",
+    }
 }

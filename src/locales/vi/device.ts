@@ -95,4 +95,7 @@ export default {
   mdns_txt: 'TXT',
   mdns_no_devices: 'No nearby devices found',
   not_available: 'Không có',
+  dlna_receiver: 'Bộ thu chiếu',
+  dlna_receiver_desc: 'Phát video, nhạc và ảnh từ thiết bị khác.',
+  error: 'Lỗi',
 }

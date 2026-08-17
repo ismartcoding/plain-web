@@ -95,4 +95,7 @@ export default {
   mdns_txt: 'TXT',
   mdns_no_devices: 'No nearby devices found',
   not_available: 'Н/Д',
+  dlna_receiver: 'Приёмник трансляции',
+  dlna_receiver_desc: 'Воспроизводите видео, музыку и фотографии с другого устройства.',
+  error: 'Ошибка',
 }

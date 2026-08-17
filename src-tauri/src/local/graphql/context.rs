@@ -155,6 +155,7 @@ pub struct AppCtx {
     pub peer_key_cache: PeerKeyCache,
     pub channel_key_cache: ChannelKeyCache,
     pub chat_cacher: Arc<ChatCacher>,
+    pub dlna_engine: Arc<crate::local::dlna::receiver_engine::DlnaEngine>,
     pub event_tx: broadcast::Sender<WsEvent>,
     pub token: String,
     pub port: Arc<AtomicU16>,

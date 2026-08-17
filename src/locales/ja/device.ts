@@ -95,4 +95,7 @@ export default {
   mdns_txt: 'TXT',
   mdns_no_devices: 'No nearby devices found',
   not_available: 'なし',
+  dlna_receiver: 'キャストレシーバー',
+  dlna_receiver_desc: '別のデバイスから動画、音楽、写真を再生します。',
+  error: 'エラー',
 }

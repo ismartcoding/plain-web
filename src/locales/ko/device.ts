@@ -95,4 +95,7 @@ export default {
   mdns_txt: 'TXT',
   mdns_no_devices: 'No nearby devices found',
   not_available: '해당 없음',
+  dlna_receiver: '캐스트 수신기',
+  dlna_receiver_desc: '다른 기기에서 동영상, 음악, 사진을 재생하세요.',
+  error: '오류',
 }
