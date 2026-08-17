@@ -10,7 +10,7 @@
     </template>
     <template #content>
       <div v-if="!isLoginStep" class="switcher">
-        <section v-if="sessions.length || selfDevice" class="section">
+        <section v-if="sessions.length || selfDevice">
           <h3 class="section-title">{{ $t('device_discovery.logged_in_devices') }}</h3>
           <ul class="card list-items">
             <VListItem v-if="selfDevice" :subtitle="selfDevice.host">
@@ -168,6 +168,8 @@ const desktopClientId = getDesktopClientId()
 const newDevices = computed(() =>
   devices.value.filter(
     (d) =>
+      d.deviceType !== 'COMPUTER' &&
+      d.platform !== 'ios' &&
       d.id !== desktopClientId &&
       !sessions.value.some((s) => d.ips.some((ip) => s.host === `${ip}:${d.port}`)),
   ),
@@ -266,15 +268,6 @@ function switchToLocal() {
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-
-.section-title {
-  margin: 0;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--md-sys-color-on-surface-variant);
 }
 
 .icon-btn {
