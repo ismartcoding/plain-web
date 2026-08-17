@@ -17,7 +17,7 @@
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useAppSocket } from '@/hooks/app-socket'
 import { openWindow, setWindowDeviceName } from '@/lib/api/tauri-window'
-import { loginPeers } from '@/lib/device/login-peers'
+import { loginPeers, peerHost } from '@/lib/device/login-peers'
 import { getRemoteClientId } from '@/lib/device/client-id'
 import { isLocalMode } from '@/lib/device/local-mode'
 import { useChatStore } from '@/stores/chat'
@@ -50,10 +50,10 @@ function onKeydown(e: KeyboardEvent) {
 watch(
   [loginPeers, () => app.value?.deviceName],
   ([peers]) => {
-    const session = peers.find((s) => s.clientId === getRemoteClientId())
+    const session = peers.find((s) => s.id === getRemoteClientId())
     const name = isLocalMode()
       ? (app.value?.deviceName || 'PlainApp')
-      : (session?.name || session?.host || 'PlainApp')
+      : (session?.name || (session ? peerHost(session) : '') || 'PlainApp')
     setWindowDeviceName(name)
   },
   { immediate: true },

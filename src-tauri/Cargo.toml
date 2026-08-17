@@ -30,7 +30,7 @@ tauri-plugin-notification = "2.3.3"
 tauri-plugin-log = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
-# Shared Rust primitives (crypto + utils).
+# Shared Rust primitives (crypto + utils + mdns).
 plain_rs = { git = "https://github.com/plainhub/plain-rs", package = "plain-rs" }
 # Self-signed TLS certificate generation for local HTTPS server.
 # ring feature enables the required crypto backend (generate_simple_self_signed needs it).

@@ -1,26 +1,23 @@
 import { ref } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
+import type { IPeer } from '@/lib/interfaces'
+import { DeviceType } from '@/lib/status'
 
 const AUTH_TOKEN_KEY = 'auth_token'
 
-export interface LoginPeer {
-  clientId: string
-  name: string
-  host: string
-  token: string
-  signaturePublicKey: string
-  deviceType: string
-  status: string
-  createdAt: string
-}
+export type LoginPeer = IPeer & { token: string; publicKey: string }
 
 export interface SaveLoginPeerInput {
   clientId: string
   name: string
   host: string
+  deviceType: DeviceType
   token: string
   signaturePublicKey: string
-  deviceType: string
+}
+
+export function peerHost(p: IPeer): string {
+  return `${p.ip.split(',')[0]}:${p.port}`
 }
 
 /**
@@ -42,7 +39,7 @@ export async function preloadLoginPeers(): Promise<void> {
 }
 
 export function findLoginPeer(clientId: string): LoginPeer | undefined {
-  return loginPeers.value.find((p) => p.clientId === clientId)
+  return loginPeers.value.find((p) => p.id === clientId)
 }
 
 /** Records a successful login: creates/refreshes the peer row with the

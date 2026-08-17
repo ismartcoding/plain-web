@@ -49,7 +49,7 @@ export function getActiveClientId(): string {
 }
 
 export function isLocalMode(): boolean {
-  return !getRemoteClientId()
+  return __IS_TAURI__ && !getRemoteClientId()
 }
 
 export function isLocalClientId(id: string): boolean {

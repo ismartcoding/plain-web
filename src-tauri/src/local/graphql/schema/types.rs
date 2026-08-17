@@ -445,7 +445,8 @@ impl From<DChannel> for ChatChannel {
     }
 }
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Peer {
     pub id: String,
     pub name: String,
@@ -454,6 +455,10 @@ pub struct Peer {
     pub online: bool,
     pub port: i32,
     pub device_type: DeviceType,
+    #[graphql(skip)]
+    pub token: String,
+    #[graphql(skip)]
+    pub public_key: String,
     pub created_at: String,
     pub updated_at: String,
 }
@@ -471,6 +476,8 @@ impl Peer {
             online,
             port: p.port as i32,
             device_type: p.device_type,
+            token: p.token,
+            public_key: p.public_key,
             created_at: p.created_at,
             updated_at: p.updated_at,
         }

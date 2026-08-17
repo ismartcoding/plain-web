@@ -4,7 +4,7 @@ import {
   isLocalMode as _isLocalMode,
   clearRemoteClientId,
 } from '@/lib/device/client-id'
-import { findLoginPeer, clearLoginPeer } from '@/lib/device/login-peers'
+import { findLoginPeer, clearLoginPeer, peerHost } from '@/lib/device/login-peers'
 
 export { _isLocalMode as isLocalMode }
 
@@ -12,7 +12,8 @@ export { _isLocalMode as isLocalMode }
  *  requests target `window.location.host` via `getApiHost`'s fallback. */
 export function getCurrentDeviceHost(): string {
   if (!__IS_TAURI__) return ''
-  return findLoginPeer(getRemoteClientId())?.host ?? ''
+  const peer = findLoginPeer(getRemoteClientId())
+  return peer ? peerHost(peer) : ''
 }
 
 /** Current login token: Tauri reads it from the peers table mirror,

@@ -7,7 +7,8 @@ import { getApiBaseUrl, getApiHeaders, getPendingLoginHost, clearPendingLoginHos
 import { randomUUID } from '@/lib/strutil'
 import { tokenToKey } from '@/lib/api/file'
 import { getCurrentAuthToken } from '@/lib/device/current'
-import { findLoginPeer, saveLoginPeer } from '@/lib/device/login-peers'
+import { findLoginPeer, saveLoginPeer, peerHost } from '@/lib/device/login-peers'
+import { DeviceType } from '@/lib/status'
 import { getRemoteClientId, setRemoteClientId } from '@/lib/device/client-id'
 import { tauriFetch } from '@/lib/api/tauri-fetch'
 import { performLoginHandshake } from '@/lib/api/login-handshake'
@@ -98,13 +99,14 @@ export function useLogin(options: UseLoginOptions = {}) {
       const { clientId, token, signaturePublicKey } = await performLoginHandshake({
         passwordHash: hash,
         clientId: myClientId,
-        storedSignaturePublicKey: findLoginPeer(getRemoteClientId())?.signaturePublicKey,
+        storedSignaturePublicKey: findLoginPeer(getRemoteClientId())?.publicKey,
         initSignaturePublicKey: lastInitSignaturePublicKey,
         onPending: () => { showConfirm.value = true },
       })
 
-      const host = getPendingLoginHost() || findLoginPeer(getRemoteClientId())?.host || window.location.host || ''
-      const deviceType = getPendingLoginDeviceType()
+      const current = findLoginPeer(getRemoteClientId())
+      const host = getPendingLoginHost() || (current ? peerHost(current) : '') || window.location.host || ''
+      const deviceType = getPendingLoginDeviceType() as DeviceType
       if (host && clientId) {
         // Empty name: the backend keeps the stored name of an existing peer.
         await saveLoginPeer({
@@ -113,7 +115,7 @@ export function useLogin(options: UseLoginOptions = {}) {
           host,
           token,
           signaturePublicKey,
-          deviceType: deviceType || '',
+          deviceType: deviceType || DeviceType.OTHER,
         })
         setRemoteClientId(clientId)
         clearPendingLoginHost()

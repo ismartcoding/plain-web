@@ -818,7 +818,6 @@ export const bookmarksGQL = `
   ${bookmarkGroupFragment}
 `
 
-
 export const isDiscoveringGQL = `
   query {
     isDiscovering
