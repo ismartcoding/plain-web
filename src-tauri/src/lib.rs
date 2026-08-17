@@ -60,6 +60,7 @@ pub fn run() {
             let peer_status = commands::discover::PeerStatusManager::new(db.clone(), identity.clone());
             let pairing_mgr = local::pairing::PairingManager::new(db.clone(), identity.clone());
             app.handle().manage(pairing_mgr.clone());
+            let dlna_engine = Arc::new(local::dlna::receiver_engine::DlnaEngine::new());
             let discover_mgr = commands::discover::NearbyDiscoverManager::new(
                 db.clone(),
                 identity.clone(),
@@ -79,9 +80,20 @@ pub fn run() {
                 peer_status.clone(),
                 discover_mgr.clone(),
                 pairing_mgr.clone(),
+                dlna_engine.clone(),
             );
+            app.handle().manage(dlna_engine.clone());
+            // Start the DLNA renderer at startup when the toggle is on.
+            if crate::prefs::get_dlna_enabled(&app.handle()) {
+                let engine = dlna_engine.clone();
+                let port = local_server_state.port();
+                tauri::async_runtime::spawn(async move {
+                    engine.start(port).await;
+                });
+            }
             peer_status.set_event_tx(local_server_state.event_tx.clone());
             discover_mgr.set_event_tx(local_server_state.event_tx.clone());
+            discover_mgr.set_app_handle(app.handle().clone());
             discover_mgr.start();
             peer_status.set_discover_manager(discover_mgr.clone());
             peer_status.start();
@@ -132,6 +144,11 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             commands::discover::discover_devices,
+            commands::discover::peer_address,
+            commands::discover::login_peer,
+            commands::discover::logout_peer,
+            commands::discover::list_login_peers,
+            commands::discover::update_peer_name,
             commands::discover::mdns_snapshot,
             commands::discover::mdns_start_browse,
             commands::discover::mdns_stop_browse,
@@ -159,6 +176,12 @@ pub fn run() {
             local::pairing::commands::cancel_pair_device,
             local::pairing::commands::get_device_identity,
             local::pairing::commands::set_device_name,
+            local::dlna::commands::dlna_state,
+            local::dlna::commands::dlna_set_enabled,
+            local::dlna::commands::dlna_accept_cast,
+            local::dlna::commands::dlna_reject_cast,
+            local::dlna::commands::dlna_senders,
+            local::dlna::commands::dlna_remove_sender,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -97,6 +97,7 @@ impl ChatDb {
                 status      TEXT NOT NULL DEFAULT 'UNPAIRED',
                 port        INTEGER NOT NULL DEFAULT 0,
                 device_type TEXT NOT NULL DEFAULT '',
+                token       TEXT NOT NULL DEFAULT '',
                 created_at  TEXT NOT NULL DEFAULT '',
                 updated_at  TEXT NOT NULL DEFAULT ''
             );
@@ -142,6 +143,7 @@ impl ChatDb {
 
     fn run_migrations(conn: &Connection) -> rusqlite::Result<()> {
         Self::ensure_column(conn, "chat_channels", "key", "TEXT NOT NULL DEFAULT ''")?;
+        Self::ensure_column(conn, "peers", "token", "TEXT NOT NULL DEFAULT ''")?;
         Ok(())
     }
 

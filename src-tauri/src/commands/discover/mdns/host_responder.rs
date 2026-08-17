@@ -167,25 +167,29 @@ pub(crate) fn add_packet_listener(listener: PacketListener) {
     }
 }
 
-pub(crate) fn remove_packet_listener(listener: &PacketListener) {
-    INNER.listeners
-        .write()
-        .unwrap()
-        .retain(|l| !Arc::ptr_eq(l, listener));
-}
-
 /// Sends an mDNS query through the shared socket so responses come back on
 /// port 5353 (RFC 6762 §6.7 requires the source port to be 5353).
 pub(crate) fn send_query(bytes: &[u8]) {
     let Some(socket) = INNER.socket.read().unwrap().clone() else {
         return;
     };
-    if let Some(iface) = candidate_interfaces().into_iter().next() {
-        let _ = socket2::SockRef::from(&*socket).set_multicast_if_v4(&iface.ip);
-    }
     let target = SocketAddrV4::new(MDNS_GROUP, MDNS_PORT);
-    if let Err(e) = socket.send_to(bytes, target) {
-        log::error!("mDNS sendQuery: {e}");
+    let candidates = candidate_interfaces();
+    if candidates.is_empty() {
+        if let Err(e) = socket.send_to(bytes, target) {
+            log::error!("mDNS sendQuery: {e}");
+        }
+        return;
+    }
+    // Send once per interface: the multicast egress interface is a socket-wide
+    // setting, so a single send can only leave one NIC. Picking just the first
+    // candidate silently drops the query when that interface is not where the
+    // peers live (e.g. Ethernet/VM bridge enumerated before Wi-Fi).
+    for iface in candidates {
+        let _ = socket2::SockRef::from(&*socket).set_multicast_if_v4(&iface.ip);
+        if let Err(e) = socket.send_to(bytes, target) {
+            log::error!("mDNS sendQuery {}: {e}", iface.name);
+        }
     }
 }
 

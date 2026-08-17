@@ -117,12 +117,14 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useTempStore } from '@/stores/temp'
 import { useMainStore } from '@/stores/main'
-import { useDeviceSessionsStore } from '@/stores/device-sessions'
+import { findLoginPeer, updateLoginPeerName } from '@/lib/device/login-peers'
+import { getRemoteClientId } from '@/lib/device/client-id'
 import { storeToRefs } from 'pinia'
 import { pushModal, openModal } from '@/components/modal'
 import { AppChannelType } from '@/lib/status'
 import { getAvailableFeatures, type Feature } from './features'
 import { isLocalMode } from '@/lib/device/local-mode'
+import { clearCurrentSession } from '@/lib/device/current'
 import { clear as prefsClear } from '@/lib/prefs'
 import { useLocaleSwitch } from '@/composables/useLocaleSwitch'
 import emitter from '@/plugins/eventbus'
@@ -138,8 +140,7 @@ const { t } = useI18n()
 
 const { app } = storeToRefs(useTempStore())
 const store = useMainStore()
-const sessionsStore = useDeviceSessionsStore()
-const { currentSession } = storeToRefs(sessionsStore)
+const currentSession = computed(() => findLoginPeer(getRemoteClientId()))
 const router = useRouter()
 const open = ref(false)
 const isTauri = __IS_TAURI__
@@ -216,6 +217,7 @@ function onLangClick(code: string) {
 
 function logout() {
   open.value = false
+  clearCurrentSession()
   prefsClear()
   window.location.reload()
 }
@@ -257,9 +259,7 @@ function editDeviceName() {
     getVariables: (value: string) => ({ name: value }),
     done: (value: string) => {
       if (app.value) app.value.deviceName = value
-      if (value && sessionsStore.currentClientId) {
-        sessionsStore.updateName(sessionsStore.currentClientId, value)
-      }
+      void updateLoginPeerName(getRemoteClientId(), value)
       emitter.emit('device_name_updated', value)
     },
   })

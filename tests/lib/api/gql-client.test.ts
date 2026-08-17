@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { gqlFetch, GqlError } from '@/lib/api/gql-client'
-import { hashToKey, chachaEncrypt, bitArrayToBase64 } from '@/lib/api/crypto'
-import { set as prefsSet } from '@/lib/prefs'
+import { chachaEncrypt } from '@/lib/api/crypto'
 import { setRemoteClientId } from '@/lib/device/client-id'
 
 // gqlFetch calls `window.location.reload()` on 401 (after clearing the
@@ -85,20 +84,19 @@ describe('GqlError', () => {
 })
 
 describe('gqlFetch', () => {
-  // The key is derived from the auth_token stored in `device_sessions`
-  // (prefs). Tests bind a fake clientId and write the token there; the
-  // old `localStorage.auth_token` path is no longer used.
+  // The key is derived from the web-mode auth token stored in
+  // localStorage (`auth_token`) — see getCurrentAuthToken in
+  // src/lib/device/current.ts.
   const plainToken = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
   const base64Token = btoa(plainToken)
 
   beforeEach(() => {
     setRemoteClientId('test-client')
-    prefsSet('device_sessions', {
-      sessions: [{ clientId: 'test-client', host: 'phone.local', token: base64Token }],
-    })
+    localStorage.setItem('auth_token', base64Token)
   })
 
   afterEach(() => {
+    localStorage.removeItem('auth_token')
     vi.unstubAllGlobals()
     vi.restoreAllMocks()
   })
@@ -204,10 +202,7 @@ describe('gqlFetch', () => {
   })
 
   it('uses empty string when auth_token is absent', async () => {
-    // Replace the bound session with a session that has no token.
-    prefsSet('device_sessions', {
-      sessions: [{ clientId: 'test-client', host: 'phone.local', token: '' }],
-    })
+    localStorage.setItem('auth_token', '')
     // Token '' -> atob('') -> '' (empty Uint8Array)
     // The key will be empty; encrypt/decrypt with the same empty key should still work
     const emptyKey = Uint8Array.from(atob(''), (c) => c.charCodeAt(0))

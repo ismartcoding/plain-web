@@ -118,6 +118,7 @@ mod tests {
             status: crate::local::enums::PeerStatus::Paired,
             port: 0,
             device_type: DeviceType::Unknown,
+            token: String::new(),
             created_at: now.clone(),
             updated_at: now,
         };

@@ -17,7 +17,8 @@
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useAppSocket } from '@/hooks/app-socket'
 import { openWindow, setWindowDeviceName } from '@/lib/api/tauri-window'
-import { useDeviceSessionsStore } from '@/stores/device-sessions'
+import { loginPeers } from '@/lib/device/login-peers'
+import { getRemoteClientId } from '@/lib/device/client-id'
 import { isLocalMode } from '@/lib/device/local-mode'
 import { useChatStore } from '@/stores/chat'
 import { useDeviceDiscovery } from './hooks/use-device-discovery'
@@ -34,7 +35,6 @@ useDeviceDiscovery()
 // after the user navigates to the chat page. Without this, invites
 // arriving while the user is on another page would be dropped silently.
 useChatStore()
-const deviceSessions = useDeviceSessionsStore()
 const { app } = storeToRefs(useTempStore())
 
 function onKeydown(e: KeyboardEvent) {
@@ -45,10 +45,12 @@ function onKeydown(e: KeyboardEvent) {
 }
 
 // Keep the dock right-click menu label up to date for this window.
+// Device switches always go through a page reload, so reading the bound
+// clientId once per login-peers change is enough.
 watch(
-  () => [deviceSessions.currentClientId, app.value?.deviceName],
-  ([clientId]) => {
-    const session = deviceSessions.sessions.find((s) => s.clientId === clientId)
+  [loginPeers, () => app.value?.deviceName],
+  ([peers]) => {
+    const session = peers.find((s) => s.clientId === getRemoteClientId())
     const name = isLocalMode()
       ? (app.value?.deviceName || 'PlainApp')
       : (session?.name || session?.host || 'PlainApp')
