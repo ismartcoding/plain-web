@@ -55,7 +55,7 @@ async function doGqlFetch<T = any>(query: string, variables?: Record<string, any
     if (response.status === 401) {
       // In local mode there is no device session — never clear state or reload;
       // that would create an infinite reload loop.
-      if (!isLocalMode()) {
+      if (!__IS_TAURI__) {
         clearCurrentSession()
         window.location.reload()
       }

@@ -34,11 +34,11 @@
           </div>
           <div
             v-for="session in switchableSessions"
-            :key="session.clientId"
+            :key="session.id"
             class="dropdown-item"
-            @click="switchToSession(session.clientId)"
+            @click="switchToSession(session.id)"
           >
-            {{ session.name || session.host }}
+            {{ session.name || peerHost(session) }}
           </div>
           <div class="dropdown-item" @click="openDeviceSwitcher">
             {{ $t('device_discovery.add_device') }}
@@ -63,7 +63,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useMainStore } from '@/stores/main'
 import type { AppTab } from '@/stores/main'
-import { loginPeers, findLoginPeer } from '@/lib/device/login-peers'
+import { loginPeers, findLoginPeer, peerHost } from '@/lib/device/login-peers'
 import { getRemoteClientId, setRemoteClientId, clearRemoteClientId } from '@/lib/device/client-id'
 import { isLocalMode } from '@/lib/device/local-mode'
 import { useTempStore } from '@/stores/temp'
@@ -83,15 +83,18 @@ const selfDevice = ref<SelfDevice | null>(null)
 const localMode = computed(() => isLocalMode())
 const currentSession = computed(() => findLoginPeer(getRemoteClientId()))
 
-const homeTabTitle = computed(() =>
+const homeTabTitle = computed(() => {
+  const session = currentSession.value
+  return (
     app.value?.deviceName
-      || currentSession.value?.name
-      || currentSession.value?.host
-      || String((i18n.global as any).t('my_phone'))
-)
+    || session?.name
+    || (session ? peerHost(session) : '')
+    || String((i18n.global as any).t('my_phone'))
+  )
+})
 
 const switchableSessions = computed(() =>
-  loginPeers.value.filter((session) => session.clientId !== getRemoteClientId())
+  loginPeers.value.filter((session) => session.id !== getRemoteClientId())
 )
 
 onMounted(() => {

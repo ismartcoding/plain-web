@@ -10,27 +10,27 @@
 //! Pairing is handled over HTTPS via the `POST /nearby` REST endpoint
 //! instead of UDP (see `local::pairing`).
 
-use super::mdns::host_responder;
-use super::mdns::service_browser::{FoundDevice, MdnsServiceBrowser, MdnsServiceSnapshot};
 use super::peer_status_manager::PeerStatusManager;
 use crate::local::db::{ChatDb, now_iso};
+use crate::local::enums::DeviceType;
+use crate::local::graphql::schema::types::Peer;
 use crate::local::graphql::{
     WS_NEARBY_DEVICE_FOUND, WS_NEARBY_DISCOVERY_STARTED, WS_NEARBY_DISCOVERY_STOPPED, WsEvent,
 };
 use crate::local::pairing::PairingManager;
 use crate::prefs::AppIdentity;
+use plain_rs::mdns::host_responder;
+use plain_rs::mdns::service_browser::{FoundDevice, MdnsServiceBrowser, MdnsServiceSnapshot};
 use serde::Serialize;
 use std::collections::HashMap;
+use std::str::FromStr;
 use std::sync::{
     Arc, Mutex, RwLock,
     atomic::{AtomicU16, Ordering},
 };
-use std::time::Duration;
 use tokio::sync::broadcast;
 
 const LOCAL_DEVICE_TYPE_WIRE: &str = "COMPUTER";
-/// Window a one-shot `discover_devices` scan listens for mDNS responses.
-const SCAN_TIMEOUT_MS: u64 = 2_500;
 
 #[derive(Serialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -50,36 +50,6 @@ pub struct DiscoveredDevice {
     pub status: String,
     #[serde(default)]
     pub discovery_methods: Vec<String>,
-}
-
-#[derive(Serialize, Clone, Debug)]
-#[serde(rename_all = "snake_case")]
-#[allow(dead_code)]
-pub enum DiscoverScanStatus {
-    Ok,
-    PermissionDenied,
-    NetworkError,
-}
-
-#[derive(Serialize, Clone, Debug)]
-pub struct DiscoverDevicesResult {
-    pub devices: Vec<DiscoveredDevice>,
-    pub status: DiscoverScanStatus,
-}
-
-/// A remote device with an active login token — the device-switcher list.
-#[derive(Serialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct LoginPeer {
-    pub client_id: String,
-    pub name: String,
-    pub host: String,
-    pub token: String,
-    /// TOFU Ed25519 key used to verify login signatures.
-    pub signature_public_key: String,
-    pub device_type: String,
-    pub status: String,
-    pub created_at: String,
 }
 
 fn split_host(host: &str) -> (String, u16) {
@@ -166,7 +136,7 @@ impl NearbyDiscoverManager {
         let hostname = self.mdns_hostname();
         let port = self.https_port.load(Ordering::SeqCst);
         let service = (port > 0).then(|| {
-            super::mdns::service_info::build_service_info(
+            plain_rs::mdns::service_info::build_service_info(
                 &self.device_name.read().unwrap().clone(),
                 &hostname,
                 port,
@@ -263,46 +233,6 @@ impl NearbyDiscoverManager {
         self.browser.send_ptr_query();
     }
 
-    /// Recreates the shared responder socket after a network change.
-    /// mDNS multicast group membership is per-interface; when the device
-    /// switches networks the new interface was never joined, so the old
-    /// socket stops receiving multicast until it is recreated and re-joins
-    /// on the fresh interface set. Mirrors plain-app's `scheduleRestart`.
-    #[allow(dead_code)]
-    pub fn schedule_restart(&self, reason: &str) {
-        log::debug!("Network change ({reason}) — restarting mDNS responder");
-        host_responder::restart_socket();
-    }
-
-    /// One-shot scan for the Tauri command surface: browse, wait out the
-    /// response window, and return everything the browser accumulated.
-    pub async fn discover_devices(&self) -> DiscoverDevicesResult {
-        self.start();
-        let first_scan = !self.browser.is_running();
-        if first_scan {
-            self.browser.start();
-        }
-        // A one-shot scan must reflect what THIS scan hears: stale entries
-        // from an earlier scan would keep returning a peer's dead address.
-        {
-            let mut seen = self.seen_in_session.lock().unwrap();
-            seen.clear();
-        }
-        self.browser.send_ptr_query();
-        tokio::time::sleep(Duration::from_millis(SCAN_TIMEOUT_MS)).await;
-        let devices: Vec<DiscoveredDevice> = {
-            let seen = self.seen_in_session.lock().unwrap();
-            seen.values().cloned().collect()
-        };
-        if first_scan {
-            self.browser.stop();
-        }
-        DiscoverDevicesResult {
-            devices,
-            status: DiscoverScanStatus::Ok,
-        }
-    }
-
     /// Current `ip:port` of a paired peer straight from the peers table.
     /// The resident mDNS listener keeps it fresh from the peer's own
     /// announcements, so host healing does not depend on an outgoing
@@ -324,16 +254,13 @@ impl NearbyDiscoverManager {
         id: &str,
         name: &str,
         host: &str,
-        device_type: &str,
+        device_type: DeviceType,
         token: &str,
         signature_public_key: &str,
     ) {
         let (ip, port) = split_host(host);
-        let dt = device_type
-            .parse::<crate::local::enums::DeviceType>()
-            .unwrap_or(crate::local::enums::DeviceType::Unknown);
         self.db
-            .login_peer(id, name, &ip, port, dt, token, signature_public_key);
+            .login_peer(id, name, &ip, port, device_type, token, signature_public_key);
     }
 
     pub fn logout_peer(&self, id: &str) {
@@ -344,22 +271,14 @@ impl NearbyDiscoverManager {
         self.db.update_peer_name(id, name);
     }
 
-    pub fn login_peers(&self) -> Vec<LoginPeer> {
+    /// Peers with an active login token — the device-switcher list.
+    pub fn login_peers(&self) -> Vec<Peer> {
         self.db
             .get_login_peers()
             .into_iter()
             .map(|p| {
-                let host = format!("{}:{}", p.best_ip(), p.port);
-                LoginPeer {
-                    client_id: p.id,
-                    name: p.name,
-                    host,
-                    token: p.token,
-                    signature_public_key: p.public_key,
-                    device_type: p.device_type.to_string(),
-                    status: format!("{:?}", p.status).to_uppercase(),
-                    created_at: p.created_at,
-                }
+                let online = self.peer_status.is_online(&p.id);
+                Peer::from_dpeer(p, online)
             })
             .collect()
     }
@@ -380,10 +299,7 @@ impl NearbyDiscoverManager {
         // changed IP is picked up by the next reconnect attempt even while
         // the nearby scan loop is off.
         self.update_known_peer(&device);
-        // Scan-gated path: nearby-list events only fire while discovery runs.
-        if !self.browser.is_running() {
-            return;
-        }
+        self.peer_status.set_online(&device.id, true);
         let mut ips = device.ips.clone();
         ips.sort();
         let discovered = DiscoveredDevice {
@@ -391,17 +307,26 @@ impl NearbyDiscoverManager {
             name: device.name.clone(),
             ips,
             port: device.port,
-            device_type: device.device_type.to_string(),
+            device_type: device.device_type.clone(),
             version: device.version.clone(),
             platform: device.platform.clone(),
             last_seen: now_iso(),
             status: self.get_device_status(&device.id),
             discovery_methods: vec!["LAN".to_string()],
         };
-        self.peer_status.set_online(&device.id, true);
-        {
+        // mDNS announcements repeat every second; emit only on change.
+        let changed = {
             let mut seen = self.seen_in_session.lock().unwrap();
-            seen.insert(discovered.id.clone(), discovered.clone());
+            match seen.get(&discovered.id) {
+                Some(prev) if same_snapshot(prev, &discovered) => false,
+                _ => {
+                    seen.insert(discovered.id.clone(), discovered.clone());
+                    true
+                }
+            }
+        };
+        if !changed {
+            return;
         }
         self.emit_event(
             WS_NEARBY_DEVICE_FOUND,
@@ -424,17 +349,19 @@ impl NearbyDiscoverManager {
         // mDNS announcements repeat every few seconds — skip the write when
         // nothing changed so the peers table isn't hammered by upserts.
         let ip = device.ips.join(",");
+        let device_type =
+            DeviceType::from_str(&device.device_type).unwrap_or(DeviceType::Other);
         if peer.name == device.name
             && peer.ip == ip
             && peer.port == device.port
-            && peer.device_type == device.device_type
+            && peer.device_type == device_type
         {
             return;
         }
         peer.name = device.name.clone();
         peer.ip = ip;
         peer.port = device.port;
-        peer.device_type = device.device_type;
+        peer.device_type = device_type;
         peer.updated_at = now_iso();
         self.db.upsert_peer(&peer);
         if let (Some(handle), Some(ip)) = (
@@ -463,9 +390,50 @@ impl NearbyDiscoverManager {
     }
 }
 
-pub async fn discover_devices_impl(
-    state: tauri::State<'_, NearbyDiscoverManager>,
-) -> Result<DiscoverDevicesResult, String> {
-    Ok(state.discover_devices().await)
+/// Equality over the stable fields of a discovered device — `last_seen` is
+/// excluded so repeated mDNS announcements of unchanged data emit once.
+fn same_snapshot(a: &DiscoveredDevice, b: &DiscoveredDevice) -> bool {
+    a.id == b.id
+        && a.name == b.name
+        && a.ips == b.ips
+        && a.port == b.port
+        && a.device_type == b.device_type
+        && a.version == b.version
+        && a.platform == b.platform
+        && a.status == b.status
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn device(id: &str, ip: &str, status: &str) -> DiscoveredDevice {
+        DiscoveredDevice {
+            id: id.to_string(),
+            name: "Pixel 7".to_string(),
+            ips: vec![ip.to_string()],
+            port: 8443,
+            device_type: "PHONE".to_string(),
+            version: "1.0".to_string(),
+            platform: "android".to_string(),
+            last_seen: String::new(),
+            status: status.to_string(),
+            discovery_methods: vec!["LAN".to_string()],
+        }
+    }
+
+    #[test]
+    fn same_snapshot_ignores_last_seen_but_detects_changes() {
+        let a = device("d1", "192.168.1.2", "UNPAIRED");
+        let mut b = a.clone();
+        assert!(same_snapshot(&a, &b));
+        b.last_seen = "2026-08-18T00:00:00Z".to_string();
+        assert!(same_snapshot(&a, &b), "last_seen alone must not re-emit");
+        b.ips = vec!["192.168.1.3".to_string()];
+        assert!(!same_snapshot(&a, &b), "ip change must re-emit");
+        b.ips = a.ips.clone();
+        b.status = "PAIRED".to_string();
+        assert!(!same_snapshot(&a, &b), "status change must re-emit");
+    }
 }
 

@@ -1,22 +1,16 @@
 #![allow(non_snake_case)]
 
-pub(crate) mod mdns;
 #[path = "NearbyDiscoverManager.rs"]
 mod nearby_discover_manager;
 #[path = "PeerStatusManager.rs"]
 mod peer_status_manager;
 
-pub use nearby_discover_manager::{DiscoverDevicesResult, LoginPeer, NearbyDiscoverManager};
+pub use nearby_discover_manager::NearbyDiscoverManager;
 pub use peer_status_manager::PeerStatusManager;
-pub(crate) use mdns::host_responder::get_best_ip as discover_get_best_ip;
-pub(crate) use mdns::host_responder::local_ipv4_strs as discover_local_ipv4_strs;
-
-#[tauri::command]
-pub async fn discover_devices(
-    state: tauri::State<'_, NearbyDiscoverManager>,
-) -> Result<DiscoverDevicesResult, String> {
-    nearby_discover_manager::discover_devices_impl(state).await
-}
+use crate::local::enums::DeviceType;
+use crate::local::graphql::schema::types::Peer;
+pub(crate) use plain_rs::mdns::host_responder::get_best_ip as discover_get_best_ip;
+pub(crate) use plain_rs::mdns::host_responder::local_ipv4_strs as discover_local_ipv4_strs;
 
 // ── Remote-device login sessions (peers.token) ───────────────────────────────
 
@@ -28,11 +22,11 @@ pub fn login_peer(
     id: String,
     name: String,
     host: String,
-    deviceType: String,
+    deviceType: DeviceType,
     token: String,
     signaturePublicKey: String,
 ) {
-    state.login_peer(&id, &name, &host, &deviceType, &token, &signaturePublicKey);
+    state.login_peer(&id, &name, &host, deviceType, &token, &signaturePublicKey);
 }
 
 /// Clears the login token of a peer (logout / forget device).
@@ -43,7 +37,7 @@ pub fn logout_peer(state: tauri::State<'_, NearbyDiscoverManager>, id: String) {
 
 /// All peers with an active login token.
 #[tauri::command]
-pub fn list_login_peers(state: tauri::State<'_, NearbyDiscoverManager>) -> Vec<LoginPeer> {
+pub fn list_login_peers(state: tauri::State<'_, NearbyDiscoverManager>) -> Vec<Peer> {
     state.login_peers()
 }
 
@@ -72,7 +66,7 @@ pub fn peer_address(state: tauri::State<'_, NearbyDiscoverManager>, id: String) 
 #[tauri::command]
 pub fn mdns_snapshot(
     state: tauri::State<'_, NearbyDiscoverManager>,
-) -> Vec<mdns::service_browser::MdnsServiceSnapshot> {
+) -> Vec<plain_rs::mdns::service_browser::MdnsServiceSnapshot> {
     state.mdns_snapshot()
 }
 

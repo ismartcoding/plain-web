@@ -41,9 +41,9 @@
                 </button>
               </template>
             </VListItem>
-            <VListItem v-for="s in sessions" :key="s.clientId" :subtitle="s.host">
+            <VListItem v-for="s in sessions" :key="s.id" :subtitle="peerHost(s)">
               <template #start>
-                <v-dropdown v-model="infoOpen[s.clientId]">
+                <v-dropdown v-model="infoOpen[s.id]">
                   <template #trigger>
                     <DeviceTypeIcon :device-type="s.deviceType" />
                   </template>
@@ -51,14 +51,14 @@
                 </v-dropdown>
               </template>
               <template #title>
-                <span>{{ s.name || s.host }}</span>
-                <span v-if="s.clientId === currentClientId" class="status-badge on">{{
+                <span>{{ s.name || peerHost(s) }}</span>
+                <span v-if="s.id === currentClientId" class="status-badge on">{{
                   $t('device_discovery.current')
                 }}</span>
               </template>
               <template #actions>
                 <button
-                  v-if="s.clientId !== currentClientId"
+                  v-if="s.id !== currentClientId"
                   v-tooltip="$t('switch')"
                   class="icon-btn"
                   :aria-label="$t('device_discovery.change_device')"
@@ -145,7 +145,7 @@ import { popModal } from './modal/methods'
 import DeviceDiscoveryStatus from './DeviceDiscoveryStatus.vue'
 import LoginForm from '@/views/login/LoginForm.vue'
 import { useDeviceDiscovery, type DiscoveredDevice } from '@/hooks/use-device-discovery'
-import { loginPeers, clearLoginPeer, type LoginPeer } from '@/lib/device/login-peers'
+import { loginPeers, clearLoginPeer, peerHost, type LoginPeer } from '@/lib/device/login-peers'
 import { clearPendingLoginHost, setPendingLoginHost, setPendingLoginDeviceType, clearPendingLoginDeviceType } from '@/lib/api/api'
 import { isLocalMode } from '@/lib/device/local-mode'
 import { getDesktopClientId, getRemoteClientId, setRemoteClientId, clearRemoteClientId } from '@/lib/device/client-id'
@@ -170,7 +170,7 @@ const newDevices = computed(() =>
       d.deviceType !== 'COMPUTER' &&
       d.platform !== 'ios' &&
       d.id !== desktopClientId &&
-      !sessions.value.some((s) => d.ips.some((ip) => s.host === `${ip}:${d.port}`)),
+      !sessions.value.some((s) => d.ips.some((ip) => peerHost(s) === `${ip}:${d.port}`)),
   ),
 )
 
@@ -193,18 +193,18 @@ function close() {
 }
 
 function switchTo(s: LoginPeer) {
-  if (s.clientId === currentClientId.value) {
+  if (s.id === currentClientId.value) {
     close()
     return
   }
-  setRemoteClientId(s.clientId)
+  setRemoteClientId(s.id)
   window.location.href = '/'
 }
 
 function remove(s: LoginPeer) {
-  const isCurrent = s.clientId === currentClientId.value
-  void clearLoginPeer(s.clientId)
-  prefsRemove(`main_state:${s.clientId}`)
+  const isCurrent = s.id === currentClientId.value
+  void clearLoginPeer(s.id)
+  prefsRemove(`main_state:${s.id}`)
   if (isCurrent) {
     clearRemoteClientId()
     close()

@@ -37,6 +37,9 @@ let activeCount = 0
 let listenerInitialized = false
 let pollTimer: ReturnType<typeof setInterval> | null = null
 
+// The server-side scan can be torn down behind our back — e.g. the app closes
+// its own nearby page and stops discovery for every connected client. Poll
+// while a page is watching and re-issue startDiscovery when it went down.
 async function checkAndEnsureDiscovering() {
   if (activeCount === 0) return
   try {
@@ -123,7 +126,6 @@ export function useDeviceDiscovery() {
 
   async function start() {
     activeCount += 1
-    if (activeCount > 1) return
     status.value = DiscoveryStatus.SEARCHING
     await startMutate()
     startPolling()

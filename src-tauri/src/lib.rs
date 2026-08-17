@@ -19,7 +19,6 @@ pub fn run() {
                 })
                 .targets([
                     tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Stdout),
-                    tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Stderr),
                     tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::LogDir {
                         file_name: Some("plain".to_string()),
                     }),
@@ -143,9 +142,8 @@ pub fn run() {
             }
         })
         .invoke_handler(tauri::generate_handler![
-            commands::discover::discover_devices,
-            commands::discover::peer_address,
             commands::discover::login_peer,
+            commands::discover::peer_address,
             commands::discover::logout_peer,
             commands::discover::list_login_peers,
             commands::discover::update_peer_name,
