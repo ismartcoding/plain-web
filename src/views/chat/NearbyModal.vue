@@ -2,7 +2,7 @@
   <v-modal width="480px" @close="handleClose">
     <template #headline>
       <v-circular-progress indeterminate class="sm" aria-label="scanning" />
-      <span>{{ $t('scanning_devices') }}</span>
+      <span>{{ $t('device_discovery.searching') }}</span>
     </template>
     <template #content>
       <div v-if="discoveredDevices.length === 0" class="nearby-empty">
