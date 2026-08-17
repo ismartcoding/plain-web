@@ -2,6 +2,7 @@ pub mod app_file_store;
 pub mod chat_cacher;
 pub mod channel;
 pub mod db;
+pub mod dlna;
 pub mod download;
 pub mod enums;
 pub mod graphql;

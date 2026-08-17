@@ -163,6 +163,110 @@ pub fn set_mdns_hostname(handle: &AppHandle, hostname: &str) {
     }
 }
 
+/// DLNA receiver toggle — mirrors plain-app's `DlnaPreference` (key `dlna`).
+pub fn get_dlna_enabled(handle: &AppHandle) -> bool {
+    handle
+        .store(STORE_FILE)
+        .ok()
+        .and_then(|s| s.get("dlna"))
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false)
+}
+
+pub fn set_dlna_enabled(handle: &AppHandle, enabled: bool) {
+    if let Ok(store) = handle.store(STORE_FILE) {
+        store.set("dlna", enabled);
+        let _ = store.save();
+    }
+}
+
+const DLNA_SEP: char = '|';
+
+/// Decode a `ip|name` sender entry persisted by the allowed/denied prefs.
+/// Mirrors plain-app's `decodeSenderEntry`.
+fn decode_sender_entry(entry: &str) -> (String, String) {
+    match entry.split_once(DLNA_SEP) {
+        Some((ip, name)) => (ip.to_string(), name.to_string()),
+        None => (entry.to_string(), String::new()),
+    }
+}
+
+/// `ip|name` sender list for the allowed-senders preference.
+pub fn get_dlna_allowed_senders(handle: &AppHandle) -> Vec<String> {
+    handle
+        .store(STORE_FILE)
+        .ok()
+        .and_then(|s| s.get("dlna_allowed_senders"))
+        .and_then(|v| v.as_array().cloned())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|v| v.as_str().map(String::from))
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+/// `ip|name` sender list for the denied-senders preference.
+pub fn get_dlna_denied_senders(handle: &AppHandle) -> Vec<String> {
+    handle
+        .store(STORE_FILE)
+        .ok()
+        .and_then(|s| s.get("dlna_denied_senders"))
+        .and_then(|v| v.as_array().cloned())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|v| v.as_str().map(String::from))
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+fn set_sender_list(handle: &AppHandle, key: &str, entries: &[String]) {
+    if let Ok(store) = handle.store(STORE_FILE) {
+        let arr: Vec<serde_json::Value> = entries
+            .iter()
+            .map(|e| serde_json::Value::String(e.clone()))
+            .collect();
+        store.set(key, serde_json::Value::Array(arr));
+        let _ = store.save();
+    }
+}
+
+/// Replace any existing entry for `ip` (any previous name) then add `ip|name`.
+/// Mirrors plain-app's `addAsync`.
+pub fn add_dlna_sender(handle: &AppHandle, key: &str, ip: &str, name: &str) {
+    let current = if key == "dlna_allowed_senders" {
+        get_dlna_allowed_senders(handle)
+    } else {
+        get_dlna_denied_senders(handle)
+    };
+    let mut next: Vec<String> = current
+        .into_iter()
+        .filter(|e| decode_sender_entry(e).0 != ip)
+        .collect();
+    next.push(format!("{ip}{DLNA_SEP}{name}"));
+    set_sender_list(handle, key, &next);
+}
+
+/// Remove any entry for `ip`. Mirrors plain-app's `removeAsync`.
+pub fn remove_dlna_sender(handle: &AppHandle, key: &str, ip: &str) {
+    let current = if key == "dlna_allowed_senders" {
+        get_dlna_allowed_senders(handle)
+    } else {
+        get_dlna_denied_senders(handle)
+    };
+    let next: Vec<String> = current
+        .into_iter()
+        .filter(|e| decode_sender_entry(e).0 != ip)
+        .collect();
+    set_sender_list(handle, key, &next);
+}
+
+/// Mirrors plain-app's `containsIp`.
+pub fn dlna_senders_contain_ip(entries: &[String], ip: &str) -> bool {
+    entries.iter().any(|e| decode_sender_entry(e).0 == ip)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

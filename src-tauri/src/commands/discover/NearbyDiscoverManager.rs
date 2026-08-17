@@ -67,6 +67,31 @@ pub struct DiscoverDevicesResult {
     pub status: DiscoverScanStatus,
 }
 
+/// A remote device with an active login token — the device-switcher list.
+#[derive(Serialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct LoginPeer {
+    pub client_id: String,
+    pub name: String,
+    pub host: String,
+    pub token: String,
+    /// TOFU Ed25519 key used to verify login signatures.
+    pub signature_public_key: String,
+    pub device_type: String,
+    pub status: String,
+    pub created_at: String,
+}
+
+fn split_host(host: &str) -> (String, u16) {
+    match host.rsplit_once(':') {
+        Some((ip, port)) => match port.parse::<u16>() {
+            Ok(p) => (ip.to_string(), p),
+            Err(_) => (host.to_string(), 8443),
+        },
+        None => (host.to_string(), 8443),
+    }
+}
+
 #[derive(Clone)]
 pub struct NearbyDiscoverManager {
     db: Arc<ChatDb>,
@@ -77,6 +102,7 @@ pub struct NearbyDiscoverManager {
     peer_status: PeerStatusManager,
     https_port: Arc<AtomicU16>,
     event_tx: Arc<RwLock<Option<broadcast::Sender<WsEvent>>>>,
+    app_handle: Arc<RwLock<Option<tauri::AppHandle>>>,
     browser: MdnsServiceBrowser,
     seen_in_session: Arc<Mutex<HashMap<String, DiscoveredDevice>>>,
 }
@@ -100,6 +126,7 @@ impl NearbyDiscoverManager {
             peer_status,
             https_port: Arc::new(AtomicU16::new(https_port)),
             event_tx: Arc::new(RwLock::new(None)),
+            app_handle: Arc::new(RwLock::new(None)),
             browser: MdnsServiceBrowser::new(
                 String::new(),
                 Arc::new(RwLock::new(String::new())),
@@ -118,6 +145,10 @@ impl NearbyDiscoverManager {
 
     pub fn set_event_tx(&self, event_tx: broadcast::Sender<WsEvent>) {
         *self.event_tx.write().unwrap() = Some(event_tx);
+    }
+
+    pub fn set_app_handle(&self, handle: tauri::AppHandle) {
+        *self.app_handle.write().unwrap() = Some(handle);
     }
 
     /// Called by `LocalServerState::rebind` once the HTTPS port is bound.
@@ -152,8 +183,12 @@ impl NearbyDiscoverManager {
     /// Ensures the shared mDNS responder socket is up so the browser can
     /// send queries and the responder can answer PTR/SRV/TXT/A queries.
     /// Service registration itself happens with the HTTPS server lifecycle.
+    /// The browser's packet listener is installed here as well and never
+    /// removed: passive listening stays resident for the whole session so a
+    /// paired peer's IP change is picked up without any page scanning.
     pub fn start(&self) {
         host_responder::ensure_started(&self.mdns_hostname());
+        self.browser.install_listener();
     }
 
     /// Current mDNS hostname — mirrors plain-app's `TempData.mdnsHostname`.
@@ -221,6 +256,10 @@ impl NearbyDiscoverManager {
     /// `PeerStatusManager` detect whether the reply arrived within its wait
     /// window. Mirrors plain-app's `MdnsDiscoverManager.browse`.
     pub fn browse(&self) {
+        // The resident packet listener (installed at app start) parses the
+        // reply and refreshes the peer row; no scan loop needed here, so the
+        // nearby list stays quiet unless a page is actually discovering.
+        self.start();
         self.browser.send_ptr_query();
     }
 
@@ -243,6 +282,12 @@ impl NearbyDiscoverManager {
         if first_scan {
             self.browser.start();
         }
+        // A one-shot scan must reflect what THIS scan hears: stale entries
+        // from an earlier scan would keep returning a peer's dead address.
+        {
+            let mut seen = self.seen_in_session.lock().unwrap();
+            seen.clear();
+        }
         self.browser.send_ptr_query();
         tokio::time::sleep(Duration::from_millis(SCAN_TIMEOUT_MS)).await;
         let devices: Vec<DiscoveredDevice> = {
@@ -258,6 +303,67 @@ impl NearbyDiscoverManager {
         }
     }
 
+    /// Current `ip:port` of a paired peer straight from the peers table.
+    /// The resident mDNS listener keeps it fresh from the peer's own
+    /// announcements, so host healing does not depend on an outgoing
+    /// multicast query actually reaching the peer.
+    pub fn peer_address(&self, id: &str) -> Option<String> {
+        let peer = self
+            .db
+            .get_peer_by_id(id)
+            .filter(|p| p.is_paired() || !p.token.is_empty())?;
+        if peer.ip.is_empty() || peer.port == 0 {
+            return None;
+        }
+        Some(format!("{}:{}", peer.best_ip(), peer.port))
+    }
+
+    /// Records a successful remote-device login (see `ChatDb::login_peer`).
+    pub fn login_peer(
+        &self,
+        id: &str,
+        name: &str,
+        host: &str,
+        device_type: &str,
+        token: &str,
+        signature_public_key: &str,
+    ) {
+        let (ip, port) = split_host(host);
+        let dt = device_type
+            .parse::<crate::local::enums::DeviceType>()
+            .unwrap_or(crate::local::enums::DeviceType::Unknown);
+        self.db
+            .login_peer(id, name, &ip, port, dt, token, signature_public_key);
+    }
+
+    pub fn logout_peer(&self, id: &str) {
+        self.db.logout_peer(id);
+    }
+
+    pub fn update_peer_name(&self, id: &str, name: &str) {
+        self.db.update_peer_name(id, name);
+    }
+
+    pub fn login_peers(&self) -> Vec<LoginPeer> {
+        self.db
+            .get_login_peers()
+            .into_iter()
+            .map(|p| {
+                let host = format!("{}:{}", p.best_ip(), p.port);
+                LoginPeer {
+                    client_id: p.id,
+                    name: p.name,
+                    host,
+                    token: p.token,
+                    signature_public_key: p.public_key,
+                    device_type: p.device_type.to_string(),
+                    status: format!("{:?}", p.status).to_uppercase(),
+                    created_at: p.created_at,
+                }
+            })
+            .collect()
+    }
+
     fn emit_event(&self, event_type: i32, payload: &str) {
         if let Some(tx) = self.event_tx.read().unwrap().clone() {
             let _ = tx.send(WsEvent {
@@ -270,6 +376,14 @@ impl NearbyDiscoverManager {
     /// Browser callback — mirrors plain-app's `MdnsServiceBrowser.emitDevice`
     /// (`NearbyViewModel.handleNewDevice` + `PeerManager.applyDeviceDiscovered`).
     fn on_device_found(&self, device: FoundDevice) {
+        // Resident-listener path: always refresh a paired peer's address so a
+        // changed IP is picked up by the next reconnect attempt even while
+        // the nearby scan loop is off.
+        self.update_known_peer(&device);
+        // Scan-gated path: nearby-list events only fire while discovery runs.
+        if !self.browser.is_running() {
+            return;
+        }
         let mut ips = device.ips.clone();
         ips.sort();
         let discovered = DiscoveredDevice {
@@ -284,7 +398,6 @@ impl NearbyDiscoverManager {
             status: self.get_device_status(&device.id),
             discovery_methods: vec!["LAN".to_string()],
         };
-        self.update_known_peer(&device);
         self.peer_status.set_online(&device.id, true);
         {
             let mut seen = self.seen_in_session.lock().unwrap();
@@ -299,17 +412,41 @@ impl NearbyDiscoverManager {
     /// Refreshes a known peer's address info from an mDNS response — mirrors
     /// plain-app's `PeerManager.applyDeviceDiscovered` (bumps `updatedAt`).
     fn update_known_peer(&self, device: &FoundDevice) {
-        // Mirrors plain-app's PeerManager.applyDeviceDiscovered: only a known,
-        // paired peer gets its address refreshed.
-        let Some(mut peer) = self.db.get_peer_by_id(&device.id).filter(|p| p.is_paired()) else {
+        // Paired peers (chat) and logged-in peers (token) both track the
+        // device address; unrelated peers are left untouched.
+        let Some(mut peer) = self
+            .db
+            .get_peer_by_id(&device.id)
+            .filter(|p| p.is_paired() || !p.token.is_empty())
+        else {
             return;
         };
+        // mDNS announcements repeat every few seconds — skip the write when
+        // nothing changed so the peers table isn't hammered by upserts.
+        let ip = device.ips.join(",");
+        if peer.name == device.name
+            && peer.ip == ip
+            && peer.port == device.port
+            && peer.device_type == device.device_type
+        {
+            return;
+        }
         peer.name = device.name.clone();
-        peer.ip = device.ips.join(",");
+        peer.ip = ip;
         peer.port = device.port;
         peer.device_type = device.device_type;
         peer.updated_at = now_iso();
         self.db.upsert_peer(&peer);
+        if let (Some(handle), Some(ip)) = (
+            self.app_handle.read().unwrap().clone(),
+            device.ips.iter().min(),
+        ) {
+            use tauri::Emitter;
+            let _ = handle.emit(
+                "device-host-changed",
+                serde_json::json!({ "clientId": device.id, "host": format!("{ip}:{}", device.port) }),
+            );
+        }
     }
 
     /// Mirrors plain-app's `NearbyViewModel.getStatus(deviceId, paired)`:

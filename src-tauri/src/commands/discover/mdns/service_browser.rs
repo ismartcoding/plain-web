@@ -125,16 +125,10 @@ impl MdnsServiceBrowser {
     }
 
     pub(crate) fn start(&self) {
+        self.install_listener();
         if self.inner.running.swap(true, Ordering::SeqCst) {
             return;
         }
-        self.clear_state();
-        let inner = self.inner.clone();
-        let listener: host_responder::PacketListener =
-            Arc::new(move |data: &[u8], _sender: &str| handle_packet(&inner, data));
-        host_responder::add_packet_listener(listener.clone());
-        *self.inner.listener.lock().unwrap() = Some(listener);
-
         let inner = self.inner.clone();
         let handle = tauri::async_runtime::spawn(async move {
             loop {
@@ -149,16 +143,30 @@ impl MdnsServiceBrowser {
         log::debug!("mDNS browser started");
     }
 
+    /// Stops the periodic scan loop only. The packet listener and accumulated
+    /// instance state stay installed: passive listening keeps refreshing paired
+    /// peers' IPs after a network change even when no page is scanning.
     pub(crate) fn stop(&self) {
         self.inner.running.store(false, Ordering::SeqCst);
         if let Some(handle) = self.inner.task.lock().unwrap().take() {
             handle.abort();
         }
-        if let Some(listener) = self.inner.listener.lock().unwrap().take() {
-            host_responder::remove_packet_listener(&listener);
-        }
-        self.clear_state();
         log::debug!("mDNS browser stopped");
+    }
+
+    /// Installs the resident packet listener so inbound mDNS responses keep
+    /// updating instance state (and paired peers' IP/port) even while the
+    /// scan loop is stopped. Idempotent; installed once at app start.
+    pub(crate) fn install_listener(&self) {
+        let mut guard = self.inner.listener.lock().unwrap();
+        if guard.is_some() {
+            return;
+        }
+        let inner = self.inner.clone();
+        let listener: host_responder::PacketListener =
+            Arc::new(move |data: &[u8], _sender: &str| handle_packet(&inner, data));
+        host_responder::add_packet_listener(listener.clone());
+        *guard = Some(listener);
     }
 
     /// One-shot PTR query used by directed re-discovery of a paired peer.
@@ -366,6 +374,13 @@ fn handle_packet(inner: &Inner, data: &[u8]) {
                             .cloned();
                         if let Some(key) = key {
                             if let Some(instance) = state.instances.get_mut(&key) {
+                                // An A record is authoritative for the target
+                                // hostname's CURRENT address. Replace, don't
+                                // accumulate — otherwise a device that changed
+                                // IPs keeps its stale address in the set, which
+                                // sorts first and makes best_ip() target the
+                                // dead IP forever.
+                                instance.ips.clear();
                                 instance.ips.insert(ip);
                                 touched.insert(key);
                             }
@@ -537,5 +552,53 @@ mod tests {
         }
         browser.clear_instances();
         assert!(browser.inner.state.lock().unwrap().instances.is_empty());
+    }
+
+    #[test]
+    fn stop_keeps_instance_state_for_resident_listening() {
+        let browser =
+            MdnsServiceBrowser::new(String::new(), Arc::new(RwLock::new(String::new())), |_| {});
+        {
+            let mut state = browser.inner.state.lock().unwrap();
+            let mut inst = Instance::new("p9._plainapp._tcp.local".to_string(), "p9".to_string());
+            inst.id = "1xvuvk3ujzxyn".to_string();
+            inst.port = 8443;
+            inst.ips.insert("192.168.1.20".to_string());
+            state.instances.insert(inst.instance_fqdn.clone(), inst);
+        }
+        browser.stop();
+        assert!(!browser.inner.state.lock().unwrap().instances.is_empty());
+    }
+
+    #[test]
+    fn a_record_replaces_stale_ip_instead_of_accumulating() {
+        let browser =
+            MdnsServiceBrowser::new(String::new(), Arc::new(RwLock::new(String::new())), |_| {});
+        let key = "p9._plainapp._tcp.local";
+        {
+            let mut state = browser.inner.state.lock().unwrap();
+            let mut inst = Instance::new(key.to_string(), "p9".to_string());
+            inst.id = "1xvuvk3ujzxyn".to_string();
+            inst.target_hostname = "p9.local".to_string();
+            inst.port = 8443;
+            inst.ips.insert("192.168.1.10".to_string());
+            state.instances.insert(key.to_string(), inst);
+            state
+                .hostname_to_instance
+                .insert("p9.local".to_string(), key.to_string());
+        }
+        // The host announces its NEW address after moving networks.
+        let query = super::packet_codec::build_query("p9.local", TYPE_A, false);
+        let response = super::packet_codec::build_response_if_match(
+            &query,
+            "p9.local",
+            &["192.168.1.20".to_string()],
+        )
+        .expect("a-record response");
+        handle_packet(&browser.inner, &response.bytes);
+        let state = browser.inner.state.lock().unwrap();
+        let inst = state.instances.get(key).expect("instance");
+        let ips: Vec<String> = inst.ips.iter().cloned().collect();
+        assert_eq!(ips, vec!["192.168.1.20".to_string()]);
     }
 }

@@ -12,6 +12,7 @@ import { getIsPhone, getIsTablet } from './hooks/device'
 import { setHttpProxyPort, setLocalServerPort, setLocalServerToken, setLocalServerHttpsPort } from './lib/api/api'
 import { preload as preloadPrefs, get as prefsGet, set as prefsSet } from './lib/prefs'
 import { applyUrlClientId } from './lib/device/client-id'
+import { preloadLoginPeers } from './lib/device/login-peers'
 
 if (!__IS_TAURI__) {
   // Web: prefs are synchronous (localStorage) — safe to apply immediately.
@@ -49,6 +50,7 @@ async function bootstrap() {
       invoke<number>('local_server_port').then(setLocalServerPort),
       invoke<number>('local_server_https_port').then(setLocalServerHttpsPort),
       invoke<string>('local_server_token').then(setLocalServerToken),
+      preloadLoginPeers(),
     ])
   }
 

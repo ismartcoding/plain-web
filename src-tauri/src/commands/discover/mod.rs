@@ -6,7 +6,7 @@ mod nearby_discover_manager;
 #[path = "PeerStatusManager.rs"]
 mod peer_status_manager;
 
-pub use nearby_discover_manager::{DiscoverDevicesResult, NearbyDiscoverManager};
+pub use nearby_discover_manager::{DiscoverDevicesResult, LoginPeer, NearbyDiscoverManager};
 pub use peer_status_manager::PeerStatusManager;
 pub(crate) use mdns::host_responder::get_best_ip as discover_get_best_ip;
 pub(crate) use mdns::host_responder::local_ipv4_strs as discover_local_ipv4_strs;
@@ -16,6 +16,53 @@ pub async fn discover_devices(
     state: tauri::State<'_, NearbyDiscoverManager>,
 ) -> Result<DiscoverDevicesResult, String> {
     nearby_discover_manager::discover_devices_impl(state).await
+}
+
+// ── Remote-device login sessions (peers.token) ───────────────────────────────
+
+/// Records a successful login: creates the peer as UNPAIRED (or refreshes the
+/// existing row) with the session token.
+#[tauri::command]
+pub fn login_peer(
+    state: tauri::State<'_, NearbyDiscoverManager>,
+    id: String,
+    name: String,
+    host: String,
+    deviceType: String,
+    token: String,
+    signaturePublicKey: String,
+) {
+    state.login_peer(&id, &name, &host, &deviceType, &token, &signaturePublicKey);
+}
+
+/// Clears the login token of a peer (logout / forget device).
+#[tauri::command]
+pub fn logout_peer(state: tauri::State<'_, NearbyDiscoverManager>, id: String) {
+    state.logout_peer(&id);
+}
+
+/// All peers with an active login token.
+#[tauri::command]
+pub fn list_login_peers(state: tauri::State<'_, NearbyDiscoverManager>) -> Vec<LoginPeer> {
+    state.login_peers()
+}
+
+/// Updates a peer's display name.
+#[tauri::command]
+pub fn update_peer_name(
+    state: tauri::State<'_, NearbyDiscoverManager>,
+    id: String,
+    name: String,
+) {
+    state.update_peer_name(&id, &name);
+}
+
+/// Current `ip:port` of a paired peer from the peers table, kept fresh by
+/// the resident mDNS listener. Used by the frontend to heal a stale login
+/// session host without a multicast round-trip.
+#[tauri::command]
+pub fn peer_address(state: tauri::State<'_, NearbyDiscoverManager>, id: String) -> Option<String> {
+    state.peer_address(&id)
 }
 
 // ── mDNS debug surface — mirrors plain-app's MdnsDebugPage + WebAddressBar ───

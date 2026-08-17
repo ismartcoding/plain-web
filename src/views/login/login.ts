@@ -6,8 +6,9 @@ import type { InitResponse } from '@/lib/api/crypto'
 import { getApiBaseUrl, getApiHeaders, getPendingLoginHost, clearPendingLoginHost, getPendingLoginDeviceType, clearPendingLoginDeviceType } from '@/lib/api/api'
 import { randomUUID } from '@/lib/strutil'
 import { tokenToKey } from '@/lib/api/file'
-import { useDeviceSessionsStore } from '@/stores/device-sessions'
 import { getCurrentAuthToken } from '@/lib/device/current'
+import { findLoginPeer, saveLoginPeer } from '@/lib/device/login-peers'
+import { getRemoteClientId, setRemoteClientId } from '@/lib/device/client-id'
 import { tauriFetch } from '@/lib/api/tauri-fetch'
 import { performLoginHandshake } from '@/lib/api/login-handshake'
 import { get as prefsGet } from '@/lib/prefs'
@@ -25,7 +26,6 @@ function getSafeRedirect(redirect: unknown): string {
 
 export function useLogin(options: UseLoginOptions = {}) {
   const { t } = useI18n()
-  const sessionsStore = useDeviceSessionsStore()
   const showError = ref(false)
   const webAccessDisabled = ref(true)
   const showConfirm = ref(false)
@@ -98,23 +98,24 @@ export function useLogin(options: UseLoginOptions = {}) {
       const { clientId, token, signaturePublicKey } = await performLoginHandshake({
         passwordHash: hash,
         clientId: myClientId,
-        storedSignaturePublicKey: sessionsStore.currentSession?.signaturePublicKey,
+        storedSignaturePublicKey: findLoginPeer(getRemoteClientId())?.signaturePublicKey,
         initSignaturePublicKey: lastInitSignaturePublicKey,
         onPending: () => { showConfirm.value = true },
       })
 
-      const host = getPendingLoginHost() || sessionsStore.currentSession?.host || window.location.host || ''
+      const host = getPendingLoginHost() || findLoginPeer(getRemoteClientId())?.host || window.location.host || ''
       const deviceType = getPendingLoginDeviceType()
       if (host && clientId) {
-        sessionsStore.save({
+        // Empty name: the backend keeps the stored name of an existing peer.
+        await saveLoginPeer({
           clientId,
+          name: '',
           host,
-          name: currentSessionName(host),
           token,
           signaturePublicKey,
-          deviceType: deviceType || undefined,
+          deviceType: deviceType || '',
         })
-        sessionsStore.setCurrent(clientId)
+        setRemoteClientId(clientId)
         clearPendingLoginHost()
         clearPendingLoginDeviceType()
       }
@@ -133,12 +134,6 @@ export function useLogin(options: UseLoginOptions = {}) {
     } finally {
       isSubmitting.value = false
     }
-  }
-
-  function currentSessionName(host: string): string {
-    return sessionsStore.currentSession?.host === host
-      ? (sessionsStore.currentSession.name || host)
-      : host
   }
 
   function cancel() {

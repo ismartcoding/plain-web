@@ -5,7 +5,8 @@ import i18n from '@/plugins/i18n'
 import { getCurrentAuthToken } from '@/lib/device/current'
 import { isLocalMode, isLocalModeAllowed, isLocalRouteGroup } from '@/lib/device/local-mode'
 import { useMainStore } from '@/stores/main'
-import { useDeviceSessionsStore } from '@/stores/device-sessions'
+import { findLoginPeer } from '@/lib/device/login-peers'
+import { getRemoteClientId } from '@/lib/device/client-id'
 
 const router = createRouter({
   strict: true,
@@ -334,7 +335,7 @@ router.afterEach((to, from) => {
   const titleKey = `page_title.${group}`
   const title = group ? String((i18n.global as any).t(titleKey)) : ''
   const base = title && title !== titleKey ? `${title} - PlainApp` : 'PlainApp'
-  const deviceName = useDeviceSessionsStore().currentSession?.name || ''
+  const deviceName = findLoginPeer(getRemoteClientId())?.name || ''
   document.title = deviceName ? `${deviceName} - ${base}` : base
 
   // Sync tabs in Tauri mode
