@@ -1,4 +1,5 @@
 use tauri::menu::{MenuBuilder, MenuItemBuilder, PredefinedMenuItem, SubmenuBuilder};
+use tauri::Manager;
 
 pub fn setup(app: &mut tauri::App) -> tauri::Result<()> {
     // ── App menu (first menu on macOS is the app name) ────────────────────
@@ -37,6 +38,14 @@ pub fn setup(app: &mut tauri::App) -> tauri::Result<()> {
         .item(&PredefinedMenuItem::select_all(app, None)?)
         .build()?;
 
+    // ── View menu (Toggle Developer Tools lets users inspect console errors) ──
+    let toggle_devtools = MenuItemBuilder::with_id("toggle-devtools", "Toggle Developer Tools")
+        .accelerator("CmdOrCtrl+Option+I")
+        .build(app)?;
+    let view_submenu = SubmenuBuilder::new(app, "View")
+        .item(&toggle_devtools)
+        .build()?;
+
     // ── Window menu ───────────────────────────────────────────────────────
     let window_submenu = SubmenuBuilder::new(app, "Window")
         .item(&PredefinedMenuItem::minimize(app, None)?)
@@ -50,6 +59,7 @@ pub fn setup(app: &mut tauri::App) -> tauri::Result<()> {
         .item(&app_submenu)
         .item(&file_submenu)
         .item(&edit_submenu)
+        .item(&view_submenu)
         .item(&window_submenu)
         .build()?;
     app.set_menu(menu)?;
@@ -66,6 +76,20 @@ pub fn setup(app: &mut tauri::App) -> tauri::Result<()> {
             }
             "about" => {
                 super::window::open_about(app);
+            }
+            "toggle-devtools" => {
+                let windows = app.webview_windows();
+                let target = windows
+                    .values()
+                    .find(|win| win.is_focused().unwrap_or(false))
+                    .or_else(|| windows.get("main"));
+                if let Some(win) = target {
+                    if win.is_devtools_open() {
+                        let _ = win.close_devtools();
+                    } else {
+                        let _ = win.open_devtools();
+                    }
+                }
             }
             _ => {}
         }
