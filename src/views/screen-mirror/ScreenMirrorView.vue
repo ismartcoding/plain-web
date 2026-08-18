@@ -4,6 +4,7 @@
       <ScreenMirrorHeaderStart
         :mirroring="mirroring"
         :audio-requesting="audioRequesting"
+        :audio-supported="audioSupported"
         :os-version="app.osVersion"
         :permissions="app.permissions"
         @request-audio-permission="requestAudioPermission"
@@ -25,6 +26,7 @@
         :paused="paused"
         :is-fullscreen="isFullscreen"
         :muted="muted"
+        :audio-supported="audioSupported"
         @stop-service="stopService"
         @set-quality-mode="setQualityMode"
         @take-screenshot="takeScreenshot"
@@ -100,6 +102,7 @@ const start = service.start
 const pipeline = useScreenMirrorPipeline(canvasRef, audioRef, service.onStreamReady, service.onDisconnected, service.onScreenMirrorOff)
 const paused = pipeline.paused
 const supported = pipeline.supported
+const audioSupported = pipeline.audioSupported
 const togglePlay = pipeline.togglePlay
 
 const needHttps = computed(() => !supported.value && !window.isSecureContext)
