@@ -29,7 +29,7 @@
           <div class="dropdown-item" @click="confirmingClear = true">
             {{ $t('clear_messages') }}
           </div>
-          <div v-if="isOwner" class="dropdown-item" @click="confirmingDelete = true">
+          <div v-if="isOwner || [ChannelStatus.KICKED, ChannelStatus.LEFT].includes(channel.status)" class="dropdown-item" @click="confirmingDelete = true">
             {{ $t('delete_channel') }}
           </div>
           <div v-else class="dropdown-item" @click="confirmingLeave = true">
@@ -67,6 +67,7 @@ import { clearChatMessages, useTasks } from '../hooks/chat'
 import RenameChannelModal from '@/views/chat/RenameChannelModal.vue'
 import type { IChatChannel } from '@/lib/interfaces'
 import { decryptChatId } from '../hooks/chat-route'
+import { ChannelStatus } from '@/lib/status'
 
 const props = defineProps<{
   channel: IChatChannel
