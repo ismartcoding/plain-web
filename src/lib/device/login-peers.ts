@@ -16,8 +16,13 @@ export interface SaveLoginPeerInput {
   signaturePublicKey: string
 }
 
+/** First IP from a comma-separated address list. */
+export function getPeerIp(p: { ip: string }): string {
+  return p.ip.split(',')[0]?.trim() || ''
+}
+
 export function peerHost(p: IPeer): string {
-  return `${p.ip.split(',')[0]}:${p.port}`
+  return `${getPeerIp(p)}:${p.port}`
 }
 
 /**

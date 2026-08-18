@@ -44,7 +44,7 @@
           <ul class="nav">
             <SidebarPeerListItem
               v-for="peer in allPeers" :key="peer.id" :peer="peer" :active="isPeerActive(peer.id)"
-              :online="!!peer.online" :subtitle="getLatestChatPreview(`peer:${peer.id}`) || peer.ip"
+              :online="!!peer.online" :subtitle="getLatestChatPreview(`peer:${peer.id}`) || getPeerIp(peer)"
               :time="getLatestChatCreatedAt(`peer:${peer.id}`)" @click="openChat(getPeerChatRouteId(peer.id))"
               @info="openInfo(`peer:${peer.id}`)" />
           </ul>
@@ -60,6 +60,7 @@ import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import { openModal } from '@/components/modal'
 import { getFileId } from '@/lib/api/file'
+import { getPeerIp } from '@/lib/device/login-peers'
 import { replacePath } from '@/plugins/router'
 import { decryptChatId } from './hooks/chat-route'
 import { useChatStore } from '@/stores/chat'
