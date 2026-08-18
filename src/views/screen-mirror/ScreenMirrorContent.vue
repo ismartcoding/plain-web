@@ -73,7 +73,8 @@ defineEmits<{ (e: 'start'): void; (e: 'use-https'): void }>()
 .content {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - var(--pl-top-app-bar-height));
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
 
   &.content-centered {

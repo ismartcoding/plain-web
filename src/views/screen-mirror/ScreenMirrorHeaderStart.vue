@@ -2,6 +2,9 @@
   <div class="title">
     {{ $t('screen_mirror') }}
     <template v-if="mirroring">
+      <!-- Local WebKit < 26 has no AudioDecoder, so the phone-side audio
+           permission is irrelevant — hide the phone audio indicators too. -->
+      <template v-if="audioSupported">
       <div v-if="!hasFeature(FEATURE.MIRROR_AUDIO, osVersion)" class="warning-indicator">
         <v-dropdown v-model="warnOpen1">
           <template #trigger>
@@ -33,6 +36,7 @@
           </div>
         </v-dropdown>
       </div>
+      </template>
     </template>
   </div>
 </template>
@@ -45,6 +49,7 @@ import { hasFeature } from '@/lib/feature'
 defineProps<{
   mirroring: boolean
   audioRequesting: boolean
+  audioSupported: boolean
   osVersion: number
   permissions: string[]
 }>()

@@ -1,5 +1,4 @@
 use serde::Serialize;
-use tauri::Manager;
 
 const GITHUB_REPO: &str = "plainhub/plain-desktop";
 const RELEASES_URL: &str = "https://api.github.com/repos/plainhub/plain-desktop/releases/latest";
@@ -37,7 +36,7 @@ pub async fn check_for_updates(app: tauri::AppHandle) -> Result<UpdateCheck, Str
     if latest_version.is_empty() {
         return Err(format!("No valid version found in release tag: {latest_tag}"));
     }
-    let has_update = compare_versions(&latest_version, current) == std::cmp::Ordering::Greater;
+    let has_update = compare_versions(&latest_version, &current) == std::cmp::Ordering::Greater;
     Ok(UpdateCheck {
         current_version: current.to_string(),
         latest_version,
