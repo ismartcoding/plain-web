@@ -7,6 +7,8 @@
  *     MediaCodecAudioEncoder's drainLoop.
  */
 
+import { isAudioDecodeSupported } from './mirror-codec-support'
+
 export class ScreenMirrorAudioPipeline {
   private decoder: AudioDecoder | null = null
   private audio: HTMLAudioElement | null = null
@@ -17,14 +19,24 @@ export class ScreenMirrorAudioPipeline {
   private enabled = false
   private sampleRate = 48_000
   private channels = 2
+  private recreateAttempts = 0
 
   attach(audio: HTMLAudioElement) {
     this.audio = audio
   }
 
   prepare(sampleRate: number = 48_000, channels: number = 2) {
+    // WebKit < 26 (macOS 15 / iOS 18 WKWebView) ships no AudioDecoder —
+    // degrade to video-only instead of throwing a ReferenceError that would
+    // abort the whole mirror pipeline.
+    if (!isAudioDecodeSupported()) {
+      console.warn('[MirrorCodec] AudioDecoder unavailable — mirroring continues without sound')
+      this.ready = false
+      return
+    }
     this.sampleRate = sampleRate
     this.channels = channels
+    this.recreateAttempts = 0
     this.decoder = this.buildDecoder()
     this.ready = true
   }
@@ -46,6 +58,15 @@ export class ScreenMirrorAudioPipeline {
   }
 
   private recreateDecoder() {
+    // Cap recreate attempts: on engines without Opus AudioDecoder support the
+    // async configure error re-enters this method in a tight loop. Give up
+    // after a few tries and disable audio — video keeps running.
+    if (this.recreateAttempts++ >= 3) {
+      console.error('[MirrorCodec] audio decoder failed repeatedly, disabling audio path')
+      this.ready = false
+      this.decoder = null
+      return
+    }
     if (this.decoder) {
       try { this.decoder.close() } catch (_) { /* ignore */ }
     }

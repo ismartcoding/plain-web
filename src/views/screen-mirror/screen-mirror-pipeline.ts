@@ -1,7 +1,7 @@
 import { ref, type Ref, onScopeDispose } from 'vue'
 import { ScreenMirrorVideoPipeline } from '@/lib/mirror-codec-video'
 import { ScreenMirrorAudioPipeline } from '@/lib/mirror-codec-audio'
-import { isWebCodecsSupported } from '@/lib/mirror-codec-support'
+import { isVideoDecodeSupported, isAudioDecodeSupported, webCodecsMissing } from '@/lib/mirror-codec-support'
 import { gqlFetch } from '@/lib/api/gql-client'
 import { screenMirrorVideoCodecGQL, requestScreenMirrorKeyFrameGQL } from '@/lib/api/query'
 import { base64ToArrayBuffer } from '@/lib/strutil'
@@ -31,7 +31,8 @@ export function useScreenMirrorPipeline(
 ) {
   const video = new ScreenMirrorVideoPipeline()
   const audio = new ScreenMirrorAudioPipeline()
-  const supported = ref(isWebCodecsSupported())
+  const supported = ref(isVideoDecodeSupported())
+  const audioSupported = ref(isAudioDecodeSupported())
   const paused = ref(false)
   let connected = false
   // Cached codec config so the video decoder can be re-created on error
@@ -53,8 +54,10 @@ export function useScreenMirrorPipeline(
 
   async function connect() {
     cleanup()
-    if (!isWebCodecsSupported()) {
-      console.error('[MirrorPipeline] WebCodecs not supported')
+    // Video-only gate: on WebKit < 26 (e.g. macOS 15 WKWebView) AudioDecoder
+    // doesn't exist, but VideoDecoder does — audio absence must not block video.
+    if (!isVideoDecodeSupported()) {
+      console.error(`[MirrorPipeline] WebCodecs video not supported, missing: ${webCodecsMissing().join(', ')}`)
       onDisconnected()
       return
     }
@@ -81,7 +84,7 @@ export function useScreenMirrorPipeline(
       console.log(`[MirrorPipeline] pulled config ${config.byteLength}B, requesting fresh IDR`)
       cachedConfig = config
       decoderNeedsReset = false
-      video.configure(config)
+      await video.configure(config)
       video.setOnError(() => { decoderNeedsReset = true })
       video.setOnRequestKeyFrame(requestKeyFrame)
       video.setOnFirstFrameRendered(onFirstFrame)
@@ -91,7 +94,14 @@ export function useScreenMirrorPipeline(
       // dropped, then request a fresh IDR — by the time it arrives the
       // VirtualDisplay has real content.
       video.requestIdr()
-      audio.prepare()
+      // Audio must never block video: a decoder recreate loop or an engine
+      // without Opus AudioDecoder support would otherwise leave `connected`
+      // false and silently drop every video packet.
+      try {
+        audio.prepare()
+      } catch (e) {
+        console.error('[MirrorPipeline] audio prepare failed, continuing video-only', e)
+      }
       connected = true
       await requestKeyFrame()
     } catch (e) {
@@ -100,17 +110,20 @@ export function useScreenMirrorPipeline(
     }
   }
 
-  function handleVideo(rawData: Uint8Array) {
+  async function handleVideo(rawData: Uint8Array) {
     if (!connected || paused.value) return
     const packet = parseVideoPacket(rawData)
     if (!packet || packet.isAudio) return
     // If the decoder errored, drop everything until the next IDR, then
     // re-configure with the cached config (creates a fresh VideoDecoder in
     // 'configured' state — see mirror-codec.configure) before decoding the IDR.
+    // configure() is async (runtime format probe) — awaiting it matters: the
+    // triggering IDR would otherwise hit a null decoder and be dropped,
+    // leaving the pipeline waiting for an IDR nobody requested.
     if (decoderNeedsReset) {
       if (!packet.isKeyFrame || !cachedConfig) return
-      video.configure(cachedConfig)
       decoderNeedsReset = false
+      await video.configure(cachedConfig)
       console.log('[MirrorPipeline] decoder reset on IDR')
     }
     video.decode(packet)
@@ -129,7 +142,7 @@ export function useScreenMirrorPipeline(
   const isAudioEnabled = () => audio.isEnabled()
   const setAudioMuted = (m: boolean) => audio.setMuted(m)
 
-  function handleConfig(codec: ScreenMirrorVideoCodec) {
+  async function handleConfig(codec: ScreenMirrorVideoCodec) {
     // Android embeds the new Annex-B SPS+PPS in the event payload, so we
     // can reconfigure the decoder directly without a GraphQL round-trip.
     // Canvas sizing is implicit in renderFrame (frame.displayWidth/Height),
@@ -146,7 +159,7 @@ export function useScreenMirrorPipeline(
     if (sameAsCached) return
     cachedConfig = newConfig
     decoderNeedsReset = false
-    video.configure(newConfig)
+    await video.configure(newConfig)
     if (codec.keyFrame) {
       video.decode(makeSyntheticKeyFrame(b64ToBytes(codec.keyFrame)))
     }
@@ -175,6 +188,7 @@ export function useScreenMirrorPipeline(
 
   return {
     supported,
+    audioSupported,
     paused,
     connect,
     handleVideo,

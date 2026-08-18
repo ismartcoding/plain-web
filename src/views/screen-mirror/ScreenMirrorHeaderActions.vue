@@ -7,7 +7,7 @@
           <i-material-symbols:play-arrow-rounded v-if="paused" />
           <i-material-symbols:pause-rounded v-else />
         </v-icon-button>
-        <v-icon-button v-tooltip="muted ? $t('unmute') : $t('mute')" @click="$emit('toggleMute')">
+        <v-icon-button v-if="audioSupported" v-tooltip="muted ? $t('unmute') : $t('mute')" @click="$emit('toggleMute')">
           <i-material-symbols:volume-off-rounded v-if="muted" />
           <i-material-symbols:volume-up-rounded v-else />
         </v-icon-button>
@@ -51,7 +51,7 @@
         <template v-if="channel !== AppChannelType.GOOGLE">
           <div class="dropdown-divider" />
           <div class="dropdown-item" :class="{ active: controlEnabled }" @click="$emit('toggleControl'); moreMenuVisible = false">
-            <i-material-symbols:check-rounded v-if="controlEnabled" /><i-material-symbols:touch-app-rounded />{{ $t('remote_control') }}
+            <i-material-symbols:touch-app-rounded />{{ $t('remote_control') }}<i-material-symbols:check-rounded v-if="controlEnabled" />
           </div>
         </template>
         <div class="dropdown-divider" />
@@ -89,6 +89,7 @@ defineProps<{
   paused: boolean
   isFullscreen: boolean
   muted: boolean
+  audioSupported: boolean
 }>()
 
 const emit = defineEmits<{

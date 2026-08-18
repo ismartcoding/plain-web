@@ -1,4 +1,9 @@
 .screen-mirror {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+
   .control-overlay {
     // Touch indicator dot (global styles; element is created dynamically)
     .touch-indicator {

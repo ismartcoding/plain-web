@@ -1,7 +1,6 @@
 use async_graphql::{Context, Object};
 use serde_json::json;
 use std::sync::Arc;
-use tauri::Manager;
 
 use super::super::context::{AppCtx, WsEvent, WS_DEVICE_NAME_UPDATED};
 use super::types::{

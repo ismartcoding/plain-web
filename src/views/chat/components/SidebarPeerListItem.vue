@@ -150,7 +150,7 @@ async function doClear() {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #3ddc84;
+  background: #4CAF50;
 }
 
 .online-dot {
