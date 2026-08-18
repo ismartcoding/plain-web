@@ -19,9 +19,11 @@
       class="tab-item"
       :class="{ active: tab.id === mainStore.activeTabId }"
       @click="activateTab(tab)"
+      @contextmenu="onTabContextMenu($event, tab)"
     >
       <template v-if="tab.id === 'home'">
         <span class="tab-title">{{ homeTabTitle }}</span>
+        <span class="tab-switch-divider" />
         <v-dropdown v-model="homeDeviceMenuOpen" strategy="below">
           <template #trigger>
             <button class="tab-switch" :title="$t('device_discovery.change_device')">
@@ -72,6 +74,7 @@ import { pushModal } from '@/components/modal'
 import DeviceSwitcherModal from '@/components/DeviceSwitcherModal.vue'
 import i18n from '@/plugins/i18n'
 import { loadSelfDevice, type SelfDevice } from '@/lib/device/self-device'
+import { contextmenu } from '@/components/contextmenu'
 
 const router = useRouter()
 const route = useRoute()
@@ -125,6 +128,30 @@ function closeTab(id: string) {
   if (navPath != null) {
     router.push(navPath)
   }
+}
+
+function closeTabsToRight(id: string) {
+  const navPath = mainStore.closeTabsToRight(id)
+  if (navPath != null) {
+    router.push(navPath)
+  }
+}
+
+function onTabContextMenu(e: MouseEvent, tab: AppTab) {
+  e.preventDefault()
+  const idx = mainStore.tabs.findIndex((t) => t.id === tab.id)
+  if (idx === -1) return
+  if (!mainStore.tabs.slice(idx + 1).some((t) => t.closeable)) return
+  contextmenu({
+    x: e.clientX,
+    y: e.clientY,
+    items: [
+      {
+        label: String(i18n.global.t('common.close_tabs_to_the_right')),
+        onClick: () => closeTabsToRight(tab.id),
+      },
+    ],
+  })
 }
 
 function switchToSession(clientId: string) {
@@ -206,8 +233,8 @@ function refreshPage() {
 
 .bar-btn {
   -webkit-app-region: no-drag;
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   border: none;
   border-radius: 6px;
   display: inline-flex;
@@ -216,6 +243,11 @@ function refreshPage() {
   background: transparent;
   color: var(--md-sys-color-on-surface-variant);
   cursor: pointer;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
 
   &:hover {
     background: var(--md-sys-color-surface-container-high);
@@ -233,7 +265,7 @@ function refreshPage() {
   border-radius: 6px;
   cursor: pointer;
   max-width: 200px;
-  min-width: 80px;
+  min-width: 40px;
   color: var(--md-sys-color-on-surface-variant);
   transition: background 0.12s;
 
@@ -302,6 +334,13 @@ function refreshPage() {
     opacity: 1;
     background: var(--md-sys-color-surface-variant);
   }
+}
+
+.tab-switch-divider {
+  width: 1px;
+  height: 12px;
+  background: var(--md-sys-color-outline-variant);
+  flex-shrink: 0;
 }
 
 .dropdown-divider {

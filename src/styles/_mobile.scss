@@ -147,33 +147,6 @@
     margin-inline-start: 8px;
   }
 
-  .tab-items {
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    
-    &::-webkit-scrollbar {
-      display: none;
-    }
-  }
-
-  .tab-item {
-    flex-shrink: 0;
-    
-    &:first-child span {
-      padding-inline-end: 8px;
-    }
-    
-    span {
-      padding: 8px 4px 8px 8px;
-      font-size: 0.9rem;
-    }
-    
-    .tab-icon {
-      margin-inline: 4px;
-    }
-  }
 }
 
 .mobile-search-filters {
