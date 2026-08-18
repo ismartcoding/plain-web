@@ -5,7 +5,9 @@
         <i-material-symbols:arrow-back-rounded />
       </button>
       <span>{{
-        isLoginStep ? $t('log_in') + ': ' + loginHost : $t('device_discovery.change_device')
+        isLoginStep
+          ? $t('log_in') + ' ' + pendingLoginDevice?.name
+          : $t('device_discovery.change_device')
       }}</span>
     </template>
     <template #content>
@@ -130,6 +132,7 @@
           ref="loginFormRef"
           :redirect-on-success="false"
           @success="handleLoginSuccess"
+          @cancel="cancelLoginStep"
         />
       </div>
     </template>
@@ -147,7 +150,8 @@ import LoginForm from '@/views/login/LoginForm.vue'
 import { useDeviceDiscovery, type DiscoveredDevice } from '@/hooks/use-device-discovery'
 import { loginPeers, clearLoginPeer, peerHost, type LoginPeer } from '@/lib/device/login-peers'
 import { sortByName } from '@/lib/array'
-import { clearPendingLoginHost, setPendingLoginHost, setPendingLoginDeviceType, clearPendingLoginDeviceType } from '@/lib/api/api'
+import { clearPendingLoginDevice, setPendingLoginDevice, type PendingLoginDevice } from '@/lib/api/api'
+import { DeviceType } from '@/lib/status'
 import { isLocalMode } from '@/lib/device/local-mode'
 import { getDesktopClientId, getRemoteClientId, setRemoteClientId, clearRemoteClientId } from '@/lib/device/client-id'
 import { loadSelfDevice, type SelfDevice } from '@/lib/device/self-device'
@@ -159,7 +163,7 @@ const sessions = computed(() => sortByName(loginPeers.value, (p) => p.name))
 const currentClientId = computed(() => getRemoteClientId())
 const localMode = computed(() => isLocalMode())
 const isLoginStep = ref(false)
-const loginHost = ref('')
+const pendingLoginDevice = ref<PendingLoginDevice | null>(null)
 const loginFormRef = ref<InstanceType<typeof LoginForm> | null>(null)
 const selfDevice = ref<SelfDevice | null>(null)
 const infoOpen = ref<Record<string, boolean>>({})
@@ -187,8 +191,7 @@ async function loadSelf() {
 
 function close() {
   if (isLoginStep.value) {
-    clearPendingLoginHost()
-    clearPendingLoginDeviceType()
+    clearPendingLoginDevice()
   }
   popModal()
 }
@@ -217,23 +220,21 @@ function startLogin(d: DiscoveredDevice) {
   const host = d.ips[0] ? `${d.ips[0]}:${d.port}` : ''
   if (!host) return
   clearRemoteClientId()
-  setPendingLoginDeviceType(d.deviceType)
-  void startLoginStep(host)
+  void startLoginStep({ name: d.name, host, deviceType: d.deviceType as DeviceType })
 }
 
-async function startLoginStep(host: string) {
-  loginHost.value = host
-  setPendingLoginHost(host)
+async function startLoginStep(device: PendingLoginDevice) {
+  pendingLoginDevice.value = device
+  setPendingLoginDevice(device)
   isLoginStep.value = true
   await nextTick()
   await loginFormRef.value?.init({ autoSubmitWhenNoPassword: true })
 }
 
 function cancelLoginStep() {
-  clearPendingLoginHost()
-  clearPendingLoginDeviceType()
+  clearPendingLoginDevice()
   isLoginStep.value = false
-  loginHost.value = ''
+  pendingLoginDevice.value = null
 }
 
 function handleLoginSuccess() {
@@ -315,6 +316,7 @@ function switchToLocal() {
   display: flex;
   flex-direction: column;
   align-items: center;
+  min-height: 290px;
 }
 
 .login-back {

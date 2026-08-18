@@ -10,12 +10,17 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref } from 'vue'
 import LoginForm from './LoginForm.vue'
-import { setPendingLoginHost } from '@/lib/api/api'
+import { setPendingLoginDevice } from '@/lib/api/api'
+import { DeviceType } from '@/lib/status'
 
 const loginFormRef = ref<InstanceType<typeof LoginForm> | null>(null)
 
 onMounted(() => {
-  setPendingLoginHost(window.location.host)
+  setPendingLoginDevice({
+    name: window.location.host,
+    host: window.location.host,
+    deviceType: DeviceType.OTHER,
+  })
   initializeLoginForm().catch(() => {})
 })
 

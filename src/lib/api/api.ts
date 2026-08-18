@@ -1,18 +1,20 @@
 import { getCurrentDeviceHost } from '../device/current'
 import { get as prefsGet } from '../prefs'
+import { DeviceType } from '../status'
 
-// Temporary host set during the login flow (before the session is committed to the store).
+export interface PendingLoginDevice {
+  name: string
+  host: string
+  deviceType: DeviceType
+}
+
+// Temporary target device set during the login flow (before the session is committed to the store).
 // Allows api.ts to route requests to the target device before clientId is known.
-let _pendingLoginHost = ''
-let _pendingLoginDeviceType = ''
+let _pendingLoginDevice: PendingLoginDevice | null = null
 
-export function setPendingLoginHost(host: string): void { _pendingLoginHost = host }
-export function clearPendingLoginHost(): void { _pendingLoginHost = '' }
-export function getPendingLoginHost(): string { return _pendingLoginHost }
-
-export function setPendingLoginDeviceType(deviceType: string): void { _pendingLoginDeviceType = deviceType }
-export function clearPendingLoginDeviceType(): void { _pendingLoginDeviceType = '' }
-export function getPendingLoginDeviceType(): string { return _pendingLoginDeviceType }
+export function setPendingLoginDevice(device: PendingLoginDevice): void { _pendingLoginDevice = device }
+export function clearPendingLoginDevice(): void { _pendingLoginDevice = null }
+export function getPendingLoginDevice(): PendingLoginDevice | null { return _pendingLoginDevice }
 
 // Port of the local HTTP reverse proxy (Tauri only). Initialized at app start via
 // invoke('http_proxy_port'). Used by file uploads so XHR progress events work and
@@ -55,7 +57,7 @@ export function getUploadBaseUrl(): string {
 
 export function getApiHost() {
   if (__IS_TAURI__) {
-    const h = _pendingLoginHost || getCurrentDeviceHost()
+    const h = _pendingLoginDevice?.host || getCurrentDeviceHost()
     if (h) return h
   }
   return import.meta.env.VITE_APP_API_HOST || window.location.host
@@ -74,10 +76,10 @@ function isSecurePort(host: string): boolean {
 }
 
 export function getWebSocketBaseUrl() {
-  if (__IS_TAURI__ && _localServerPort && !(_pendingLoginHost || getCurrentDeviceHost())) {
+  if (__IS_TAURI__ && _localServerPort && !(_pendingLoginDevice || getCurrentDeviceHost())) {
     return `ws://localhost:${_localServerPort}`
   }
-  if (__IS_TAURI__ && (_pendingLoginHost || getCurrentDeviceHost())) {
+  if (__IS_TAURI__ && (_pendingLoginDevice || getCurrentDeviceHost())) {
     const p = isSecurePort(getApiHost()) ? 'wss' : 'ws'
     return `${p}://${getApiHost()}`
   }
@@ -86,10 +88,10 @@ export function getWebSocketBaseUrl() {
 }
 
 export function getApiBaseUrl() {
-  if (__IS_TAURI__ && _localServerPort && !(_pendingLoginHost || getCurrentDeviceHost())) {
+  if (__IS_TAURI__ && _localServerPort && !(_pendingLoginDevice || getCurrentDeviceHost())) {
     return `http://localhost:${_localServerPort}`
   }
-  if (__IS_TAURI__ && (_pendingLoginHost || getCurrentDeviceHost())) {
+  if (__IS_TAURI__ && (_pendingLoginDevice || getCurrentDeviceHost())) {
     const p = isSecurePort(getApiHost()) ? 'https' : 'http'
     return `${p}://${getApiHost()}`
   }
