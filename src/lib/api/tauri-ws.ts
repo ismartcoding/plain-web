@@ -44,7 +44,6 @@ export class TauriWebSocket {
         this.onopen?.(e)
       }
       ws.onmessage = (e) => {
-        console.error('[tauri-ws] inner WS onmessage data type=', typeof e.data, 'size=', e.data?.size ?? e.data?.byteLength)
         this.onmessage?.(e)
       }
       ws.onclose = (e) => {
