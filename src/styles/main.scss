@@ -347,6 +347,8 @@
   .main {
     flex: 1;
     width: 0;
+    min-height: 0;
+    overflow: hidden;
     background-color: var(--md-sys-color-surface);
     border-radius: 16px 16px 0 0;
     box-sizing: border-box;

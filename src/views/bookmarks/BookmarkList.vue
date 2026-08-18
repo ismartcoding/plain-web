@@ -231,11 +231,6 @@ function onBookmarkUpdated(updated: Bookmark) {
 </script>
 
 <style scoped lang="scss">
-.quick-content-body {
-  overflow-y: auto;
-  height: calc(100vh - 57px);
-}
-
 .loading-state {
   display: flex;
   justify-content: center;

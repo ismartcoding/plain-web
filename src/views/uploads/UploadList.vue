@@ -39,6 +39,11 @@ const { store, filterType, types, listItemsRef, visibleTasks, chooseFilterType, 
 </script>
 
 <style scoped lang="scss">
+.quick-content-body {
+  display: flex;
+  flex-direction: column;
+}
+
 .filter-bar {
   padding: 8px 16px;
 
@@ -51,7 +56,8 @@ const { store, filterType, types, listItemsRef, visibleTasks, chooseFilterType, 
   padding-block: 8px;
   overflow-y: auto;
   overflow-x: hidden;
-  height: calc(100vh - 100px);
+  flex: 1;
+  min-height: 0;
 }
 
 .empty-content {

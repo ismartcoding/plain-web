@@ -159,6 +159,17 @@ export const useMainStore = defineStore('main', {
       }
       return null
     },
+    closeTabsToRight(id: string): string | null {
+      const idx = this.tabs.findIndex((t) => t.id === id)
+      if (idx === -1) return null
+      const removed = this.tabs.splice(idx + 1)
+      if (removed.some((t) => t.id === this.activeTabId)) {
+        const newActive = this.tabs[idx] ?? { ...HOME_TAB }
+        this.activeTabId = newActive.id
+        return newActive.path
+      }
+      return null
+    },
     setActiveTab(id: string) {
       this.activeTabId = id
     },

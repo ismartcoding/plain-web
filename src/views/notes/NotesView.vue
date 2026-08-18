@@ -100,7 +100,8 @@ const {
 .scroller {
   overflow-y: auto;
   overflow-x: hidden;
-  height: calc(100vh - 112px);
+  flex: 1;
+  min-height: 0;
   .item-link {
     text-decoration: none;
     display: block;

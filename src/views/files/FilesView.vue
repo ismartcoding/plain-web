@@ -206,14 +206,5 @@ const actionButtonProps = computed(() => ({
     flex-shrink: 0;
   }
 }
-.main-files {
-  .scroller-wrapper {
-    position: relative;
-    height: 100%;
-    .drag-mask {
-      left: 16px;
-      right: 16px;
-    }
-  }
-}
+
 </style>

@@ -1,8 +1,22 @@
 .main-files {
+  .scroller-wrapper {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+
+    .drag-mask {
+      left: 16px;
+      right: 16px;
+    }
+  }
+
   .scroller {
     overflow-y: auto;
     overflow-x: hidden;
-    height: calc(100vh - 112px);
+    flex: 1;
+    min-height: 0;
   }
 
   .file-item {
