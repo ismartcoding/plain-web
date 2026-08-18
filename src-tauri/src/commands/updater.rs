@@ -1,4 +1,5 @@
 use serde::Serialize;
+use tauri::Manager;
 
 const GITHUB_REPO: &str = "plainhub/plain-desktop";
 const RELEASES_URL: &str = "https://api.github.com/repos/plainhub/plain-desktop/releases/latest";
@@ -15,8 +16,8 @@ pub struct UpdateCheck {
 }
 
 #[tauri::command]
-pub async fn check_for_updates() -> Result<UpdateCheck, String> {
-    let current = env!("CARGO_PKG_VERSION");
+pub async fn check_for_updates(app: tauri::AppHandle) -> Result<UpdateCheck, String> {
+    let current = app.package_info().version.to_string();
     let client = reqwest::Client::new();
     let resp = client
         .get(RELEASES_URL)
@@ -52,9 +53,9 @@ pub async fn check_for_updates() -> Result<UpdateCheck, String> {
 }
 
 #[tauri::command]
-pub fn get_app_info() -> serde_json::Value {
+pub fn get_app_info(app: tauri::AppHandle) -> serde_json::Value {
     serde_json::json!({
-        "version": env!("CARGO_PKG_VERSION"),
+        "version": app.package_info().version.to_string(),
         "name": env!("CARGO_PKG_NAME"),
     })
 }

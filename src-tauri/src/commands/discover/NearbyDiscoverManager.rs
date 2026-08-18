@@ -75,6 +75,7 @@ pub struct NearbyDiscoverManager {
     app_handle: Arc<RwLock<Option<tauri::AppHandle>>>,
     browser: MdnsServiceBrowser,
     seen_in_session: Arc<Mutex<HashMap<String, DiscoveredDevice>>>,
+    app_version: String,
 }
 
 impl NearbyDiscoverManager {
@@ -86,6 +87,7 @@ impl NearbyDiscoverManager {
         pairing: PairingManager,
         peer_status: PeerStatusManager,
         https_port: u16,
+        app_version: String,
     ) -> Self {
         let this = NearbyDiscoverManager {
             db,
@@ -103,6 +105,7 @@ impl NearbyDiscoverManager {
                 |_| {},
             ),
             seen_in_session: Arc::new(Mutex::new(HashMap::new())),
+            app_version,
         };
         let callback_state = this.clone();
         let browser = MdnsServiceBrowser::new(
@@ -142,7 +145,7 @@ impl NearbyDiscoverManager {
                 port,
                 &self.identity.client_id,
                 LOCAL_DEVICE_TYPE_WIRE,
-                env!("CARGO_PKG_VERSION"),
+                &self.app_version,
                 std::env::consts::OS,
                 host_responder::local_ipv4_strs(),
             )

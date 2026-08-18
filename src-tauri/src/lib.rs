@@ -61,6 +61,7 @@ pub fn run() {
             let pairing_mgr = local::pairing::PairingManager::new(db.clone(), identity.clone());
             app.handle().manage(pairing_mgr.clone());
             let dlna_engine = Arc::new(local::dlna::receiver_engine::DlnaEngine::new());
+            let app_version = app.package_info().version.to_string();
             let discover_mgr = commands::discover::NearbyDiscoverManager::new(
                 db.clone(),
                 identity.clone(),
@@ -69,6 +70,7 @@ pub fn run() {
                 pairing_mgr.clone(),
                 peer_status.clone(),
                 0,
+                app_version,
             );
             let local_server_state = local::server::LocalServerState::start(
                 data_dir,
