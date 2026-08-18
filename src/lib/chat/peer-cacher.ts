@@ -1,6 +1,7 @@
 import { ref, computed, type ComputedRef } from 'vue'
 import { initLazyQuery, peersGQL } from '@/lib/api/query'
 import type { IPeer } from '@/lib/interfaces'
+import { compareLocale } from '@/lib/array'
 import { PeerStatus } from '@/lib/status'
 import { chatCacher } from './chat-cacher'
 
@@ -25,7 +26,7 @@ function sortPeers(
     const bOnline = onlineMap.get(b.id) ?? false
     if (aOnline !== bOnline) return aOnline ? -1 : 1
     if (a.createdAt !== b.createdAt) return a.createdAt > b.createdAt ? -1 : 1
-    return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+    return compareLocale(a.name, b.name)
   })
 }
 

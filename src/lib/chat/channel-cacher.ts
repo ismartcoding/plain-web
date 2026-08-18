@@ -1,23 +1,19 @@
 import { ref, computed, type ComputedRef } from 'vue'
 import { initLazyQuery, chatChannelsGQL } from '@/lib/api/query'
 import type { IChatChannel } from '@/lib/interfaces'
+import { sortByName } from '@/lib/array'
 
 export interface ChannelRuntime {
   channel: IChatChannel
   keyBytes: Uint8Array
 }
 
-function compareChannelName(a: string, b: string): number {
-  return a.localeCompare(b, undefined, { sensitivity: 'base' })
-}
-
 class ChannelCacher {
   readonly channelsMap = ref<Map<string, ChannelRuntime>>(new Map())
 
-  readonly channels: ComputedRef<IChatChannel[]> = computed(() => {
-    const list = Array.from(this.channelsMap.value.values()).map((r) => r.channel)
-    return list.sort((a, b) => compareChannelName(a.name, b.name))
-  })
+  readonly channels: ComputedRef<IChatChannel[]> = computed(() =>
+    sortByName(Array.from(this.channelsMap.value.values()).map((r) => r.channel), (c) => c.name)
+  )
 
   private readonly lazy = initLazyQuery<{ chatChannels: IChatChannel[] }>({
     handle: (data) => {

@@ -25,6 +25,7 @@ import { useI18n } from 'vue-i18n'
 import emitter from '@/plugins/eventbus'
 import { useBuckets } from '@/hooks/media'
 import { DataType } from '@/lib/data'
+import { sortByName } from '@/lib/array'
 
 const props = defineProps({
   type: { type: String as PropType<DataType>, required: true },
@@ -43,9 +44,7 @@ function toggleCollapsed() {
 }
 
 const sortedBuckets = computed(() =>
-  [...(mediaBuckets.value ?? [])].sort((a, b) =>
-    (a.name ?? '').localeCompare(b.name ?? '', undefined, { numeric: true, sensitivity: 'base' })
-  )
+  sortByName(mediaBuckets.value ?? [], (b) => b.name ?? '', { numeric: true })
 )
 const { view } = useBuckets(props.type)
 

@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useMainStore } from '@/stores/main'
 import { useI18n } from 'vue-i18n'
 import { addUploadTask } from '@/lib/upload/upload-queue'
+import { compareLocale, sortByName } from '@/lib/array'
 
 type Upload = ReturnType<typeof useTempStore>['uploads'][number]
 type TaskListItem = { id: string; kind: 'upload_batch'; batchId: string; uploads: Upload[] }
@@ -47,7 +48,7 @@ function inProgressTasks(uploads: Upload[]): TaskListItem[] {
     .filter(([_, items]) => items.some((it) => !completedStates.has(it.status)))
     .sort((a, b) => {
       const sa = sortKeys.get(batchStatus(a[1])) ?? 5, sb = sortKeys.get(batchStatus(b[1])) ?? 5
-      return sa !== sb ? sa - sb : batchCreatedAt(a[1]).localeCompare(batchCreatedAt(b[1]))
+      return sa !== sb ? sa - sb : compareLocale(batchCreatedAt(a[1]), batchCreatedAt(b[1]))
     })
     .map(([batchId, uploads]) => ({ id: batchId, kind: 'upload_batch' as const, batchId, uploads }))
 }
@@ -87,9 +88,7 @@ export function useUploadList() {
     if (created.length === 0) return
     const batches = new Map<string, typeof newUploads>()
     for (const it of created) { const k = keyOf(it); const list = batches.get(k); if (list) list.push(it); else batches.set(k, [it]) }
-    const ordered = Array.from(batches.entries()).sort(
-      (a, b) => batchCreatedAt(a[1]).localeCompare(batchCreatedAt(b[1])),
-    )
+    const ordered = sortByName(Array.from(batches.entries()), (e) => batchCreatedAt(e[1]))
     for (const [_, newItems] of ordered) { for (const item of newItems) { if (item.status !== 'created') continue; addUploadTask(item, true); item.status = 'pending' } }
   })
 

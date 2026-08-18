@@ -25,6 +25,7 @@
 import { computed } from 'vue'
 import { useMainStore } from '@/stores/main'
 import type { IDocExtGroup } from '@/lib/interfaces'
+import { sortByName } from '@/lib/array'
 
 const props = defineProps<{
   extGroups: IDocExtGroup[]
@@ -39,7 +40,5 @@ function toggleCollapsed() {
   mainStore.bucketFilterCollapsed['doc_ext'] = !isCollapsed.value
 }
 
-const sortedGroups = computed(() =>
-  [...props.extGroups].sort((a, b) => a.ext.localeCompare(b.ext, undefined, { sensitivity: 'base' }))
-)
+const sortedGroups = computed(() => sortByName(props.extGroups, (g) => g.ext))
 </script>

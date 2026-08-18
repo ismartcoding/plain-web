@@ -146,6 +146,7 @@ import DeviceDiscoveryStatus from './DeviceDiscoveryStatus.vue'
 import LoginForm from '@/views/login/LoginForm.vue'
 import { useDeviceDiscovery, type DiscoveredDevice } from '@/hooks/use-device-discovery'
 import { loginPeers, clearLoginPeer, peerHost, type LoginPeer } from '@/lib/device/login-peers'
+import { sortByName } from '@/lib/array'
 import { clearPendingLoginHost, setPendingLoginHost, setPendingLoginDeviceType, clearPendingLoginDeviceType } from '@/lib/api/api'
 import { isLocalMode } from '@/lib/device/local-mode'
 import { getDesktopClientId, getRemoteClientId, setRemoteClientId, clearRemoteClientId } from '@/lib/device/client-id'
@@ -154,7 +155,7 @@ import { remove as prefsRemove } from '@/lib/prefs'
 
 const { devices, status, start, stop, retry, openLanPermissionSettings } = useDeviceDiscovery()
 
-const sessions = computed(() => loginPeers.value)
+const sessions = computed(() => sortByName(loginPeers.value, (p) => p.name))
 const currentClientId = computed(() => getRemoteClientId())
 const localMode = computed(() => isLocalMode())
 const isLoginStep = ref(false)

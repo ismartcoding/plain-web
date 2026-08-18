@@ -2,6 +2,7 @@ import type { IStorageMount } from '@/lib/interfaces'
 import { DriveType } from '@/lib/status'
 import { formatFileSize } from '@/lib/format'
 import type { ComposerTranslation } from 'vue-i18n'
+import { compareLocale } from '@/lib/array'
 
 export function driveRank(m: IStorageMount): number {
   if (m.driveType === DriveType.INTERNAL_STORAGE) return 0
@@ -16,7 +17,7 @@ export function sortMounts(mounts: IStorageMount[]): IStorageMount[] {
     const da = driveRank(a)
     const db = driveRank(b)
     if (da !== db) return da - db
-    return (a.mountPoint || '').localeCompare(b.mountPoint || '')
+    return compareLocale(a.mountPoint || '', b.mountPoint || '')
   })
 }
 

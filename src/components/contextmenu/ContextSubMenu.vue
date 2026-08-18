@@ -230,10 +230,14 @@ onBeforeUnmount(() => {
   display: inline-block;
   overflow: visible;
   position: absolute;
-  box-shadow: var(--md-sys-color-shadow) 0px 1px 2px 0px;
   background-color: var(--md-sys-color-surface-container);
-  border-radius: 4px;
+  border-radius: 8px;
+  box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 6px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  z-index: 1000;
+  min-width: 136px;
   opacity: 0;
+  white-space: nowrap;
 }
 
 .context-menu.ready {
@@ -243,9 +247,27 @@ onBeforeUnmount(() => {
 .context-menu-items {
   position: relative;
   overflow-y: auto;
-  border-radius: 4px;
+  border-radius: 8px;
   max-height: 60vh;
-  min-width: 200px;
+  max-width: 280px;
+  padding: 4px;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--md-sys-color-outline);
+    border-radius: 3px;
+  }
+}
+
+.context-menu .dropdown-item {
+  border-radius: 6px;
 }
 
 .context-menu-updown {

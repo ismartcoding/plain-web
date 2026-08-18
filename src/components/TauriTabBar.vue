@@ -17,7 +17,7 @@
       v-for="tab in mainStore.tabs"
       :key="tab.id"
       class="tab-item"
-      :class="{ active: tab.id === mainStore.activeTabId }"
+      :class="{ active: tab.id === mainStore.activeTabId, home: tab.id === 'home' }"
       @click="activateTab(tab)"
       @contextmenu="onTabContextMenu($event, tab)"
     >
@@ -30,7 +30,7 @@
               <i-material-symbols:keyboard-arrow-down-rounded />
             </button>
           </template>
-          <div v-if="!localMode" class="dropdown-item" @click="switchToLocal">
+          <div class="dropdown-item" @click="switchToLocal">
             <span>{{ selfDevice?.name }}</span>
             <span class="status-badge on">{{ $t('device_discovery.local') }}</span>
           </div>
@@ -66,8 +66,8 @@ import { useRouter, useRoute } from 'vue-router'
 import { useMainStore } from '@/stores/main'
 import type { AppTab } from '@/stores/main'
 import { loginPeers, findLoginPeer, peerHost } from '@/lib/device/login-peers'
+import { sortByName } from '@/lib/array'
 import { getRemoteClientId, setRemoteClientId, clearRemoteClientId } from '@/lib/device/client-id'
-import { isLocalMode } from '@/lib/device/local-mode'
 import { useTempStore } from '@/stores/temp'
 import { storeToRefs } from 'pinia'
 import { pushModal } from '@/components/modal'
@@ -83,7 +83,6 @@ const { app } = storeToRefs(useTempStore())
 const homeDeviceMenuOpen = ref(false)
 const selfDevice = ref<SelfDevice | null>(null)
 
-const localMode = computed(() => isLocalMode())
 const currentSession = computed(() => findLoginPeer(getRemoteClientId()))
 
 const homeTabTitle = computed(() => {
@@ -92,13 +91,10 @@ const homeTabTitle = computed(() => {
     app.value?.deviceName
     || session?.name
     || (session ? peerHost(session) : '')
-    || String((i18n.global as any).t('my_phone'))
   )
 })
 
-const switchableSessions = computed(() =>
-  loginPeers.value.filter((session) => session.id !== getRemoteClientId())
-)
+const switchableSessions = computed(() => sortByName(loginPeers.value, (p) => p.name))
 
 onMounted(() => {
   window.addEventListener('tauri-open-tab', handleOpenTab)
@@ -147,7 +143,7 @@ function onTabContextMenu(e: MouseEvent, tab: AppTab) {
     y: e.clientY,
     items: [
       {
-        label: String(i18n.global.t('common.close_tabs_to_the_right')),
+        label: String(i18n.global.t('close_tabs_to_the_right')),
         onClick: () => closeTabsToRight(tab.id),
       },
     ],
@@ -214,7 +210,6 @@ function refreshPage() {
   padding-right: 8px;
   background: var(--md-sys-color-surface-container);
   -webkit-app-region: drag;
-  user-select: none;
 }
 
 .left-controls {
@@ -279,6 +274,20 @@ function refreshPage() {
   }
 }
 
+.tab-item.home {
+  color: var(--md-sys-color-on-surface);
+  box-shadow: inset 0 0 0 1px var(--md-sys-color-outline-variant);
+  margin-inline-end: 4px;
+}
+
+.tab-item.home.active .tab-title {
+  color: var(--md-sys-color-primary);
+}
+
+.tab-item.home .tab-title {
+  font-weight: 600;
+}
+
 .tab-title {
   font-size: 12px;
   font-weight: 500;
@@ -286,6 +295,8 @@ function refreshPage() {
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .tab-close {
@@ -329,10 +340,12 @@ function refreshPage() {
   padding: 0;
   cursor: pointer;
   opacity: 0.75;
+  transition: background 0.12s, opacity 0.12s;
 
   &:hover {
     opacity: 1;
     background: var(--md-sys-color-surface-variant);
+    color: var(--md-sys-color-primary);
   }
 }
 

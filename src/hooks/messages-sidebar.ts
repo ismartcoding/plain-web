@@ -11,6 +11,7 @@ import { openModal } from '@/components/modal'
 import SendSmsModal from '@/views/messages/SendSmsModal.vue'
 import ExportSmsModal from '@/views/messages/ExportSmsModal.vue'
 import { decodeBase64 } from '@/lib/strutil'
+import { sortByName } from '@/lib/array'
 import { useContactName } from '@/hooks/contacts'
 import { useSelectable } from '@/hooks/list'
 import type { IData } from '@/lib/interfaces'
@@ -42,9 +43,9 @@ export function useMessagesSidebar() {
       case 'DATE_ASC':
         return list.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
       case 'NAME_ASC':
-        return list.sort((a, b) => getDisplayName(a.address).localeCompare(getDisplayName(b.address)))
+        return sortByName(list, (c) => getDisplayName(c.address))
       case 'NAME_DESC':
-        return list.sort((a, b) => getDisplayName(b.address).localeCompare(getDisplayName(a.address)))
+        return sortByName(list, (c) => getDisplayName(c.address)).reverse()
       default:
         return list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     }
