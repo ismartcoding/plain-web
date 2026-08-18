@@ -7,7 +7,7 @@
           <i-material-symbols:play-arrow-rounded v-if="paused" />
           <i-material-symbols:pause-rounded v-else />
         </v-icon-button>
-        <v-icon-button v-tooltip="muted ? $t('unmute') : $t('mute')" @click="$emit('toggleMute')">
+        <v-icon-button v-if="audioSupported" v-tooltip="muted ? $t('unmute') : $t('mute')" @click="$emit('toggleMute')">
           <i-material-symbols:volume-off-rounded v-if="muted" />
           <i-material-symbols:volume-up-rounded v-else />
         </v-icon-button>
@@ -89,6 +89,7 @@ defineProps<{
   paused: boolean
   isFullscreen: boolean
   muted: boolean
+  audioSupported: boolean
 }>()
 
 const emit = defineEmits<{
