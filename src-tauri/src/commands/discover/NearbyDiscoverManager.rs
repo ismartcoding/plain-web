@@ -191,10 +191,15 @@ impl NearbyDiscoverManager {
     /// Mirrors plain-app's `startDiscovery` mutation: runs the mDNS browser
     /// loop that pushes discovered devices over the local server WS as
     /// `WS_NEARBY_DEVICE_FOUND`.
+    ///
+    /// `seen_in_session` is always cleared — even when the scan loop is
+    /// already running — so opening the discovery UI re-emits the current
+    /// device set. Without this, the first open after app start shows an
+    /// empty list: devices announced during the initial window were emitted
+    /// (and deduped) before the frontend was listening, and the dedup here
+    /// suppresses re-emitting them.
     pub fn start_discovery(&self) -> bool {
-        if self.browser.is_running() {
-            return false;
-        }
+        let already_running = self.browser.is_running();
         self.start();
         {
             let mut seen = self.seen_in_session.lock().unwrap();
@@ -202,7 +207,7 @@ impl NearbyDiscoverManager {
         }
         self.emit_event(WS_NEARBY_DISCOVERY_STARTED, "{}");
         self.browser.start();
-        true
+        !already_running
     }
 
     /// Mirrors plain-app's `stopDiscovery` mutation.
