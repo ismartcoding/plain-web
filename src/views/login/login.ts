@@ -105,7 +105,7 @@ export function useLogin(options: UseLoginOptions = {}) {
       })
 
       const current = findLoginPeer(getRemoteClientId())
-      const host = getPendingLoginHost() || (current ? peerHost(current) : '') || window.location.host || ''
+      const host = (current ? peerHost(current) : '') || window.location.host || ''
       const deviceType = getPendingLoginDeviceType() as DeviceType
       if (host && clientId) {
         // Empty name: the backend keeps the stored name of an existing peer.

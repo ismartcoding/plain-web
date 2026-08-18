@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { filesGQL, initLazyQuery, initQuery, mountsGQL } from '@/lib/api/query'
 import type { IStorageMount } from '@/lib/interfaces'
 import { getFileName } from '@/lib/api/file'
+import { compareLocale } from '@/lib/array'
 
 export function useDirectoryPicker(initialPath: string) {
   const { t } = useI18n()
@@ -57,7 +58,7 @@ export function useDirectoryPicker(initialPath: string) {
       volumes.value = [...(data?.mounts ?? [])].sort((a, b) => {
         const am = String(a?.mountPoint ?? ''), bm = String(b?.mountPoint ?? '')
         if (am === '/') return -1; if (bm === '/') return 1
-        return am.localeCompare(bm, undefined, { numeric: true })
+        return compareLocale(am, bm, { numeric: true })
       })
       if (!rootPath.value) { rootPath.value = volumes.value[0]?.mountPoint || '/'; relativePath.value = '' }
 

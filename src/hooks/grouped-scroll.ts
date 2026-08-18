@@ -1,6 +1,7 @@
 import { ref, computed, watch } from 'vue'
 import type { ComputedRef } from 'vue'
 import { getGroupDateKey, formatGroupDateLabel } from '@/lib/file'
+import { sortByName } from '@/lib/array'
 
 export interface GroupEntry<T> {
   item: T
@@ -46,8 +47,8 @@ export function useGroupedScroll<T extends MediaBase>(options: {
       if (!groups.has(key)) groups.set(key, [])
       groups.get(key)!.push({ item, idx })
     })
-    return Array.from(groups.entries())
-      .sort((a, b) => b[0].localeCompare(a[0]))
+    return sortByName(Array.from(groups.entries()), (e) => e[0])
+      .reverse()
       .map(([date, entries]) => ({ date, dateLabel: formatGroupDateLabel(date), entries }))
   })
 

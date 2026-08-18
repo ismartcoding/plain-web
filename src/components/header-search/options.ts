@@ -1,4 +1,5 @@
 import type { IBucket, IFeed, ITag } from '@/lib/interfaces'
+import { sortByName } from '@/lib/array'
 
 export function fileSizeOptions(t: (key: string) => string) {
   return [
@@ -50,8 +51,7 @@ export function valueOptionsForGroup(opts: {
 
   if (opts.group === 'audios' || opts.group === 'videos' || opts.group === 'images') {
     base.tag = (opts.mediaTags ?? []).map((t) => t.name)
-    base.bucket = [...(opts.mediaBuckets ?? [])]
-      .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', undefined, { numeric: true, sensitivity: 'base' }))
+    base.bucket = sortByName(opts.mediaBuckets ?? [], (b) => b.name ?? '', { numeric: true })
       .map((b) => b.name)
   }
 

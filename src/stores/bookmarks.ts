@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { compareLocale } from '@/lib/array'
 
 export type Bookmark = {
   id: string
@@ -46,7 +47,7 @@ export const useBookmarksStore = defineStore('bookmarks', {
         // pinned always first
         if (a.pinned !== b.pinned) return a.pinned ? -1 : 1
         if (state.sortOrder === 'AZ') {
-          return a.title.localeCompare(b.title)
+          return compareLocale(a.title, b.title)
         } else {
           // most recently clicked first; items never clicked go to end
           const ta = a.lastClickedAt ? new Date(a.lastClickedAt).getTime() : 0
@@ -68,7 +69,7 @@ export const useBookmarksStore = defineStore('bookmarks', {
     },
 
     sortedGroups(state): BookmarkGroup[] {
-      return [...state.groups].sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name))
+      return [...state.groups].sort((a, b) => a.sortOrder - b.sortOrder || compareLocale(a.name, b.name))
     },
   },
 

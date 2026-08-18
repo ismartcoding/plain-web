@@ -30,3 +30,15 @@ export function truncateText(str: string, length: number): string {
   if (str.length <= length) return str
   return str.slice(0, length - 3) + '...'
 }
+
+export function compareLocale(a: string, b: string, options?: Intl.CollatorOptions): number {
+  return a.localeCompare(b, undefined, options ?? { sensitivity: 'base' })
+}
+
+export function sortByName<T>(
+  items: T[],
+  nameOf: (item: T) => string,
+  options?: Intl.CollatorOptions,
+): T[] {
+  return [...items].sort((a, b) => compareLocale(nameOf(a), nameOf(b), options))
+}

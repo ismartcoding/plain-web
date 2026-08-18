@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { deleteById, arrayRemove, sample, debounce, truncateText } from '@/lib/array'
+import { deleteById, arrayRemove, sample, debounce, truncateText, sortByName, compareLocale } from '@/lib/array'
 
 describe('deleteById', () => {
   it('removes the item with the matching id', () => {
@@ -180,5 +180,48 @@ describe('truncateText', () => {
   it('keeps exactly (length-3) chars before ellipsis', () => {
     const result = truncateText('abcdefgh', 6)
     expect(result).toBe('abc...')
+  })
+})
+
+describe('sortByName', () => {
+  it('sorts items by name with case-insensitive base sensitivity', () => {
+    const items = [{ name: 'Banana' }, { name: 'apple' }, { name: 'Cherry' }]
+    expect(sortByName(items, (i) => i.name).map((i) => i.name)).toEqual(['apple', 'Banana', 'Cherry'])
+  })
+
+  it('does not mutate the input array', () => {
+    const items = [{ name: 'b' }, { name: 'a' }]
+    const result = sortByName(items, (i) => i.name)
+    expect(result.map((i) => i.name)).toEqual(['a', 'b'])
+    expect(items.map((i) => i.name)).toEqual(['b', 'a'])
+  })
+
+  it('handles empty and single-element arrays', () => {
+    expect(sortByName([], (i: { name: string }) => i.name)).toEqual([])
+    expect(sortByName([{ name: 'x' }], (i) => i.name).map((i) => i.name)).toEqual(['x'])
+  })
+
+  it('supports numeric locale options', () => {
+    const items = [{ name: 'file10' }, { name: 'file2' }, { name: 'file1' }]
+    expect(sortByName(items, (i) => i.name, { numeric: true }).map((i) => i.name)).toEqual([
+      'file1',
+      'file2',
+      'file10',
+    ])
+  })
+})
+
+describe('compareLocale', () => {
+  it('compares case-insensitively by default (base sensitivity)', () => {
+    expect(compareLocale('apple', 'Banana')).toBeLessThan(0)
+    expect(compareLocale('Banana', 'apple')).toBeGreaterThan(0)
+  })
+
+  it('returns 0 for strings differing only by case', () => {
+    expect(compareLocale('abc', 'ABC')).toBe(0)
+  })
+
+  it('supports numeric locale options', () => {
+    expect(compareLocale('file2', 'file10', { numeric: true })).toBeLessThan(0)
   })
 })
