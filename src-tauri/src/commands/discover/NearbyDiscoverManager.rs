@@ -227,8 +227,13 @@ impl NearbyDiscoverManager {
     /// window. Mirrors plain-app's `MdnsDiscoverManager.browse`.
     pub fn browse(&self) {
         // The resident packet listener (installed at app start) parses the
-        // reply and refreshes the peer row; no scan loop needed here, so the
+        // replies and refreshes the peer row; no scan loop needed here, so the
         // nearby list stays quiet unless a page is actually discovering.
+        let known = self.browser.snapshot().len();
+        log::debug!(
+            "mdns browse: one-shot PTR for {known} known instances, responder running={}",
+            host_responder::is_running()
+        );
         self.start();
         self.browser.send_ptr_query();
     }
@@ -243,9 +248,12 @@ impl NearbyDiscoverManager {
             .get_peer_by_id(id)
             .filter(|p| p.is_paired() || !p.token.is_empty())?;
         if peer.ip.is_empty() || peer.port == 0 {
+            log::debug!("peer_address {}: db row has no address", id);
             return None;
         }
-        Some(format!("{}:{}", peer.best_ip(), peer.port))
+        let addr = format!("{}:{}", peer.best_ip(), peer.port);
+        log::debug!("peer_address {} -> {}", id, addr);
+        Some(addr)
     }
 
     /// Records a successful remote-device login (see `ChatDb::login_peer`).
@@ -328,6 +336,12 @@ impl NearbyDiscoverManager {
         if !changed {
             return;
         }
+        log::debug!(
+            "nearby device changed: id={} ips={:?} port={}",
+            device.id,
+            device.ips,
+            device.port
+        );
         self.emit_event(
             WS_NEARBY_DEVICE_FOUND,
             &serde_json::to_string(&discovered).unwrap_or_default(),
@@ -344,6 +358,7 @@ impl NearbyDiscoverManager {
             .get_peer_by_id(&device.id)
             .filter(|p| p.is_paired() || !p.token.is_empty())
         else {
+            log::debug!("update_known_peer: {} not paired/logged-in, skip", device.id);
             return;
         };
         // mDNS announcements repeat every few seconds — skip the write when
@@ -358,6 +373,8 @@ impl NearbyDiscoverManager {
         {
             return;
         }
+        let old_addr = format!("{}:{}", peer.best_ip(), peer.port);
+        log::info!("update_known_peer: {} address {} -> {}", device.id, old_addr, ip);
         peer.name = device.name.clone();
         peer.ip = ip;
         peer.port = device.port;

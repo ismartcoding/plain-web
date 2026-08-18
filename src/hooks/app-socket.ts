@@ -1,6 +1,7 @@
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { listen } from '@tauri-apps/api/event'
+import { invoke } from '@tauri-apps/api/core'
 import emitter from '@/plugins/eventbus'
 import toast from '@/components/toaster'
 import { getWebSocketBaseUrl, getLocalToken } from '@/lib/api/api'
@@ -73,6 +74,19 @@ export function useAppSocket() {
     tapPhoneMessage.value = ''
   }
 
+  /**
+   * App WS dropped after a successful dial — likely the device changed IPs.
+   * Ask the local mDNS responder for a one-shot browse: the resident listener
+   * refreshes the peer's ip:port in the peers table, and TauriWebSocket's
+   * _resolveUrl reads that fresh host on the next connect().
+   */
+  const triggerMdnsBrowse = () => {
+    if (!__IS_TAURI__) return
+    invoke('mdns_browse').catch(() => {
+      // ignore — browse is best-effort; retry will proceed without it
+    })
+  }
+
   async function connect() {
     const clientId = prefsGet('client_id', '')
     const localMode = isLocalMode()
@@ -123,6 +137,7 @@ export function useAppSocket() {
           clearStatusTimer = undefined
         }
         wsStatus.value = 'closed'
+        triggerMdnsBrowse()
         retryConnect()
       }
       ws.onerror = () => {
@@ -132,6 +147,7 @@ export function useAppSocket() {
       }
     } catch (ex) {
       console.error(ex)
+      triggerMdnsBrowse()
       retryConnect()
     }
   }

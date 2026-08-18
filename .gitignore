@@ -38,3 +38,7 @@ scripts/i18n-translated.json
 tests/lib/**/__screenshots__/
 .harness/
 docs
+# Local project docs kept out of VCS
+AGENTS.md
+DONE.md
+TODO.md

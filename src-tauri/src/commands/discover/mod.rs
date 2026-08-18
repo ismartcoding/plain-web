@@ -70,6 +70,14 @@ pub fn mdns_snapshot(
     state.mdns_snapshot()
 }
 
+/// Triggers an immediate one-shot mDNS PTR browse. The resident listener
+/// refreshes a paired peer's IP/port, healing a stale WS dial on the next
+/// reconnect.
+#[tauri::command]
+pub fn mdns_browse(state: tauri::State<'_, NearbyDiscoverManager>) {
+    state.browse();
+}
+
 /// Starts periodic mDNS browsing (idempotent). Returns whether THIS call
 /// started it, so the page can stop it on exit only when it started it —
 /// mirrors `MdnsDebugPage.startedByPage`.
