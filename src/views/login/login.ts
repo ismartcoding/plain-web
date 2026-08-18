@@ -3,7 +3,7 @@ import { useI18n } from 'vue-i18n'
 import router from '@/plugins/router'
 import { sha512, chachaEncrypt, bitArrayToUint8Array } from '@/lib/api/crypto'
 import type { InitResponse } from '@/lib/api/crypto'
-import { getApiBaseUrl, getApiHeaders, getPendingLoginHost, clearPendingLoginHost, getPendingLoginDeviceType, clearPendingLoginDeviceType } from '@/lib/api/api'
+import { getApiBaseUrl, getApiHeaders, getPendingLoginDevice, clearPendingLoginDevice } from '@/lib/api/api'
 import { randomUUID } from '@/lib/strutil'
 import { tokenToKey } from '@/lib/api/file'
 import { getCurrentAuthToken } from '@/lib/device/current'
@@ -105,8 +105,9 @@ export function useLogin(options: UseLoginOptions = {}) {
       })
 
       const current = findLoginPeer(getRemoteClientId())
-      const host = (current ? peerHost(current) : '') || window.location.host || ''
-      const deviceType = getPendingLoginDeviceType() as DeviceType
+      const pendingLoginDevice = getPendingLoginDevice()
+      const host = pendingLoginDevice?.host || (current ? peerHost(current) : '') || window.location.host || ''
+      const deviceType = pendingLoginDevice?.deviceType || DeviceType.OTHER
       if (host && clientId) {
         // Empty name: the backend keeps the stored name of an existing peer.
         await saveLoginPeer({
@@ -115,11 +116,10 @@ export function useLogin(options: UseLoginOptions = {}) {
           host,
           token,
           signaturePublicKey,
-          deviceType: deviceType || DeviceType.OTHER,
+          deviceType,
         })
         setRemoteClientId(clientId)
-        clearPendingLoginHost()
-        clearPendingLoginDeviceType()
+        clearPendingLoginDevice()
       }
       void finishLoginSuccess()
     } catch (e) {

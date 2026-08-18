@@ -28,7 +28,7 @@
     <div class="tap-phone-text">
       {{ $t('login.to_continue') }}
     </div>
-    <v-outlined-button @click="cancel">
+    <v-outlined-button @click="onCancel">
       {{ $t('cancel') }}
     </v-outlined-button>
   </div>
@@ -49,6 +49,7 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   (e: 'success'): void
+  (e: 'cancel'): void
 }>()
 
 const {
@@ -64,6 +65,11 @@ async function init(options: InitOptions = {}) {
   if (options.autoSubmitWhenNoPassword && !showPasswordInput.value) {
     await onSubmit()
   }
+}
+
+function onCancel() {
+  cancel()
+  emit('cancel')
 }
 
 defineExpose({ init })
