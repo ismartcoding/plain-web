@@ -170,6 +170,7 @@ export default {
   collapse_all: 'Contraer todo',
   all: 'Todos',
   manage: 'Gestionar',
+  manage_devices: 'Gestionar dispositivos',
   add: 'Agregar',
   confirm: 'Confirmar',
   no_files: 'Sin archivos',

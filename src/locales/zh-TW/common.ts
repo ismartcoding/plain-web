@@ -171,6 +171,7 @@ export default {
   collapse_all: '收合全部',
   all: '全部',
   manage: '管理',
+  manage_devices: '管理裝置',
   add: '新增',
   confirm: '確認',
   no_files: '無檔案',

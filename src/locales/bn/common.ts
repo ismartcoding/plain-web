@@ -174,6 +174,7 @@ export default {
   collapse_all: 'সব সংকুচিত করুন',
   all: 'সব',
   manage: 'পরিচালনা করুন',
+  manage_devices: 'ডিভাইস পরিচালনা করুন',
   add: 'যোগ করুন',
   confirm: 'নিশ্চিত করুন',
   no_files: 'কোন ফাইল নেই',

@@ -170,6 +170,7 @@ export default {
   collapse_all: 'Thu gọn tất cả',
   all: 'Tất cả',
   manage: 'Quản lý',
+  manage_devices: 'Quản lý thiết bị',
   add: 'Thêm',
   confirm: 'Xác nhận',
   no_files: 'Không có tệp',

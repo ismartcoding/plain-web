@@ -7,7 +7,7 @@
       <span>{{
         isLoginStep
           ? $t('log_in') + ' ' + pendingLoginDevice?.name
-          : $t('device_discovery.change_device')
+          : $t('manage_devices')
       }}</span>
     </template>
     <template #content>

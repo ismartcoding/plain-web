@@ -170,6 +170,7 @@ export default {
   collapse_all: 'कोलॅप्स ऑल',
   all: 'ऑल',
   manage: 'मैनेज',
+  manage_devices: 'डिवाइस प्रबंधित करें',
   add: 'ऐड',
   confirm: 'कन्फर्म',
   no_files: 'नो फाइल्स',

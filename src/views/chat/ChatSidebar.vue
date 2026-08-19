@@ -150,7 +150,7 @@ async function openNearby() {
 
 const actionItems = computed(() => [
   { text: 'create_channel', click: openCreateChannel },
-  { text: 'discover_devices', click: openNearby },
+  { text: 'pair_device', click: openNearby },
 ])
 
 onMounted(() => { chatStore.init() })

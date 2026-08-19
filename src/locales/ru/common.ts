@@ -170,6 +170,7 @@ export default {
   collapse_all: 'Свернуть все',
   all: 'Все',
   manage: 'Управление',
+  manage_devices: 'Управление устройствами',
   add: 'Добавить',
   confirm: 'Подтвердить',
   no_files: 'Нет файлов',

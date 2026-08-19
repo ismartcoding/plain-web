@@ -170,6 +170,7 @@ export default {
   collapse_all: 'すべて折りたたむ',
   all: 'すべて',
   manage: '管理',
+  manage_devices: 'デバイスを管理',
   add: '追加',
   confirm: '確認',
   no_files: 'ファイルなし',

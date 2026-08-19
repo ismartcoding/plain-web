@@ -170,6 +170,7 @@ export default {
   collapse_all: 'அனைத்தையும் மூடு',
   all: 'அனைத்தும்',
   manage: 'மேலாண்மை செய்',
+  manage_devices: 'சாதனங்களை நிர்வகி',
   add: 'சேர்க்க',
   confirm: 'உறுதி செய்',
   no_files: 'கோப்புகள் இல்லை',

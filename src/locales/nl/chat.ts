@@ -49,6 +49,7 @@ export default {
   pair_request: 'Koppelingsverzoek',
   pairing_request_message: 'Wilt u koppelen met apparaat "{name}"?',
   pairing_request_hint: 'Na het koppelen kunt u berichten uitwisselen tussen beide apparaten.',
+  pair_device: 'Apparaat koppelen',
   allow: 'Toestaan',
   deny: 'Weigeren',
   pending: 'In behandeling',

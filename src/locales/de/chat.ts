@@ -49,6 +49,7 @@ export default {
   pair_request: 'Kopplungsanfrage',
   pairing_request_message: 'Möchten Sie mit dem Gerät "{name}" koppeln?',
   pairing_request_hint: 'Nach dem Koppeln können Sie Nachrichten zwischen beiden Geräten austauschen.',
+  pair_device: 'Gerät koppeln',
   allow: 'Erlauben',
   deny: 'Verweigern',
   pending: 'Ausstehend',

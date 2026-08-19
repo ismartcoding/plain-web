@@ -50,6 +50,7 @@ export default {
   pair_request: 'पेयरिंग अनुरोध',
   pairing_request_message: 'क्या आप डिवाइस "{name}" के साथ जोड़ना चाहते हैं?',
   pairing_request_hint: 'पेयरिंग के बाद, आप दोनों डिवाइस के बीच संदेश भेज सकते हैं।',
+  pair_device: 'डिवाइस पेयर करें',
   allow: 'अनुमति दें',
   deny: 'अस्वीकार करें',
   pending: 'लंबित',
