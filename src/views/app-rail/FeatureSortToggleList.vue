@@ -1,5 +1,5 @@
 <template>
-  <div class="features-list">
+  <div ref="listEl" class="features-list">
     <div class="drag-hint">
       {{ $t('drag_to_reorder') }}
     </div>
@@ -8,13 +8,9 @@
       v-for="(item, idx) in displayList"
       :key="item.feature.id"
       class="feature-row"
-      :class="{ enabled: item.enabled, 'drag-over': dragOverIndex === idx && item.enabled }"
-      :draggable="item.enabled"
-      @dragstart="onDragStart(idx, $event)"
-      @dragover.prevent="onDragOver(idx)"
-      @dragleave="onDragLeave"
-      @drop.prevent="onDrop(idx)"
-      @dragend="onDragEnd"
+      :class="{ enabled: item.enabled, dragging: fromIndex === idx, 'drag-over': toIndex === idx && item.enabled }"
+      :style="itemStyle(idx)"
+      @pointerdown="item.enabled && start($event, idx)"
     >
       <div class="feat-order">{{ item.enabled ? idx + 1 : '—' }}</div>
       <component :is="item.feature.icon" class="feat-icon" />
@@ -29,6 +25,7 @@
 
 <script setup lang="ts">
 import { computed, ref, type Component } from 'vue'
+import { useDragSort } from '@/hooks/use-drag-sort'
 
 interface CustomizableFeature {
   id: string
@@ -62,39 +59,20 @@ const displayList = computed(() => {
   return [...enabled, ...disabled]
 })
 
-const dragIndex = ref(-1)
-const dragOverIndex = ref(-1)
+const listEl = ref<HTMLElement>()
 
-function onDragStart(index: number, e: DragEvent) {
-  dragIndex.value = index
-  if (!e.dataTransfer) return
-  e.dataTransfer.effectAllowed = 'move'
-  e.dataTransfer.setData('text/plain', String(index))
-}
-
-function onDragOver(index: number) {
-  dragOverIndex.value = index < enabledIds.value.length ? index : -1
-}
-
-function onDragLeave() {
-  dragOverIndex.value = -1
-}
-
-function onDrop(toIndex: number) {
-  dragOverIndex.value = -1
-  const fromIndex = dragIndex.value
-  if (fromIndex < 0 || fromIndex === toIndex || toIndex >= enabledIds.value.length) return
-  const ids = [...enabledIds.value]
-  const [moved] = ids.splice(fromIndex, 1)
-  if (!moved) return
-  ids.splice(toIndex, 0, moved)
-  enabledIds.value = ids
-}
-
-function onDragEnd() {
-  dragIndex.value = -1
-  dragOverIndex.value = -1
-}
+const { fromIndex, toIndex, itemStyle, start } = useDragSort({
+  containerRef: listEl,
+  itemSelector: '.feature-row',
+  onEnd(from, to) {
+    if (to >= enabledIds.value.length) return
+    const ids = [...enabledIds.value]
+    const [moved] = ids.splice(from, 1)
+    if (!moved) return
+    ids.splice(to, 0, moved)
+    enabledIds.value = ids
+  },
+})
 
 function toggle(id: string) {
   enabledIds.value = enabledIds.value.includes(id)
