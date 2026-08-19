@@ -13,7 +13,23 @@ export function useScreenMirrorMedia(canvasRef: Ref<HTMLCanvasElement | undefine
     muted.value = !muted.value
   }
 
-  const toggleFullscreen = () => {
+  const syncFullscreen = async () => {
+    if (__IS_TAURI__) {
+      const { getCurrentWindow } = await import('@tauri-apps/api/window')
+      isFullscreen.value = await getCurrentWindow().isFullscreen()
+    } else {
+      isFullscreen.value = !!document.fullscreenElement
+    }
+  }
+
+  const toggleFullscreen = async () => {
+    if (__IS_TAURI__) {
+      const { getCurrentWindow } = await import('@tauri-apps/api/window')
+      const win = getCurrentWindow()
+      isFullscreen.value = !(await win.isFullscreen())
+      await win.setFullscreen(isFullscreen.value)
+      return
+    }
     const wrapper = document.querySelector('.video-wrapper')
     if (!wrapper) return
     if (document.fullscreenElement) {
@@ -23,8 +39,23 @@ export function useScreenMirrorMedia(canvasRef: Ref<HTMLCanvasElement | undefine
     }
   }
 
+  let unlistenResize: (() => void) | null = null
+
+  const attachFullscreenListener = async () => {
+    if (!__IS_TAURI__) return
+    const { getCurrentWindow } = await import('@tauri-apps/api/window')
+    unlistenResize = await getCurrentWindow().onResized(() => {
+      void syncFullscreen()
+    })
+  }
+
+  const detachFullscreenListener = () => {
+    unlistenResize?.()
+    unlistenResize = null
+  }
+
   const onFullscreenChange = () => {
-    isFullscreen.value = !!document.fullscreenElement
+    void syncFullscreen()
   }
 
   const takeScreenshot = () => {
@@ -35,5 +66,5 @@ export function useScreenMirrorMedia(canvasRef: Ref<HTMLCanvasElement | undefine
     download(canvas.toDataURL(), fileName)
   }
 
-  return { muted, isFullscreen, toggleMute, toggleFullscreen, onFullscreenChange, takeScreenshot }
+  return { muted, isFullscreen, toggleMute, toggleFullscreen, onFullscreenChange, attachFullscreenListener, detachFullscreenListener, takeScreenshot }
 }

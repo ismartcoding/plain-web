@@ -172,6 +172,7 @@ onActivated(() => {
   emitter.on('app_socket_connection_changed', service.onSocketReconnect)
   emitter.on('screen_mirror_audio_granted', service.onAudioGranted)
   document.addEventListener('fullscreenchange', media.onFullscreenChange)
+  media.attachFullscreenListener()
   service.fetchState()
 })
 
@@ -184,6 +185,7 @@ onDeactivated(() => {
   emitter.off('app_socket_connection_changed', service.onSocketReconnect)
   emitter.off('screen_mirror_audio_granted', service.onAudioGranted)
   document.removeEventListener('fullscreenchange', media.onFullscreenChange)
+  media.detachFullscreenListener()
   pipeline.cleanup()
   service.deactivate()
 })
