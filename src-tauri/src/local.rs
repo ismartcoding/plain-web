@@ -3,7 +3,6 @@ pub mod chat_handler;
 pub mod chat_cacher;
 pub mod channel;
 pub mod db;
-pub mod image_dimensions;
 pub mod link_preview;
 pub mod dlna;
 pub mod download;

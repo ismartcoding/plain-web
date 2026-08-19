@@ -178,7 +178,7 @@ fn load_image(path: &Path, ext: &str) -> Option<ImageFileInfo> {
         tiff_dimensions(path)?
     } else {
         let bytes = std::fs::read(path).ok()?;
-        crate::local::image_dimensions::dimensions(&bytes)?
+        plain_rs::utils::image_dimensions::dimensions(&bytes)?
     };
     let location = if matches!(ext, "jpg" | "jpeg" | "tif" | "tiff") {
         read_exif_gps(path)

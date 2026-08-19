@@ -29,6 +29,7 @@ use sha2::{Digest, Sha256};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 use plain_rs::hex::bytes_to_hex;
+use plain_rs::mime::mime_extension;
 
 use crate::local::db::{ChatDb, DAppFile};
 
@@ -55,57 +56,15 @@ pub struct ImportResult {
     pub reused: bool,
 }
 
-/// MIME → lowercase file extension. Empty string for unknown types — the
-/// caller falls back to `bin`. Mirrors the table in
-/// `plain-app` `AppFileStore.extFromMime` (which uses Android's
-/// `MimeTypeMap`); this hardcoded list covers the common types chat uploads
-/// produce, plus the expansion from `chat_query::mime_extension`.
-pub fn ext_from_mime(mime_type: &str) -> &'static str {
-    let lower = mime_type.to_ascii_lowercase();
-    match lower.as_str() {
-        // Images
-        "image/jpeg" => "jpg",
-        "image/png" => "png",
-        "image/gif" => "gif",
-        "image/webp" => "webp",
-        "image/svg+xml" => "svg",
-        "image/bmp" => "bmp",
-        "image/tiff" => "tif",
-        "image/heic" => "heic",
-        "image/avif" => "avif",
-        "image/x-icon" | "image/vnd.microsoft.icon" => "ico",
-        // Videos
-        "video/mp4" => "mp4",
-        "video/webm" => "webm",
-        "video/quicktime" => "mov",
-        "video/x-matroska" => "mkv",
-        "video/3gpp" | "video/3gpp2" => "3gp",
-        // Audio
-        "audio/mpeg" => "mp3",
-        "audio/mp4" => "m4a",
-        "audio/wav" | "audio/x-wav" => "wav",
-        "audio/ogg" => "ogg",
-        // Documents
-        "application/pdf" => "pdf",
-        "application/zip" | "application/x-zip-compressed" => "zip",
-        "application/json" => "json",
-        "application/x-rar-compressed" => "rar",
-        "application/x-7z-compressed" => "7z",
-        "application/x-tar" => "tar",
-        "application/gzip" | "application/x-gzip" => "gz",
-        "application/vnd.android.package-archive" => "apk",
-        // Text
-        "text/plain" => "txt",
-        "text/html" => "html",
-        "text/csv" => "csv",
-        "text/xml" => "xml",
-        "text/markdown" => "md",
-        // Fonts
-        "font/ttf" | "application/x-font-ttf" => "ttf",
-        "font/otf" => "otf",
-        "font/woff" => "woff",
-        "font/woff2" => "woff2",
-        _ => "",
+/// MIME → fid file extension. Returns an empty string for unknown types so
+/// the `fid:` keeps no extension (the caller decides on `bin`). Delegates to
+/// the shared `plain_rs::mime::mime_extension` table (mirrors `plain-app`
+/// `AppFileStore.extFromMime` / Android `MimeTypeMap`), mapping its `"bin"`
+/// fallback to `""` for the app-file naming context.
+fn fid_ext(mime_type: &str) -> &'static str {
+    match mime_extension(mime_type) {
+        "bin" => "",
+        e => e,
     }
 }
 
@@ -194,7 +153,7 @@ pub fn import_file(
         if cand.id == strong_hash {
             // Step 2: strong match — reuse.
             db.increment_app_file_ref(&strong_hash);
-            let ext = ext_from_mime(&cand.mime_type);
+            let ext = fid_ext(&cand.mime_type);
             let real_path = dest_path(data_dir, &strong_hash, ext);
             ensure_canonical_exists(&real_path, src)?;
             let fid_suffix = if ext.is_empty() {
@@ -215,7 +174,7 @@ pub fn import_file(
     // Step 2 (race guard): direct id lookup.
     if let Some(existing) = db.get_app_file(&strong_hash) {
         db.increment_app_file_ref(&strong_hash);
-        let ext = ext_from_mime(&existing.mime_type);
+        let ext = fid_ext(&existing.mime_type);
         let real_path = dest_path(data_dir, &strong_hash, ext);
         ensure_canonical_exists(&real_path, src)?;
         let fid_suffix = if ext.is_empty() {
@@ -238,7 +197,7 @@ pub fn import_file(
     } else {
         mime_type.to_string()
     };
-    let ext = ext_from_mime(&effective_mime);
+    let ext = fid_ext(&effective_mime);
     let real_path = dest_path(data_dir, &strong_hash, ext);
     if let Some(parent) = real_path.parent() {
         fs::create_dir_all(parent)?;
@@ -286,7 +245,7 @@ pub fn import_bytes(
 
     if let Some(existing) = db.get_app_file(&strong_hash) {
         db.increment_app_file_ref(&strong_hash);
-        let ext = ext_from_mime(&existing.mime_type);
+        let ext = fid_ext(&existing.mime_type);
         let real_path = dest_path(data_dir, &strong_hash, ext);
         let fid_suffix = if ext.is_empty() {
             strong_hash.clone()
@@ -307,7 +266,7 @@ pub fn import_bytes(
     } else {
         mime_type.to_string()
     };
-    let ext = ext_from_mime(&effective_mime);
+    let ext = fid_ext(&effective_mime);
     let real_path = dest_path(data_dir, &strong_hash, ext);
     if let Some(parent) = real_path.parent() {
         fs::create_dir_all(parent)?;
@@ -415,17 +374,17 @@ mod tests {
     }
 
     #[test]
-    fn ext_from_mime_covers_common_types() {
-        assert_eq!(ext_from_mime("image/jpeg"), "jpg");
-        assert_eq!(ext_from_mime("image/png"), "png");
-        assert_eq!(ext_from_mime("image/x-icon"), "ico"); // favicon content type
-        assert_eq!(ext_from_mime("image/vnd.microsoft.icon"), "ico");
-        assert_eq!(ext_from_mime("video/mp4"), "mp4");
-        assert_eq!(ext_from_mime("application/pdf"), "pdf");
-        assert_eq!(ext_from_mime("text/markdown"), "md");
-        assert_eq!(ext_from_mime(""), "");
-        assert_eq!(ext_from_mime("application/octet-stream"), "");
-        assert_eq!(ext_from_mime("IMAGE/PNG"), "png"); // case-insensitive
+    fn fid_ext_maps_unknown_to_empty() {
+        assert_eq!(fid_ext("image/jpeg"), "jpg");
+        assert_eq!(fid_ext("image/png"), "png");
+        assert_eq!(fid_ext("image/x-icon"), "ico"); // favicon content type
+        assert_eq!(fid_ext("image/vnd.microsoft.icon"), "ico");
+        assert_eq!(fid_ext("video/mp4"), "mp4");
+        assert_eq!(fid_ext("application/pdf"), "pdf");
+        assert_eq!(fid_ext("text/markdown"), "md");
+        assert_eq!(fid_ext(""), "");
+        assert_eq!(fid_ext("application/octet-stream"), "");
+        assert_eq!(fid_ext("IMAGE/PNG"), "png"); // case-insensitive
     }
 
     #[test]

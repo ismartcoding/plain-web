@@ -19,9 +19,10 @@ use std::time::Duration;
 use regex::Regex;
 use serde_json::{json, Value};
 
+use plain_rs::utils::image_dimensions;
+
 use crate::local::app_file_store::import_bytes;
 use crate::local::db::ChatDb;
-use crate::local::image_dimensions;
 
 /// Maximum HTML response body we will parse.
 const MAX_RESPONSE_SIZE: usize = 10 * 1024 * 1024; // 10MB
