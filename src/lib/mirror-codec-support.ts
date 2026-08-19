@@ -21,7 +21,7 @@ export function isAudioDecodeSupported(): boolean {
 }
 
 /** Which interfaces are missing — for diagnostics when a pipeline aborts. */
-export function webCodecsMissing(): string {
+export function webCodecsMissing(): string[] {
   if (typeof window === 'undefined') return ['window']
   return (['VideoDecoder', 'EncodedVideoChunk', 'AudioDecoder', 'EncodedAudioChunk'] as const)
     .filter(k => !(k in window))

@@ -84,7 +84,7 @@ export function useScreenMirrorPipeline(
       console.log(`[MirrorPipeline] pulled config ${config.byteLength}B, requesting fresh IDR`)
       cachedConfig = config
       decoderNeedsReset = false
-      await video.configure(config)
+      video.configure(config)
       video.setOnError(() => { decoderNeedsReset = true })
       video.setOnRequestKeyFrame(requestKeyFrame)
       video.setOnFirstFrameRendered(onFirstFrame)
@@ -110,20 +110,17 @@ export function useScreenMirrorPipeline(
     }
   }
 
-  async function handleVideo(rawData: Uint8Array) {
+  function handleVideo(rawData: Uint8Array) {
     if (!connected || paused.value) return
     const packet = parseVideoPacket(rawData)
     if (!packet || packet.isAudio) return
     // If the decoder errored, drop everything until the next IDR, then
     // re-configure with the cached config (creates a fresh VideoDecoder in
     // 'configured' state — see mirror-codec.configure) before decoding the IDR.
-    // configure() is async (runtime format probe) — awaiting it matters: the
-    // triggering IDR would otherwise hit a null decoder and be dropped,
-    // leaving the pipeline waiting for an IDR nobody requested.
     if (decoderNeedsReset) {
       if (!packet.isKeyFrame || !cachedConfig) return
       decoderNeedsReset = false
-      await video.configure(cachedConfig)
+      video.configure(cachedConfig)
       console.log('[MirrorPipeline] decoder reset on IDR')
     }
     video.decode(packet)
@@ -142,7 +139,7 @@ export function useScreenMirrorPipeline(
   const isAudioEnabled = () => audio.isEnabled()
   const setAudioMuted = (m: boolean) => audio.setMuted(m)
 
-  async function handleConfig(codec: ScreenMirrorVideoCodec) {
+  function handleConfig(codec: ScreenMirrorVideoCodec) {
     // Android embeds the new Annex-B SPS+PPS in the event payload, so we
     // can reconfigure the decoder directly without a GraphQL round-trip.
     // Canvas sizing is implicit in renderFrame (frame.displayWidth/Height),
@@ -159,7 +156,7 @@ export function useScreenMirrorPipeline(
     if (sameAsCached) return
     cachedConfig = newConfig
     decoderNeedsReset = false
-    await video.configure(newConfig)
+    video.configure(newConfig)
     if (codec.keyFrame) {
       video.decode(makeSyntheticKeyFrame(b64ToBytes(codec.keyFrame)))
     }
