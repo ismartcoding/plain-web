@@ -6,7 +6,12 @@
       <span v-else-if="member.status === MemberStatus.PENDING" v-tooltip="$t('waiting_for_confirmation')" class="status-badge warn">{{ $t('pending') }}</span>
     </template>
     <template v-if="member.deviceType" #start>
-      <DeviceTypeIcon :device-type="member.deviceType" />
+      <v-dropdown v-model="rawOpen">
+        <template #trigger>
+          <DeviceTypeIcon :device-type="member.deviceType" />
+        </template>
+        <pre class="view-raw">{{ member }}</pre>
+      </v-dropdown>
     </template>
     <template #end>
       <slot name="end" />
@@ -15,6 +20,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { MemberStatus } from '@/lib/status'
 
 export interface IChannelMemberListItem {
@@ -26,6 +32,8 @@ export interface IChannelMemberListItem {
   isOwner: boolean
   status: MemberStatus
 }
+
+const rawOpen = ref(false)
 
 defineProps<{
   member: IChannelMemberListItem
