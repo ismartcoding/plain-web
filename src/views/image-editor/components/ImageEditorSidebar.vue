@@ -56,26 +56,23 @@
       <div v-if="!layers.length" class="empty-layers">
         {{ $t('image_editor.no_layers') }}
       </div>
-      <div v-else class="layer-list">
+      <div v-else ref="listEl" class="layer-list">
         <div
           v-for="(layer, idx) in reversedLayers"
           :key="layer.id"
           class="layer-item-wrap"
+          :class="{ dragging: fromIndex === realIndex(idx) }"
+          :style="itemStyle(realIndex(idx))"
+          @pointerdown="start($event, realIndex(idx))"
         >
           <div
-            v-if="dragOverIdx === realIndex(idx) && dragFromIdx !== realIndex(idx)"
+            v-if="toIndex === realIndex(idx) && fromIndex !== realIndex(idx)"
             class="drop-indicator"
           />
           <div
             class="layer-item"
             :class="{ selected: layer.id === selectedLayerId }"
-            draggable="true"
             @click="$emit('selectLayer', layer.id)"
-            @dragstart="onDragStart(realIndex(idx), $event)"
-            @dragover.prevent="onDragOver(realIndex(idx))"
-            @dragleave="dragOverIdx = null"
-            @drop.prevent="onDrop(realIndex(idx))"
-            @dragend="onDragEnd"
           >
             <i-lucide-grip-vertical class="grip" />
 
@@ -159,6 +156,7 @@ import Paintbrush from '~icons/lucide/paintbrush'
 import StickyNote from '~icons/lucide/sticky-note'
 import type { EditorLayer, EditorLayerType } from '@/views/image-editor/utils/types'
 import { SIZE_PRESETS, isEditorTextLayer, isEditorImageLayer } from '@/views/image-editor/utils/types'
+import { useDragSort } from '@/hooks/use-drag-sort'
 
 const props = defineProps<{
   canvasWidth: number
@@ -210,16 +208,15 @@ function onReplaceImage(layerId: string, e: Event) {
   emit('replaceImageFile', layerId, file)
 }
 
-const dragOverIdx = ref<number | null>(null)
-const dragFromIdx = ref(-1)
-function onDragStart(idx: number, e: DragEvent) { dragFromIdx.value = idx; e.dataTransfer!.effectAllowed = 'move' }
-function onDragOver(idx: number) { dragOverIdx.value = idx }
-function onDrop(toIdx: number) {
-  dragOverIdx.value = null
-  if (dragFromIdx.value >= 0 && dragFromIdx.value !== toIdx) emit('reorderLayer', dragFromIdx.value, toIdx)
-  dragFromIdx.value = -1
-}
-function onDragEnd() { dragOverIdx.value = null; dragFromIdx.value = -1 }
+const listEl = ref<HTMLElement>()
+
+const { fromIndex, toIndex, itemStyle, start } = useDragSort({
+  containerRef: listEl,
+  itemSelector: '.layer-item-wrap',
+  onEnd(from, to) {
+    emit('reorderLayer', from, to)
+  },
+})
 </script>
 
 <style lang="scss" scoped>
@@ -350,7 +347,12 @@ function onDragEnd() { dragOverIdx.value = null; dragFromIdx.value = -1 }
   gap: 4px;
 }
 
-.layer-item-wrap { position: relative; }
+.layer-item-wrap { position: relative; transition: transform 0.2s ease; will-change: transform; user-select: none; }
+
+.layer-item-wrap.dragging .layer-item {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border-color: var(--md-sys-color-primary);
+}
 
 .drop-indicator {
   position: absolute;

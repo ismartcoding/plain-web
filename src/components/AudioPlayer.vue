@@ -24,20 +24,16 @@
           <i-material-symbols:delete-forever-outline-rounded />
         </v-icon-button>
       </div>
-      <section class="list-items">
+      <section ref="listEl" class="list-items">
           <div 
             v-for="(item, index) in playlistAudios" 
             :key="item.path"
             class="item" 
-            :class="{ selected: item.path === current?.path, 'drag-over': dragOverIndex === index }" 
-            draggable="true"
-            @click.stop="playItem(item)" 
+            :class="{ selected: item.path === current?.path, dragging: fromIndex === index }" 
+            :style="itemStyle(index)"
+            @click.stop="onItemClick(item)" 
             @mousedown="fixUserSelect"
-            @dragstart="onDragStart(index, $event)"
-            @dragover.prevent="onDragOver(index)"
-            @dragleave="onDragLeave"
-            @drop.prevent="onDrop(index)"
-            @dragend="onDragEndLocal"
+            @pointerdown="start($event, index)"
           >
             <div class="item-number">{{ index + 1 }}</div>
             <div class="content">
@@ -56,9 +52,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { formatSeconds } from '@/lib/format'
+import type { IPlaylistAudio } from '@/lib/interfaces'
 import { useMainStore } from '@/stores/main'
 import { fixUserSelect } from '@/hooks/text-selection'
 import { useAudioPlaylist } from '@/hooks/audio-player'
+import { useDragSort } from '@/hooks/use-drag-sort'
 
 const store = useMainStore()
 const audioRef = ref<HTMLAudioElement>()
@@ -80,37 +78,23 @@ const {
   onReorder,
 } = useAudioPlaylist(audioRef)
 
-const dragIndex = ref(-1)
-const dragOverIndex = ref(-1)
+const listEl = ref<HTMLElement>()
 
-function onDragStart(index: number, e: DragEvent) {
-  dragIndex.value = index
-  e.dataTransfer!.effectAllowed = 'move'
-  e.dataTransfer!.setData('text/plain', String(index))
-}
+const { fromIndex, suppressClick, itemStyle, start } = useDragSort({
+  containerRef: listEl,
+  itemSelector: '.item',
+  onEnd(from, to) {
+    const items = [...playlistAudios.value]
+    const [moved] = items.splice(from, 1)
+    items.splice(to, 0, moved)
+    playlistAudios.value = items
+    onReorder()
+  },
+})
 
-function onDragOver(index: number) {
-  dragOverIndex.value = index
-}
-
-function onDragLeave() {
-  dragOverIndex.value = -1
-}
-
-function onDrop(toIndex: number) {
-  dragOverIndex.value = -1
-  const fromIndex = dragIndex.value
-  if (fromIndex < 0 || fromIndex === toIndex) return
-  const items = [...playlistAudios.value]
-  const [moved] = items.splice(fromIndex, 1)
-  items.splice(toIndex, 0, moved)
-  playlistAudios.value = items
-  onReorder()
-}
-
-function onDragEndLocal() {
-  dragIndex.value = -1
-  dragOverIndex.value = -1
+function onItemClick(item: IPlaylistAudio) {
+  if (suppressClick.value) return
+  playItem(item)
 }
 </script>
 
@@ -123,6 +107,16 @@ function onDragEndLocal() {
   gap: 12px;
   align-items: center;
   padding: 8px 16px;
+  transition: transform 0.2s ease;
+  will-change: transform;
+  user-select: none;
+}
+
+.list-items .item.dragging {
+  opacity: 0.85;
+  background: var(--md-sys-color-surface-container-high);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .list-items .item .item-number {
@@ -199,13 +193,5 @@ function onDragEndLocal() {
 .item-number:active {
   cursor: move;
   transform: scale(0.95);
-}
-
-.item[draggable="true"]:active {
-  opacity: 0.6;
-}
-
-.item.drag-over {
-  border-top: 2px solid var(--md-sys-color-primary);
 }
 </style>
