@@ -13,7 +13,7 @@
         </div>
       </section>
     </v-dropdown>
-    <v-icon-button v-tooltip="$t('refresh')" :loading="tablesLoading" @click="refetchTables">
+    <v-icon-button v-tooltip="$t('refresh')" :loading="tablesLoading || rowsLoading" @click="refreshData">
       <i-material-symbols:refresh-rounded />
     </v-icon-button>
   </Teleport>
@@ -138,6 +138,11 @@ function loadTable(table: string) {
   fetchTableInfo({ table })
   fetchCount({ table })
   fetchRows({ table, offset: offset.value, limit: PAGE_SIZE })
+}
+
+async function refreshData() {
+  await refetchTables()
+  if (activeTable.value) loadTable(activeTable.value)
 }
 
 function selectTable(table: string) {
