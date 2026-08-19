@@ -318,8 +318,8 @@ impl ChatChannelMutation {
     ) -> bool {
         // Debug-only stub. The Kotlin client only invokes
         // `channelSystemMessage` through the peer endpoint
-        // (`/peer_graphql`), which has its own resolver in
-        // `peer_graphql::handlers::channel_system_message_from_peer`.
+        // (`/peer_graphql`), which has its own resolver delegating to
+        // `chat_handler::receive_peer_channel_system_message`.
         // Exposing it on the main schema would double-process the
         // same wire payload, so we keep this here purely so the
         // GraphQL schema still validates; the implementation is a

@@ -3,7 +3,9 @@
 //! Defines a minimal, type-safe surface (a stub Query + the two mutations
 //! the peer protocol actually uses) and builds it once at server start.
 //! Per-request state is carried in `PeerCtx` (see `context.rs`); the
-//! actual mutation bodies live in `handlers` (see `handlers.rs`).
+//! actual mutation bodies live in [`crate::local::chat_handler`] (the same
+//! chat service layer the local GraphQL mutations use) — the resolvers here
+//! are thin and only forward the authenticated arguments.
 //!
 //! The Query root is required by the GraphQL spec; it intentionally
 //! exposes no fields so peers can only invoke the two mutations.
@@ -11,7 +13,7 @@
 use async_graphql::{Context, EmptySubscription, Object, Schema};
 
 use super::context::PeerCtx;
-use super::handlers::{channel_system_message_from_peer, create_chat_item_from_peer};
+use crate::local::chat_handler;
 use crate::local::enums::ChannelSystemMessageType;
 use crate::local::graphql::schema::types::ChatItem;
 
@@ -39,14 +41,7 @@ impl PeerMutation {
         content: String,
     ) -> ChatItem {
         let c = ctx.data_unchecked::<PeerCtx>();
-        create_chat_item_from_peer(
-            c.db(),
-            &c.peer.id,
-            &c.channel_id,
-            &content,
-            c.event_tx(),
-            &c.app.token,
-        )
+        chat_handler::receive_peer_chat(&c.app, &c.peer.id, &c.channel_id, &content)
     }
 
     /// Receive a channel system message from an authenticated peer.
@@ -59,14 +54,14 @@ impl PeerMutation {
     ) -> bool {
         let c = ctx.data_unchecked::<PeerCtx>();
         let kp_bytes = plain_rs::base64_decode(&c.app.identity.ed25519_keypair);
-        channel_system_message_from_peer(
-            c.db(),
+        chat_handler::receive_peer_channel_system_message(
+            &c.app.db,
             &c.client_id,
             &c.app.identity.device_name,
             &c.peer.id,
             r#type,
             &payload,
-            c.event_tx(),
+            &c.app.event_tx,
             &c.app.peer_key_cache,
             &c.app.channel_key_cache,
             &kp_bytes,
