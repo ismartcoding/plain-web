@@ -73,6 +73,7 @@ pub fn ext_from_mime(mime_type: &str) -> &'static str {
         "image/tiff" => "tif",
         "image/heic" => "heic",
         "image/avif" => "avif",
+        "image/x-icon" | "image/vnd.microsoft.icon" => "ico",
         // Videos
         "video/mp4" => "mp4",
         "video/webm" => "webm",
@@ -417,6 +418,8 @@ mod tests {
     fn ext_from_mime_covers_common_types() {
         assert_eq!(ext_from_mime("image/jpeg"), "jpg");
         assert_eq!(ext_from_mime("image/png"), "png");
+        assert_eq!(ext_from_mime("image/x-icon"), "ico"); // favicon content type
+        assert_eq!(ext_from_mime("image/vnd.microsoft.icon"), "ico");
         assert_eq!(ext_from_mime("video/mp4"), "mp4");
         assert_eq!(ext_from_mime("application/pdf"), "pdf");
         assert_eq!(ext_from_mime("text/markdown"), "md");

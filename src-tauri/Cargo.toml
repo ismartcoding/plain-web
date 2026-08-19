@@ -44,6 +44,8 @@ rustls-pemfile = "2"
 rusqlite = { version = "0.32", features = ["bundled"] }
 # SHA-256 for content-addressable file store.
 sha2 = "0.10"
+# URL / Open-Graph tag extraction for link previews.
+regex = "1"
 # CSPRNG used in prefs tests.
 rand = "0.8"
 # Typed GraphQL schema with derive macros for clean resolver code.

@@ -7,16 +7,14 @@
 //! Sub-modules:
 //!   auth     — peer trust chain (decrypt, signature, timestamp)
 //!   context  — per-request `PeerCtx` injected into the schema
-//!   handlers — incoming-side mutation bodies (chat item, channel msg)
 //!   schema   — async-graphql `PeerSchema` with the two peer mutations
 //!
-//! The HTTP request body and response are both ChaCha20-Poly1305 encrypted
-//! using the peer's shared XChaCha20 key; the plaintext carries a
-//! `signature|timestamp|GraphQL envelope`.
+//! The mutation bodies live in `crate::local::chat_handler` (the same
+//! chat service layer the local GraphQL mutations use); the `schema`
+//! resolvers are thin and only forward the authenticated arguments.
 
 mod auth;
 mod context;
-mod handlers;
 mod schema;
 
 use std::sync::Arc;

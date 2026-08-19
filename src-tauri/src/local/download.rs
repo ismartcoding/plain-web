@@ -336,7 +336,7 @@ async fn execute_download(
         }
     };
     let updated_payload = serde_json::json!([
-        crate::local::graphql::schema::chat_message::chat_to_json(&updated_chat, &ctx.token)
+        crate::local::chat_handler::chat_to_json(&updated_chat, &ctx.token)
     ])
     .to_string();
     let _ = ctx.event_tx.send(WsEvent {

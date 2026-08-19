@@ -171,14 +171,14 @@ fn is_audio_ext(ext: &str) -> bool {
 // ── Image dimensions (hand-rolled) ───────────────────────────────────────────
 
 fn load_image(path: &Path, ext: &str) -> Option<ImageFileInfo> {
-    let (w, h) = match ext {
-        "jpg" | "jpeg" => jpeg_dimensions(path)?,
-        "png" => png_dimensions(path)?,
-        "gif" => gif_dimensions(path)?,
-        "webp" => webp_dimensions(path)?,
-        "bmp" => bmp_dimensions(path)?,
-        "tif" | "tiff" => tiff_dimensions(path)?,
-        _ => return None,
+    // JPEG / PNG / GIF / BMP / WebP share the byte-based parser with
+    // async link-preview generation; TIFF stays here (path-based) since
+    // link-preview OG images are never TIFF.
+    let (w, h) = if matches!(ext, "tif" | "tiff") {
+        tiff_dimensions(path)?
+    } else {
+        let bytes = std::fs::read(path).ok()?;
+        crate::local::image_dimensions::dimensions(&bytes)?
     };
     let location = if matches!(ext, "jpg" | "jpeg" | "tif" | "tiff") {
         read_exif_gps(path)
@@ -190,148 +190,6 @@ fn load_image(path: &Path, ext: &str) -> Option<ImageFileInfo> {
         height: h,
         location,
     })
-}
-
-fn jpeg_dimensions(path: &Path) -> Option<(i32, i32)> {
-    let mut r = BufReader::new(File::open(path).ok()?);
-    let mut marker = [0u8; 2];
-    if r.read_exact(&mut marker).is_err() || marker != [0xFF, 0xD8] {
-        return None;
-    }
-    loop {
-        if r.read_exact(&mut marker).is_err() {
-            return None;
-        }
-        while marker[0] != 0xFF {
-            // Skip stray fill bytes.
-            marker[0] = marker[1];
-            marker[1] = 0;
-            if r.read_exact(&mut marker[1..]).is_err() {
-                return None;
-            }
-        }
-        // Markers can be repeated (0xFF 0xFF) — skip padding.
-        while marker[1] == 0xFF {
-            if r.read_exact(&mut marker[1..]).is_err() {
-                return None;
-            }
-        }
-        let m = marker[1];
-        // SOF markers (Start Of Frame), except 0xC4 (DHT) and 0xC8 (JPG).
-        if (0xC0..=0xCF).contains(&m) && m != 0xC4 && m != 0xC8 {
-            // Skip 2-byte segment length.
-            r.seek(SeekFrom::Current(2)).ok()?;
-            // 1 byte precision, then height (2) + width (2).
-            let mut buf = [0u8; 5];
-            r.read_exact(&mut buf).ok()?;
-            let h = u16::from_be_bytes([buf[1], buf[2]]) as i32;
-            let w = u16::from_be_bytes([buf[3], buf[4]]) as i32;
-            return Some((w, h));
-        }
-        // SOS (0xDA) or EOI (0xD9) — no more dimension markers ahead.
-        if m == 0xDA || m == 0xD9 {
-            return None;
-        }
-        // Skip segment: read 2-byte length and seek past it.
-        let mut len = [0u8; 2];
-        r.read_exact(&mut len).ok()?;
-        let seg_len = u16::from_be_bytes(len) as i64;
-        if seg_len < 2 {
-            return None;
-        }
-        r.seek(SeekFrom::Current(seg_len - 2)).ok()?;
-    }
-}
-
-fn png_dimensions(path: &Path) -> Option<(i32, i32)> {
-    let mut r = BufReader::new(File::open(path).ok()?);
-    let mut sig = [0u8; 8];
-    r.read_exact(&mut sig).ok()?;
-    if &sig != b"\x89PNG\r\n\x1a\n" {
-        return None;
-    }
-    // IHDR chunk: 4-byte length, 4-byte type, then data.
-    let mut head = [0u8; 8];
-    r.read_exact(&mut head).ok()?;
-    if &head[4..] != b"IHDR" {
-        return None;
-    }
-    let mut dims = [0u8; 8];
-    r.read_exact(&mut dims).ok()?;
-    let w = u32::from_be_bytes([dims[0], dims[1], dims[2], dims[3]]) as i32;
-    let h = u32::from_be_bytes([dims[4], dims[5], dims[6], dims[7]]) as i32;
-    Some((w, h))
-}
-
-fn gif_dimensions(path: &Path) -> Option<(i32, i32)> {
-    let mut r = BufReader::new(File::open(path).ok()?);
-    let mut sig = [0u8; 6];
-    r.read_exact(&mut sig).ok()?;
-    if &sig != b"GIF87a" && &sig != b"GIF89a" {
-        return None;
-    }
-    let mut dims = [0u8; 4];
-    r.read_exact(&mut dims).ok()?;
-    let w = u16::from_le_bytes([dims[0], dims[1]]) as i32;
-    let h = u16::from_le_bytes([dims[2], dims[3]]) as i32;
-    Some((w, h))
-}
-
-fn bmp_dimensions(path: &Path) -> Option<(i32, i32)> {
-    let mut r = BufReader::new(File::open(path).ok()?);
-    let mut sig = [0u8; 2];
-    r.read_exact(&mut sig).ok()?;
-    if &sig != b"BM" {
-        return None;
-    }
-    r.seek(SeekFrom::Start(18)).ok()?;
-    let mut dims = [0u8; 8];
-    r.read_exact(&mut dims).ok()?;
-    let w = i32::from_le_bytes(dims[0..4].try_into().ok()?);
-    let h = i32::from_le_bytes(dims[4..8].try_into().ok()?);
-    Some((w.abs(), h.abs()))
-}
-
-fn webp_dimensions(path: &Path) -> Option<(i32, i32)> {
-    let mut r = BufReader::new(File::open(path).ok()?);
-    let mut head = [0u8; 12];
-    r.read_exact(&mut head).ok()?;
-    if &head[0..4] != b"RIFF" || &head[8..12] != b"WEBP" {
-        return None;
-    }
-    let mut fourcc = [0u8; 4];
-    r.read_exact(&mut fourcc).ok()?;
-    match &fourcc {
-        b"VP8 " => {
-            // Lossy: skip 10 bytes (frame tag + start code), then 3 bytes
-            // of scale, then 2 bytes width + 2 bytes height (LE).
-            r.seek(SeekFrom::Current(10)).ok()?;
-            let mut dims = [0u8; 4];
-            r.read_exact(&mut dims).ok()?;
-            let w = u16::from_le_bytes([dims[0], dims[1]]) as i32 & 0x3FFF;
-            let h = u16::from_le_bytes([dims[2], dims[3]]) as i32 & 0x3FFF;
-            Some((w, h))
-        }
-        b"VP8L" => {
-            // Lossless: 1 byte signature, then 4 bytes packed (LE).
-            r.seek(SeekFrom::Current(1)).ok()?;
-            let mut dims = [0u8; 4];
-            r.read_exact(&mut dims).ok()?;
-            let w = 1 + (((dims[1] & 0x3F) as i32) << 8 | dims[0] as i32);
-            let h = 1 + (((dims[3] & 0x0F) as i32) << 10 | (dims[2] as i32) << 2 | ((dims[1] & 0xC0) as i32) >> 6);
-            Some((w, h))
-        }
-        b"VP8X" => {
-            // Extended: 8 bytes flags, then 3 bytes width-1, 3 bytes height-1.
-            r.seek(SeekFrom::Current(8)).ok()?;
-            let mut dims = [0u8; 6];
-            r.read_exact(&mut dims).ok()?;
-            let w = (dims[0] as i32) | ((dims[1] as i32) << 8) | (((dims[2] as i32) << 16) + 1);
-            let h = (dims[3] as i32) | ((dims[4] as i32) << 8) | (((dims[5] as i32) << 16) + 1);
-            Some((w, h))
-        }
-        _ => None,
-    }
 }
 
 fn tiff_dimensions(path: &Path) -> Option<(i32, i32)> {
