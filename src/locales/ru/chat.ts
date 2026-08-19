@@ -50,6 +50,7 @@ export default {
   pair_request: 'Запрос на сопряжение',
   pairing_request_message: 'Хотите сопрячь с устройством "{name}"?',
   pairing_request_hint: 'После сопряжения вы сможете обмениваться сообщениями между обоими устройствами.',
+  pair_device: 'Сопрячьте устройство',
   allow: 'Разрешить',
   deny: 'Отклонить',
   pending: 'Ожидание',

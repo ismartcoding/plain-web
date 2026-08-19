@@ -50,6 +50,7 @@ export default {
   pair_request: 'Pedido de emparelhamento',
   pairing_request_message: 'Você quer emparelhar com o dispositivo "{name}"?',
   pairing_request_hint: 'Após o emparelhamento, você pode trocar mensagens entre ambos os dispositivos.',
+  pair_device: 'Parear dispositivo',
   allow: 'Permitir',
   deny: 'Negar',
   pending: 'Pendente',

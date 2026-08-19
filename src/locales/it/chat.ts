@@ -50,6 +50,7 @@ export default {
   pair_request: 'Richiesta di associazione',
   pairing_request_message: 'Vuoi accoppiarti con il dispositivo "{name}"?',
   pairing_request_hint: 'Dopo l\'associazione, puoi scambiare messaggi tra entrambi i dispositivi.',
+  pair_device: 'Associa dispositivo',
   allow: 'Consenti',
   deny: 'Nega',
   pending: 'In attesa',

@@ -43,7 +43,7 @@
             {{ session.name || peerHost(session) }}
           </div>
           <div class="dropdown-item" @click="openDeviceSwitcher">
-            {{ $t('device_discovery.add_device') }}
+            {{ $t('manage_devices') }}
           </div>
         </v-dropdown>
       </template>

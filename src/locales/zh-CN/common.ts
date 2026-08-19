@@ -204,6 +204,7 @@ export default {
   collapse_all: '合并全部',
   all: '全部',
   manage: '管理',
+  manage_devices: '管理设备',
   add: '添加',
   confirm: '确认',
   no_files: '没有文件',

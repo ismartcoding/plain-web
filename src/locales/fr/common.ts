@@ -171,6 +171,7 @@ export default {
   collapse_all: 'Tout réduire',
   all: 'Tous',
   manage: 'Gérer',
+  manage_devices: 'Gérer les appareils',
   add: 'Ajouter',
   confirm: 'Confirmer',
   no_files: 'Pas de fichiers',

@@ -170,6 +170,7 @@ export default {
   collapse_all: 'Hepsini daralt',
   all: 'Tümü',
   manage: 'Yönet',
+  manage_devices: 'Cihazları yönet',
   add: 'Ekle',
   confirm: 'Onayla',
   no_files: 'Dosya yok',

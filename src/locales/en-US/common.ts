@@ -206,6 +206,7 @@ export default {
   collapse_all: 'Collapse all',
   all: 'All',
   manage: 'Manage',
+  manage_devices: 'Manage devices',
   add: 'Add',
   confirm: 'Confirm',
   no_files: 'No files',

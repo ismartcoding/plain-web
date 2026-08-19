@@ -170,6 +170,7 @@ export default {
   collapse_all: 'Alles samenvouwen',
   all: 'Alles',
   manage: 'Beheren',
+  manage_devices: 'Apparaten beheren',
   add: 'Toevoegen',
   confirm: 'Bevestigen',
   no_files: 'Geen bestanden',

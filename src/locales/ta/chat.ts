@@ -50,6 +50,7 @@ export default {
   pair_request: 'இணைப்பு கோரிக்கை',
   pairing_request_message: '"{name}" சாதனத்துடன் இணைக்க விரும்புகிறீர்களா?',
   pairing_request_hint: 'இணைத்த பிறகு, இரு சாதனங்களுக்கும் இடையே செய்திகளைப் பரிமாறிக்கொள்ளலாம்.',
+  pair_device: 'சாதனத்தை இணைக்கவும்',
   allow: 'அனுமதி',
   deny: 'மறு',
   pending: 'நிலுவையில்',

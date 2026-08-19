@@ -50,6 +50,7 @@ export default {
   pair_request: '페어링 요청',
   pairing_request_message: '장치 "{name}"와 페어링하시겠습니까?',
   pairing_request_hint: '페어링 후 두 기기 간에 메시지를 주고받을 수 있습니다.',
+  pair_device: '기기 페어링',
   allow: '허용',
   deny: '거부',
   pending: '대기 중',

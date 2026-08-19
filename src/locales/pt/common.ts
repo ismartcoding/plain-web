@@ -169,6 +169,7 @@ export default {
   collapse_all: 'Recolher tudo',
   all: 'Todos',
   manage: 'Gerenciar',
+  manage_devices: 'Gerenciar dispositivos',
   add: 'Adicionar',
   confirm: 'Confirmar',
   no_files: 'Sem arquivos',

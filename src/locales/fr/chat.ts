@@ -50,6 +50,7 @@ export default {
   pair_request: 'Demande d\'appairage',
   pairing_request_message: 'Voulez-vous vous coupler avec l\'appareil "{name}" ?',
   pairing_request_hint: 'Après l\'association, vous pouvez échanger des messages entre les deux appareils.',
+  pair_device: 'Associer l\'appareil',
   allow: 'Autoriser',
   deny: 'Refuser',
   pending: 'En attente',

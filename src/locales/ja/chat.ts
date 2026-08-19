@@ -49,6 +49,7 @@ export default {
   pair_request: 'ペアリング要求',
   pairing_request_message: 'デバイス "{name}" とペアリングしますか？',
   pairing_request_hint: 'ペア設定後、両デバイス間でメッセージを送受信できます。',
+  pair_device: 'デバイスをペアリング',
   allow: '許可',
   deny: '拒否',
   pending: '保留中',

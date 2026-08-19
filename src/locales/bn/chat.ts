@@ -49,6 +49,7 @@ export default {
   pair_request: 'পেয়ারিং অনুরোধ',
   pairing_request_message: 'আপনি কি ডিভাইস "{name}" এর সাথে জোড়া লাগাতে চান?',
   pairing_request_hint: 'পেয়ারিং করার পর, আপনি উভয় ডিভাইসের মধ্যে বার্তা বিনিময় করতে পারবেন।',
+  pair_device: 'ডিভাইস পেয়ার করুন',
   allow: 'অনুমতি দিন',
   deny: 'অস্বীকার করুন',
   pending: 'অপেক্ষমাণ',

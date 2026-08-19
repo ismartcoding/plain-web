@@ -170,6 +170,7 @@ export default {
   collapse_all: 'Alle minimieren',
   all: 'Alle',
   manage: 'Verwalten',
+  manage_devices: 'Geräte verwalten',
   add: 'Hinzufügen',
   confirm: 'Bestätigen',
   no_files: 'Keine Dateien',

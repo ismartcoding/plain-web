@@ -170,6 +170,7 @@ export default {
   collapse_all: '모두 축소하기',
   all: '모두',
   manage: '관리',
+  manage_devices: '기기 관리',
   add: '추가',
   confirm: '확인',
   no_files: '파일 없음',

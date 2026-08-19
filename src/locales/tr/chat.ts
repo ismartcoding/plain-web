@@ -50,6 +50,7 @@ export default {
   pair_request: 'Eşleştirme isteği',
   pairing_request_message: '"{name}" cihazı ile eşleştirmek istiyor musunuz?',
   pairing_request_hint: 'Eşleştirmeden sonra, her iki cihaz arasında mesaj alışverişi yapabilirsiniz.',
+  pair_device: 'Cihazı eşleştir',
   allow: 'İzin ver',
   deny: 'Reddet',
   pending: 'Beklemede',

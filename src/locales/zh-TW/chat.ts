@@ -50,6 +50,7 @@ export default {
   pair_request: '配對請求',
   pairing_request_message: '是否要與設備"{name}"配對？',
   pairing_request_hint: '配對後，你們可以互發訊息。',
+  pair_device: '配對裝置',
   allow: '允許',
   deny: '拒絕',
   pending: '待確認',

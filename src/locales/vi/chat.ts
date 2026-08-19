@@ -50,6 +50,7 @@ export default {
   pair_request: 'Yêu cầu ghép nối',
   pairing_request_message: 'Bạn có muốn ghép nối với thiết bị "{name}"?',
   pairing_request_hint: 'Sau khi ghép đôi, bạn có thể trao đổi tin nhắn giữa hai thiết bị.',
+  pair_device: 'Ghép nối thiết bị',
   allow: 'Cho phép',
   deny: 'Từ chối',
   pending: 'Đang chờ',
