@@ -37,6 +37,8 @@ scripts/i18n-translated.json
 .vitest-attachments/
 tests/lib/**/__screenshots__/
 .harness/
+# Local plain-rs path patch (sibling checkout); committed builds use the git dep
+.cargo/config.toml
 docs
 # Local project docs kept out of VCS
 AGENTS.md
