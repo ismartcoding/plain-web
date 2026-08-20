@@ -71,7 +71,7 @@ export default {
   pair_success: 'Paired successfully!',
   pair_failed: 'Pairing failed',
   pair: 'Pair',
-  pair_device: 'Pair Device',
+  pair_device: 'Pair device',
   pairing_connecting: 'Sending pair request…',
   pairing_waiting: 'Waiting for response…',
   pairing_timed_out: 'Pairing timed out — the other device did not respond.',

@@ -6,19 +6,19 @@
         <img class="logo" src="/logo.svg" alt="PlainApp" draggable="false" />
       </div>
 
-      <p class="version">Version {{ version }}</p>
+      <p class="version">{{ $t('version') }} {{ version }}</p>
 
       <transition name="fade">
         <div v-if="status" class="status" :class="statusClass">
           <template v-if="status === 'loading'">
-            <span class="spinner" /> Checking…
+            <span class="spinner" /> {{ $t('checking_update') }}
           </template>
           <template v-else-if="status === 'success' && hasUpdate()">
-            <span class="ok">🎉</span> v{{ result!.latestVersion }} is available
-            <button class="link" @click="goToRelease">View Release</button>
+            <span class="ok">🎉</span> {{ $t('update_available', { version: result!.latestVersion }) }}
+            <button class="link" @click="goToRelease">{{ $t('view_release') }}</button>
           </template>
           <template v-else-if="status === 'success'">
-            <span class="ok">✓</span> You're up to date
+            <span class="ok">✓</span> {{ $t('up_to_date') }}
           </template>
           <template v-else-if="status === 'error'">
             <span class="err">!</span> {{ error }}
@@ -27,7 +27,15 @@
       </transition>
     </div>
 
-    <p class="copyright">© {{ new Date().getFullYear() }} PlainApp</p>
+    <div class="about-debug surface-card">
+      <div class="debug-head">
+        <span>{{ $t('debug_info') }}</span>
+        <v-filled-button class="btn-sm" :class="{ copied }" @click="copyInfo">
+          {{ copied ? $t('debug_copied') : $t('debug_copy') }}
+        </v-filled-button>
+      </div>
+      <pre class="debug-body">{{ debugInfo }}</pre>
+    </div>
   </div>
 </template>
 
@@ -49,8 +57,29 @@ const version = ref('')
 const status = ref<'loading' | 'success' | 'error' | ''>('')
 const result = ref<UpdateCheck | null>(null)
 const error = ref('')
+const debugInfo = ref('')
+const copied = ref(false)
 
 const hasUpdate = () => result.value?.hasUpdate ?? false
+
+function buildInfo() {
+  debugInfo.value = [
+    `App version: ${version.value}`,
+    `Platform: ${navigator.platform}`,
+    `Language: ${navigator.language}`,
+    `WebView: ${navigator.userAgent}`,
+  ].join('\n')
+}
+
+async function copyInfo() {
+  try {
+    await navigator.clipboard.writeText(debugInfo.value)
+    copied.value = true
+    setTimeout(() => (copied.value = false), 1500)
+  } catch {
+    copied.value = false
+  }
+}
 
 const statusClass = () => {
   if (status.value === 'success') return result.value?.hasUpdate ? 'is-update' : 'is-ok'
@@ -81,6 +110,7 @@ onMounted(async () => {
   } catch {
     version.value = '0.1.0'
   }
+  buildInfo()
   runCheck()
 })
 </script>
@@ -227,9 +257,36 @@ onMounted(async () => {
   opacity: 0;
 }
 
-.copyright {
-  margin: 0;
-  font-size: 11px;
+.about-debug {
+  width: 100%;
+  max-width: 420px;
+  box-sizing: border-box;
+}
+
+.debug-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
   color: var(--md-sys-color-on-surface-variant);
+}
+
+.copied {
+  opacity: 0.75;
+}
+
+.debug-body {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--md-sys-color-on-surface);
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 160px;
+  overflow: auto;
 }
 </style>
