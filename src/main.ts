@@ -13,6 +13,7 @@ import { setHttpProxyPort, setLocalServerPort, setLocalServerToken, setLocalServ
 import { preload as preloadPrefs, get as prefsGet, set as prefsSet } from './lib/prefs'
 import { applyUrlClientId } from './lib/device/client-id'
 import { preloadLoginPeers } from './lib/device/login-peers'
+import { applyMenuLabels } from './lib/app-menu'
 
 if (!__IS_TAURI__) {
   // Web: prefs are synchronous (localStorage) — safe to apply immediately.
@@ -70,6 +71,10 @@ async function bootstrap() {
   // Other locales stay on disk until the user switches to them.
   const { setLocale: setTimeagoLocale } = await import('./lib/timeago')
   await Promise.all([loadLocaleMessages(locale), setTimeagoLocale(locale)])
+
+  if (__IS_TAURI__) {
+    applyMenuLabels()
+  }
 
   createApp(App)
     .use(VueClickAway)

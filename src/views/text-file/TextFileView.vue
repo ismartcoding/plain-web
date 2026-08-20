@@ -4,7 +4,7 @@
     <header
       class="topbar"
       :class="{ 'topbar--tauri': isTauri }"
-      :data-tauri-drag-region="isTauri"
+      :data-tauri-drag-region="isTauri ? 'deep' : null"
     >
       <div class="title-wrap">
         <div class="title">{{ displayTitle }}</div>

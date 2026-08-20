@@ -3,6 +3,7 @@ import { useI18n } from 'vue-i18n'
 import { loadLocaleMessages, SUPPORTED_LOCALES } from '@/plugins/i18n'
 import { setLocale as setTimeagoLocale } from '@/lib/timeago'
 import { set as prefsSet } from '@/lib/prefs'
+import { applyMenuLabels } from '@/lib/app-menu'
 
 /**
  * Locale switcher.
@@ -31,6 +32,7 @@ export function useLocaleSwitch() {
       locale.value = code
       prefsSet('locale', code)
       document.title = 'PlainApp'
+      applyMenuLabels()
     } finally {
       switchingLocale.value = ''
     }

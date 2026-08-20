@@ -68,7 +68,7 @@ pub fn open_about(app: &AppHandle) {
         return;
     }
     let win = tauri::WebviewWindowBuilder::new(app, label, tauri::WebviewUrl::App("/about".into()))
-        .title("About PlainApp")
+        .title(super::macos_menu::about_title(app))
         .inner_size(400.0, 560.0)
         .resizable(false)
         .center();
