@@ -2,7 +2,7 @@ import toast from '@/components/toaster'
 import { onActivated, onDeactivated, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
-import { type IFile, canOpenInBrowser, canView, enrichFile } from '@/lib/file'
+import { type IFile, enrichFile } from '@/lib/file'
 import { getFileUrlByPath } from '@/lib/api/file'
 import { useDownload, useView } from '@/hooks/files'
 import { openModal } from '@/components/modal'
@@ -19,6 +19,7 @@ import type { IFileDeletedEvent, IFileRenamedEvent } from '@/lib/interfaces'
 import { arrayRemove } from '@/lib/array'
 import { getIsPhone } from '@/hooks/device'
 import { useOpenMedia } from '@/hooks/open-media'
+import { useFileOpen } from '@/hooks/file-open'
 
 export function useFilesRecent() {
   const { t } = useI18n()
@@ -47,11 +48,12 @@ export function useFilesRecent() {
   const { mutate: setTempValue, onDone: setTempValueDone } = initMutation({ document: setTempValueGQL })
   setTempValueDone((r: any) => { downloadFiles(r.data.setTempValue.key); clearSelection() })
 
-  const clickItem = (item: IFile) => {
-    if (canOpenInBrowser(item.name)) window.open(getFileUrlByPath(urlTokenKey.value, item.path), '_blank')
-    else if (canView(item.name)) view(items.value, item)
-    else downloadFile(item.path)
-  }
+  const { openFile } = useFileOpen<IFile>({
+    items,
+    openBrowserFile: (item) => window.open(getFileUrlByPath(urlTokenKey.value, item.path), '_blank'),
+    viewMedia: view,
+    download: (item) => downloadFile(item.path),
+  })
 
   const { loading, fetch } = initLazyQuery({
     handle: async (data: any, error: string) => {
@@ -109,6 +111,6 @@ export function useFilesRecent() {
     selectedIds, allChecked, realAllChecked, checked, total,
     shiftEffectingIds, shouldSelect, imageErrorIds, extensionImageErrorIds,
     toggleAllChecked, toggleSelect, handleItemClick, handleMouseOver,
-    onImageError, onExtensionImageError, downloadFile, clickItem, downloadItems,
+    onImageError, onExtensionImageError, downloadFile, clickItem: openFile, downloadItems,
   }
 }

@@ -9,6 +9,7 @@
         <LightboxFileActionButtons 
           :current="current" 
           :os-version="osVersion"
+          :read-only="readOnly"
           :download-file="downloadFile"
           @rename-file="$emit('rename-file')"
           @delete-file="$emit('delete-file')"
@@ -64,6 +65,10 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
+  readOnly: {
+    type: Boolean,
+    default: false,
+  },
   downloadFile: {
     type: Function,
     required: true,
@@ -77,7 +82,7 @@ const { trash } = useMediaTrash()
 const inZip = computed(() => isZipPath(props.current?.path ?? ''))
 
 function handleKeyDown(event: KeyboardEvent) {
-  if (inZip.value) return
+  if (props.readOnly || inZip.value) return
   if (event.key === 'Delete' || ((event.ctrlKey || event.metaKey) && event.key === 'Backspace')) {
     event.preventDefault()
     

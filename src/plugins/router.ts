@@ -247,6 +247,14 @@ const router = createRouter({
       meta: { requiresAuth: false },
     },
     {
+      // Shared file link. The private `shared_token` travels in the URL
+      // fragment (`/s/<shared_id>#<shared_token>`) and is read by the page JS.
+      name: 'share',
+      path: '/s/:sharedId',
+      component: () => import('@/views/share/ShareView.vue'),
+      meta: { requiresAuth: false },
+    },
+    {
       name: 'text-file',
       path: '/text-file',
       component: () => import('@/views/text-file/TextFileView.vue'),

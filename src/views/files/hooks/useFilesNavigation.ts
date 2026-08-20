@@ -1,11 +1,11 @@
 import { type Ref, type ComputedRef } from 'vue'
-import { type IFile, canOpenInBrowser, canView, isTextFile, isZipFile, joinZipPath } from '@/lib/file'
+import { type IFile, isZipFile, joinZipPath } from '@/lib/file'
 import { getFileUrlByPath, getFileId } from '@/lib/api/file'
 import type { IFileFilter } from '@/lib/interfaces'
 import { useMainStore } from '@/stores/main'
 import { replacePath } from '@/plugins/router'
-import type { ISource } from '@/components/lightbox/types'
 import { openUrl } from '@/lib/browser'
+import { useFileOpen } from '@/hooks/file-open'
 
 interface UseFilesNavigationOptions {
   filter: IFileFilter
@@ -39,18 +39,16 @@ export function useFilesNavigation(opts: UseFilesNavigationOptions) {
     replacePath(mainStore, getUrl(buildQ(filter)))
   }
 
-  function openFile(item: IFile) {
-    if (isTextFile(item.name)) {
+  const { openFile } = useFileOpen<IFile>({
+    items,
+    openTextFile: (item) => {
       const fileId = getFileId(urlTokenKey.value, item.path)
       openUrl(`/text-file?id=${encodeURIComponent(fileId)}`)
-    } else if (canOpenInBrowser(item.name)) {
-      openUrl(getFileUrlByPath(urlTokenKey.value, item.path))
-    } else if (canView(item.name)) {
-      view(items.value, item)
-    } else {
-      downloadFile(item.path)
-    }
-  }
+    },
+    openBrowserFile: (item) => openUrl(getFileUrlByPath(urlTokenKey.value, item.path)),
+    viewMedia: view,
+    download: (item) => downloadFile(item.path),
+  })
 
   function clickItem(item: IFile) {
     if (item.isDir) { navigateToDir(item.path); return }

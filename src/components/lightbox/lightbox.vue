@@ -5,6 +5,7 @@
         <LightboxHeader
           :current="current"
           :popup="popup"
+          :read-only="readOnly"
           :image-quality="imageViewQuality"
           @close="closeDialog"
           @zoom-in="zoomIn"
@@ -72,6 +73,7 @@
           :app-dir="app.appDir" 
           :tags-map="tagsMap" 
           :os-version="app.osVersion"
+          :read-only="readOnly"
           :download-file="downloadFile"
           @rename-file="renameFile"
           @delete-file="deleteFile"
@@ -100,6 +102,7 @@
           <LightboxFileActionButtons 
             :current="current" 
             :os-version="app.osVersion"
+            :read-only="readOnly"
             :download-file="downloadFile"
             @rename-file="renameFile"
             @delete-file="deleteFile"
@@ -151,6 +154,8 @@ const { zoomIn, zoomOut, rotateLeft, rotateRight, resize, onDblclick, onWheel } 
 
 const { closeDialog, changeIndex, onNext, onPrev } =
   useLightboxNavigation(tempStore, imgIndex, current, imgWrapperState, status, tagsMap, loadTags, loadInfo, toRef(props, 'loop'), emit as (event: string, ...args: any[]) => void, imageViewQuality)
+
+const readOnly = computed(() => tempStore.lightbox.readOnly)
 
 const { downloadFile, deleteFile, renameFile, handleActionSuccess } =
   useLightboxFileActions(current, fileInfo, tagsMap, urlTokenKey, refetchInfo, isPhone, lightboxInfoVisible)

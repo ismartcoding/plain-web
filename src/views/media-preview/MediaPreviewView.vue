@@ -43,7 +43,7 @@ function inTauri() {
 onMounted(() => {
   const source = parseSource()
   if (!source) return
-  tempStore.lightbox = { sources: [source], index: 0, visible: true }
+  tempStore.lightbox = { sources: [source], index: 0, visible: true, readOnly: false }
   if (inTauri()) {
     setWindowDeviceName(source.name || 'Preview')
   }
@@ -51,7 +51,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   if (tempStore.lightbox.sources.length === 1) {
-    tempStore.lightbox = { sources: [], visible: false, index: -1 }
+    tempStore.lightbox = { sources: [], visible: false, index: -1, readOnly: false }
   }
 })
 

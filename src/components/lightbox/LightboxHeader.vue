@@ -24,7 +24,7 @@
       <template v-if="isImage(current.name)">
         <LightboxQualityDropdown :model-value="imageQuality" @update:model-value="$emit('update:image-quality', $event)" />
 
-        <v-icon-button v-tooltip="$t('edit_image')" @click="$emit('edit-image')">
+        <v-icon-button v-if="!readOnly" v-tooltip="$t('edit_image')" @click="$emit('edit-image')">
           <i-material-symbols:edit-rounded />
         </v-icon-button>
 
@@ -65,6 +65,7 @@ const isTauri = __IS_TAURI__
 defineProps<{
   current: ISource | undefined
   popup?: boolean
+  readOnly?: boolean
   imageQuality: 'fast' | 'original'
 }>()
 

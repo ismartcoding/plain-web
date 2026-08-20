@@ -1,7 +1,7 @@
 <template>
   <div class="file-action-buttons">
     <template v-if="!confirming">
-      <template v-if="!current?.isFromChat && !inZip">
+      <template v-if="!readOnly && !current?.isFromChat && !inZip">
         <template v-if="canTrash">
           <template v-if="isTrashed">
             <v-outlined-button @click.stop="confirming = true">
@@ -62,6 +62,10 @@ const props = defineProps({
   osVersion: {
     type: Number,
     default: 0,
+  },
+  readOnly: {
+    type: Boolean,
+    default: false,
   },
   downloadFile: {
     type: Function,

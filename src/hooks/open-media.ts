@@ -26,12 +26,12 @@ import { useTempStore } from '@/stores/temp'
 export function useOpenMedia(sources?: Ref<ISource[]>) {
   const tempStore = useTempStore()
 
-  function open(index: number, override?: ISource[]): void {
+  function open(index: number, override?: ISource[], readOnly = false): void {
     const list = override ?? sources?.value
     if (!list) return
     const source = list[index]
     if (!source) return
-    tempStore.lightbox = { sources: list, index, visible: true }
+    tempStore.lightbox = { sources: list, index, visible: true, readOnly }
   }
 
   return { open }

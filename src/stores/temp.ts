@@ -33,6 +33,7 @@ export interface ILightBox {
   sources: ISource[]
   visible: boolean
   index: number
+  readOnly: boolean
 }
 
 export interface IDataCounter {
@@ -78,7 +79,7 @@ export const useTempStore = defineCrossWindowStore<'temp', TempState>('temp', {
       uploads: [],
       selectedFiles: [],
       audioPlaying: false,
-      lightbox: { sources: [], visible: false, index: -1 },
+      lightbox: { sources: [], visible: false, index: -1, readOnly: false },
       counter: {
         messages: -1,
         contacts: -1,

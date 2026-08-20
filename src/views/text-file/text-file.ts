@@ -115,7 +115,7 @@ export function useTextFile() {
     if (resetViewMode) showRawText.value = false
 
     if (isJsonFile.value) {
-      try { jsonData.value = JSON.parse(textContent) } catch {}
+      try { jsonData.value = JSON.parse(textContent) } catch { /* invalid json */ }
     } else if (isMarkdownFile.value) {
       try { renderedMarkdown.value = await render(textContent) } catch { /* fallback to raw */ }
     }
@@ -128,11 +128,17 @@ export function useTextFile() {
       const id = route.query.id as string
       if (!id) { error.value = t('invalid_file_id'); return }
 
+      // Shared-link (guest) files are served from `/fs` with `sid`.
+      const sid = route.query.sid as string
+      const url = sid
+        ? getProxyUrl(`/fs?id=${encodeURIComponent(id)}&sid=${encodeURIComponent(sid)}`)
+        : getProxyUrl(`/fs?id=${encodeURIComponent(id)}`)
+
       // Route through the local HTTP reverse proxy (getProxyUrl) so Tauri
       // can accept the device's self-signed HTTPS cert — a direct fetch to
       // https://<device>/fs fails cert validation. Matches how chat images
       // are loaded (getFileUrl → getProxyUrl).
-      const response = await fetch(getProxyUrl(`/fs?id=${encodeURIComponent(id)}`))
+      const response = await fetch(url)
       if (!response.ok) {
         error.value = response.status === 404 ? t('file_not_found')
           : response.status === 403 ? t('access_denied')

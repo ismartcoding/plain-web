@@ -13,13 +13,15 @@
     </div>
     
     <div class="image" @click="viewItem($event, item)">
-      <img v-if="item.isDir" :src="`/ficons/folder.svg`" class="svg" />
-      <template v-else>
-        <img v-if="extensionImageErrorIds.includes(item.id)" class="svg" src="/ficons/default.svg" />
-        <img v-else-if="!imageErrorIds.includes(item.id) && item.fileId" class="image-thumb" :src="getFileUrl(item.fileId, '&w=50&h=50')" @error="onImageError(item.id)" />
-        <img v-else-if="item.extension" :src="`/ficons/${item.extension}.svg`" class="svg" @error="onExtensionImageError(item.id)" />
-        <img v-else class="svg" src="/ficons/default.svg" />
-      </template>
+      <FileThumb
+        :is-dir="item.isDir"
+        :thumb-url="item.fileId ? getFileUrl(item.fileId, '&w=50&h=50') : ''"
+        :extension="item.extension"
+        :thumb-error="imageErrorIds.includes(item.id)"
+        :ext-error="extensionImageErrorIds.includes(item.id)"
+        :on-thumb-error="() => onImageError(item.id)"
+        :on-ext-error="() => onExtensionImageError(item.id)"
+      />
     </div>
     
     <div class="title">
@@ -64,13 +66,15 @@
   >
     <template #image>
       <div class="image" @click="viewItem($event, item)">
-        <img v-if="item.isDir" :src="`/ficons/folder.svg`" class="svg" />
-        <template v-else>
-          <img v-if="extensionImageErrorIds.includes(item.id)" class="svg" src="/ficons/default.svg" />
-          <img v-else-if="!imageErrorIds.includes(item.id) && item.fileId" class="image-thumb" :src="getFileUrl(item.fileId, '&w=50&h=50')" @error="onImageError(item.id)" />
-          <img v-else-if="item.extension" :src="`/ficons/${item.extension}.svg`" class="svg" @error="onExtensionImageError(item.id)" />
-          <img v-else class="svg" src="/ficons/default.svg" />
-        </template>
+        <FileThumb
+          :is-dir="item.isDir"
+          :thumb-url="item.fileId ? getFileUrl(item.fileId, '&w=50&h=50') : ''"
+          :extension="item.extension"
+          :thumb-error="imageErrorIds.includes(item.id)"
+          :ext-error="extensionImageErrorIds.includes(item.id)"
+          :on-thumb-error="() => onImageError(item.id)"
+          :on-ext-error="() => onExtensionImageError(item.id)"
+        />
       </div>
     </template>
     
