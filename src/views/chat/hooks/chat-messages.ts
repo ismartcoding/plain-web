@@ -40,7 +40,7 @@ export function useChatMessages(chatId: ComputedRef<string>, channelId: Computed
 
   const { mutate: sendMutate, loading: sendLoading, onDone: sendDone } = initMutation({
     document: sendChatItemGQL,
-  })
+  }, false)
   sendDone((r: any) => {
     if (r?.data?.sendChatItem) {
       const rawItems: any[] = Array.isArray(r.data.sendChatItem) ? r.data.sendChatItem : [r.data.sendChatItem]
@@ -62,13 +62,23 @@ export function useChatMessages(chatId: ComputedRef<string>, channelId: Computed
 
   const { mutate: retryMutate } = initMutation({ document: retryChatItemGQL })
 
+  const MAX_SEND_ATTEMPTS = 3
+
   async function doSend(tempId: string, toId: string, content: string) {
-    const r = await sendMutate({ toId, content })
-    if (r == null) {
-      const item = chatItems.value.find((i) => i.id === tempId)
-      if (item) item.status = ChatStatus.FAILED
-    } else {
-      chatItems.value = chatItems.value.filter((i) => i.id !== tempId)
+    for (let attempt = 1; attempt <= MAX_SEND_ATTEMPTS; attempt++) {
+      const r = await sendMutate({ toId, content })
+      if (r != null) {
+        chatItems.value = chatItems.value.filter((i) => i.id !== tempId)
+        return
+      }
+      if (attempt < MAX_SEND_ATTEMPTS) {
+        await new Promise((resolve) => setTimeout(resolve, attempt * 1000))
+      }
+    }
+    const item = chatItems.value.find((i) => i.id === tempId)
+    if (item) {
+      item.status = ChatStatus.FAILED
+      toast(t('send_failed'), 'error')
     }
   }
 

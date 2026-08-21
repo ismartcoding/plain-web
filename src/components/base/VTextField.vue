@@ -19,6 +19,8 @@
           @dragenter="$emit('dragenter', $event)"
           @dragleave="$emit('dragleave', $event)"
           @keydown="$emit('keydown', $event)"
+          @compositionstart="$emit('compositionstart', $event)"
+          @compositionend="$emit('compositionend', $event)"
         />
         <input
           v-else
@@ -91,6 +93,8 @@ const emit = defineEmits<{
   dragenter: [event: DragEvent]
   dragleave: [event: DragEvent]
   keydown: [event: KeyboardEvent]
+  compositionstart: [event: CompositionEvent]
+  compositionend: [event: CompositionEvent]
 }>()
 
 const inputRef = ref<HTMLInputElement>()

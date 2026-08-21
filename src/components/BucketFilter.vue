@@ -10,7 +10,7 @@
     <li
       v-for="item in sortedBuckets" :key="item.id" :class="{ active: selected && item.id === selected }"
       @click.prevent="view(mainStore, item.id)">
-      <span class="thumb" :class="thumbClass(item)">
+      <span v-if="showThumb" class="thumb" :class="thumbClass(item)">
         <template v-if="bucketThumbs(item).length">
           <img v-for="(p, i) in bucketThumbs(item)" :key="i" class="thumb-img" :src="thumbUrl(p)" loading="lazy" alt="" onerror="this.style.display='none'" />
         </template>
@@ -62,6 +62,8 @@ function thumbClass(item: IBucket) {
 
 const isCollapsed = computed(() => !!mainStore.bucketFilterCollapsed?.[props.type])
 
+const showThumb = computed(() => props.type === DataType.IMAGE || props.type === DataType.VIDEO)
+
 function toggleCollapsed() {
   mainStore.bucketFilterCollapsed[props.type] = !isCollapsed.value
 }
@@ -108,25 +110,26 @@ onUnmounted(() => {
   height: 40px;
   flex-shrink: 0;
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 2px;
   border-radius: 10px;
   overflow: hidden;
   background: color-mix(in srgb, var(--md-sys-color-primary) 12%, transparent);
 
   &.count-1 {
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
   }
 
   &.count-2 {
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: minmax(0, 1fr);
   }
 
   &.count-3,
   &.count-4 {
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
   }
 
   &.count-3 .thumb-img:first-child {
@@ -145,8 +148,10 @@ onUnmounted(() => {
     width: 100%;
     height: 100%;
     min-width: 0;
+    min-height: 0;
     display: block;
     object-fit: cover;
+    object-position: center;
   }
 }
 </style>

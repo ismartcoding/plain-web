@@ -15,11 +15,9 @@
         @drop.prevent="dropFiles"
         @dragenter.prevent="fileDragEnter"
         @dragleave.prevent="fileDragLeave"
-        @keydown.enter.exact="onEnterKey"
-        @keydown.enter.shift.exact.prevent="$emit('update:modelValue', modelValue + '\n')"
-        @keydown.enter.ctrl.exact.prevent="$emit('update:modelValue', modelValue + '\n')"
-        @keydown.enter.alt.exact.prevent="$emit('update:modelValue', modelValue + '\n')"
-        @keydown.enter.meta.exact.prevent="$emit('update:modelValue', modelValue + '\n')"
+        @keydown="onKeyDown"
+        @compositionstart="onCompositionStart"
+        @compositionend="onCompositionEnd"
       >
         <template #leading-icon>
           <div class="leading-icons">
@@ -59,22 +57,36 @@ interface Emits {
   (e: 'send-images', files: File[]): void
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const { t } = useI18n()
 const fileInput = ref<HTMLInputElement>()
 const imageInput = ref<HTMLInputElement>()
 const displayDragMask = ref(false)
+const isComposing = ref(false)
 
 function handleSend() {
   emit('send-message', '')
 }
 
-function onEnterKey(e: KeyboardEvent) {
-  if (e.isComposing) return
+function onCompositionStart() {
+  isComposing.value = true
+}
+
+function onCompositionEnd() {
+  isComposing.value = false
+}
+
+function onKeyDown(e: KeyboardEvent) {
+  if (e.key !== 'Enter') return
+  if (e.isComposing || e.keyCode === 229 || isComposing.value) return
   e.preventDefault()
-  handleSend()
+  if (e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) {
+    emit('update:modelValue', props.modelValue + '\n')
+  } else {
+    handleSend()
+  }
 }
 
 function uploadFilesChanged(e: Event) {

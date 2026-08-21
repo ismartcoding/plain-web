@@ -49,8 +49,6 @@ import { formatDate } from '@/lib/format'
 import ChatInput from './ChatInput.vue'
 import ChatMessageItem from './ChatMessageItem.vue'
 import { useMainStore } from '@/stores/main'
-import { openModal } from '@/components/modal'
-import ChatDeliveryStatusModal from './ChatDeliveryStatusModal.vue'
 import { useChatRouteId } from './hooks/chat-route'
 import { useChatData } from './hooks/chat-data'
 import { useChatMessages } from './hooks/chat-messages'
@@ -110,11 +108,8 @@ function handleSend() {
   }
 }
 
-function handleRetry(id: string, statusData?: string) {
-  openModal(ChatDeliveryStatusModal, {
-    onResend: () => retryMessage(id),
-    statusData,
-  })
+function handleRetry(id: string) {
+  retryMessage(id)
 }
 
 onActivated(() => { isActive.value = true })
