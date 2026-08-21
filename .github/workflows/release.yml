@@ -415,6 +415,51 @@ jobs:
             echo "EOF"
           } >> $GITHUB_OUTPUT
 
+  r2-upload:
+    name: Upload artifacts to Cloudflare R2
+    needs: package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      AWS_ENDPOINT_URL_S3: ${{ vars.R2_ENDPOINT_URL }}
+      AWS_DEFAULT_REGION: auto
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-artifacts
+          path: release-artifacts
+
+      - name: Validate R2 configuration
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ENDPOINT_URL: ${{ vars.R2_ENDPOINT_URL }}
+          R2_BUCKET: ${{ vars.R2_BUCKET }}
+        run: |
+          set -euo pipefail
+          missing=0
+          for name in R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY R2_ENDPOINT_URL R2_BUCKET; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Missing R2 configuration: ${name}"
+              missing=1
+            fi
+          done
+          exit "$missing"
+
+      - name: Upload to R2
+        env:
+          R2_BUCKET: ${{ vars.R2_BUCKET }}
+          R2_PREFIX: ${{ vars.R2_PREFIX }}
+        run: |
+          set -euo pipefail
+          dest="s3://${R2_BUCKET}/${R2_PREFIX}"
+          [[ "$dest" != */ ]] && dest="${dest}/"
+          aws --version
+          aws s3 cp release-artifacts "$dest" --recursive --cache-control "public, max-age=31536000, immutable"
+
   release:
     needs: [package, provenance, virustotal]
     runs-on: ubuntu-latest
