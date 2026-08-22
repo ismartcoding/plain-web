@@ -1,7 +1,9 @@
 <template>
-  <div class="v-dropdown-menu" :class="{ 'is-open': modelValue }" @click.stop>
-    <slot></slot>
-  </div>
+  <Teleport to="body">
+    <div class="v-dropdown-menu" :class="{ 'is-open': modelValue }" @click.stop>
+      <slot></slot>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">

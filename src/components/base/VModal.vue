@@ -137,6 +137,11 @@ defineExpose({
     0px 9px 46px 8px rgba(0, 0, 0, 0.12);
   overflow: hidden;
   animation: modal-enter 0.15s ease-out;
+
+  @media (max-width: 600px) {
+    min-width: 0 !important;
+    max-width: calc(100vw - 32px) !important;
+  }
 }
 
 .v-modal-content {
