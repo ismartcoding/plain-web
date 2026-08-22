@@ -110,8 +110,8 @@ fn parse_body_params(xml: &str, action: &str) -> std::collections::HashMap<Strin
         };
         let tag_content = &xml[tag_start + 1..tag_end];
 
-        if tag_content.starts_with('/') {
-            let close_tag = tag_content[1..].split([' ', '\t', '\n', '\r', '>']).next().unwrap_or("");
+        if let Some(stripped) = tag_content.strip_prefix('/') {
+            let close_tag = stripped.split([' ', '\t', '\n', '\r', '>']).next().unwrap_or("");
             if close_tag.ends_with(action) {
                 break;
             }
@@ -193,8 +193,8 @@ pub fn extract_media_type_from_didl_meta(meta: &str, fallback_uri: &str) -> Dlna
     // Tier 2: upnp:class
     let class_start = meta.find("<upnp:class>");
     let class_end = meta.find("</upnp:class>");
-    if let (Some(cs), Some(ce)) = (class_start, class_end) {
-        if cs < ce {
+    if let (Some(cs), Some(ce)) = (class_start, class_end)
+        && cs < ce {
             let cls = meta[cs + 12..ce].to_lowercase();
             return if cls.contains("audioitem") || cls.contains("musictrack") {
                 DlnaMediaType::AUDIO
@@ -206,7 +206,6 @@ pub fn extract_media_type_from_didl_meta(meta: &str, fallback_uri: &str) -> Dlna
                 DlnaMediaType::UNKNOWN
             };
         }
-    }
     // Tier 3: URL extension
     let ext = fallback_uri
         .rsplit('.')

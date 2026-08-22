@@ -14,6 +14,7 @@ pub struct DlnaHttpResponse {
     pub body: String,
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn route(
     state: &Arc<RwLock<DlnaRendererState>>,
     method: &str,
@@ -152,7 +153,7 @@ async fn handle_soap(
         }
         "GetTransportInfo" => {
             let s = state.read().await;
-            soap_handler::build_transport_info_response(&upnp_transport_state(s.playback_state))
+            soap_handler::build_transport_info_response(upnp_transport_state(s.playback_state))
         }
         "GetPositionInfo" => {
             let s = state.read().await;

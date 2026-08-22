@@ -154,6 +154,7 @@ pub struct AppCtx {
     pub pairing_manager: PairingManager,
     pub peer_key_cache: PeerKeyCache,
     pub channel_key_cache: ChannelKeyCache,
+    #[allow(dead_code)]
     pub chat_cacher: Arc<ChatCacher>,
     pub dlna_engine: Arc<crate::local::dlna::receiver_engine::DlnaEngine>,
     pub event_tx: broadcast::Sender<WsEvent>,

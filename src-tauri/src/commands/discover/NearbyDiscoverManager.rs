@@ -79,6 +79,7 @@ pub struct NearbyDiscoverManager {
 }
 
 impl NearbyDiscoverManager {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         db: Arc<ChatDb>,
         identity: Arc<AppIdentity>,

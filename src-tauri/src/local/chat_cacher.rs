@@ -28,6 +28,7 @@ impl ChatCacher {
     }
 
     /// `fun getLatestChat(chatId: String): DChat?`
+    #[allow(dead_code)]
     pub fn get_latest_chat(&self, chat_id: &str) -> Option<DChat> {
         self.latest_chat_map.read().unwrap().get(chat_id).cloned()
     }

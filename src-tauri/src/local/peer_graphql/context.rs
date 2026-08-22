@@ -29,10 +29,12 @@ pub struct PeerCtx {
 }
 
 impl PeerCtx {
+    #[allow(dead_code)]
     pub fn db(&self) -> &ChatDb {
         &self.app.db
     }
 
+    #[allow(dead_code)]
     pub fn event_tx(&self) -> &broadcast::Sender<WsEvent> {
         &self.app.event_tx
     }

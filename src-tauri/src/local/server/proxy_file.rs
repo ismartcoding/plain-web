@@ -60,11 +60,10 @@ pub(super) async fn proxy_file<W: AsyncWrite + Unpin>(
     // 3. Forward the request to the peer, forwarding the Range header
     //    so media seeking works through the proxy.
     let mut req = proxy_client().get(&peer_url);
-    if !range_header.is_empty() {
-        if let Ok(v) = reqwest::header::HeaderValue::from_str(range_header) {
+    if !range_header.is_empty()
+        && let Ok(v) = reqwest::header::HeaderValue::from_str(range_header) {
             req = req.header("range", v);
         }
-    }
     let mut resp = match req.send().await {
         Ok(r) => r,
         Err(e) => {

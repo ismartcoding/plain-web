@@ -80,7 +80,7 @@ pub enum PairingEventKind {
     /// Incoming PAIR_REQUEST that the user must accept or reject.
     #[serde(rename_all = "camelCase")]
     IncomingRequest {
-        request: PairingRequest,
+        request: Box<PairingRequest>,
         sender_ip: String,
     },
     /// PAIR_REQUEST was delivered; waiting for the peer's response.
@@ -275,7 +275,7 @@ impl PairingManager {
         req.from_ip = sender_ip.to_string();
         let _ = self.event_tx.send(PairingEvent {
             kind: PairingEventKind::IncomingRequest {
-                request: req.clone(),
+                request: Box::new(req.clone()),
                 sender_ip: sender_ip.to_string(),
             },
             device_id: req.from_id.clone(),

@@ -46,6 +46,7 @@ impl DlnaEngine {
         self.running.load(Ordering::Relaxed)
     }
 
+    #[allow(dead_code)]
     pub fn send_command(&self, cmd: DlnaCommand) {
         if let Some(tx) = self.command_tx.lock().unwrap().as_ref() {
             let _ = tx.send(cmd);

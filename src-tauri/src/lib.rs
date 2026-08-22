@@ -86,7 +86,7 @@ pub fn run() {
             );
             app.handle().manage(dlna_engine.clone());
             // Start the DLNA renderer at startup when the toggle is on.
-            if crate::prefs::get_dlna_enabled(&app.handle()) {
+            if crate::prefs::get_dlna_enabled(app.handle()) {
                 let engine = dlna_engine.clone();
                 let port = local_server_state.port();
                 tauri::async_runtime::spawn(async move {

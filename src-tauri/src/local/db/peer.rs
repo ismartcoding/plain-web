@@ -170,6 +170,7 @@ impl ChatDb {
     /// rows and only refreshes login-relevant fields. Empty
     /// `name`/`device_type` keep the stored values; a non-empty
     /// `signature_public_key` (TOFU login key) replaces the stored one.
+    #[allow(clippy::too_many_arguments)]
     pub fn login_peer(
         &self,
         id: &str,

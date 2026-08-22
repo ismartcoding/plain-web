@@ -208,7 +208,7 @@ async fn handle(stream: TcpStream, http: reqwest::Client) {
             .and_then(|s| s.parse::<u64>().ok());
         let compressed = resp_hdrs
             .get(reqwest::header::CONTENT_ENCODING)
-            .map_or(false, |v| v != "identity");
+            .is_some_and(|v| v != "identity");
         let keep_alive = !client_close && content_length.is_some() && !compressed;
 
         // 8. Forward status + headers in a single write (fewer syscalls).
@@ -245,11 +245,10 @@ async fn handle(stream: TcpStream, http: reqwest::Client) {
                 head.extend_from_slice(format!("{}: {}\r\n", k.as_str(), vs).as_bytes());
             }
         }
-        if keep_alive {
-            if let Some(len) = content_length {
+        if keep_alive
+            && let Some(len) = content_length {
                 head.extend_from_slice(format!("content-length: {}\r\n", len).as_bytes());
             }
-        }
         head.extend_from_slice(b"\r\n");
         if wr.write_all(&head).await.is_err() {
             return;

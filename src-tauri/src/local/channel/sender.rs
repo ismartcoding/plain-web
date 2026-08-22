@@ -378,6 +378,7 @@ fn member_ids_excluding(channel: &DChannel, exclude_id: &str) -> Vec<String> {
 /// per-channel key (`channel_key`) is used and the `c-cid` header is
 /// set so the receiver can pick the matching key from its
 /// `channel_key_cache`.
+#[allow(clippy::too_many_arguments)]
 async fn deliver_type(
     peer: &DPeer,
     client_id: &str,

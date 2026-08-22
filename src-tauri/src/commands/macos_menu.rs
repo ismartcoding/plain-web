@@ -173,9 +173,9 @@ pub fn setup(app: &mut App) -> tauri::Result<()> {
                     .or_else(|| windows.get("main"));
                 if let Some(win) = target {
                     if win.is_devtools_open() {
-                        let _ = win.close_devtools();
+                        win.close_devtools();
                     } else {
-                        let _ = win.open_devtools();
+                        win.open_devtools();
                     }
                 }
             }

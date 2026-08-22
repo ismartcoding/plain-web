@@ -62,7 +62,7 @@ pub enum SendResult {
     /// `Result.NoLeader` — no online joined member to relay through.
     NoLeader,
     /// `Result.LeaderPeerMissing(leaderId)` — leader was elected but not in DB.
-    LeaderPeerMissing(String),
+    LeaderPeerMissing(()),
 }
 
 // ── ChannelChatSender.send ──────────────────────────────────────────────────
@@ -226,7 +226,7 @@ async fn send_to_leader(
 ) -> SendResult {
     let leader_peer = match db.get_peer_by_id(leader_id) {
         Some(p) => p,
-        None => return SendResult::LeaderPeerMissing(leader_id.to_string()),
+        None => return SendResult::LeaderPeerMissing(()),
     };
     let result = send_to_member(channel, &leader_peer, content, channel_key_cache, client_id, kp_bytes).await;
     SendResult::Status(vec![result])

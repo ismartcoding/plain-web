@@ -235,8 +235,8 @@ async fn fetch_link_preview(db: &ChatDb, data_dir: &Path, url: &str) -> Value {
     let mut image_local_path: Option<String> = None;
     let mut image_width = 0;
     let mut image_height = 0;
-    if let Some(active_url) = image_url.as_deref() {
-        if is_valid_url(active_url) {
+    if let Some(active_url) = image_url.as_deref()
+        && is_valid_url(active_url) {
             let (path, w, h) = download_image_with_size(db, data_dir, active_url).await;
             image_local_path = path;
             image_width = w;
@@ -245,7 +245,6 @@ async fn fetch_link_preview(db: &ChatDb, data_dir: &Path, url: &str) -> Value {
                 image_url = None;
             }
         }
-    }
 
     json!({
         "url": url,

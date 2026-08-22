@@ -95,8 +95,8 @@ pub(super) async fn serve_file<W: AsyncWrite + Unpin>(
     if let (Some(off), Some(len)) = (
         params.get("offset").and_then(|s| s.parse::<u64>().ok()),
         params.get("length").and_then(|s| s.parse::<u64>().ok()),
-    ) {
-        if len > 0 {
+    )
+        && len > 0 {
             if off >= file_size {
                 respond(wr, 404, "Not Found", b"", "text/plain").await;
                 return;
@@ -105,7 +105,6 @@ pub(super) async fn serve_file<W: AsyncWrite + Unpin>(
             serve_range_raw(wr, &resolved, off, clamped).await;
             return;
         }
-    }
 
     // 7. Display filename + MIME + Content-Disposition (RFC 5987).
     //    plain-app URL-encodes the filename for both the legacy
@@ -132,12 +131,11 @@ pub(super) async fn serve_file<W: AsyncWrite + Unpin>(
     //    seeking; plain-app gets it implicitly via Ktor's `respondFile`,
     //    the local server has to handle it explicitly. Only single-range
     //    requests are honored; multi-range falls through to a full 200.
-    if !range_header.is_empty() {
-        if let Some((start, end)) = parse_range_header(range_header, file_size) {
-            serve_partial(wr, &resolved, start, end, file_size, &mime, &disposition).await;
+    if !range_header.is_empty()
+        && let Some((start, end)) = parse_range_header(range_header, file_size) {
+            serve_partial(wr, &resolved, start, end, file_size, mime, &disposition).await;
             return;
         }
-    }
 
     // 9. Full response (200) with `accept-ranges: bytes` so clients know
     //    they can issue `Range` requests on subsequent calls.

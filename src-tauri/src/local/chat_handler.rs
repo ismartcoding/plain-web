@@ -255,16 +255,14 @@ fn to_peer_content(content: &str, token: &str) -> String {
         return content.to_string();
     };
     for item in items.iter_mut() {
-        if let Some(uri) = item.get("uri").and_then(|u| u.as_str()) {
-            if uri.starts_with("fid:") {
+        if let Some(uri) = item.get("uri").and_then(|u| u.as_str())
+            && uri.starts_with("fid:") {
                 let encrypted = make_file_id(uri, token);
-                if !encrypted.is_empty() {
-                    if let Some(obj) = item.as_object_mut() {
+                if !encrypted.is_empty()
+                    && let Some(obj) = item.as_object_mut() {
                         obj.insert("uri".to_string(), Value::String(format!("fsid:{encrypted}")));
                     }
-                }
             }
-        }
     }
     v.to_string()
 }
@@ -388,7 +386,7 @@ fn spawn_channel_delivery(app: &Arc<AppCtx>, chat: &DChat) {
                 let d = build_status_data_json(&results);
                 (s, d)
             }
-            SendResult::NoLeader | SendResult::LeaderPeerMissing(_) => {
+            SendResult::NoLeader | SendResult::LeaderPeerMissing(()) => {
                 // No reachable leader/member means stale peer addresses —
                 // trigger an mDNS browse so peers' IP/port refresh.
                 discover_manager.browse();
@@ -435,14 +433,13 @@ fn spawn_link_preview_refresh(app: &Arc<AppCtx>, chat_id: &str, content: &str) {
         let Some(new_content) = link_preview::ensure_link_previews(&db, &data_dir, &content).await else {
             return;
         };
-        if db.update_chat_content(&chat_id, &new_content) {
-            if let Some(updated) = db.get_chat_by_id(&chat_id) {
+        if db.update_chat_content(&chat_id, &new_content)
+            && let Some(updated) = db.get_chat_by_id(&chat_id) {
                 let _ = event_tx.send(WsEvent {
                     event_type: WS_MESSAGE_UPDATED,
                     payload: json!([chat_to_json(&updated, &token)]).to_string(),
                 });
             }
-        }
     });
 }
 
