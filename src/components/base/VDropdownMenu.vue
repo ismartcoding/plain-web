@@ -133,9 +133,10 @@ onUnmounted(() => {
   display: none;
   position: fixed;
   background: var(--md-sys-color-surface-container);
-  border-radius: 4px;
-  box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 6px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14), 0 8px 24px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 4px;
   z-index: 1000;
   white-space: nowrap;
   min-width: 120px;

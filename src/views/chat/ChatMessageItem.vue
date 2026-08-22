@@ -29,7 +29,7 @@
         <i-material-symbols:error-outline-rounded class="status-header-icon" />
         <span>{{ $t('delivery_status') }}</span>
       </div>
-      <div v-if="deliveryResults.length > 0" class="status-body">
+      <div v-if="data.channelId && deliveryResults.length > 0" class="status-body">
         <div v-if="deliveryResults.length > 1" class="status-summary">
           {{ $t('delivery_status_summary', { delivered: deliveredCount, total: deliveryResults.length }) }}
         </div>

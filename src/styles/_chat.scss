@@ -91,11 +91,11 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px;
-  font-size: 0.75rem;
+  padding: 6px 12px 2px;
+  font-size: 0.72rem;
   font-weight: 600;
+  letter-spacing: 0.02em;
   color: var(--md-sys-color-on-surface-variant);
-  border-bottom: 1px solid var(--md-sys-color-outline-variant);
 
   .status-header-icon {
     width: 14px;
@@ -106,12 +106,12 @@
 }
 
 .status-body {
-  padding: 4px 0;
+  padding: 2px 0;
   max-width: 280px;
 }
 
 .status-summary {
-  padding: 6px 16px 2px;
+  padding: 4px 16px 0;
   font-size: 0.8rem;
   color: var(--md-sys-color-on-surface-variant);
 }

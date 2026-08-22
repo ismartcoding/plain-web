@@ -145,15 +145,19 @@ pub(crate) fn delete_chat_items(app: &Arc<AppCtx>, query: String) -> bool {
 pub(crate) fn retry_chat_item(app: &Arc<AppCtx>, id: String) -> Option<ChatItem> {
     let chat = app.db.get_chat_by_id(&id)?;
 
-    let _ = app.db.update_chat_status(&id, ChatStatus::Pending);
+    // Broadcast with the updated (pending) row so the UI switches to
+    // "sending" immediately — the stale object still carries FAILED.
+    let updated = app.db.update_chat_status(&id, ChatStatus::Pending)?;
     let _ = app.event_tx.send(WsEvent {
         event_type: WS_MESSAGE_UPDATED,
-        payload: json!([chat_to_json(&chat, &app.token)]).to_string(),
+        payload: json!([chat_to_json(&updated, &app.token)]).to_string(),
     });
 
     spawn_delivery(app, &chat);
 
-    app.db.get_chat_by_id(&id).map(|u| ChatItem::with_data(u, &app.token))
+    app.db
+        .get_chat_by_id(&id)
+        .map(|u| ChatItem::with_data(u, &app.token))
 }
 
 /// Persist an incoming chat item from a peer and broadcast
