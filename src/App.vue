@@ -17,6 +17,7 @@
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useAppSocket } from '@/hooks/app-socket'
 import { openWindow, setWindowDeviceName } from '@/lib/api/tauri-window'
+import { updateDocumentTitle } from '@/plugins/router'
 import { loginPeers, peerHost } from '@/lib/device/login-peers'
 import { getRemoteClientId } from '@/lib/device/client-id'
 import { isLocalMode } from '@/lib/device/local-mode'
@@ -55,6 +56,7 @@ watch(
       ? (app.value?.deviceName || 'PlainApp')
       : (session?.name || (session ? peerHost(session) : '') || 'PlainApp')
     setWindowDeviceName(name)
+    updateDocumentTitle()
   },
   { immediate: true },
 )

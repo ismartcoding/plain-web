@@ -5,6 +5,7 @@ import i18n from '@/plugins/i18n'
 import { getCurrentAuthToken } from '@/lib/device/current'
 import { isLocalMode, isLocalModeAllowed, isLocalRouteGroup } from '@/lib/device/local-mode'
 import { useMainStore } from '@/stores/main'
+import { useTempStore } from '@/stores/temp'
 import { findLoginPeer } from '@/lib/device/login-peers'
 import { getRemoteClientId } from '@/lib/device/client-id'
 
@@ -337,18 +338,27 @@ router.beforeEach(async (to, from) => {
   }, 100)
 })
 
-router.afterEach((to, from) => {
-  // Dynamic page title
-  const group = (to.meta.group as string) || ''
+export function updateDocumentTitle(): void {
+  const group = (router.currentRoute.value.meta.group as string) || ''
   const titleKey = `page_title.${group}`
   const title = group ? String((i18n.global as any).t(titleKey)) : ''
   const base = title && title !== titleKey ? `${title} - PlainApp` : 'PlainApp'
-  const deviceName = findLoginPeer(getRemoteClientId())?.name || ''
+  const deviceName = useTempStore().app?.deviceName
+    || findLoginPeer(getRemoteClientId())?.name
+    || ''
   document.title = deviceName ? `${deviceName} - ${base}` : base
+}
+
+router.afterEach((to, from) => {
+  // Dynamic page title
+  updateDocumentTitle()
 
   // Sync tabs in Tauri mode
   if (__IS_TAURI__) {
     const mainStore = useMainStore()
+    const group = (to.meta.group as string) || ''
+    const titleKey = `page_title.${group}`
+    const title = group ? String((i18n.global as any).t(titleKey)) : ''
     if (group && group !== 'home') {
       mainStore.syncRouteTab(group, title && title !== titleKey ? title : group, to.fullPath)
     } else {

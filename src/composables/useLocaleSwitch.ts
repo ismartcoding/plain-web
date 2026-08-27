@@ -4,6 +4,7 @@ import { loadLocaleMessages, SUPPORTED_LOCALES } from '@/plugins/i18n'
 import { setLocale as setTimeagoLocale } from '@/lib/timeago'
 import { set as prefsSet } from '@/lib/prefs'
 import { applyMenuLabels } from '@/lib/app-menu'
+import { updateDocumentTitle } from '@/plugins/router'
 
 /**
  * Locale switcher.
@@ -31,7 +32,7 @@ export function useLocaleSwitch() {
       await Promise.all([loadLocaleMessages(code), setTimeagoLocale(code)])
       locale.value = code
       prefsSet('locale', code)
-      document.title = 'PlainApp'
+      updateDocumentTitle()
       applyMenuLabels()
     } finally {
       switchingLocale.value = ''
