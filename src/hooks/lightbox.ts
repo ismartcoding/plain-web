@@ -306,7 +306,9 @@ export function useLightboxNavigation(
     setTimeout(() => {
       const type = current.value?.type ?? ''
       if (type && !tagsMap.has(type)) loadTags()
-      loadInfo()
+      // Read-only guest lightboxes (shared links) have no authenticated
+      // session; firing fileInfo would 401 and reload the whole page.
+      if (!tempStore.lightbox.readOnly) loadInfo()
     }, 0)
 
     preloadAdjacentImages(newIndex)
