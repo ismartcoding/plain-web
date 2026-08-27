@@ -28,7 +28,7 @@
       <div v-else-if="state === 'error'" class="share-center share-message">
         <h3>{{ errorTitle }}</h3>
         <p>{{ errorTip }}</p>
-        <v-outlined-button v-if="errorCode !== 'invalid_link'" @click="load">
+        <v-outlined-button v-if="errorCode !== 'invalid_link'" @click="load(currentPath)">
           <i-material-symbols:refresh-rounded /> {{ $t('retry') }}
         </v-outlined-button>
       </div>
@@ -71,174 +71,25 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 import { formatFileSize, formatDateTime } from '@/lib/format'
-import { download, getFileExtension } from '@/lib/api/file'
-import { canView } from '@/lib/file'
-import type { ISource } from '@/components/lightbox/types'
-import { useOpenMedia } from '@/hooks/open-media'
-import { useFileOpen } from '@/hooks/file-open'
-import { openUrl } from '@/lib/browser'
-import {
-  guestFetch,
-  getSharedDirUrl,
-  getSharedFileId,
-  getSharedFileUrl,
-  sharedTokenToKey,
-  sharedInfoGQL,
-  type SharedFile,
-  type SharedInfo,
-} from '@/lib/api/guest'
-
-type ErrorCode =
-  | 'invalid_link'
-  | 'unauthorized'
-  | 'forbidden'
-  | 'expired'
-  | 'not_found'
-  | 'password_required'
-  | 'network'
-  | 'error'
+import { useShareData } from './hooks/useShareData'
+import { useShareNavigation } from './hooks/useShareNavigation'
+import { useShareActions } from './hooks/useShareActions'
 
 const route = useRoute()
-const { t } = useI18n()
 
 const sharedId = computed(() => String(route.params.sharedId || ''))
 const sharedToken = computed(() => route.hash.replace(/^#/, ''))
 
-const state = ref<'loading' | 'error' | 'ready'>('loading')
-const errorCode = ref<ErrorCode>('error')
-const info = ref<SharedInfo | null>(null)
-const entries = ref<SharedFile[]>([])
-const currentPath = ref('')
-const thumbErrorIds = ref<string[]>([])
-const extErrorIds = ref<string[]>([])
+const { state, errorCode, info, entries, shareTitle, errorTitle, errorTip, load } = useShareData(sharedId, sharedToken)
+const { currentPath, breadcrumbs, navigateTo, goUp } = useShareNavigation(load)
+const { thumbErrorIds, extErrorIds, entryExt, thumbSrc, onThumbError, onExtError, downloadEntry, onItemClick } =
+  useShareActions(sharedId, info, entries, navigateTo)
 
-const key = computed(() => (sharedToken.value ? sharedTokenToKey(sharedToken.value) : null))
-const shareTitle = computed(() => info.value?.name || t('shared_files'))
-
-const breadcrumbs = computed(() => {
-  if (!currentPath.value) return []
-  return currentPath.value.split('/').map((name, i) => ({
-    name,
-    path: currentPath.value.split('/').slice(0, i + 1).join('/'),
-  }))
-})
-
-const errorTitle = computed(() => t(`share_error_${errorCode.value}_title`))
-const errorTip = computed(() => t(`share_error_${errorCode.value}_tip`))
-
-function entryExt(entry: SharedFile): string {
-  return getFileExtension(entry.name)
-}
-
-function thumbSrc(entry: SharedFile): string {
-  return getSharedFileUrl(info.value!.urlToken, sharedId.value, entry.virtualPath, '&w=96&h=96')
-}
-
-function onThumbError(virtualPath: string) {
-  thumbErrorIds.value.push(virtualPath)
-}
-
-function onExtError(ext: string) {
-  extErrorIds.value.push(ext)
-}
-
-function mapGraphqlError(message: string): ErrorCode {
-  const m = message.toLowerCase()
-  if (m.includes('expired') || m.includes('inactive')) return 'expired'
-  if (m.includes('not found')) return 'not_found'
-  if (m.includes('not allowed')) return 'forbidden'
-  return 'error'
-}
-
-async function load() {
-  if (!key.value) {
-    errorCode.value = 'invalid_link'
-    state.value = 'error'
-    return
-  }
-  state.value = 'loading'
-  try {
-    const result = await guestFetch<{ sharedInfo: SharedInfo }>(
-      sharedId.value,
-      key.value,
-      sharedInfoGQL,
-      { virtualPath: currentPath.value || null },
-    )
-    if (result.errors?.length) {
-      errorCode.value = mapGraphqlError(result.errors[0].message)
-      state.value = 'error'
-      return
-    }
-    info.value = result.data.sharedInfo
-    if (info.value.requiresPassword) {
-      errorCode.value = 'password_required'
-      state.value = 'error'
-      return
-    }
-    entries.value = info.value.entries
-    state.value = 'ready'
-  } catch (e: any) {
-    const msg = e?.message || ''
-    if (msg === 'unauthorized') errorCode.value = 'unauthorized'
-    else if (msg === 'forbidden') errorCode.value = 'forbidden'
-    else errorCode.value = 'network'
-    state.value = 'error'
-  }
-}
-
-function navigateTo(path: string) {
-  if (path === currentPath.value) return
-  currentPath.value = path
-  load()
-}
-
-function goUp() {
-  const parent = currentPath.value.substring(0, currentPath.value.lastIndexOf('/'))
-  navigateTo(parent)
-}
-
-function fileUrl(entry: SharedFile, query: string = ''): string {
-  return getSharedFileUrl(info.value!.urlToken, sharedId.value, entry.virtualPath, query)
-}
-
-const { open: openMedia } = useOpenMedia()
-
-function toSource(entry: SharedFile): ISource {
-  return { src: fileUrl(entry), path: entry.virtualPath, name: entry.name, size: entry.size, duration: 0 }
-}
-
-const { openFile } = useFileOpen<SharedFile>({
-  items: entries,
-  openTextFile: (entry) => {
-    const fileId = getSharedFileId(info.value!.urlToken, sharedId.value, entry.virtualPath)
-    openUrl(`/text-file?id=${encodeURIComponent(fileId)}&sid=${encodeURIComponent(sharedId.value)}`)
-  },
-  openBrowserFile: (entry) => window.open(fileUrl(entry), '_blank', 'noopener'),
-  viewMedia: (list, f) => {
-    const media = list.filter((it) => !it.isDir && canView(it.name)).map(toSource)
-    openMedia(Math.max(0, media.findIndex((s) => s.path === f.virtualPath)), media, true)
-  },
-  download: downloadEntry,
-})
-
-function onItemClick(entry: SharedFile) {
-  if (entry.isDir) navigateTo(entry.virtualPath)
-  else openFile(entry)
-}
-
-function downloadEntry(entry: SharedFile) {
-  const url = entry.isDir
-    ? getSharedDirUrl(info.value!.urlToken, sharedId.value, entry.virtualPath)
-    : fileUrl(entry, '&dl=1')
-  download(url, entry.isDir ? `${entry.name}.zip` : entry.name)
-}
-
-onMounted(load)
-watch(() => [sharedId.value, sharedToken.value], load)
+onMounted(() => load(currentPath.value))
+watch(() => [sharedId.value, sharedToken.value], () => load(currentPath.value))
 </script>
 
 <style lang="scss" scoped>
