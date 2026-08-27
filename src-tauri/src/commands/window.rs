@@ -61,6 +61,7 @@ pub fn create_window(app: &AppHandle, path: String) {
 
 /// Open the About window at "/about". Existing window is focused instead.
 /// The view runs the update check automatically on mount.
+#[cfg(target_os = "macos")]
 pub fn open_about(app: &AppHandle) {
     let label = "about";
     if let Some(win) = app.get_webview_window(label) {

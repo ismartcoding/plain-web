@@ -6,10 +6,10 @@
 //! Each listener binds the user-configured port stored in `prefs` (default
 //! 8080 / 8443, matching plain-app's `HttpPortPreference` / `HttpsPortPreference`).
 //! On conflict it walks the candidate lists [`HTTP_PORTS`] / [`HTTPS_PORTS`]
-//! starting from the configured port and binds the first free one, so the app
-//! keeps running instead of crashing. The bound port is recorded in
-//! `LocalServerState` so downstream consumers (pairing, discovery, GraphQL)
-//! see the actual value.
+//! starting from the configured port and binds the first free one. If every
+//! fixed candidate is occupied, it asks the OS for a free port so the app can
+//! keep running. The bound port is recorded in `LocalServerState` so downstream
+//! consumers (pairing, discovery, GraphQL) see the actual value.
 //!
 //! Per-connection dispatch lives in [`plain_conn`] (HTTP/WS) and
 //! [`tls_conn`] (HTTPS/WSS); the listener loops here only accept and spawn.
@@ -316,18 +316,30 @@ pub fn restart_server(state: tauri::State<'_, LocalServerState>) -> Result<(), S
 
 // ── TCP listener binding ──────────────────────────────────────────────────────
 
-/// Bind the exact port on 0.0.0.0. Also probes 127.0.0.1 to catch the macOS
-/// coexistence quirk where 0.0.0.0 binds but loopback doesn't. Returns the
-/// wildcard listener on success, or the underlying io::Error on failure.
+/// On macOS, hold a loopback probe while acquiring the wildcard listener to
+/// catch its address-coexistence quirk. Keeping the probe alive also makes an
+/// OS-assigned port request use the same port for both binds.
+#[cfg(target_os = "macos")]
 fn bind_listener(port: u16) -> std::io::Result<StdTcpListener> {
-    let wildcard = StdTcpListener::bind(format!("0.0.0.0:{port}"))?;
-    match StdTcpListener::bind(format!("127.0.0.1:{port}")) {
-        Ok(_) => Ok(wildcard),
-        Err(e) => {
-            log::debug!("local_server: port {port} loopback probe failed: {e}");
-            Err(e)
-        }
-    }
+    let loopback_probe = StdTcpListener::bind((std::net::Ipv4Addr::LOCALHOST, port))?;
+    let port = loopback_probe.local_addr()?.port();
+    let wildcard = StdTcpListener::bind((std::net::Ipv4Addr::UNSPECIFIED, port))?;
+    drop(loopback_probe);
+    Ok(wildcard)
+}
+
+/// On other platforms, the wildcard listener already owns loopback, so a
+/// second loopback bind would conflict with our own socket.
+#[cfg(not(target_os = "macos"))]
+fn bind_listener(port: u16) -> std::io::Result<StdTcpListener> {
+    StdTcpListener::bind((std::net::Ipv4Addr::UNSPECIFIED, port))
+}
+
+fn retryable_bind_error(error: &std::io::Error) -> bool {
+    matches!(
+        error.kind(),
+        std::io::ErrorKind::AddrInUse | std::io::ErrorKind::PermissionDenied
+    )
 }
 
 /// Candidate HTTP ports tried in order when the configured one is occupied,
@@ -337,31 +349,37 @@ const HTTP_PORTS: [u16; 10] = [8080, 8180, 8280, 8380, 8480, 8580, 8680, 8780, 8
 /// Candidate HTTPS ports tried in order when the configured one is occupied.
 const HTTPS_PORTS: [u16; 10] = [8043, 8143, 8243, 8343, 8443, 8543, 8643, 8743, 8843, 8943];
 
-/// Bind the configured port; on `AddrInUse` walk `candidates` starting from the
-/// configured port and bind the first free one. Keeps the app running instead
-/// of panicking when the preferred port is occupied.
+/// Bind the configured port; on an address conflict, walk `candidates` starting
+/// from the configured port and bind the first free one. If none are available,
+/// ask the OS for a free port so startup can continue.
 fn bind_listener_fallback(
     preferred: u16,
     candidates: &[u16],
 ) -> std::io::Result<StdTcpListener> {
-    let start = candidates
-        .iter()
-        .position(|&p| p == preferred)
-        .unwrap_or(0);
-    for i in 0..candidates.len() {
-        let port = candidates[(start + i) % candidates.len()];
-        match bind_listener(port) {
-            Ok(l) => return Ok(l),
-            Err(e) if e.kind() == std::io::ErrorKind::AddrInUse => {
-                log::warn!("local_server: port {port} is in use, trying next candidate");
+    let preferred_index = candidates.iter().position(|&p| p == preferred);
+    if preferred_index.is_none() {
+        match bind_listener(preferred) {
+            Ok(listener) => return Ok(listener),
+            Err(e) if retryable_bind_error(&e) => {
+                log::warn!("local_server: port {preferred} is unavailable, trying fixed candidates");
             }
             Err(e) => return Err(e),
         }
     }
-    Err(std::io::Error::new(
-        std::io::ErrorKind::AddrInUse,
-        "all candidate ports are in use",
-    ))
+
+    let start = preferred_index.unwrap_or(0);
+    for i in 0..candidates.len() {
+        let port = candidates[(start + i) % candidates.len()];
+        match bind_listener(port) {
+            Ok(l) => return Ok(l),
+            Err(e) if retryable_bind_error(&e) => {
+                log::warn!("local_server: port {port} is unavailable, trying next candidate");
+            }
+            Err(e) => return Err(e),
+        }
+    }
+    log::warn!("local_server: all fixed ports are unavailable, asking the OS for a free port");
+    bind_listener(0)
 }
 
 #[cfg(test)]
@@ -387,9 +405,17 @@ mod tests {
     #[test]
     fn bind_listener_succeeds_on_free_port() {
         let _guard = SERIAL.lock().unwrap();
-        let l = bind_listener(0).expect("bind :0 should always succeed");
-        let picked = l.local_addr().unwrap().port();
-        assert_ne!(picked, 0, "OS-assigned port should be non-zero");
+        let (probe_hold, free_port) = grab_port();
+        drop(probe_hold);
+        let listener = bind_listener(free_port).expect("known-free fixed port should bind");
+        assert_eq!(listener.local_addr().unwrap().port(), free_port);
+    }
+
+    #[test]
+    fn bind_listener_uses_os_assigned_port() {
+        let _guard = SERIAL.lock().unwrap();
+        let listener = bind_listener(0).expect("bind :0 should always succeed");
+        assert_ne!(listener.local_addr().unwrap().port(), 0);
     }
 
     #[test]
@@ -437,21 +463,46 @@ mod tests {
         let _guard = SERIAL.lock().unwrap();
         let (probe_hold, free_port) = grab_port();
         drop(probe_hold);
-        let l = bind_listener_fallback(free_port, &[free_port, free_port + 1])
+        let l = bind_listener_fallback(free_port, &[free_port])
             .expect("a free preferred port should be used");
         assert_eq!(l.local_addr().unwrap().port(), free_port);
     }
 
     #[test]
-    fn bind_listener_fallback_fails_when_all_candidates_taken() {
+    fn bind_listener_fallback_tries_preferred_port_outside_candidates() {
+        let _guard = SERIAL.lock().unwrap();
+        let (preferred_hold, preferred) = grab_port();
+        let (candidate_hold, candidate) = grab_port();
+        drop(preferred_hold);
+        drop(candidate_hold);
+        let listener = bind_listener_fallback(preferred, &[candidate])
+            .expect("a free custom preferred port should be used");
+        assert_eq!(listener.local_addr().unwrap().port(), preferred);
+    }
+
+    #[test]
+    fn bind_listener_fallback_uses_os_port_when_all_candidates_taken() {
         let _guard = SERIAL.lock().unwrap();
         let (a, pa) = grab_port();
         let (b, pb) = grab_port();
-        let err = bind_listener_fallback(pa, &[pa, pb]).unwrap_err();
-        assert_eq!(err.kind(), std::io::ErrorKind::AddrInUse);
+        let listener = bind_listener_fallback(pa, &[pa, pb])
+            .expect("OS-assigned fallback should keep the server running");
+        let picked = listener.local_addr().unwrap().port();
+        assert_ne!(picked, pa);
+        assert_ne!(picked, pb);
         drop(a);
         drop(b);
     }
+
+    #[test]
+    fn bind_listener_fallback_handles_empty_candidates() {
+        let _guard = SERIAL.lock().unwrap();
+        let (preferred_hold, preferred) = grab_port();
+        let listener = bind_listener_fallback(preferred, &[])
+            .expect("empty candidate list should fall back to an OS-assigned port");
+        let picked = listener.local_addr().unwrap().port();
+        assert_ne!(picked, 0);
+        assert_ne!(picked, preferred);
+        drop(preferred_hold);
+    }
 }
-
-

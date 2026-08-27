@@ -161,6 +161,7 @@ pub fn run() {
             commands::notification::send_macos_notification,
             commands::updater::get_app_info,
             commands::updater::check_for_updates,
+            #[cfg(target_os = "macos")]
             commands::macos_menu::set_menu_locale,
             commands::window::open_window,
             commands::window::set_window_device_name,
