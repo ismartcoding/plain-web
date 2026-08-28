@@ -316,10 +316,13 @@ pub fn restart_server(state: tauri::State<'_, LocalServerState>) -> Result<(), S
 
 // ── TCP listener binding ──────────────────────────────────────────────────────
 
-/// On macOS, hold a loopback probe while acquiring the wildcard listener to
-/// catch its address-coexistence quirk. Keeping the probe alive also makes an
-/// OS-assigned port request use the same port for both binds.
-#[cfg(target_os = "macos")]
+/// On macOS and Windows, hold a loopback probe while acquiring the wildcard
+/// listener to catch address-coexistence quirks: both platforms let a wildcard
+/// bind succeed alongside an already-bound loopback address on the same port,
+/// leaving 127.0.0.1 traffic going to the other socket. Keeping the probe
+/// alive also makes an OS-assigned port request use the same port for both
+/// binds.
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 fn bind_listener(port: u16) -> std::io::Result<StdTcpListener> {
     let loopback_probe = StdTcpListener::bind((std::net::Ipv4Addr::LOCALHOST, port))?;
     let port = loopback_probe.local_addr()?.port();
@@ -330,7 +333,7 @@ fn bind_listener(port: u16) -> std::io::Result<StdTcpListener> {
 
 /// On other platforms, the wildcard listener already owns loopback, so a
 /// second loopback bind would conflict with our own socket.
-#[cfg(not(target_os = "macos"))]
+#[cfg(not(any(target_os = "macos", target_os = "windows")))]
 fn bind_listener(port: u16) -> std::io::Result<StdTcpListener> {
     StdTcpListener::bind((std::net::Ipv4Addr::UNSPECIFIED, port))
 }
