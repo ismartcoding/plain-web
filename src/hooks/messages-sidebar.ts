@@ -17,6 +17,7 @@ import { useSelectable } from '@/hooks/list'
 import type { IData } from '@/lib/interfaces'
 import type { Ref } from 'vue'
 import emitter from '@/plugins/eventbus'
+import { createSmsNotificationRefresh } from '@/hooks/sms-notification-refresh'
 
 export const sortItems = [
   { label: 'sort_by.date_desc', value: 'DATE_DESC' },
@@ -108,6 +109,7 @@ export function useMessagesSidebar() {
   }
 
   const smsSentHandler = () => { setTimeout(() => applyRouteQuery(), 1500) }
+  const notificationRefresh = createSmsNotificationRefresh(applyRouteQuery)
 
   watch(() => route.query.q, () => { if (isActive.value && !isArchived.value) applyRouteQuery() })
 
@@ -116,11 +118,13 @@ export function useMessagesSidebar() {
     loadContacts()
     applyRouteQuery()
     emitter.on('sms_sent' as any, smsSentHandler)
+    notificationRefresh.subscribe()
   })
 
   onDeactivated(() => {
     isActive.value = false
     emitter.off('sms_sent' as any, smsSentHandler)
+    notificationRefresh.unsubscribe()
   })
 
   return {
