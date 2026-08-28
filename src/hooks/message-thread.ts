@@ -3,13 +3,13 @@ import toast from '@/components/toaster'
 import { initLazyQuery, smsGQL } from '@/lib/api/query'
 import { useI18n } from 'vue-i18n'
 import { buildQuery } from '@/lib/search'
-import type { IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IMessage, INotification } from '@/lib/interfaces'
+import type { IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IMessage } from '@/lib/interfaces'
 import { useTags } from '@/hooks/tags'
 import { useContactName } from '@/hooks/contacts'
 import { DataType } from '@/lib/data'
 import emitter from '@/plugins/eventbus'
 import { createPendingSms, createPendingMms } from '@/lib/message-helpers'
-import { shouldTriggerRefresh } from '@/lib/sms-whitelist'
+import { createSmsNotificationRefresh } from '@/hooks/sms-notification-refresh'
 
 const PAGE_SIZE = 100
 
@@ -120,21 +120,19 @@ export function useMessageThread(threadId: Ref<string>, chatScrollRef: Ref<HTMLE
 
   const onItemsTagsUpdated = (e: IItemsTagsUpdatedEvent) => { if (e.type === DataType.SMS) fetch() }
   const onItemTagsUpdated = (e: IItemTagsUpdatedEvent) => { if (e.type === DataType.SMS) fetch() }
-  const onNotificationCreated = (data: INotification) => { if (shouldTriggerRefresh(data)) fetch() }
+  const notificationRefresh = createSmsNotificationRefresh(fetch)
 
   function subscribe() {
     fetchTags(); loadContacts()
     emitter.on('item_tags_updated', onItemTagsUpdated)
     emitter.on('items_tags_updated', onItemsTagsUpdated)
-    emitter.on('notification_created', onNotificationCreated)
-    emitter.on('notification_updated', onNotificationCreated)
+    notificationRefresh.subscribe()
   }
 
   function unsubscribe() {
     emitter.off('item_tags_updated', onItemTagsUpdated)
     emitter.off('items_tags_updated', onItemsTagsUpdated)
-    emitter.off('notification_created', onNotificationCreated)
-    emitter.off('notification_updated', onNotificationCreated)
+    notificationRefresh.unsubscribe()
   }
 
   return {
