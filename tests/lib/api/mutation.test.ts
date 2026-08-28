@@ -59,7 +59,11 @@ describe('initMutation', () => {
     mockGqlFetch.mockResolvedValue({ data: { created: true } })
     const { mutate } = initMutation({ document: 'mutation createItem($name: String!) { createItem(name: $name) }' })
     await mutate({ name: 'hello' })
-    expect(mockGqlFetch).toHaveBeenCalledWith('mutation createItem($name: String!) { createItem(name: $name) }', { name: 'hello' })
+    expect(mockGqlFetch).toHaveBeenCalledWith(
+      'mutation createItem($name: String!) { createItem(name: $name) }',
+      { name: 'hello' },
+      { dedupe: false },
+    )
   })
 
   it('calls onDone callbacks with the result on success', async () => {

@@ -102,4 +102,57 @@ describe('SMS notification refresh', () => {
     expect(refreshThread).toHaveBeenCalledTimes(1)
     expect(refreshSidebar).toHaveBeenCalledTimes(1)
   })
+
+  it('refreshes for provider changes and successful WebSocket reconnects', () => {
+    vi.useFakeTimers()
+    const refresh = vi.fn()
+    subscribe(refresh)
+
+    emitter.emit('sms_changed', { uris: ['content://sms/1'] })
+    emitter.emit('app_socket_connection_changed', true)
+    vi.advanceTimersByTime(SMS_NOTIFICATION_REFRESH_DELAY_MS)
+
+    expect(refresh).toHaveBeenCalledTimes(2)
+  })
+
+  it('reloads contacts only on reconnect, not on notification or provider churn', () => {
+    vi.useFakeTimers()
+    const refresh = vi.fn()
+    const reloadContacts = vi.fn()
+    const subscription = createSmsNotificationRefresh(refresh, reloadContacts)
+    subscription.subscribe()
+    cleanups.push(subscription.unsubscribe)
+
+    emitter.emit('notification_created', notification('com.android.mms'))
+    vi.advanceTimersByTime(SMS_NOTIFICATION_REFRESH_DELAY_MS)
+    emitter.emit('sms_changed', { uris: ['content://sms/1'] })
+    vi.advanceTimersByTime(SMS_NOTIFICATION_REFRESH_DELAY_MS)
+    expect(refresh).toHaveBeenCalledTimes(2)
+    expect(reloadContacts).not.toHaveBeenCalled()
+
+    emitter.emit('app_socket_connection_changed', true)
+    expect(reloadContacts).toHaveBeenCalledOnce()
+  })
+
+  it('ignores WebSocket disconnect events', () => {
+    vi.useFakeTimers()
+    const refresh = vi.fn()
+    subscribe(refresh)
+
+    emitter.emit('app_socket_connection_changed', false)
+    vi.advanceTimersByTime(SMS_NOTIFICATION_REFRESH_DELAY_MS)
+
+    expect(refresh).not.toHaveBeenCalled()
+  })
+
+  it('refreshes when the phone confirms an MMS send', () => {
+    vi.useFakeTimers()
+    const refresh = vi.fn()
+    subscribe(refresh)
+
+    emitter.emit('mms_sent', 'pending-mms-1')
+    vi.advanceTimersByTime(SMS_NOTIFICATION_REFRESH_DELAY_MS)
+
+    expect(refresh).toHaveBeenCalledOnce()
+  })
 })

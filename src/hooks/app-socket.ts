@@ -49,6 +49,9 @@ const EventType: { [key: number]: string } = {
   32: 'screen_mirror_video_codec',
   33: 'screen_mirror_audio',
   34: 'image_editor_update',
+  35: 'sms_changed',
+  36: 'sms_send_result',
+  37: 'mms_send_result',
 }
 
 // Screen mirror binary frames (H.264 NAL / Opus) and image editor Yjs updates

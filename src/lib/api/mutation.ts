@@ -29,7 +29,7 @@ export function initMutation(params: InitMutationParams, handleError = true) {
   async function mutate(variables?: any): Promise<any> {
     loading.value = true
     try {
-      const r = await gqlFetch(params.document, variables)
+      const r = await gqlFetch(params.document, variables, { dedupe: false })
       if (r.errors?.length) {
         const message = r.errors[0].message
         if (handleError) emitter.emit('toast', message)
@@ -507,6 +507,12 @@ export const setClipGQL = `
 export const sendSmsGQL = `
   mutation sendSms($number: String!, $body: String!, $subscriptionId: Int!) {
     sendSms(number: $number, body: $body, subscriptionId: $subscriptionId)
+  }
+`
+
+export const sendSmsWithClientIdGQL = `
+  mutation sendSms($number: String!, $body: String!, $subscriptionId: Int!, $clientId: String!) {
+    sendSms(number: $number, body: $body, subscriptionId: $subscriptionId, clientId: $clientId)
   }
 `
 

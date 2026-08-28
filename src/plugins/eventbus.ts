@@ -1,4 +1,4 @@
-import type { IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IFileDeletedEvent, IFileRenamedEvent, IMediaItemsActionedEvent, INotesActionedEvent } from '@/lib/interfaces'
+import type { IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IFileDeletedEvent, IFileRenamedEvent, IMediaItemsActionedEvent, INotesActionedEvent, ISmsChangedEvent, ISmsSendResultEvent, IMmsSendResultEvent } from '@/lib/interfaces'
 import type { PairingRequest, PairingResult } from '@/lib/pairing-types'
 import type { IUploadItem } from '@/stores/temp'
 import type { ScreenMirrorVideoCodec } from '@/views/screen-mirror/screen-mirror-pipeline'
@@ -47,6 +47,9 @@ type Events = {
   sms_sent: undefined
   image_search_updated: any
   mms_sent: string
+  sms_changed: ISmsChangedEvent | null
+  sms_send_result: ISmsSendResultEvent
+  mms_send_result: IMmsSendResultEvent
   pairing_request_received: PairingRequest
   pairing_success: PairingResult
   pairing_failed: PairingResult

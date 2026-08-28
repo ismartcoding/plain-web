@@ -28,7 +28,7 @@
       :total-pending-size="send.totalPendingSize.value"
       :has-large-non-image-file="send.hasLargeNonImageFile.value"
       :warn-size="send.MMS_WARN_SIZE"
-      :send-disabled="send.sendLoading.value || send.mmsUploading.value"
+      :send-disabled="send.sendDisabled.value || !sendAddress"
       :sims="send.sims.value"
       :selected-sim-id="send.selectedSimId.value"
       @send="onSend"
@@ -55,23 +55,116 @@ import { useMessageSend } from '@/hooks/message-send'
 import MessageChatHeader from '@/views/messages/MessageChatHeader.vue'
 import MessageChatList from '@/views/messages/MessageChatList.vue'
 import MessageChatInput from '@/views/messages/MessageChatInput.vue'
-import { initMutation, archiveConversationGQL } from '@/lib/api/mutation'
+import { useSmsStore } from '@/stores/sms'
+import emitter from '@/plugins/eventbus'
+import type { IMmsSendResultEvent, ISmsSendResultEvent } from '@/lib/interfaces'
+import { resolveConversationSendAddress } from '@/lib/sms-conversation-sync'
+import {
+  initLazyQuery,
+  smsConversationsGQL,
+  smsConversationsWithAddressesGQL,
+  type QueryResponseContext,
+} from '@/lib/api/query'
+import { buildQuery } from '@/lib/search'
+import type { IMessageConversation } from '@/lib/interfaces'
+import {
+  subscribeMmsSendResults,
+  subscribeSmsSendResults,
+  takeMmsSendResult,
+  takeSmsSendResult,
+} from '@/lib/sms-result-ledger'
 
 const mainStore = useMainStore()
 const { app, urlTokenKey } = storeToRefs(useTempStore())
 const route = useRoute()
+const smsStore = useSmsStore()
+const { conversations, participantFieldsSupported } = storeToRefs(smsStore)
 const threadId = ref('')
 const chatScrollRef = ref<HTMLElement>()
 const isArchived = computed(() => route.path.startsWith('/messages/archived'))
 
-const thread = useMessageThread(threadId, chatScrollRef, isArchived)
+const directConversation = ref<IMessageConversation>()
+const selectedConversation = computed(() => {
+  if (directConversation.value?.id === threadId.value) return directConversation.value
+  return conversations.value.find((item) => item.id === threadId.value)
+})
+const thread = useMessageThread(threadId, chatScrollRef, isArchived, selectedConversation)
+
+const sendAddress = computed(() => {
+  return resolveConversationSendAddress(
+    selectedConversation.value,
+    thread.items.value.map((item) => item.address),
+    participantFieldsSupported.value === false,
+  )
+})
+
+type ConversationLookupMeta = { threadId: string; enhanced: boolean }
+
+function isParticipantSchemaError(error: string): boolean {
+  const value = error.toLowerCase()
+  return value.includes('addresses') && (value.includes('field') || value.includes('validation'))
+}
+
+function handleConversationLookup(
+  data: { smsConversations: IMessageConversation[] },
+  error: string,
+  context?: QueryResponseContext,
+) {
+  const meta = context?.meta as ConversationLookupMeta | undefined
+  if (!meta || meta.threadId !== threadId.value) return
+  if (error) {
+    if (meta.enhanced && isParticipantSchemaError(error)) {
+      participantFieldsSupported.value = false
+      void legacyConversationLookup.fetch(context?.variables, {
+        force: true,
+        latest: true,
+        meta: { ...meta, enhanced: false },
+      })
+    }
+    return
+  }
+  if (meta.enhanced) participantFieldsSupported.value = true
+  directConversation.value = data?.smsConversations?.[0]
+}
+
+const enhancedConversationLookup = initLazyQuery({
+  handle: handleConversationLookup,
+  document: smsConversationsWithAddressesGQL,
+})
+const legacyConversationLookup = initLazyQuery({
+  handle: handleConversationLookup,
+  document: smsConversationsGQL,
+})
+
+function loadConversationMetadata(tid: string) {
+  directConversation.value = undefined
+  if (!tid) return
+  const current = conversations.value.find((item) => item.id === tid)
+  if (current && (current.addresses !== undefined || participantFieldsSupported.value === false)) return
+  const enhanced = participantFieldsSupported.value !== false
+  const request = enhanced ? enhancedConversationLookup : legacyConversationLookup
+  void request.fetch({
+    offset: 0,
+    limit: 1,
+    query: buildQuery([{ name: 'thread_id', op: '', value: tid }]),
+  }, {
+    force: true,
+    latest: true,
+    meta: { threadId: tid, enhanced } satisfies ConversationLookupMeta,
+  })
+}
 
 const send = useMessageSend(
   () => app.value.appDir,
   () => threadId.value,
-  () => thread.items.value[0]?.address || '',
+  () => sendAddress.value,
   {
-    onSmsSent: () => thread.refetchWithRetry(),
+    onSmsPending: (body, address) => thread.setPendingSms(body, address),
+    onSmsSent: (clientId) => {
+      thread.startPendingSmsDeadline(clientId)
+      thread.refetchWithRetry(clientId)
+    },
+    onSmsFailed: (clientId) => { thread.failPending(clientId) },
     onMmsSent: (id, body, address, attachments) => {
       thread.setPendingMms(id, body, address, attachments)
       thread.fetch()
@@ -79,22 +172,17 @@ const send = useMessageSend(
   },
 )
 
+thread.setTerminalHandlers({
+  onSmsFailure: (failed) => send.restoreDraft(failed.body),
+  onMmsResult: (pendingId, success) => send.settleMms(pendingId, success),
+})
+
 async function onSend() {
-  const body = send.messageBody.value.trim()
-  const address = thread.items.value[0]?.address
-  if (!address) return
-  // For plain SMS, set pending bubble before sending
-  if (send.pendingFiles.value.length === 0 && body) {
-    thread.setPendingSms(body, address)
-  }
   await send.sendMessage()
 }
 
-const { mutate: mutateArchiveConversation } = initMutation({ document: archiveConversationGQL })
-
-function archiveConversation() {
-  mutateArchiveConversation({ id: threadId.value, date: Date.now() })
-  backToList()
+async function archiveConversation() {
+  if (await smsStore.archiveConversations([threadId.value])) backToList()
 }
 
 function openExport() {
@@ -112,26 +200,66 @@ function backToList() {
 
 const isActive = ref(false)
 
-function applyRouteQuery() {
+function applyRouteQuery(force = false) {
   const tid = route.params.threadId
   const resolved = typeof tid === 'string' ? tid : Array.isArray(tid) ? tid[0] : ''
-  thread.applyThread(resolved)
+  loadConversationMetadata(resolved)
+  thread.applyThread(resolved, force)
+  drainQueuedResults()
 }
 
 watch(() => route.fullPath, () => {
-  if (isActive.value) applyRouteQuery()
+  if (isActive.value) applyRouteQuery(true)
 })
+
+let unsubscribeSmsResults: (() => void) | undefined
+let unsubscribeMmsResults: (() => void) | undefined
 
 onActivated(() => {
   isActive.value = true
-  thread.subscribe()
-  applyRouteQuery()
+  unsubscribeSmsResults = subscribeSmsSendResults(onSmsSendResult)
+  unsubscribeMmsResults = subscribeMmsSendResults(onMmsSendResult)
+  thread.subscribe(true)
+  emitter.on('mms_sent', onMmsSent)
+  applyRouteQuery(true)
 })
 
 onDeactivated(() => {
   isActive.value = false
   thread.unsubscribe()
+  emitter.off('mms_sent', onMmsSent)
+  unsubscribeSmsResults?.()
+  unsubscribeMmsResults?.()
+  unsubscribeSmsResults = undefined
+  unsubscribeMmsResults = undefined
 })
+
+function onSmsSendResult(result: ISmsSendResultEvent): boolean {
+  const outcome = thread.handleSmsSendResult(result)
+  if (outcome.failed) send.restoreDraft(outcome.failed.body)
+  return outcome.handled
+}
+
+function onMmsSendResult(result: IMmsSendResultEvent): boolean {
+  const outcome = thread.handleMmsSendResult(result)
+  if (outcome.handled) send.settleMms(result.pendingId, result.success)
+  return outcome.handled
+}
+
+function onMmsSent(pendingId: string) {
+  send.settleMms(pendingId, true)
+}
+
+function drainQueuedResults() {
+  for (const pending of [...thread.pendingSmsItems.value]) {
+    const result = takeSmsSendResult(pending.id)
+    if (result) onSmsSendResult(result)
+  }
+  for (const pending of [...thread.pendingMmsItems.value]) {
+    const result = takeMmsSendResult(pending.id)
+    if (result) onMmsSendResult(result)
+  }
+}
 </script>
 
 <style lang="scss">

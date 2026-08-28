@@ -1,13 +1,13 @@
-import { nextTick, onMounted, ref, computed, reactive, watch } from 'vue'
+import { nextTick, onMounted, onUnmounted, ref, computed, reactive, watch } from 'vue'
 import { popModal } from '@/components/modal'
-import { initMutation, sendSmsGQL, sendMmsGQL } from '@/lib/api/mutation'
+import { initMutation, sendMmsGQL } from '@/lib/api/mutation'
 import { initQuery, simsGQL } from '@/lib/api/query'
 import tapPhone from '@/plugins/tapphone'
 import { upload as uploadFile } from '@/lib/upload/upload'
 import { shortUUID } from '@/lib/strutil'
 import { getContactFullName } from '@/lib/contact/format'
 import type { IUploadItem } from '@/stores/temp'
-import type { IContact, ISim } from '@/lib/interfaces'
+import type { IContact, ISim, ISmsSendResultEvent } from '@/lib/interfaces'
 import emitter from '@/plugins/eventbus'
 import { useTempStore } from '@/stores/temp'
 import { useMainStore } from '@/stores/main'
@@ -16,6 +16,9 @@ import toast from '@/components/toaster'
 import { useI18n } from 'vue-i18n'
 import { formatFileSize } from '@/lib/format'
 import { useContactPicker } from '@/hooks/contact-picker'
+import { sendSmsWithCompatibility } from '@/lib/sms-send'
+import { discardMmsSendResult, subscribeSmsSendResults } from '@/lib/sms-result-ledger'
+import { createSmsSendDeadline } from '@/lib/sms-send-deadline'
 
 export const MMS_WARN_SIZE = 300 * 1024
 
@@ -83,12 +86,21 @@ export function useSendSms(initialNumber: string, initialBody: string) {
   }
 
   // Mutations
-  const { mutate, loading, onDone } = initMutation({ document: sendSmsGQL })
+  const loading = ref(false)
+  let pendingSmsClientId: string | null = null
+  let unsubscribeSmsResults: (() => void) | undefined
   const { mutate: mutateMms, loading: mmsLoading, onDone: onMmsDone } = initMutation({ document: sendMmsGQL })
+  const sendDeadline = createSmsSendDeadline((clientId) => {
+    if (pendingSmsClientId !== clientId) return
+    pendingSmsClientId = null
+    loading.value = false
+    toast(t('send_failed'), 'error')
+  })
 
   const cancel = () => popModal()
 
   async function submit() {
+    if (loading.value || mmsLoading.value || mmsUploading.value) return
     const numberOk = !!number.value?.trim()
     const bodyOk = !!body.value?.trim()
     errors.number = numberOk ? '' : 'valid.required'
@@ -101,14 +113,59 @@ export function useSendSms(initialNumber: string, initialBody: string) {
         mutateMms({ number: number.value, body: body.value || '', attachmentPaths, threadId: '' })
       } catch (e: any) { toast(e.message || t('upload_failed'), 'error') } finally { mmsUploading.value = false }
     } else if (numberOk && bodyOk) {
-      mutate({ number: number.value, body: body.value, subscriptionId: selectedSimId.value })
+      if (selectedSimId.value >= 0 && !sims.value.some((sim) => sim.subscriptionId === selectedSimId.value)) return
+      const clientId = `pending_sms_${shortUUID()}`
+      pendingSmsClientId = clientId
+      loading.value = true
+      const outcome = await sendSmsWithCompatibility({
+        number: number.value,
+        body: body.value,
+        subscriptionId: selectedSimId.value,
+        clientId,
+      })
+      if (!outcome.ok) {
+        if (pendingSmsClientId !== clientId) return
+        sendDeadline.cancel()
+        pendingSmsClientId = null
+        loading.value = false
+        toast(t(outcome.error || 'network_error'), 'error')
+        return
+      }
+      if (outcome.legacy && pendingSmsClientId === clientId) {
+        sendDeadline.cancel()
+        pendingSmsClientId = null
+        loading.value = false
+        emitter.emit('sms_sent')
+        popModal()
+      } else if (pendingSmsClientId === clientId) {
+        sendDeadline.start(clientId)
+      }
     }
   }
 
-  onDone(() => { emitter.emit('sms_sent'); popModal() })
-  onMmsDone(() => { tapPhone(t('confirm_mms_on_phone')); popModal() })
+  function onSmsSendResult(result: ISmsSendResultEvent): boolean {
+    if (!result.clientId || result.clientId !== pendingSmsClientId) return false
+    sendDeadline.settle(result.clientId)
+    pendingSmsClientId = null
+    loading.value = false
+    if (result.success) {
+      emitter.emit('sms_sent')
+      popModal()
+    } else {
+      toast(t('send_failed'), 'error')
+    }
+    return true
+  }
+
+  onMmsDone((result) => {
+    const pendingId = result?.data?.sendMms
+    if (typeof pendingId === 'string') discardMmsSendResult(pendingId)
+    tapPhone(t('confirm_mms_on_phone'))
+    popModal()
+  })
 
   onMounted(async () => {
+    unsubscribeSmsResults = subscribeSmsSendResults(onSmsSendResult)
     await nextTick()
     requestAnimationFrame(() => {
       setTimeout(() => {
@@ -118,6 +175,11 @@ export function useSendSms(initialNumber: string, initialBody: string) {
         } catch (error) { console.debug('Focus blocked:', error) }
       }, 100)
     })
+  })
+
+  onUnmounted(() => {
+    unsubscribeSmsResults?.()
+    sendDeadline.cancel()
   })
 
   return {

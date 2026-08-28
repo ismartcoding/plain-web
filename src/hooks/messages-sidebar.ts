@@ -35,7 +35,7 @@ export function useMessagesSidebar() {
   const loading = computed(() => isArchived.value ? smsStore.archivedLoading : smsStore.normalLoading)
 
   const sortMenuVisible = ref(false)
-  const { loadContacts, getDisplayName } = useContactName()
+  const { loadContacts, getConversationDisplayName } = useContactName()
 
   const sortedConversations = computed(() => {
     if (isArchived.value) return conversations.value
@@ -44,9 +44,9 @@ export function useMessagesSidebar() {
       case 'DATE_ASC':
         return list.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
       case 'NAME_ASC':
-        return sortByName(list, (c) => getDisplayName(c.address))
+        return sortByName(list, getConversationDisplayName)
       case 'NAME_DESC':
-        return sortByName(list, (c) => getDisplayName(c.address)).reverse()
+        return sortByName(list, getConversationDisplayName).reverse()
       default:
         return list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     }
@@ -99,24 +99,29 @@ export function useMessagesSidebar() {
     selectable.clearSelection()
   }
 
-  function applyRouteQuery() {
+  function applyRouteQuery(force = false) {
     if (isArchived.value) {
-      smsStore.fetchArchived()
+      smsStore.fetchArchived(force)
     } else {
       const q = decodeBase64(route.query.q?.toString() ?? '')
-      smsStore.fetchConversations(q)
+      smsStore.fetchConversations(q, true, force)
     }
+    smsStore.fetchCounts(force)
   }
 
-  const smsSentHandler = () => { setTimeout(() => applyRouteQuery(), 1500) }
-  const notificationRefresh = createSmsNotificationRefresh(applyRouteQuery)
+  let smsSentTimer: ReturnType<typeof setTimeout> | undefined
+  const smsSentHandler = () => {
+    if (smsSentTimer) clearTimeout(smsSentTimer)
+    smsSentTimer = setTimeout(() => { smsSentTimer = undefined; applyRouteQuery(true) }, 1500)
+  }
+  const notificationRefresh = createSmsNotificationRefresh(() => applyRouteQuery(true), () => loadContacts(true))
 
-  watch(() => route.query.q, () => { if (isActive.value && !isArchived.value) applyRouteQuery() })
+  watch(() => route.query.q, () => { if (isActive.value && !isArchived.value) applyRouteQuery(true) })
 
   onActivated(() => {
     isActive.value = true
-    loadContacts()
-    applyRouteQuery()
+    loadContacts(true)
+    applyRouteQuery(true)
     emitter.on('sms_sent' as any, smsSentHandler)
     notificationRefresh.subscribe()
   })
@@ -125,12 +130,14 @@ export function useMessagesSidebar() {
     isActive.value = false
     emitter.off('sms_sent' as any, smsSentHandler)
     notificationRefresh.unsubscribe()
+    if (smsSentTimer) clearTimeout(smsSentTimer)
+    smsSentTimer = undefined
   })
 
   return {
     mainStore, app, route, isArchived,
     sortMenuVisible, noMore, conversations, sortedConversations, loading,
-    getDisplayName, resizeWidth,
+    getConversationDisplayName, resizeWidth,
     loadMore, openConversation, openSendSms, openExport,
     archiveConversations, unarchiveConversations,
     ...selectable,

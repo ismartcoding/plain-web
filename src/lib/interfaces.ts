@@ -58,10 +58,28 @@ export interface IMessageAttachment {
 export interface IMessageConversation extends IData {
   id: string
   address: string
+  /** Participant-aware servers expose every resolved thread address. */
+  addresses?: string[]
   snippet: string
   date: string
   messageCount: number
   read: boolean
+}
+
+export interface ISmsChangedEvent {
+  uris: string[]
+}
+
+export interface ISmsSendResultEvent {
+  clientId?: string | null
+  success: boolean
+  resultCode?: number
+}
+
+export interface IMmsSendResultEvent {
+  pendingId: string
+  success: boolean
+  resultCode?: number
 }
 
 export interface IContactContentItem {

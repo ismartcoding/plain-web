@@ -138,7 +138,7 @@ describe('initLazyQuery', () => {
     const { fetch } = initLazyQuery({ document: 'query { x }', handle })
     await fetch()
     expect(mockGqlFetch).toHaveBeenCalledOnce()
-    expect(handle).toHaveBeenCalledWith({ x: 1 }, '')
+    expect(handle).toHaveBeenCalledWith({ x: 1 }, '', expect.any(Object))
   })
 
   it('passes variables provided to fetch()', async () => {
@@ -160,7 +160,7 @@ describe('initLazyQuery', () => {
     const handle = vi.fn()
     const { fetch } = initLazyQuery({ document: 'query { items }', handle })
     await fetch()
-    expect(handle).toHaveBeenCalledWith(null, 'bad input')
+    expect(handle).toHaveBeenCalledWith(null, 'bad input', expect.any(Object))
   })
 
   it('calls handle(undefined, "network_error") on non-GqlError exception', async () => {
@@ -168,7 +168,7 @@ describe('initLazyQuery', () => {
     const handle = vi.fn()
     const { fetch } = initLazyQuery({ document: 'query { items }', handle })
     await fetch()
-    expect(handle).toHaveBeenCalledWith(undefined, 'network_error')
+    expect(handle).toHaveBeenCalledWith(undefined, 'network_error', expect.any(Object))
   })
 
   it('loading is false after fetch completes', async () => {
@@ -184,5 +184,54 @@ describe('initLazyQuery', () => {
     await fetch()
     await fetch()
     expect(mockGqlFetch).toHaveBeenCalledTimes(2)
+  })
+
+  it('forces an invalidation request to bypass transport deduplication', async () => {
+    mockGqlFetch.mockResolvedValue({ data: { x: 1 } })
+    const { fetch } = initLazyQuery({ document: 'query { x }', handle: vi.fn() })
+
+    await fetch(undefined, { force: true })
+
+    expect(mockGqlFetch).toHaveBeenCalledWith('query { x }', undefined, { fresh: true })
+  })
+
+  it('ignores an older response when latest-only requests finish out of order', async () => {
+    let resolveOld!: (value: any) => void
+    let resolveNew!: (value: any) => void
+    mockGqlFetch
+      .mockImplementationOnce(() => new Promise((resolve) => { resolveOld = resolve }))
+      .mockImplementationOnce(() => new Promise((resolve) => { resolveNew = resolve }))
+    const handle = vi.fn()
+    const { fetch, result, loading } = initLazyQuery({ document: 'query { x }', handle })
+
+    const oldRequest = fetch({ version: 1 }, { latest: true })
+    const newRequest = fetch({ version: 2 }, { latest: true })
+    resolveNew({ data: { x: 'new' } })
+    await newRequest
+    expect(loading.value).toBe(false)
+    resolveOld({ data: { x: 'old' } })
+    await oldRequest
+
+    expect(handle).toHaveBeenCalledOnce()
+    expect(handle).toHaveBeenCalledWith({ x: 'new' }, '', expect.objectContaining({ variables: { version: 2 } }))
+    expect(result.value).toEqual({ x: 'new' })
+  })
+
+  it('does not let a regular request invalidate the latest-only generation', async () => {
+    let resolveLatest!: (value: any) => void
+    mockGqlFetch
+      .mockImplementationOnce(() => new Promise((resolve) => { resolveLatest = resolve }))
+      .mockResolvedValueOnce({ data: { x: 'regular' } })
+    const handle = vi.fn()
+    const { fetch } = initLazyQuery({ document: 'query { x }', handle })
+
+    const latest = fetch({ version: 1 }, { latest: true })
+    await fetch({ version: 2 })
+    resolveLatest({ data: { x: 'latest' } })
+    await latest
+
+    expect(handle).toHaveBeenLastCalledWith(
+      { x: 'latest' }, '', expect.objectContaining({ variables: { version: 1 } }),
+    )
   })
 })

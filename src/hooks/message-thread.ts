@@ -1,47 +1,72 @@
-import { computed, nextTick, ref, watch, type Ref } from 'vue'
+import { computed, nextTick, ref, type Ref } from 'vue'
 import toast from '@/components/toaster'
-import { initLazyQuery, smsGQL } from '@/lib/api/query'
+import { initLazyQuery, smsGQL, type QueryResponseContext } from '@/lib/api/query'
 import { useI18n } from 'vue-i18n'
 import { buildQuery } from '@/lib/search'
-import type { IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IMessage } from '@/lib/interfaces'
+import type { IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IMessage, IMessageConversation, IMmsSendResultEvent, ISmsSendResultEvent } from '@/lib/interfaces'
 import { useTags } from '@/hooks/tags'
 import { useContactName } from '@/hooks/contacts'
 import { DataType } from '@/lib/data'
 import emitter from '@/plugins/eventbus'
-import { createPendingSms, createPendingMms } from '@/lib/message-helpers'
+import { createPendingMms } from '@/lib/message-helpers'
 import { createSmsNotificationRefresh } from '@/hooks/sms-notification-refresh'
+import {
+  addPendingMms,
+  addPendingSms,
+  failPendingSms,
+  reconcilePendingSms,
+  settlePendingMms,
+  settlePendingSmsResult,
+  visiblePendingSms,
+} from '@/lib/sms-state-sync'
+import { getConversationAddresses } from '@/lib/contact/name-resolution'
+import { shortUUID } from '@/lib/strutil'
+import { createKeyedSmsSendDeadlines, SMS_SEND_RESULT_TIMEOUT_MS } from '@/lib/sms-send-deadline'
+import { takeMmsSendResult, takeSmsSendResult } from '@/lib/sms-result-ledger'
 
 const PAGE_SIZE = 100
+type ThreadRequestMeta = { threadId: string; mode: 'reset' | 'more' }
 
-export function useMessageThread(threadId: Ref<string>, chatScrollRef: Ref<HTMLElement | undefined>, isArchived?: Ref<boolean>) {
+export function useMessageThread(
+  threadId: Ref<string>,
+  chatScrollRef: Ref<HTMLElement | undefined>,
+  isArchived?: Ref<boolean>,
+  conversation?: Ref<IMessageConversation | undefined>,
+) {
   const { t } = useI18n()
-  const { loadContacts, getContactName, getDisplayName } = useContactName()
+  const { loadContacts, getDisplayName } = useContactName()
   const { tags, fetch: fetchTags } = useTags(DataType.SMS)
 
   const items = ref<IMessage[]>([])
   const detailLoading = ref(false)
-  const offset = ref(0)
   const noMoreOlder = ref(false)
   const loadingMore = ref(false)
-  const pendingMmsItem = ref<IMessage | null>(null)
-  const pendingSmsItem = ref<IMessage | null>(null)
-  let pendingSmsPreCount = 0
+  const pendingMmsItems = ref<IMessage[]>([])
+  const pendingSmsItems = ref<IMessage[]>([])
+  const retryTimers = new Map<string, Set<ReturnType<typeof setTimeout>>>()
+  const pendingMmsTimers = new Map<string, ReturnType<typeof setTimeout>>()
+  const successfulSmsResults = new Set<string>()
+  let onTerminalSmsFailure: ((failed: IMessage) => void) | undefined
+  let onTerminalMmsResult: ((pendingId: string, success: boolean) => void) | undefined
 
-  const contactName = computed(() => {
-    const address = items.value[0]?.address || ''
-    return address ? getDisplayName(address) : ''
+  const participantAddresses = computed(() => {
+    if (conversation?.value) return getConversationAddresses(conversation.value)
+    const address = [...items.value]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .find((item) => item.address)?.address
+    return address ? [address] : []
   })
 
-  const contactAddress = computed(() => {
-    const address = items.value[0]?.address || ''
-    return getContactName(address) ? address : ''
-  })
+  const contactName = computed(() => getDisplayName(participantAddresses.value))
+  const contactAddress = computed(() => participantAddresses.value.join(', '))
 
   const sortedItems = computed(() => {
     const base = [...items.value].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    const pending: IMessage[] = []
-    if (pendingSmsItem.value && !base.some((it) => it.id === pendingSmsItem.value?.id)) pending.push(pendingSmsItem.value)
-    if (pendingMmsItem.value && !base.some((it) => it.id === pendingMmsItem.value?.id)) pending.push(pendingMmsItem.value)
+    const pending = visiblePendingSms(pendingSmsItems.value, threadId.value)
+      .filter((operation) => !base.some((item) => item.id === operation.id))
+    pending.push(...pendingMmsItems.value.filter((item) =>
+      item.threadId === threadId.value && !base.some((confirmed) => confirmed.id === item.id),
+    ))
     return pending.length ? [...base, ...pending] : base
   })
 
@@ -50,93 +75,257 @@ export function useMessageThread(threadId: Ref<string>, chatScrollRef: Ref<HTMLE
   }
 
   const { loading, fetch: rawFetch } = initLazyQuery({
-    handle: (data: { sms: IMessage[]; smsCount: number }, error: string) => {
+    handle: (data: { sms: IMessage[]; smsCount: number }, error: string, context?: QueryResponseContext) => {
+      const meta = context?.meta as ThreadRequestMeta | undefined
+      if (!meta || meta.threadId !== threadId.value) return
       if (error) {
         detailLoading.value = false
         loadingMore.value = false
         toast(t(error), 'error')
-      } else if (data) {
-        if (loadingMore.value) {
-          const el = chatScrollRef.value
-          const prevScrollHeight = el?.scrollHeight ?? 0
-          const existingIds = new Set(items.value.map((i) => i.id))
-          items.value = [...data.sms.filter((i) => !existingIds.has(i.id)), ...items.value]
-          if (data.sms.length < PAGE_SIZE) noMoreOlder.value = true
-          loadingMore.value = false
-          nextTick(() => { if (el) el.scrollTop = el.scrollHeight - prevScrollHeight })
-        } else {
-          detailLoading.value = false
-          items.value = data.sms
-          if (data.sms.length < PAGE_SIZE) noMoreOlder.value = true
-          pendingSmsItem.value = null
-          scrollToBottom()
+        return
+      }
+      if (!data) return
+
+      if (meta.mode === 'more') {
+        const el = chatScrollRef.value
+        const prevScrollHeight = el?.scrollHeight ?? 0
+        const existingIds = new Set(items.value.map((item) => item.id))
+        items.value = [...data.sms.filter((item) => !existingIds.has(item.id)), ...items.value]
+        if (data.sms.length < PAGE_SIZE) noMoreOlder.value = true
+        loadingMore.value = false
+        nextTick(() => { if (el) el.scrollTop = el.scrollHeight - prevScrollHeight })
+      } else {
+        detailLoading.value = false
+        items.value = data.sms
+        noMoreOlder.value = data.sms.length < PAGE_SIZE
+        const previousPendingIds = new Set(pendingSmsItems.value.map((item) => item.id))
+        pendingSmsItems.value = reconcilePendingSms(pendingSmsItems.value, data.sms, meta.threadId)
+        const remainingPendingIds = new Set(pendingSmsItems.value.map((item) => item.id))
+        for (const pendingId of previousPendingIds) {
+          if (!remainingPendingIds.has(pendingId)) {
+            smsDeadlines.settle(pendingId)
+            cancelRetry(pendingId)
+            successfulSmsResults.delete(pendingId)
+          }
         }
+        scrollToBottom()
       }
     },
     document: smsGQL,
-    variables: () => {
-      const fields = [{ name: 'thread_id', op: '', value: threadId.value }]
-      if (isArchived?.value) fields.push({ name: 'archived', op: '', value: '1' })
-      return { offset: offset.value, limit: PAGE_SIZE, query: buildQuery(fields) }
-    },
   })
 
-  function fetch() { offset.value = 0; noMoreOlder.value = false; loadingMore.value = false; rawFetch() }
+  function variables(offset: number) {
+    const fields = [{ name: 'thread_id', op: '', value: threadId.value }]
+    if (isArchived?.value) fields.push({ name: 'archived', op: '', value: '1' })
+    return { offset, limit: PAGE_SIZE, query: buildQuery(fields) }
+  }
+
+  function fetch(force = false) {
+    if (!threadId.value) return Promise.resolve()
+    noMoreOlder.value = false
+    loadingMore.value = false
+    return rawFetch(variables(0), {
+      force,
+      latest: true,
+      meta: { threadId: threadId.value, mode: 'reset' } satisfies ThreadRequestMeta,
+    })
+  }
 
   function fetchMore() {
-    if (loadingMore.value || noMoreOlder.value || loading.value) return
-    loadingMore.value = true; offset.value = items.value.length; rawFetch()
+    if (loadingMore.value || noMoreOlder.value || loading.value || !threadId.value) return
+    loadingMore.value = true
+    return rawFetch(variables(items.value.length), {
+      latest: true,
+      meta: { threadId: threadId.value, mode: 'more' } satisfies ThreadRequestMeta,
+    })
   }
 
   function onScroll() {
     if (!chatScrollRef.value || loadingMore.value || noMoreOlder.value || loading.value) return
-    if (chatScrollRef.value.scrollTop < 200) fetchMore()
+    if (chatScrollRef.value.scrollTop < 200) void fetchMore()
   }
 
-  function refetchWithRetry() {
-    const prev = items.value.length; const delays = [1000, 2000, 3000]; let attempt = 0
-    function tryFetch() { fetch(); attempt++; if (attempt < delays.length) setTimeout(() => { if (items.value.length <= prev) tryFetch() }, delays[attempt]) }
-    setTimeout(tryFetch, delays[0])
+  function cancelRetry(clientId: string) {
+    retryTimers.get(clientId)?.forEach((timer) => clearTimeout(timer))
+    retryTimers.delete(clientId)
   }
 
-  function setPendingSms(body: string, address: string) {
-    pendingSmsPreCount = items.value.length
-    pendingSmsItem.value = createPendingSms(body, address, threadId.value)
+  function cancelRetries() {
+    for (const clientId of retryTimers.keys()) cancelRetry(clientId)
+  }
+
+  function refetchWithRetry(clientId: string) {
+    cancelRetry(clientId)
+    const delays = [1000, 2000, 3000]
+    const timers = new Set<ReturnType<typeof setTimeout>>()
+    retryTimers.set(clientId, timers)
+    const run = async (attempt: number) => {
+      if (!pendingSmsItems.value.some((item) => item.id === clientId)) return cancelRetry(clientId)
+      await fetch(true)
+      if (!pendingSmsItems.value.some((item) => item.id === clientId)) return cancelRetry(clientId)
+      if (attempt + 1 < delays.length) {
+        const timer = setTimeout(() => void run(attempt + 1), delays[attempt + 1])
+        timers.add(timer)
+      }
+    }
+    const timer = setTimeout(() => void run(0), delays[0])
+    timers.add(timer)
+  }
+
+  function setPendingSms(body: string, address: string, clientId = `pending_sms_${shortUUID()}`) {
+    successfulSmsResults.delete(clientId)
+    pendingSmsItems.value = addPendingSms(
+      pendingSmsItems.value,
+      clientId,
+      body,
+      address,
+      threadId.value,
+      new Date(),
+      items.value.map((item) => item.id),
+    )
     scrollToBottom()
+    return clientId
+  }
+
+  function startPendingSmsDeadline(clientId: string) {
+    if (!successfulSmsResults.has(clientId) && pendingSmsItems.value.some((item) => item.id === clientId)) {
+      smsDeadlines.start(clientId)
+    }
+  }
+
+  function handleSmsSendResult(result: ISmsSendResultEvent): { handled: boolean; failed?: IMessage } {
+    const outcome = settlePendingSmsResult(pendingSmsItems.value, result)
+    if (!outcome.handled || !result.clientId) return { handled: false }
+    smsDeadlines.settle(result.clientId)
+    if (result.success) {
+      successfulSmsResults.add(result.clientId)
+      refetchWithRetry(result.clientId)
+      return { handled: true }
+    }
+    cancelRetry(result.clientId)
+    pendingSmsItems.value = outcome.pending
+    toast(t('send_failed'), 'error')
+    return { handled: true, failed: outcome.failed }
+  }
+
+  function failPending(clientId: string): IMessage | undefined {
+    const failed = failPendingSms(pendingSmsItems.value, clientId)
+    pendingSmsItems.value = failed.pending
+    successfulSmsResults.delete(clientId)
+    smsDeadlines.settle(clientId)
+    cancelRetry(clientId)
+    return failed.failed
   }
 
   function setPendingMms(id: string, body: string, address: string, attachments: IMessage['attachments']) {
-    pendingMmsItem.value = createPendingMms(id, body, address, threadId.value, attachments)
+    pendingMmsItems.value = addPendingMms(
+      pendingMmsItems.value,
+      createPendingMms(id, body, address, threadId.value, attachments),
+    )
+    const existingTimer = pendingMmsTimers.get(id)
+    if (existingTimer) clearTimeout(existingTimer)
+    pendingMmsTimers.set(id, setTimeout(() => {
+      pendingMmsTimers.delete(id)
+      const queued = takeMmsSendResult(id)
+      const result = queued ?? { pendingId: id, success: false, resultCode: -1001 }
+      const outcome = handleMmsSendResult(result)
+      if (outcome.handled) onTerminalMmsResult?.(id, result.success)
+    }, SMS_SEND_RESULT_TIMEOUT_MS))
     scrollToBottom()
   }
 
-  watch(items, (v) => { if (pendingMmsItem.value && v.some((it) => it.id === pendingMmsItem.value?.id)) pendingMmsItem.value = null })
-
-  function applyThread(tid: string) {
-    threadId.value = tid
-    if (!tid) { items.value = []; detailLoading.value = false; return }
-    pendingMmsItem.value = null; items.value = []; detailLoading.value = true; fetch()
+  function onMmsSent(pendingId: string) {
+    const settled = settlePendingMms(pendingMmsItems.value, pendingId)
+    if (!settled.settled) return
+    pendingMmsItems.value = settled.pending
+    const timer = pendingMmsTimers.get(pendingId)
+    if (timer) clearTimeout(timer)
+    pendingMmsTimers.delete(pendingId)
   }
 
-  const onItemsTagsUpdated = (e: IItemsTagsUpdatedEvent) => { if (e.type === DataType.SMS) fetch() }
-  const onItemTagsUpdated = (e: IItemTagsUpdatedEvent) => { if (e.type === DataType.SMS) fetch() }
-  const notificationRefresh = createSmsNotificationRefresh(fetch)
+  function handleMmsSendResult(result: IMmsSendResultEvent): { handled: boolean; failed?: IMessage } {
+    const settled = settlePendingMms(pendingMmsItems.value, result.pendingId)
+    if (!settled.settled) return { handled: false }
+    pendingMmsItems.value = settled.pending
+    const timer = pendingMmsTimers.get(result.pendingId)
+    if (timer) clearTimeout(timer)
+    pendingMmsTimers.delete(result.pendingId)
+    if (!result.success) {
+      toast(t('send_failed'), 'error')
+      return { handled: true, failed: settled.settled }
+    }
+    return { handled: true }
+  }
 
-  function subscribe() {
-    fetchTags(); loadContacts()
+  const smsDeadlines = createKeyedSmsSendDeadlines((clientId) => {
+    const queued = takeSmsSendResult(clientId)
+    const outcome = handleSmsSendResult(queued ?? { clientId, success: false, resultCode: -1001 })
+    if (outcome.failed) onTerminalSmsFailure?.(outcome.failed)
+  })
+
+  function setTerminalHandlers(handlers: {
+    onSmsFailure: (failed: IMessage) => void
+    onMmsResult: (pendingId: string, success: boolean) => void
+  }) {
+    onTerminalSmsFailure = handlers.onSmsFailure
+    onTerminalMmsResult = handlers.onMmsResult
+  }
+
+  function applyThread(tid: string, force = false) {
+    cancelRetries()
+    threadId.value = tid
+    if (!tid) { items.value = []; detailLoading.value = false; return }
+    items.value = []
+    detailLoading.value = true
+    void fetch(force)
+  }
+
+  const onItemsTagsUpdated = (event: IItemsTagsUpdatedEvent) => { if (event.type === DataType.SMS) void fetch(true) }
+  const onItemTagsUpdated = (event: IItemTagsUpdatedEvent) => { if (event.type === DataType.SMS) void fetch(true) }
+  const stateRefresh = createSmsNotificationRefresh(() => void fetch(true), () => loadContacts(true))
+
+  function subscribe(force = false) {
+    fetchTags()
+    loadContacts(force)
     emitter.on('item_tags_updated', onItemTagsUpdated)
     emitter.on('items_tags_updated', onItemsTagsUpdated)
-    notificationRefresh.subscribe()
+    emitter.on('mms_sent', onMmsSent)
+    stateRefresh.subscribe()
   }
 
   function unsubscribe() {
     emitter.off('item_tags_updated', onItemTagsUpdated)
     emitter.off('items_tags_updated', onItemsTagsUpdated)
-    notificationRefresh.unsubscribe()
+    emitter.off('mms_sent', onMmsSent)
+    stateRefresh.unsubscribe()
+    cancelRetries()
   }
 
   return {
-    items, sortedItems, detailLoading, loading, loadingMore, tags, contactName, contactAddress,
-    fetch, refetchWithRetry, onScroll, scrollToBottom, applyThread, setPendingSms, setPendingMms, subscribe, unsubscribe,
+    items,
+    sortedItems,
+    pendingSmsItems,
+    pendingMmsItems,
+    detailLoading,
+    loading,
+    loadingMore,
+    tags,
+    contactName,
+    contactAddress,
+    participantAddresses,
+    fetch,
+    refetchWithRetry,
+    onScroll,
+    scrollToBottom,
+    applyThread,
+    setPendingSms,
+    startPendingSmsDeadline,
+    failPending,
+    handleSmsSendResult,
+    handleMmsSendResult,
+    setPendingMms,
+    setTerminalHandlers,
+    subscribe,
+    unsubscribe,
   }
 }

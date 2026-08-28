@@ -82,7 +82,7 @@ const emit = defineEmits<{
 const fileInputRef = defineModel<HTMLInputElement | undefined>('fileInputRef')
 
 function onEnterKey(e: KeyboardEvent) {
-  if (e.isComposing) return
+  if (e.isComposing || props.sendDisabled) return
   e.preventDefault()
   emit('send')
 }
