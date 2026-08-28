@@ -46,3 +46,10 @@ jobs:
 
       - name: Run cargo check
         run: cargo check --manifest-path src-tauri/Cargo.toml
+
+      - name: Run listener tests
+        run: cargo test --manifest-path src-tauri/Cargo.toml --lib local::server::tests::
+
+      - name: Run full Rust test suite
+        if: matrix.platform == 'linux'
+        run: cargo test --manifest-path src-tauri/Cargo.toml --lib
