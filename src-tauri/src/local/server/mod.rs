@@ -28,7 +28,7 @@ use std::net::TcpListener as StdTcpListener;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex, RwLock};
 use std::sync::atomic::{AtomicU16, Ordering};
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 use tokio::sync::broadcast;
 use tokio_rustls::TlsAcceptor;
 
@@ -295,23 +295,34 @@ pub fn local_server_token(state: tauri::State<'_, LocalServerState>) -> String {
 }
 
 #[tauri::command]
-pub fn local_ipv4_strs() -> Vec<String> {
-    crate::commands::discover::discover_local_ipv4_strs()
+pub async fn local_ipv4_strs() -> Result<Vec<String>, String> {
+    tauri::async_runtime::spawn_blocking(crate::commands::discover::discover_local_ipv4_strs)
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-pub fn set_http_port(handle: tauri::AppHandle, port: u16) {
-    crate::prefs::set_http_port(&handle, port);
+pub async fn set_http_port(handle: tauri::AppHandle, port: u16) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || crate::prefs::set_http_port(&handle, port))
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-pub fn set_https_port(handle: tauri::AppHandle, port: u16) {
-    crate::prefs::set_https_port(&handle, port);
+pub async fn set_https_port(handle: tauri::AppHandle, port: u16) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || crate::prefs::set_https_port(&handle, port))
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-pub fn restart_server(state: tauri::State<'_, LocalServerState>) -> Result<(), String> {
-    state.restart()
+pub async fn restart_server(app: tauri::AppHandle) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let state = app.state::<LocalServerState>();
+        state.restart()
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 // ── TCP listener binding ──────────────────────────────────────────────────────

@@ -9,7 +9,24 @@ use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let builder = tauri::Builder::default();
+    #[cfg(any(target_os = "windows", target_os = "linux"))]
+    let builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+        if let Some(win) = app.get_webview_window("main") {
+            let _ = win.show();
+            let _ = win.unminimize();
+            let _ = win.set_focus();
+            return;
+        }
+        for win in app.webview_windows().values() {
+            if win.is_visible().unwrap_or(false) {
+                let _ = win.unminimize();
+                let _ = win.set_focus();
+                break;
+            }
+        }
+    }));
+    let app = builder
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(
             tauri_plugin_log::Builder::default()
@@ -132,6 +149,15 @@ pub fn run() {
             Ok(())
         })
         .on_window_event(|window, event| {
+            // Remember the frame while the window is still alive so the
+            // dock-icon reopen can put it back exactly where it was.
+            #[cfg(target_os = "macos")]
+            if let tauri::WindowEvent::CloseRequested { .. } = event {
+                commands::window::remember_main_window_frame(
+                    window.app_handle(),
+                    window.label(),
+                );
+            }
             if let tauri::WindowEvent::Destroyed = event {
                 #[cfg(target_os = "macos")]
                 commands::macos_dock::remove_window_device_name(window.label());
@@ -143,6 +169,25 @@ pub fn run() {
                     &window.app_handle().clone(),
                     window.label(),
                 );
+                // Windows/Linux follow the platform convention that closing
+                // the last visible window quits the process; without this the
+                // hidden media-preview warm window keeps closed instances
+                // alive holding the local-server ports (the Windows zombie
+                // pile-up). macOS keeps the standard behavior instead: the
+                // app stays in the dock and windows reopen via the dock
+                // menu's "New Window" — closing a window never exits.
+                #[cfg(any(target_os = "windows", target_os = "linux"))]
+                {
+                    let destroyed_label = window.label();
+                    let app = window.app_handle();
+                    let remaining = app
+                        .webview_windows()
+                        .into_iter()
+                        .filter(|(label, _)| label != destroyed_label);
+                    if !any_window_visible(remaining.map(|(_, w)| w.is_visible().ok())) {
+                        app.exit(0);
+                    }
+                }
             }
         })
         .invoke_handler(tauri::generate_handler![
@@ -188,8 +233,34 @@ pub fn run() {
             local::dlna::commands::dlna_senders,
             local::dlna::commands::dlna_remove_sender,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application");
+    app.run(handle_run_event);
+}
+
+/// macOS dock-icon click with no visible window reopens the main window —
+/// the standard `applicationShouldHandleReopen` behavior. With visible
+/// windows the default activation already brings the app forward.
+#[cfg(target_os = "macos")]
+fn handle_run_event(app: &tauri::AppHandle, event: tauri::RunEvent) {
+    if let tauri::RunEvent::Reopen {
+        has_visible_windows: false,
+        ..
+    } = event
+    {
+        commands::window::reopen_main_window(app);
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+fn handle_run_event(_app: &tauri::AppHandle, _event: tauri::RunEvent) {}
+
+/// Whether any window is (or may be) visible — an `Err` from `is_visible`
+/// counts as visible so a flaky query can never exit a live app.
+/// Only consulted on Windows/Linux; macOS never exits on window close.
+#[cfg_attr(not(any(target_os = "windows", target_os = "linux")), allow(dead_code))]
+fn any_window_visible(mut visibilities: impl Iterator<Item = Option<bool>>) -> bool {
+    visibilities.any(|v| v.unwrap_or(true))
 }
 
 /// Wire-format struct mirroring plain-app's `DPairingResult`
@@ -289,4 +360,29 @@ fn forward_pairing_event_to_ws(
         event_type,
         payload,
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::any_window_visible;
+
+    #[test]
+    fn hidden_only_windows_do_not_keep_app_alive() {
+        assert!(!any_window_visible([Some(false), Some(false)].into_iter()));
+    }
+
+    #[test]
+    fn one_visible_window_keeps_app_alive() {
+        assert!(any_window_visible([Some(false), Some(true)].into_iter()));
+    }
+
+    #[test]
+    fn empty_window_set_exits() {
+        assert!(!any_window_visible(std::iter::empty()));
+    }
+
+    #[test]
+    fn unknown_visibility_counts_as_visible() {
+        assert!(any_window_visible([None].into_iter()));
+    }
 }

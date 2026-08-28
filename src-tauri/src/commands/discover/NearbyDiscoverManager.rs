@@ -75,6 +75,7 @@ pub struct NearbyDiscoverManager {
     app_handle: Arc<RwLock<Option<tauri::AppHandle>>>,
     browser: MdnsServiceBrowser,
     seen_in_session: Arc<Mutex<HashMap<String, DiscoveredDevice>>>,
+    found_tx: std::sync::mpsc::Sender<FoundDevice>,
     app_version: String,
 }
 
@@ -90,6 +91,7 @@ impl NearbyDiscoverManager {
         https_port: u16,
         app_version: String,
     ) -> Self {
+        let (found_tx, found_rx) = std::sync::mpsc::channel::<FoundDevice>();
         let this = NearbyDiscoverManager {
             db,
             identity,
@@ -106,8 +108,18 @@ impl NearbyDiscoverManager {
                 |_| {},
             ),
             seen_in_session: Arc::new(Mutex::new(HashMap::new())),
+            found_tx,
             app_version,
         };
+        let worker = this.clone();
+        std::thread::Builder::new()
+            .name("nearby-discover-worker".into())
+            .spawn(move || {
+                while let Ok(device) = found_rx.recv() {
+                    worker.process_discovered_device(device);
+                }
+            })
+            .expect("spawn nearby-discover-worker");
         let callback_state = this.clone();
         let browser = MdnsServiceBrowser::new(
             this.identity.client_id.clone(),
@@ -309,9 +321,17 @@ impl NearbyDiscoverManager {
         }
     }
 
-    /// Browser callback — mirrors plain-app's `MdnsServiceBrowser.emitDevice`
+    /// Browser callback — runs on the mDNS responder packet thread, so it
+    /// must never block: the device is handed to the dedicated worker thread
+    /// ([`Self::process_discovered_device`]) which owns all DB access and
+    /// event emission. Mirrors plain-app's `MdnsServiceBrowser.emitDevice`
     /// (`NearbyViewModel.handleNewDevice` + `PeerManager.applyDeviceDiscovered`).
     fn on_device_found(&self, device: FoundDevice) {
+        let _ = self.found_tx.send(device);
+    }
+
+    /// Worker-thread half of [`Self::on_device_found`].
+    fn process_discovered_device(&self, device: FoundDevice) {
         // Resident-listener path: always refresh a paired peer's address so a
         // changed IP is picked up by the next reconnect attempt even while
         // the nearby scan loop is off.

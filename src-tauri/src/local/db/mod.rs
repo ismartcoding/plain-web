@@ -61,7 +61,9 @@ impl ChatDb {
             })?;
         }
         let conn = Connection::open(db_path)?;
-        conn.execute_batch("PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;")?;
+        conn.execute_batch(
+            "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL; PRAGMA busy_timeout=5000;",
+        )?;
         conn.execute_batch(
             "CREATE TABLE IF NOT EXISTS chats (
                 id          TEXT PRIMARY KEY,
@@ -224,6 +226,18 @@ mod tests {
 
         let _ = ChatDb::open(&db_path).expect("first open");
         let _ = ChatDb::open(&db_path).expect("second open");
+    }
+
+    #[test]
+    fn open_sets_busy_timeout() {
+        let dir = unique_tmp_dir("busy-timeout");
+        let db = ChatDb::open(&dir.join("local_chat.db")).expect("open");
+
+        let ms: i64 = db.with_conn(|conn| {
+            conn.query_row("PRAGMA busy_timeout", [], |row| row.get(0))
+                .expect("read busy_timeout pragma")
+        });
+        assert_eq!(ms, 5000, "concurrent access must wait instead of failing");
     }
 
     #[test]

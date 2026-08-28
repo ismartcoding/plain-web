@@ -1,8 +1,84 @@
+use std::sync::{Mutex, OnceLock};
 use tauri::{AppHandle, Manager, PhysicalPosition};
 
 /// Pixels to offset new windows to the right of the current focused window,
 /// so a freshly opened window doesn't sit exactly on top of its parent.
 const WINDOW_CASCADE_OFFSET: i32 = 32;
+
+/// Frame (logical coordinates) of the last closed main-view window, so a
+/// dock-icon reopen puts the window back where the user left it instead of
+/// at the OS default position.
+#[cfg(target_os = "macos")]
+#[derive(Clone, Copy)]
+struct MainFrame {
+    x: f64,
+    y: f64,
+    w: f64,
+    h: f64,
+}
+
+#[cfg(target_os = "macos")]
+static LAST_MAIN_FRAME: OnceLock<Mutex<Option<MainFrame>>> = OnceLock::new();
+
+#[cfg(target_os = "macos")]
+fn last_main_frame() -> &'static Mutex<Option<MainFrame>> {
+    LAST_MAIN_FRAME.get_or_init(|| Mutex::new(None))
+}
+
+/// Remember the frame of a closing main-view ("/") window. Called from
+/// `CloseRequested`, while the window is still alive and readable.
+#[cfg(target_os = "macos")]
+pub fn remember_main_window_frame(app: &AppHandle, label: &str) {
+    let Some(win) = app.get_webview_window(label) else {
+        return;
+    };
+    if win.url().map(|u| u.path() != "/").unwrap_or(true) {
+        return;
+    }
+    let (Ok(pos), Ok(size), Ok(scale)) = (win.outer_position(), win.inner_size(), win.scale_factor()) else {
+        return;
+    };
+    let pos = pos.to_logical::<f64>(scale);
+    let size = size.to_logical::<f64>(scale);
+    if let Ok(mut frame) = last_main_frame().lock() {
+        *frame = Some(MainFrame {
+            x: pos.x,
+            y: pos.y,
+            w: size.width,
+            h: size.height,
+        });
+    }
+}
+
+/// Dock-icon reopen: restore the remembered frame of the last closed
+/// main-view window, or center a default-sized one when nothing was
+/// recorded yet.
+#[cfg(target_os = "macos")]
+pub fn reopen_main_window(app: &AppHandle) {
+    if let Some(win) = app.get_webview_window("main") {
+        let _ = win.show();
+        let _ = win.set_focus();
+        return;
+    }
+    let label = format!(
+        "window-{}",
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_millis()
+    );
+    let builder = tauri::WebviewWindowBuilder::new(app, &label, tauri::WebviewUrl::App("/".into()))
+        .title("")
+        .min_inner_size(900.0, 600.0)
+        .title_bar_style(tauri::TitleBarStyle::Overlay);
+    let builder = match last_main_frame().lock().ok().and_then(|f| *f) {
+        Some(f) => builder.position(f.x, f.y).inner_size(f.w, f.h),
+        None => builder.inner_size(1200.0, 800.0).center(),
+    };
+    if let Err(e) = builder.build() {
+        log::error!("reopen_main_window failed: {e}");
+    }
+}
 
 /// Place a freshly built window just to the right of the current focused
 /// window, with the same top edge. Falls back to the platform default

@@ -59,3 +59,8 @@ socket2 = { version = "0.5", features = ["all"] }
 objc2 = "0.6"
 objc2-app-kit = { version = "0.3", features = ["NSApplication", "NSMenu", "NSMenuItem"] }
 objc2-foundation = { version = "0.3", features = ["NSString"] }
+
+# Official single-instance guard: a second launch focuses the running app
+# instead of spawning another process that walks the local-server port range.
+[target.'cfg(any(target_os = "windows", target_os = "linux"))'.dependencies]
+tauri-plugin-single-instance = "2"
