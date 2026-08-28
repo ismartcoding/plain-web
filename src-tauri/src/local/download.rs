@@ -280,14 +280,11 @@ async fn execute_download(
             return;
         }
 
-        let url = reqwest::Url::parse_with_params(
-            &format!("https://{}:{}/fs", peer_ip, peer_port),
-            &[("id", file_id.as_str())],
-        )
-        .unwrap_or_else(|_| {
-            reqwest::Url::parse(&format!("https://{}:{}/fs", peer_ip, peer_port))
-                .expect("valid fs base url")
-        });
+        let fs_base = crate::utils::build_url("https", &peer_ip, peer_port, "/fs");
+        let url = reqwest::Url::parse_with_params(&fs_base, &[("id", file_id.as_str())])
+            .unwrap_or_else(|_| {
+                reqwest::Url::parse(&fs_base).expect("valid fs base url")
+            });
 
         match download_one(
             &ctx,

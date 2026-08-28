@@ -47,7 +47,7 @@ pub fn peer_graphql_urls(peer: &DPeer) -> Vec<String> {
         .split(',')
         .map(str::trim)
         .filter(|ip| !ip.is_empty())
-        .map(|ip| format!("https://{}:{}/peer_graphql", ip, peer.port))
+        .map(|ip| crate::utils::build_url("https", ip, peer.port, "/peer_graphql"))
         .collect()
 }
 

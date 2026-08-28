@@ -1,6 +1,7 @@
 import { getCurrentDeviceHost } from '../device/current'
 import { get as prefsGet } from '../prefs'
 import { DeviceType } from '../status'
+import { applyScheme } from '../url'
 
 export interface PendingLoginDevice {
   name: string
@@ -92,10 +93,9 @@ export function getApiBaseUrl() {
     return `http://localhost:${_localServerPort}`
   }
   if (__IS_TAURI__ && (_pendingLoginDevice || getCurrentDeviceHost())) {
-    const p = isSecurePort(getApiHost()) ? 'https' : 'http'
-    return `${p}://${getApiHost()}`
+    return applyScheme(isSecurePort(getApiHost()) ? 'https' : 'http', getApiHost())
   }
-  return `${window.location.protocol}//${getApiHost()}`
+  return applyScheme(window.location.protocol.replace(':', ''), getApiHost())
 }
 
 export function getPhoneIp(): string {

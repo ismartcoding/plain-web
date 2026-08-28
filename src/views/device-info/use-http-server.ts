@@ -6,14 +6,15 @@ import toast from '@/components/toaster'
 import { useI18n } from 'vue-i18n'
 import emitter from '@/plugins/eventbus'
 import { setLocalServerPort, setLocalServerHttpsPort } from '@/lib/api/api'
+import { buildUrl } from '@/lib/url'
 import type { VSelectOption } from '@/components/base/VSelect.vue'
 
 // Mirrors plain-app's `web/HttpServerPorts.kt` — fixed port candidates
 // the user can pick from in the edit dialog. The server tries each in
 // order and falls back to an OS-assigned port only when every candidate
 // is taken.
-const HTTP_PORTS = [8080, 8180, 8280, 8380, 8480, 8580, 8680, 8780, 8880, 8980]
-const HTTPS_PORTS = [8043, 8143, 8243, 8343, 8443, 8543, 8643, 8743, 8843, 8943]
+const HTTP_PORTS = [8080, 8180, 8280, 8380, 8480, 8580, 8680, 8780, 8880, 8980, 80]
+const HTTPS_PORTS = [8043, 8143, 8243, 8343, 8443, 8543, 8643, 8743, 8843, 8943, 443]
 
 function portOptions(candidates: number[], current: number): VSelectOption[] {
   const list: VSelectOption[] = candidates.map((p) => ({ value: p, label: String(p) }))
@@ -68,10 +69,10 @@ export function useHttpServer() {
   const httpPortOptions = computed(() => portOptions(HTTP_PORTS, httpPort.value))
   const httpsPortOptions = computed(() => portOptions(HTTPS_PORTS, httpsPort.value))
   const httpAddresses = computed(() =>
-    ips.value.map((ip) => `http://${ip}:${httpPort.value}`)
+    ips.value.map((ip) => buildUrl('http', ip, httpPort.value))
   )
   const httpsAddresses = computed(() =>
-    ips.value.map((ip) => `https://${ip}:${httpsPort.value}`)
+    ips.value.map((ip) => buildUrl('https', ip, httpsPort.value))
   )
 
   return {

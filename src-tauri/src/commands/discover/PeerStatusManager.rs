@@ -206,7 +206,12 @@ impl PeerStatusManager {
             self.schedule_reconnect(peer_id);
             return;
         };
-        let url = format!("wss://{}:{}/status?cid={}", peer.best_ip(), peer.port, local_client_id);
+        let url = crate::utils::build_url(
+            "wss",
+            peer.best_ip(),
+            peer.port,
+            &format!("/status?cid={local_client_id}"),
+        );
 
         let task_id = {
             let mut states = self.inner.states.lock().unwrap();

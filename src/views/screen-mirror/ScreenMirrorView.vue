@@ -64,6 +64,7 @@ import ScreenMirrorHeaderActions from './ScreenMirrorHeaderActions.vue'
 import ScreenMirrorHeaderStart from './ScreenMirrorHeaderStart.vue'
 import emitter from '@/plugins/eventbus'
 import { useTempStore } from '@/stores/temp'
+import { buildUrl } from '@/lib/url'
 import { storeToRefs } from 'pinia'
 import type { ComponentPublicInstance } from 'vue'
 import { computed, onActivated, onDeactivated, ref, watch } from 'vue'
@@ -107,7 +108,7 @@ const togglePlay = pipeline.togglePlay
 
 const needHttps = computed(() => !supported.value && !window.isSecureContext)
 const useHttpsLink = () => {
-  window.open(`https://${window.location.hostname}:${app.value.httpsPort}`, '_blank')
+  window.open(buildUrl('https', window.location.hostname, app.value.httpsPort), '_blank')
 }
 
 service.setPipeline(pipeline.connect, pipeline.cleanup)

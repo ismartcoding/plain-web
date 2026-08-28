@@ -1,4 +1,5 @@
 import { arrayBufferToHex } from '../strutil'
+import { buildUrl } from '../url'
 import { getPeerIp } from '../device/login-peers'
 import { getApiBaseUrl, getProxyUrl } from './api'
 import { chachaEncrypt, bitArrayToBase64 } from './crypto'
@@ -106,7 +107,7 @@ export function getPeerProxyUrl(
   if (!urlTokenKey || !peer?.ip || !peer?.port || !peerFileId) {
     return ''
   }
-  const peerUrl = `https://${getPeerIp(peer)}:${peer.port}/fs?id=${encodeURIComponent(peerFileId)}${query}`
+  const peerUrl = buildUrl('https', getPeerIp(peer), peer.port, `/fs?id=${encodeURIComponent(peerFileId)}${query}`)
   const encrypted = encryptUrlParams(urlTokenKey, peerUrl)
   return `${getApiBaseUrl()}/proxyfs?id=${encodeURIComponent(encrypted)}`
 }

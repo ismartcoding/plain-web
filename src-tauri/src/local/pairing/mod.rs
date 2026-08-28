@@ -557,7 +557,7 @@ fn nearby_client() -> &'static reqwest::Client {
 /// POSTs `body` to `https://[target_ip]:[target_port]/nearby`. Returns true
 /// when the peer answered with a 2xx status.
 async fn post_nearby(body: &str, target_ip: &str, target_port: u16) -> bool {
-    let url = format!("https://{target_ip}:{target_port}/nearby");
+    let url = crate::utils::build_url("https", target_ip, target_port, "/nearby");
     let result = nearby_client()
         .post(&url)
         .header("Content-Type", "application/json")

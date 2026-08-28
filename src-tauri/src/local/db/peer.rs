@@ -51,7 +51,7 @@ impl DPeer {
     }
 
     pub fn base_url(&self) -> String {
-        format!("https://{}:{}", self.best_ip(), self.port)
+        crate::utils::build_url("https", self.best_ip(), self.port, "")
     }
 
     pub fn peer_graphql_url(&self) -> String {

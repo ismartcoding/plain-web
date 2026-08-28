@@ -5,6 +5,7 @@ import { pushModal } from '@/components/modal'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 import { useI18n } from 'vue-i18n'
 import toast from '@/components/toaster'
+import { buildUrl } from '@/lib/url'
 
 type PermissionState = 'granted' | 'denied' | 'default'
 
@@ -50,7 +51,7 @@ export function useNotificationWarning(options?: { showToast?: boolean }) {
   })
 
   const useHttpsLink = () => {
-    window.open(`https://${window.location.hostname}:${app.value.httpsPort}`, '_blank')
+    window.open(buildUrl('https', window.location.hostname, app.value.httpsPort), '_blank')
   }
 
   // Open macOS System Settings > Notifications.
