@@ -72,6 +72,7 @@ export interface ISmsChangedEvent {
 
 export interface ISmsSendResultEvent {
   clientId?: string | null
+  requestId?: string | null
   success: boolean
   resultCode?: number
 }

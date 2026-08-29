@@ -87,12 +87,12 @@ export function useSendSms(initialNumber: string, initialBody: string) {
 
   // Mutations
   const loading = ref(false)
-  let pendingSmsClientId: string | null = null
+  let pendingSmsRequestId: string | null = null
   let unsubscribeSmsResults: (() => void) | undefined
   const { mutate: mutateMms, loading: mmsLoading, onDone: onMmsDone } = initMutation({ document: sendMmsGQL })
-  const sendDeadline = createSmsSendDeadline((clientId) => {
-    if (pendingSmsClientId !== clientId) return
-    pendingSmsClientId = null
+  const sendDeadline = createSmsSendDeadline((requestId) => {
+    if (pendingSmsRequestId !== requestId) return
+    pendingSmsRequestId = null
     loading.value = false
     toast(t('send_failed'), 'error')
   })
@@ -114,39 +114,39 @@ export function useSendSms(initialNumber: string, initialBody: string) {
       } catch (e: any) { toast(e.message || t('upload_failed'), 'error') } finally { mmsUploading.value = false }
     } else if (numberOk && bodyOk) {
       if (selectedSimId.value >= 0 && !sims.value.some((sim) => sim.subscriptionId === selectedSimId.value)) return
-      const clientId = `pending_sms_${shortUUID()}`
-      pendingSmsClientId = clientId
+      const requestId = `pending_sms_${shortUUID()}`
+      pendingSmsRequestId = requestId
       loading.value = true
       const outcome = await sendSmsWithCompatibility({
         number: number.value,
         body: body.value,
         subscriptionId: selectedSimId.value,
-        clientId,
+        requestId,
       })
       if (!outcome.ok) {
-        if (pendingSmsClientId !== clientId) return
+        if (pendingSmsRequestId !== requestId) return
         sendDeadline.cancel()
-        pendingSmsClientId = null
+        pendingSmsRequestId = null
         loading.value = false
         toast(t(outcome.error || 'network_error'), 'error')
         return
       }
-      if (outcome.legacy && pendingSmsClientId === clientId) {
+      if (outcome.legacy && pendingSmsRequestId === requestId) {
         sendDeadline.cancel()
-        pendingSmsClientId = null
+        pendingSmsRequestId = null
         loading.value = false
         emitter.emit('sms_sent')
         popModal()
-      } else if (pendingSmsClientId === clientId) {
-        sendDeadline.start(clientId)
+      } else if (pendingSmsRequestId === requestId) {
+        sendDeadline.start(requestId)
       }
     }
   }
 
   function onSmsSendResult(result: ISmsSendResultEvent): boolean {
-    if (!result.clientId || result.clientId !== pendingSmsClientId) return false
-    sendDeadline.settle(result.clientId)
-    pendingSmsClientId = null
+    if (!result.requestId || result.requestId !== pendingSmsRequestId) return false
+    sendDeadline.settle(result.requestId)
+    pendingSmsRequestId = null
     loading.value = false
     if (result.success) {
       emitter.emit('sms_sent')

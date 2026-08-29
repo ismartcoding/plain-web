@@ -1,11 +1,11 @@
 import { gqlFetch, GqlError } from '@/lib/api/gql-client'
-import { sendSmsGQL, sendSmsWithClientIdGQL } from '@/lib/api/mutation'
+import { sendSmsGQL, sendSmsWithRequestIdGQL } from '@/lib/api/mutation'
 
 export interface SmsSendInput {
   number: string
   body: string
   subscriptionId: number
-  clientId: string
+  requestId: string
 }
 
 export interface SmsSendOutcome {
@@ -16,17 +16,17 @@ export interface SmsSendOutcome {
 
 function isLegacySchemaError(message: string): boolean {
   const value = message.toLowerCase()
-  return value.includes('clientid') && (value.includes('unknown argument') || value.includes('validation'))
+  return value.includes('requestid') && (value.includes('unknown argument') || value.includes('validation'))
 }
 
 export async function sendSmsWithCompatibility(input: SmsSendInput): Promise<SmsSendOutcome> {
   try {
-    const response = await gqlFetch<{ sendSms: boolean }>(sendSmsWithClientIdGQL, input, { dedupe: false })
+    const response = await gqlFetch<{ sendSms: boolean }>(sendSmsWithRequestIdGQL, input, { dedupe: false })
     const error = response.errors?.[0]?.message
     if (!error) return { ok: response.data?.sendSms === true }
     if (!isLegacySchemaError(error)) return { ok: false, error }
 
-    const { clientId: _clientId, ...legacyVariables } = input
+    const { requestId: _requestId, ...legacyVariables } = input
     const legacy = await gqlFetch<{ sendSms: boolean }>(sendSmsGQL, legacyVariables, { dedupe: false })
     const legacyError = legacy.errors?.[0]?.message
     if (legacyError) return { ok: false, error: legacyError, legacy: true }

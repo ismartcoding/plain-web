@@ -16,10 +16,10 @@ const ignoredMmsResults = new Map<string, ReturnType<typeof setTimeout>>()
 const smsHandlers = new Set<SmsHandler>()
 const mmsHandlers = new Set<MmsHandler>()
 
-function deleteSmsResult(clientId: string) {
-  const entry = smsResults.get(clientId)
+function deleteSmsResult(requestId: string) {
+  const entry = smsResults.get(requestId)
   if (entry) clearTimeout(entry.timer)
-  smsResults.delete(clientId)
+  smsResults.delete(requestId)
 }
 
 function deleteMmsResult(pendingId: string) {
@@ -37,11 +37,11 @@ function enforceBound<T>(results: Map<string, LedgerEntry<T>>, remove: (id: stri
 }
 
 function recordSmsResult(result: ISmsSendResultEvent) {
-  const clientId = result.clientId!
-  deleteSmsResult(clientId)
-  smsResults.set(clientId, {
+  const requestId = result.requestId!
+  deleteSmsResult(requestId)
+  smsResults.set(requestId, {
     result,
-    timer: setTimeout(() => deleteSmsResult(clientId), SMS_RESULT_LEDGER_TTL_MS),
+    timer: setTimeout(() => deleteSmsResult(requestId), SMS_RESULT_LEDGER_TTL_MS),
   })
   enforceBound(smsResults, deleteSmsResult)
 }
@@ -62,11 +62,11 @@ function recordMmsResult(result: IMmsSendResultEvent) {
 }
 
 emitter.on('sms_send_result', (result) => {
-  if (!result.clientId) return
+  if (!result.requestId) return
   recordSmsResult(result)
   for (const handler of smsHandlers) {
     if (handler(result)) {
-      deleteSmsResult(result.clientId)
+      deleteSmsResult(result.requestId)
       break
     }
   }
@@ -105,9 +105,9 @@ export function subscribeMmsSendResults(handler: MmsHandler) {
   return () => mmsHandlers.delete(handler)
 }
 
-export function takeSmsSendResult(clientId: string) {
-  const entry = smsResults.get(clientId)
-  deleteSmsResult(clientId)
+export function takeSmsSendResult(requestId: string) {
+  const entry = smsResults.get(requestId)
+  deleteSmsResult(requestId)
   return entry?.result
 }
 

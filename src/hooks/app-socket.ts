@@ -128,7 +128,9 @@ export function useAppSocket() {
             emitter.emit(type as any, r.data)
           } else {
             const json = chachaDecrypt(key, r.data)
-            emitter.emit(type as any, json ? JSON.parse(json) : null)
+            const data = json ? JSON.parse(json) : null
+            if (type === 'sms_send_result' && data?.clientId && data.clientId !== clientId) return
+            emitter.emit(type as any, data)
           }
         } catch (ex) {
           console.error(ex)

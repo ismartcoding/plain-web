@@ -35,10 +35,10 @@ afterEach(() => {
 describe('message thread pending operations', () => {
   it('toasts once when a correlated asynchronous SMS failure is duplicated', () => {
     const thread = useMessageThread(ref('thread-a'), ref())
-    const clientId = thread.setPendingSms('hello', '+15551234567', 'client-a')
+    const requestId = thread.setPendingSms('hello', '+15551234567', 'request-a')
 
-    expect(thread.handleSmsSendResult({ clientId, success: false }).handled).toBe(true)
-    expect(thread.handleSmsSendResult({ clientId, success: false }).handled).toBe(false)
+    expect(thread.handleSmsSendResult({ requestId, success: false }).handled).toBe(true)
+    expect(thread.handleSmsSendResult({ requestId, success: false }).handled).toBe(false)
     expect(harness.toast).toHaveBeenCalledOnce()
     expect(harness.toast).toHaveBeenCalledWith('send_failed', 'error')
   })
@@ -48,18 +48,18 @@ describe('message thread pending operations', () => {
     const thread = useMessageThread(ref('thread-a'), ref())
     const restore = vi.fn()
     thread.setTerminalHandlers({ onSmsFailure: restore, onMmsResult: vi.fn() })
-    thread.setPendingSms('first', '+15551234567', 'client-a')
-    thread.startPendingSmsDeadline('client-a')
+    thread.setPendingSms('first', '+15551234567', 'request-a')
+    thread.startPendingSmsDeadline('request-a')
     vi.advanceTimersByTime(1000)
-    thread.setPendingSms('second', '+15551234567', 'client-b')
-    thread.startPendingSmsDeadline('client-b')
-    thread.handleSmsSendResult({ clientId: 'client-a', success: true })
+    thread.setPendingSms('second', '+15551234567', 'request-b')
+    thread.startPendingSmsDeadline('request-b')
+    thread.handleSmsSendResult({ requestId: 'request-a', success: true })
 
     vi.advanceTimersByTime(SMS_SEND_RESULT_TIMEOUT_MS)
 
     expect(restore).toHaveBeenCalledOnce()
     expect(restore.mock.calls[0][0].body).toBe('second')
-    expect(thread.pendingSmsItems.value.map((item) => item.id)).toEqual(['client-a'])
+    expect(thread.pendingSmsItems.value.map((item) => item.id)).toEqual(['request-a'])
     expect(harness.toast).toHaveBeenCalledOnce()
   })
 
@@ -68,13 +68,13 @@ describe('message thread pending operations', () => {
     const thread = useMessageThread(ref('thread-a'), ref())
     const restore = vi.fn()
     thread.setTerminalHandlers({ onSmsFailure: restore, onMmsResult: vi.fn() })
-    const clientId = thread.setPendingSms('hello', '+15551234567', 'client-a')
+    const requestId = thread.setPendingSms('hello', '+15551234567', 'request-a')
 
-    expect(thread.handleSmsSendResult({ clientId, success: true }).handled).toBe(true)
-    thread.startPendingSmsDeadline(clientId)
+    expect(thread.handleSmsSendResult({ requestId, success: true }).handled).toBe(true)
+    thread.startPendingSmsDeadline(requestId)
     await vi.advanceTimersByTimeAsync(SMS_SEND_RESULT_TIMEOUT_MS)
 
-    expect(thread.pendingSmsItems.value.map((item) => item.id)).toEqual([clientId])
+    expect(thread.pendingSmsItems.value.map((item) => item.id)).toEqual([requestId])
     expect(restore).not.toHaveBeenCalled()
     expect(harness.toast).not.toHaveBeenCalled()
   })

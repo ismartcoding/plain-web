@@ -31,7 +31,7 @@ export function addressesMatch(first: string, second: string): boolean {
 
 export function addPendingSms(
   pending: IMessage[],
-  clientId: string,
+  requestId: string,
   body: string,
   address: string,
   threadId: string,
@@ -42,7 +42,7 @@ export function addPendingSms(
     ...pending,
     {
       ...createPendingSms(body, address, threadId),
-      id: clientId,
+      id: requestId,
       date: createdAt.toISOString(),
       baselineIds: [...baselineIds],
     } as PendingSms,
@@ -77,10 +77,10 @@ export function reconcilePendingSms(pending: IMessage[], confirmed: IMessage[], 
   return pending.filter((item) => !matchedIds.has(item.id))
 }
 
-export function failPendingSms(pending: IMessage[], clientId: string): { pending: IMessage[]; failed?: IMessage } {
+export function failPendingSms(pending: IMessage[], requestId: string): { pending: IMessage[]; failed?: IMessage } {
   return {
-    pending: pending.filter((item) => item.id !== clientId),
-    failed: pending.find((item) => item.id === clientId),
+    pending: pending.filter((item) => item.id !== requestId),
+    failed: pending.find((item) => item.id === requestId),
   }
 }
 
@@ -88,11 +88,11 @@ export function settlePendingSmsResult(
   pending: IMessage[],
   result: ISmsSendResultEvent,
 ): { pending: IMessage[]; handled: boolean; failed?: IMessage } {
-  if (!result.clientId || !pending.some((item) => item.id === result.clientId)) {
+  if (!result.requestId || !pending.some((item) => item.id === result.requestId)) {
     return { pending, handled: false }
   }
   if (result.success) return { pending, handled: true }
-  return { ...failPendingSms(pending, result.clientId), handled: true }
+  return { ...failPendingSms(pending, result.requestId), handled: true }
 }
 
 export function addPendingMms(pending: IMessage[], item: IMessage): IMessage[] {

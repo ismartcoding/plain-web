@@ -21,8 +21,8 @@ export function useMessageSend(
   getAddress: () => string,
   callbacks: {
     onSmsPending: (body: string, address: string) => string
-    onSmsSent: (clientId: string) => void
-    onSmsFailed: (clientId: string) => void
+    onSmsSent: (requestId: string) => void
+    onSmsFailed: (requestId: string) => void
     onMmsSent: (id: string, body: string, address: string, attachments: { path: string; contentType: string; name: string }[]) => void
   },
 ) {
@@ -159,23 +159,23 @@ export function useMessageSend(
       }
     } else {
       if (!body) return false
-      const clientId = callbacks.onSmsPending(body, address)
+      const requestId = callbacks.onSmsPending(body, address)
       messageBody.value = ''
       smsSending.value = true
       const outcome = await sendSmsWithCompatibility({
         number: address,
         body,
         subscriptionId: selectedSimId.value,
-        clientId,
+        requestId,
       })
       smsSending.value = false
       if (!outcome.ok) {
-        callbacks.onSmsFailed(clientId)
+        callbacks.onSmsFailed(requestId)
         restoreDraft(body)
         toast(t(outcome.error || 'network_error'), 'error')
         return false
       }
-      callbacks.onSmsSent(clientId)
+      callbacks.onSmsSent(requestId)
       emitter.emit('sms_sent')
       return true
     }

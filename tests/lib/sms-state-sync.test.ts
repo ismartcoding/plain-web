@@ -48,7 +48,7 @@ describe('pending SMS state', () => {
     expect(reconcilePendingSms(pending, [message({ body: 'same' })], 'thread-a')).toHaveLength(1)
   })
 
-  it('fails only the send identified by the backend result clientId', () => {
+  it('fails only the send identified by the backend result requestId', () => {
     let pending = addPendingSms([], 'pending-a', 'first', '+15551234567', 'thread-a')
     pending = addPendingSms(pending, 'pending-b', 'second', '+15551234567', 'thread-a')
 
@@ -87,8 +87,8 @@ describe('pending SMS state', () => {
 
   it('settles a correlated async failure only once so callers toast once', () => {
     const pending = addPendingSms([], 'pending-a', 'first', '+15551234567', 'thread-a')
-    const first = settlePendingSmsResult(pending, { clientId: 'pending-a', success: false })
-    const duplicate = settlePendingSmsResult(first.pending, { clientId: 'pending-a', success: false })
+    const first = settlePendingSmsResult(pending, { requestId: 'pending-a', success: false })
+    const duplicate = settlePendingSmsResult(first.pending, { requestId: 'pending-a', success: false })
 
     expect(first).toMatchObject({ handled: true, failed: { body: 'first' } })
     expect(duplicate).toEqual({ pending: [], handled: false })

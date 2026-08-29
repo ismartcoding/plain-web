@@ -1,21 +1,21 @@
 export const SMS_SEND_RESULT_TIMEOUT_MS = 5 * 60 * 1000 + 10000
 
-export function createKeyedSmsSendDeadlines(onTimeout: (clientId: string) => void) {
+export function createKeyedSmsSendDeadlines(onTimeout: (requestId: string) => void) {
   const timers = new Map<string, ReturnType<typeof setTimeout>>()
 
-  function start(clientId: string) {
-    settle(clientId)
-    timers.set(clientId, setTimeout(() => {
-      timers.delete(clientId)
-      onTimeout(clientId)
+  function start(requestId: string) {
+    settle(requestId)
+    timers.set(requestId, setTimeout(() => {
+      timers.delete(requestId)
+      onTimeout(requestId)
     }, SMS_SEND_RESULT_TIMEOUT_MS))
   }
 
-  function settle(clientId: string): boolean {
-    const timer = timers.get(clientId)
+  function settle(requestId: string): boolean {
+    const timer = timers.get(requestId)
     if (!timer) return false
     clearTimeout(timer)
-    timers.delete(clientId)
+    timers.delete(requestId)
     return true
   }
 
@@ -27,13 +27,13 @@ export function createKeyedSmsSendDeadlines(onTimeout: (clientId: string) => voi
   return { start, settle, cancelAll }
 }
 
-export function createSmsSendDeadline(onTimeout: (clientId: string) => void) {
+export function createSmsSendDeadline(onTimeout: (requestId: string) => void) {
   let timer: ReturnType<typeof setTimeout> | undefined
   let pendingId: string | undefined
 
-  function start(clientId: string) {
+  function start(requestId: string) {
     cancel()
-    pendingId = clientId
+    pendingId = requestId
     timer = setTimeout(() => {
       timer = undefined
       const expiredId = pendingId
@@ -42,8 +42,8 @@ export function createSmsSendDeadline(onTimeout: (clientId: string) => void) {
     }, SMS_SEND_RESULT_TIMEOUT_MS)
   }
 
-  function settle(clientId: string): boolean {
-    if (pendingId !== clientId) return false
+  function settle(requestId: string): boolean {
+    if (pendingId !== requestId) return false
     cancel()
     return true
   }

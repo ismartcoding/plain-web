@@ -510,9 +510,9 @@ export const sendSmsGQL = `
   }
 `
 
-export const sendSmsWithClientIdGQL = `
-  mutation sendSms($number: String!, $body: String!, $subscriptionId: Int!, $clientId: String!) {
-    sendSms(number: $number, body: $body, subscriptionId: $subscriptionId, clientId: $clientId)
+export const sendSmsWithRequestIdGQL = `
+  mutation sendSms($number: String!, $body: String!, $subscriptionId: Int!, $requestId: String!) {
+    sendSms(number: $number, body: $body, subscriptionId: $subscriptionId, requestId: $requestId)
   }
 `
 
