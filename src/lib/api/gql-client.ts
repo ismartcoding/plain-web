@@ -17,17 +17,28 @@ export interface GqlResult<T = any> {
 // If an identical request is already in-flight, callers share the same promise.
 const pendingRequests = new Map<string, Promise<GqlResult<any>>>()
 
-export async function gqlFetch<T = any>(query: string, variables?: Record<string, any>): Promise<GqlResult<T>> {
+export interface GqlFetchOptions {
+  dedupe?: boolean
+  fresh?: boolean
+}
+
+export async function gqlFetch<T = any>(
+  query: string,
+  variables?: Record<string, any>,
+  options: GqlFetchOptions = {},
+): Promise<GqlResult<T>> {
   const dedupeKey = JSON.stringify({ query, variables })
-  const pending = pendingRequests.get(dedupeKey)
-  if (pending) return pending as Promise<GqlResult<T>>
+  if (options.dedupe !== false && !options.fresh) {
+    const pending = pendingRequests.get(dedupeKey)
+    if (pending) return pending as Promise<GqlResult<T>>
+  }
 
   const promise = doGqlFetch<T>(query, variables)
-  pendingRequests.set(dedupeKey, promise)
+  if (options.dedupe !== false) pendingRequests.set(dedupeKey, promise)
   try {
     return await promise
   } finally {
-    pendingRequests.delete(dedupeKey)
+    if (pendingRequests.get(dedupeKey) === promise) pendingRequests.delete(dedupeKey)
   }
 }
 

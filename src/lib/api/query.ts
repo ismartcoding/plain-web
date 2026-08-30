@@ -5,6 +5,7 @@ import {
   chatChannelFragment,
   messageFragment,
   messageConversationFragment,
+  messageConversationWithAddressesFragment,
   contactFragment,
   callFragment,
   imageFragment,
@@ -41,10 +42,22 @@ function resolveVars(variables: any): Record<string, any> | undefined {
 }
 
 export interface InitQueryParams<TResult> {
-  handle: (data: TResult, error: string) => void
+  handle: (data: TResult, error: string, context?: QueryResponseContext) => void
   document: string
   variables?: any
   options?: any
+}
+
+export interface QueryFetchOptions {
+  force?: boolean
+  latest?: boolean
+  meta?: unknown
+}
+
+export interface QueryResponseContext {
+  variables?: Record<string, any>
+  requestId: number
+  meta?: unknown
 }
 
 export function initQuery<TResult = any>(params: InitQueryParams<TResult>) {
@@ -93,22 +106,42 @@ export function initQuery<TResult = any>(params: InitQueryParams<TResult>) {
 export function initLazyQuery<TResult = any>(params: InitQueryParams<TResult>) {
   const loading = ref(false)
   const result = ref<TResult>()
+  let requestSequence = 0
+  let latestSequence = 0
+  let activeRegularRequests = 0
+  let activeLatestRequest: number | undefined
 
-  async function doFetch(vars?: Record<string, any>) {
+  async function doFetch(vars?: Record<string, any>, options: QueryFetchOptions = {}) {
+    const requestId = ++requestSequence
+    const latestRequestId = options.latest ? ++latestSequence : undefined
+    const resolved = vars ?? resolveVars(params.variables)
+    const v = resolved ? { ...resolved } : undefined
+    const context: QueryResponseContext = { variables: v, requestId, meta: options.meta }
+    if (options.latest) activeLatestRequest = requestId
+    else activeRegularRequests++
     loading.value = true
     try {
-      const v = vars ?? resolveVars(params.variables)
-      const r = await gqlFetch<TResult>(params.document, v)
+      const r = options.force
+        ? await gqlFetch<TResult>(params.document, v, { fresh: true })
+        : await gqlFetch<TResult>(params.document, v)
+      if (options.latest && latestRequestId !== latestSequence) return
       if (r.errors?.length) {
-        params.handle(r.data, r.errors[0].message)
+        params.handle(r.data, r.errors[0].message, context)
       } else {
         result.value = r.data
-        params.handle(r.data, '')
+        params.handle(r.data, '', context)
       }
     } catch (e: any) {
-      params.handle(undefined as any, getErrorMessage(e))
+      if (!options.latest || latestRequestId === latestSequence) {
+        params.handle(undefined as any, getErrorMessage(e), context)
+      }
     } finally {
-      loading.value = false
+      if (options.latest) {
+        if (activeLatestRequest === requestId) activeLatestRequest = undefined
+      } else {
+        activeRegularRequests--
+      }
+      loading.value = activeRegularRequests > 0 || activeLatestRequest !== undefined
     }
   }
 
@@ -245,6 +278,16 @@ export const smsConversationsGQL = `
     smsConversationCount(query: $query)
   }
   ${messageConversationFragment}
+`
+
+export const smsConversationsWithAddressesGQL = `
+  query smsConversations($offset: Int!, $limit: Int!, $query: String!) {
+    smsConversations(offset: $offset, limit: $limit, query: $query) {
+      ...MessageConversationWithAddressesFragment
+    }
+    smsConversationCount(query: $query)
+  }
+  ${messageConversationWithAddressesFragment}
 `
 
 export const contactsGQL = `
@@ -601,6 +644,15 @@ export const archivedConversationsGQL = `
     }
   }
   ${messageConversationFragment}
+`
+
+export const archivedConversationsWithAddressesGQL = `
+  query {
+    archivedConversations {
+      ...MessageConversationWithAddressesFragment
+    }
+  }
+  ${messageConversationWithAddressesFragment}
 `
 
 export const noteCountGQL = `

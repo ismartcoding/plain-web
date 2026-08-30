@@ -124,6 +124,90 @@ describe('gqlFetch', () => {
     expect(callArgs.body).toBeInstanceOf(Uint8Array)
   })
 
+  it('shares concurrent identical requests by default', async () => {
+    const key = Uint8Array.from(atob(base64Token), (c) => c.charCodeAt(0))
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => { release = resolve })
+    const fetchMock = vi.fn(async () => {
+      await gate
+      const body = await makeEncryptedResponse(key, { data: { ok: true } })
+      return { status: 200, arrayBuffer: async () => body }
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const first = gqlFetch('query { ok }')
+    const second = gqlFetch('query { ok }')
+    expect(fetchMock).toHaveBeenCalledOnce()
+    release()
+
+    await expect(Promise.all([first, second])).resolves.toHaveLength(2)
+    expect(fetchMock).toHaveBeenCalledOnce()
+  })
+
+  it('starts a fresh request when invalidation disables deduplication', async () => {
+    const key = Uint8Array.from(atob(base64Token), (c) => c.charCodeAt(0))
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => { release = resolve })
+    const fetchMock = vi.fn(async () => {
+      await gate
+      const body = await makeEncryptedResponse(key, { data: { ok: true } })
+      return { status: 200, arrayBuffer: async () => body }
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const stale = gqlFetch('query { ok }')
+    const fresh = gqlFetch('query { ok }', undefined, { fresh: true })
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    release()
+
+    await Promise.all([stale, fresh])
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('makes a forced request canonical so a later ordinary request joins it instead of stale work', async () => {
+    const key = Uint8Array.from(atob(base64Token), (c) => c.charCodeAt(0))
+    const resolveResponses: Array<(value: string) => void> = []
+    const fetchMock = vi.fn(() => new Promise<{ status: number; arrayBuffer: () => Promise<ArrayBuffer> }>((resolve) => {
+      resolveResponses.push((value) => {
+        resolve({
+          status: 200,
+          arrayBuffer: () => makeEncryptedResponse(key, { data: { value } }),
+        })
+      })
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const staleA = gqlFetch<{ value: string }>('query { value }')
+    const freshB = gqlFetch<{ value: string }>('query { value }', undefined, { fresh: true })
+    const ordinaryC = gqlFetch<{ value: string }>('query { value }')
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+
+    resolveResponses[1]('fresh-b')
+    await expect(freshB).resolves.toMatchObject({ data: { value: 'fresh-b' } })
+    await expect(ordinaryC).resolves.toMatchObject({ data: { value: 'fresh-b' } })
+
+    resolveResponses[0]('stale-a')
+    await expect(staleA).resolves.toMatchObject({ data: { value: 'stale-a' } })
+  })
+
+  it('never deduplicates operations when explicitly disabled', async () => {
+    const key = Uint8Array.from(atob(base64Token), (c) => c.charCodeAt(0))
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => { release = resolve })
+    const fetchMock = vi.fn(async () => {
+      await gate
+      const body = await makeEncryptedResponse(key, { data: { ok: true } })
+      return { status: 200, arrayBuffer: async () => body }
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const first = gqlFetch('mutation { send }', undefined, { dedupe: false })
+    const second = gqlFetch('mutation { send }', undefined, { dedupe: false })
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    release()
+    await Promise.all([first, second])
+  })
+
   it('POSTs to /graphql endpoint', async () => {
     const key = Uint8Array.from(atob(base64Token), (c) => c.charCodeAt(0))
     const fetchMock = mockFetch(key, { data: {} })

@@ -115,6 +115,20 @@ export const messageConversationFragment = `
   }
 `
 
+// This stays separate from the legacy fragment: GraphQL rejects unknown
+// fields on older PlainApp servers, so callers can retry without `addresses`.
+export const messageConversationWithAddressesFragment = `
+  fragment MessageConversationWithAddressesFragment on MessageConversation {
+    id
+    address
+    addresses
+    snippet
+    date
+    messageCount
+    read
+  }
+`
+
 export const contactFragment = `
   fragment ContactFragment on Contact {
     id

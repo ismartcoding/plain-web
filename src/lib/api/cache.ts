@@ -19,3 +19,13 @@ export function getCached<T>(key: string): T | undefined {
 export function setCached<T>(key: string, data: T): void {
   _store.set(key, data)
 }
+
+export function deleteCached(key: string): void {
+  _store.delete(key)
+}
+
+export function deleteCachedByPrefix(prefix: string): void {
+  for (const key of _store.keys()) {
+    if (key.startsWith(prefix)) _store.delete(key)
+  }
+}
