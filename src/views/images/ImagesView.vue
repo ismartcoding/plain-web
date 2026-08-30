@@ -42,7 +42,7 @@ v-for="{ item, idx } in group.entries" :key="item.id" :item="item" :checked="che
             :selected-ids="selectedIds" :shift-effecting-ids="shiftEffectingIds" :should-select="shouldSelect" :data-type="dataType"
             @item-click="(e) => handleItemClick(e, item, idx, view)" @item-mouse-enter="(e) => handleMouseOverMode(e, idx)"
             @toggle-select="(e) => toggleSelect(e, item, idx)" @view="view(idx)">
-            <template #thumbnail><img class="image-thumb image" :src="getFileUrl(item.fileId, '&w=512&h=512')" onerror="this.src='/broken-image.png'" /></template>
+            <template #thumbnail><img class="image-thumb image" :src="getFileUrl(item.fileId, '&w=512&h=512')" loading="lazy" onerror="this.src='/broken-image.png'" /></template>
             <template #info-right>{{ formatFileSize(item.size) }}</template>
           </MediaGridItem>
         </div>
@@ -55,7 +55,7 @@ v-for="(item, i) in items" :key="item.id" :item="item" :checked="checked"
         :selected-ids="selectedIds" :shift-effecting-ids="shiftEffectingIds" :should-select="shouldSelect" :data-type="dataType"
         @item-click="(e) => handleItemClick(e, item, i, view)" @item-mouse-enter="(e) => handleMouseOverMode(e, i)"
         @toggle-select="(e) => toggleSelect(e, item, i)" @view="view(i)">
-        <template #thumbnail><img class="image-thumb image" :src="getFileUrl(item.fileId, '&w=512&h=512')" onerror="this.src='/broken-image.png'" /></template>
+        <template #thumbnail><img class="image-thumb image" :src="getFileUrl(item.fileId, '&w=512&h=512')" loading="lazy" onerror="this.src='/broken-image.png'" /></template>
         <template #info-right>{{ formatFileSize(item.size) }}</template>
       </MediaGridItem>
       <template v-if="loading && items.length === 0"><section v-for="i in limit" :key="i" class="skeleton-image media-item"></section></template>

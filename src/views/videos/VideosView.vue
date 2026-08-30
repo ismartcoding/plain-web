@@ -43,7 +43,7 @@ v-for="{ item, idx } in group.entries" :key="item.id" :item="item" :checked="che
             @toggle-select="toggleSelect($event, item, idx)" @view="view(idx)">
             <template #thumbnail>
               <img v-if="imageErrorIds.includes(item.id)" :src="`/ficons/${getFileExtension(item.path)}.svg`" class="image svg" />
-              <img v-else class="image image-thumb" :src="getFileUrl(item.fileId, '&w=512&h=512')" @error="onImageError(item.id)" />
+              <img v-else class="image image-thumb" :src="getFileUrl(item.fileId, '&w=512&h=512')" loading="lazy" @error="onImageError(item.id)" />
             </template>
             <template #info-right>{{ formatSeconds(item.duration) }}</template>
           </MediaGridItem>
@@ -59,7 +59,7 @@ v-for="(item, i) in items" :key="item.id" :item="item" :checked="checked"
         @toggle-select="toggleSelect($event, item, i)" @view="view(i)">
         <template #thumbnail>
           <img v-if="imageErrorIds.includes(item.id)" :src="`/ficons/${getFileExtension(item.path)}.svg`" class="image svg" />
-          <img v-else class="image image-thumb" :src="getFileUrl(item.fileId, '&w=512&h=512')" @error="onImageError(item.id)" />
+          <img v-else class="image image-thumb" :src="getFileUrl(item.fileId, '&w=512&h=512')" loading="lazy" @error="onImageError(item.id)" />
         </template>
         <template #info-right>{{ ['SIZE_ASC', 'SIZE_DESC'].includes(videoSortBy) ? formatFileSize(item.size) : formatSeconds(item.duration) }}</template>
       </MediaGridItem>

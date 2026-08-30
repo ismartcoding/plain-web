@@ -1,25 +1,3 @@
-@font-face {
-  font-display: swap;
-  font-family: 'Noto Sans SC';
-  font-style: normal;
-  font-weight: 400;
-  src: url('./fonts/noto-sans-sc/regular.woff2') format('woff2');
-}
-@font-face {
-  font-display: swap;
-  font-family: 'Noto Sans SC';
-  font-style: normal;
-  font-weight: 500;
-  src: url('./fonts/noto-sans-sc/w-500.woff2') format('woff2');
-}
-@font-face {
-  font-display: swap;
-  font-family: 'Noto Sans SC';
-  font-style: normal;
-  font-weight: 700;
-  src: url('./fonts/noto-sans-sc/w-700.woff2') format('woff2');
-}
-
 :root {
   --md-sys-color-background: #fbf8ff;
   --md-sys-color-on-background: #1a1b26;
@@ -59,9 +37,9 @@
   --md-sys-color-error-container: #ffdad6;
   --md-sys-color-on-error-container: #410002;
 
-  font-family: 'Noto Sans SC', Roboto, system-ui;
-  --md-ref-typeface-brand: 'Noto Sans SC', Roboto, system-ui;
-  --md-ref-typeface-plain: 'Noto Sans SC', Roboto, system-ui;
+  font-family: system-ui, Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --md-ref-typeface-brand: system-ui, Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --md-ref-typeface-plain: system-ui, Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --md-sys-color-warning: #F57F17;
   --outlined-field-bg: var(--md-sys-color-surface-container);
   --pl-selecting-container-color: rgba(59, 130, 246, 0.3);

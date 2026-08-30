@@ -25,7 +25,7 @@
 
     <div class="image">
       <img v-if="thumbError && extError" class="svg" src="/ficons/default.svg" />
-      <img v-else-if="!thumbError && canThumb" class="image-thumb" :src="thumbUrl" @error="thumbError = true" />
+      <img v-else-if="!thumbError && canThumb" class="image-thumb" :src="thumbUrl" loading="lazy" @error="thumbError = true" />
       <img v-else-if="ext" :src="`/ficons/${ext}.svg`" class="svg" @error="extError = true" />
       <img v-else class="svg" src="/ficons/default.svg" />
     </div>
