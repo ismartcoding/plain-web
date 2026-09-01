@@ -5,6 +5,11 @@ const MATCH_WINDOW_MS = 5 * 60 * 1000
 
 interface PendingSms extends IMessage {
   baselineIds?: string[]
+  sendState?: 'sending' | 'sent'
+}
+
+export function isPendingSmsSent(item: IMessage | undefined): boolean {
+  return Boolean(item && (item as PendingSms).sendState === 'sent')
 }
 
 export function addressesMatch(first: string, second: string): boolean {
@@ -45,6 +50,7 @@ export function addPendingSms(
       id: requestId,
       date: createdAt.toISOString(),
       baselineIds: [...baselineIds],
+      sendState: 'sending',
     } as PendingSms,
   ]
 }
@@ -87,12 +93,24 @@ export function failPendingSms(pending: IMessage[], requestId: string): { pendin
 export function settlePendingSmsResult(
   pending: IMessage[],
   result: ISmsSendResultEvent,
-): { pending: IMessage[]; handled: boolean; failed?: IMessage } {
-  if (!result.requestId || !pending.some((item) => item.id === result.requestId)) {
+): { pending: IMessage[]; handled: boolean; transitioned?: true; failed?: IMessage } {
+  const operation = result.requestId
+    ? pending.find((item) => item.id === result.requestId)
+    : undefined
+  if (!result.requestId || !operation) {
     return { pending, handled: false }
   }
-  if (result.success) return { pending, handled: true }
-  return { ...failPendingSms(pending, result.requestId), handled: true }
+  if (isPendingSmsSent(operation)) return { pending, handled: true }
+  if (result.success) {
+    return {
+      pending: pending.map((item) => item.id === result.requestId
+        ? { ...item, sendState: 'sent' } as PendingSms
+        : item),
+      handled: true,
+      transitioned: true,
+    }
+  }
+  return { ...failPendingSms(pending, result.requestId), handled: true, transitioned: true }
 }
 
 export function addPendingMms(pending: IMessage[], item: IMessage): IMessage[] {
