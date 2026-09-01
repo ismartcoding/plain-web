@@ -1,3 +1,4 @@
+use std::fmt::Write as _;
 use std::sync::{Arc, OnceLock};
 use tokio::io::{AsyncWrite, AsyncWriteExt};
 
@@ -32,19 +33,19 @@ pub(super) async fn proxy_file<W: AsyncWrite + Unpin>(
     // 1. Parse + decrypt the id.
     let params = parse_query(query_str);
     let id_encoded = match params.get("id") {
-        Some(s) if !s.is_empty() => s.clone(),
+        Some(s) if !s.is_empty() => s.as_str(),
         _ => {
             respond(wr, 400, "Bad Request", b"missing id", "text/plain").await;
             return;
         }
     };
-    let id_bytes = base64_decode(&id_encoded);
+    let id_bytes = base64_decode(id_encoded);
     let Some(plaintext) = xchacha_decrypt(&ctx.token, &id_bytes) else {
         respond(wr, 401, "Unauthorized", b"", "text/plain").await;
         return;
     };
     let peer_url = match std::str::from_utf8(&plaintext) {
-        Ok(s) => s.to_string(),
+        Ok(s) => s,
         Err(_) => {
             respond(wr, 400, "Bad Request", b"invalid utf-8", "text/plain").await;
             return;
@@ -59,7 +60,7 @@ pub(super) async fn proxy_file<W: AsyncWrite + Unpin>(
 
     // 3. Forward the request to the peer, forwarding the Range header
     //    so media seeking works through the proxy.
-    let mut req = proxy_client().get(&peer_url);
+    let mut req = proxy_client().get(peer_url);
     if !range_header.is_empty()
         && let Ok(v) = reqwest::header::HeaderValue::from_str(range_header) {
             req = req.header("range", v);
@@ -73,26 +74,38 @@ pub(super) async fn proxy_file<W: AsyncWrite + Unpin>(
         }
     };
 
-    // 4. Stream status + headers + body back. Hop-by-hop and CORS headers
-    //    are stripped — we inject our own CORS preamble and `connection:
-    //    close` framing.
-    let status = resp.status();
-    let resp_hdrs = resp.headers().clone();
-    let status_line = format!(
+    // 4. Serialize the whole head (status + CORS + framing + forwarded
+    //    headers) into one pre-sized buffer so it leaves as a single
+    //    write — one TLS record / syscall instead of a dozen. Hop-by-hop
+    //    and CORS headers are stripped; we inject our own.
+    let head = build_head(resp.status(), resp.headers());
+    if wr.write_all(head.as_bytes()).await.is_err() {
+        return;
+    }
+
+    while let Ok(Some(mut data)) = resp.chunk().await {
+        if wr.write_all_buf(&mut data).await.is_err() {
+            break;
+        }
+    }
+    let _ = wr.flush().await;
+}
+
+/// Serialize the proxy response head: status line, CORS preamble,
+/// `connection: close` framing, then the peer's headers minus the
+/// hop-by-hop and CORS ones (we inject our own). Non-UTF-8 header values
+/// are skipped, matching the previous per-line behavior.
+fn build_head(status: reqwest::StatusCode, headers: &reqwest::header::HeaderMap) -> String {
+    let mut head = String::with_capacity(320 + headers.len() * 64);
+    let _ = write!(
+        head,
         "HTTP/1.1 {} {}\r\n",
         status.as_u16(),
         status.canonical_reason().unwrap_or("")
     );
-    if wr.write_all(status_line.as_bytes()).await.is_err() {
-        return;
-    }
-    if wr.write_all(CORS).await.is_err() {
-        return;
-    }
-    if wr.write_all(b"connection: close\r\n").await.is_err() {
-        return;
-    }
-    for (k, v) in &resp_hdrs {
+    head.push_str(std::str::from_utf8(CORS).unwrap_or_default());
+    head.push_str("connection: close\r\n");
+    for (k, v) in headers {
         match k.as_str() {
             "connection"
             | "keep-alive"
@@ -103,22 +116,14 @@ pub(super) async fn proxy_file<W: AsyncWrite + Unpin>(
             _ => {}
         }
         if let Ok(vs) = v.to_str() {
-            let line = format!("{}: {}\r\n", k.as_str(), vs);
-            if wr.write_all(line.as_bytes()).await.is_err() {
-                return;
-            }
+            head.push_str(k.as_str());
+            head.push_str(": ");
+            head.push_str(vs);
+            head.push_str("\r\n");
         }
     }
-    if wr.write_all(b"\r\n").await.is_err() {
-        return;
-    }
-
-    while let Ok(Some(data)) = resp.chunk().await {
-        if wr.write_all(&data).await.is_err() {
-            break;
-        }
-    }
-    let _ = wr.flush().await;
+    head.push_str("\r\n");
+    head
 }
 
 /// Shared reqwest client for `/proxyfs` requests. Cloning is cheap —
@@ -132,10 +137,69 @@ fn proxy_client() -> reqwest::Client {
             reqwest::Client::builder()
                 .danger_accept_invalid_certs(true)
                 .danger_accept_invalid_hostnames(true)
+                .tcp_nodelay(true)
                 .tcp_keepalive(std::time::Duration::from_secs(60))
                 .pool_max_idle_per_host(20)
                 .build()
                 .expect("proxyfs reqwest client")
         })
         .clone()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use reqwest::header::{HeaderMap, HeaderValue};
+
+    #[test]
+    fn build_head_serializes_status_cors_and_headers() {
+        let mut headers = HeaderMap::new();
+        headers.insert("content-type", HeaderValue::from_static("video/mp4"));
+        headers.insert("content-length", HeaderValue::from_static("42"));
+        let head = build_head(reqwest::StatusCode::PARTIAL_CONTENT, &headers);
+        assert!(head.starts_with("HTTP/1.1 206 Partial Content\r\n"));
+        assert!(head.contains("access-control-allow-origin: *\r\n"));
+        assert!(head.contains("connection: close\r\n"));
+        assert!(head.contains("content-type: video/mp4\r\n"));
+        assert!(head.contains("content-length: 42\r\n"));
+        assert!(head.ends_with("\r\n\r\n"));
+    }
+
+    #[test]
+    fn build_head_strips_hop_by_hop_and_cors_headers() {
+        let mut headers = HeaderMap::new();
+        headers.insert("transfer-encoding", HeaderValue::from_static("chunked"));
+        headers.insert("keep-alive", HeaderValue::from_static("timeout=5"));
+        headers.insert("connection", HeaderValue::from_static("keep-alive"));
+        headers.insert(
+            "access-control-allow-origin",
+            HeaderValue::from_static("https://example.com"),
+        );
+        headers.insert("x-custom", HeaderValue::from_static("1"));
+        let head = build_head(reqwest::StatusCode::OK, &headers);
+        assert!(head.contains("x-custom: 1\r\n"));
+        assert!(!head.contains("transfer-encoding"));
+        assert!(!head.contains("keep-alive"));
+        assert!(!head.contains("connection: keep-alive"));
+        assert!(!head.contains("https://example.com"));
+    }
+
+    #[test]
+    fn build_head_skips_non_utf8_values() {
+        let mut headers = HeaderMap::new();
+        headers.insert("x-bin", HeaderValue::from_bytes(&[0xff, 0xfe]).unwrap());
+        headers.insert("x-ok", HeaderValue::from_static("yes"));
+        let head = build_head(reqwest::StatusCode::OK, &headers);
+        assert!(!head.contains("x-bin"));
+        assert!(head.contains("x-ok: yes\r\n"));
+    }
+
+    #[test]
+    fn build_head_unknown_status_has_empty_reason() {
+        let head = build_head(
+            reqwest::StatusCode::from_u16(599).unwrap(),
+            &HeaderMap::new(),
+        );
+        assert!(head.starts_with("HTTP/1.1 599 \r\n"));
+    }
 }
