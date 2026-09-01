@@ -1,5 +1,6 @@
 export default {
   show_in_finder: 'Finder で表示',
+  save_as: '名前を付けて保存…',
   image: '画像',
   video: 'ビデオ',
   file: 'ファイル',

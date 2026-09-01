@@ -1,7 +1,7 @@
 <template>
   <div class="file-container">
     <div v-for="(item, i) in items" :key="i" class="file-item-wrapper">
-      <div class="file-item" @click="clickItem(item)" @contextmenu="onContextMenu($event, item.path)">
+      <div class="file-item" @click="clickItem(item)" @contextmenu="onContextMenu($event, item.path, item.name)">
         <div class="file-content">
           <div class="file-name" :class="{ playing: activeAudioSrc === item.src }">{{ item.name }}</div>
           <div class="file-info">

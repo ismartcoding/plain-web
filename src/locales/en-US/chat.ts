@@ -1,5 +1,6 @@
 export default {
   show_in_finder: 'Show in Finder',
+  save_as: 'Save As…',
   image: 'Image',
   images: 'Images',
   video: 'Video',

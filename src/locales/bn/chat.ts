@@ -1,5 +1,6 @@
 export default {
   show_in_finder: 'Finder-এ দেখান',
+  save_as: 'নতুন নামে সংরক্ষণ করুন…',
   image: 'ছবি',
   video: 'ভিডিও',
   file: 'ফাইল',

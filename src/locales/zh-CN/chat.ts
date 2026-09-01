@@ -1,5 +1,6 @@
 export default {
   show_in_finder: '在 Finder 中显示',
+  save_as: '另存为…',
   image: '图片',
   video: '视频',
   file: '文件',

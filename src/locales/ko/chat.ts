@@ -1,5 +1,6 @@
 export default {
   show_in_finder: 'Finder에서 보기',
+  save_as: '다른 이름으로 저장…',
   image: '이미지',
   video: '비디오',
   file: '파일',

@@ -1,5 +1,6 @@
 export default {
   show_in_finder: 'Toon in Finder',
+  save_as: 'Opslaan als…',
   image: 'Afbeelding',
   video: 'Video',
   file: 'Bestand',

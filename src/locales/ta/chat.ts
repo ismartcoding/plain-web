@@ -1,5 +1,6 @@
 export default {
   show_in_finder: 'Finder-இல் காட்டு',
+  save_as: 'வேறு பெயரில் சேமி…',
   image: 'படம்',
   video: 'வீடியோ',
   file: 'கோப்பு',

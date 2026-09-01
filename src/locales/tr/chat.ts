@@ -1,5 +1,6 @@
 export default {
   show_in_finder: "Finder'da Göster",
+  save_as: 'Farklı Kaydet…',
   image: 'Resim',
   video: 'Video',
   file: 'Dosya',

@@ -1,5 +1,6 @@
 export default {
   show_in_finder: 'Finder में दिखाएँ',
+  save_as: 'इस रूप में सहेजें…',
   image: 'इमेज',
   video: 'वीडियो',
   file: 'फ़ाइल',
