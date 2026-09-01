@@ -25,7 +25,7 @@ use crate::local::enums::DownloadStatus;
 use crate::local::graphql::context::{
     AppCtx, WsEvent, WS_DOWNLOAD_PROGRESS, WS_MESSAGE_UPDATED,
 };
-use plain_rs::mime::mime_from_ext;
+
 
 /// Download task state. Mirrors plain-app `DownloadStatus`.
 #[derive(Clone, Debug)]
@@ -420,12 +420,12 @@ async fn download_one(
     file.flush().await.ok();
     drop(file);
 
-    let mime = mime_from_ext(file_name);
     let import_result = {
         let db = ctx.db.clone();
         let data_dir = ctx.data_dir.clone();
         let temp_path = temp_path.clone();
-        tokio::task::spawn_blocking(move || import_file(&db, &data_dir, &temp_path, mime))
+        let file_name = file_name.to_string();
+        tokio::task::spawn_blocking(move || import_file(&db, &data_dir, &temp_path, &file_name, ""))
             .await
             .map_err(|e| format!("Import task panicked: {e}"))?
             .map_err(|e| format!("Import failed: {e}"))?

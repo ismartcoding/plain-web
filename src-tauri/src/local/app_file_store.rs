@@ -68,6 +68,32 @@ fn fid_ext(mime_type: &str) -> &'static str {
     }
 }
 
+/// File-name extension (lowercased), falling back to the MIME-derived one.
+/// The original file name is the ground truth for the extension: browsers
+/// report an empty `File.type` for less-common extensions (`properties`,
+/// `apk`, …), and the chunked-merge path has no MIME at all. Only when the
+/// name carries no extension do we consult the MIME type.
+fn ext_from_name(file_name: &str, mime_type: &str) -> String {
+    Path::new(file_name)
+        .extension()
+        .and_then(|e| e.to_str())
+        .filter(|e| !e.is_empty())
+        .map(|e| e.to_ascii_lowercase())
+        .unwrap_or_else(|| fid_ext(mime_type).to_string())
+}
+
+/// `fid_suffix` for a record whose canonical file already exists on disk —
+/// derived from the stored `real_path` file name so a dedup hit returns the
+/// exact suffix the original import produced (which may differ from what
+/// `fid_ext(record.mime_type)` would recompute).
+fn fid_suffix_of(real_path: &Path, strong_hash: &str) -> String {
+    real_path
+        .file_name()
+        .and_then(|s| s.to_str())
+        .unwrap_or(strong_hash)
+        .to_string()
+}
+
 /// Derive the canonical destination path for a `{hash, ext}` pair.
 pub fn dest_path(data_dir: &Path, hash: &str, ext: &str) -> PathBuf {
     data_dir.join(relative_dest_path(hash, ext))
@@ -136,12 +162,15 @@ fn weak_hash_file(path: &Path) -> std::io::Result<(String, u64)> {
 /// `delete_src = true` is desired — we always copy (the source may still be
 /// needed by the caller for retry / atomicity reasons).
 ///
-/// `mime_type` is the client-supplied type; an empty value falls back to
-/// `application/octet-stream` and an extension of `bin`.
+/// `file_name` is the original upload file name — its extension is the
+/// primary source for the on-disk extension. `mime_type` is the
+/// client-supplied type used as a fallback when the name has no extension;
+/// an empty value falls back to `application/octet-stream`.
 pub fn import_file(
     db: &ChatDb,
     data_dir: &Path,
     src: &Path,
+    file_name: &str,
     mime_type: &str,
 ) -> std::io::Result<ImportResult> {
     let (weak_hash, size) = weak_hash_file(src)?;
@@ -151,16 +180,13 @@ pub fn import_file(
     let weak_candidates = db.find_app_files_by_weak(size as i64, &weak_hash);
     for cand in weak_candidates {
         if cand.id == strong_hash {
-            // Step 2: strong match — reuse.
+            // Step 2: strong match — reuse. The record's `real_path` is the
+            // authority for where the canonical file lives (its extension
+            // may have come from the original upload's file name).
             db.increment_app_file_ref(&strong_hash);
-            let ext = fid_ext(&cand.mime_type);
-            let real_path = dest_path(data_dir, &strong_hash, ext);
+            let real_path = data_dir.join(&cand.real_path);
             ensure_canonical_exists(&real_path, src)?;
-            let fid_suffix = if ext.is_empty() {
-                strong_hash.clone()
-            } else {
-                format!("{strong_hash}.{ext}")
-            };
+            let fid_suffix = fid_suffix_of(&real_path, &strong_hash);
             return Ok(ImportResult {
                 id: strong_hash,
                 fid_suffix,
@@ -174,14 +200,9 @@ pub fn import_file(
     // Step 2 (race guard): direct id lookup.
     if let Some(existing) = db.get_app_file(&strong_hash) {
         db.increment_app_file_ref(&strong_hash);
-        let ext = fid_ext(&existing.mime_type);
-        let real_path = dest_path(data_dir, &strong_hash, ext);
+        let real_path = data_dir.join(&existing.real_path);
         ensure_canonical_exists(&real_path, src)?;
-        let fid_suffix = if ext.is_empty() {
-            strong_hash.clone()
-        } else {
-            format!("{strong_hash}.{ext}")
-        };
+        let fid_suffix = fid_suffix_of(&real_path, &strong_hash);
         return Ok(ImportResult {
             id: strong_hash,
             fid_suffix,
@@ -197,8 +218,8 @@ pub fn import_file(
     } else {
         mime_type.to_string()
     };
-    let ext = fid_ext(&effective_mime);
-    let real_path = dest_path(data_dir, &strong_hash, ext);
+    let ext = ext_from_name(file_name, &effective_mime);
+    let real_path = dest_path(data_dir, &strong_hash, &ext);
     if let Some(parent) = real_path.parent() {
         fs::create_dir_all(parent)?;
     }
@@ -209,7 +230,7 @@ pub fn import_file(
         id: strong_hash.clone(),
         size: size as i64,
         mime_type: effective_mime.clone(),
-        real_path: relative_dest_path(&strong_hash, ext),
+        real_path: relative_dest_path(&strong_hash, &ext),
         ref_count: 1,
         weak_hash,
         created_at: now.clone(),
@@ -245,13 +266,8 @@ pub fn import_bytes(
 
     if let Some(existing) = db.get_app_file(&strong_hash) {
         db.increment_app_file_ref(&strong_hash);
-        let ext = fid_ext(&existing.mime_type);
-        let real_path = dest_path(data_dir, &strong_hash, ext);
-        let fid_suffix = if ext.is_empty() {
-            strong_hash.clone()
-        } else {
-            format!("{strong_hash}.{ext}")
-        };
+        let real_path = data_dir.join(&existing.real_path);
+        let fid_suffix = fid_suffix_of(&real_path, &strong_hash);
         return Ok(ImportResult {
             id: strong_hash,
             fid_suffix,
@@ -373,6 +389,23 @@ mod tests {
         (bytes_to_hex(&hasher.finalize()), data.len() as i64)
     }
 
+    fn unique_tmp_dir(label: &str) -> PathBuf {
+        let nanos = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(0);
+        std::env::temp_dir().join(format!(
+            "plainapp-appfile-{label}-{}-{nanos}",
+            std::process::id()
+        ))
+    }
+
+    fn write_src(dir: &Path, name: &str, data: &[u8]) -> PathBuf {
+        let p = dir.join(name);
+        std::fs::write(&p, data).unwrap();
+        p
+    }
+
     #[test]
     fn fid_ext_maps_unknown_to_empty() {
         assert_eq!(fid_ext("image/jpeg"), "jpg");
@@ -385,6 +418,60 @@ mod tests {
         assert_eq!(fid_ext(""), "");
         assert_eq!(fid_ext("application/octet-stream"), "");
         assert_eq!(fid_ext("IMAGE/PNG"), "png"); // case-insensitive
+    }
+
+    #[test]
+    fn ext_from_name_prefers_filename_extension() {
+        assert_eq!(ext_from_name("local.properties", ""), "properties");
+        assert_eq!(ext_from_name("local.properties", "application/octet-stream"), "properties");
+        assert_eq!(ext_from_name("Photo.JPG", ""), "jpg"); // lowercased
+        assert_eq!(ext_from_name("archive.tar.gz", ""), "gz");
+        // No extension in the name — falls back to the MIME table.
+        assert_eq!(ext_from_name("README", "image/png"), "png");
+        assert_eq!(ext_from_name("README", "text/plain"), "txt");
+        // No extension and unknown MIME — no extension on disk.
+        assert_eq!(ext_from_name("README", "application/octet-stream"), "");
+        assert_eq!(ext_from_name("README", ""), "");
+        // A dotfile like `.gitignore` has no extension per Path semantics.
+        assert_eq!(ext_from_name(".gitignore", "text/plain"), "txt");
+    }
+
+    #[test]
+    fn import_file_keeps_extension_from_filename() {
+        let dir = unique_tmp_dir("import-ext");
+        let db = crate::local::db::ChatDb::open(&dir.join("local_chat.db")).unwrap();
+        let src = write_src(&dir, "src.bin", b"sdk.dir=/Users/mac/Library/Android/sdk\n");
+
+        // Browsers send no Content-Type for `.properties` files.
+        let result = import_file(&db, &dir, &src, "local.properties", "").unwrap();
+        assert_eq!(result.mime_type, DEFAULT_MIME);
+        assert!(result.fid_suffix.ends_with(".properties"), "{}", result.fid_suffix);
+        assert!(result.real_path.exists());
+        assert_eq!(result.real_path, dest_path(&dir, &result.id, "properties"));
+        assert!(!result.reused);
+
+        // Re-importing the same content (dedup) must return the SAME
+        // suffix and path — previously the reuse branch recomputed the
+        // path from the MIME and pointed at an extension-less file.
+        let again = import_file(&db, &dir, &src, "local.properties", "").unwrap();
+        assert!(again.reused);
+        assert_eq!(again.fid_suffix, result.fid_suffix);
+        assert_eq!(again.real_path, result.real_path);
+
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn import_file_falls_back_to_mime_when_name_has_no_ext() {
+        let dir = unique_tmp_dir("import-mime-ext");
+        let db = crate::local::db::ChatDb::open(&dir.join("local_chat.db")).unwrap();
+        let src = write_src(&dir, "src.bin", b"\x89PNGfakepng");
+
+        let result = import_file(&db, &dir, &src, "photo", "image/png").unwrap();
+        assert!(result.fid_suffix.ends_with(".png"), "{}", result.fid_suffix);
+        assert_eq!(result.real_path, dest_path(&dir, &result.id, "png"));
+
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]

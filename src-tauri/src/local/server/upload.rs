@@ -124,7 +124,8 @@ pub(super) async fn handle_upload<R, W>(
     };
 
     if is_app_file {
-        match app_file_store::import_file(&ctx.db, &ctx.data_dir, &temp, &file_part.content_type.clone().unwrap_or_default()) {
+        let file_name = file_part.filename.clone().unwrap_or_default();
+        match app_file_store::import_file(&ctx.db, &ctx.data_dir, &temp, &file_name, &file_part.content_type.clone().unwrap_or_default()) {
             Ok(result) => {
                 let _ = tokio::fs::remove_file(&temp).await;
                 respond(&mut wr, 201, "Created", result.fid_suffix.as_bytes(), "text/plain").await;

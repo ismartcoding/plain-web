@@ -145,9 +145,16 @@ impl FileUploadMutation {
             // canonical location and inserts/updates the `app_files` row.
             // The temp file is left for the caller to clean up; we delete
             // it eagerly here to mirror plain-app behaviour (which uses
-            // `deleteSrc = true` and renames within `importFile`).
-            let mime_type = String::new(); // best-effort; extension wins
-            let result = app_file_store::import_file(&c.db, &c.data_dir, &temp_merge, mime_type.as_str())
+            // `deleteSrc = true` and renames within `importFile`). The
+            // original file name rides in `path` — its extension decides
+            // the on-disk extension (the multipart chunk parts carry no
+            // usable MIME for less-common types).
+            let file_name = std::path::Path::new(&path)
+                .file_name()
+                .and_then(|s| s.to_str())
+                .unwrap_or("")
+                .to_string();
+            let result = app_file_store::import_file(&c.db, &c.data_dir, &temp_merge, &file_name, "")
                 .map_err(|e| respond(format!("import failed: {e}")))?;
             let _ = std::fs::remove_dir_all(&dir);
             let _ = std::fs::remove_file(&temp_merge);
