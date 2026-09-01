@@ -97,15 +97,9 @@ const {
 } = useNotesActions({ items, selectedIds, realAllChecked, q, total, clearSelection, fetch })
 </script>
 <style lang="scss" scoped>
-.scroller {
-  overflow-y: auto;
-  overflow-x: hidden;
-  flex: 1;
-  min-height: 0;
-  .item-link {
-    text-decoration: none;
-    display: block;
-  }
+.scroller .item-link {
+  text-decoration: none;
+  display: block;
 }
 
 :deep(.note-item) {

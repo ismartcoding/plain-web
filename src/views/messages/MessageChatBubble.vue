@@ -32,7 +32,7 @@
     <span v-tooltip="formatDateTime(item.date)" class="chat-time">{{ formatTime(item.date) }}</span>
     <span v-if="isDraftOrPending" class="chat-pending-status" :class="{ failed: pendingFailed }">
       <i-material-symbols:error-outline-rounded v-if="pendingFailed" class="pending-error-icon" />
-      {{ pendingFailed ? $t('mms_cancelled') : $t('message_type.3') }}
+      {{ pendingFailed ? $t('mms_cancelled') : isPending ? $t('sending') : $t('message_type.3') }}
     </span>
   </div>
 </template>
@@ -52,9 +52,8 @@ const props = defineProps<{
 }>()
 
 const isSent = computed(() => props.item.type === 2 || props.item.type === 4)
-const isDraftOrPending = computed(() =>
-  props.item.id.startsWith('pending_sms') || props.item.id.startsWith('pending_mms') || props.item.type === 3,
-)
+const isPending = computed(() => props.item.id.startsWith('pending_sms') || props.item.id.startsWith('pending_mms'))
+const isDraftOrPending = computed(() => isPending.value || props.item.type === 3)
 const pendingFailed = computed(() => {
   if (!props.item.id.startsWith('pending_mms')) return false
   return Date.now() - new Date(props.item.date).getTime() > 5 * 60 * 1000

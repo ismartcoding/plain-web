@@ -107,14 +107,9 @@ const {
   flex-direction: column;
   height: calc(100vh - var(--pl-top-app-bar-height));
 }
-.scroller {
-  overflow-y: auto;
-  overflow-x: hidden;
-  flex: 1;
-  .item-link {
-    text-decoration: none;
-    display: block;
-  }
+.scroller .item-link {
+  text-decoration: none;
+  display: block;
 }
 :deep(.feed-item) {
   margin: 0 16px 8px 16px;

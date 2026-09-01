@@ -17,11 +17,3 @@
     </section>
   </div>
 </template>
-
-<style scoped lang="scss">
-.scroller {
-  overflow-y: auto;
-  overflow-x: hidden;
-  flex: 1;
-}
-</style>

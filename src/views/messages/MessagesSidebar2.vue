@@ -115,15 +115,9 @@ const {
   }
 }
 
-.scroller {
-  overflow-y: auto;
-  overflow-x: hidden;
-  flex: 1;
-
-  .item-link {
-    text-decoration: none;
-    display: block;
-  }
+.scroller .item-link {
+  text-decoration: none;
+  display: block;
 }
 
 :deep(.conversation-item) {
