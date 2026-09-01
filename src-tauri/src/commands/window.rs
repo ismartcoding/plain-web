@@ -1,9 +1,17 @@
+use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Mutex, OnceLock};
 use tauri::{AppHandle, Manager, PhysicalPosition};
 
-/// Pixels to offset new windows to the right of the current focused window,
-/// so a freshly opened window doesn't sit exactly on top of its parent.
+/// Diagonal offset (physical pixels) between a freshly opened window and
+/// the focused window it cascades from, so the new window stays near its
+/// parent instead of landing at the platform default position.
 const WINDOW_CASCADE_OFFSET: i32 = 32;
+
+/// Number of distinct cascade steps before the offset wraps back to the
+/// base value, so windows opened in a row fan out instead of stacking up.
+const WINDOW_CASCADE_STEPS: u32 = 6;
+
+static CASCADE_STEP: AtomicU32 = AtomicU32::new(0);
 
 /// Frame (logical coordinates) of the last closed main-view window, so a
 /// dock-icon reopen puts the window back where the user left it instead of
@@ -80,27 +88,70 @@ pub fn reopen_main_window(app: &AppHandle) {
     }
 }
 
-/// Place a freshly built window just to the right of the current focused
-/// window, with the same top edge. Falls back to the platform default
-/// position (i.e. no-op) when there is no focused window or its outer
-/// geometry can't be read — we never want to fail a window open because
-/// the cascade placement didn't work.
+/// Place a freshly built window diagonally offset from the current focused
+/// window (macOS-style cascade) so it stays near its parent. Successive
+/// opens step further down-right and wrap after `WINDOW_CASCADE_STEPS`.
+/// The new window itself is excluded from the focus search — on some
+/// platforms it may already be focused by the time this runs.
+/// Falls back to the platform default position (i.e. no-op) when there is
+/// no focused window or its outer geometry can't be read — we never want
+/// to fail a window open because the cascade placement didn't work.
 pub fn cascade_from_focused(app: &AppHandle, win: &tauri::WebviewWindow) {
     let windows = app.webview_windows();
     let Some(focused) = windows
         .values()
-        .find(|w| w.is_focused().unwrap_or(false))
+        .find(|w| w.label() != win.label() && w.is_focused().unwrap_or(false))
     else {
         return;
     };
     let Ok(origin) = focused.outer_position() else { return };
-    let Ok(size) = focused.outer_size() else { return };
-    let new_pos = PhysicalPosition::new(
-        origin.x.saturating_add(size.width as i32).saturating_add(WINDOW_CASCADE_OFFSET),
-        origin.y,
-    );
+    let step = CASCADE_STEP.fetch_add(1, Ordering::Relaxed);
+    let new_pos = cascaded_position(origin, step);
     if let Err(e) = win.set_position(new_pos) {
         log::warn!("cascade_from_focused: set_position failed: {e}");
+    }
+}
+
+fn cascaded_position(origin: PhysicalPosition<i32>, step: u32) -> PhysicalPosition<i32> {
+    let delta = WINDOW_CASCADE_OFFSET * (1 + (step % WINDOW_CASCADE_STEPS) as i32);
+    PhysicalPosition::new(
+        origin.x.saturating_add(delta),
+        origin.y.saturating_add(delta),
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn first_open_offsets_diagonally_from_origin() {
+        let origin = PhysicalPosition::new(100, 200);
+        assert_eq!(cascaded_position(origin, 0), PhysicalPosition::new(132, 232));
+    }
+
+    #[test]
+    fn successive_opens_step_further() {
+        let origin = PhysicalPosition::new(0, 0);
+        assert_eq!(cascaded_position(origin, 1), PhysicalPosition::new(64, 64));
+        assert_eq!(cascaded_position(origin, 2), PhysicalPosition::new(96, 96));
+    }
+
+    #[test]
+    fn offset_wraps_after_max_steps() {
+        let origin = PhysicalPosition::new(50, 60);
+        let last = cascaded_position(origin, WINDOW_CASCADE_STEPS - 1);
+        assert_eq!(last, PhysicalPosition::new(50 + 32 * 6, 60 + 32 * 6));
+        assert_eq!(cascaded_position(origin, WINDOW_CASCADE_STEPS), cascaded_position(origin, 0));
+    }
+
+    #[test]
+    fn saturates_at_coordinate_bounds() {
+        let origin = PhysicalPosition::new(i32::MAX, i32::MIN);
+        assert_eq!(
+            cascaded_position(origin, 0),
+            PhysicalPosition::new(i32::MAX, i32::MIN + WINDOW_CASCADE_OFFSET)
+        );
     }
 }
 
