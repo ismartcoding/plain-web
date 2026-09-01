@@ -1,4 +1,5 @@
 export default {
+  show_in_finder: 'Mostra nel Finder',
   image: 'Immagine',
   video: 'Video',
   file: 'File',

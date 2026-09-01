@@ -1,4 +1,5 @@
 export default {
+  show_in_finder: "Finder'da Göster",
   image: 'Resim',
   video: 'Video',
   file: 'Dosya',

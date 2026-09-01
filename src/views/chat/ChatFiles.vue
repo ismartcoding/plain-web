@@ -1,7 +1,7 @@
 <template>
   <div class="file-container">
     <div v-for="(item, i) in items" :key="i" class="file-item-wrapper">
-      <div class="file-item" @click="clickItem(item)">
+      <div class="file-item" @click="clickItem(item)" @contextmenu="onContextMenu($event, item.path)">
         <div class="file-content">
           <div class="file-name" :class="{ playing: activeAudioSrc === item.src }">{{ item.name }}</div>
           <div class="file-info">
@@ -25,6 +25,7 @@ import { formatSeconds, formatFileSize } from '@/lib/format'
 import ChatAudioPlayer from './ChatAudioPlayer.vue'
 import ChatDownloadOverlay from './ChatDownloadOverlay.vue'
 import { useChatFiles } from './hooks/chat-files'
+import { useRevealFile } from './hooks/reveal-file'
 
 const props = defineProps({
   data: { type: Object, default: () => ({}) },
@@ -38,6 +39,7 @@ function onDownloadAction(action: 'pause' | 'resume' | 'retry') {
 }
 
 const { items, activeAudioSrc, getThumb, onIconError, clickItem } = useChatFiles(props)
+const { onContextMenu } = useRevealFile()
 </script>
 
 <style lang="scss" scoped>

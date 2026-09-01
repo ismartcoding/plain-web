@@ -213,6 +213,7 @@ pub fn run() {
             commands::window::set_window_device_name,
             commands::media_preview_pool::media_preview_init,
             commands::media_preview_pool::media_preview_activate,
+            commands::reveal::reveal_chat_file,
             http_proxy::http_proxy_port,
             local::server::local_server_port,
             local::server::local_server_https_port,

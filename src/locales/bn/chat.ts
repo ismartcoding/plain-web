@@ -1,4 +1,5 @@
 export default {
+  show_in_finder: 'Finder-এ দেখান',
   image: 'ছবি',
   video: 'ভিডিও',
   file: 'ফাইল',

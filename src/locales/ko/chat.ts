@@ -1,4 +1,5 @@
 export default {
+  show_in_finder: 'Finder에서 보기',
   image: '이미지',
   video: '비디오',
   file: '파일',

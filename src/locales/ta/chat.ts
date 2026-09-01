@@ -1,4 +1,5 @@
 export default {
+  show_in_finder: 'Finder-இல் காட்டு',
   image: 'படம்',
   video: 'வீடியோ',
   file: 'கோப்பு',

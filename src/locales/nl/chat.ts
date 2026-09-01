@@ -1,4 +1,5 @@
 export default {
+  show_in_finder: 'Toon in Finder',
   image: 'Afbeelding',
   video: 'Video',
   file: 'Bestand',

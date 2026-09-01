@@ -1,4 +1,5 @@
 export default {
+  show_in_finder: 'Finder で表示',
   image: '画像',
   video: 'ビデオ',
   file: 'ファイル',
