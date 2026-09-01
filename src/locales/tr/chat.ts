@@ -9,6 +9,7 @@ export default {
   me: 'Ben',
   this_device: 'Bu cihaz',
   chat_input_hint: 'Aklınızda ne var?',
+  forward_message: 'Mesajı ilet',
   delete_message: 'Mesajı sil',
   chat_info: 'Sohbet Bilgisi',
   clear_messages: 'Mesajları Temizle',

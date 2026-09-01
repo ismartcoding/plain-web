@@ -9,6 +9,7 @@ export default {
   me: 'में',
   this_device: 'यह डिवाइस',
   chat_input_hint: 'आपके मन में क्या है?',
+  forward_message: 'मैसेज फ़ॉरवर्ड करें',
   delete_message: 'डिलीट मैसेज',
   chat_info: 'चैट जानकारी',
   clear_messages: 'संदेश हटाएं',

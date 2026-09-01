@@ -26,6 +26,7 @@
         :download-info="downloadProgress[chatItem.id] ?? null"
         :peer="peer"
         @delete="deleteMessage"
+        @forward="handleForward"
         @retry="handleRetry"
         @download-action="handleDownloadAction"
       />
@@ -48,6 +49,8 @@ import { useI18n } from 'vue-i18n'
 import { formatDate } from '@/lib/format'
 import ChatInput from './ChatInput.vue'
 import ChatMessageItem from './ChatMessageItem.vue'
+import ForwardMessageModal from './ForwardMessageModal.vue'
+import { openModal } from '@/components/modal'
 import { useMainStore } from '@/stores/main'
 import { useChatRouteId } from './hooks/chat-route'
 import { useChatData } from './hooks/chat-data'
@@ -110,6 +113,10 @@ function handleSend() {
 
 function handleRetry(id: string) {
   retryMessage(id)
+}
+
+function handleForward(item: IChatItem) {
+  openModal(ForwardMessageModal, { message: item, excludeChatId: chatId.value })
 }
 
 onActivated(() => { isActive.value = true })

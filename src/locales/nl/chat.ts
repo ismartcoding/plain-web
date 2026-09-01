@@ -9,6 +9,7 @@ export default {
   me: 'Ik',
   this_device: 'Dit apparaat',
   chat_input_hint: 'Wat denk je?',
+  forward_message: 'Bericht doorsturen',
   delete_message: 'Bericht verwijderen',
   chat_info: 'Chatinfo',
   clear_messages: 'Berichten wissen',

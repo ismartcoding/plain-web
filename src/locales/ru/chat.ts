@@ -9,6 +9,7 @@ export default {
   me: 'Я',
   this_device: 'Это устройство',
   chat_input_hint: 'Что у вас на уме?',
+  forward_message: 'Переслать сообщение',
   delete_message: 'Удалить сообщение',
   chat_info: 'Сведения о чате',
   clear_messages: 'Очистить сообщения',

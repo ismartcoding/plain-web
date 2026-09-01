@@ -20,6 +20,9 @@
           <i-material-symbols:expand-more-rounded class="bi bi-more" />
         </div>
       </template>
+      <div v-if="!data.id.startsWith('new_')" class="dropdown-item" @click="emit('forward', data); open = false">
+        {{ $t('forward_message') }}
+      </div>
       <div class="dropdown-item" :class="{ disabled: deleteLoading }" @click="emit('delete', data.id); open = false">
         {{ $t('delete_message') }}
       </div>
@@ -77,7 +80,7 @@ const props = defineProps<{
   peer: IPeer | null
 }>()
 
-const emit = defineEmits<{ delete: [id: string]; retry: [id: string, statusData?: string]; 'download-action': [id: string, action: 'pause' | 'resume' | 'retry'] }>()
+const emit = defineEmits<{ delete: [id: string]; forward: [item: IChatItem]; retry: [id: string, statusData?: string]; 'download-action': [id: string, action: 'pause' | 'resume' | 'retry'] }>()
 const open = ref(false)
 const statusMenuOpen = ref(false)
 const { t } = useI18n()

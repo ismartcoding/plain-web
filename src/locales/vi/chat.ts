@@ -9,6 +9,7 @@ export default {
   me: 'Tôi',
   this_device: 'Thiết bị này',
   chat_input_hint: 'Bạn đang nghĩ gì?',
+  forward_message: 'Chuyển tiếp tin nhắn',
   delete_message: 'Xóa tin nhắn',
   chat_info: 'Thông tin chat',
   clear_messages: 'Xóa tin nhắn',

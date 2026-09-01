@@ -13,6 +13,12 @@ import { gqlFetch } from '@/lib/api/gql-client'
 import { downloadPeerFileGQL, pauseDownloadGQL, resumeDownloadGQL, retryDownloadGQL } from '@/lib/api/mutation'
 import emitter from '@/plugins/eventbus'
 
+export function messageNeedsDownload(item: IChatItem): boolean {
+  const items = item._content?.value?.items
+  if (!Array.isArray(items)) return false
+  return items.some((f: any) => typeof f.uri === 'string' && f.uri.startsWith('fsid:'))
+}
+
 export function useChatUpload(
   chatId: ComputedRef<string>,
   channelId: ComputedRef<string>,
@@ -107,12 +113,6 @@ export function useChatUpload(
 
   // --- Peer file download (mirrors plain-app DownloadQueue) ---
   const submittedDownloads = new Set<string>()
-
-  function messageNeedsDownload(item: IChatItem): boolean {
-    const items = item._content?.value?.items
-    if (!Array.isArray(items)) return false
-    return items.some((f: any) => typeof f.uri === 'string' && f.uri.startsWith('fsid:'))
-  }
 
   function getPeerIdForItem(item: IChatItem): string {
     if (channelId.value) return item.fromId

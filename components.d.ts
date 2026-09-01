@@ -118,6 +118,7 @@ declare module 'vue' {
     FilesSidebar: typeof import('./src/views/files/FilesSidebar.vue')['default']
     FilesView: typeof import('./src/views/files/FilesView.vue')['default']
     FileThumb: typeof import('./src/components/files/FileThumb.vue')['default']
+    ForwardMessageModal: typeof import('./src/views/chat/ForwardMessageModal.vue')['default']
     HeaderActions: typeof import('./src/components/HeaderActions.vue')['default']
     HeaderSearch: typeof import('./src/components/HeaderSearch.vue')['default']
     HomeView: typeof import('./src/views/home/HomeView.vue')['default']

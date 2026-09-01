@@ -9,6 +9,7 @@ export default {
   me: 'Ich',
   this_device: 'Dieses Gerät',
   chat_input_hint: 'Was denkst du gerade?',
+  forward_message: 'Nachricht weiterleiten',
   delete_message: 'Nachricht löschen',
   chat_info: 'Chat-Info',
   clear_messages: 'Nachrichten löschen',
