@@ -5,7 +5,7 @@
 - Issue: https://github.com/plainhub/plain-app/issues/345
 - Repositories: https://github.com/plainhub/plain-app and https://github.com/plainhub/plain-desktop
 - Branch/commit tested: `plain-app` `4ae019ba` (`v3.3.16`, current upstream); `plain-desktop` `d3b1ff1e` (current upstream)
-- Pull request: to be added after creation
+- Pull request: https://github.com/plainhub/plain-desktop/pull/17
 
 ## Priority and scope
 
