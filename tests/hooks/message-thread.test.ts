@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import { SMS_SEND_RESULT_TIMEOUT_MS } from '@/lib/sms-send-deadline'
+import { isPendingSmsSent } from '@/lib/sms-state-sync'
 
 const harness = vi.hoisted(() => ({ toast: vi.fn(), fetch: vi.fn() }))
 
@@ -75,6 +76,26 @@ describe('message thread pending operations', () => {
     await vi.advanceTimersByTimeAsync(SMS_SEND_RESULT_TIMEOUT_MS)
 
     expect(thread.pendingSmsItems.value.map((item) => item.id)).toEqual([requestId])
+    expect(isPendingSmsSent(thread.pendingSmsItems.value[0])).toBe(true)
+    expect(restore).not.toHaveBeenCalled()
+    expect(harness.toast).not.toHaveBeenCalled()
+  })
+
+  it('keeps a successful send marked sent when provider retries cannot see a restricted row', async () => {
+    vi.useFakeTimers()
+    harness.fetch.mockResolvedValue(undefined)
+    const thread = useMessageThread(ref('thread-a'), ref())
+    const restore = vi.fn()
+    thread.setTerminalHandlers({ onSmsFailure: restore, onMmsResult: vi.fn() })
+    const requestId = thread.setPendingSms('hello', '+15551234567', 'request-a')
+    thread.startPendingSmsDeadline(requestId)
+
+    expect(thread.handleSmsSendResult({ requestId, success: true }).handled).toBe(true)
+    await vi.advanceTimersByTimeAsync(7000)
+
+    expect(harness.fetch).toHaveBeenCalledTimes(3)
+    expect(thread.pendingSmsItems.value.map((item) => item.id)).toEqual([requestId])
+    expect(isPendingSmsSent(thread.pendingSmsItems.value[0])).toBe(true)
     expect(restore).not.toHaveBeenCalled()
     expect(harness.toast).not.toHaveBeenCalled()
   })

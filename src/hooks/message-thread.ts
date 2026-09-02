@@ -14,6 +14,7 @@ import {
   addPendingMms,
   addPendingSms,
   failPendingSms,
+  isPendingSmsSent,
   reconcilePendingSms,
   settlePendingMms,
   settlePendingSmsResult,
@@ -45,7 +46,6 @@ export function useMessageThread(
   const pendingSmsItems = ref<IMessage[]>([])
   const retryTimers = new Map<string, Set<ReturnType<typeof setTimeout>>>()
   const pendingMmsTimers = new Map<string, ReturnType<typeof setTimeout>>()
-  const successfulSmsResults = new Set<string>()
   let onTerminalSmsFailure: ((failed: IMessage) => void) | undefined
   let onTerminalMmsResult: ((pendingId: string, success: boolean) => void) | undefined
 
@@ -105,7 +105,6 @@ export function useMessageThread(
           if (!remainingPendingIds.has(pendingId)) {
             smsDeadlines.settle(pendingId)
             cancelRetry(pendingId)
-            successfulSmsResults.delete(pendingId)
           }
         }
         scrollToBottom()
@@ -173,7 +172,6 @@ export function useMessageThread(
   }
 
   function setPendingSms(body: string, address: string, requestId = `pending_sms_${shortUUID()}`) {
-    successfulSmsResults.delete(requestId)
     pendingSmsItems.value = addPendingSms(
       pendingSmsItems.value,
       requestId,
@@ -188,7 +186,7 @@ export function useMessageThread(
   }
 
   function startPendingSmsDeadline(requestId: string) {
-    if (!successfulSmsResults.has(requestId) && pendingSmsItems.value.some((item) => item.id === requestId)) {
+    if (pendingSmsItems.value.some((item) => item.id === requestId && !isPendingSmsSent(item))) {
       smsDeadlines.start(requestId)
     }
   }
@@ -196,14 +194,14 @@ export function useMessageThread(
   function handleSmsSendResult(result: ISmsSendResultEvent): { handled: boolean; failed?: IMessage } {
     const outcome = settlePendingSmsResult(pendingSmsItems.value, result)
     if (!outcome.handled || !result.requestId) return { handled: false }
+    if (!outcome.transitioned) return { handled: true }
+    pendingSmsItems.value = outcome.pending
     smsDeadlines.settle(result.requestId)
     if (result.success) {
-      successfulSmsResults.add(result.requestId)
       refetchWithRetry(result.requestId)
       return { handled: true }
     }
     cancelRetry(result.requestId)
-    pendingSmsItems.value = outcome.pending
     toast(t('send_failed'), 'error')
     return { handled: true, failed: outcome.failed }
   }
@@ -211,7 +209,6 @@ export function useMessageThread(
   function failPending(requestId: string): IMessage | undefined {
     const failed = failPendingSms(pendingSmsItems.value, requestId)
     pendingSmsItems.value = failed.pending
-    successfulSmsResults.delete(requestId)
     smsDeadlines.settle(requestId)
     cancelRetry(requestId)
     return failed.failed
