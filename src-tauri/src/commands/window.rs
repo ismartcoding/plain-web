@@ -78,6 +78,7 @@ pub fn reopen_main_window(app: &AppHandle) {
     let builder = tauri::WebviewWindowBuilder::new(app, &label, tauri::WebviewUrl::App("/".into()))
         .title("")
         .min_inner_size(900.0, 600.0)
+        .disable_drag_drop_handler()
         .title_bar_style(tauri::TitleBarStyle::Overlay);
     let builder = match last_main_frame().lock().ok().and_then(|f| *f) {
         Some(f) => builder.position(f.x, f.y).inner_size(f.w, f.h),
@@ -173,10 +174,13 @@ pub fn create_window(app: &AppHandle, path: String) {
             .as_millis()
     );
     let url = tauri::WebviewUrl::App(path.into());
+    // The native drag-drop handler swallows OS drops before the webview sees
+    // them, which kills the HTML5 drop zones used to upload files.
     let win = tauri::WebviewWindowBuilder::new(app, &label, url)
         .title("")
         .inner_size(1200.0, 800.0)
-        .min_inner_size(900.0, 600.0);
+        .min_inner_size(900.0, 600.0)
+        .disable_drag_drop_handler();
     #[cfg(target_os = "macos")]
     let win = win.title_bar_style(tauri::TitleBarStyle::Overlay);
     match win.build()
@@ -221,7 +225,8 @@ pub fn new_window(app: &AppHandle) {
     let win = tauri::WebviewWindowBuilder::new(app, &label, url)
         .title("")
         .inner_size(1200.0, 800.0)
-        .min_inner_size(900.0, 600.0);
+        .min_inner_size(900.0, 600.0)
+        .disable_drag_drop_handler();
     #[cfg(target_os = "macos")]
     let win = win.title_bar_style(tauri::TitleBarStyle::Overlay);
     if let Err(e) = win.build()

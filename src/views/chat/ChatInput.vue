@@ -1,7 +1,7 @@
 <!-- eslint-disable vue/no-v-html -->
 <template>
   <div class="chat-input">
-    <div class="textarea-wrapper">
+    <div class="textarea-wrapper" @dragenter="fileDragEnter" @dragover="fileDragOver" @dragleave="fileDragLeave" @drop="dropFiles">
       <div v-show="displayDragMask" class="drag-mask">{{ $t('release_to_send_files') }}</div>
       <v-text-field
         :model-value="modelValue"
@@ -12,9 +12,6 @@
         :placeholder="$t('chat_input_hint')"
         @update:model-value="$emit('update:modelValue', $event)"
         @paste="pasteFiles"
-        @drop.prevent="dropFiles"
-        @dragenter.prevent="fileDragEnter"
-        @dragleave.prevent="fileDragLeave"
         @keydown="onKeyDown"
         @compositionstart="onCompositionStart"
         @compositionend="onCompositionEnd"
@@ -44,6 +41,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { isImage, isVideo } from '@/lib/file'
 
 interface Props {
   modelValue: string
@@ -162,52 +160,87 @@ function sendFiles() {
   fileInput.value!.click()
 }
 
-function fileDragEnter() {
-  displayDragMask.value = true
+function draggingFiles(e: DragEvent) {
+  return !!e.dataTransfer?.types.includes('Files')
 }
 
-function fileDragLeave() {
+function fileDragEnter(e: DragEvent) {
+  if (draggingFiles(e)) {
+    displayDragMask.value = true
+  }
+}
+
+// dragover must be cancelled for the drop event to fire at all — a textarea
+// accepts text drops natively, but not file drops.
+function fileDragOver(e: DragEvent) {
+  if (draggingFiles(e)) {
+    e.preventDefault()
+    displayDragMask.value = true
+  }
+}
+
+function fileDragLeave(e: DragEvent) {
+  // dragleave also fires when the pointer crosses into a child element, so
+  // only clear the mask once it really is outside the drop area.
+  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+  const inside = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom
+  if (inside) {
+    return
+  }
   displayDragMask.value = false
+}
+
+// Images and videos become image messages (tappable previews), everything
+// else a file message — same split the paste handler has always used.
+function sendFilesByKind(files: File[]) {
+  const images: File[] = []
+  const others: File[] = []
+  for (const file of files) {
+    const isMedia =
+      file.type.startsWith('image') ||
+      file.type.startsWith('video') ||
+      isImage(file.name) ||
+      isVideo(file.name)
+    if (isMedia) {
+      images.push(file)
+    } else {
+      others.push(file)
+    }
+  }
+  if (images.length) {
+    emit('send-images', images)
+  }
+  if (others.length) {
+    emit('send-files', others)
+  }
+  return images.length + others.length > 0
 }
 
 function dropFiles(e: DragEvent) {
-  const fileList = e.dataTransfer?.files as FileList
   displayDragMask.value = false
-  if (fileList) {
-    const files: File[] = []
-    for (const item of fileList) {
-      files.push(item)
-    }
-    if (files.length) {
-      emit('send-files', files)
-    }
+  const fileList = e.dataTransfer?.files
+  if (!fileList?.length) {
+    return
   }
+  // Only take over the event for files — dropping plain text must still land
+  // in the textarea.
+  e.preventDefault()
+  sendFilesByKind(Array.from(fileList))
 }
 
 function pasteFiles(e: ClipboardEvent) {
   const items = e.clipboardData?.items as DataTransferItemList
-  if (items) {
-    const images: File[] = []
-    const files: File[] = []
-    for (const item of items) {
-      if (item.kind !== 'file') {
-        continue
-      }
-      const file = item.getAsFile()!
-      if (file.type.startsWith('image') || file.type.startsWith('video')) {
-        images.push(file)
-      } else {
-        files.push(file)
-      }
+  if (!items) {
+    return
+  }
+  const files: File[] = []
+  for (const item of items) {
+    if (item.kind === 'file') {
+      files.push(item.getAsFile()!)
     }
-    if (images.length) {
-      e.preventDefault()
-      emit('send-images', images)
-    }
-    if (files.length) {
-      e.preventDefault()
-      emit('send-files', files)
-    }
+  }
+  if (sendFilesByKind(files)) {
+    e.preventDefault()
   }
 }
 </script>

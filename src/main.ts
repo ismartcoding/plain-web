@@ -14,6 +14,7 @@ import { preload as preloadPrefs, get as prefsGet, set as prefsSet } from './lib
 import { applyUrlClientId } from './lib/device/client-id'
 import { preloadLoginPeers } from './lib/device/login-peers'
 import { applyMenuLabels } from './lib/app-menu'
+import { preventUnhandledFileDrop } from './lib/file-drop'
 
 if (!__IS_TAURI__) {
   // Web: prefs are synchronous (localStorage) — safe to apply immediately.
@@ -30,6 +31,7 @@ if (!__IS_TAURI__) {
 async function bootstrap() {
   if (__IS_TAURI__) {
     document.documentElement.classList.add('tauri')
+    preventUnhandledFileDrop()
     // Load all prefs from plugin-store into memory FIRST so synchronous
     // readers (i18n, stores) see the persisted values without hitting localStorage.
     await preloadPrefs()
