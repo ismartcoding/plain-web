@@ -1,5 +1,6 @@
 export default {
   write_a_message: 'Viết tin nhắn',
+  emoji_suggestions: 'Gợi ý emoji',
   send_sms: 'Gửi SMS',
   send_mms: 'Gửi MMS',
   confirm_mms_on_phone: 'Vui lòng xác nhận và gửi MMS trên điện thoại của bạn.',

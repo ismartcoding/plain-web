@@ -1,5 +1,6 @@
 export default {
   write_a_message: 'Bir mesaj yazın',
+  emoji_suggestions: 'Emoji önerileri',
   send_sms: 'SMS gönder',
   send_mms: 'MMS Gönder',
   confirm_mms_on_phone: 'Lütfen MMS\'i telefonunuzda onaylayın ve gönderin.',

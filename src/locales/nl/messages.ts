@@ -1,5 +1,6 @@
 export default {
   write_a_message: 'Schrijf een bericht',
+  emoji_suggestions: 'Emoji-suggesties',
   confirm_mms_on_phone: 'Bevestig en verzend de MMS op uw telefoon.',
   mms_cancelled: 'Geannuleerd (niet verzonden)',
   send_sms: 'SMS verzenden',

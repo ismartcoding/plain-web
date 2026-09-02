@@ -33,7 +33,7 @@
         </div>
       </div>
       <div class="form-row">
-        <v-text-field v-model="body" type="textarea" :rows="4" :label="$t('content')" :error="!!errors.body && pendingFiles.length === 0" :error-text="errors.body && pendingFiles.length === 0 ? $t(errors.body) : ''" />
+        <EmojiTextField v-model="body" type="textarea" :rows="4" :label="$t('content')" :error="!!errors.body && pendingFiles.length === 0" :error-text="errors.body && pendingFiles.length === 0 ? $t(errors.body) : ''" />
       </div>
       <div class="form-row">
         <input ref="fileInputRef" type="file" multiple accept="image/*,video/*,audio/*" class="hidden-file-input" @change="onFileSelected" />
@@ -192,4 +192,3 @@ const {
 }
 
 </style>
-

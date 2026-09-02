@@ -11,6 +11,7 @@
           :placeholder="placeholder"
           :autocomplete="autocomplete"
           @input="handleInput"
+          @click="$emit('click', $event)"
           @focus="handleFocus"
           @blur="handleBlur"
           @keyup.enter="$emit('keyup.enter', $event)"
@@ -34,6 +35,7 @@
           :autocorrect="autocorrect"
           :spellcheck="spellcheck"
           @input="handleInput"
+          @click="$emit('click', $event)"
           @focus="handleFocus"
           @blur="handleBlur"
           @keyup.enter="$emit('keyup.enter', $event)"
@@ -87,6 +89,10 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
+  input: [event: Event]
+  click: [event: MouseEvent]
+  focus: [event: FocusEvent]
+  blur: [event: FocusEvent]
   'keyup.enter': [event: KeyboardEvent]
   paste: [event: ClipboardEvent]
   drop: [event: DragEvent]
@@ -112,14 +118,17 @@ const inputClass = computed(() => {
 const handleInput = (event: Event) => {
   const target = event.target as HTMLInputElement
   emit('update:modelValue', target.value)
+  emit('input', event)
 }
 
-const handleFocus = () => {
+const handleFocus = (event: FocusEvent) => {
   isFocused.value = true
+  emit('focus', event)
 }
 
-const handleBlur = () => {
+const handleBlur = (event: FocusEvent) => {
   isFocused.value = false
+  emit('blur', event)
 }
 
 defineExpose({
@@ -136,7 +145,8 @@ defineExpose({
     } else {
       inputRef.value?.blur()
     }
-  }
+  },
+  getInputElement: () => props.type === 'textarea' ? textareaRef.value : inputRef.value,
 })
 </script>
 
@@ -352,4 +362,4 @@ defineExpose({
     height: 24px;
   }
 }
-</style> 
+</style>
