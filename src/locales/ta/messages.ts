@@ -1,5 +1,6 @@
 export default {
   write_a_message: 'ஒரு செய்தி எழுதுங்கள்',
+  emoji_suggestions: 'எமோஜி பரிந்துரைகள்',
   send_sms: 'SMS அனுப்பு',
   send_mms: 'MMS அனுப்பு',
   confirm_mms_on_phone: 'MMS ஐ உங்கள் கைபேசியில் உறுதிப்படுத்தி அனுப்பவும்.',

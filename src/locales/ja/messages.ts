@@ -1,5 +1,6 @@
 export default {
   write_a_message: 'メッセージを入力',
+  emoji_suggestions: '絵文字の候補',
   confirm_mms_on_phone: '電話でMMSを確認して送信してください。',
   send_sms: 'SMSを送信',
   send_mms: 'MMS送信',

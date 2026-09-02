@@ -1,5 +1,6 @@
 export default {
   write_a_message: '输入消息',
+  emoji_suggestions: '表情符号建议',
   confirm_mms_on_phone: '请在手机上确认并发送彩信。',
   send_sms: '发送短信',
   send_mms: '发送彩信',

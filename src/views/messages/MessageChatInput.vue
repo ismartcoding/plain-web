@@ -21,7 +21,7 @@
       </div>
     </div>
     <div class="textarea-wrapper">
-      <v-text-field
+      <EmojiTextField
         :model-value="modelValue"
         type="textarea"
         :rows="1"
@@ -48,7 +48,7 @@
             <i-material-symbols:send-outline-rounded />
           </v-icon-button>
         </template>
-      </v-text-field>
+      </EmojiTextField>
       <input ref="fileInputRef" type="file" multiple accept="image/*,video/*,audio/*" class="hidden-file-input" @change="$emit('fileSelected', $event)" />
     </div>
   </div>

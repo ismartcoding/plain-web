@@ -4,6 +4,7 @@ import {
   addPendingMms,
   addPendingSms,
   failPendingSms,
+  isPendingSmsSent,
   reconcilePendingSms,
   settlePendingMms,
   settlePendingSmsResult,
@@ -92,6 +93,33 @@ describe('pending SMS state', () => {
 
     expect(first).toMatchObject({ handled: true, failed: { body: 'first' } })
     expect(duplicate).toEqual({ pending: [], handled: false })
+  })
+
+  it('marks a correlated successful send as sent while retaining it for provider reconciliation', () => {
+    const pending = addPendingSms(
+      [], 'pending-a', 'first', '+15551234567', 'thread-a', new Date('2026-08-28T10:00:00Z'),
+    )
+
+    const success = settlePendingSmsResult(pending, { requestId: 'pending-a', success: true })
+
+    expect(success.handled).toBe(true)
+    expect(success.pending.map((item) => item.id)).toEqual(['pending-a'])
+    expect(isPendingSmsSent(success.pending[0])).toBe(true)
+    expect(reconcilePendingSms(
+      success.pending,
+      [message({ body: 'first', date: '2026-08-28T10:00:01.000Z' })],
+      'thread-a',
+    )).toEqual([])
+  })
+
+  it('ignores a duplicate successful terminal result', () => {
+    const pending = addPendingSms([], 'pending-a', 'first', '+15551234567', 'thread-a')
+    const first = settlePendingSmsResult(pending, { requestId: 'pending-a', success: true })
+
+    expect(settlePendingSmsResult(
+      first.pending,
+      { requestId: 'pending-a', success: true },
+    )).toEqual({ pending: first.pending, handled: true })
   })
 })
 

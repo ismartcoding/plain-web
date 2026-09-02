@@ -34,6 +34,8 @@
     "@tauri-apps/plugin-notification": "^2.3.3",
     "@tauri-apps/plugin-opener": "^2.5.4",
     "@tauri-apps/plugin-store": "^2.4.3",
+    "emojibase": "^17.0.0",
+    "emojibase-data": "^17.0.0",
     "htmlparser2": "^8.0.1",
     "jszip": "^3.10.1",
     "katex": "^0.16.45",

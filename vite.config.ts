@@ -172,6 +172,7 @@ export default defineConfig(({ mode }) => {
     },
     projects: [
       {
+        plugins: [vue()],
         resolve: {
           alias: {
             '@': path.resolve(__dirname, 'src'),

@@ -1,5 +1,6 @@
 export default {
   write_a_message: 'Nachricht schreiben',
+  emoji_suggestions: 'Emoji-Vorschläge',
   confirm_mms_on_phone: 'Bitte bestätigen und senden Sie die MMS auf Ihrem Telefon.',
   send_sms: 'SMS senden',
   send_mms: 'MMS senden',
