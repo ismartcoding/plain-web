@@ -3,7 +3,7 @@
   <div class="chat-input">
     <div class="textarea-wrapper">
       <div v-show="displayDragMask" class="drag-mask">{{ $t('release_to_send_files') }}</div>
-      <v-text-field
+      <EmojiTextField
         :model-value="modelValue"
         type="textarea"
         :rows="2"
@@ -34,7 +34,7 @@
             <i-material-symbols:send-outline-rounded />
           </v-icon-button>
         </template>
-      </v-text-field>
+      </EmojiTextField>
     </div>
     <input ref="fileInput" style="display: none" type="file" multiple @change="uploadFilesChanged" />
     <input ref="imageInput" style="display: none" type="file" accept="image/*, video/*" multiple @change="uploadImagesChanged" />

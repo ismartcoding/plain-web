@@ -3157,6 +3157,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"emojibase-data@npm:^17.0.0":
+  version: 17.0.0
+  resolution: "emojibase-data@npm:17.0.0"
+  peerDependencies:
+    emojibase: "*"
+  checksum: 10/124e24063c6123c29e9ccb716d88c376beba33c87f2bb6ec7d207d0a2ccf2831d83bf36c95363ff32b9e2c87d32d1b8ddf2e8d2776da804cabe5d0b7d47fde3f
+  languageName: node
+  linkType: hard
+
+"emojibase@npm:^17.0.0":
+  version: 17.0.0
+  resolution: "emojibase@npm:17.0.0"
+  checksum: 10/8ee6b0cc6ca807e11a1ec72288cc83477f82eedd9f57a69ccbb7d120f811ff3b30d4ff42c100226dde7576f6b17a77f22d2aa103541f208b30dcde1da23dbe4e
+  languageName: node
+  linkType: hard
+
 "entities@npm:^4.2.0, entities@npm:^4.4.0":
   version: 4.5.0
   resolution: "entities@npm:4.5.0"
@@ -4718,6 +4734,8 @@ __metadata:
     "@vue/eslint-config-typescript": "npm:^14.5.0"
     "@vue/test-utils": "npm:^2.4.6"
     "@vue/tsconfig": "npm:^0.7.0"
+    emojibase: "npm:^17.0.0"
+    emojibase-data: "npm:^17.0.0"
     eslint: "npm:^9.28.0"
     eslint-plugin-vue: "npm:^10.1.0"
     htmlparser2: "npm:^8.0.1"

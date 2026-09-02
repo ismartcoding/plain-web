@@ -1,5 +1,6 @@
 export default {
   write_a_message: '輸入訊息',
+  emoji_suggestions: '表情符號建議',
   confirm_mms_on_phone: '請在手機上確認並傳送多媒體簡訊。',
   send_sms: '發送簡訊',
   send_mms: '傳送多媒體簡訊',

@@ -93,6 +93,7 @@ declare module 'vue' {
     EditContactModal: typeof import('./src/components/EditContactModal.vue')['default']
     EditToolbar: typeof import('./src/components/EditToolbar.vue')['default']
     EditValueModal: typeof import('./src/components/EditValueModal.vue')['default']
+    EmojiTextField: typeof import('./src/components/EmojiTextField.vue')['default']
     ExcludedDirsModal: typeof import('./src/views/app-rail/ExcludedDirsModal.vue')['default']
     ExportSmsModal: typeof import('./src/views/messages/ExportSmsModal.vue')['default']
     ExtFilter: typeof import('./src/components/ExtFilter.vue')['default']

@@ -1,5 +1,6 @@
 export default {
   write_a_message: '메시지 입력',
+  emoji_suggestions: '이모지 추천',
   confirm_mms_on_phone: '휴대폰에서 MMS를 확인하고 전송해 주세요.',
   send_sms: '문자 보내기',
   send_mms: 'MMS 보내기',

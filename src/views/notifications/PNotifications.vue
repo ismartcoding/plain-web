@@ -63,7 +63,7 @@
             </v-outlined-button>
           </div>
           <div v-if="replyingId === item.id" class="reply-box">
-            <v-text-field v-model="replyText" type="textarea" :rows="2" :placeholder="$t('type_a_reply')" />
+            <EmojiTextField v-model="replyText" type="textarea" :rows="2" :placeholder="$t('type_a_reply')" />
             <div class="reply-box-actions">
               <v-outlined-button class="btn-sm" @click.stop="cancelReply">Cancel</v-outlined-button>
               <v-filled-button class="btn-sm" :loading="replySending" :disabled="!replyText.trim()" @click.stop="sendReply(item.id)">Send</v-filled-button>
