@@ -29,14 +29,15 @@
         v-for="(item, i) in items"
         :key="i"
         class="dropdown-item"
-        :class="{ disabled: item.disabled }"
+        :class="[{ disabled: item.disabled, divided: item.divided }, item.customClass]"
         @mouseenter="showChildItem($event, item)"
         @mouseleave="hideChildItem()"
         @focus="showChildItem($event, item)"
         @blur="hideChildItem()"
         @click="onMouseClick(item)"
       >
-        {{ item.label }}
+        <component :is="item.icon" v-if="item.icon" class="dropdown-item-icon" />
+        <span>{{ item.label }}</span>
       </div>
     </div>
     <ContextSubMenu
