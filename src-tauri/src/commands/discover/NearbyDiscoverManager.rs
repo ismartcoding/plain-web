@@ -166,6 +166,38 @@ impl NearbyDiscoverManager {
         host_responder::start(&hostname, service);
     }
 
+    /// Republishes the local service after the advertised data changed (device
+    /// renamed, port changed) so peers pick it up without waiting for the next
+    /// re-announce. No-op while no service is published (web service off).
+    /// Mirrors plain-app's `MdnsDiscoverManager.updateAdvertisedService`.
+    pub fn update_advertised_service(&self) {
+        let port = self.https_port.load(Ordering::SeqCst);
+        if port == 0 {
+            return;
+        }
+        let service = plain_rs::mdns::service_info::build_service_info(
+            &self.device_name.read().unwrap().clone(),
+            &self.mdns_hostname(),
+            port,
+            &self.identity.client_id,
+            LOCAL_DEVICE_TYPE_WIRE,
+            &self.app_version,
+            std::env::consts::OS,
+            host_responder::local_ipv4_strs(),
+        );
+        host_responder::update_service(service);
+    }
+
+    /// Applies a device rename: updates the shared name and republishes the
+    /// mDNS service so peers drop the old instance (goodbye) and see the new
+    /// name right away. The rename entry points (GraphQL `updateDeviceName`
+    /// and the `set_device_name` command) share this path. Persistence is the
+    /// caller's business (`prefs::set_device_name`).
+    pub fn apply_device_rename(&self, name: &str) {
+        *self.device_name.write().unwrap() = name.to_string();
+        self.update_advertised_service();
+    }
+
     /// Ensures the shared mDNS responder socket is up so the browser can
     /// send queries and the responder can answer PTR/SRV/TXT/A queries.
     /// Service registration itself happens with the HTTPS server lifecycle.
