@@ -1,7 +1,7 @@
 <!-- eslint-disable vue/no-v-html -->
 <template>
   <div v-if="showDate" class="chat-date">{{ formatDate(data.createdAt) }}</div>
-  <div class="chat-item" :class="{ self: isSelf }" @contextmenu="onContextMenu">
+  <div ref="itemRef" class="chat-item" :class="{ self: isSelf }" @contextmenu="onContextMenu">
     <div class="chat-title">
       <span class="name">{{ senderName }}</span>
       <time v-tooltip="formatDateTimeFull(data.createdAt)" class="time">{{ formatTime(data.createdAt) }}</time>
@@ -55,6 +55,7 @@ import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { formatTime, formatDateTimeFull, formatDate } from '@/lib/format'
 import { addLinksToURLs } from '@/lib/strutil'
+import { selectedTextWithin } from '@/lib/dom'
 import ILucideCopy from '~icons/lucide/copy'
 import ILucideForward from '~icons/lucide/forward'
 import ILucideTrash2 from '~icons/lucide/trash-2'
@@ -82,6 +83,13 @@ const statusMenuOpen = ref(false)
 const { t } = useI18n()
 const { buildMediaMenuItems } = useRevealFile()
 
+const itemRef = ref<HTMLElement | null>(null)
+let copySelection = ''
+
+function captureCopySelection() {
+  copySelection = selectedTextWithin(itemRef.value)
+}
+
 const isSelf = computed(() => props.data.fromId === 'me')
 const errorAnchorId = computed(() => `msg-error-${props.data.id}`)
 
@@ -94,7 +102,7 @@ const showSending = computed(() => {
 const isText = computed(() => props.data._content.type === MessageType.TEXT)
 
 function copyText() {
-  const text = props.data._content.value.text ?? ''
+  const text = copySelection || (props.data._content.value.text ?? '')
   if (text && navigator.clipboard) navigator.clipboard.writeText(text)
 }
 
@@ -124,6 +132,7 @@ const menuItems = computed<MenuItem[]>(() => {
 function onContextMenu(e: MouseEvent) {
   if (e.defaultPrevented) return
   e.preventDefault()
+  captureCopySelection()
   const el = (e.target as HTMLElement).closest('[data-ctx="media"]')
   const mediaItems = el ? buildMediaMenuItems(el.getAttribute('data-path') ?? '', el.getAttribute('data-name') ?? '') : []
   const items = mediaItems.length > 0 ? [...mediaItems, deleteEntry(true)] : [...menuItems.value]
@@ -131,6 +140,7 @@ function onContextMenu(e: MouseEvent) {
 }
 
 function openMoreMenu(e: MouseEvent) {
+  captureCopySelection()
   const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
   contextmenu({ x: r.right, y: r.bottom + 4, items: menuItems.value })
 }
