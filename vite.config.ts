@@ -24,6 +24,19 @@ function sanitizeFileName(name: string): string {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const apiHost = env.VITE_APP_API_HOST || ''
+  const isTauri = JSON.stringify(process.env.VITE_APP_MODE === 'tauri')
+
+  const sharedDefine = {
+    'process.env': {},
+    __VUE_I18N_FULL_INSTALL__: true,
+    __VUE_I18N_LEGACY_API__: false,
+    __INTLIFY_PROD_DEVTOOLS__: false,
+    __IS_TAURI__: isTauri,
+  }
+
+  const testDefine = {
+    __IS_TAURI__: isTauri,
+  }
 
   return {
   css: {
@@ -129,13 +142,7 @@ export default defineConfig(({ mode }) => {
     }),
     Icons(),
   ],
-  define: {
-    'process.env': {},
-    __VUE_I18N_FULL_INSTALL__: true,
-    __VUE_I18N_LEGACY_API__: false,
-    __INTLIFY_PROD_DEVTOOLS__: false,
-    __IS_TAURI__: JSON.stringify(process.env.VITE_APP_MODE === 'tauri'),
-  },
+  define: sharedDefine,
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
@@ -178,8 +185,9 @@ export default defineConfig(({ mode }) => {
             '@': path.resolve(__dirname, 'src'),
           },
         },
-        define: {
-          __IS_TAURI__: JSON.stringify(process.env.VITE_APP_MODE === 'tauri'),
+        define: testDefine,
+        optimizeDeps: {
+          exclude: ['vue-i18n'],
         },
         test: {
           name: 'unit',
@@ -207,9 +215,7 @@ export default defineConfig(({ mode }) => {
             '@': path.resolve(__dirname, 'src'),
           },
         },
-        define: {
-          __IS_TAURI__: JSON.stringify(process.env.VITE_APP_MODE === 'tauri'),
-        },
+        define: testDefine,
         test: {
           name: 'cws',
           include: ['tests/lib/cross-window-store.test.ts'],
@@ -226,9 +232,7 @@ export default defineConfig(({ mode }) => {
             '@': path.resolve(__dirname, 'src'),
           },
         },
-        define: {
-          __IS_TAURI__: JSON.stringify(process.env.VITE_APP_MODE === 'tauri'),
-        },
+        define: testDefine,
         test: {
           name: 'integration',
           include: ['tests/integration/**/*.test.ts'],
