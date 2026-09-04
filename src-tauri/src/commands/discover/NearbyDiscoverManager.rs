@@ -11,7 +11,7 @@
 //! instead of UDP (see `local::pairing`).
 
 use super::peer_status_manager::PeerStatusManager;
-use crate::local::db::{ChatDb, now_iso};
+use crate::local::db::{ChatDb, DPeer, now_iso};
 use crate::local::enums::DeviceType;
 use crate::local::graphql::schema::types::Peer;
 use crate::local::graphql::{
@@ -206,6 +206,8 @@ impl NearbyDiscoverManager {
     /// paired peer's IP change is picked up without any page scanning.
     pub fn start(&self) {
         host_responder::ensure_started(&self.mdns_hostname());
+        self.browser
+            .seed_known_addrs(&peer_seed_addrs(&self.db.get_peers()));
         self.browser.install_listener();
     }
 
@@ -481,6 +483,18 @@ fn same_snapshot(a: &DiscoveredDevice, b: &DiscoveredDevice) -> bool {
         && a.status == b.status
 }
 
+/// Addresses of paired / logged-in peers — the requery seeds for the mDNS
+/// browser's directed unicast path. Networks that silently drop multicast
+/// (VPN / AP isolation) stay discoverable this way; peers without an address
+/// contribute nothing.
+fn peer_seed_addrs(peers: &[DPeer]) -> Vec<String> {
+    peers
+        .iter()
+        .filter(|p| (p.is_paired() || !p.token.is_empty()) && !p.ip.is_empty())
+        .flat_map(|p| p.ip.split(',').map(str::trim).map(str::to_string))
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -512,6 +526,33 @@ mod tests {
         b.ips = a.ips.clone();
         b.status = "PAIRED".to_string();
         assert!(!same_snapshot(&a, &b), "status change must re-emit");
+    }
+
+    fn seed_peer(id: &str, ip: &str, paired: bool, token: &str) -> DPeer {
+        let mut peer = DPeer::new(id, id, ip, 8443, DeviceType::Phone);
+        if paired {
+            peer.status = crate::local::enums::PeerStatus::Paired;
+        }
+        peer.token = token.to_string();
+        peer
+    }
+
+    #[test]
+    fn peer_seed_addrs_takes_addresses_of_paired_or_logged_in_peers() {
+        let peers = vec![
+            seed_peer("p1", "192.168.1.10", true, ""),
+            seed_peer("p2", "192.168.1.11, 192.168.2.11", false, "tok"),
+            seed_peer("p3", "192.168.1.12", false, ""),
+            seed_peer("p4", "", true, ""),
+        ];
+        assert_eq!(
+            peer_seed_addrs(&peers),
+            vec![
+                "192.168.1.10".to_string(),
+                "192.168.1.11".to_string(),
+                "192.168.2.11".to_string()
+            ]
+        );
     }
 }
 
