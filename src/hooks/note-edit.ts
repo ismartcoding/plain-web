@@ -15,6 +15,7 @@ import { storeToRefs } from 'pinia'
 import emitter from '@/plugins/eventbus'
 import { upload as uploadFile } from '@/lib/upload/upload'
 import { shortUUID } from '@/lib/strutil'
+import { getMarkdownTitle } from '@/lib/strutil'
 import type { IUploadItem } from '@/stores/temp'
 
 const dataType = 'NOTE'
@@ -53,12 +54,12 @@ export function useNoteEdit() {
 
   const saveContent = debounce(() => {
     notSaved.value = false
-    save({ id: id.value, input: { content: content.value, title: title.value || content.value.substring(0, 250) } })
+    save({ id: id.value, input: { content: content.value, title: title.value || getMarkdownTitle(content.value) } })
   }, 500)
 
   const saveTitle = debounce(() => {
     notSaved.value = false
-    save({ id: id.value, input: { content: content.value, title: title.value || content.value.substring(0, 250) } })
+    save({ id: id.value, input: { content: content.value, title: title.value || getMarkdownTitle(content.value) } })
   }, 500)
 
   const watchContent = () => {

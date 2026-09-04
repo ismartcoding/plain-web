@@ -47,7 +47,7 @@
           @mouse-over="handleMouseOver($event, index)"
           @toggle-select="toggleSelect($event, item, index)"
         >
-          <template #title>{{ getSummary(item.title.split('\n')[0].trimStart()) || $t('meta_no_title') }}</template>
+          <template #title>{{ item.title || $t('meta_no_title') }}</template>
           <template #info>
             <span v-tooltip="formatDateTime(item.updatedAt)" class="time">
               {{ formatTimeAgo(item.updatedAt) }}
@@ -68,7 +68,6 @@
 import { inject } from 'vue'
 import VirtualList from '@/components/virtualscroll'
 import NoDataPlaceholder from '@/components/NoDataPlaceholder.vue'
-import { getSummary } from '@/lib/strutil'
 import { formatTimeAgo, formatDateTime } from '@/lib/format'
 import { useNotesData } from './hooks/useNotesData'
 import { useNotesActions } from './hooks/useNotesActions'
