@@ -235,7 +235,21 @@ export function useLightboxNavigation(
   // Video URLs whose preloaded element has reached CAN_PLAY, so the current
   // <video> can swap to them without a loading flash.
   const readyVideoUrls = new Set<string>()
-  const preloadedVideoEls: HTMLVideoElement[] = []
+  const preloadedVideoEls: { url: string; el: HTMLVideoElement }[] = []
+
+  // Detach the source of not-yet-ready preload elements so their in-flight
+  // downloads stop competing with the currently loading video for uplink.
+  const abortInFlightVideoPreloads = () => {
+    for (let i = preloadedVideoEls.length - 1; i >= 0; i--) {
+      const item = preloadedVideoEls[i]
+      if (readyVideoUrls.has(item.url)) continue
+      item.el.removeAttribute('src')
+      item.el.load()
+      preloadedVideoEls.splice(i, 1)
+      // Allow preloading this URL again later.
+      preloadedUrls.delete(item.url)
+    }
+  }
 
   const preloadSource = (source: ISource | undefined) => {
     if (!source) return
@@ -264,7 +278,7 @@ export function useLightboxNavigation(
       videoEl.src = source.src
       videoEl.load()
       videoEl.addEventListener('canplay', () => readyVideoUrls.add(source.src))
-      preloadedVideoEls.push(videoEl)
+      preloadedVideoEls.push({ url: source.src, el: videoEl })
     }
   }
 
@@ -272,17 +286,39 @@ export function useLightboxNavigation(
     const { sources } = tempStore.lightbox
     const total = sources.length
     if (total < 2) return
+
     // Preload the 3 sources most likely to be viewed next: the next two and the previous one.
-    for (const offset of [1, 2, -1]) {
-      let idx = newIndex + offset
-      if (loop.value) {
-        idx = ((idx % total) + total) % total
-      } else if (idx < 0 || idx >= total) {
-        continue
+    const startVideoPreloads = () => {
+      for (const offset of [1, 2, -1]) {
+        let idx = newIndex + offset
+        if (loop.value) {
+          idx = ((idx % total) + total) % total
+        } else if (idx < 0 || idx >= total) {
+          continue
+        }
+        if (idx === newIndex) continue
+        preloadSource(sources[idx])
       }
-      if (idx === newIndex) continue
-      preloadSource(sources[idx])
     }
+
+    // While the current video is still loading it owns the uplink: abort
+    // in-flight neighbour preloads and defer new ones until it can play.
+    const currentSource = sources[newIndex]
+    if (currentSource && isVideo(currentSource.name) && status.loading) {
+      abortInFlightVideoPreloads()
+      const stop = watch(
+        () => status.loading,
+        (loading) => {
+          if (loading) return
+          stop()
+          if (imgIndex.value === newIndex) startVideoPreloads()
+        },
+        { immediate: true },
+      )
+      return
+    }
+
+    startVideoPreloads()
   }
 
 
