@@ -125,16 +125,20 @@ const router = createRouter({
         },
         {
           path: 'notes/:id',
-          component: () => import('@/views/notes/NoteEditView.vue'),
-          meta: { group: 'notes' },
+          components: {
+            default: () => import('@/views/notes/NoteEditView.vue'),
+            LeftSidebar: () => import('@/views/notes/NotesSidebar.vue'),
+            LeftSidebar2: () => import('@/views/notes/NotesSidebar2.vue'),
+          },
+          meta: { group: 'notes', className: 'note-entry' },
         },
         {
           path: 'notes',
           components: {
-            default: () => import('@/views/notes/NotesView.vue'),
             LeftSidebar: () => import('../views/notes/NotesSidebar.vue'),
+            LeftSidebar2: () => import('@/views/notes/NotesSidebar2.vue'),
           },
-          meta: { group: 'notes' },
+          meta: { group: 'notes', className: 'notes' },
         },
         {
           path: 'files',

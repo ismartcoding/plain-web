@@ -8,7 +8,7 @@
   .media-grid, .top-app-bar {
     padding-inline: 12px !important;
   }
-  .feed-item {
+  .sidebar2-item {
     margin-inline: 12px !important;
   }
 }
@@ -139,6 +139,19 @@
         background: var(--md-sys-color-surface-container);
         overflow-y: auto !important;
         padding: 0px !important;
+      }
+    }
+  }
+
+  // Make note editor fullscreen on mobile
+  .main-note-entry {
+    .note-edit-page {
+      @include mobile-full-screen;
+
+      & {
+        height: 100dvh !important;
+        background: var(--md-sys-color-surface);
+        overflow-y: auto !important;
       }
     }
   }

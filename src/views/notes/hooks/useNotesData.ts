@@ -41,9 +41,15 @@ export function useNotesData(onDelete: () => void) {
     replacePath(mainStore, qVal ? `/notes?page=1&q=${qVal}` : `/notes?page=1`)
   }
 
-  const { keyDown: pageKeyDown, keyUp: pageKeyUp } = useKeyEvents(
+  const { keyDown: listKeyDown, keyUp: pageKeyUp } = useKeyEvents(
     selectable.total, limit, page, selectable.selectAll, selectable.clearSelection, gotoPage, onDelete,
   )
+
+  const isDetail = computed(() => !!route.params.id)
+  const pageKeyDown = (e: KeyboardEvent) => {
+    if (isDetail.value) return
+    listKeyDown(e)
+  }
 
   const { loading, fetch } = initLazyQuery({
     handle: (data: { notes: INote[]; noteCount: number }, error: string) => {
