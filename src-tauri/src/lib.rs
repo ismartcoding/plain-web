@@ -7,6 +7,8 @@ mod utils;
 use std::sync::Arc;
 use tauri::Manager;
 
+const _: &[u8] = include_bytes!("../icons/icon.icns");
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = tauri::Builder::default();
