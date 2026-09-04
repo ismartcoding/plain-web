@@ -14,14 +14,6 @@
 }
 
 @media (max-width: 768px) {
-  .layout {
-    grid-template-areas:
-      'head head'
-      'page-content page-content';
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
-  }
-
   // Page content should take full width on mobile
   .page-content {
     display: flex !important;

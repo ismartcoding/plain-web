@@ -260,4 +260,15 @@ const {
   }
 }
 
+@media (max-width: 768px) {
+  .layout {
+    grid-template-areas:
+      'head'
+      'page-content'
+      'rail';
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+  }
+}
+
 </style>
