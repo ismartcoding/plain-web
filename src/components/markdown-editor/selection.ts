@@ -4,6 +4,20 @@ import type { EditorView } from '@codemirror/view'
 
 const isMobileViewport = () => window.matchMedia('(max-width: 768px)').matches
 
+function cursorInNoFmtZone(view: EditorView): boolean {
+  try {
+    const head = view.state.selection.main.head
+    const dom = view.domAtPos(head)
+    let el: Node | null = dom.node.childNodes[dom.offset] ?? dom.node
+    while (el && !(el instanceof HTMLElement)) el = el.parentNode
+    let node: Element | null = el as Element | null
+    while (node && !node.classList.contains('cm-line')) node = node.parentElement
+    return !!node?.classList.contains('cm-md-nofmt')
+  } catch {
+    return false
+  }
+}
+
 export function useSelectionBar(options: {
   view: ShallowRef<EditorView | undefined>
   editorContainer: Ref<HTMLElement | undefined>
@@ -17,6 +31,12 @@ export function useSelectionBar(options: {
 
   function syncSelBar(v: EditorView) {
     if (isMobileViewport() || !v.hasFocus || v.state.selection.main.empty) {
+      selBarOpen.value = false
+      return
+    }
+    // Selection sits on a non-formatting region (code block, math block,
+    // horizontal rule) — the style toolbar would be noise there.
+    if (cursorInNoFmtZone(v)) {
       selBarOpen.value = false
       return
     }

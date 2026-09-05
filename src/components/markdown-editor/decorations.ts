@@ -138,7 +138,7 @@ export function buildLiveDecorations(v: EditorView): DecorationSet {
     if (isCursorInside(v, node.from, node.to)) return
     const line = doc.lineAt(node.from)
     addReplace(line.from, line.to, new HRWidget(node.from, v))
-    addLine(line.from, 'cm-md-hr-line')
+    addLine(line.from, 'cm-md-hr-line cm-md-nofmt')
   }
 
   const handleLink = (node: SyntaxNodeRef) => {
@@ -176,7 +176,7 @@ export function buildLiveDecorations(v: EditorView): DecorationSet {
       const line = doc.line(n)
       const first = n === firstLine.number ? ' cm-md-codeblock-first-code' : ''
       const last = n === lastLine.number ? ' cm-md-codeblock-last' : ''
-      addLine(line.from, `cm-md-codeblock-line${first}${last}`)
+      addLine(line.from, `cm-md-codeblock-line${first}${last} cm-md-nofmt`)
     }
   }
 
@@ -243,11 +243,11 @@ export function buildLiveDecorations(v: EditorView): DecorationSet {
             texParts.push(closeLine.text.trim().slice(0, -2))
             const tex = texParts.filter((p) => p.length > 0).join('\n')
             addReplace(line.from, line.to, new MathWidget(tex, true, line.from, v))
-            addLine(line.from, 'cm-md-math-block-line')
+            addLine(line.from, 'cm-md-math-block-line cm-md-nofmt')
             for (let m = n + 1; m <= closeLine.number; m++) {
               const mid = doc.line(m)
               addReplace(mid.from, mid.to, new FenceEndWidget())
-              addLine(mid.from, 'cm-md-collapse-line')
+              addLine(mid.from, 'cm-md-collapse-line cm-md-nofmt')
             }
             continue
           }
