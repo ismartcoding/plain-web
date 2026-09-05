@@ -31,7 +31,7 @@
       <div class="page-content">
         <!-- The cache key $route.meta.group is mainly used for MediaSidebar, otherwise the component will be cached totally. -->
         <router-view v-if="appReady" v-slot="{ Component }" name="LeftSidebar">
-          <keep-alive>
+          <keep-alive :max="20">
             <component :is="Component" :key="$route.meta.group" />
           </keep-alive>
         </router-view>
@@ -44,12 +44,12 @@
         ></div>
         <main v-if="appReady" class="main" :class="'main-' + ($route.meta.className || 'default')">
           <router-view v-slot="{ Component }" name="LeftSidebar2">
-            <keep-alive>
+            <keep-alive :max="12">
               <component :is="Component" :key="getSidebar2CacheKey()" />
             </keep-alive>
           </router-view>
           <router-view v-slot="{ Component }">
-            <keep-alive exclude="NoteEditView">
+            <keep-alive exclude="NoteEditView" :max="10">
               <component :is="Component" :key="$route.fullPath" />
             </keep-alive>
           </router-view>

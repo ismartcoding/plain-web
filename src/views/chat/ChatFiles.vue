@@ -10,7 +10,7 @@
           <div v-if="item.summary" class="file-summary">{{ item.summary }}</div>
         </div>
         <div class="thumb-wrap">
-          <img v-if="getThumb(item)" :src="getThumb(item)" class="file-thumbnail" :class="{ 'file-icon': !isImage(item.name) && !isVideo(item.name) }" @error="onIconError(item.name)" />
+          <img v-if="getThumb(item)" :src="getThumb(item)" class="file-thumbnail" :class="{ 'file-icon': !isImage(item.name) && !isVideo(item.name) }" loading="lazy" decoding="async" @error="onIconError(item.name)" />
           <ChatDownloadOverlay :download-info="downloadInfo" :ring-size="40" border-radius="8px" @action="onDownloadAction" />
         </div>
       </div>

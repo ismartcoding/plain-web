@@ -48,7 +48,7 @@ async function doGqlFetch<T = any>(query: string, variables?: Record<string, any
   const key = tokenToKey(token)
 
   const json = JSON.stringify({ query, variables })
-  console.info(`[request] ${json}`)
+  if (import.meta.env.DEV) console.info(`[request] ${json}`)
 
   const startTime = performance.now()
   const payload = wrapWithReplayProtection(json)
@@ -80,8 +80,10 @@ async function doGqlFetch<T = any>(query: string, variables?: Record<string, any
     const text = chachaDecrypt(key, arrayBufferToBitArray(arrayBuffer))
     const decryptEndTime = performance.now()
 
-    console.info(`[response] ${text}`)
-    console.info(`[time] encrypt: ${encryptTime - startTime}ms, api: ${apiEndTime - encryptTime}ms, decrypt: ${decryptEndTime - apiEndTime}ms`)
+    if (import.meta.env.DEV) {
+      console.info(`[response] ${text}`)
+      console.info(`[time] encrypt: ${encryptTime - startTime}ms, api: ${apiEndTime - encryptTime}ms, decrypt: ${decryptEndTime - apiEndTime}ms`)
+    }
 
     return JSON.parse(text)
   } catch (e: any) {
