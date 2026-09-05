@@ -56,6 +56,9 @@ export const useMarkdown = (app: Ref<{ appDir: string }>, urlTokenKey: Ref<Uint8
     if (link.startsWith('app://')) {
       return getFileUrlByPath(urlTokenKey.value, app.value.appDir + '/' + link.replace('app://', ''))
     }
+    if (link.startsWith('fid:')) {
+      return getFileUrlByPath(urlTokenKey.value, link)
+    }
     return link
   }
 
@@ -85,6 +88,9 @@ export const useSafeMarkdown = (app: Ref<{ appDir: string }>, urlTokenKey: Ref<U
   const replace = (link: string) => {
     if (link.startsWith('app://')) {
       return getFileUrlByPath(urlTokenKey.value, app.value.appDir + '/' + link.replace('app://', ''))
+    }
+    if (link.startsWith('fid:')) {
+      return getFileUrlByPath(urlTokenKey.value, link)
     }
     return link
   }

@@ -102,24 +102,22 @@ export function useNoteEdit() {
     uploadingImage.value = true
     const insertedPaths: string[] = []
     try {
-      const appDir = app.value.appDir
-      const noteImgDir = `${appDir}/note-images`
       for (const file of files) {
         const ext = file.name.split('.').pop() || 'png'
         const fileName = `${shortUUID()}.${ext}`
         const item: IUploadItem = {
           id: shortUUID(),
-          dir: noteImgDir,
+          dir: '',
           fileName,
           file,
           status: 'pending',
           uploadedSize: 0,
           error: '',
-          isAppFile: false,
+          isAppFile: true,
         }
         const result = (await uploadFile(item, false)) as { fileName?: string; error?: string } | undefined
-        if (result && result.fileName) {
-          insertedPaths.push(`![image](app://note-images/${result.fileName})`)
+        if (item.fileHash && !result?.error) {
+          insertedPaths.push(`![image](fid:${item.fileHash})`)
         }
       }
     } finally {
