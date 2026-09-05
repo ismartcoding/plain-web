@@ -43,41 +43,30 @@
 </template>
 
 <script setup lang="ts">
-import { ref, shallowRef, computed, onMounted, onUnmounted, watch } from 'vue'
-import { storeToRefs } from 'pinia'
-import { EditorView, keymap, placeholder as cmPlaceholder, ViewPlugin, Decoration, WidgetType, type DecorationSet, type ViewUpdate } from '@codemirror/view'
-import { EditorState, type Extension, RangeSet, type Range } from '@codemirror/state'
-import type { SyntaxNodeRef } from '@lezer/common'
+import { ref, shallowRef, onMounted, onUnmounted, watch } from 'vue'
+import { EditorView, keymap, placeholder as cmPlaceholder } from '@codemirror/view'
+import { EditorState, type Extension } from '@codemirror/state'
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
 import { languages } from '@codemirror/language-data'
 import { defaultKeymap, indentWithTab, history, historyKeymap } from '@codemirror/commands'
-import { bracketMatching, indentOnInput, syntaxHighlighting, defaultHighlightStyle, syntaxTree, HighlightStyle } from '@codemirror/language'
-import { tags as highlightTags } from '@lezer/highlight'
+import { syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language'
 import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search'
 import emitter from '@/plugins/eventbus'
-import { i18n } from '@/plugins/i18n'
-import { useTempStore } from '@/stores/temp'
-import { getFileUrlByPath } from '@/lib/api/file'
-import { useOpenMedia } from '@/hooks/open-media'
-import { DataType } from '@/lib/data'
 import {
   SLASH_TEMPLATES,
-  matchSlashQuery,
-  filterSlashTemplates,
   applyTemplate,
   toggleWrap,
   togglePrefix,
   cycleHeading,
   toggleLink,
   insertImageAtCursor,
-  parseGfmTable,
-  findMathSpans,
-  type GfmTable,
-  type SlashTemplate,
 } from '@/lib/md-editor'
-import katex from 'katex'
+import { livePreviewPlugin } from './markdown-editor/decorations'
+import { baseTheme, lightTheme, darkThemeOverride, mdHighlightExtensions } from './markdown-editor/theme'
+import { useEditorMenu } from './markdown-editor/menu'
+import { useSelectionBar } from './markdown-editor/selection'
 
 const props = defineProps<{
   modelValue: string
@@ -92,31 +81,9 @@ const emit = defineEmits<{
 const editorContainer = ref<HTMLElement>()
 const view = shallowRef<EditorView>()
 
-const { app, urlTokenKey } = storeToRefs(useTempStore())
-const { open: openMedia } = useOpenMedia()
-
-const isMobileViewport = () => window.matchMedia('(max-width: 768px)').matches
-
-function resolveImageUrl(link: string): string {
-  if (link.startsWith('app://')) {
-    return getFileUrlByPath(urlTokenKey.value, app.value.appDir + '/' + link.replace('app://', ''))
-  }
-  if (link.startsWith('fid:')) {
-    return getFileUrlByPath(urlTokenKey.value, link)
-  }
-  return link
-}
-
-function zoomImage(link: string) {
-  openMedia(0, [{
-    src: resolveImageUrl(link),
-    path: link.replace(/^app:\/\//, ''),
-    name: decodeURIComponent(link.split('/').pop() ?? 'image'),
-    size: 0,
-    duration: 0,
-    type: DataType.IMAGE,
-  }], true)
-}
+const menu = useEditorMenu({ view, editorContainer })
+const { slashOpen, slashActive, slashStyle, menuItems, styleStart, applyMenuItem, closeMenu, syncMenu, onContextMenu, onScroll, menuKeys } = menu
+const { selBarOpen, selBarStyle, syncSelBar, hideSelBar } = useSelectionBar({ view, editorContainer })
 
 function runCmd(fn: (v: EditorView, ...args: never[]) => void, ...args: unknown[]) {
   const v = view.value
@@ -133,750 +100,25 @@ function insertTable() {
   v.focus()
 }
 
-class CheckboxWidget extends WidgetType {
-  constructor(readonly checked: boolean, readonly pos: number, readonly cmView: EditorView) {
-    super()
-  }
-  eq(other: CheckboxWidget) {
-    return other.checked === this.checked
-  }
-  toDOM() {
-    const box = document.createElement('span')
-    box.className = 'cm-md-task-box' + (this.checked ? ' checked' : '')
-    box.setAttribute('role', 'checkbox')
-    box.setAttribute('aria-checked', String(this.checked))
-    box.textContent = this.checked ? '✓' : ''
-    box.addEventListener('mousedown', (e) => {
-      e.preventDefault()
-      e.stopPropagation()
-      this.cmView.dispatch({
-        changes: { from: this.pos, to: this.pos + 3, insert: this.checked ? '[ ]' : '[x]' },
-        selection: { anchor: this.pos + 3 },
-      })
-      this.cmView.focus()
-    })
-    return box
-  }
-  ignoreEvent() {
-    return false
-  }
-}
-
-class ImageWidget extends WidgetType {
-  constructor(readonly link: string, readonly alt: string) {
-    super()
-  }
-  eq(other: ImageWidget) {
-    return other.link === this.link && other.alt === this.alt
-  }
-  toDOM() {
-    const fig = document.createElement('span')
-    fig.className = 'cm-md-img'
-    fig.dataset.link = this.link
-    const img = document.createElement('img')
-    img.src = resolveImageUrl(this.link)
-    img.alt = this.alt
-    img.loading = 'lazy'
-    fig.appendChild(img)
-    fig.addEventListener('mousedown', (e) => e.preventDefault())
-    fig.addEventListener('click', () => zoomImage(this.link))
-    return fig
-  }
-  ignoreEvent() {
-    return false
-  }
-}
-
-class CodeHeaderWidget extends WidgetType {
-  constructor(readonly lang: string, readonly code: string) {
-    super()
-  }
-  eq(other: CodeHeaderWidget) {
-    return other.lang === this.lang && other.code === this.code
-  }
-  toDOM() {
-    const head = document.createElement('span')
-    head.className = 'cm-md-codeblock-head'
-    head.dataset.code = this.code
-    const lang = document.createElement('span')
-    lang.className = 'cm-md-codeblock-lang'
-    lang.textContent = this.lang || 'text'
-    const btn = document.createElement('button')
-    btn.type = 'button'
-    btn.className = 'cm-md-codeblock-copy'
-    btn.textContent = i18n.global.t('copy')
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation()
-      navigator.clipboard.writeText(this.code)
-      btn.textContent = '✓'
-      setTimeout(() => {
-        btn.textContent = i18n.global.t('copy')
-      }, 1200)
-    })
-    head.append(lang, btn)
-    return head
-  }
-  ignoreEvent() {
-    return false
-  }
-}
-
-class FenceEndWidget extends WidgetType {
-  toDOM() {
-    return document.createElement('span')
-  }
-  eq() {
-    return true
-  }
-  ignoreEvent() {
-    return true
-  }
-}
-
-class HRWidget extends WidgetType {
-  constructor(readonly pos: number, readonly cmView: EditorView) {
-    super()
-  }
-  eq(other: HRWidget) {
-    return other.pos === this.pos
-  }
-  toDOM() {
-    const hr = document.createElement('span')
-    hr.className = 'cm-md-hr'
-    hr.addEventListener('mousedown', (e) => {
-      e.preventDefault()
-      this.cmView.dispatch({ selection: { anchor: this.pos } })
-      this.cmView.focus()
-    })
-    return hr
-  }
-  ignoreEvent() {
-    return false
-  }
-}
-
-class TableWidget extends WidgetType {
-  constructor(readonly table: GfmTable, readonly pos: number, readonly cmView: EditorView) {
-    super()
-  }
-  eq(other: TableWidget) {
-    return JSON.stringify(other.table) === JSON.stringify(this.table)
-  }
-  toDOM() {
-    const wrap = document.createElement('span')
-    wrap.className = 'cm-md-table'
-    const table = document.createElement('table')
-    const alignOf = (i: number) => this.table.align[i]
-    const thead = document.createElement('thead')
-    const trh = document.createElement('tr')
-    this.table.header.forEach((h, i) => {
-      const th = document.createElement('th')
-      th.textContent = h
-      const al = alignOf(i)
-      if (al !== 'none') th.style.textAlign = al
-      trh.appendChild(th)
-    })
-    thead.appendChild(trh)
-    const tbody = document.createElement('tbody')
-    this.table.rows.forEach((row) => {
-      const tr = document.createElement('tr')
-      for (let i = 0; i < this.table.header.length; i++) {
-        const td = document.createElement('td')
-        td.textContent = row[i] ?? ''
-        const al = alignOf(i)
-        if (al !== 'none') td.style.textAlign = al
-        tr.appendChild(td)
-      }
-      tbody.appendChild(tr)
-    })
-    table.append(thead, tbody)
-    wrap.appendChild(table)
-    wrap.addEventListener('mousedown', (e) => {
-      e.preventDefault()
-      this.cmView.dispatch({ selection: { anchor: this.pos } })
-      this.cmView.focus()
-    })
-    return wrap
-  }
-  ignoreEvent() {
-    return false
-  }
-}
-
-class MathWidget extends WidgetType {
-  constructor(readonly tex: string, readonly display: boolean, readonly pos: number, readonly cmView: EditorView) {
-    super()
-  }
-  eq(other: MathWidget) {
-    return other.tex === this.tex && other.display === this.display
-  }
-  toDOM() {
-    const span = document.createElement('span')
-    span.className = 'cm-md-math' + (this.display ? ' cm-md-math-display' : '')
-    try {
-      span.innerHTML = katex.renderToString(this.tex, { throwOnError: false, displayMode: this.display })
-    } catch {
-      span.textContent = this.tex
-    }
-    span.addEventListener('mousedown', (e) => {
-      e.preventDefault()
-      this.cmView.dispatch({ selection: { anchor: this.pos } })
-      this.cmView.focus()
-    })
-    return span
-  }
-  ignoreEvent() {
-    return false
-  }
-}
-
-const selBarOpen = ref(false)
-const selBarLeft = ref(0)
-const selBarTop = ref(0)
-const selBarStyle = computed(() => ({ left: `${selBarLeft.value}px`, top: `${selBarTop.value}px` }))
-
-function syncSelBar(v: EditorView) {
-  if (isMobileViewport() || !v.hasFocus || v.state.selection.main.empty) {
-    selBarOpen.value = false
-    return
-  }
-  const range = v.state.selection.main
-  const a = v.coordsAtPos(Math.min(range.from, range.to))
-  const b = v.coordsAtPos(Math.max(range.from, range.to))
-  const rect = editorContainer.value?.getBoundingClientRect()
-  if (!a || !b || !rect) {
-    selBarOpen.value = false
-    return
-  }
-  const left = (a.left + b.left) / 2 - rect.left
-  selBarLeft.value = Math.min(Math.max(left - 130, 8), Math.max(rect.width - 268, 8))
-  let y = Math.min(a.top, b.top) - rect.top - 42
-  if (y < 4) y = Math.max(b.bottom - rect.top + 6, 4)
-  selBarTop.value = y
-  selBarOpen.value = true
-}
-
-interface MenuItemRow {
-  kind: 'slash' | 'style'
-  template?: SlashTemplate
-  style?: 'bold' | 'italic' | 'strike' | 'code' | 'link'
-  key: string
-  icon: string
-  label: string
-  kbd: string
-}
-
-const menuStyleGroup = ref(false)
-
-const STYLE_ITEMS: Array<{ style: 'bold' | 'italic' | 'strike' | 'code' | 'link'; icon: string; kbd: string }> = [
-  { style: 'bold', icon: '<b>B</b>', kbd: '' },
-  { style: 'italic', icon: '<i>I</i>', kbd: '' },
-  { style: 'strike', icon: '<s>S</s>', kbd: '' },
-  { style: 'code', icon: '&lt;&gt;', kbd: '' },
-  { style: 'link', icon: '🔗', kbd: '' },
-]
-
-const menuItems = computed<MenuItemRow[]>(() => {
-  const items: MenuItemRow[] = slashFiltered.value.map((t) => ({
-    kind: 'slash' as const,
-    template: t,
-    key: 'slash-' + t.id,
-    icon: t.icon,
-    label: i18n.global.t(`md_${t.id}`),
-    kbd: t.kbd,
-  }))
-  if (menuStyleGroup.value && !slashQuery.value) {
-    for (const s of STYLE_ITEMS) {
-      items.push({
-        kind: 'style' as const,
-        style: s.style,
-        key: 'style-' + s.style,
-        icon: s.icon,
-        label: i18n.global.t(s.style === 'code' ? 'md_inline_code' : 'md_' + s.style),
-        kbd: s.kbd,
-      })
-    }
-  }
-  return items
-})
-
-const styleStart = computed(() => {
-  if (!menuStyleGroup.value) return -1
-  return slashFiltered.value.length
-})
-
-function applyMenuItem(index: number) {
-  const item = menuItems.value[index]
-  if (!item) return
-  if (item.kind === 'slash') {
-    applySlash(index)
-    return
-  }
-  const v = view.value
-  if (!v) return
-  if (item.style === 'bold') toggleWrap(v, '**')
-  else if (item.style === 'italic') toggleWrap(v, '*')
-  else if (item.style === 'strike') toggleWrap(v, '~~')
-  else if (item.style === 'code') toggleWrap(v, '`')
-  else if (item.style === 'link') toggleLink(v)
-  v.focus()
-  closeSlash()
-}
-
-function openMenuAt(x: number, y: number) {
-  const v = view.value
-  const rect = editorContainer.value?.getBoundingClientRect()
-  if (!v || !rect) return
-  menuStyleGroup.value = !v.state.selection.main.empty
-  slashQuery.value = ''
-  slashFrom.value = v.state.selection.main.head
-  slashActive.value = 0
-  const items = menuItems.value
-  const menuH = Math.min(items.length, 12) * 34 + 12
-  slashLeft.value = Math.min(Math.max(x, 8), Math.max(rect.width - 280, 8))
-  let top = y
-  if (top + menuH > rect.height) top = Math.max(rect.height - menuH - 6, 4)
-  slashTop.value = top
-  slashOpen.value = true
-}
-
-function onContextMenu(e: MouseEvent) {
-  e.preventDefault()
-  const rect = editorContainer.value?.getBoundingClientRect()
-  if (!rect) return
-  openMenuAt(e.clientX - rect.left, e.clientY - rect.top)
-}
-
-const baseTheme = EditorView.theme({
-  '&': { height: '100%', fontSize: '16px' },
-  '.cm-scroller': {
-    overflow: 'auto',
-    lineHeight: '1.75',
-    fontFamily:
-      "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif",
-  },
-  '.cm-content': {
-    maxWidth: '820px',
-    margin: '0 auto',
-    padding: '16px 40px 64px',
-    caretColor: 'var(--md-sys-color-primary)',
-  },
-  '.cm-placeholder': { color: 'var(--md-sys-color-on-surface-variant)' },
-  '&.cm-focused': { outline: 'none' },
-  '.cm-md-h1-line': { paddingTop: '32px', paddingBottom: '12px' },
-  '.cm-md-h2-line': { paddingTop: '28px', paddingBottom: '12px' },
-  '.cm-md-h3-line': { paddingTop: '24px', paddingBottom: '8px' },
-  '.cm-md-h4-line': { paddingTop: '20px', paddingBottom: '6px' },
-  '.cm-md-h5-line': { paddingTop: '16px', paddingBottom: '4px' },
-  '.cm-md-h6-line': { paddingTop: '16px', paddingBottom: '4px' },
-})
-
-const lightTheme = EditorView.theme({
-  '.cm-selectionBackground': { backgroundColor: 'rgba(63, 81, 181, 0.18) !important' },
-})
-
-const darkThemeOverride = EditorView.theme({
-  '.cm-selectionBackground': { backgroundColor: 'rgba(190, 194, 255, 0.28) !important' },
-})
-
-function isCursorInside(view: EditorView, from: number, to: number): boolean {
-  return view.state.selection.ranges.some((r) => r.from <= to && r.to >= from)
-}
-
-function buildLiveDecorations(v: EditorView): DecorationSet {
-  const ranges: Range<Decoration>[] = []
-  const hidden: Array<{ from: number; to: number }> = []
-  const doc = v.state.doc
-  const codeRanges: Array<{ from: number; to: number }> = []
-
-  const addReplace = (from: number, to: number, widget?: WidgetType) => {
-    if (to <= from) return
-    if (hidden.some((h) => from < h.to && h.from < to)) return
-    hidden.push({ from, to })
-    ranges.push(Decoration.replace(widget ? { widget } : {}).range(from, to))
-  }
-  const addMark = (from: number, to: number, cls: string) => {
-    if (to <= from) return
-    ranges.push(Decoration.mark({ class: cls }).range(from, to))
-  }
-  const addLine = (from: number, cls: string) => {
-    ranges.push(Decoration.line({ class: cls }).range(from))
-  }
-  const overlapsCode = (from: number, to: number) =>
-    codeRanges.some((c) => from < c.to && c.from < to)
-
-  const markNames = new Set(['EmphasisMark', 'CodeMark', 'StrikethroughMark'])
-
-  const handleInline = (node: SyntaxNodeRef, cls: string) => {
-    const active = isCursorInside(v, node.from, node.to)
-    addMark(node.from, node.to, cls)
-    const marks: Array<{ from: number; to: number }> = []
-    for (let child = node.node.firstChild; child; child = child.nextSibling) {
-      if (markNames.has(child.name)) marks.push({ from: child.from, to: child.to })
-    }
-    if (marks.length === 0) return
-    const first = marks[0]
-    const last = marks[marks.length - 1]
-    if (active) {
-      addMark(first.from, first.to, 'cm-md-mark')
-      if (last !== first) addMark(last.from, last.to, 'cm-md-mark')
-    } else {
-      addReplace(first.from, first.to)
-      if (last !== first) addReplace(last.from, last.to)
-    }
-  }
-
-  const handleHeading = (node: SyntaxNodeRef, level: number) => {
-    const active = isCursorInside(v, node.from, node.to)
-    addLine(node.from, `cm-md-hline cm-md-h${level}-line`)
-    addMark(node.from, node.to, `cm-md-h${level}`)
-    const mark = node.node.firstChild
-    if (mark && mark.name === 'HeaderMark') {
-      const end = doc.sliceString(mark.to, mark.to + 1) === ' ' ? mark.to + 1 : mark.to
-      if (active) addMark(mark.from, end, 'cm-md-mark')
-      else addReplace(mark.from, end)
-    }
-  }
-
-  const handleFenced = (node: SyntaxNodeRef) => {
-    codeRanges.push({ from: node.from, to: node.to })
-    const firstLine = doc.lineAt(node.from)
-    const lastLine = doc.lineAt(node.to)
-    const openMatch = firstLine.text.match(/^\s*(`{3,}|~{3,})(.*)$/)
-    const lang = (openMatch?.[2] ?? '').trim().split(/\s+/)[0]
-    const closeIsFence = lastLine.number > firstLine.number && /^\s*(`{3,}|~{3,})\s*$/.test(lastLine.text)
-    const codeEnd = closeIsFence ? Math.max(firstLine.to + 1, lastLine.from - 1) : node.to
-    const code = doc.sliceString(Math.min(firstLine.to + 1, codeEnd), codeEnd)
-    ranges.push(Decoration.replace({ widget: new CodeHeaderWidget(lang, code) }).range(firstLine.from, firstLine.to))
-    addLine(firstLine.from, 'cm-md-codeblock-head-line')
-    const lastCodeNumber = closeIsFence ? lastLine.number - 1 : lastLine.number
-    for (let n = firstLine.number + 1; n <= lastLine.number; n++) {
-      if (closeIsFence && n === lastLine.number) continue
-      const line = doc.line(n)
-      addLine(line.from, n === lastCodeNumber ? 'cm-md-codeblock-line cm-md-codeblock-last' : 'cm-md-codeblock-line')
-    }
-    if (closeIsFence) {
-      ranges.push(Decoration.replace({ widget: new FenceEndWidget() }).range(lastLine.from, lastLine.to))
-      addLine(lastLine.from, 'cm-md-codeblock-end-line')
-    }
-  }
-
-  const handleTask = (node: SyntaxNodeRef) => {
-    let marker: SyntaxNodeRef | null = null
-    for (let child = node.node.firstChild; child; child = child.nextSibling) {
-      if (child.name === 'TaskMarker') {
-        marker = child
-        break
-      }
-    }
-    if (!marker) return
-    const checked = doc.sliceString(marker.from, marker.to) === '[x]'
-    ranges.push(Decoration.replace({ widget: new CheckboxWidget(checked, marker.from, v) }).range(marker.from, marker.to))
-    if (checked && node.to > marker.to) addMark(marker.to, node.to, 'cm-task-done')
-  }
-
-  const handleImage = (node: SyntaxNodeRef) => {
-    if (isCursorInside(v, node.from, node.to)) return
-    const m = doc.sliceString(node.from, node.to).match(/^!\[([^\]]*)\]\(([^)]+)\)$/)
-    if (!m) return
-    ranges.push(Decoration.replace({ widget: new ImageWidget(m[2], m[1]) }).range(node.from, node.to))
-  }
-
-  const handleTable = (node: SyntaxNodeRef) => {
-    if (isCursorInside(v, node.from, node.to)) return
-    const table = parseGfmTable(doc.sliceString(node.from, node.to))
-    if (!table) return
-    const firstLine = doc.lineAt(node.from)
-    const lastLine = doc.lineAt(node.to)
-    ranges.push(Decoration.replace({ widget: new TableWidget(table, node.from, v) }).range(firstLine.from, firstLine.to))
-    addLine(firstLine.from, 'cm-md-table-line')
-    for (let n = firstLine.number + 1; n <= lastLine.number; n++) {
-      const line = doc.line(n)
-      addReplace(line.from, line.to, new FenceEndWidget())
-      addLine(line.from, 'cm-md-collapse-line')
-    }
-  }
-
-  const handleHR = (node: SyntaxNodeRef) => {
-    if (isCursorInside(v, node.from, node.to)) return
-    const line = doc.lineAt(node.from)
-    addReplace(line.from, line.to, new HRWidget(node.from, v))
-    addLine(line.from, 'cm-md-hr-line')
-  }
-
-  const handleBlockquote = (node: SyntaxNodeRef) => {
-    const firstLine = doc.lineAt(node.from)
-    const lastLine = doc.lineAt(node.to)
-    for (let n = firstLine.number; n <= lastLine.number; n++) {
-      const line = doc.line(n)
-      const modifier = n === firstLine.number ? ' cm-md-quote-first' : n === lastLine.number ? ' cm-md-quote-last' : ''
-      addLine(line.from, `cm-md-quote-line${modifier}`)
-    }
-    for (let child = node.node.firstChild; child; child = child.nextSibling) {
-      if (child.name === 'QuoteMark') addReplace(child.from, child.to)
-    }
-  }
-
-  const handleListMark = (node: SyntaxNodeRef) => {
-    const item = node.node.parent
-    let depth = 0
-    let isOrdered = false
-    let isTask = false
-    for (let cur = item; cur; cur = cur.parent) {
-      if (cur.name === 'BulletList' || cur.name === 'OrderedList') {
-        depth++
-        if (cur.name === 'OrderedList') isOrdered = true
-      }
-    }
-    for (let child = item?.firstChild; child; child = child.nextSibling) {
-      if (child.name === 'Task') isTask = true
-    }
-    const d = Math.min(Math.max(depth, 1), 4)
-    const kind = isTask ? 'task' : isOrdered ? 'ol' : 'ul'
-    addLine(node.from, `cm-md-list-line cm-md-${kind}-d${d}`)
-    const markText = doc.sliceString(node.from, node.to)
-    if (!isOrdered && (markText === '-' || markText === '*' || markText === '+')) addReplace(node.from, node.to)
-  }
-
-  const scanMath = () => {
-    const consumed = new Set<number>()
-    for (const { from, to } of v.visibleRanges) {
-      const first = doc.lineAt(from).number
-      const last = doc.lineAt(to).number
-      for (let n = first; n <= last; n++) {
-        if (consumed.has(n)) continue
-        const line = doc.line(n)
-        if (overlapsCode(line.from, line.to)) continue
-        const trimmed = line.text.trim()
-        const inlineSpans = findMathSpans(line.text, line.from)
-        const sameLineDisplay = inlineSpans.some((s) => s.display)
-        if (trimmed.startsWith('$$') && !sameLineDisplay) {
-          let closeLine: typeof line | null = null
-          for (let m = n + 1; m <= Math.min(n + 500, doc.lines); m++) {
-            const candidate = doc.line(m)
-            if (candidate.text.trim().endsWith('$$')) {
-              closeLine = candidate
-              break
-            }
-          }
-          if (closeLine) {
-            for (let m = n; m <= closeLine.number; m++) consumed.add(m)
-            if (isCursorInside(v, line.from, closeLine.to)) continue
-            const texParts = [line.text.trim().slice(2)]
-            for (let m = n + 1; m < closeLine.number; m++) texParts.push(doc.line(m).text.trim())
-            texParts.push(closeLine.text.trim().slice(0, -2))
-            const tex = texParts.filter((p) => p.length > 0).join('\n')
-            addReplace(line.from, line.to, new MathWidget(tex, true, line.from, v))
-            addLine(line.from, 'cm-md-math-block-line')
-            for (let m = n + 1; m <= closeLine.number; m++) {
-              const mid = doc.line(m)
-              addReplace(mid.from, mid.to, new FenceEndWidget())
-              addLine(mid.from, 'cm-md-collapse-line')
-            }
-            continue
-          }
-        }
-        for (const span of inlineSpans) {
-          if (consumed.has(n)) break
-          if (codeRanges.some((c) => span.from < c.to && c.from < span.to)) continue
-          addReplace(span.from, span.to, new MathWidget(span.tex, span.display, span.from, v))
-        }
-      }
-    }
-  }
-
-  for (const { from, to } of v.visibleRanges) {
-    syntaxTree(v.state).iterate({
-      from, to,
-      enter(node) {
-        switch (node.name) {
-          case 'ATXHeading1': handleHeading(node, 1); break
-          case 'ATXHeading2': handleHeading(node, 2); break
-          case 'ATXHeading3': handleHeading(node, 3); break
-          case 'ATXHeading4': handleHeading(node, 4); break
-          case 'ATXHeading5': handleHeading(node, 5); break
-          case 'ATXHeading6': handleHeading(node, 6); break
-          case 'StrongEmphasis': handleInline(node, 'cm-md-strong'); break
-          case 'Emphasis': handleInline(node, 'cm-md-em'); break
-          case 'Strikethrough': handleInline(node, 'cm-md-strike'); break
-          case 'InlineCode':
-            codeRanges.push({ from: node.from, to: node.to })
-            handleInline(node, 'cm-md-code-inline')
-            break
-          case 'FencedCode': handleFenced(node); break
-          case 'Task': handleTask(node); break
-          case 'Image': handleImage(node); break
-          case 'Table': handleTable(node); break
-          case 'HorizontalRule': handleHR(node); break
-          case 'Blockquote': handleBlockquote(node); break
-          case 'ListMark': handleListMark(node); break
-        }
-      },
-    })
-  }
-  scanMath()
-  return RangeSet.of(ranges, true)
-}
-
-const livePreviewPlugin = ViewPlugin.fromClass(
-  class {
-    decorations: DecorationSet
-    constructor(v: EditorView) {
-      this.decorations = buildLiveDecorations(v)
-    }
-    update(update: ViewUpdate) {
-      if (update.docChanged || update.viewportChanged || update.selectionSet) {
-        this.decorations = buildLiveDecorations(update.view)
-      }
-    }
-  },
-  { decorations: (v) => v.decorations },
-)
-
-const slashOpen = ref(false)
-const slashQuery = ref('')
-const slashFrom = ref(0)
-const slashActive = ref(0)
-const slashLeft = ref(0)
-const slashTop = ref(0)
-
-const slashFiltered = computed<SlashTemplate[]>(() => {
-  const q = slashQuery.value.toLowerCase()
-  if (!q) return SLASH_TEMPLATES
-  const merged: SlashTemplate[] = []
-  const push = (t: SlashTemplate) => {
-    if (!merged.includes(t)) merged.push(t)
-  }
-  for (const t of filterSlashTemplates(q)) push(t)
-  for (const t of SLASH_TEMPLATES) {
-    if (i18n.global.t(`md_${t.id}`).toLowerCase().includes(q)) push(t)
-  }
-  return merged
-})
-
-watch(slashFiltered, (items) => {
-  if (slashActive.value >= items.length) slashActive.value = 0
-})
-
-const slashStyle = computed(() => ({ left: `${slashLeft.value}px`, top: `${slashTop.value}px` }))
-
-function closeSlash() {
-  slashOpen.value = false
-}
-
-function syncSlash(v: EditorView) {
-  if (!v.hasFocus) {
-    closeSlash()
-    return
-  }
-  const head = v.state.selection.main.head
-  const line = v.state.doc.lineAt(head)
-  const before = v.state.doc.sliceString(line.from, head)
-  const query = matchSlashQuery(before)
-  if (query === null) {
-    closeSlash()
-    return
-  }
-  menuStyleGroup.value = false
-  slashQuery.value = query
-  slashFrom.value = head - 1 - query.length
-  if (slashFiltered.value.length === 0) {
-    closeSlash()
-    return
-  }
-  const rect = editorContainer.value?.getBoundingClientRect()
-  const c = v.coordsAtPos(head)
-  if (!rect || !c) {
-    closeSlash()
-    return
-  }
-  slashLeft.value = Math.min(Math.max(c.left - rect.left, 8), Math.max(rect.width - 280, 8))
-  const menuH = Math.min(slashFiltered.value.length, 9) * 34 + 12
-  let y = c.bottom - rect.top + 6
-  if (y + menuH > rect.height) y = Math.max(c.top - rect.top - menuH - 6, 4)
-  slashTop.value = y
-  slashOpen.value = true
-}
-
-function applySlash(index: number) {
-  const v = view.value
-  const item = menuItems.value[index]
-  if (!v || !item || item.kind !== 'slash' || !item.template) return
-  const t = item.template
-  const to = v.state.selection.main.head
-  const from = slashFrom.value
-  v.dispatch({
-    changes: { from, to, insert: t.text },
-    selection: t.select
-      ? { anchor: from + t.select[0], head: from + t.select[1] }
-      : { anchor: from + t.cursor },
-  })
-  v.focus()
-  closeSlash()
-}
-
-const slashKeys = [
-  {
-    key: 'ArrowDown',
-    run: () => {
-      if (!slashOpen.value) return false
-      slashActive.value = (slashActive.value + 1) % menuItems.value.length
-      return true
-    },
-  },
-  {
-    key: 'ArrowUp',
-    run: () => {
-      if (!slashOpen.value) return false
-      const n = menuItems.value.length
-      slashActive.value = (slashActive.value - 1 + n) % n
-      return true
-    },
-  },
-  {
-    key: 'Enter',
-    run: () => {
-      if (!slashOpen.value) return false
-      applySlash(slashActive.value)
-      return true
-    },
-  },
-  {
-    key: 'Escape',
-    run: () => {
-      if (!slashOpen.value) return false
-      closeSlash()
-      return true
-    },
-  },
-]
-
 let isDark = document.documentElement.classList.contains('dark')
-
-const mdHighlightStyle = HighlightStyle.define([
-  { tag: highlightTags.heading, color: 'var(--md-sys-color-on-surface)', textDecoration: 'none', fontWeight: '600' },
-  { tag: highlightTags.link, color: 'var(--md-sys-color-primary)', textDecoration: 'none' },
-])
 
 function getExtensions(): Extension[] {
   const exts: Extension[] = [
     history(),
-    indentOnInput(),
-    bracketMatching(),
     closeBrackets(),
     highlightSelectionMatches(),
     markdown({ base: markdownLanguage, codeLanguages: languages }),
     livePreviewPlugin,
-    syntaxHighlighting(mdHighlightStyle),
+    mdHighlightExtensions,
     syntaxHighlighting(defaultHighlightStyle),
-    keymap.of([...slashKeys, ...defaultKeymap, ...historyKeymap, ...closeBracketsKeymap, ...searchKeymap, indentWithTab]),
+    keymap.of([...menuKeys, ...defaultKeymap, ...historyKeymap, ...closeBracketsKeymap, ...searchKeymap, indentWithTab]),
     EditorView.lineWrapping,
     EditorView.updateListener.of((update) => {
       if (update.docChanged) {
         emit('update:modelValue', update.state.doc.toString())
       }
       if (update.docChanged || update.selectionSet || update.focusChanged) {
-        syncSlash(update.view)
+        syncMenu(update.view)
         syncSelBar(update.view)
       }
     }),
@@ -932,7 +174,7 @@ function replaceTheme() {
   const v = view.value
   if (!v) return
   const doc = v.state.doc.toString()
-  closeSlash()
+  closeMenu()
   v.destroy()
   view.value = new EditorView({
     state: EditorState.create({ doc, extensions: getExtensions() }),
@@ -945,19 +187,19 @@ function colorModeChangedHandler() {
   replaceTheme()
 }
 
-function onScroll() {
-  selBarOpen.value = false
-  if (slashOpen.value && view.value) syncSlash(view.value)
+function onEditorScroll() {
+  hideSelBar()
+  onScroll()
 }
 
 onMounted(() => {
   createEditor()
-  editorContainer.value?.addEventListener('scroll', onScroll, true)
+  editorContainer.value?.addEventListener('scroll', onEditorScroll, true)
   emitter.on('color_mode_changed', colorModeChangedHandler)
 })
 
 onUnmounted(() => {
-  editorContainer.value?.removeEventListener('scroll', onScroll, true)
+  editorContainer.value?.removeEventListener('scroll', onEditorScroll, true)
   view.value?.destroy()
   emitter.off('color_mode_changed', colorModeChangedHandler)
 })
@@ -1050,6 +292,11 @@ defineExpose({ insertText })
   font-size: 10.5px;
   color: var(--md-sys-color-on-surface-variant);
 }
+.slash-div {
+  height: 1px;
+  background: var(--md-sys-color-outline-variant);
+  margin: 4px 6px;
+}
 
 .sel-toolbar {
   position: absolute;
@@ -1089,6 +336,11 @@ defineExpose({ insertText })
   margin: 0 3px;
 }
 
+.markdown-editor :deep(img.cm-widgetBuffer) {
+  margin: 0;
+  max-width: none;
+  border-radius: 0;
+}
 .markdown-editor :deep(.cm-md-task-box) {
   display: inline-flex;
   width: 17px;
