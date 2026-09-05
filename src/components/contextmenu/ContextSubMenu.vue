@@ -230,7 +230,7 @@ onBeforeUnmount(() => {
 .context-menu {
   display: inline-block;
   overflow: visible;
-  position: absolute;
+  position: fixed;
   background-color: var(--md-sys-color-surface-container);
   border-radius: 8px;
   box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 6px;

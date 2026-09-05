@@ -429,6 +429,7 @@ declare module 'vue' {
     UxDataDisplay: typeof import('./src/views/ux/UxDataDisplay.vue')['default']
     UxFeedback: typeof import('./src/views/ux/UxFeedback.vue')['default']
     UxForms: typeof import('./src/views/ux/UxForms.vue')['default']
+    UxMarkdownEditor: typeof import('./src/views/ux/UxMarkdownEditor.vue')['default']
     UxOverlays: typeof import('./src/views/ux/UxOverlays.vue')['default']
     UxView: typeof import('./src/views/ux/UxView.vue')['default']
     VCheckbox: typeof import('./src/components/base/VCheckbox.vue')['default']
