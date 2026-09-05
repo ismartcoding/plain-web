@@ -5,7 +5,7 @@ import { useRoute } from 'vue-router'
 import { replacePath } from '@/plugins/router'
 import { useMainStore } from '@/stores/main'
 import { useI18n } from 'vue-i18n'
-import type { INote, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, IFilter } from '@/lib/interfaces'
+import type { INote, IItemTagsUpdatedEvent, IItemsTagsUpdatedEvent, INotesActionedEvent, IFilter } from '@/lib/interfaces'
 import { decodeBase64 } from '@/lib/strutil'
 import { useSelectable } from '@/hooks/list'
 import emitter from '@/plugins/eventbus'
@@ -86,6 +86,19 @@ export function useNotesData(onDelete: () => void) {
     if (event.type === dataType) { fetch() }
   }
   const refetchTagsHandler = (type: string) => { if (type === dataType) fetchTags() }
+  const notesActionedHandler = (event: INotesActionedEvent) => {
+    const note = event.note
+    if (!note) {
+      fetch()
+      return
+    }
+    const idx = items.value.findIndex((it) => it.id === note.id)
+    if (idx >= 0) {
+      items.value[idx] = { ...items.value[idx], ...note }
+    } else {
+      fetch()
+    }
+  }
 
   watch(() => route.fullPath, () => { if (isActive.value) applyRouteQuery() })
 
@@ -96,6 +109,7 @@ export function useNotesData(onDelete: () => void) {
     emitter.on('item_tags_updated', itemTagsUpdatedHandler)
     emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
     emitter.on('refetch_tags', refetchTagsHandler)
+    emitter.on('notes_actioned', notesActionedHandler)
     window.addEventListener('keyup', pageKeyUp)
   })
 
@@ -104,6 +118,7 @@ export function useNotesData(onDelete: () => void) {
     emitter.off('item_tags_updated', itemTagsUpdatedHandler)
     emitter.off('items_tags_updated', itemsTagsUpdatedHandler)
     emitter.off('refetch_tags', refetchTagsHandler)
+    emitter.off('notes_actioned', notesActionedHandler)
     window.removeEventListener('keyup', pageKeyUp)
   })
 

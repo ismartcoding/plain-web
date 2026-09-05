@@ -46,6 +46,7 @@ export function useNoteEdit() {
   const { mutate: save, onDone: saveDone } = initMutation({ document: saveNoteGQL })
   saveDone((r: any) => {
     note.value = r.data.saveNote
+    emitter.emit('notes_actioned', { action: 'save', note: r.data.saveNote })
     if (!id.value && note.value?.id) {
       id.value = note.value.id
       replacePathNoReload(mainStore, `/notes/${id.value}`)
