@@ -234,6 +234,28 @@ class FenceEndWidget extends WidgetType {
   }
 }
 
+class HRWidget extends WidgetType {
+  constructor(readonly pos: number, readonly cmView: EditorView) {
+    super()
+  }
+  eq(other: HRWidget) {
+    return other.pos === this.pos
+  }
+  toDOM() {
+    const hr = document.createElement('span')
+    hr.className = 'cm-md-hr'
+    hr.addEventListener('mousedown', (e) => {
+      e.preventDefault()
+      this.cmView.dispatch({ selection: { anchor: this.pos } })
+      this.cmView.focus()
+    })
+    return hr
+  }
+  ignoreEvent() {
+    return false
+  }
+}
+
 class TableWidget extends WidgetType {
   constructor(readonly table: GfmTable, readonly pos: number, readonly cmView: EditorView) {
     super()
@@ -530,6 +552,13 @@ function buildLiveDecorations(v: EditorView): DecorationSet {
     }
   }
 
+  const handleHR = (node: SyntaxNodeRef) => {
+    if (isCursorInside(v, node.from, node.to)) return
+    const line = doc.lineAt(node.from)
+    addReplace(line.from, line.to, new HRWidget(node.from, v))
+    addLine(line.from, 'cm-md-hr-line')
+  }
+
   const scanMath = () => {
     const consumed = new Set<number>()
     for (const { from, to } of v.visibleRanges) {
@@ -599,6 +628,7 @@ function buildLiveDecorations(v: EditorView): DecorationSet {
           case 'Task': handleTask(node); break
           case 'Image': handleImage(node); break
           case 'Table': handleTable(node); break
+          case 'HorizontalRule': handleHR(node); break
         }
       },
     })
@@ -1095,8 +1125,8 @@ defineExpose({ insertText })
 }
 
 .markdown-editor :deep(.cm-md-collapse-line) {
-  line-height: 0;
-  font-size: 0;
+  line-height: 1px;
+  font-size: 1px;
   padding: 0;
 }
 .markdown-editor :deep(.cm-md-table-line) {
@@ -1126,6 +1156,16 @@ defineExpose({ insertText })
 .markdown-editor :deep(.cm-md-table tr:hover td) {
   background: var(--md-sys-color-surface-container);
 }
+.markdown-editor :deep(.cm-md-hr-line) {
+  display: flex;
+  padding: 10px 0;
+}
+.markdown-editor :deep(.cm-md-hr) {
+  flex: 1;
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+  cursor: pointer;
+}
+
 .markdown-editor :deep(.cm-md-math) {
   white-space: normal;
 }
