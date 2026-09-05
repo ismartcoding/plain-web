@@ -89,6 +89,7 @@ export function useFeedEntriesData(onDelete: () => void) {
   const feedsFetchedHandler = (data: any) => {
     feedsSyncing.value = false
     fetch()
+    fetchFeedsTags()
     if (data.error) {
       toast(data.error, 'error')
     } else {
