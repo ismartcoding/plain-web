@@ -564,3 +564,133 @@
     .pl-corl { color: #a5d6ff; }
   }
 }
+
+// ===== Live Preview (editor widgets) =====
+// The CodeMirror editor renders the same markdown elements via cm-md-* widgets.
+// These selectors share the theme rules above so edit view and view mode stay
+// visually identical. Structural rules (collapse lines, flex rows) live in the
+// component; only visual tokens live here.
+
+.md-container {
+  // Editor code block shares the pre theme
+  .cm-md-codeblock-line {
+    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    background: #f6f8fa;
+  }
+
+  .cm-md-codeblock-last {
+    padding-bottom: 12px;
+    border-radius: 0 0 8px 8px;
+  }
+
+  .cm-md-codeblock-head-line,
+  .cm-md-codeblock-head {
+    background: #f6f8fa;
+  }
+
+  .cm-md-codeblock-head {
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+  }
+
+  .cm-md-codeblock-lang {
+    color: var(--md-sys-color-on-surface-variant);
+  }
+
+  .cm-md-codeblock-copy {
+    color: var(--md-sys-color-on-surface-variant);
+
+    &:hover {
+      background: color-mix(in srgb, var(--md-sys-color-on-surface) 6%, transparent);
+      color: var(--md-sys-color-on-surface);
+    }
+  }
+
+  // Editor inline code shares the code theme
+  .cm-md-code-inline {
+    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+    font-size: 0.9em;
+    padding: 2px 5px;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) 6%, transparent);
+  }
+
+  // Editor headings share preview heading scale
+  .cm-md-h1 { font-size: 32px; font-weight: 700; }
+  .cm-md-h2 { font-size: 24px; font-weight: 650; }
+  .cm-md-h3 { font-size: 20px; font-weight: 600; }
+  .cm-md-h4 { font-size: 17px; font-weight: 600; }
+  .cm-md-h5, .cm-md-h6 { font-size: 14px; font-weight: 600; color: var(--md-sys-color-on-surface-variant); }
+  .cm-md-h1, .cm-md-h2, .cm-md-h3, .cm-md-h4, .cm-md-h5, .cm-md-h6 { text-decoration: none; }
+
+  // Editor lists share preview list indentation
+  .cm-md-list-line { position: relative; }
+  @for $d from 1 through 4 {
+    .cm-md-ul-d#{$d}, .cm-md-task-d#{$d}, .cm-md-ol-d#{$d} { padding-left: 1.5em * $d; }
+  }
+  [class*='cm-md-ul-d']::before {
+    content: '\2022';
+    position: absolute;
+    left: 0.55em;
+    color: var(--md-sys-color-on-surface);
+  }
+
+  // Editor blockquote shares the quote theme
+  .cm-md-quote-line {
+    border-left: 3px solid var(--md-sys-color-primary);
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) 3%, transparent);
+    color: var(--md-sys-color-on-surface-variant);
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .cm-md-quote-first { border-radius: 4px 4px 0 0; padding-top: 12px; }
+  .cm-md-quote-last { border-radius: 0 0 4px 4px; padding-bottom: 12px; }
+
+  // Editor horizontal rule shares the hr theme
+  .cm-md-hr-line { padding: 24px 0; }
+  .cm-md-hr {
+    display: block;
+    border-top: 1px solid var(--md-sys-color-outline-variant);
+  }
+
+  // Editor table shares the table theme
+  .cm-md-table-line { padding: 0 0 16px; }
+  .cm-md-table table {
+    border-spacing: 0;
+    border-collapse: collapse;
+    width: max-content;
+    max-width: 100%;
+    border-radius: 8px;
+
+    th {
+      font-weight: 600;
+      background: color-mix(in srgb, var(--md-sys-color-on-surface) 3%, transparent);
+    }
+
+    th,
+    td {
+      padding: 8px 13px;
+      border: 1px solid var(--md-sys-color-outline-variant);
+    }
+  }
+
+  // Editor rendered image shares the img theme
+  .cm-md-img img {
+    max-width: 100%;
+    border-radius: 8px;
+  }
+}
+
+:root.dark {
+  .md-container {
+    .cm-md-codeblock-line,
+    .cm-md-codeblock-head-line,
+    .cm-md-codeblock-head {
+      background: #0d1117;
+    }
+  }
+}

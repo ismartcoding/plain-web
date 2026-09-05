@@ -1,5 +1,5 @@
 <template>
-  <div ref="editorContainer" class="markdown-editor" @paste="handlePaste" @drop.prevent="handleDrop" @dragover.prevent @contextmenu="onContextMenu">
+  <div ref="editorContainer" class="markdown-editor md-container" @paste="handlePaste" @drop.prevent="handleDrop" @dragover.prevent @contextmenu="onContextMenu">
     <div v-if="slashOpen" class="slash-menu" :style="slashStyle" @mousedown.prevent>
       <div
         v-for="(it, i) in slashFiltered"
@@ -411,19 +411,12 @@ const baseTheme = EditorView.theme({
   },
   '.cm-placeholder': { color: 'var(--md-sys-color-on-surface-variant)' },
   '&.cm-focused': { outline: 'none' },
-  '.cm-md-codeblock': {
-    fontFamily: "'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Consolas, monospace",
-    fontSize: '13.5px',
-    lineHeight: '1.6',
-    backgroundColor: 'var(--md-sys-color-surface-container)',
-  },
-  '.cm-md-codeblock-last': { paddingBottom: '12px', borderRadius: '0 0 10px 10px' },
-  '.cm-md-h1-line': { paddingTop: '18px', paddingBottom: '4px' },
-  '.cm-md-h2-line': { paddingTop: '16px', paddingBottom: '4px' },
-  '.cm-md-h3-line': { paddingTop: '12px', paddingBottom: '2px' },
-  '.cm-md-h4-line': { paddingTop: '10px', paddingBottom: '2px' },
-  '.cm-md-h5-line': { paddingTop: '10px', paddingBottom: '2px' },
-  '.cm-md-h6-line': { paddingTop: '10px', paddingBottom: '2px' },
+  '.cm-md-h1-line': { paddingTop: '32px', paddingBottom: '12px' },
+  '.cm-md-h2-line': { paddingTop: '28px', paddingBottom: '12px' },
+  '.cm-md-h3-line': { paddingTop: '24px', paddingBottom: '8px' },
+  '.cm-md-h4-line': { paddingTop: '20px', paddingBottom: '6px' },
+  '.cm-md-h5-line': { paddingTop: '16px', paddingBottom: '4px' },
+  '.cm-md-h6-line': { paddingTop: '16px', paddingBottom: '4px' },
 })
 
 const lightTheme = EditorView.theme({
@@ -508,7 +501,7 @@ function buildLiveDecorations(v: EditorView): DecorationSet {
     for (let n = firstLine.number + 1; n <= lastLine.number; n++) {
       if (closeIsFence && n === lastLine.number) continue
       const line = doc.line(n)
-      addLine(line.from, n === lastCodeNumber ? 'cm-md-codeblock cm-md-codeblock-last' : 'cm-md-codeblock')
+      addLine(line.from, n === lastCodeNumber ? 'cm-md-codeblock-line cm-md-codeblock-last' : 'cm-md-codeblock-line')
     }
     if (closeIsFence) {
       ranges.push(Decoration.replace({ widget: new FenceEndWidget() }).range(lastLine.from, lastLine.to))
@@ -557,6 +550,40 @@ function buildLiveDecorations(v: EditorView): DecorationSet {
     const line = doc.lineAt(node.from)
     addReplace(line.from, line.to, new HRWidget(node.from, v))
     addLine(line.from, 'cm-md-hr-line')
+  }
+
+  const handleBlockquote = (node: SyntaxNodeRef) => {
+    const firstLine = doc.lineAt(node.from)
+    const lastLine = doc.lineAt(node.to)
+    for (let n = firstLine.number; n <= lastLine.number; n++) {
+      const line = doc.line(n)
+      const modifier = n === firstLine.number ? ' cm-md-quote-first' : n === lastLine.number ? ' cm-md-quote-last' : ''
+      addLine(line.from, `cm-md-quote-line${modifier}`)
+    }
+    for (let child = node.node.firstChild; child; child = child.nextSibling) {
+      if (child.name === 'QuoteMark') addReplace(child.from, child.to)
+    }
+  }
+
+  const handleListMark = (node: SyntaxNodeRef) => {
+    const item = node.node.parent
+    let depth = 0
+    let isOrdered = false
+    let isTask = false
+    for (let cur = item; cur; cur = cur.parent) {
+      if (cur.name === 'BulletList' || cur.name === 'OrderedList') {
+        depth++
+        if (cur.name === 'OrderedList') isOrdered = true
+      }
+    }
+    for (let child = item?.firstChild; child; child = child.nextSibling) {
+      if (child.name === 'Task') isTask = true
+    }
+    const d = Math.min(Math.max(depth, 1), 4)
+    const kind = isTask ? 'task' : isOrdered ? 'ol' : 'ul'
+    addLine(node.from, `cm-md-list-line cm-md-${kind}-d${d}`)
+    const markText = doc.sliceString(node.from, node.to)
+    if (!isOrdered && (markText === '-' || markText === '*' || markText === '+')) addReplace(node.from, node.to)
   }
 
   const scanMath = () => {
@@ -629,6 +656,8 @@ function buildLiveDecorations(v: EditorView): DecorationSet {
           case 'Image': handleImage(node); break
           case 'Table': handleTable(node); break
           case 'HorizontalRule': handleHR(node); break
+          case 'Blockquote': handleBlockquote(node); break
+          case 'ListMark': handleListMark(node); break
         }
       },
     })
@@ -772,7 +801,7 @@ let isDark = document.documentElement.classList.contains('dark')
 
 const mdHighlightStyle = HighlightStyle.define([
   { tag: highlightTags.heading, color: 'var(--md-sys-color-on-surface)', textDecoration: 'none', fontWeight: '600' },
-  { tag: highlightTags.link, color: 'var(--md-sys-color-primary)', textDecoration: 'underline' },
+  { tag: highlightTags.link, color: 'var(--md-sys-color-primary)', textDecoration: 'none' },
 ])
 
 function getExtensions(): Extension[] {
@@ -901,34 +930,6 @@ defineExpose({ insertText })
 .markdown-editor :deep(.cm-editor) {
   height: 100%;
 }
-.markdown-editor :deep(.cm-md-h1) {
-  font-size: 1.75em;
-  font-weight: 700;
-  line-height: 1.3;
-  letter-spacing: -0.2px;
-  text-decoration: none;
-}
-.markdown-editor :deep(.cm-md-h2) {
-  font-size: 1.45em;
-  font-weight: 650;
-  text-decoration: none;
-}
-.markdown-editor :deep(.cm-md-h3) {
-  font-size: 1.22em;
-  font-weight: 600;
-  text-decoration: none;
-}
-.markdown-editor :deep(.cm-md-h4) {
-  font-size: 1.1em;
-  font-weight: 600;
-  text-decoration: none;
-}
-.markdown-editor :deep(.cm-md-h5),
-.markdown-editor :deep(.cm-md-h6) {
-  font-size: 1em;
-  font-weight: 600;
-  text-decoration: none;
-}
 .markdown-editor :deep(.cm-md-strong) {
   font-weight: 650;
 }
@@ -937,13 +938,6 @@ defineExpose({ insertText })
 }
 .markdown-editor :deep(.cm-md-strike) {
   text-decoration: line-through;
-}
-.markdown-editor :deep(.cm-md-code-inline) {
-  font-family: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Consolas, monospace;
-  font-size: 0.85em;
-  background: var(--md-sys-color-surface-variant);
-  border-radius: 5px;
-  padding: 2px 5px;
 }
 .markdown-editor :deep(.cm-md-mark) {
   color: var(--md-sys-color-on-surface-variant);
@@ -1075,8 +1069,6 @@ defineExpose({ insertText })
   display: block;
   max-height: 320px;
   max-width: 100%;
-  border-radius: 8px;
-  border: 1px solid var(--md-sys-color-outline-variant);
 }
 
 .markdown-editor :deep(.cm-md-codeblock-head-line) {
@@ -1092,10 +1084,6 @@ defineExpose({ insertText })
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  background: var(--md-sys-color-surface-container);
-  border: 1px solid var(--md-sys-color-outline-variant);
-  border-bottom: none;
-  border-radius: 10px 10px 0 0;
   padding: 5px 6px 5px 14px;
   user-select: none;
 }
@@ -1112,11 +1100,6 @@ defineExpose({ insertText })
   padding: 3px 8px;
   font-size: 12px;
   background: transparent;
-  color: var(--md-sys-color-on-surface-variant);
-}
-.markdown-editor :deep(.cm-md-codeblock-copy:hover) {
-  background: var(--md-sys-color-surface-high);
-  color: var(--md-sys-color-on-surface);
 }
 .markdown-editor :deep(.cm-md-codeblock-end-line) {
   line-height: 0;
@@ -1131,7 +1114,6 @@ defineExpose({ insertText })
 }
 .markdown-editor :deep(.cm-md-table-line) {
   display: flex;
-  padding: 6px 0;
 }
 .markdown-editor :deep(.cm-md-table-line .cm-md-table) {
   flex: 1;
@@ -1144,25 +1126,14 @@ defineExpose({ insertText })
   border-collapse: collapse;
   font-size: 0.92em;
 }
-.markdown-editor :deep(.cm-md-table th),
-.markdown-editor :deep(.cm-md-table td) {
-  border: 1px solid var(--md-sys-color-outline-variant);
-  padding: 6px 12px;
-}
-.markdown-editor :deep(.cm-md-table th) {
-  background: var(--md-sys-color-surface-container-low);
-  font-weight: 650;
-}
 .markdown-editor :deep(.cm-md-table tr:hover td) {
   background: var(--md-sys-color-surface-container);
 }
 .markdown-editor :deep(.cm-md-hr-line) {
   display: flex;
-  padding: 10px 0;
 }
 .markdown-editor :deep(.cm-md-hr) {
   flex: 1;
-  border-top: 1px solid var(--md-sys-color-outline-variant);
   cursor: pointer;
 }
 
