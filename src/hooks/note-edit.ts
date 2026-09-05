@@ -58,13 +58,20 @@ export function useNoteEdit() {
     save({ id: id.value, input: { content: content.value, title: getMarkdownTitle(content.value) } })
   }, 500)
 
-  const watchContent = () => {
-    watch(content, async (value: string) => {
-      notSaved.value = true
-      markdown.value = await render(value)
-      saveContent()
-    })
-  }
+  // Registered once here (component scope, auto-stopped on unmount).
+  // It used to be re-registered after every fetch completion, accumulating
+  // one watcher per tags refresh; suppressContentWatch keeps the load
+  // assignment from being treated as a user edit.
+  let suppressContentWatch = false
+  watch(content, async (value: string) => {
+    if (suppressContentWatch) {
+      suppressContentWatch = false
+      return
+    }
+    notSaved.value = true
+    markdown.value = await render(value)
+    saveContent()
+  })
 
   const tags = ref<ITag[]>()
   const { refetch: refetchTags } = initQuery({
@@ -80,11 +87,12 @@ export function useNoteEdit() {
     handle: async (data: { note: INote }, error: string) => {
       if (error) toast(t(error), 'error')
       else {
+        if (content.value !== data.note.content) suppressContentWatch = true
         note.value = data.note
         title.value = data.note.title
         content.value = data.note.content
         markdown.value = await render(content.value)
-        watchContent()
+        suppressContentWatch = false
       }
     },
     document: noteGQL,
@@ -145,7 +153,6 @@ export function useNoteEdit() {
     id.value = route.params.id as string
     if (id.value === 'create') id.value = ''
     if (id.value) fetch()
-    else watchContent()
     emitter.on('item_tags_updated', itemTagsUpdatedHandler)
     emitter.on('items_tags_updated', itemsTagsUpdatedHandler)
     emitter.on('refetch_tags', refetchTagsHandler)
