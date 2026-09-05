@@ -11,6 +11,8 @@ import {
   cycleHeading,
   insertImageAtCursor,
   toggleLink,
+  parseGfmTable,
+  findMathSpans,
 } from '@/lib/md-editor'
 
 function makeView(doc: string, from = 0, to = 0) {
@@ -183,5 +185,53 @@ describe('toggleLink', () => {
     const view = makeView('[click here](url)', 0, 17)
     toggleLink(view)
     expect(view.state.doc.toString()).toBe('click here')
+  })
+})
+
+describe('parseGfmTable', () => {
+  it('parses header, alignment and rows', () => {
+    const t = parseGfmTable('| 指标 | 前 | 后 |\n| :--- | ---: | :---: |\n| 冷启动 | 240ms | 90ms |')!
+    expect(t.header).toEqual(['指标', '前', '后'])
+    expect(t.align).toEqual(['left', 'right', 'center'])
+    expect(t.rows).toEqual([['冷启动', '240ms', '90ms']])
+  })
+
+  it('rejects a block without a delimiter row', () => {
+    expect(parseGfmTable('| a | b |\n| x | y |')).toBeNull()
+    expect(parseGfmTable('just text')).toBeNull()
+  })
+
+  it('tolerates missing outer pipes', () => {
+    const t = parseGfmTable('a | b\n--- | ---\n1 | 2')!
+    expect(t.header).toEqual(['a', 'b'])
+    expect(t.rows).toEqual([['1', '2']])
+  })
+})
+
+describe('findMathSpans', () => {
+  it('finds inline math', () => {
+    const spans = findMathSpans('energy $E = mc^2$ done')
+    expect(spans).toHaveLength(1)
+    expect(spans[0]).toMatchObject({ tex: 'E = mc^2', display: false })
+  })
+
+  it('finds single-line display math', () => {
+    const spans = findMathSpans('$$x + y$$')
+    expect(spans).toHaveLength(1)
+    expect(spans[0]).toMatchObject({ tex: 'x + y', display: true })
+  })
+
+  it('ignores currency amounts', () => {
+    expect(findMathSpans('it costs $5 to $10')).toEqual([])
+  })
+
+  it('ignores escaped dollars', () => {
+    expect(findMathSpans('price \\$5')).toEqual([])
+  })
+
+  it('reports offsets relative to the provided base', () => {
+    const spans = findMathSpans('ab $x$', 100)
+    expect(spans[0].from).toBe(103)
+    expect(spans[0].to).toBe(106)
   })
 })

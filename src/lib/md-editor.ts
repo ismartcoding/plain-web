@@ -166,3 +166,78 @@ export function toggleLink(view: EditorView): void {
     selection: { anchor: range.from + text.length + 3, head: range.from + text.length + 6 },
   })
 }
+
+export interface GfmTable {
+  header: string[]
+  align: Array<'left' | 'center' | 'right' | 'none'>
+  rows: string[][]
+}
+
+const DELIM_ROW = /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/
+
+export function parseGfmTable(text: string): GfmTable | null {
+  const lines = text.split('\n').map((l) => l.trim())
+  if (lines.length < 2 || !DELIM_ROW.test(lines[1])) return null
+  const splitRow = (line: string) =>
+    line
+      .replace(/^\|/, '')
+      .replace(/\|$/, '')
+      .split('|')
+      .map((c) => c.trim())
+  const header = splitRow(lines[0])
+  const align = splitRow(lines[1]).map((c): 'left' | 'center' | 'right' | 'none' => {
+    if (c.startsWith(':') && c.endsWith(':')) return 'center'
+    if (c.endsWith(':')) return 'right'
+    if (c.startsWith(':')) return 'left'
+    return 'none'
+  })
+  if (!align.length || header.length !== align.length) return null
+  const rows = lines.slice(2).map(splitRow)
+  return { header, align, rows }
+}
+
+export interface MathSpan {
+  from: number
+  to: number
+  tex: string
+  display: boolean
+}
+
+export function findMathSpans(line: string, offset = 0): MathSpan[] {
+  const spans: MathSpan[] = []
+  let i = 0
+  while (i < line.length) {
+    if (line[i] === '\\' && (line[i + 1] === '$' || line[i + 1] === '\\')) {
+      i += 2
+      continue
+    }
+    if (line[i] !== '$') {
+      i++
+      continue
+    }
+    if (line.startsWith('$$', i)) {
+      const end = line.indexOf('$$', i + 2)
+      if (end > i + 2) {
+        spans.push({ from: offset + i, to: offset + end + 2, tex: line.slice(i + 2, end), display: true })
+        i = end + 2
+        continue
+      }
+      break
+    }
+    let j = i + 1
+    while (j < line.length && line[j] !== '$') {
+      if (line[j] === '\\') j++
+      j++
+    }
+    if (j >= line.length) break
+    const content = line.slice(i + 1, j)
+    const ok = content.length > 0 && !content.startsWith(' ') && !content.endsWith(' ') && !/^\d/.test(content)
+    if (ok) {
+      spans.push({ from: offset + i, to: offset + j + 1, tex: content, display: false })
+      i = j + 1
+    } else {
+      i = j + 1
+    }
+  }
+  return spans
+}

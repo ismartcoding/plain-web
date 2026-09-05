@@ -73,8 +73,12 @@ import {
   cycleHeading,
   toggleLink,
   insertImageAtCursor,
+  parseGfmTable,
+  findMathSpans,
+  type GfmTable,
   type SlashTemplate,
 } from '@/lib/md-editor'
+import katex from 'katex'
 
 const props = defineProps<{
   modelValue: string
@@ -230,6 +234,81 @@ class FenceEndWidget extends WidgetType {
   }
 }
 
+class TableWidget extends WidgetType {
+  constructor(readonly table: GfmTable, readonly pos: number, readonly cmView: EditorView) {
+    super()
+  }
+  eq(other: TableWidget) {
+    return JSON.stringify(other.table) === JSON.stringify(this.table)
+  }
+  toDOM() {
+    const wrap = document.createElement('span')
+    wrap.className = 'cm-md-table'
+    const table = document.createElement('table')
+    const alignOf = (i: number) => this.table.align[i]
+    const thead = document.createElement('thead')
+    const trh = document.createElement('tr')
+    this.table.header.forEach((h, i) => {
+      const th = document.createElement('th')
+      th.textContent = h
+      const al = alignOf(i)
+      if (al !== 'none') th.style.textAlign = al
+      trh.appendChild(th)
+    })
+    thead.appendChild(trh)
+    const tbody = document.createElement('tbody')
+    this.table.rows.forEach((row) => {
+      const tr = document.createElement('tr')
+      for (let i = 0; i < this.table.header.length; i++) {
+        const td = document.createElement('td')
+        td.textContent = row[i] ?? ''
+        const al = alignOf(i)
+        if (al !== 'none') td.style.textAlign = al
+        tr.appendChild(td)
+      }
+      tbody.appendChild(tr)
+    })
+    table.append(thead, tbody)
+    wrap.appendChild(table)
+    wrap.addEventListener('mousedown', (e) => {
+      e.preventDefault()
+      this.cmView.dispatch({ selection: { anchor: this.pos } })
+      this.cmView.focus()
+    })
+    return wrap
+  }
+  ignoreEvent() {
+    return false
+  }
+}
+
+class MathWidget extends WidgetType {
+  constructor(readonly tex: string, readonly display: boolean, readonly pos: number, readonly cmView: EditorView) {
+    super()
+  }
+  eq(other: MathWidget) {
+    return other.tex === this.tex && other.display === this.display
+  }
+  toDOM() {
+    const span = document.createElement('span')
+    span.className = 'cm-md-math' + (this.display ? ' cm-md-math-display' : '')
+    try {
+      span.innerHTML = katex.renderToString(this.tex, { throwOnError: false, displayMode: this.display })
+    } catch {
+      span.textContent = this.tex
+    }
+    span.addEventListener('mousedown', (e) => {
+      e.preventDefault()
+      this.cmView.dispatch({ selection: { anchor: this.pos } })
+      this.cmView.focus()
+    })
+    return span
+  }
+  ignoreEvent() {
+    return false
+  }
+}
+
 const selBarOpen = ref(false)
 const selBarLeft = ref(0)
 const selBarTop = ref(0)
@@ -341,12 +420,13 @@ function buildLiveDecorations(v: EditorView): DecorationSet {
   const ranges: Range<Decoration>[] = []
   const hidden: Array<{ from: number; to: number }> = []
   const doc = v.state.doc
+  const codeRanges: Array<{ from: number; to: number }> = []
 
-  const addReplace = (from: number, to: number) => {
+  const addReplace = (from: number, to: number, widget?: WidgetType) => {
     if (to <= from) return
     if (hidden.some((h) => from < h.to && h.from < to)) return
     hidden.push({ from, to })
-    ranges.push(Decoration.replace({}).range(from, to))
+    ranges.push(Decoration.replace(widget ? { widget } : {}).range(from, to))
   }
   const addMark = (from: number, to: number, cls: string) => {
     if (to <= from) return
@@ -355,6 +435,8 @@ function buildLiveDecorations(v: EditorView): DecorationSet {
   const addLine = (from: number, cls: string) => {
     ranges.push(Decoration.line({ class: cls }).range(from))
   }
+  const overlapsCode = (from: number, to: number) =>
+    codeRanges.some((c) => from < c.to && c.from < to)
 
   const markNames = new Set(['EmphasisMark', 'CodeMark', 'StrikethroughMark'])
 
@@ -390,6 +472,7 @@ function buildLiveDecorations(v: EditorView): DecorationSet {
   }
 
   const handleFenced = (node: SyntaxNodeRef) => {
+    codeRanges.push({ from: node.from, to: node.to })
     const firstLine = doc.lineAt(node.from)
     const lastLine = doc.lineAt(node.to)
     const openMatch = firstLine.text.match(/^\s*(`{3,}|~{3,})(.*)$/)
@@ -432,6 +515,68 @@ function buildLiveDecorations(v: EditorView): DecorationSet {
     ranges.push(Decoration.replace({ widget: new ImageWidget(m[2], m[1]) }).range(node.from, node.to))
   }
 
+  const handleTable = (node: SyntaxNodeRef) => {
+    if (isCursorInside(v, node.from, node.to)) return
+    const table = parseGfmTable(doc.sliceString(node.from, node.to))
+    if (!table) return
+    const firstLine = doc.lineAt(node.from)
+    const lastLine = doc.lineAt(node.to)
+    ranges.push(Decoration.replace({ widget: new TableWidget(table, node.from, v) }).range(firstLine.from, firstLine.to))
+    addLine(firstLine.from, 'cm-md-table-line')
+    for (let n = firstLine.number + 1; n <= lastLine.number; n++) {
+      const line = doc.line(n)
+      addReplace(line.from, line.to, new FenceEndWidget())
+      addLine(line.from, 'cm-md-collapse-line')
+    }
+  }
+
+  const scanMath = () => {
+    const consumed = new Set<number>()
+    for (const { from, to } of v.visibleRanges) {
+      const first = doc.lineAt(from).number
+      const last = doc.lineAt(to).number
+      for (let n = first; n <= last; n++) {
+        if (consumed.has(n)) continue
+        const line = doc.line(n)
+        if (overlapsCode(line.from, line.to)) continue
+        const trimmed = line.text.trim()
+        const inlineSpans = findMathSpans(line.text, line.from)
+        const sameLineDisplay = inlineSpans.some((s) => s.display)
+        if (trimmed.startsWith('$$') && !sameLineDisplay) {
+          let closeLine: typeof line | null = null
+          for (let m = n + 1; m <= Math.min(n + 500, doc.lines); m++) {
+            const candidate = doc.line(m)
+            if (candidate.text.trim().endsWith('$$')) {
+              closeLine = candidate
+              break
+            }
+          }
+          if (closeLine) {
+            for (let m = n; m <= closeLine.number; m++) consumed.add(m)
+            if (isCursorInside(v, line.from, closeLine.to)) continue
+            const texParts = [line.text.trim().slice(2)]
+            for (let m = n + 1; m < closeLine.number; m++) texParts.push(doc.line(m).text.trim())
+            texParts.push(closeLine.text.trim().slice(0, -2))
+            const tex = texParts.filter((p) => p.length > 0).join('\n')
+            addReplace(line.from, line.to, new MathWidget(tex, true, line.from, v))
+            addLine(line.from, 'cm-md-math-block-line')
+            for (let m = n + 1; m <= closeLine.number; m++) {
+              const mid = doc.line(m)
+              addReplace(mid.from, mid.to, new FenceEndWidget())
+              addLine(mid.from, 'cm-md-collapse-line')
+            }
+            continue
+          }
+        }
+        for (const span of inlineSpans) {
+          if (consumed.has(n)) break
+          if (codeRanges.some((c) => span.from < c.to && c.from < span.to)) continue
+          addReplace(span.from, span.to, new MathWidget(span.tex, span.display, span.from, v))
+        }
+      }
+    }
+  }
+
   for (const { from, to } of v.visibleRanges) {
     syntaxTree(v.state).iterate({
       from, to,
@@ -446,14 +591,19 @@ function buildLiveDecorations(v: EditorView): DecorationSet {
           case 'StrongEmphasis': handleInline(node, 'cm-md-strong'); break
           case 'Emphasis': handleInline(node, 'cm-md-em'); break
           case 'Strikethrough': handleInline(node, 'cm-md-strike'); break
-          case 'InlineCode': handleInline(node, 'cm-md-code-inline'); break
+          case 'InlineCode':
+            codeRanges.push({ from: node.from, to: node.to })
+            handleInline(node, 'cm-md-code-inline')
+            break
           case 'FencedCode': handleFenced(node); break
           case 'Task': handleTask(node); break
           case 'Image': handleImage(node); break
+          case 'Table': handleTable(node); break
         }
       },
     })
   }
+  scanMath()
   return RangeSet.of(ranges, true)
 }
 
@@ -942,6 +1092,57 @@ defineExpose({ insertText })
   line-height: 0;
   font-size: 0;
   padding: 0;
+}
+
+.markdown-editor :deep(.cm-md-collapse-line) {
+  line-height: 0;
+  font-size: 0;
+  padding: 0;
+}
+.markdown-editor :deep(.cm-md-table-line) {
+  display: flex;
+  padding: 6px 0;
+}
+.markdown-editor :deep(.cm-md-table-line .cm-md-table) {
+  flex: 1;
+}
+.markdown-editor :deep(.cm-md-table) {
+  display: block;
+  overflow-x: auto;
+}
+.markdown-editor :deep(.cm-md-table table) {
+  border-collapse: collapse;
+  font-size: 0.92em;
+}
+.markdown-editor :deep(.cm-md-table th),
+.markdown-editor :deep(.cm-md-table td) {
+  border: 1px solid var(--md-sys-color-outline-variant);
+  padding: 6px 12px;
+}
+.markdown-editor :deep(.cm-md-table th) {
+  background: var(--md-sys-color-surface-container-low);
+  font-weight: 650;
+}
+.markdown-editor :deep(.cm-md-table tr:hover td) {
+  background: var(--md-sys-color-surface-container);
+}
+.markdown-editor :deep(.cm-md-math) {
+  white-space: normal;
+}
+.markdown-editor :deep(.cm-md-math-display) {
+  display: block;
+  overflow-x: auto;
+  padding: 6px 0;
+}
+.markdown-editor :deep(.cm-md-math-display .katex-display) {
+  margin: 0;
+}
+.markdown-editor :deep(.cm-md-math-block-line) {
+  display: flex;
+  padding: 2px 0;
+}
+.markdown-editor :deep(.cm-md-math-block-line .cm-md-math) {
+  flex: 1;
 }
 
 .fmt-bar {
