@@ -401,6 +401,7 @@ declare module 'vue' {
     ScreenMirrorView: typeof import('./src/views/screen-mirror/ScreenMirrorView.vue')['default']
     SendSmsModal: typeof import('./src/views/messages/SendSmsModal.vue')['default']
     SessionListItem: typeof import('./src/views/login/SessionListItem.vue')['default']
+    SetupView: typeof import('./src/views/setup/SetupView.vue')['default']
     ShareView: typeof import('./src/views/share/ShareView.vue')['default']
     Sidebar2: typeof import('./src/components/Sidebar2.vue')['default']
     Sidebar2ItemSkeleton: typeof import('./src/components/Sidebar2ItemSkeleton.vue')['default']

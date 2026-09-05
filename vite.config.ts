@@ -1,5 +1,6 @@
 /// <reference types="vitest" />
 import { defineConfig, loadEnv } from 'vite'
+import { readFileSync } from 'fs'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
 import Icons from 'unplugin-icons/vite'
@@ -25,6 +26,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const apiHost = env.VITE_APP_API_HOST || ''
   const isTauri = JSON.stringify(process.env.VITE_APP_MODE === 'tauri')
+  const appVersion = (JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf-8')) as { version: string }).version
 
   const sharedDefine = {
     'process.env': {},
@@ -32,10 +34,12 @@ export default defineConfig(({ mode }) => {
     __VUE_I18N_LEGACY_API__: false,
     __INTLIFY_PROD_DEVTOOLS__: false,
     __IS_TAURI__: isTauri,
+    __APP_VERSION__: JSON.stringify(appVersion),
   }
 
   const testDefine = {
     __IS_TAURI__: isTauri,
+    __APP_VERSION__: JSON.stringify(appVersion),
   }
 
   return {

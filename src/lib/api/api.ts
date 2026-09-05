@@ -1,5 +1,6 @@
 import { getCurrentDeviceHost } from '../device/current'
 import { get as prefsGet } from '../prefs'
+import { isMacPlatform } from '../platform'
 import { DeviceType } from '../status'
 import { applyScheme } from '../url'
 
@@ -64,11 +65,25 @@ export function getApiHost() {
   return import.meta.env.VITE_APP_API_HOST || window.location.host
 }
 
+// Client self-identification for the `c-platform` header, mirroring
+// plain-app's RequestHeaders (android/ios there). This describes the
+// CLIENT runtime only — which server product we talk to is reported by
+// the server's own APIs.
+function clientPlatform(): string {
+  if (!__IS_TAURI__) return 'web'
+  if (isMacPlatform()) return 'macos'
+  if (/Windows/i.test(navigator.userAgent)) return 'windows'
+  return 'linux'
+}
+
 export function getApiHeaders() {
-  return {
+  const headers: Record<string, string> = {
     'Content-Type': 'multipart/form-data',
     'c-id': prefsGet('client_id', ''),
+    'c-platform': clientPlatform(),
   }
+  if (__APP_VERSION__) headers['c-version'] = __APP_VERSION__
+  return headers
 }
 
 function isSecurePort(host: string): boolean {
