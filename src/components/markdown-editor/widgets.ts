@@ -35,11 +35,11 @@ export class CheckboxWidget extends WidgetType {
 }
 
 export class ImageWidget extends WidgetType {
-  constructor(readonly link: string, readonly alt: string) {
+  constructor(readonly pos: number, readonly link: string, readonly alt: string, readonly cmView: EditorView) {
     super()
   }
   eq(other: ImageWidget) {
-    return other.link === this.link && other.alt === this.alt
+    return other.pos === this.pos && other.link === this.link && other.alt === this.alt
   }
   toDOM() {
     const fig = document.createElement('span')
@@ -49,9 +49,18 @@ export class ImageWidget extends WidgetType {
     img.src = resolveImageUrl(this.link)
     img.alt = this.alt
     img.loading = 'lazy'
+    img.addEventListener('error', () => {
+      const alt = document.createElement('span')
+      alt.className = 'cm-md-img-alt'
+      alt.textContent = this.alt || this.link
+      fig.replaceChildren(alt)
+    })
     fig.appendChild(img)
-    fig.addEventListener('mousedown', (e) => e.preventDefault())
-    fig.addEventListener('click', () => zoomImage(this.link))
+    fig.addEventListener('mousedown', (e) => {
+      e.preventDefault()
+      this.cmView.dispatch({ selection: { anchor: this.pos } })
+      this.cmView.focus()
+    })
     return fig
   }
   ignoreEvent() {
@@ -127,6 +136,42 @@ export class HRWidget extends WidgetType {
   }
 }
 
+const INLINE_TOKEN = /(\*\*[^*]+\*\*)|(\*[^*]+\*)|(~~[^~]+~~)|(`[^`]+`)|(\[[^\]]*\]\([^)]+\))/g
+
+// Minimal inline markdown renderer for table cells — the whole table is a
+// widget, so the editor's line-level mark machinery never runs inside it.
+function renderInlineMarkdown(text: string): DocumentFragment {
+  const frag = document.createDocumentFragment()
+  let last = 0
+  for (const m of text.matchAll(INLINE_TOKEN)) {
+    if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)))
+    const token = m[0]
+    let el: HTMLElement
+    if (token.startsWith('**')) {
+      el = document.createElement('strong')
+      el.textContent = token.slice(2, -2)
+    } else if (token.startsWith('~~')) {
+      el = document.createElement('del')
+      el.textContent = token.slice(2, -2)
+    } else if (token.startsWith('`')) {
+      el = document.createElement('code')
+      el.textContent = token.slice(1, -1)
+    } else if (token.startsWith('[')) {
+      const sep = token.indexOf('](')
+      el = document.createElement('span')
+      el.className = 'cm-md-link'
+      el.textContent = token.slice(1, sep)
+    } else {
+      el = document.createElement('em')
+      el.textContent = token.slice(1, -1)
+    }
+    frag.appendChild(el)
+    last = m.index + token.length
+  }
+  if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)))
+  return frag
+}
+
 export class TableWidget extends WidgetType {
   constructor(readonly table: GfmTable, readonly pos: number, readonly cmView: EditorView) {
     super()
@@ -143,7 +188,7 @@ export class TableWidget extends WidgetType {
     const trh = document.createElement('tr')
     this.table.header.forEach((h, i) => {
       const th = document.createElement('th')
-      th.textContent = h
+      th.appendChild(renderInlineMarkdown(h))
       const al = alignOf(i)
       if (al !== 'none') th.style.textAlign = al
       trh.appendChild(th)
@@ -154,7 +199,7 @@ export class TableWidget extends WidgetType {
       const tr = document.createElement('tr')
       for (let i = 0; i < this.table.header.length; i++) {
         const td = document.createElement('td')
-        td.textContent = row[i] ?? ''
+        td.appendChild(renderInlineMarkdown(row[i] ?? ''))
         const al = alignOf(i)
         if (al !== 'none') td.style.textAlign = al
         tr.appendChild(td)

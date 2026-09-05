@@ -46,16 +46,18 @@
 import { ref, shallowRef, onMounted, onUnmounted, watch } from 'vue'
 import { EditorView, keymap, placeholder as cmPlaceholder } from '@codemirror/view'
 import { EditorState, type Extension } from '@codemirror/state'
+import type { SyntaxNode } from '@lezer/common'
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
 import { languages } from '@codemirror/language-data'
 import { defaultKeymap, indentWithTab, history, historyKeymap } from '@codemirror/commands'
-import { syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language'
+import { syntaxHighlighting, defaultHighlightStyle, syntaxTree } from '@codemirror/language'
 import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search'
 import emitter from '@/plugins/eventbus'
 import {
   SLASH_TEMPLATES,
+  slugifyHeading,
   applyTemplate,
   toggleWrap,
   togglePrefix,
@@ -81,9 +83,9 @@ const emit = defineEmits<{
 const editorContainer = ref<HTMLElement>()
 const view = shallowRef<EditorView>()
 
-const menu = useEditorMenu({ view, editorContainer })
-const { slashOpen, slashActive, slashStyle, menuItems, styleStart, applyMenuItem, closeMenu, syncMenu, onContextMenu, onScroll, menuKeys } = menu
 const { selBarOpen, selBarStyle, syncSelBar, hideSelBar } = useSelectionBar({ view, editorContainer })
+const menu = useEditorMenu({ view, editorContainer, onOpen: hideSelBar })
+const { slashOpen, slashActive, slashStyle, menuItems, styleStart, applyMenuItem, closeMenu, syncMenu, onContextMenu, onScroll, menuKeys } = menu
 
 function runCmd(fn: (v: EditorView, ...args: never[]) => void, ...args: unknown[]) {
   const v = view.value
@@ -183,23 +185,72 @@ function replaceTheme() {
 }
 
 function colorModeChangedHandler() {
-  isDark = document.documentElement.classList.contains('dark')
+  const dark = document.documentElement.classList.contains('dark')
+  if (dark === isDark) return
+  isDark = dark
   replaceTheme()
 }
 
+// Theme can change through paths other than the event bus (system theme,
+// external class toggles). Watch the root class directly so the editor's
+// syntax theme never falls out of sync with the CSS theme.
+const rootClassObserver = new MutationObserver(colorModeChangedHandler)
+
 function onEditorScroll() {
   hideSelBar()
-  onScroll()
+  menu.onScroll()
+}
+
+function slugOfHeadingLine(view: EditorView, lineNumber: number): string | null {
+  const doc = view.state.doc
+  const line = doc.line(lineNumber)
+  if (/^\s*\#{1,6}\s/.test(line.text)) return slugifyHeading(line.text.replace(/^\s*\#{1,6}\s/, ''))
+  const next = lineNumber < doc.lines ? doc.line(lineNumber + 1) : null
+  if (next && /^\s*(=+|-+)\s*$/.test(next.text) && line.text.trim()) return slugifyHeading(line.text)
+  return null
+}
+
+function onEditorClick(e: MouseEvent) {
+  const el = (e.target as HTMLElement)?.closest('.cm-md-link') as HTMLElement | null
+  const v = view.value
+  if (!el || !v) return
+  const pos = v.posAtDOM(el)
+  let link: SyntaxNode | null = syntaxTree(v.state).resolveInner(pos, -1)
+  while (link && link.name !== 'Link') link = link.parent
+  if (!link) return
+  let href = ''
+  for (let child = link.firstChild; child; child = child.nextSibling) {
+    if (child.name === 'URL') href = v.state.sliceDoc(child.from, child.to)
+  }
+  if (!href) return
+  e.preventDefault()
+  if (href.startsWith('#')) {
+    const slug = slugifyHeading(decodeURIComponent(href.slice(1)))
+    const doc = v.state.doc
+    for (let n = 1; n <= doc.lines; n++) {
+      if (slugOfHeadingLine(v, n) === slug) {
+        const line = doc.line(n)
+        v.dispatch({ selection: { anchor: line.from }, effects: EditorView.scrollIntoView(line.from, { y: 'start' }) })
+        return
+      }
+    }
+    return
+  }
+  if (/^https?:\/\//.test(href)) window.open(href, '_blank', 'noopener')
 }
 
 onMounted(() => {
   createEditor()
   editorContainer.value?.addEventListener('scroll', onEditorScroll, true)
+  editorContainer.value?.addEventListener('click', onEditorClick)
   emitter.on('color_mode_changed', colorModeChangedHandler)
+  rootClassObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
 })
 
 onUnmounted(() => {
   editorContainer.value?.removeEventListener('scroll', onEditorScroll, true)
+  editorContainer.value?.removeEventListener('click', onEditorClick)
+  rootClassObserver.disconnect()
   view.value?.destroy()
   emitter.off('color_mode_changed', colorModeChangedHandler)
 })
@@ -353,7 +404,6 @@ defineExpose({ insertText })
   justify-content: center;
   font-size: 12px;
   color: transparent;
-  cursor: pointer;
   user-select: none;
 }
 .markdown-editor :deep(.cm-md-task-box.checked) {
@@ -367,12 +417,11 @@ defineExpose({ insertText })
 }
 
 .markdown-editor :deep(.cm-md-img) {
-  display: inline-block;
-  cursor: zoom-in;
   line-height: 0;
 }
 .markdown-editor :deep(.cm-md-img img) {
-  display: block;
+  display: inline-block;
+  vertical-align: top;
   max-height: 320px;
   max-width: 100%;
 }
@@ -380,7 +429,6 @@ defineExpose({ insertText })
 .markdown-editor :deep(.cm-md-codeblock-head-line) {
   display: flex;
   align-items: center;
-  padding: 0 0 2px;
 }
 .markdown-editor :deep(.cm-md-codeblock-head-line .cm-md-codeblock-head) {
   flex: 1;
@@ -390,20 +438,13 @@ defineExpose({ insertText })
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 5px 6px 5px 14px;
   user-select: none;
-}
-.markdown-editor :deep(.cm-md-codeblock-lang) {
-  font-family: 'SF Mono', 'Fira Code', Menlo, Consolas, monospace;
-  font-size: 11px;
-  letter-spacing: 0.4px;
-  color: var(--md-sys-color-on-surface-variant);
 }
 .markdown-editor :deep(.cm-md-codeblock-copy) {
   border: none;
   cursor: pointer;
   border-radius: 6px;
-  padding: 3px 8px;
+  padding: 2px 8px;
   font-size: 12px;
   background: transparent;
 }
@@ -440,7 +481,6 @@ defineExpose({ insertText })
 }
 .markdown-editor :deep(.cm-md-hr) {
   flex: 1;
-  cursor: pointer;
 }
 
 .markdown-editor :deep(.cm-md-math) {

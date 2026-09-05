@@ -241,3 +241,13 @@ export function findMathSpans(line: string, offset = 0): MathSpan[] {
   }
   return spans
 }
+
+export function slugifyHeading(text: string): string {
+  return text
+    .trim()
+    .toLowerCase()
+    .replace(/[[\]!`*_~()#]/g, '')
+    .replace(/[^\p{L}\p{N}\s-]/gu, '')
+    .replace(/\s+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}

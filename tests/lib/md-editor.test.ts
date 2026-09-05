@@ -12,6 +12,7 @@ import {
   insertImageAtCursor,
   toggleLink,
   parseGfmTable,
+  slugifyHeading,
   findMathSpans,
 } from '@/lib/md-editor'
 
@@ -233,5 +234,21 @@ describe('findMathSpans', () => {
     const spans = findMathSpans('ab $x$', 100)
     expect(spans[0].from).toBe(103)
     expect(spans[0].to).toBe(106)
+  })
+})
+
+describe('slugifyHeading', () => {
+  it('slugifies a plain heading', () => {
+    expect(slugifyHeading('Table of Contents')).toBe('table-of-contents')
+  })
+
+  it('strips punctuation and collapses whitespace like the blog TOC links', () => {
+    expect(slugifyHeading('Method 1: PlainApp — no app on the iPhone')).toBe(
+      'method-1-plainapp-no-app-on-the-iphone',
+    )
+  })
+
+  it('strips markdown markers before slugging', () => {
+    expect(slugifyHeading('# **Bold** Title')).toBe('bold-title')
   })
 })

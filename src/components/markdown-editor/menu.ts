@@ -35,6 +35,7 @@ const ITEM_HEIGHT = 34
 export function useEditorMenu(options: {
   view: ShallowRef<EditorView | undefined>
   editorContainer: Ref<HTMLElement | undefined>
+  onOpen?: () => void
 }) {
   const { view, editorContainer } = options
 
@@ -189,6 +190,7 @@ export function useEditorMenu(options: {
 
   function onContextMenu(e: MouseEvent) {
     e.preventDefault()
+    options.onOpen?.()
     const rect = editorContainer.value?.getBoundingClientRect()
     if (!rect) return
     openMenuAt(e.clientX - rect.left, e.clientY - rect.top)

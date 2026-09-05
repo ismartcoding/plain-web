@@ -87,7 +87,10 @@ export function buildLiveDecorations(v: EditorView): DecorationSet {
     for (let n = firstLine.number + 1; n <= lastLine.number; n++) {
       if (closeIsFence && n === lastLine.number) continue
       const line = doc.line(n)
-      addLine(line.from, n === lastCodeNumber ? 'cm-md-codeblock-line cm-md-codeblock-last' : 'cm-md-codeblock-line')
+      const isFirstCode = n === firstLine.number + 1
+      const isLastCode = n === lastCodeNumber
+      const base = 'cm-md-codeblock-line' + (isFirstCode ? ' cm-md-codeblock-first-code' : '') + (isLastCode ? ' cm-md-codeblock-last' : '')
+      addLine(line.from, base)
     }
     if (closeIsFence) {
       ranges.push(Decoration.replace({ widget: new FenceEndWidget() }).range(lastLine.from, lastLine.to))
@@ -113,7 +116,7 @@ export function buildLiveDecorations(v: EditorView): DecorationSet {
     if (isCursorInside(v, node.from, node.to)) return
     const m = doc.sliceString(node.from, node.to).match(/^!\[([^\]]*)\]\(([^)]+)\)$/)
     if (!m) return
-    ranges.push(Decoration.replace({ widget: new ImageWidget(m[2], m[1]) }).range(node.from, node.to))
+    ranges.push(Decoration.replace({ widget: new ImageWidget(node.from, m[2], m[1], v) }).range(node.from, node.to))
   }
 
   const handleTable = (node: SyntaxNodeRef) => {
@@ -136,6 +139,45 @@ export function buildLiveDecorations(v: EditorView): DecorationSet {
     const line = doc.lineAt(node.from)
     addReplace(line.from, line.to, new HRWidget(node.from, v))
     addLine(line.from, 'cm-md-hr-line')
+  }
+
+  const handleLink = (node: SyntaxNodeRef) => {
+    addMark(node.from, node.to, 'cm-md-link')
+    if (isCursorInside(v, node.from, node.to)) {
+      for (let child = node.node.firstChild; child; child = child.nextSibling) {
+        if (child.name === 'LinkMark') addMark(child.from, child.to, 'cm-md-mark')
+      }
+      return
+    }
+    for (let child = node.node.firstChild; child; child = child.nextSibling) {
+      if (child.name === 'LinkMark') addReplace(child.from, child.to)
+    }
+  }
+
+  const handleSetext = (node: SyntaxNodeRef, level: number) => {
+    const active = isCursorInside(v, node.from, node.to)
+    const firstLine = doc.lineAt(node.from)
+    const lastLine = doc.lineAt(node.to)
+    addLine(firstLine.from, `cm-md-hline cm-md-h${level}-line`)
+    addMark(firstLine.from, firstLine.to, `cm-md-h${level}`)
+    if (active) {
+      addMark(lastLine.from, lastLine.to, 'cm-md-mark')
+    } else {
+      addReplace(lastLine.from, lastLine.to)
+      addLine(lastLine.from, 'cm-md-collapse-line')
+    }
+  }
+
+  const handleIndentedCode = (node: SyntaxNodeRef) => {
+    codeRanges.push({ from: node.from, to: node.to })
+    const firstLine = doc.lineAt(node.from)
+    const lastLine = doc.lineAt(node.to)
+    for (let n = firstLine.number; n <= lastLine.number; n++) {
+      const line = doc.line(n)
+      const first = n === firstLine.number ? ' cm-md-codeblock-first-code' : ''
+      const last = n === lastLine.number ? ' cm-md-codeblock-last' : ''
+      addLine(line.from, `cm-md-codeblock-line${first}${last}`)
+    }
   }
 
   const handleBlockquote = (node: SyntaxNodeRef) => {
@@ -238,12 +280,16 @@ export function buildLiveDecorations(v: EditorView): DecorationSet {
             handleInline(node, 'cm-md-code-inline')
             break
           case 'FencedCode': handleFenced(node); break
+          case 'CodeBlock': handleIndentedCode(node); break
           case 'Task': handleTask(node); break
           case 'Image': handleImage(node); break
           case 'Table': handleTable(node); break
           case 'HorizontalRule': handleHR(node); break
           case 'Blockquote': handleBlockquote(node); break
           case 'ListMark': handleListMark(node); break
+          case 'Link': handleLink(node); break
+          case 'SetextHeading1': handleSetext(node, 1); break
+          case 'SetextHeading2': handleSetext(node, 2); break
         }
       },
     })
