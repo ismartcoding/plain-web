@@ -49,7 +49,7 @@ import { EditorState, type Extension, RangeSet, type Range } from '@codemirror/s
 import type { SyntaxNodeRef } from '@lezer/common'
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
 import { languages } from '@codemirror/language-data'
-import { defaultKeymap, indentWithTab, history, historyKeymap } from '@codemirror/commands'
+import { defaultKeymap, indentWithTab, history, historyKeymap, undo, redo } from '@codemirror/commands'
 import { bracketMatching, indentOnInput, syntaxHighlighting, defaultHighlightStyle, syntaxTree, HighlightStyle } from '@codemirror/language'
 import { tags as highlightTags } from '@lezer/highlight'
 import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete'
@@ -786,7 +786,18 @@ function getExtensions(): Extension[] {
     livePreviewPlugin,
     syntaxHighlighting(mdHighlightStyle),
     syntaxHighlighting(defaultHighlightStyle),
-    keymap.of([...slashKeys, ...defaultKeymap, ...historyKeymap, ...closeBracketsKeymap, ...searchKeymap, indentWithTab]),
+    keymap.of([
+      ...slashKeys,
+      // macOS muscle memory: many users press Ctrl+Z/Ctrl+Y alongside Cmd
+      { mac: 'Ctrl-z', run: undo },
+      { mac: 'Ctrl-Shift-z', run: redo },
+      { mac: 'Ctrl-y', run: redo },
+      ...defaultKeymap,
+      ...historyKeymap,
+      ...closeBracketsKeymap,
+      ...searchKeymap,
+      indentWithTab,
+    ]),
     EditorView.lineWrapping,
     EditorView.updateListener.of((update) => {
       if (update.docChanged) {
