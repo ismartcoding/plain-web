@@ -67,6 +67,7 @@ defineEmits<{
       width: 0;
       margin-block: 8px;
       margin-inline-end: 12px;
+      word-break: break-word;
     }
   }
   .subtitle {

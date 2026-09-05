@@ -79,6 +79,14 @@ export function buildLiveDecorations(v: EditorView): DecorationSet {
     const openMatch = firstLine.text.match(/^\s*(`{3,}|~{3,})(.*)$/)
     const lang = (openMatch?.[2] ?? '').trim().split(/\s+/)[0]
     const closeIsFence = lastLine.number > firstLine.number && /^\s*(`{3,}|~{3,})\s*$/.test(lastLine.text)
+    if (isCursorInside(v, node.from, node.to)) {
+      addLine(firstLine.from, 'cm-md-codeblock-line cm-md-codeblock-head-line')
+      for (let n = firstLine.number + 1; n <= lastLine.number; n++) {
+        const line = doc.line(n)
+        addLine(line.from, 'cm-md-codeblock-line' + (n === lastLine.number ? ' cm-md-codeblock-last' : ''))
+      }
+      return
+    }
     const codeEnd = closeIsFence ? Math.max(firstLine.to + 1, lastLine.from - 1) : node.to
     const code = doc.sliceString(Math.min(firstLine.to + 1, codeEnd), codeEnd)
     ranges.push(Decoration.replace({ widget: new CodeHeaderWidget(lang, code) }).range(firstLine.from, firstLine.to))

@@ -13,6 +13,7 @@ import type { Ref } from 'vue'
 import { parseDocument } from 'htmlparser2'
 import { getFileUrlByPath } from '@/lib/api/file'
 import { slugifyHeading } from '@/lib/md-editor'
+import { highlightCode, preloadCodeLanguages } from '@/lib/md-code-highlight'
 
 const VOID_TAGS = new Set(['area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'])
 
@@ -74,7 +75,7 @@ export const useMarkdown = (app: Ref<{ appDir: string }>, urlTokenKey: Ref<Uint8
     .use(abbreviation).use(insert).use(mark)
     .use(texmath, { engine: katex as any, delimiters: 'dollars', katexOptions: { throwOnError: false, output: 'html', errorColor: '#cc0000' } })
     .use(tasklists, { enabled: true })
-  md.set({ html: true, xhtmlOut: true, breaks: true, linkify: true, typographer: true })
+  md.set({ html: true, xhtmlOut: true, breaks: true, linkify: true, typographer: true, highlight: highlightCode })
 
   const replace = (link: string) => {
     if (link.startsWith('app://')) {
@@ -88,6 +89,7 @@ export const useMarkdown = (app: Ref<{ appDir: string }>, urlTokenKey: Ref<Uint8
 
   return {
     render: async (source: string) => {
+      await preloadCodeLanguages(source)
       const dom = parseDocument(md.render(source), { recognizeCDATA: true, recognizeSelfClosing: true })
       assignHeadingIds(dom.children)
       await replaceNodes(dom.children, replace)
@@ -108,7 +110,7 @@ export const useSafeMarkdown = (app: Ref<{ appDir: string }>, urlTokenKey: Ref<U
     .use(texmath, { engine: katex as any, delimiters: 'dollars', katexOptions: { throwOnError: false, output: 'html', errorColor: '#cc0000' } })
     .use(tasklists, { enabled: true })
   // html: false — strips raw HTML from external feed content, blocking XSS
-  md.set({ html: false, xhtmlOut: true, breaks: true, linkify: true, typographer: true })
+  md.set({ html: false, xhtmlOut: true, breaks: true, linkify: true, typographer: true, highlight: highlightCode })
 
   const replace = (link: string) => {
     if (link.startsWith('app://')) {
@@ -122,6 +124,7 @@ export const useSafeMarkdown = (app: Ref<{ appDir: string }>, urlTokenKey: Ref<U
 
   return {
     render: async (source: string) => {
+      await preloadCodeLanguages(source)
       const dom = parseDocument(md.render(source), { recognizeCDATA: true, recognizeSelfClosing: true })
       assignHeadingIds(dom.children)
       await replaceNodes(dom.children, replace)

@@ -3,6 +3,15 @@
 // Used by: Notes, Feeds, TextFile, MarkdownPreviewView
 
 .md-container {
+  // Code token colors — emitted as .md-tok-* spans by lib/md-code-highlight.ts,
+  // consumed by both this preview sheet and the CM editor's HighlightStyle
+  --md-code-comment: #6e7781;
+  --md-code-string: #0a3069;
+  --md-code-keyword: #cf222e;
+  --md-code-function: #8250df;
+  --md-code-constant: #0550ae;
+  --md-code-type: #116329;
+
   padding-bottom: 32px;
   font-size: 16px;
   line-height: 1.75;
@@ -209,7 +218,6 @@
       background: transparent;
       border: 0;
       font-size: 100%;
-      color: inherit;
       white-space: pre;
     }
   }
@@ -475,31 +483,12 @@
   }
 
   // Syntax highlighting tokens - Light mode
-  .pl-c { color: #6e7781; }
-  .pl-c1, .pl-s .pl-v { color: #0550ae; }
-  .pl-e, .pl-en { color: #8250df; }
-  .pl-smi, .pl-s .pl-s1 { color: #24292f; }
-  .pl-ent { color: #116329; }
-  .pl-k { color: #cf222e; }
-  .pl-s, .pl-pds, .pl-s .pl-pse .pl-s1, .pl-sr,
-  .pl-sr .pl-cce, .pl-sr .pl-sre, .pl-sr .pl-sra { color: #0a3069; }
-  .pl-v, .pl-smw { color: #953800; }
-  .pl-bu { color: #82071e; }
-  .pl-ii { color: #f6f8fa; background-color: #82071e; }
-  .pl-c2 { color: #f6f8fa; background-color: #cf222e; }
-  .pl-sr .pl-cce { font-weight: bold; color: #116329; }
-  .pl-ml { color: #3b2300; }
-  .pl-mh, .pl-mh .pl-en, .pl-ms { font-weight: bold; color: #0550ae; }
-  .pl-mi { font-style: italic; color: #24292f; }
-  .pl-mb { font-weight: bold; color: #24292f; }
-  .pl-md { color: #82071e; background-color: #ffebe9; }
-  .pl-mi1 { color: #116329; background-color: #dafbe1; }
-  .pl-mc { color: #953800; background-color: #ffd8b5; }
-  .pl-mi2 { color: #eaeef2; background-color: #0550ae; }
-  .pl-mdr { font-weight: bold; color: #8250df; }
-  .pl-ba { color: #57606a; }
-  .pl-sg { color: #8c959f; }
-  .pl-corl { text-decoration: underline; color: #0a3069; }
+  .md-tok-comment, .md-tok-meta { color: var(--md-code-comment); }
+  .md-tok-string { color: var(--md-code-string); }
+  .md-tok-keyword { color: var(--md-code-keyword); }
+  .md-tok-function { color: var(--md-code-function); }
+  .md-tok-constant { color: var(--md-code-constant); }
+  .md-tok-type { color: var(--md-code-type); }
 }
 
 // ===== Dark Mode =====
@@ -538,30 +527,12 @@
     }
 
     // Syntax highlighting tokens - Dark mode
-    .pl-c { color: #8b949e; }
-    .pl-c1, .pl-s .pl-v { color: #79c0ff; }
-    .pl-e, .pl-en { color: #d2a8ff; }
-    .pl-smi, .pl-s .pl-s1 { color: #c9d1d9; }
-    .pl-ent { color: #7ee787; }
-    .pl-k { color: #ff7b72; }
-    .pl-s, .pl-pds, .pl-s .pl-pse .pl-s1, .pl-sr,
-    .pl-sr .pl-cce, .pl-sr .pl-sre, .pl-sr .pl-sra { color: #a5d6ff; }
-    .pl-v, .pl-smw { color: #ffa657; }
-    .pl-bu { color: #f85149; }
-    .pl-ii { color: #f0f6fc; background-color: #8e1519; }
-    .pl-c2 { color: #f0f6fc; background-color: #b62324; }
-    .pl-sr .pl-cce { font-weight: bold; color: #7ee787; }
-    .pl-mh, .pl-mh .pl-en, .pl-ms { color: #1f6feb; }
-    .pl-mi { color: #c9d1d9; }
-    .pl-mb { font-weight: bold; color: #c9d1d9; }
-    .pl-md { color: #ffdcd7; background-color: #67060c; }
-    .pl-mi1 { color: #aff5b4; background-color: #033a16; }
-    .pl-mc { color: #ffdfb6; background-color: #5a1e02; }
-    .pl-mi2 { color: #c9d1d9; background-color: #1158c7; }
-    .pl-mdr { color: #d2a8ff; }
-    .pl-ba { color: #8b949e; }
-    .pl-sg { color: #484f58; }
-    .pl-corl { color: #a5d6ff; }
+    --md-code-comment: #8b949e;
+    --md-code-string: #a5d6ff;
+    --md-code-keyword: #ff7b72;
+    --md-code-function: #d2a8ff;
+    --md-code-constant: #79c0ff;
+    --md-code-type: #7ee787;
   }
 }
 

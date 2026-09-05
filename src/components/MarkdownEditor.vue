@@ -50,9 +50,8 @@ import type { SyntaxNode } from '@lezer/common'
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
 import { languages } from '@codemirror/language-data'
 import { defaultKeymap, indentWithTab, history, historyKeymap } from '@codemirror/commands'
-import { syntaxHighlighting, defaultHighlightStyle, syntaxTree } from '@codemirror/language'
+import { syntaxTree } from '@codemirror/language'
 import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete'
-import { oneDark } from '@codemirror/theme-one-dark'
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search'
 import emitter from '@/plugins/eventbus'
 import {
@@ -65,6 +64,7 @@ import {
   toggleLink,
   insertImageAtCursor,
 } from '@/lib/md-editor'
+import { mdCodeHighlight } from '@/lib/md-code-highlight'
 import { livePreviewPlugin } from './markdown-editor/decorations'
 import { baseTheme, lightTheme, darkThemeOverride, mdHighlightExtensions } from './markdown-editor/theme'
 import { useEditorMenu } from './markdown-editor/menu'
@@ -112,7 +112,7 @@ function getExtensions(): Extension[] {
     markdown({ base: markdownLanguage, codeLanguages: languages }),
     livePreviewPlugin,
     mdHighlightExtensions,
-    syntaxHighlighting(defaultHighlightStyle),
+    mdCodeHighlight,
     keymap.of([...menuKeys, ...defaultKeymap, ...historyKeymap, ...closeBracketsKeymap, ...searchKeymap, indentWithTab]),
     EditorView.lineWrapping,
     EditorView.updateListener.of((update) => {
@@ -126,7 +126,7 @@ function getExtensions(): Extension[] {
     }),
   ]
   if (props.placeholder) exts.push(cmPlaceholder(props.placeholder))
-  exts.push(baseTheme, isDark ? oneDark : lightTheme, isDark ? darkThemeOverride : lightTheme)
+  exts.push(baseTheme, lightTheme, isDark ? darkThemeOverride : lightTheme)
   return exts
 }
 
