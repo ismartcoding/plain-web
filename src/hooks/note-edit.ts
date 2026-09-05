@@ -54,12 +54,7 @@ export function useNoteEdit() {
 
   const saveContent = debounce(() => {
     notSaved.value = false
-    save({ id: id.value, input: { content: content.value, title: title.value || getMarkdownTitle(content.value) } })
-  }, 500)
-
-  const saveTitle = debounce(() => {
-    notSaved.value = false
-    save({ id: id.value, input: { content: content.value, title: title.value || getMarkdownTitle(content.value) } })
+    save({ id: id.value, input: { content: content.value, title: getMarkdownTitle(content.value) } })
   }, 500)
 
   const watchContent = () => {
@@ -67,10 +62,6 @@ export function useNoteEdit() {
       notSaved.value = true
       markdown.value = await render(value)
       saveContent()
-    })
-    watch(title, () => {
-      notSaved.value = true
-      saveTitle()
     })
   }
 
@@ -102,7 +93,7 @@ export function useNoteEdit() {
 
   function getTime() {
     const time = note?.value?.updatedAt
-    return time ? `(${t('updated_at')}: ${formatDateTime(time)})` : ''
+    return time ? `${t('updated_at')}: ${formatDateTime(time)}` : ''
   }
 
   const print = () => window.print()
