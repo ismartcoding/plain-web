@@ -1,18 +1,19 @@
 <template>
   <div ref="editorContainer" class="markdown-editor md-container" @paste="handlePaste" @drop.prevent="handleDrop" @dragover.prevent @contextmenu="onContextMenu">
     <div v-if="slashOpen" class="slash-menu" :style="slashStyle" @mousedown.prevent>
-      <div
-        v-for="(it, i) in slashFiltered"
-        :key="it.id"
-        class="slash-item"
-        :class="{ hot: i === slashActive }"
-        @click="applySlash(i)"
-        @mousemove="slashActive = i"
-      >
-        <span class="slash-ic">{{ it.icon }}</span>
-        <span class="slash-label">{{ $t(`md_${it.id}`) }}</span>
-        <span class="slash-kbd">{{ it.kbd }}</span>
-      </div>
+      <template v-for="(it, i) in menuItems" :key="it.key">
+        <div v-if="it.kind === 'style' && i === styleStart" class="slash-div"></div>
+        <div
+          class="slash-item"
+          :class="{ hot: i === slashActive }"
+          @click="applyMenuItem(i)"
+          @mousemove="slashActive = i"
+        >
+          <span class="slash-ic" v-html="it.icon"></span>
+          <span class="slash-label">{{ it.label }}</span>
+          <span class="slash-kbd">{{ it.kbd }}</span>
+        </div>
+      </template>
     </div>
     <div v-if="selBarOpen" class="sel-toolbar" :style="selBarStyle" @mousedown.prevent>
       <button class="st-btn" :aria-label="$t('md_bold')" @click="runCmd(toggleWrap, '**')"><b>B</b></button>
@@ -60,8 +61,6 @@ import { i18n } from '@/plugins/i18n'
 import { useTempStore } from '@/stores/temp'
 import { getFileUrlByPath } from '@/lib/api/file'
 import { useOpenMedia } from '@/hooks/open-media'
-import { contextmenu } from '@/components/contextmenu'
-import type { MenuItem } from '@/components/contextmenu/ContextMenuDefine'
 import { DataType } from '@/lib/data'
 import {
   SLASH_TEMPLATES,
@@ -357,42 +356,95 @@ function syncSelBar(v: EditorView) {
   selBarOpen.value = true
 }
 
-function onContextMenu(e: MouseEvent) {
-  const target = e.target as HTMLElement
-  const t = (key: string) => i18n.global.t(key)
-  const items: MenuItem[] = []
-  const imgEl = target.closest('.cm-md-img') as HTMLElement | null
-  if (imgEl?.dataset.link) {
-    items.push({ label: t('open_image'), onClick: () => zoomImage(imgEl.dataset.link!) })
-    items.push({ label: t('copy_image_link'), onClick: () => navigator.clipboard.writeText(imgEl.dataset.link!) })
-  }
-  const headEl = target.closest('.cm-md-codeblock-head') as HTMLElement | null
-  let codeEl = headEl
-  if (!codeEl) {
-    const lineEl = target.closest('.cm-line') as HTMLElement | null
-    if (lineEl?.classList.contains('cm-md-codeblock')) {
-      let prev = lineEl.previousElementSibling as HTMLElement | null
-      while (prev && !prev.classList.contains('cm-md-codeblock-head-line')) {
-        prev = prev.previousElementSibling as HTMLElement | null
-      }
-      codeEl = (prev?.querySelector('.cm-md-codeblock-head') as HTMLElement | null) ?? null
+interface MenuItemRow {
+  kind: 'slash' | 'style'
+  template?: SlashTemplate
+  style?: 'bold' | 'italic' | 'strike' | 'code' | 'link'
+  key: string
+  icon: string
+  label: string
+  kbd: string
+}
+
+const menuStyleGroup = ref(false)
+
+const STYLE_ITEMS: Array<{ style: 'bold' | 'italic' | 'strike' | 'code' | 'link'; icon: string; kbd: string }> = [
+  { style: 'bold', icon: '<b>B</b>', kbd: '' },
+  { style: 'italic', icon: '<i>I</i>', kbd: '' },
+  { style: 'strike', icon: '<s>S</s>', kbd: '' },
+  { style: 'code', icon: '&lt;&gt;', kbd: '' },
+  { style: 'link', icon: '🔗', kbd: '' },
+]
+
+const menuItems = computed<MenuItemRow[]>(() => {
+  const items: MenuItemRow[] = slashFiltered.value.map((t) => ({
+    kind: 'slash' as const,
+    template: t,
+    key: 'slash-' + t.id,
+    icon: t.icon,
+    label: i18n.global.t(`md_${t.id}`),
+    kbd: t.kbd,
+  }))
+  if (menuStyleGroup.value && !slashQuery.value) {
+    for (const s of STYLE_ITEMS) {
+      items.push({
+        kind: 'style' as const,
+        style: s.style,
+        key: 'style-' + s.style,
+        icon: s.icon,
+        label: i18n.global.t(s.style === 'code' ? 'md_inline_code' : 'md_' + s.style),
+        kbd: s.kbd,
+      })
     }
   }
-  if (codeEl?.dataset.code != null) {
-    items.push({ label: t('copy_code'), onClick: () => navigator.clipboard.writeText(codeEl!.dataset.code!) })
+  return items
+})
+
+const styleStart = computed(() => {
+  if (!menuStyleGroup.value) return -1
+  return slashFiltered.value.length
+})
+
+function applyMenuItem(index: number) {
+  const item = menuItems.value[index]
+  if (!item) return
+  if (item.kind === 'slash') {
+    applySlash(index)
+    return
   }
-  const sel = view.value?.state.selection.main
-  if (sel && !sel.empty) {
-    if (items.length) items[0].divided = true
-    items.push({ label: t('md_bold'), onClick: () => runCmd(toggleWrap, '**') })
-    items.push({ label: t('md_italic'), onClick: () => runCmd(toggleWrap, '*') })
-    items.push({ label: t('md_strike'), onClick: () => runCmd(toggleWrap, '~~') })
-    items.push({ label: t('md_inline_code'), onClick: () => runCmd(toggleWrap, '`') })
-    items.push({ label: t('md_link'), onClick: () => runCmd(toggleLink) })
-  }
-  if (!items.length) return
+  const v = view.value
+  if (!v) return
+  if (item.style === 'bold') toggleWrap(v, '**')
+  else if (item.style === 'italic') toggleWrap(v, '*')
+  else if (item.style === 'strike') toggleWrap(v, '~~')
+  else if (item.style === 'code') toggleWrap(v, '`')
+  else if (item.style === 'link') toggleLink(v)
+  v.focus()
+  closeSlash()
+}
+
+function openMenuAt(x: number, y: number) {
+  const v = view.value
+  const rect = editorContainer.value?.getBoundingClientRect()
+  if (!v || !rect) return
+  menuStyleGroup.value = !v.state.selection.main.empty
+  slashQuery.value = ''
+  slashFrom.value = v.state.selection.main.head
+  slashActive.value = 0
+  const items = menuItems.value
+  const menuH = Math.min(items.length, 12) * 34 + 12
+  slashLeft.value = Math.min(Math.max(x, 8), Math.max(rect.width - 280, 8))
+  let top = y
+  if (top + menuH > rect.height) top = Math.max(rect.height - menuH - 6, 4)
+  slashTop.value = top
+  slashOpen.value = true
+}
+
+function onContextMenu(e: MouseEvent) {
   e.preventDefault()
-  contextmenu({ x: e.clientX, y: e.clientY, items })
+  const rect = editorContainer.value?.getBoundingClientRect()
+  if (!rect) return
+  openMenuAt(e.clientX - rect.left, e.clientY - rect.top)
 }
 
 const baseTheme = EditorView.theme({
@@ -725,6 +777,7 @@ function syncSlash(v: EditorView) {
     closeSlash()
     return
   }
+  menuStyleGroup.value = false
   slashQuery.value = query
   slashFrom.value = head - 1 - query.length
   if (slashFiltered.value.length === 0) {
@@ -747,15 +800,16 @@ function syncSlash(v: EditorView) {
 
 function applySlash(index: number) {
   const v = view.value
-  const item = slashFiltered.value[index]
-  if (!v || !item) return
+  const item = menuItems.value[index]
+  if (!v || !item || item.kind !== 'slash' || !item.template) return
+  const t = item.template
   const to = v.state.selection.main.head
   const from = slashFrom.value
   v.dispatch({
-    changes: { from, to, insert: item.text },
-    selection: item.select
-      ? { anchor: from + item.select[0], head: from + item.select[1] }
-      : { anchor: from + item.cursor },
+    changes: { from, to, insert: t.text },
+    selection: t.select
+      ? { anchor: from + t.select[0], head: from + t.select[1] }
+      : { anchor: from + t.cursor },
   })
   v.focus()
   closeSlash()
@@ -766,7 +820,7 @@ const slashKeys = [
     key: 'ArrowDown',
     run: () => {
       if (!slashOpen.value) return false
-      slashActive.value = (slashActive.value + 1) % slashFiltered.value.length
+      slashActive.value = (slashActive.value + 1) % menuItems.value.length
       return true
     },
   },
@@ -774,7 +828,7 @@ const slashKeys = [
     key: 'ArrowUp',
     run: () => {
       if (!slashOpen.value) return false
-      const n = slashFiltered.value.length
+      const n = menuItems.value.length
       slashActive.value = (slashActive.value - 1 + n) % n
       return true
     },
