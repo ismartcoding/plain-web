@@ -51,14 +51,6 @@ pub async fn check_for_updates(app: tauri::AppHandle) -> Result<UpdateCheck, Str
     })
 }
 
-#[tauri::command]
-pub fn get_app_info(app: tauri::AppHandle) -> serde_json::Value {
-    serde_json::json!({
-        "version": app.package_info().version.to_string(),
-        "name": env!("CARGO_PKG_NAME"),
-    })
-}
-
 fn compare_versions(a: &str, b: &str) -> std::cmp::Ordering {
     let parts = |s: &str| -> Vec<u32> {
         s.trim_start_matches('v')

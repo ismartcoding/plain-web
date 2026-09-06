@@ -54,7 +54,7 @@ interface UpdateCheck {
   publishedAt: string
 }
 
-const version = ref('')
+const version = __APP_VERSION__
 const status = ref<'loading' | 'success' | 'error' | ''>('')
 const result = ref<UpdateCheck | null>(null)
 const error = ref('')
@@ -65,7 +65,7 @@ const hasUpdate = () => result.value?.hasUpdate ?? false
 
 function buildInfo() {
   debugInfo.value = [
-    `App version: ${version.value}`,
+    `App version: ${version}`,
     `Platform: ${navigator.platform}`,
     `Language: ${navigator.language}`,
     `WebView: ${navigator.userAgent}`,
@@ -100,13 +100,7 @@ function goToRelease() {
   if (result.value?.releaseUrl) openUrl(result.value.releaseUrl)
 }
 
-onMounted(async () => {
-  try {
-    const info = await invoke<{ version: string; name: string }>('get_app_info', {})
-    version.value = info.version
-  } catch {
-    version.value = '0.1.0'
-  }
+onMounted(() => {
   buildInfo()
   runCheck()
 })
