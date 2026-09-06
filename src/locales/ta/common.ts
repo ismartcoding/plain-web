@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   link_copied: 'இணையம் நகலெடுக்கப்பட்டது',
+  copy_failed: 'நகலெடுப்பு தோல்வியடைந்தது',
   copy_link: 'இணையம் நகலெடுக்குக',
   unwrap: 'அலுப்பு',
   wrap: 'அலுப்பு',

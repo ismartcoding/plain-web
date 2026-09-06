@@ -1,6 +1,7 @@
 export default {
   app_name: 'প্লেইনঅ্যাপ',
   link_copied: 'লিংক কপি করা হয়েছে',
+  copy_failed: 'কপি করা যায়নি',
   copy_link: 'লিংক কপি করুন',
   unwrap: 'আনওয়্যাপ',
   wrap: 'আনওয়্যাপ',

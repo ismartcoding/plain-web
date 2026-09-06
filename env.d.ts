@@ -32,3 +32,8 @@ interface Navigator {
     getHighEntropyValues(hints: string[]): Promise<Record<string, any>>
   }
 }
+
+interface Window {
+  /** DevTools toggle: `__PLAIN_LOG__ = true` enables transport logging. */
+  __PLAIN_LOG__?: boolean
+}

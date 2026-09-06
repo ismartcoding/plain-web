@@ -3,6 +3,7 @@ export default {
   or: '或',
   hide: '隐藏',
   link_copied: '链接已复制',
+  copy_failed: '复制失败',
   copy_link: '复制链接',
   unwrap: '不换行',
   wrap: '换行',

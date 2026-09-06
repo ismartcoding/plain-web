@@ -3,6 +3,7 @@ export default {
   or: 'or',
   hide: 'Hide',
   link_copied: 'Link copied',
+  copy_failed: 'Copy failed',
   copy_link: 'Copy link',
   unwrap: 'Unwrap',
   wrap: 'Wrap',

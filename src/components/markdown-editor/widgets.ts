@@ -3,6 +3,7 @@ import { WidgetType } from '@codemirror/view'
 import 'katex/dist/katex.min.css'
 import katex from 'katex'
 import { i18n } from '@/plugins/i18n'
+import { copyTextToClipboard } from '@/lib/clipboard'
 import type { GfmTable } from '@/lib/md-editor'
 import { resolveImageUrl, zoomImage } from './images'
 
@@ -89,7 +90,7 @@ export class CodeHeaderWidget extends WidgetType {
     btn.textContent = i18n.global.t('copy')
     btn.addEventListener('click', (e) => {
       e.stopPropagation()
-      navigator.clipboard.writeText(this.code)
+      copyTextToClipboard(this.code)
       btn.textContent = '✓'
       setTimeout(() => {
         btn.textContent = i18n.global.t('copy')

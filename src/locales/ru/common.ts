@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   link_copied: 'Ссылка скопирована',
+  copy_failed: 'Не удалось скопировать',
   copy_link: 'Скопировать ссылку',
   unwrap: 'Развернуть',
   wrap: 'Свернуть',

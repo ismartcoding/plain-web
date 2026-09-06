@@ -129,7 +129,8 @@ export function useAppSocket() {
           } else {
             const json = chachaDecrypt(key, r.data)
             const data = json ? JSON.parse(json) : null
-            if (import.meta.env.DEV) console.log(`[ws event] ${type}`, data)
+            // Opt-in via DevTools (`__PLAIN_LOG__ = true`)
+            if (window.__PLAIN_LOG__) console.log(`[ws event] ${type}`, data)
             emitter.emit(type as any, data)
           }
         } catch (ex) {

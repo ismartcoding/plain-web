@@ -1,6 +1,7 @@
 export default {
   app_name: 'प्लेनऐप',
   link_copied: 'लिंक कॉपी कर दिया गया',
+  copy_failed: 'कॉपी विफल रहा',
   copy_link: 'लिंक कॉपी करें',
   unwrap: 'आनपैक',
   wrap: 'आनपैक',

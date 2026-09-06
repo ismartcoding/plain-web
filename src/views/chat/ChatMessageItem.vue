@@ -56,6 +56,7 @@ import { useI18n } from 'vue-i18n'
 import { formatTime, formatDateTimeFull, formatDate } from '@/lib/format'
 import { addLinksToURLs } from '@/lib/strutil'
 import { selectedTextWithin } from '@/lib/dom'
+import { copyTextToClipboard } from '@/lib/clipboard'
 import ILucideCopy from '~icons/lucide/copy'
 import ILucideForward from '~icons/lucide/forward'
 import ILucideTrash2 from '~icons/lucide/trash-2'
@@ -103,7 +104,7 @@ const isText = computed(() => props.data._content.type === MessageType.TEXT)
 
 function copyText() {
   const text = copySelection || (props.data._content.value.text ?? '')
-  if (text && navigator.clipboard) navigator.clipboard.writeText(text)
+  if (text) copyTextToClipboard(text)
 }
 
 function deleteEntry(divided: boolean): MenuItem {

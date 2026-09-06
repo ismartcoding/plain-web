@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   link_copied: 'Bağlantı kopyalandı',
+  copy_failed: 'Kopyalama başarısız oldu',
   copy_link: 'Bağlantıyı kopyala',
   unwrap: 'Aç',
   wrap: 'Kapat',

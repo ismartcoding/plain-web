@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   link_copied: 'リンクがコピーされました',
+  copy_failed: 'コピーに失敗しました',
   copy_link: 'リンクをコピー',
   unwrap: 'アンワップ',
   wrap: 'ワップ',

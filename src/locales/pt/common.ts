@@ -1,6 +1,7 @@
 export default {
   app_name: 'PlainApp',
   link_copied: 'Link copiado',
+  copy_failed: 'Falha ao copiar',
   copy_link: 'Copiar link',
   unwrap: 'Desembrulhar',
   wrap: 'Embalar',

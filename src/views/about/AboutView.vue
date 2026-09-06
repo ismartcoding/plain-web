@@ -43,6 +43,7 @@
 import { ref, onMounted } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import { openUrl } from '@/lib/browser'
+import { copyTextToClipboard } from '@/lib/clipboard'
 
 interface UpdateCheck {
   currentVersion: string
@@ -72,13 +73,9 @@ function buildInfo() {
 }
 
 async function copyInfo() {
-  try {
-    await navigator.clipboard.writeText(debugInfo.value)
-    copied.value = true
-    setTimeout(() => (copied.value = false), 1500)
-  } catch {
-    copied.value = false
-  }
+  const ok = await copyTextToClipboard(debugInfo.value)
+  copied.value = ok
+  setTimeout(() => (copied.value = false), 1500)
 }
 
 const statusClass = () => {
