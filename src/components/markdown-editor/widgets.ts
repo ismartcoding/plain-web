@@ -1,5 +1,6 @@
 import type { EditorView } from '@codemirror/view'
 import { WidgetType } from '@codemirror/view'
+import 'katex/dist/katex.min.css'
 import katex from 'katex'
 import { i18n } from '@/plugins/i18n'
 import type { GfmTable } from '@/lib/md-editor'

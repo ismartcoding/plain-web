@@ -59,6 +59,7 @@
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.104",
     "@iconify-json/material-symbols": "^1.2.69",
+    "@intlify/unplugin-vue-i18n": "^11.2.5",
     "@tauri-apps/api": "^2",
     "@tauri-apps/cli": "^2",
     "@types/node": "^22.15.29",

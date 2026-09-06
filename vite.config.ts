@@ -8,6 +8,7 @@ import IconsResolver from 'unplugin-icons/resolver'
 import Components from 'unplugin-vue-components/vite'
 import svgLoader from 'vite-svg-loader'
 import vueJsx from '@vitejs/plugin-vue-jsx'
+import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
 import { playwright } from '@vitest/browser-playwright'
 
 const INVALID_CHAR_REGEX = /[_\x00-\x1F\x7F<>*#"{}|^[\]`;?:&=+$,]/g
@@ -145,6 +146,17 @@ export default defineConfig(({ mode }) => {
       dirs: ['src/components', 'src/views'],
     }),
     Icons(),
+    // Pre-compile locale messages at build time so the production bundle can
+    // use the runtime-only vue-i18n build (drops @intlify/message-compiler
+    // from the entry chunk). `timeago.ts` stays raw — lib/timeago reads it
+    // as plain strings; `index.ts` composes the feature modules at runtime
+    // and needs no compilation itself. Test projects don't inherit this
+    // plugin, so vitest keeps runtime compilation.
+    VueI18nPlugin({
+      include: [path.resolve(__dirname, './src/locales/**/*.ts')],
+      exclude: ['**/timeago.ts', '**/locales/**/index.ts'],
+      runtimeOnly: true,
+    }),
   ],
   define: sharedDefine,
   resolve: {

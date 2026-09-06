@@ -1,3 +1,4 @@
+import 'katex/dist/katex.min.css'
 import MarkdownIt from 'markdown-it'
 import subscript from 'markdown-it-sub'
 import superscript from 'markdown-it-sup'
