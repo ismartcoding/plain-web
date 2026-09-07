@@ -132,6 +132,7 @@ export default {
   time: 'Heure',
   browser_warning: 'Il est recommandé d\'utiliser la dernière version du navigateur web Chrome.',
   no_permission: 'Pas de permission. Veuillez accéder à APP > "Paramètres d\'accès" pour activer les autorisations et actualisez la page.',
+  notification_listener_permission_denied: "Accès aux notifications non activé sur cet appareil.",
   check_phone: 'Veuillez vérifier votre téléphone.',
   open_access_settings: 'Ouvrir les paramètres d\'accès',
   no_data: 'Pas de données.',

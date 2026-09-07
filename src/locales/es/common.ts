@@ -131,6 +131,7 @@ export default {
   type: 'Tipo',
   time: 'Hora',
   no_permission: 'Sin permiso. Por favor, ve a APP > "Configuración de acceso" para habilitar los permisos y actualiza la página.',
+  notification_listener_permission_denied: "El acceso a las notificaciones no está activado en este dispositivo.",
   check_phone: 'Por favor, comprueba tu teléfono.',
   open_access_settings: 'Abrir Configuración de acceso',
   no_data: 'No hay datos.',

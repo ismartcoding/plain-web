@@ -134,6 +134,7 @@ export default {
   type: 'টাইপ',
   time: 'সময়',
   no_permission: 'অনুমতি নেই। দয়া করে অনুমতিগুলি সক্রিয় করতে APP > "অ্যাক্সেস সেটিংস" এ যান এবং পৃষ্ঠাটি রিফ্রেশ করুন।',
+  notification_listener_permission_denied: "এই ডিভাইসে বিজ্ঞপ্তি অ্যাক্সেস সক্রিয় নয়।",
   check_phone: 'আপনার ফোনে চেক করুন।',
   open_access_settings: 'অ্যাক্সেস সেটিংস খুলুন',
   no_data: 'কোন ডেটা নেই।',

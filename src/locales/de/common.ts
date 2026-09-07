@@ -131,6 +131,7 @@ export default {
   type: 'Typ',
   time: 'Zeit',
   no_permission: 'Keine Berechtigung. Bitte gehen Sie zu APP > "Zugriffseinstellungen", um die Berechtigungen zu aktivieren, und aktualisieren Sie die Seite.',
+  notification_listener_permission_denied: "Der Benachrichtigungszugriff ist auf diesem Gerät nicht aktiviert.",
   check_phone: 'Bitte überprüfen Sie Ihr Telefon.',
   open_access_settings: 'Zugriffseinstellungen öffnen',
   no_data: 'Keine Daten.',

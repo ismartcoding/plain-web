@@ -130,6 +130,7 @@ export default {
   type: 'Loại',
   time: 'Thời gian',
   no_permission: 'Không có quyền. Vui lòng vào APP > "Cài đặt truy cập" để bật quyền và làm mới trang.',
+  notification_listener_permission_denied: "Quyền truy cập thông báo chưa được bật trên thiết bị này.",
   check_phone: 'Vui lòng kiểm tra điện thoại của bạn.',
   open_access_settings: 'Mở Cài đặt truy cập',
   no_data: 'Không có dữ liệu.',

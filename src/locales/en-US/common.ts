@@ -163,6 +163,7 @@ export default {
   type: 'Type',
   time: 'Time',
   no_permission: 'No permission. Please go to APP > "Access Settings" to enable the permissions and refresh the page.',
+  notification_listener_permission_denied: "Notification access is not enabled on this device.",
   check_phone: 'Please check your phone.',
   open_access_settings: 'Open Access Settings',
   no_data: 'No data.',

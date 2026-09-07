@@ -132,6 +132,7 @@ export default {
   type: '類型',
   time: '時間',
   no_permission: '無權限。請前往APP > 「存取設定」啟用權限並重新整理頁面。',
+  notification_listener_permission_denied: "該裝置未開啟通知監聽權限。",
   check_phone: '請在手機上查看操作。',
   open_access_settings: '開啟 存取設定',
   no_data: '無資料。',

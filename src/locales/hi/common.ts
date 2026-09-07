@@ -130,6 +130,7 @@ export default {
   type: 'टाइप',
   time: 'टाइम',
   no_permission: 'अनुमति नहीं है। कृपया APP > "एक्सेस सेटिंग्स" पर जाएं, परमिशन चालू करें और पेज को रिफ्रेश करें.',
+  notification_listener_permission_denied: "इस डिवाइस पर सूचना एक्सेस सक्षम नहीं है।",
   check_phone: 'कृपया अपना फोन जांचें।',
   open_access_settings: 'एक्सेस सेटिंग्स खोलें',
   no_data: 'नो डाटा.',

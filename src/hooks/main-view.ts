@@ -54,7 +54,6 @@ export function useMainView() {
   }
 
   function toggleQuick(name: string) {
-    if (localMode && name === 'notification') return
     store.quick = store.quick === name ? '' : name
   }
 

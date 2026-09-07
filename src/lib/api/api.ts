@@ -39,13 +39,23 @@ export function getLocalServerHttpsPort(): number { return _localServerHttpsPort
 /** In Tauri + HTTPS mode, builds a local proxy URL with the device target
  *  encoded as `_pt` query param — for browser-initiated requests (img/video src)
  *  that cannot set custom headers. Non-HTTPS devices get a direct URL. */
-export function getProxyUrl(path: string): string {
-  const base = getApiBaseUrl()
+/** Base URL for a device host (`ip:port`) — phones serve TLS on *43 ports. */
+export function deviceBaseUrl(host: string): string {
+  return applyScheme(isSecurePort(host) ? 'https' : 'http', host)
+}
+
+/** Routes a browser-initiated path through the local HTTP reverse proxy when
+ *  the target base is a self-signed HTTPS device (Tauri only). */
+export function proxyUrlFor(base: string, path: string): string {
   if (__IS_TAURI__ && base.startsWith('https://')) {
     const sep = path.includes('?') ? '&' : '?'
     return `http://127.0.0.1:${_httpProxyPort}${path}${sep}_pt=${encodeURIComponent(base)}`
   }
   return `${base}${path}`
+}
+
+export function getProxyUrl(path: string): string {
+  return proxyUrlFor(getApiBaseUrl(), path)
 }
 
 /** Base URL for file uploads.
@@ -108,7 +118,7 @@ export function getApiBaseUrl() {
     return `http://localhost:${_localServerPort}`
   }
   if (__IS_TAURI__ && (_pendingLoginDevice || getCurrentDeviceHost())) {
-    return applyScheme(isSecurePort(getApiHost()) ? 'https' : 'http', getApiHost())
+    return deviceBaseUrl(getApiHost())
   }
   return applyScheme(window.location.protocol.replace(':', ''), getApiHost())
 }

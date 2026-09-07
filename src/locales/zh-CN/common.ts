@@ -161,6 +161,7 @@ export default {
   type: '类型',
   time: '时间',
   no_permission: '没有权限，请到手机应用 > "访问设置"里面打开权限并刷新页面重试。',
+  notification_listener_permission_denied: "该设备未开启通知监听权限。",
   check_phone: '请在手机上查看操作。',
   open_access_settings: '打开 访问设置',
   no_data: '没有数据。',

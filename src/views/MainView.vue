@@ -73,7 +73,7 @@
                   </span>
                 </v-icon-button>
                 <v-icon-button
-                  v-if="!localMode && app.channel !== AppChannelType.GOOGLE"
+                  v-if="app.channel !== AppChannelType.GOOGLE"
                   v-tooltip="$t('header_actions.notifications')"
                   class="q-action"
                   toggle
@@ -89,6 +89,16 @@
                   <i-material-symbols:timer-outline />
                 </v-icon-button>
             </template>
+            <v-icon-button
+              v-if="localMode"
+              v-tooltip="$t('header_actions.notifications')"
+              class="q-action"
+              toggle
+              :class="{ selected: store.quick === 'notification' }"
+              @click="toggleQuick('notification')"
+            >
+              <i-material-symbols:notifications-outline-rounded />
+            </v-icon-button>
             <v-icon-button v-tooltip="$t('bookmarks')" class="q-action" toggle :class="{ selected: store.quick === 'bookmark' }" @click="toggleQuick('bookmark')">
               <i-lucide:bookmark />
             </v-icon-button>
@@ -101,6 +111,7 @@
             <upload-list v-show="store.quick === 'upload'" />
             <audio-player v-show="store.quick === 'audio'" />
             <p-notifications v-if="!localMode" v-show="store.quick === 'notification'" />
+            <local-notifications v-if="localMode" v-show="store.quick === 'notification'" />
             <pomodoro-timer v-show="store.quick === 'pomodoro'" />
             <bookmark-list v-show="store.quick === 'bookmark'" />
           </div>
@@ -114,6 +125,7 @@
 import { inject } from 'vue'
 import HeaderSearch from '@/components/HeaderSearch.vue'
 import BookmarkList from '@/views/bookmarks/BookmarkList.vue'
+import LocalNotifications from '@/views/notifications/LocalNotifications.vue'
 import { AppChannelType } from '@/lib/status'
 import { useMainView } from '@/hooks/main-view'
 

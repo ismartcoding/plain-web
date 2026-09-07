@@ -131,6 +131,7 @@ export default {
   type: '유형',
   time: '시간',
   no_permission: '권한 없음. APP > "액세스 설정"으로 이동하여 권한을 활성화하고 페이지를 새로 고칩니다.',
+  notification_listener_permission_denied: "이 기기에서 알림 접근 권한이 사용 설정되지 않았습니다.",
   check_phone: '휴대폰을 확인해 주세요.',
   open_access_settings: '액세스 설정 열기',
   no_data: '데이터 없음.',

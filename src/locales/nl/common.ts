@@ -130,6 +130,7 @@ export default {
   type: 'Typ',
   time: 'Tijd',
   no_permission: 'Geen toestemming. Ga naar APP > "Toegangsinstellingen" om de toestemmingen in te schakelen en vernieuw de pagina.',
+  notification_listener_permission_denied: "Toegang tot meldingen is niet ingeschakeld op dit apparaat.",
   check_phone: 'Controleer uw telefoon.',
   open_access_settings: 'Toegangsinstellingen openen',
   no_data: 'Geen gegevens.',
